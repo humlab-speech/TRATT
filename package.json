@@ -1,6 +1,6 @@
 {
   "name": "octra-source",
-  "version": "2.4.1",
+  "version": "2.4.2",
   "license": "MIT",
   "author": "Fredrik Nylen, Umeå University. Authors of the original OCTRA: Julian Pömp, Christoph Draxler; Institut für Phonetik und Sprachverarbeitung, LMU München",
   "scripts": {
