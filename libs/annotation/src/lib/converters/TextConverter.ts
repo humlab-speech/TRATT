@@ -224,6 +224,15 @@ export class TextConverter extends Converter {
   }
 
   public import(file: IFile, audiofile: OAudiofile): ImportResult {
+    const hasTextExtension = this._extensions.some((ext) =>
+      file.name.toLowerCase().endsWith(ext),
+    );
+    if (!hasTextExtension && file.type !== 'text/plain') {
+      return {
+        error: 'Not a plain text file',
+      };
+    }
+
     if (!audiofile?.sampleRate) {
       return {
         error: 'Missing sample rate',
