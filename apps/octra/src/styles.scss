@@ -3,9 +3,9 @@
 
 /* Design tokens.
  *
- * OCTRA renders inside the VISP shell, so structural colours mirror VISP's
+ * TRATT renders inside the VISP shell, so structural colours mirror VISP's
  * tokens (humlab-speech/webclient, src/colors.scss lines 106-124). Where the
- * Umeå University palette has a near-equivalent it wins, which keeps OCTRA
+ * Umeå University palette has a near-equivalent it wins, which keeps TRATT
  * palette-compliant when it runs standalone.
  *
  * Canvas colours cannot read CSS variables; they live in

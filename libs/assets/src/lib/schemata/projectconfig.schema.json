@@ -4,7 +4,7 @@
   "required": ["version", "navigation", "languages", "interfaces"],
   "properties": {
     "version": {
-      "description": "The version shows which version of OCTRA is compatible with this configuration.",
+      "description": "The version shows which version of TRATT is compatible with this configuration.",
       "type": "string",
       "readOnly": true
     },

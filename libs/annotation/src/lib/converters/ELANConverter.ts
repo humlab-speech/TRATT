@@ -62,7 +62,7 @@ export class ELANConverter extends Converter {
         },
       },
       ANNOTATION_DOCUMENT: {
-        _AUTHOR: 'OCTRA',
+        _AUTHOR: 'TRATT',
         _DATE: new Date().toISOString(),
         _FORMAT: '3.0',
         _VERSION: '3.0',
@@ -282,7 +282,11 @@ export class ELANConverter extends Converter {
     sampleRate: number,
   ) {
     const rawSlots = obj.ANNOTATION_DOCUMENT.TIME_ORDER.TIME_SLOT;
-    const slots = Array.isArray(rawSlots) ? rawSlots : rawSlots ? [rawSlots] : [];
+    const slots = Array.isArray(rawSlots)
+      ? rawSlots
+      : rawSlots
+        ? [rawSlots]
+        : [];
     for (const timeorderElement of slots) {
       if (timeorderElement._TIME_SLOT_ID === slotID) {
         const miliseconds = timeorderElement._TIME_VALUE!;

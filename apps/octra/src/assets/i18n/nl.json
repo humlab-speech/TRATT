@@ -23,7 +23,7 @@
     "without asr": "Geen ASR"
   },
   "authentication": {
-    "description": "Sluit dit venster en klik in OCTRA op de \"I'm authenticated!\" knop om de authenticatie te bevestigen. Daarna gaat de geautomatiseerde verwerking verder.",
+    "description": "Sluit dit venster en klik in TRATT op de \"I'm authenticated!\" knop om de authenticatie te bevestigen. Daarna gaat de geautomatiseerde verwerking verder.",
     "window closed": "Dit venster wordt over {{seconds}} seconden automatisch gesloten.",
     "you are authenticated": "U bent geauthenticeerd!"
   },
@@ -33,7 +33,7 @@
     "invalid": "<b>Uw browser is niet compatibel</b>. Gebruik een van de volgende browsers:"
   },
   "bug report": {
-    "description": "Vertel ons wat u vindt van OCTRA. Wat kunnen we beter doen? Hebt u bugs gevonden?    ",
+    "description": "Vertel ons wat u vindt van TRATT. Wat kunnen we beter doen? Hebt u bugs gevonden?    ",
     "error": "Helaas kon uw feedback niet naar ons worden verzonden. Stuur ons a.u.b. een e-mail naar {{e-mail}}.",
     "give feedback": "Geef feedback",
     "send protocol": "Protocol toevoegen (aanbevolen)",
@@ -235,11 +235,11 @@
   },
   "login": {
     "api not available": "",
-    "demo": "Klik hier om OCTRA te gebruiken op een standaard audiobestand (demo)",
+    "demo": "Klik hier om TRATT te gebruiken op een standaard audiobestand (demo)",
     "last used": "laatst gebruikt",
     "local and remove": "Gegevens online modus verwijderen & doorgaan",
     "local mode": "Lokale modus",
-    "local mode description": "<p>Start de transcriptie van uw audio- of videobestand door het hieronder in het vak in te laden. U kunt een automatisch transcriptiemodel gebruiken om een concept te leveren dat u vervolgens kunt bewerken door deze optie onder het uploadvak te kiezen.</p><p>Het transcriptiewerk met modellen wordt op uw computer uitgevoerd en de beschikbare modellen zijn afhankelijk van de ondersteuning van uw browser voor de WebGPU-extensie en de grafische kaart van uw computer. Videobestanden worden alleen naar audio geconverteerd, wat extra tijd kan kosten.</p><p>OCTRA slaat uw laatste transcriptiesessie op in uw browser, maar nooit het audio- of videobestand. Dit betekent dat u het mediabestand opnieuw moet uploaden als u uw vorige sessie wilt voortzetten.</p>",
+    "local mode description": "<p>Start de transcriptie van uw audio- of videobestand door het hieronder in het vak in te laden. U kunt een automatisch transcriptiemodel gebruiken om een concept te leveren dat u vervolgens kunt bewerken door deze optie onder het uploadvak te kiezen.</p><p>Het transcriptiewerk met modellen wordt op uw computer uitgevoerd en de beschikbare modellen zijn afhankelijk van de ondersteuning van uw browser voor de WebGPU-extensie en de grafische kaart van uw computer. Videobestanden worden alleen naar audio geconverteerd, wat extra tijd kan kosten.</p><p>TRATT slaat uw laatste transcriptiesessie op in uw browser, maar nooit het audio- of videobestand. Dit betekent dat u het mediabestand opnieuw moet uploaden als u uw vorige sessie wilt voortzetten.</p>",
     "login and remove": "Gegevens in lokale modus verwijderen en inloggen",
     "offline mode data warning": "Er zijn lokale gegevens beschikbaar die in de online modus zijn gemaakt. Als u in de lokale modus wilt doorgaan, worden deze gegevens overschreven.",
     "old file found": "Er zijn gegevens van een eerdere transcriptie beschikbaar. Als u uw werk wilt voortzetten, sleept u het volgende bestand naar het grijze vak:<br/><br/>{{file_label}}",
@@ -325,7 +325,7 @@
       "diarizingLabel": "Spreker identificatie…",
       "initializing speaker segmentation": "Sprekerherkenningsmodel wordt geladen"
     },
-    "app description": "OCTRA is een gratis webapplicatie voor transcriptie van spraakopnamen in platte tekst (orthografisch). Het beschikt over drie verschillende editors die tegemoetkomen aan uiteenlopende behoeften bij het transcriberen, en u kunt er tijdens een sessie vrij tussen wisselen.",
+    "app description": "TRATT is een gratis webapplicatie voor transcriptie van spraakopnamen in platte tekst (orthografisch). Het beschikt over drie verschillende editors die tegemoetkomen aan uiteenlopende behoeften bij het transcriberen, en u kunt er tijdens een sessie vrij tussen wisselen.",
     "funding support and development": "Financiers en samenwerkingen",
     "groups that developed the language models": "Ontwikkelaars van de gebruikte taalmodellen",
     "tabs": {
@@ -338,23 +338,23 @@
     "successful text": "U bent succesvol uitgelogd."
   },
   "maintenance": {
-    "banner": "Van <b>{{start}}</b> tot <b>{{end}}</b> (verwacht) gaat er onderhoud plaatsvinden.<br/>Op dit moment is OCTRA niet beschikbaar. Zorg ervoor dat u OCTRA in deze tijd niet gebruikt.",
-    "in app": "Van <b>{{start}}</b> tot <b>{{end}}</b> (verwacht) gaat er onderhoud plaatsvinden. <b>Beëindig OCTRA 15 minuten voordat het onderhoud begint.</b>"
+    "banner": "Van <b>{{start}}</b> tot <b>{{end}}</b> (verwacht) gaat er onderhoud plaatsvinden.<br/>Op dit moment is TRATT niet beschikbaar. Zorg ervoor dat u TRATT in deze tijd niet gebruikt.",
+    "in app": "Van <b>{{start}}</b> tot <b>{{end}}</b> (verwacht) gaat er onderhoud plaatsvinden. <b>Beëindig TRATT 15 minuten voordat het onderhoud begint.</b>"
   },
   "modal": {
     "inactivity": {
-      "body": "Je was minstens {{value}} minuten afwezig zonder OCTRA af te maken. Het wordt aanbevolen om OCTRA te verlaten als een langere afwezigheid voorspelbaar is. Als u op dit moment niet doorgaat met de transcriptie, kunt u nu stoppen met OCTRA. Wat wilt u doen?",
+      "body": "Je was minstens {{value}} minuten afwezig zonder TRATT af te maken. Het wordt aanbevolen om TRATT te verlaten als een langere afwezigheid voorspelbaar is. Als u op dit moment niet doorgaat met de transcriptie, kunt u nu stoppen met TRATT. Wat wilt u doen?",
       "continue": "Transcriptie voortzetten",
       "header": "Langere afwezigheid gedetecteerd",
       "new": "Begin een nieuwe transcriptie",
-      "quit": "Sluit OCTRA af"
+      "quit": "Sluit TRATT af"
     },
     "login": {
       "header": "Aanmelden mislukt or Inloggen mislukt",
       "text": "Controleer uw gebruikersnaam en uw wachtwoord."
     },
     "missing permissions": {
-      "description": "OCTRA heeft vastgesteld dat het geen toestemming krijgt om audio af te spelen. Om verder te gaan moet je OCTRA toestemming geven om audio af te spelen. Voer de volgende drie stappen uit en druk op de knop \"HERLADEN\" onderaan dit venster.",
+      "description": "TRATT heeft vastgesteld dat het geen toestemming krijgt om audio af te spelen. Om verder te gaan moet je TRATT toestemming geven om audio af te spelen. Voer de volgende drie stappen uit en druk op de knop \"HERLADEN\" onderaan dit venster.",
       "header": "Ontbrekende rechten",
       "step1": "Klik op het stroke-out play-icoontje links van de adresbalk.",
       "step2": "Klik op de knop naast 'Automatisch afspelen'",
@@ -403,7 +403,7 @@
       "demoEnd": {
         "exportText": "U kunt uw transcript exporteren door op \"Terug\" en vervolgens op \"Exporteren\" te klikken:",
         "header": "Demomodus or Demo Modus",
-        "text": "U gebruikt momenteel de demomodus. <br/><br/>Klik op...<ul><li>\"Doorgaan\" om het huidige audiobestand opnieuw te laden. Uw invoer wordt verwijderd en de verzending van het transcript wordt gesimuleerd.</li><li>\"Sluiten\" om OCTRA af te sluiten. Uw invoer wordt verwijderd.</li><li>'Terug' om door te gaan met de transcriptie.</li></ul>"
+        "text": "U gebruikt momenteel de demomodus. <br/><br/>Klik op...<ul><li>\"Doorgaan\" om het huidige audiobestand opnieuw te laden. Uw invoer wordt verwijderd en de verzending van het transcript wordt gesimuleerd.</li><li>\"Sluiten\" om TRATT af te sluiten. Uw invoer wordt verwijderd.</li><li>'Terug' om door te gaan met de transcriptie.</li></ul>"
       },
       "send": {
         "header": "Stuur transcriptie",
@@ -496,5 +496,8 @@
     "form fill out": "Vul het formulier in",
     "intelligibility of the speaker": "Verstaanbaarheid van de spreker",
     "overview": "De volgende tabel toont een overzicht van de transcriptie-eenheden:"
+  },
+  "branding": {
+    "tagline": "transcriptie van spraak naar tekst"
   }
 }

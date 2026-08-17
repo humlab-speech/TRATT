@@ -74,10 +74,10 @@ export class TextConverter extends Converter {
 
     const indices =
       levelnums && levelnums.length > 0
-        ? levelnums.filter(
-            (i) => i >= 0 && i < annotation.levels.length,
-          )
-        : levelnum !== undefined && levelnum >= 0 && levelnum < annotation.levels.length
+        ? levelnums.filter((i) => i >= 0 && i < annotation.levels.length)
+        : levelnum !== undefined &&
+            levelnum >= 0 &&
+            levelnum < annotation.levels.length
           ? [levelnum]
           : [];
 
@@ -91,8 +91,7 @@ export class TextConverter extends Converter {
       .filter((l) => l.type === 'SEGMENT');
 
     const noTimestamps =
-      !this.options.showTimestampString &&
-      !this.options.showTimestampSamples;
+      !this.options.showTimestampString && !this.options.showTimestampSamples;
 
     const speakerPrefixOf = (item: OSegment) => {
       const speakerId = item.labels?.find((l) => l.name === 'Speaker')?.value;
@@ -100,11 +99,16 @@ export class TextConverter extends Converter {
     };
 
     const timestampSuffixOf = (item: OSegment) => {
-      if (!this.options.showTimestampString && !this.options.showTimestampSamples) {
+      if (
+        !this.options.showTimestampString &&
+        !this.options.showTimestampSamples
+      ) {
         return '';
       }
       const sampleEnd = item.sampleStart + item.sampleDur;
-      const unixTimestamp = Math.ceil((sampleEnd * 1000) / audiofile.sampleRate);
+      const unixTimestamp = Math.ceil(
+        (sampleEnd * 1000) / audiofile.sampleRate,
+      );
       let s = ' <';
       if (this.options.showTimestampString) {
         const endTime = this.convertToTimeString(unixTimestamp, {
@@ -133,8 +137,12 @@ export class TextConverter extends Converter {
           const level = segmentLevels[t];
           if (j >= level.items.length) continue;
           const item = level.items[j] as OSegment;
-          const transcript = item.getFirstLabelWithoutName('Speaker')?.value ?? '';
-          if (noTimestamps && transcript.trim() === this.options.breakMarkerCode) {
+          const transcript =
+            item.getFirstLabelWithoutName('Speaker')?.value ?? '';
+          if (
+            noTimestamps &&
+            transcript.trim() === this.options.breakMarkerCode
+          ) {
             continue;
           }
           if (!transcript.trim()) continue;
@@ -156,8 +164,12 @@ export class TextConverter extends Converter {
         let block = '';
         for (let j = 0; j < level.items.length; j++) {
           const item = level.items[j] as OSegment;
-          const transcript = item.getFirstLabelWithoutName('Speaker')?.value ?? '';
-          if (noTimestamps && transcript.trim() === this.options.breakMarkerCode) {
+          const transcript =
+            item.getFirstLabelWithoutName('Speaker')?.value ?? '';
+          if (
+            noTimestamps &&
+            transcript.trim() === this.options.breakMarkerCode
+          ) {
             continue;
           }
           block += speakerPrefixOf(item) + transcript;
@@ -189,14 +201,14 @@ export class TextConverter extends Converter {
       });
 
     const englishAck = [
-      'The transcriptions below were produced using the VISP OCTRA tool, developed by Humlab at Umeå University, Språkbanken CLARIN, and our partners within CLARIN-ERIC.',
+      'The transcriptions below were produced using the TRATT tool, developed by Humlab at Umeå University, Språkbanken CLARIN, and our partners within CLARIN-ERIC.',
       'Please consider including the following acknowledgement:',
       '"This project has received technical support in its implementation from the national research infrastructure Språkbanken CLARIN, which is jointly funded by the Swedish Research Council (2025–2028, Grant No. 2023-00161-16) and the ten universities and government agencies that collaborate within the research infrastructure."',
       'in publications or theses, so that the support provided by the Språkbanken CLARIN research infrastructure is duly acknowledged.',
     ];
 
     const swedishAck = [
-      'Transkriptionerna nedan skapades i verktyget VISP OCTRA, som utvecklats av Humlab vid Umeå universitet, Språkbanken CLARIN och våra samarbetspartners inom CLARIN-ERIC.',
+      'Transkriptionerna nedan skapades i verktyget TRATT, som utvecklats av Humlab vid Umeå universitet, Språkbanken CLARIN och våra samarbetspartners inom CLARIN-ERIC.',
       'Ange gärna',
       '"Detta projekt har fått tekniskt stöd i sitt genomförande av den nationella forskningsinfrastrukturen Språkbanken CLARIN, som finansieras gemensamt av Vetenskapsrådet (2025-2028, Dnr 2023-00161-16) och de 10 universitet och statliga myndigheter som samverkar inom forskningsinfrastrukturen."',
       'i publikationer eller uppsatser för att så att stödet från forskningsinfrastrukturen Språkbanken CLARIN synliggörs.',

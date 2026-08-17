@@ -30,7 +30,7 @@ export class CTMConverter extends Converter {
     this._category = 'specialist';
     this._multitiers = false;
     this._notice =
-      'OCTRA does not take the confidency level into account. ' +
+      'TRATT does not take the confidency level into account. ' +
       'On export to CTM the confidency value will be set to 1 to all values.';
   }
 

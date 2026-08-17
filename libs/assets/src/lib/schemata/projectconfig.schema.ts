@@ -11,7 +11,7 @@ export const OctraProjectConfigJSONSchema: JSONSchema4 = {
   properties: {
     version: {
       description:
-        'The version shows which version of OCTRA is compatible with this configuration.',
+        'The version shows which version of TRATT is compatible with this configuration.',
       type: 'string',
       readOnly: true,
     },

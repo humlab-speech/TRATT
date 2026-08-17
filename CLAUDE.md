@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-OCTRA (Orthographic Transcription) - Angular 19 web app for phonetic transcription of audio files. Nx monorepo with publishable libraries under `@octra/` namespace.
+TRATT (Orthographic Transcription) - Angular 19 web app for phonetic transcription of audio files. Nx monorepo with publishable libraries under the `@octra/` namespace (kept from the upstream OCTRA project this is forked from).
 
 ## Commands
 
@@ -23,6 +23,7 @@ npm run analyze:octra        # Bundle analysis
 ## Architecture
 
 **Monorepo layout** (Nx 20):
+
 - `apps/octra/` — Main Angular app
 - `apps/web-components/` — Web components build
 - `libs/annotation/` — Annotation task objects

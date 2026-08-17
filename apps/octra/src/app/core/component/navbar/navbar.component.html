@@ -15,9 +15,11 @@
           alt=""
           width="26"
           height="21"
-        />VISP TRATT
+        />TRATT
         @if (
-          appStorage.useMode !== undefined && appStorage.useMode !== undefined && !localOnly
+          appStorage.useMode !== undefined &&
+          appStorage.useMode !== undefined &&
+          !localOnly
         ) {
           ({{ appStorage.useMode }})
         }
@@ -73,15 +75,15 @@
         @if (!appStorage.loggedIn) {
           <ul class="navbar-nav me-auto mb-2 mb-md-0">
             @if (!localOnly) {
-            <li [routerLinkActive]="['active']" class="nav-item active">
-              <a
-                [queryParamsHandling]="'merge'"
-                [routerLink]="['/local']"
-                class="nav-link"
-                (click)="isCollapsed = true"
-                >{{ 'g.login' | transloco }}</a
-              >
-            </li>
+              <li [routerLinkActive]="['active']" class="nav-item active">
+                <a
+                  [queryParamsHandling]="'merge'"
+                  [routerLink]="['/local']"
+                  class="nav-link"
+                  (click)="isCollapsed = true"
+                  >{{ 'g.login' | transloco }}</a
+                >
+              </li>
             }
 
             <li class="nav-item">
@@ -123,23 +125,23 @@
                 navbarServ.showInterfaces &&
                 interfaceActive(editor.name)
               ) {
-                  <li class="nav-item">
-                    <button
-                      type="button"
-                      class="nav-link btn btn-link"
-                      [ngClass]="{
-                        active: appStorage.interface === editor.name,
-                      }"
-                      (click)="setInterface(editor.name); isCollapsed = true"
-                    >
-                      <span>
-                        <i [classList]="['bi', editor.icon]"></i>
-                        <span class="d-md-none d-xxl-inline">
-                          {{ editor.translate | transloco }}
-                        </span>
+                <li class="nav-item">
+                  <button
+                    type="button"
+                    class="nav-link btn btn-link"
+                    [ngClass]="{
+                      active: appStorage.interface === editor.name,
+                    }"
+                    (click)="setInterface(editor.name); isCollapsed = true"
+                  >
+                    <span>
+                      <i [classList]="['bi', editor.icon]"></i>
+                      <span class="d-md-none d-xxl-inline">
+                        {{ editor.translate | transloco }}
                       </span>
-                    </button>
-                  </li>
+                    </span>
+                  </button>
+                </li>
               }
             }
             @if (
@@ -255,7 +257,11 @@
                           @if ($any(level).linkedToLevelId) {
                             <span
                               class="badge bg-info text-dark"
-                              style="font-size: 0.65rem; margin-top: 2px; display: inline-block"
+                              style="
+                                font-size: 0.65rem;
+                                margin-top: 2px;
+                                display: inline-block;
+                              "
                               title="linked tier — boundaries follow source"
                             >
                               <i class="bi bi-link-45deg"></i> linked
@@ -291,7 +297,10 @@
                               class="bi bi-translate"
                               (mousedown)="onTranslateLinkedClick(level)"
                               style="margin-left: 3px; cursor: pointer"
-                              [title]="'modal.translate linked level.icon title' | transloco"
+                              [title]="
+                                'modal.translate linked level.icon title'
+                                  | transloco
+                              "
                             ></i>
                             <i
                               class="bi bi-link-45deg"
@@ -304,7 +313,10 @@
                       </tr>
                     }
                     <tr>
-                      <td colspan="3" class="level-add-row rounded rounded-bottom-3">
+                      <td
+                        colspan="3"
+                        class="level-add-row rounded rounded-bottom-3"
+                      >
                         <div ngbDropdown placement="top">
                           <button
                             type="button"
@@ -377,13 +389,21 @@
                         [ngClass]="{ last: i === speakerIds.length - 1 }"
                         class="level-row"
                       >
-                        <td style="width: 28px; padding: 6px 4px 6px 8px;">
+                        <td style="width: 28px; padding: 6px 4px 6px 8px">
                           <span
-                            style="display: inline-block; width: 16px; height: 16px; border-radius: 3px; vertical-align: middle;"
-                            [style.background-color]="speakerService.getColor(spk)"
+                            style="
+                              display: inline-block;
+                              width: 16px;
+                              height: 16px;
+                              border-radius: 3px;
+                              vertical-align: middle;
+                            "
+                            [style.background-color]="
+                              speakerService.getColor(spk)
+                            "
                           ></span>
                         </td>
-                        <td style="padding: 2px 8px 2px 0;">
+                        <td style="padding: 2px 8px 2px 0">
                           <input
                             (blur)="onSpeakerNameLeave($event, spk)"
                             maxlength="100"
@@ -392,7 +412,7 @@
                             style="width: 100%"
                           />
                         </td>
-                        <td style="padding: 2px 4px 2px 0;">
+                        <td style="padding: 2px 4px 2px 0">
                           @if (!speakerService.isAssigned(spk)) {
                             <button
                               type="button"
@@ -400,14 +420,19 @@
                               (click)="onSpeakerRemoveClick(spk)"
                             >
                               <i class="bi bi-trash"></i>
-                              <span class="visually-hidden">Remove speaker</span>
+                              <span class="visually-hidden"
+                                >Remove speaker</span
+                              >
                             </button>
                           }
                         </td>
                       </tr>
                     }
                     <tr>
-                      <td colspan="2" class="level-add-row rounded rounded-bottom-3">
+                      <td
+                        colspan="2"
+                        class="level-add-row rounded rounded-bottom-3"
+                      >
                         <button
                           type="button"
                           class="btn btn-link w-100 p-0"
@@ -570,17 +595,17 @@
             navbarServ.showExport
           ) {
             <li class="nav-item">
-                <button
-                  type="button"
-                  (click)="openExportModal()"
-                  class="nav-link btn btn-link"
+              <button
+                type="button"
+                (click)="openExportModal()"
+                class="nav-link btn btn-link"
+              >
+                <i class="bi bi-download navbar-icon"></i>
+                <span class="d-md-none d-xxl-inline">
+                  {{ 'g.export' | transloco }}</span
                 >
-                  <i class="bi bi-download navbar-icon"></i>
-                  <span class="d-md-none d-xxl-inline">
-                    {{ 'g.export' | transloco }}</span
-                  >
-                </button>
-              </li>
+              </button>
+            </li>
           }
           <!-- options -->
           <ng-template #canvasContent let-offcanvas>
@@ -788,7 +813,9 @@
                       asrStoreService.languageSettingsSignal() ?? undefined
                     "
                     [manualURL]="api.appProperties?.support?.manual_url ?? ''"
-                    [mausLanguages]="asrStoreService.mausLanguages() ?? undefined"
+                    [mausLanguages]="
+                      asrStoreService.mausLanguages() ?? undefined
+                    "
                     [asrLanguages]="asrStoreService.asrLanguages() ?? undefined"
                     [showAccessCode]="true"
                     [i18n]="{

@@ -1,6 +1,6 @@
-import { Provider } from '@angular/core';
 import { DragDropModule } from '@angular/cdk/drag-drop';
 import { CommonModule } from '@angular/common';
+import { Provider } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { TranslocoModule } from '@jsverse/transloco';
@@ -41,7 +41,7 @@ export const SHARED_PROVIDERS: Provider[] = [
   NgbPopoverModule,
   NgbToast,
 
-  // OCTRA libraries
+  // TRATT libraries
   OctraComponentsModule,
   OctraUtilitiesModule,
 

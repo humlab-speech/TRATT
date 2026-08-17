@@ -8,7 +8,7 @@ export const AppConfigSchema: JSONSchema4 = {
     version: {
       type: 'string',
       description:
-        'The version shows which version of OCTRA is compatible with this configuration.',
+        'The version shows which version of TRATT is compatible with this configuration.',
     },
     api: {
       required: ['url', 'appToken'],
@@ -66,7 +66,7 @@ export const AppConfigSchema: JSONSchema4 = {
           },
           type: 'array',
           description:
-            "You can define the browsers which can be used. Because OCTRA was tested in Chrome it's recommended to use Chrome. If there is no entry all browsers are allowed.",
+            "You can define the browsers which can be used. Because TRATT was tested in Chrome it's recommended to use Chrome. If there is no entry all browsers are allowed.",
         },
         languages: {
           items: {
@@ -74,7 +74,7 @@ export const AppConfigSchema: JSONSchema4 = {
           },
           type: 'array',
           description:
-            'If you translated OCTRA to other languages, you can define these in this array. For each language there has to be one octra_[lang].json',
+            'If you translated TRATT to other languages, you can define these in this array. For each language there has to be one octra_[lang].json',
         },
         plugins: {
           type: 'object',
@@ -198,7 +198,7 @@ export const AppConfigSchema: JSONSchema4 = {
           type: 'object',
           required: ['url'],
           description:
-            'If set Octra shows a link to a previous version on the login page.',
+            'If set TRATT shows a link to a previous version on the login page.',
           properties: {
             url: {
               type: 'string',
@@ -211,7 +211,7 @@ export const AppConfigSchema: JSONSchema4 = {
     octraBackend: {
       required: ['enabled', 'url'],
       type: 'object',
-      description: 'Defines if the OCB shall be integrated into OCTRA.',
+      description: 'Defines if the OCB shall be integrated into TRATT.',
       properties: {
         enabled: {
           type: 'boolean',

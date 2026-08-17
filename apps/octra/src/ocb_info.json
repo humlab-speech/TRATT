@@ -1,6 +1,6 @@
 {
-  "name": "Octra",
+  "name": "TRATT",
   "version": "2.0.0",
-  "description": "Web application for the orthogtraphic transcription of audio files.",
+  "description": "Web application for the orthographic transcription of audio files.",
   "thumbnail": "assets/img/ocb_octra_thumbnail.png"
 }

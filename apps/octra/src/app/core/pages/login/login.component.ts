@@ -246,7 +246,7 @@ export class LoginComponent
 I just want to let you know, that the OCTRA server is currently offline.
 
  Best,
- an OCTRA user
+ a TRATT user
  `;
     const url = `mailto:${
       this.settingsService.appSettings.octra.supportEmail

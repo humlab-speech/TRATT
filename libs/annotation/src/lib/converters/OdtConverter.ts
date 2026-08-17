@@ -1,6 +1,13 @@
 import { OAudiofile } from '@octra/media';
 import { OAnnotJSON, OSegment } from '../annotjson';
-import { Converter, ExportCategory, ExportResult, IFile, ImportResult, OctraAnnotationFormatType } from './Converter';
+import {
+  Converter,
+  ExportCategory,
+  ExportResult,
+  IFile,
+  ImportResult,
+  OctraAnnotationFormatType,
+} from './Converter';
 import { LibreOfficeApplication } from './SupportedApplications';
 import { buildZip } from './zip-builder';
 
@@ -26,7 +33,9 @@ export class OdtConverter extends Converter {
 
   public constructor() {
     super();
-    this._applications = [{ application: new LibreOfficeApplication(), recommended: true }];
+    this._applications = [
+      { application: new LibreOfficeApplication(), recommended: true },
+    ];
     this._extensions = ['.odt'];
     this._conversion = { export: true, import: false };
     this._encoding = 'binary';
@@ -64,14 +73,14 @@ export class OdtConverter extends Converter {
       });
 
     const englishAck = [
-      'The transcriptions below were produced using the VISP OCTRA tool, developed by Humlab at Umeå University, Språkbanken CLARIN, and our partners within CLARIN-ERIC.',
+      'The transcriptions below were produced using the TRATT tool, developed by Humlab at Umeå University, Språkbanken CLARIN, and our partners within CLARIN-ERIC.',
       'Please consider including the following acknowledgement:',
       '"This project has received technical support in its implementation from the national research infrastructure Språkbanken CLARIN, which is jointly funded by the Swedish Research Council (2025–2028, Grant No. 2023-00161-16) and the ten universities and government agencies that collaborate within the research infrastructure."',
       'in publications or theses, so that the support provided by the Språkbanken CLARIN research infrastructure is duly acknowledged.',
     ];
 
     const swedishAck = [
-      'Transkriptionerna nedan skapades i verktyget VISP OCTRA, som utvecklats av Humlab vid Umeå universitet, Språkbanken CLARIN och våra samarbetspartners inom CLARIN-ERIC.',
+      'Transkriptionerna nedan skapades i verktyget TRATT, som utvecklats av Humlab vid Umeå universitet, Språkbanken CLARIN och våra samarbetspartners inom CLARIN-ERIC.',
       'Ange gärna',
       '"Detta projekt har fått tekniskt stöd i sitt genomförande av den nationella forskningsinfrastrukturen Språkbanken CLARIN, som finansieras gemensamt av Vetenskapsrådet (2025-2028, Dnr 2023-00161-16) och de 10 universitet och statliga myndigheter som samverkar inom forskningsinfrastrukturen."',
       'i publikationer eller uppsatser för att så att stödet från forskningsinfrastrukturen Språkbanken CLARIN synliggörs.',
@@ -85,12 +94,14 @@ export class OdtConverter extends Converter {
 
     const lineFor = (seg: OSegment, prefix?: string) => {
       const text = seg.getFirstLabelWithoutName('Speaker')?.value ?? '';
-      if (!text.trim() || text.trim() === this.options.breakMarkerCode) return undefined;
+      if (!text.trim() || text.trim() === this.options.breakMarkerCode)
+        return undefined;
       const tsPrefix = this.options.addTimestamps
         ? `[${this.msToTimeString(Math.round((seg.sampleStart / audiofile.sampleRate) * 1000))}] `
         : '';
       const speakerId = seg.labels?.find((l) => l.name === 'Speaker')?.value;
-      const speakerPrefix = this.options.addSpeakerId && speakerId ? `[${speakerId}] ` : '';
+      const speakerPrefix =
+        this.options.addSpeakerId && speakerId ? `[${speakerId}] ` : '';
       return (prefix ?? '') + tsPrefix + speakerPrefix + text.trim();
     };
 
@@ -102,7 +113,10 @@ export class OdtConverter extends Converter {
           let emitted = 0;
           for (const level of levels) {
             if (j >= level.items.length) continue;
-            const line = lineFor(level.items[j] as OSegment, `[${level.name}] `);
+            const line = lineFor(
+              level.items[j] as OSegment,
+              `[${level.name}] `,
+            );
             if (line !== undefined) {
               paragraphs.push({ text: line });
               emitted++;
@@ -115,7 +129,10 @@ export class OdtConverter extends Converter {
           const parts: string[] = [];
           for (const level of levels) {
             if (j >= level.items.length) continue;
-            const line = lineFor(level.items[j] as OSegment, `[${level.name}] `);
+            const line = lineFor(
+              level.items[j] as OSegment,
+              `[${level.name}] `,
+            );
             if (line !== undefined) parts.push(line);
           }
           if (parts.length > 0) {
@@ -169,7 +186,9 @@ export class OdtConverter extends Converter {
     return undefined;
   }
 
-  private buildOdt(paragraphs: { text: string; heading?: boolean }[]): Uint8Array {
+  private buildOdt(
+    paragraphs: { text: string; heading?: boolean }[],
+  ): Uint8Array {
     const enc = new TextEncoder();
 
     // mimetype MUST be the first entry per ODF spec, STORED (no compression)

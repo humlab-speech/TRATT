@@ -6,7 +6,7 @@
  *   - timestamp → current ISO time
  *
  * Wired into `prebuild`, `prestart:octra`, and `postinstall` so the
- * navbar's "VISP OCTRA" version popover stays aligned with package.json
+ * navbar's TRATT version popover stays aligned with package.json
  * whenever the app is started, built, or freshly installed.
  */
 import { execSync } from 'node:child_process';

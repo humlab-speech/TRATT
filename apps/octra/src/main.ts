@@ -4,7 +4,7 @@ import {
   provideHttpClient,
   withInterceptorsFromDi,
 } from '@angular/common/http';
-import { importProvidersFrom, isDevMode } from '@angular/core';
+import { importProvidersFrom } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import '@angular/localize/init';
 import { bootstrapApplication } from '@angular/platform-browser';
@@ -13,6 +13,7 @@ import {
   provideRouter,
   withEnabledBlockingInitialNavigation,
 } from '@angular/router';
+import { provideServiceWorker } from '@angular/service-worker';
 import {
   NgbCollapseModule,
   NgbDropdownModule,
@@ -67,15 +68,22 @@ import {
 import { IDBEffects } from './app/core/store/idb/idb-effects.service';
 import * as fromUser from './app/core/store/user/user.reducer';
 import { environment } from './environments/environment';
-import { provideServiceWorker } from '@angular/service-worker';
 
 // Strip unknown query params before Angular router initializes.
 // Matomo and other trackers inject params (pk_vid, link_addon, etc.) that
 // confuse Angular's router and cause NG04002 errors.
 (function stripUnknownQueryParams() {
   const KNOWN_PARAMS = new Set([
-    'audio_url', 'audio_name', 'audio_type', 'auto_playback',
-    'aType', 'host', 'transcript', 'readonly', 'embedded', 'bottomNav',
+    'audio_url',
+    'audio_name',
+    'audio_type',
+    'auto_playback',
+    'aType',
+    'host',
+    'transcript',
+    'readonly',
+    'embedded',
+    'bottomNav',
   ]);
   const url = new URL(window.location.href);
   let dirty = false;
@@ -117,16 +125,18 @@ bootstrapApplication(AppComponent, {
         },
       ),
     ),
-    ...(
-      !environment.production
-        ? [importProvidersFrom(StoreDevtoolsModule.instrument({
-            trace: !environment.production,
-            maxAge: 200,
-            logOnly: !environment.production,
-            connectInZone: true,
-          }))]
-        : []
-    ),
+    ...(!environment.production
+      ? [
+          importProvidersFrom(
+            StoreDevtoolsModule.instrument({
+              trace: !environment.production,
+              maxAge: 200,
+              logOnly: !environment.production,
+              connectInZone: true,
+            }),
+          ),
+        ]
+      : []),
     importProvidersFrom(
       EffectsModule.forRoot([
         IDBEffects,
@@ -197,7 +207,7 @@ bootstrapApplication(AppComponent, {
   console.error(err);
   document.body.innerHTML = `
     <div style="font-family:sans-serif;padding:2rem;max-width:600px;margin:auto;text-align:center;">
-      <h1 style="color:#c00;">OCTRA failed to start</h1>
+      <h1 style="color:#c00;">TRATT failed to start</h1>
       <p>An error occurred during initialization. This may be caused by browser incompatibility or private browsing mode.</p>
       <pre style="text-align:left;background:#f5f5f5;padding:1rem;border-radius:4px;overflow:auto;max-height:200px;">${
         err?.message || err

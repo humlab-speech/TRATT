@@ -23,7 +23,7 @@
     "without asr": "无自动语音识别ASR"
   },
   "authentication": {
-    "description": "关闭此窗口，点击OCTRA中的“认证成功！”按钮来完成认证。之后自动进程会继续。",
+    "description": "关闭此窗口，点击TRATT中的“认证成功！”按钮来完成认证。之后自动进程会继续。",
     "window closed": "此窗口将在{{seconds}}秒内关闭。",
     "you are authenticated": "认证成功！"
   },
@@ -33,7 +33,7 @@
     "invalid": "<b>你的浏览器不兼容</b>。 请使用以下浏览器之一："
   },
   "bug report": {
-    "description": "你认为有需要改进的地方吗？有发现bug吗？请告诉我们你对OCTRA的评价。",
+    "description": "你认为有需要改进的地方吗？有发现bug吗？请告诉我们你对TRATT的评价。",
     "error": "很抱歉，你的反馈没有发送成功。请将反馈内容通过邮件发送给我们： {{email}}",
     "give feedback": "给予反馈",
     "send protocol": "添加协议（推荐）",
@@ -239,7 +239,7 @@
     "last used": "最近使用",
     "local and remove": "移除在线模式的数据并且继续",
     "local mode": "本地模式",
-    "local mode description": "<p>通过下方框输入你的音频或视频文件来开始转录。你可以使用自动转录模型生成草稿，然后通过选择上传框下方的选项来编辑。</p><p>模型转录工作将在你的计算机上执行，可用的模型取决于你的浏览器对 WebGPU 扩展的支持以及你的计算机的显卡。视频文件将仅转换为音频，这可能需要额外时间。</p><p>OCTRA 将保存你的最后一个转录会话到浏览器中，但绝不会保存音频或视频文件。这意味着当你想继续上一个会话时，你需要重新上传媒体文件。</p>",
+    "local mode description": "<p>通过下方框输入你的音频或视频文件来开始转录。你可以使用自动转录模型生成草稿，然后通过选择上传框下方的选项来编辑。</p><p>模型转录工作将在你的计算机上执行，可用的模型取决于你的浏览器对 WebGPU 扩展的支持以及你的计算机的显卡。视频文件将仅转换为音频，这可能需要额外时间。</p><p>TRATT 将保存你的最后一个转录会话到浏览器中，但绝不会保存音频或视频文件。这意味着当你想继续上一个会话时，你需要重新上传媒体文件。</p>",
     "login and remove": "移除本地模式的数据并且登录",
     "offline mode data warning": "此处有使用在线模式创建的本地数据。如果你想使用本地模式继续，此处的数据会被覆盖。",
     "old file found": "此处有之前标注的可用数据。如果你想要继续之前的标注，请拖拽以下文件至灰色方框中：<br/><br/>{{file_label}}",
@@ -247,7 +247,7 @@
     "online mode continue": "发现旧数据！如果继续的话，请确保你使用以下账号资料登录：{{member_id}} , {{member_project}}, {{member_jobno}}",
     "online mode data warning": "此处有使用本地模式穿件的本地数据。如果你想使用在线模式继续，此处的数据会被覆盖。",
     "online mode description": "在线模式中，你自动获取要标注的音频文件。",
-    "online mode disabled": "在线模式当前不可用。请使用本地OCTRA。",
+    "online mode disabled": "在线模式当前不可用。请使用本地TRATT。",
     "translation": {
       "enable label": "Translate transcript locally",
       "from": "From",
@@ -325,7 +325,7 @@
       "diarizingLabel": "正在识别发言人…",
       "initializing speaker segmentation": "加载说话人分割模型"
     },
-    "app description": "OCTRA是一款免费的网络应用程序，用于将语音录音转录为纯文本（正字法）。它提供三种不同的编辑器以满足不同的转录需求，您可以在同一会话中自由切换。",
+    "app description": "TRATT是一款免费的网络应用程序，用于将语音录音转录为纯文本（正字法）。它提供三种不同的编辑器以满足不同的转录需求，您可以在同一会话中自由切换。",
     "funding support and development": "资助方与合作",
     "groups that developed the language models": "所用语言模型的开发者",
     "tabs": {
@@ -338,23 +338,23 @@
     "successful text": "你已成功退出。"
   },
   "maintenance": {
-    "banner": "从 <b>{{start}}</b> 到 <b>{{end}}</b> (预期) 系统将进行维护 <br/>这期间OCTRA服务不可用。请确保这期间不要使用OCTRA。",
-    "in app": "从 <b>{{start}}</b> 到 <b>{{end}}</b> (预期) 系统将进行维护 <b>请在维护之前15分钟退出OCTRA。</b>"
+    "banner": "从 <b>{{start}}</b> 到 <b>{{end}}</b> (预期) 系统将进行维护 <br/>这期间TRATT服务不可用。请确保这期间不要使用TRATT。",
+    "in app": "从 <b>{{start}}</b> 到 <b>{{end}}</b> (预期) 系统将进行维护 <b>请在维护之前15分钟退出TRATT。</b>"
   },
   "modal": {
     "inactivity": {
-      "body": "检测到你未完成OCTRA，并且已经至少{{value}}分钟没有操作。如果继续不操作，建议退出OCTRA。如果你现在不想继续标注，退出OCTRA即可。你想怎么做？",
+      "body": "检测到你未完成TRATT，并且已经至少{{value}}分钟没有操作。如果继续不操作，建议退出TRATT。如果你现在不想继续标注，退出TRATT即可。你想怎么做？",
       "continue": "继续标注",
       "header": "检测到长时间无操作",
       "new": "新建标注",
-      "quit": "退出OCTRA"
+      "quit": "退出TRATT"
     },
     "login": {
       "header": "登录失败",
       "text": "请检查你的用户名和密码。"
     },
     "missing permissions": {
-      "description": "OCTRA未被允许播放音频。若要继续，请允许OCTRA播放音频。按照以下三步操作，并且点击网页底部的“重新加载”按钮。",
+      "description": "TRATT未被允许播放音频。若要继续，请允许TRATT播放音频。按照以下三步操作，并且点击网页底部的“重新加载”按钮。",
       "header": "缺少权限",
       "step1": "点击地址栏左边的“禁止自动播放”按钮。",
       "step2": "点击“自动播放”旁边的按钮。",
@@ -403,7 +403,7 @@
       "demoEnd": {
         "exportText": "你可以点击“后退”，然后点击“导出”，来导出标注：",
         "header": "演示模式",
-        "text": "你正在使用演示模式。<br/><br/>点击。。。<ul><li>“继续”，重载当前声音文件。你的输入会被删除，标注文件开始传输</li><li>“退出”，退出OCTRA应用。你的输入会被删除。</li><li>“后退”，来继续标注。</li></ul>"
+        "text": "你正在使用演示模式。<br/><br/>点击。。。<ul><li>“继续”，重载当前声音文件。你的输入会被删除，标注文件开始传输</li><li>“退出”，退出TRATT应用。你的输入会被删除。</li><li>“后退”，来继续标注。</li></ul>"
       },
       "send": {
         "header": "发送标注内容",
@@ -496,5 +496,8 @@
     "form fill out": "请填写此表格",
     "intelligibility of the speaker": "说话者的易懂性",
     "overview": "下表格显示了标注单元的概览："
+  },
+  "branding": {
+    "tagline": "将语音转写为文本"
   }
 }

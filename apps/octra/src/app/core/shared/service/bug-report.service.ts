@@ -211,7 +211,7 @@ export class BugReportService {
       dto,
       protocol: new File(
         [JSON.stringify(protocol)],
-        `Octra_procotol_${Date.now()}.json`,
+        `TRATT_protocol_${Date.now()}.json`,
         {
           type: 'application/json',
         },

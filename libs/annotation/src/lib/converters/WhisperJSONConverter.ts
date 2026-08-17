@@ -36,7 +36,7 @@ export class WhisperJSONConverter extends Converter {
     this._encoding = 'UTF-8';
     this._multitiers = true;
     this._notice =
-      'OCTRA imports only segment related data (timestamps and text). Other attributes wil be ignored.';
+      'TRATT imports only segment related data (timestamps and text). Other attributes wil be ignored.';
   }
 
   public export(annotation: OAnnotJSON, audiofile: OAudiofile): ExportResult {

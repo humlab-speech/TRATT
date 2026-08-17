@@ -46,13 +46,16 @@ export function classifyTranscriptionWorkerError(
   };
 }
 
-export function transcriptionFriendlyError(raw: string, usedWebGPU: boolean): string {
+export function transcriptionFriendlyError(
+  raw: string,
+  usedWebGPU: boolean,
+): string {
   const info = classifyTranscriptionWorkerError(raw, usedWebGPU);
 
   if (info.code === 'webgpu-backend-load-failed') {
     return (
       'WebGPU could not start because the browser failed to load its GPU backend. ' +
-      'OCTRA will retry with WASM automatically. If this keeps happening, update the page and try again.'
+      'TRATT will retry with WASM automatically. If this keeps happening, update the page and try again.'
     );
   }
 

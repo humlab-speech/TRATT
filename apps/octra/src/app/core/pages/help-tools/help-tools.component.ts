@@ -56,7 +56,7 @@ export class HelpToolsComponent extends DefaultComponent {
   async importBackup(file: File) {
     try {
       await this.idbService.import(file);
-      alert('Import successful. Octra will be reloaded next.');
+      alert('Import successful. TRATT will be reloaded next.');
       document.location.href = joinURL(getBaseHrefURL(), 'login');
     } catch (e: any) {
       this.modalService.openErrorModal(e.message);

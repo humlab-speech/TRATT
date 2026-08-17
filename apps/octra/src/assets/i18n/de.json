@@ -31,7 +31,7 @@
     "without asr": "Ohne ASR"
   },
   "authentication": {
-    "description": "Schließe dieses Fenster und klicke auf die \"Ich bin authentifiziert!\"- Schaltfläche in OCTRA um deine Authentifizierung zu bestätigen. Danach wird die automatische Verarbeitung fortgesetzt.",
+    "description": "Schließe dieses Fenster und klicke auf die \"Ich bin authentifiziert!\"- Schaltfläche in TRATT um deine Authentifizierung zu bestätigen. Danach wird die automatische Verarbeitung fortgesetzt.",
     "password reset success": "Wenn ein Benutzerkonto mit deiner E-Mail Adresse existiert, erhältst Du eine E-Mail für die Passwort-Zurücksetzung. Prüfe auch bitte auch deinen Spam/Junk Ordner. Please have a look on your spam/junk folder, too.",
     "signin": "Bitte anmelden",
     "signin credentials": "Mit Zugangsdaten anmelden",
@@ -46,7 +46,7 @@
   },
   "bug report": {
     "add protocol": "Protokoll beifügen (empfohlen)",
-    "description": "Bitte teile uns dein Feedback mit. Was können wir besser machen? Hast Du irgendwelche Schwierigkeiten mit der Verwendung von OCTRA?",
+    "description": "Bitte teile uns dein Feedback mit. Was können wir besser machen? Hast Du irgendwelche Schwierigkeiten mit der Verwendung von TRATT?",
     "error": "Dein Feedback konnte leider nicht gesendet werden. Bitte sende uns direkt eine E-Mail an {{email}}.",
     "give feedback": "Feedback geben",
     "sending": "Bitte warte bis dein Feedback gesendet wurde...",
@@ -328,19 +328,19 @@
     "last used": "zuletzt genutzt",
     "local and remove": "Daten des online Modus löschen & weiter",
     "local mode": "Lokaler Modus",
-    "local mode description": "<p>Starten Sie die Transkription Ihrer Sound- oder Videodatei, indem Sie diese mit Hilfe des Feldes unten laden. Sie können ein automatisches Transkriptionsmodell verwenden, um einen Entwurf zu erstellen, den Sie dann durch Auswahl dieser Option unter dem Upload-Feld bearbeiten.</p><p>Die Transkriptionsarbeit mit Modellen wird auf Ihrem Computer durchgeführt, und die Ihnen zur Verfügung stehenden Modelle hängen von der Unterstützung für die WebGPU-Erweiterung durch Ihren Browser und der Grafikkarte Ihres Computers ab. Videodateien werden nur in Sound konvertiert, was zusätzliche Zeit in Anspruch nehmen kann.</p><p>OCTRA speichert Ihre letzte Transkriptionssitzung in Ihrem Browser, jedoch niemals die Sound- oder Videodatei, was bedeutet, dass Sie die Mediendatei erneut hochladen müssen, wenn Sie Ihre vorherige Sitzung fortsetzen möchten.</p>",
+    "local mode description": "<p>Starten Sie die Transkription Ihrer Sound- oder Videodatei, indem Sie diese mit Hilfe des Feldes unten laden. Sie können ein automatisches Transkriptionsmodell verwenden, um einen Entwurf zu erstellen, den Sie dann durch Auswahl dieser Option unter dem Upload-Feld bearbeiten.</p><p>Die Transkriptionsarbeit mit Modellen wird auf Ihrem Computer durchgeführt, und die Ihnen zur Verfügung stehenden Modelle hängen von der Unterstützung für die WebGPU-Erweiterung durch Ihren Browser und der Grafikkarte Ihres Computers ab. Videodateien werden nur in Sound konvertiert, was zusätzliche Zeit in Anspruch nehmen kann.</p><p>TRATT speichert Ihre letzte Transkriptionssitzung in Ihrem Browser, jedoch niemals die Sound- oder Videodatei, was bedeutet, dass Sie die Mediendatei erneut hochladen müssen, wenn Sie Ihre vorherige Sitzung fortsetzen möchten.</p>",
     "login and remove": "Daten des lokalen Modus löschen & anmelden",
     "offline mode data warning": "Es sind lokale Daten vorhanden, die im online Modus erstellt worden sind. Das Nutzen des lokalen Modus überschreibt diese lokalen Daten.",
     "old file found": "Es wurden Daten zu einer vorherigen Transkription gefunden. Um diese fortzusetzen, ziehe die folgende Datei per Drag & Drop in das graue Feld:<br/><br/>{{file_label}}",
     "old version": {
       "click here": "Klicke hier, um zur vorherigen Version zu gelangen.",
-      "notice": "Du nutzt gerade die neueste Version von OCTRA. Du möchtest zur vorherigen Version zurück?"
+      "notice": "Du nutzt gerade die neueste Version von TRATT. Du möchtest zur vorherigen Version zurück?"
     },
     "online mode": "Online Modus",
     "online mode continue": "Es wurden alte Daten gefunden. Zum Fortsetzen folgende Daten angeben: {{member_id}} , {{member_project}}, {{member_jobno}}",
     "online mode data warning": "Es sind lokale Daten vorhanden, die im lokalen Modus erstellt worden sind. Das Nutzen des Online Modus überschreibt diese lokalen Daten.",
     "online mode description": "Im Online Modus werden automatisch Audiodateien zugewiesen, die verschriftlicht werden sollen.",
-    "online mode disabled": "Der Online Modus ist derzeit deaktiviert. Du kannst OCTRA stattdessen lokal nutzen.",
+    "online mode disabled": "Der Online Modus ist derzeit deaktiviert. Du kannst TRATT stattdessen lokal nutzen.",
     "translation": {
       "enable label": "Transkript lokal übersetzen",
       "from": "Von",
@@ -418,7 +418,7 @@
       "finnish fine-tuned hint": "Für Finnisch wird ein für finnische Sprache optimiertes Modell verwendet.",
       "norwegian fine-tuned hint": "Für Norwegisch wird ein für norwegische Sprache optimiertes Modell verwendet."
     },
-    "app description": "OCTRA ist eine kostenlose Web-Anwendung für die Klartexttranskription (Orthografie) von Sprachaufnahmen. Sie bietet drei verschiedene Editoren für unterschiedliche Bedürfnisse beim Transkribieren, und Sie können während einer Sitzung frei zwischen ihnen wechseln.",
+    "app description": "TRATT ist eine kostenlose Web-Anwendung für die Klartexttranskription (Orthografie) von Sprachaufnahmen. Sie bietet drei verschiedene Editoren für unterschiedliche Bedürfnisse beim Transkribieren, und Sie können während einer Sitzung frei zwischen ihnen wechseln.",
     "funding support and development": "Förderer und Kooperationen",
     "groups that developed the language models": "Entwickler der verwendeten Sprachmodelle",
     "tabs": {
@@ -431,12 +431,12 @@
     "successful text": "Du hast Dich erfolgreich abgemeldet."
   },
   "maintenance": {
-    "banner": "Von <b>{{start}} Uhr</b> bis voraussichtlich <b>{{end}} Uhr</b> wird eine Wartung durchgeführt.<br/>In dieser Zeit ist OCTRA nicht erreichbar. Stelle bitte sicher, dass Du während dieser Zeit OCTRA nicht verwendest.",
-    "in app": "Von <b>{{start}} Uhr</b> bis voraussichtlich <b>{{end}} Uhr</b> wird eine Wartung durchgeführt. <b>Bitte beende OCTRA 15 Minuten vorher</b>."
+    "banner": "Von <b>{{start}} Uhr</b> bis voraussichtlich <b>{{end}} Uhr</b> wird eine Wartung durchgeführt.<br/>In dieser Zeit ist TRATT nicht erreichbar. Stelle bitte sicher, dass Du während dieser Zeit TRATT nicht verwendest.",
+    "in app": "Von <b>{{start}} Uhr</b> bis voraussichtlich <b>{{end}} Uhr</b> wird eine Wartung durchgeführt. <b>Bitte beende TRATT 15 Minuten vorher</b>."
   },
   "modal": {
     "about": {
-      "header": "Über OCTRA"
+      "header": "Über TRATT"
     },
     "backup-notice": {
       "body": "Dein Fortschritt wird auf dem Server gespeichert. Wegen eines bekannten Problems wird empfohlen zusätzlich eine lokale Sicherung herunterzuladen. Diese Maßnahme ist vorübergehend notwendig. Klicke auf 'Sicherung herunterladen', um die Sicherungsdatei herunterzuladen und anschließend auf 'Weiter'.<br/><br/>Die Sicherungsdateien kannst Du löschen, nachdem die Aufgabe fertiggestellt wurde.",
@@ -444,7 +444,7 @@
       "header": "Backup Erinnerung"
     },
     "feedback-notice": {
-      "body": "Um Octra weiter zu verbessern oder Fehler zu beheben, benötigen wir dein Feedback. Du kannst uns einfach und schnell deine Meinung mitteilen, indem Du auf das Fragezeichen in der rechten oberen Ecke klickst und das Formular ausfüllst. <b>Wenn es ein technisches Problem gibt, ist es sehr wichtig so schnell wie möglich das Feedback einschl. des Protokolls an uns zu senden.</b> Das Protokoll hilft uns bei einer schnellen Diagnose und einer zeitnahen Fehlerbehebung.<br/><br/>Vielen Dank.<br/><br/><i>Das OCTRA Team</i>",
+      "body": "Um TRATT weiter zu verbessern oder Fehler zu beheben, benötigen wir dein Feedback. Du kannst uns einfach und schnell deine Meinung mitteilen, indem Du auf das Fragezeichen in der rechten oberen Ecke klickst und das Formular ausfüllst. <b>Wenn es ein technisches Problem gibt, ist es sehr wichtig so schnell wie möglich das Feedback einschl. des Protokolls an uns zu senden.</b> Das Protokoll hilft uns bei einer schnellen Diagnose und einer zeitnahen Fehlerbehebung.<br/><br/>Vielen Dank.<br/><br/><i>Das TRATT Team</i>",
       "header": "Feedback gewünscht"
     },
     "import options": {
@@ -452,11 +452,11 @@
       "title": "Optionen für das Importieren"
     },
     "inactivity": {
-      "body": "Du warst seit mindestens {{value}} Minuten inaktiv ohne OCTRA zu beenden. Es ist empfehlenswert, OCTRA bei vorausichtlich längerer Inaktivität zu beenden. Falls Du die Transkription gerade nicht fortsetzen möchtest, solltest Du OCTRA jetzt beenden. Was möchtest Du tun?",
+      "body": "Du warst seit mindestens {{value}} Minuten inaktiv ohne TRATT zu beenden. Es ist empfehlenswert, TRATT bei vorausichtlich längerer Inaktivität zu beenden. Falls Du die Transkription gerade nicht fortsetzen möchtest, solltest Du TRATT jetzt beenden. Was möchtest Du tun?",
       "continue": "Transkription fortsetzen",
       "header": "Längere Inaktivität entdeckt",
       "new": "Neue Transkription beginnen",
-      "quit": "OCTRA beenden"
+      "quit": "TRATT beenden"
     },
     "level remove": "Bist Du dir sicher, dass Du die Ebene \"{{name}}\" permanent löschen möchtest?",
     "login": {
@@ -464,7 +464,7 @@
       "text": "Bitte überprüfe Deinen Nutzernamen und ihr Passwort."
     },
     "missing permissions": {
-      "description": "OCTRA hat nicht die Berechtigung Audio abszuspielen. Damit Du OCTRA weiter nutzen kannst, musst Du diese Berechtigung erteilen. Führe die folgenden Schritte aus und klicke anschließend auf die \"NEU LADEN\" Schaltfläche am Ende dieses Fensters.",
+      "description": "TRATT hat nicht die Berechtigung Audio abszuspielen. Damit Du TRATT weiter nutzen kannst, musst Du diese Berechtigung erteilen. Führe die folgenden Schritte aus und klicke anschließend auf die \"NEU LADEN\" Schaltfläche am Ende dieses Fensters.",
       "header": "Fehlende Berechtigungen",
       "step1": "Klicke auf das durchgestrichene Play-Symbol links der Adresszeile.",
       "step2": "Klicke auf die Schaltfläche rechts von \"Autoplay\".",
@@ -544,7 +544,7 @@
       "demoEnd": {
         "exportText": "Du kannst Dein Transkript exportieren, indem Du auf \"Zurück\" und dann auf \"Exportieren\" klickst:",
         "header": "Demo Modus",
-        "text": "Du befindest Dich gerade im Demo-Modus.<br/><br/>Klicke auf...<ul><li>\"Weiter\" um die gleiche Audiodatei erneut zu laden. Der Fortschritt wird verworfen und eine Übertragung des Transkripts simuliert.</li><li>\"Beenden\", um OCTRA zu beenden. Der Fortschritt wird verworfen.</li><li>\"Zurück\", um zur Transkription zurückzukehren.</li></ul>"
+        "text": "Du befindest Dich gerade im Demo-Modus.<br/><br/>Klicke auf...<ul><li>\"Weiter\" um die gleiche Audiodatei erneut zu laden. Der Fortschritt wird verworfen und eine Übertragung des Transkripts simuliert.</li><li>\"Beenden\", um TRATT zu beenden. Der Fortschritt wird verworfen.</li><li>\"Zurück\", um zur Transkription zurückzukehren.</li></ul>"
       },
       "send": {
         "header": "Transkription senden",
@@ -556,15 +556,15 @@
       },
       "stop": {
         "header": "Transkription beenden",
-        "text": "Möchtest Du die Transkription wirklich beenden? Während der Transkription sichert Octra deinen Fortschritt im Speicher dieses Webbrowsers.<br><br>Entscheide Dich für eine der folgenden Optionen:<ul class='mt-2'><li class='mt-1'><b>Beenden & freigeben</b><br/>Dein Fortschritt wird verworfen und die Aufgabe ggf. anderen TranskribiererInnen angeboten.</li><li class='mt-1'><b>Beenden & später fortsetzen</b><br/>Dein Fortschritt wird auf den Server übertragen. Du kannst dich später mit den gleichen Zugangsdaten an diesem Webbrowser anmelden und die Transkription fortsetzen. Wichtig: Entferne nicht die Browserdaten, da Du sonst nicht mit dem letzten Stand fortfahren kannst.</li><li class='mt-1'><b>Transkription fortsetzen:</b><br/>Wähle diese Option, wenn Du jetzt weitermachen möchtest.</li></ul>",
-        "url text": "Möchtest Du die Transkription wirklich beenden? Du befindest dich im URL Modus. In diesem Modus wird dein Fortschritt nicht gespeichert. <br/><br/><b>Stelle sicher, dass Du deine Annotation exportierst, bevor Du Octra schließt</b>. "
+        "text": "Möchtest Du die Transkription wirklich beenden? Während der Transkription sichert TRATT deinen Fortschritt im Speicher dieses Webbrowsers.<br><br>Entscheide Dich für eine der folgenden Optionen:<ul class='mt-2'><li class='mt-1'><b>Beenden & freigeben</b><br/>Dein Fortschritt wird verworfen und die Aufgabe ggf. anderen TranskribiererInnen angeboten.</li><li class='mt-1'><b>Beenden & später fortsetzen</b><br/>Dein Fortschritt wird auf den Server übertragen. Du kannst dich später mit den gleichen Zugangsdaten an diesem Webbrowser anmelden und die Transkription fortsetzen. Wichtig: Entferne nicht die Browserdaten, da Du sonst nicht mit dem letzten Stand fortfahren kannst.</li><li class='mt-1'><b>Transkription fortsetzen:</b><br/>Wähle diese Option, wenn Du jetzt weitermachen möchtest.</li></ul>",
+        "url text": "Möchtest Du die Transkription wirklich beenden? Du befindest dich im URL Modus. In diesem Modus wird dein Fortschritt nicht gespeichert. <br/><br/><b>Stelle sicher, dass Du deine Annotation exportierst, bevor Du TRATT schließt</b>. "
       }
     }
   },
   "modals": {
     "create project request": {
-      "description": "Wenn Du dein Projekt mit dem OCTRA-Backend verwalten und im Online-Modus hier in Octra von Transkribierern verarbeiten lassen möchtest, kannst Du gerne eine E-Mail an die Administratoren schreiben: {{adminEmail}}",
-      "introduction": "OCTRA nutzt für den Online-Modus das {{octraBackendURL}}. Neue Projekte können aus Sicherheitsgründen nur von Administratoren erstellt werden, die entsprechende Anfragen vorher prüfen.",
+      "description": "Wenn Du dein Projekt mit dem OCTRA-Backend verwalten und im Online-Modus hier in TRATT von Transkribierern verarbeiten lassen möchtest, kannst Du gerne eine E-Mail an die Administratoren schreiben: {{adminEmail}}",
+      "introduction": "TRATT nutzt für den Online-Modus das {{octraBackendURL}}. Neue Projekte können aus Sicherheitsgründen nur von Administratoren erstellt werden, die entsprechende Anfragen vorher prüfen.",
       "needed data": {
         "label": "Die Email sollte folgende Daten beinhalten:",
         "list1": "Projektname, Kürzel, interne Beschreibung, externe Beschreibung (optional)",
@@ -721,7 +721,10 @@
   "toasts": {
     "new update": {
       "header": "Neue Aktualisierung verfügbar",
-      "body": "Eine neue Aktualisierung für Octra ist verfügbar. Stelle sicher, dass keine automatischen Prozesse laufen (ASR, Word Alignment, Schneiden etc.). Lade dann Octra neu, um diese zu installieren."
+      "body": "Eine neue Aktualisierung für TRATT ist verfügbar. Stelle sicher, dass keine automatischen Prozesse laufen (ASR, Word Alignment, Schneiden etc.). Lade dann TRATT neu, um diese zu installieren."
     }
+  },
+  "branding": {
+    "tagline": "Transkription von Sprache zu Text"
   }
 }

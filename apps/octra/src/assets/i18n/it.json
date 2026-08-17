@@ -23,7 +23,7 @@
     "without asr": "Nessun ASR"
   },
   "authentication": {
-    "description": "Chiudi questa finestra e clicca \"Sono autenticato!\" in OCTRA per confermare l'autenticazione. Dopo questo, il processo automatico continuerà.",
+    "description": "Chiudi questa finestra e clicca \"Sono autenticato!\" in TRATT per confermare l'autenticazione. Dopo questo, il processo automatico continuerà.",
     "window closed": "Questa finestra sarà automaticamente chiusa in {{seconds}} secondi.",
     "you are authenticated": "Sei autenticato!"
   },
@@ -33,7 +33,7 @@
     "invalid": "<b>Il tuo browser non è compatibile</b>. Per favore, usa uno di questi browser:"
   },
   "bug report": {
-    "description": "Per favore, dicci cosa pensi di OCTRA. Cosa potrebbe essere migliorato? Hai riscontrato problemi?",
+    "description": "Per favore, dicci cosa pensi di TRATT. Cosa potrebbe essere migliorato? Hai riscontrato problemi?",
     "error": "Sfortunatamente, il tuo feedback non può essere inviato. Per favore, invia una mail a {{email}}.",
     "give feedback": "Fornisci un feedback",
     "send protocol": "Aggiungi protocollo (raccomandato)",
@@ -235,11 +235,11 @@
   },
   "login": {
     "api not available": "",
-    "demo": "Clicca qui per usare OCTRA su un file audio di default (demo)",
+    "demo": "Clicca qui per usare TRATT su un file audio di default (demo)",
     "last used": "usato di recente",
     "local and remove": "Rimuovi dati della modalità online & continua",
     "local mode": "Modalità locale.",
-    "local mode description": "<p>Inizia la trascrizione del tuo file audio o video caricandolo utilizzando il riquadro sottostante. Puoi utilizzare un modello di trascrizione automatica per fornire una bozza che potrai quindi modificare scegliendo questa opzione sotto il riquadro di caricamento.</p><p>Il lavoro di trascrizione con i modelli verrà eseguito sul tuo computer e i modelli disponibili dipenderanno dal supporto del browser per l'estensione WebGPU e dalla scheda grafica del tuo computer. I file video verranno convertiti solo in audio, il che potrebbe richiedere tempo aggiuntivo.</p><p>OCTRA salverà l'ultima sessione di trascrizione nel tuo browser ma mai il file audio o video, il che significa che dovrai ricaricare il file multimediale quando vorrai continuare la sessione precedente.</p>",
+    "local mode description": "<p>Inizia la trascrizione del tuo file audio o video caricandolo utilizzando il riquadro sottostante. Puoi utilizzare un modello di trascrizione automatica per fornire una bozza che potrai quindi modificare scegliendo questa opzione sotto il riquadro di caricamento.</p><p>Il lavoro di trascrizione con i modelli verrà eseguito sul tuo computer e i modelli disponibili dipenderanno dal supporto del browser per l'estensione WebGPU e dalla scheda grafica del tuo computer. I file video verranno convertiti solo in audio, il che potrebbe richiedere tempo aggiuntivo.</p><p>TRATT salverà l'ultima sessione di trascrizione nel tuo browser ma mai il file audio o video, il che significa che dovrai ricaricare il file multimediale quando vorrai continuare la sessione precedente.</p>",
     "login and remove": "Rimuovi dati della modalità locale & accedi",
     "offline mode data warning": "Ci sono dati locali disponibili che sono stati creati in modalità online. Se vuoi continuare in modalità locale questi dati saranno sovrascritti.",
     "old file found": "Ci sono dati disponibili da una trascrizione precedente. Se vuoi continuare il tuo lavoro, trascina e rilascia il seguente file nell'area grigia: <br/><br/>{{file_label}}",
@@ -247,7 +247,7 @@
     "online mode continue": "Dati precedenti trovati! Per continuare assicurati di selezionare i dati di accesso: {{member_id}} , {{member_project}}, {{member_jobno}}",
     "online mode data warning": "Ci sono dati locali disponibili creati in modalità locale. Se vuoi continuare in modalità online questi dati saranno sovrascritti.",
     "online mode description": "Nella modalità online puoi ottenere automaticamente file audio per la trascrizione.",
-    "online mode disabled": "La modalità online è al momento inattiva. Per favore, usa OCTRA in modalità locale.",
+    "online mode disabled": "La modalità online è al momento inattiva. Per favore, usa TRATT in modalità locale.",
     "translation": {
       "enable label": "Translate transcript locally",
       "from": "From",
@@ -325,7 +325,7 @@
       "diarizingLabel": "Identificazione dei parlanti…",
       "initializing speaker segmentation": "Caricamento del modello di segmentazione dei parlanti"
     },
-    "app description": "OCTRA è un'applicazione web gratuita per la trascrizione in testo normale (ortografica) di registrazioni vocali. Dispone di tre editor diversi che soddisfano esigenze differenti durante la trascrizione e permette di passare liberamente da uno all'altro nel corso di una sessione.",
+    "app description": "TRATT è un'applicazione web gratuita per la trascrizione in testo normale (ortografica) di registrazioni vocali. Dispone di tre editor diversi che soddisfano esigenze differenti durante la trascrizione e permette di passare liberamente da uno all'altro nel corso di una sessione.",
     "funding support and development": "Finanziatori e collaborazioni",
     "groups that developed the language models": "Sviluppatori dei modelli linguistici utilizzati",
     "tabs": {
@@ -338,23 +338,23 @@
     "successful text": "Ti sei disconnesso con successo."
   },
   "maintenance": {
-    "banner": "Da <b>{{start}}</b> fino a <b>{{end}}</b> (previsto) è programmato un aggiornamento.<br/>In questo lasso di tempo, OCTRA non sarà disponibile. Per favore, assicurati di non usare OCTRA in questo lasso di tempo.",
-    "in app": "Da <b>{{start}}</b> fino a <b>{{end}}</b> (previsto) è programmato un aggiornamento.<b>Per favore, assicurati di lasciare OCTRA 15 minuti prima l'inizio dell'aggiornamento."
+    "banner": "Da <b>{{start}}</b> fino a <b>{{end}}</b> (previsto) è programmato un aggiornamento.<br/>In questo lasso di tempo, TRATT non sarà disponibile. Per favore, assicurati di non usare TRATT in questo lasso di tempo.",
+    "in app": "Da <b>{{start}}</b> fino a <b>{{end}}</b> (previsto) è programmato un aggiornamento.<b>Per favore, assicurati di lasciare TRATT 15 minuti prima l'inizio dell'aggiornamento."
   },
   "modal": {
     "inactivity": {
-      "body": "Sei stato assente per almeno {{value}} minuti senza concludere OCTRA. Si raccomanda di abbandonare OCTRA in caso di assenza prolungata. Se non prosegui nella trascrizione al momento, puoi abbandonare OCTRA adesso. Vuoi abbandonare?",
+      "body": "Sei stato assente per almeno {{value}} minuti senza concludere TRATT. Si raccomanda di abbandonare TRATT in caso di assenza prolungata. Se non prosegui nella trascrizione al momento, puoi abbandonare TRATT adesso. Vuoi abbandonare?",
       "continue": "Continua trascrizione",
       "header": "Assenza più lunga rilevata",
       "new": "Inizia nuova trascrizione",
-      "quit": "Abbandona OCTRA"
+      "quit": "Abbandona TRATT"
     },
     "login": {
       "header": "Accesso fallito",
       "text": "Per favore controlla il tuo nome utente e la tua password"
     },
     "missing permissions": {
-      "description": "OCTRA ha rilevato l'assenza dei permessi per riprodurre l'audio. Per continuare, devi garantire ad OCTRA i permessi di riproduzione. Segui i seguenti tre step e clicca su \"RICARICA\" alla fine di questa finestra.",
+      "description": "TRATT ha rilevato l'assenza dei permessi per riprodurre l'audio. Per continuare, devi garantire ad TRATT i permessi di riproduzione. Segui i seguenti tre step e clicca su \"RICARICA\" alla fine di questa finestra.",
       "header": "Permessi mancanri",
       "step1": "Clicca sulla finestra di riproduzione collassata sulla sinistra della barra degli indirizzi.",
       "step2": "Clicca sul bottone vicino ad 'Autoplay'.",
@@ -403,7 +403,7 @@
       "demoEnd": {
         "exportText": "Puoi esportare la tua trascrizione cliccando su \"Indietro\" e poi su \"Esporta\":",
         "header": "Modalità Demo",
-        "text": "Al momento stai usando la Modalità Demo. <br/><br/>Clicca su...<ul><li>\"Continua\" per ricaricare il file audio corrente. Il tuo input sarà eliminato e la trasmissione della trascrizione sarà simulata.</li><li>\"Esci\" per abbandonare OCTRA. Il tuo input sarà eliminato.</li><li>\"Indietro\" per continuare la trascrizione.</li></ul>"
+        "text": "Al momento stai usando la Modalità Demo. <br/><br/>Clicca su...<ul><li>\"Continua\" per ricaricare il file audio corrente. Il tuo input sarà eliminato e la trasmissione della trascrizione sarà simulata.</li><li>\"Esci\" per abbandonare TRATT. Il tuo input sarà eliminato.</li><li>\"Indietro\" per continuare la trascrizione.</li></ul>"
       },
       "send": {
         "header": "Invia trascrizione",
@@ -496,5 +496,8 @@
     "form fill out": "Per favore, riempi il modulo",
     "intelligibility of the speaker": "Incomprensibilità del parlante",
     "overview": "La prossima tabella mostra un'anteprima delle unità di trascrizione."
+  },
+  "branding": {
+    "tagline": "trascrizione del parlato in testo"
   }
 }
