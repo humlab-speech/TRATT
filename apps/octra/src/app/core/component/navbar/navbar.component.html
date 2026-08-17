@@ -9,8 +9,13 @@
       <a
         [ngbPopover]="versionPopover"
         popoverClass="version-popover"
-        class="navbar-brand"
-        >VISP OCTRA
+        class="navbar-brand d-inline-flex align-items-center gap-2"
+        ><img
+          src="assets/img/tratt/tratt-mark-light.svg"
+          alt=""
+          width="26"
+          height="21"
+        />VISP TRATT
         @if (
           appStorage.useMode !== undefined && appStorage.useMode !== undefined && !localOnly
         ) {

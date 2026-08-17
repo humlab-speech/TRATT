@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" role="img" aria-label="TRATT">
+  <path d="M8 9h48a5 5 0 0 1 5 5v24a5 5 0 0 1-5 5H26L13 55V43H8a5 5 0 0 1-5-5V14a5 5 0 0 1 5-5z" fill="#1F4477"></path>
+  <rect x="13" y="19" width="38" height="5" rx="2.5" fill="#FFFFFF"></rect>
+  <rect x="13" y="29" width="19" height="5" rx="2.5" fill="#E8863C"></rect>
+</svg>

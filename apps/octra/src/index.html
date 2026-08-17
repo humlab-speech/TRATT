@@ -4,7 +4,7 @@
     <base href="/" />
     <link rel="manifest" id="manifest" href="manifest.json" />
     <meta charset="utf-8" />
-    <title>OCTRA - Orthographic Transcription</title>
+    <title>TRATT - Orthographic Transcription</title>
     <meta
       name="viewport"
       content="width=device-width, initial-scale=1, shrink-to-fit=no"
@@ -22,33 +22,35 @@
 
     <!-- icons -->
     <link
+      rel="icon"
+      type="image/svg+xml"
+      href="assets/img/tratt/tratt-favicon.svg"
+    />
+    <link
       rel="apple-touch-icon"
       sizes="256x256"
-      href="assets/img/icons/256x256.png"
+      href="assets/img/tratt/icons/256x256.png"
     />
     <link
       rel="icon"
       type="image/png"
       sizes="32x32"
-      href="assets/img/icons/32x32.png"
+      href="assets/img/tratt/icons/32x32.png"
     />
     <link
       rel="icon"
       type="image/png"
       sizes="16x16"
-      href="assets/img/icons/16x16.png"
+      href="assets/img/tratt/icons/16x16.png"
     />
-    <meta name="apple-mobile-web-app-title" content="OCTRA" />
-    <meta name="application-name" content="OCTRA" />
+    <meta name="apple-mobile-web-app-title" content="TRATT" />
+    <meta name="application-name" content="TRATT" />
     <!-- end icons -->
 
     <!-- Facebook -->
     <meta content="article" property="og:type" />
-    <meta
-      property="og:image"
-      content="https://clarin.phonetik.uni-muenchen.de/apps/octra/octra-2/assets/img/socialmedia/Octra2_thumbnail_facebook.png"
-    />
-    <meta content="OCTRA - orthographic transcription" property="og:title" />
+    <meta property="og:image" content="assets/img/tratt/social-card.png" />
+    <meta content="TRATT - orthographic transcription" property="og:title" />
     <meta content="features" property="og:url" />
     <meta
       content="OCTRA is a modern online tool for the orthographic transcription of audio files. It can be used online or local and is free to use. What makes it special is its user-friendly appearance and its features: multiple editors and tiers, auto-saving, transcription guidelines support various file formats and a lot more."
@@ -58,11 +60,8 @@
 
     <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image" />
-    <meta
-      name="twitter:image"
-      content="https://clarin.phonetik.uni-muenchen.de/apps/octra/octra-2/assets/img/socialmedia/Octra2_thumbnail_x.png"
-    />
-    <meta content="OCTRA - orthographic transcription" name="twitter:title" />
+    <meta name="twitter:image" content="assets/img/tratt/social-card.png" />
+    <meta content="TRATT - orthographic transcription" name="twitter:title" />
     <meta
       content="OCTRA is a modern  and free online tool for the orthographic transcription of audio files.
     It can be used with online files or local files from your computer."
@@ -72,12 +71,11 @@
 
     <style>
       #logo {
-        text-align: center;
-        width: 100%;
         display: block;
-        font-size: 4em;
-        font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-        font-weight: 300;
+        width: 96px;
+        max-width: 40%;
+        height: auto;
+        margin: 0 auto 20px;
       }
 
       .progress {
@@ -117,12 +115,18 @@
   <body>
     <octra-app>
       <div id="loading" style="margin-top: 150px; padding: 20px">
-        <span id="logo" style="font-size: 5em">OCTRA</span>
+        <img
+          id="logo"
+          src="assets/img/tratt/tratt-favicon-transparent.svg"
+          alt="TRATT"
+          width="96"
+          height="96"
+        />
         <div class="progress">
           <div class="progress-bar progress-animated" style="width: 100%"></div>
         </div>
         <div class="description" style="margin-top: 20px; text-align: center">
-          Please wait... OCTRA is loading...
+          Please wait... TRATT is loading...
         </div>
         <noscript>
           <p style="text-align: center; color: red">
