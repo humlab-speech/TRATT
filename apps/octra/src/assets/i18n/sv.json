@@ -731,5 +731,8 @@
       "header": "Ny uppdatering tillgänglig",
       "body": "En ny uppdatering för Octra är tillgänglig. Se till att inga automatiska processer körs (taligenkänning, ordjustering, beskärning osv.). Ladda sedan om Octra för att installera den."
     }
+  },
+  "branding": {
+    "tagline": "transkription av tal till text"
   }
 }
