@@ -1,4 +1,4 @@
-import { getProperties, hasProperty } from '@octra/utilities';
+import { getProperties, hasProperty } from '@tratt/utilities';
 import { ILog, SampleInterval } from '../Settings/logging';
 import { StatisticElem } from './StatisticElement';
 

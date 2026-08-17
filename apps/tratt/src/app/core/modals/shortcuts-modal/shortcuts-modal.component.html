@@ -30,9 +30,9 @@
                   <td [innerHTML]="entry.label"></td>
                 }
                 <td>
-                  <octra-shortcut
+                  <tratt-shortcut
                     [shortcut]="getShortcut(entry, platform)"
-                  ></octra-shortcut>
+                  ></tratt-shortcut>
                   @if (entry.focusonly) {
                     <span class="focus-info"
                       >({{ 'g.on focus only' | transloco }} )</span
@@ -60,9 +60,9 @@
                 <tr>
                   <td>{{ 'modal.shortcuts.' + entry.title | transloco }}</td>
                   <td>
-                    <octra-shortcut
+                    <tratt-shortcut
                       [shortcut]="getShortcut(entry, platform)"
-                    ></octra-shortcut>
+                    ></tratt-shortcut>
                     @if (entry.focusonly) {
                       <span class="focus-info"
                         >({{ 'g.on focus only' | transloco }} )</span

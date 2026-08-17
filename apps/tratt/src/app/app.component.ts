@@ -2,14 +2,14 @@ import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { ActivatedRoute, Router, RouterOutlet } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import {
-  OctraComponentsModule,
+  TrattComponentsModule,
   VersionCheckerService,
   VersionNotificationComponent,
-} from '@octra/ngx-components';
+} from '@tratt/ngx-components';
 import { environment } from '../environments/environment';
 import { AlertComponent, NavigationComponent } from './core/component';
 import { DefaultComponent } from './core/component/default.component';
-import { OctraModalComponent } from './core/modals/octra-modal';
+import { TrattModalComponent } from './core/modals/tratt-modal';
 import { MultiThreadingService } from './core/shared/multi-threading/multi-threading.service';
 import { AppStorageService } from './core/shared/service/appstorage.service';
 import { RoutePrinterService } from './core/shared/service/router-printer.service';
@@ -18,14 +18,14 @@ import { ApplicationStoreService } from './core/store/application/application-st
 import { AnnotationStoreService } from './core/store/login-mode/annotation/annotation.store.service';
 
 @Component({
-  selector: 'octra-app',
+  selector: 'tratt-app',
   templateUrl: 'app.component.html',
   styleUrls: ['app.component.scss'],
   imports: [
     AlertComponent,
-    OctraModalComponent,
+    TrattModalComponent,
     RouterOutlet,
-    OctraComponentsModule,
+    TrattComponentsModule,
     NavigationComponent,
     VersionNotificationComponent,
     TranslocoPipe,

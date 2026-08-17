@@ -6,8 +6,8 @@ import {
 } from '@ng-bootstrap/ng-bootstrap';
 import { Action, Store } from '@ngrx/store';
 import { AccountLoginMethod } from '@octra/api-types';
-import { BugreportModalComponent } from '@octra/ngx-components';
-import { SubscriptionManager } from '@octra/utilities';
+import { BugreportModalComponent } from '@tratt/ngx-components';
+import { SubscriptionManager } from '@tratt/utilities';
 import { AppStorageService } from '../shared/service/appstorage.service';
 import { BugReportService } from '../shared/service/bug-report.service';
 import { LoginMode, RootState } from '../store';
@@ -18,7 +18,7 @@ import { NgbModalWrapper } from './ng-modal-wrapper';
 import { ReAuthenticationModalComponent } from './re-authentication-modal/re-authentication-modal.component';
 
 @Injectable()
-export class OctraModalService implements OnDestroy {
+export class TrattModalService implements OnDestroy {
   onModalAction = new EventEmitter<{
     name: string;
     type: 'open' | 'close';

@@ -1,7 +1,7 @@
 @if (
   versionChecker.isNewVersionAvailable && appStorage.useMode !== LoginMode.URL
 ) {
-  <octra-version-notification
+  <tratt-version-notification
     class="position-absolute top-0 start-50 translate-middle-x"
     [i18n]="{
       'reload now': 'g.reload now' | transloco,
@@ -11,14 +11,14 @@
         body: 'toasts.new update.body' | transloco,
       },
     }"
-  ></octra-version-notification>
+  ></tratt-version-notification>
 }
 
 <div class="overflow-box position-relative">
-  <octra-alert id="alerts"></octra-alert>
-  <octra-modal></octra-modal>
+  <tratt-alert id="alerts"></tratt-alert>
+  <tratt-modal></tratt-modal>
   <header>
-    <octra-navigation #navigation></octra-navigation>
+    <tratt-navigation #navigation></tratt-navigation>
   </header>
   <main style="margin-top: 40px">
     @if (environment.beta_version && !localOnly) {

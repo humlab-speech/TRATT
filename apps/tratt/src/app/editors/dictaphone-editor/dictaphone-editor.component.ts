@@ -10,21 +10,21 @@ import { TranscrEditorComponent } from '../../core/component';
 
 import {
   ASRContext,
-  OctraAnnotationSegment,
-  OctraAnnotationSegmentLevel,
   OLabel,
-} from '@octra/annotation';
-import { SampleUnit } from '@octra/media';
+  TrattAnnotationSegment,
+  TrattAnnotationSegmentLevel,
+} from '@tratt/annotation';
+import { SampleUnit } from '@tratt/media';
 import {
   AudioplayerComponent,
-  OctraComponentsModule,
-} from '@octra/ngx-components';
+  TrattComponentsModule,
+} from '@tratt/ngx-components';
 import {
   AudioChunk,
   AudioManager,
   Shortcut,
   ShortcutGroup,
-} from '@octra/web-media';
+} from '@tratt/web-media';
 import { HotkeysEvent } from 'hotkeys-js';
 import { AudioNavigationComponent } from '../../core/component/audio-navigation';
 import { AudioNavigationComponent as AudioNavigationComponent_1 } from '../../core/component/audio-navigation/audio-navigation.component';
@@ -37,21 +37,21 @@ import {
 import { AppStorageService } from '../../core/shared/service/appstorage.service';
 import { ShortcutService } from '../../core/shared/service/shortcut.service';
 import { AnnotationStoreService } from '../../core/store/login-mode/annotation/annotation.store.service';
-import { OCTRAEditor, OctraEditorRequirements } from '../octra-editor';
+import { TRATTEditor, TrattEditorRequirements } from '../tratt-editor';
 
 @Component({
-  selector: 'octra-audioplayer-gui',
+  selector: 'tratt-audioplayer-gui',
   templateUrl: './dictaphone-editor.component.html',
   styleUrls: ['./dictaphone-editor.component.scss'],
   imports: [
     AudioNavigationComponent_1,
-    OctraComponentsModule,
+    TrattComponentsModule,
     TranscrEditorComponent_1,
   ],
 })
 export class DictaphoneEditorComponent
-  extends OCTRAEditor
-  implements OnInit, OnDestroy, AfterViewInit, OctraEditorRequirements
+  extends TRATTEditor
+  implements OnInit, OnDestroy, AfterViewInit, TrattEditorRequirements
 {
   public static editorname = 'Dictaphone Editor';
 
@@ -73,7 +73,7 @@ export class DictaphoneEditorComponent
     this.appStorage.highlightingEnabled = value;
   }
 
-  public segments?: OctraAnnotationSegment[] = [];
+  public segments?: TrattAnnotationSegment[] = [];
 
   private oldRaw = '';
   boundaryselected = false;
@@ -431,7 +431,7 @@ export class DictaphoneEditorComponent
         return a.replace(/(^\s+)|(\s+$)/g, '');
       });
 
-      const items: OctraAnnotationSegment<ASRContext>[] = [];
+      const items: TrattAnnotationSegment<ASRContext>[] = [];
 
       for (let i = 0; i < segTexts.length; i++) {
         const time =
@@ -496,7 +496,7 @@ export class DictaphoneEditorComponent
     if (
       this.annotationStoreService.currentLevel &&
       this.annotationStoreService.currentLevel instanceof
-        OctraAnnotationSegmentLevel &&
+        TrattAnnotationSegmentLevel &&
       this.annotationStoreService.currentLevel.items.length > 0
     ) {
       this.segments = this.annotationStoreService.currentLevel.items;

@@ -13,10 +13,10 @@ import {
 } from '@ng-bootstrap/ng-bootstrap';
 import {
   BugreportModalComponent,
-  OctraComponentsModule,
-  OctraFormGeneratorModule,
-} from '@octra/ngx-components';
-import { OctraUtilitiesModule } from '@octra/ngx-utilities';
+  TrattComponentsModule,
+  TrattFormGeneratorModule,
+} from '@tratt/ngx-components';
+import { TrattUtilitiesModule } from '@tratt/ngx-utilities';
 import { NgxJoditComponent } from 'ngx-jodit';
 import { AppSharedModule } from '../../app.shared.module';
 import { AuthenticationComponent } from '../component/authentication-component/authentication-component.component';
@@ -32,7 +32,6 @@ import { ImportOptionsModalComponent } from './import-options-modal/import-optio
 import { InactivityModalComponent } from './inactivity-modal/inactivity-modal.component';
 import { LoginInvalidModalComponent } from './login-invalid-modal/login-invalid-modal.component';
 import { MissingPermissionsModalComponent } from './missing-permissions/missing-permissions.component';
-import { OctraModalComponent } from './octra-modal';
 import { OverviewModalComponent } from './overview-modal/overview-modal.component';
 import { PromptModalComponent } from './prompt-modal/prompt-modal.component';
 import { ProtectedModalComponent } from './protected-modal/protected-modal.component';
@@ -47,6 +46,7 @@ import { TranscriptionDemoEndModalComponent } from './transcription-demo-end/tra
 import { TranscriptionGuidelinesModalComponent } from './transcription-guidelines-modal/transcription-guidelines-modal.component';
 import { TranscriptionSendingModalComponent } from './transcription-sending-modal/transcription-sending-modal.component';
 import { TranscriptionStopModalComponent } from './transcription-stop-modal/transcription-stop-modal.component';
+import { TrattModalComponent } from './tratt-modal';
 import { WaitingModalComponent } from './waiting-modal/waiting-modal.component';
 import { YesNoModalComponent } from './yes-no-modal/yes-no-modal.component';
 
@@ -58,7 +58,7 @@ import { YesNoModalComponent } from './yes-no-modal/yes-no-modal.component';
     CommonModule,
     AppSharedModule,
     TranslocoModule,
-    OctraComponentsModule,
+    TrattComponentsModule,
     FormsModule,
     NgbCollapseModule,
     NgbTooltipModule,
@@ -66,10 +66,10 @@ import { YesNoModalComponent } from './yes-no-modal/yes-no-modal.component';
     NgbDropdownModule,
     NamingDragAndDropComponent,
     NgbModalModule,
-    OctraUtilitiesModule,
+    TrattUtilitiesModule,
     NgbAccordionCollapse,
     NgxJoditComponent,
-    OctraFormGeneratorModule,
+    TrattFormGeneratorModule,
     BugreportModalComponent,
     NgbPopover,
     ErrorModalComponent,
@@ -78,7 +78,7 @@ import { YesNoModalComponent } from './yes-no-modal/yes-no-modal.component';
     InactivityModalComponent,
     LoginInvalidModalComponent,
     MissingPermissionsModalComponent,
-    OctraModalComponent,
+    TrattModalComponent,
     OverviewModalComponent,
     PromptModalComponent,
     ShortcutsModalComponent,
@@ -109,7 +109,7 @@ import { YesNoModalComponent } from './yes-no-modal/yes-no-modal.component';
     InactivityModalComponent,
     LoginInvalidModalComponent,
     MissingPermissionsModalComponent,
-    OctraModalComponent,
+    TrattModalComponent,
     OverviewModalComponent,
     PromptModalComponent,
     ShortcutsModalComponent,

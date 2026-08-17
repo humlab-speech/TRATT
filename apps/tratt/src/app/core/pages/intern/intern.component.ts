@@ -4,7 +4,7 @@ import { DefaultComponent } from '../../component/default.component';
 import { SettingsService, UserInteractionsService } from '../../shared/service';
 
 @Component({
-  selector: 'octra-members-area',
+  selector: 'tratt-members-area',
   templateUrl: './intern.component.html',
   styleUrls: ['./intern.component.scss'],
   providers: [UserInteractionsService],

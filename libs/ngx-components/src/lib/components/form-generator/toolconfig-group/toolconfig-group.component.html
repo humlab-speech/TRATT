@@ -60,12 +60,12 @@
         </div>
         <div class="col-md-auto">
           @if (control.description) {
-            <octra-question-mark
+            <tratt-question-mark
               [text]="control.description"
               [ngStyle]="{
                 visibility: control.description ? 'visible' : 'hidden',
               }"
-            ></octra-question-mark>
+            ></tratt-question-mark>
           }
         </div>
       </div>
@@ -119,12 +119,12 @@
         </div>
         <div class="col-md-auto">
           @if (control.description) {
-            <octra-question-mark
+            <tratt-question-mark
               [text]="control.description"
               [ngStyle]="{
                 visibility: control.description ? 'visible' : 'hidden',
               }"
-            ></octra-question-mark>
+            ></tratt-question-mark>
           }
         </div>
       </div>
@@ -174,12 +174,12 @@
         </div>
         <div class="col-md-auto">
           @if (control.description) {
-            <octra-question-mark
+            <tratt-question-mark
               [text]="control.description"
               [ngStyle]="{
                 visibility: control.description ? 'visible' : 'hidden',
               }"
-            ></octra-question-mark>
+            ></tratt-question-mark>
           }
         </div>
       </div>
@@ -231,12 +231,12 @@
         </div>
         <div class="col-md-auto">
           @if (control.description) {
-            <octra-question-mark
+            <tratt-question-mark
               [text]="control.description"
               [ngStyle]="{
                 visibility: control.description ? 'visible' : 'hidden',
               }"
-            ></octra-question-mark>
+            ></tratt-question-mark>
           }
         </div>
       </div>
@@ -297,35 +297,35 @@
                 }
               </div>
               <div class="col-auto">
-                <octra-toolconfig-array-adder
+                <tratt-toolconfig-array-adder
                   (itemsAdd)="onArrayItemAdd(control, $event)"
                   [type]="control.itemsType"
                   [disabled]="!control.checkToggleStateOfControl()"
                   [items]="control.context"
-                ></octra-toolconfig-array-adder>
+                ></tratt-toolconfig-array-adder>
               </div>
             </div>
           </div>
         </div>
         <div class="col-md-auto">
           @if (control.description) {
-            <octra-question-mark
+            <tratt-question-mark
               [text]="control.description"
               [ngStyle]="{
                 visibility: control.description ? 'visible' : 'hidden',
               }"
-            ></octra-question-mark>
+            ></tratt-question-mark>
           }
         </div>
       </div>
       <hr />
     }
     @if (control.type === 'group') {
-      <octra-toolconfig-group
+      <tratt-toolconfig-group
         [group]="control"
         class="mt-4 mb-4"
         (somethingChanged)="somethingChanged.emit()"
-      ></octra-toolconfig-group>
+      ></tratt-toolconfig-group>
     }
   }
 }

@@ -1,5 +1,5 @@
 .red {
-  background-color: var(--octra-waveform-background);
+  background-color: var(--tratt-waveform-background);
 }
 
 .segment-number {
@@ -12,11 +12,11 @@
 .segment-number .btn-link:hover,
 .segment-number .btn-link:focus,
 .segment-number .btn-link:active {
-  color: var(--octra-chrome-hover);
+  color: var(--tratt-chrome-hover);
 }
 
 .segment-warning {
-  color: var(--octra-danger);
+  color: var(--tratt-danger);
 }
 
 .segment-transcript {
@@ -77,7 +77,7 @@
 .last-column .btn-link:hover,
 .last-column .btn-link:focus,
 .last-column .btn-link:active {
-  color: var(--octra-chrome-hover);
+  color: var(--tratt-chrome-hover);
 }
 
 .table fa-icon {
@@ -89,25 +89,25 @@
 }
 
 .bg-danger {
-  background-color: var(--octra-waveform-background) !important;
-  border: 1px solid var(--octra-accent-error) !important;
+  background-color: var(--tratt-waveform-background) !important;
+  border: 1px solid var(--tratt-accent-error) !important;
   color: black !important;
 }
 
 .bg-info {
-  background-color: var(--octra-surface-sunken) !important;
-  border: 1px solid var(--octra-text-primary) !important;
+  background-color: var(--tratt-surface-sunken) !important;
+  border: 1px solid var(--tratt-text-primary) !important;
   color: black !important;
 }
 
 .bg-success {
-  background-color: var(--octra-segment-transcribed) !important;
-  border: 1px solid var(--octra-border) !important;
+  background-color: var(--tratt-segment-transcribed) !important;
+  border: 1px solid var(--tratt-border) !important;
   color: black !important;
 }
 
 .bg-highlight {
-  background-color: var(--octra-accent-warning) !important;
-  border: 1px solid var(--octra-accent-error) !important;
+  background-color: var(--tratt-accent-warning) !important;
+  border: 1px solid var(--tratt-accent-error) !important;
   color: black;
 }

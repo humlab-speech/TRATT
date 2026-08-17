@@ -10,8 +10,8 @@
 }
 
 .naming-placeholder {
-  border: 1px solid var(--octra-text-primary);
-  background-color: var(--octra-surface-sunken);
+  border: 1px solid var(--tratt-text-primary);
+  background-color: var(--tratt-surface-sunken);
 }
 
 .namingConventionDragDrop {
@@ -26,7 +26,7 @@
 :host {
   padding: 10px;
   display: block;
-  background-color: var(--octra-surface-background);
+  background-color: var(--tratt-surface-background);
   -webkit-border-radius: 3px;
   -moz-border-radius: 3px;
   border-radius: 3px;
@@ -48,7 +48,7 @@
 }
 
 .naming-text {
-  background-color: var(--octra-surface-background);
+  background-color: var(--tratt-surface-background);
   cursor: pointer;
 }
 

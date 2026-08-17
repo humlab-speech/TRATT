@@ -4,7 +4,7 @@
 
 import { JSONSchema4 } from 'json-schema';
 
-export const OctraGuidelinesJSONSchema: JSONSchema4 = {
+export const TrattGuidelinesJSONSchema: JSONSchema4 = {
   properties: {
     meta: {
       properties: {
@@ -130,7 +130,7 @@ export const OctraGuidelinesJSONSchema: JSONSchema4 = {
   required: ['meta', 'instructions', 'markers'],
 };
 
-export interface OctraGuidelines {
+export interface TrattGuidelines {
   meta: {
     object_language: string;
     project: string;

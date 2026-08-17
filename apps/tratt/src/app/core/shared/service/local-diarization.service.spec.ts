@@ -1,5 +1,5 @@
 import { describe, expect, it } from '@jest/globals';
-import { OAnnotJSON, OLabel, OSegment, OSegmentLevel } from '@octra/annotation';
+import { OAnnotJSON, OLabel, OSegment, OSegmentLevel } from '@tratt/annotation';
 import {
   applySpeakerTurnsToAnnotJson,
   SpeakerTurn,

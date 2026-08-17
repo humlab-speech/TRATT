@@ -12,8 +12,8 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { NgbTooltipModule } from '@ng-bootstrap/ng-bootstrap';
-import { formatLanguageLabel } from '@octra/utilities';
-import { isSafariOrWebKit } from '@octra/web-media';
+import { formatLanguageLabel } from '@tratt/utilities';
+import { isSafariOrWebKit } from '@tratt/web-media';
 import { skip } from 'rxjs';
 import { TranscriptionOptions } from '../../shared/service/local-transcription.service';
 import { buildTranscriptionOptions } from './auto-transcribe-options.helpers';
@@ -333,7 +333,7 @@ const DEFAULT_KEY_FOR_FAMILY: Record<string, string> = {
 };
 
 @Component({
-  selector: 'octra-auto-transcribe-options',
+  selector: 'tratt-auto-transcribe-options',
   standalone: true,
   imports: [FormsModule, NgbTooltipModule, TranslocoPipe],
   template: `
@@ -523,7 +523,7 @@ const DEFAULT_KEY_FOR_FAMILY: Record<string, string> = {
   styles: [
     `
       .auto-transcribe-options {
-        background-color: var(--octra-surface-background);
+        background-color: var(--tratt-surface-background);
         font-size: 0.9rem;
       }
       .form-check-input.safari-disabled {

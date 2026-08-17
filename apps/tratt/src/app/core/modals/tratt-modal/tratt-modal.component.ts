@@ -1,21 +1,21 @@
 import { Component } from '@angular/core';
-import { hasProperty } from '@octra/utilities';
+import { hasProperty } from '@tratt/utilities';
 import { AppInfo } from '../../../app.info';
 import { DefaultComponent } from '../../component/default.component';
 import { ErrorModalComponent } from '../error-modal/error-modal.component';
 import { LoginInvalidModalComponent } from '../login-invalid-modal/login-invalid-modal.component';
-import { OctraModalService } from '../octra-modal.service';
 import { SupportedFilesModalComponent } from '../supportedfiles-modal/supportedfiles-modal.component';
 import { TranscriptionDeleteModalComponent } from '../transcription-delete-modal/transcription-delete-modal.component';
 import { TranscriptionStopModalComponent } from '../transcription-stop-modal/transcription-stop-modal.component';
+import { TrattModalService } from '../tratt-modal.service';
 import { YesNoModalComponent } from '../yes-no-modal/yes-no-modal.component';
 
 @Component({
-  selector: 'octra-modal',
-  templateUrl: './octra-modal.component.html',
-  styleUrls: ['./octra-modal.component.scss'],
+  selector: 'tratt-modal',
+  templateUrl: './tratt-modal.component.html',
+  styleUrls: ['./tratt-modal.component.scss'],
 })
-export class OctraModalComponent extends DefaultComponent {
+export class TrattModalComponent extends DefaultComponent {
   modals: any = {
     error: {
       visible: false,
@@ -49,7 +49,7 @@ export class OctraModalComponent extends DefaultComponent {
     return AppInfo;
   }
 
-  constructor(private modService: OctraModalService) {
+  constructor(private modService: TrattModalService) {
     super();
   }
 

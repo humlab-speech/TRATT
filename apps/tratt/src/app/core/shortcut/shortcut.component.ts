@@ -7,7 +7,7 @@ import {
 } from '@angular/core';
 
 @Component({
-  selector: 'octra-shortcut',
+  selector: 'tratt-shortcut',
   templateUrl: './shortcut.component.html',
   styleUrls: ['./shortcut.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,

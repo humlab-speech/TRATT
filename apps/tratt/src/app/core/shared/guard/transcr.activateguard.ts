@@ -6,7 +6,7 @@ import {
   RouterStateSnapshot,
 } from '@angular/router';
 import { Store } from '@ngrx/store';
-import { navigateTo } from '@octra/ngx-utilities';
+import { navigateTo } from '@tratt/ngx-utilities';
 import { map, Observable, take } from 'rxjs';
 import { AppInfo } from '../../../app.info';
 import { LoadingStatus, RootState } from '../../store';

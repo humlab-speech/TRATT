@@ -29,12 +29,12 @@
           border-right: 1px solid lightgray;
         "
       >
-        <octra-transcr-overview
+        <tratt-transcr-overview
           #overview
           [currentLevel]="annotationStoreService.currentLevel"
           (segmentclicked)="onSegmentInOverviewClicked($event)"
         >
-        </octra-transcr-overview>
+        </tratt-transcr-overview>
       </div>
       @if (appStorage.useMode === 'online' || appStorage.useMode === 'demo') {
         <div
@@ -42,12 +42,12 @@
           style="overflow: auto; max-height: 1200px"
         >
           <h4>Feedback</h4>
-          <octra-transcription-feedback
+          <tratt-transcription-feedback
             #feedback
             [feedbackData]="annotationStoreService.feedback$ | async"
             [showCommentFieldOnly]="settingsService.isTheme('shortAudioFiles')"
           >
-          </octra-transcription-feedback>
+          </tratt-transcription-feedback>
           @if (
             sendValidTranscriptOnly && !annotationStoreService.transcriptValid
           ) {
@@ -83,7 +83,7 @@
                 <button
                   (click)="sendTranscriptionForShortAudioFiles('middle')"
                   class="btn btn-raised btn-warning w-100"
-                  style="background-color: var(--octra-accent-warning)"
+                  style="background-color: var(--tratt-accent-warning)"
                 >
                   <i class="bi bi-star-fill"></i>
                   <i class="bi bi-star-fill"></i>

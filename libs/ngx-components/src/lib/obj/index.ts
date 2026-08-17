@@ -1,3 +1,3 @@
 export * from './functions';
-export * from './octra-colors';
 export * from './objects';
+export * from './tratt-colors';

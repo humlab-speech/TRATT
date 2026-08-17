@@ -1,12 +1,12 @@
-import { OAudiofile } from '@octra/media';
-import { FileInfo } from '@octra/web-media';
+import { OAudiofile } from '@tratt/media';
+import { FileInfo } from '@tratt/web-media';
 import { OAnnotJSON, OLabel, OSegment, OSegmentLevel } from '../annotjson';
 import {
   Converter,
   ExportResult,
   IFile,
   ImportResult,
-  OctraAnnotationFormatType,
+  TrattAnnotationFormatType,
 } from './Converter';
 import {
   AnyTextEditor,
@@ -17,7 +17,7 @@ import {
 
 // https://clarin.phonetik.uni-muenchen.de/BASWebServices/#/services/WebMAUSBasic
 export class TextConverter extends Converter {
-  override _name: OctraAnnotationFormatType = 'PlainText';
+  override _name: TrattAnnotationFormatType = 'PlainText';
 
   public override options = {
     showTimestampSamples: false,

@@ -2,18 +2,18 @@ import { Action, ActionReducer, on } from '@ngrx/store';
 import {
   ASRContext,
   OLabel,
-  OctraAnnotation,
-  OctraAnnotationSegment,
-  OctraAnnotationSegmentLevel,
-} from '@octra/annotation';
-import { getProperties } from '@octra/utilities';
+  TrattAnnotation,
+  TrattAnnotationSegment,
+  TrattAnnotationSegmentLevel,
+} from '@tratt/annotation';
+import { getProperties } from '@tratt/utilities';
 import { undoRedo } from 'ngrx-wieder';
 import { ProjectSettings } from '../../obj';
 import { SessionFile } from '../../obj/SessionFile';
 import {
   DefaultModeOptions,
   IIDBModeOptions,
-} from '../../shared/octra-database';
+} from '../../shared/tratt-database';
 import { ApplicationActions } from '../application/application.actions';
 import { AuthenticationActions } from '../authentication';
 import { IDBActions } from '../idb/idb.actions';
@@ -202,9 +202,9 @@ export class LoginModeReducers {
           if (this.mode === mode) {
             return {
               ...state,
-              transcript: new OctraAnnotation<
+              transcript: new TrattAnnotation<
                 ASRContext,
-                OctraAnnotationSegment<ASRContext>
+                TrattAnnotationSegment<ASRContext>
               >(),
               currentSession: {},
             };
@@ -230,15 +230,15 @@ export class LoginModeReducers {
                     startReference: undefined,
                     logs: [],
                   },
-                  transcript: new OctraAnnotation<
+                  transcript: new TrattAnnotation<
                     ASRContext,
-                    OctraAnnotationSegment<ASRContext>
+                    TrattAnnotationSegment<ASRContext>
                   >(),
                   currentSession: {},
                   sessionFile,
                 };
               } else {
-                const deserialized = OctraAnnotation.deserialize(annotation);
+                const deserialized = TrattAnnotation.deserialize(annotation);
                 return {
                   ...state,
                   logging: {
@@ -290,10 +290,10 @@ export class LoginModeReducers {
             if (breakMarkerCode && transcript) {
               transcript = transcript.clone();
               for (const level of transcript.levels) {
-                if (level instanceof OctraAnnotationSegmentLevel) {
+                if (level instanceof TrattAnnotationSegmentLevel) {
                   for (const item of (
-                    level as OctraAnnotationSegmentLevel<
-                      OctraAnnotationSegment<ASRContext>
+                    level as TrattAnnotationSegmentLevel<
+                      TrattAnnotationSegment<ASRContext>
                     >
                   ).items) {
                     const idx = item.labels.findIndex(

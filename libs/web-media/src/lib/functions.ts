@@ -1,4 +1,4 @@
-import { getProperties } from '@octra/utilities';
+import { getProperties } from '@tratt/utilities';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { AudioFormat } from './audio/AudioFormats';
 import { AudioInfo } from './audio/audio-info';

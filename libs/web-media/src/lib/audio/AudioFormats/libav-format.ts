@@ -2,7 +2,7 @@ import { parseBlob } from 'music-metadata';
 import { AudioFormat } from './audio-format';
 
 export class LibavFormat extends AudioFormat {
-  protected override _decoder: 'web-audio' | 'octra' | 'libav' = 'web-audio';
+  protected override _decoder: 'web-audio' | 'tratt' | 'libav' = 'web-audio';
 
   constructor() {
     super();
@@ -33,12 +33,19 @@ export class LibavFormat extends AudioFormat {
         new File([buffer], this._filename, { type: this._mimeType }),
       );
       const f = parsed.format;
-      if (f.sampleRate && f.numberOfChannels && (f.numberOfSamples || f.duration)) {
+      if (
+        f.sampleRate &&
+        f.numberOfChannels &&
+        (f.numberOfSamples || f.duration)
+      ) {
         this._sampleRate = f.sampleRate;
         this._channels = f.numberOfChannels;
         const samples =
           f.numberOfSamples ?? Math.ceil((f.duration ?? 0) * f.sampleRate);
-        this._duration = { samples, seconds: f.duration ?? samples / f.sampleRate };
+        this._duration = {
+          samples,
+          seconds: f.duration ?? samples / f.sampleRate,
+        };
         return;
       }
     } catch {

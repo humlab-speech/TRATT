@@ -624,7 +624,7 @@
   "modals": {
     "create project request": {
       "description": "If you would like to manage your project with the OCTRA backend and have it processed by transcribers in online mode here in TRATT, you are welcome to write an email to the administrators: {{adminEmail}}",
-      "introduction": "TRATT uses the {{octraBackendURL}} for the online mode. For security reasons, new projects can only be created by administrators who check the corresponding requests beforehand.",
+      "introduction": "TRATT uses the {{trattBackendURL}} for the online mode. For security reasons, new projects can only be created by administrators who check the corresponding requests beforehand.",
       "needed data": {
         "label": "The email should contain the following data:",
         "list1": "Project name, abbreviation, internal description, external description (optional)",

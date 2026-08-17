@@ -1,10 +1,10 @@
-import { SampleUnit } from '@octra/media';
+import { SampleUnit } from '@tratt/media';
 import {
   SubscriptionManager,
   TsWorker,
   TsWorkerJob,
   TsWorkerStatus,
-} from '@octra/utilities';
+} from '@tratt/utilities';
 import { Subject, timer } from 'rxjs';
 import { AudioInfo, calculateChannelDataFactor } from './audio-info';
 import { AudioFormat, IntArray, WavFormat } from './AudioFormats';

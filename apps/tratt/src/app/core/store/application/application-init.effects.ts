@@ -3,9 +3,9 @@ import { Injectable } from '@angular/core';
 import { TranslocoService } from '@jsverse/transloco';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { Store } from '@ngrx/store';
-import { uniqueHTTPRequest } from '@octra/ngx-utilities';
-import { formatLanguageLabel, isNumber } from '@octra/utilities';
-import { findElements, getAttr } from '@octra/web-media';
+import { uniqueHTTPRequest } from '@tratt/ngx-utilities';
+import { formatLanguageLabel, isNumber } from '@tratt/utilities';
+import { findElements, getAttr } from '@tratt/web-media';
 import { DateTime } from 'luxon';
 import {
   catchError,

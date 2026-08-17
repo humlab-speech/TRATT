@@ -1,7 +1,7 @@
-import { OAudiofile, SampleUnit } from '@octra/media';
+import { OAudiofile, SampleUnit } from '@tratt/media';
 import { OLabel, OSegment } from './annotjson';
 import { Converter, IFile } from './converters';
-import { OctraAnnotationSegment } from './octraAnnotationSegment';
+import { TrattAnnotationSegment } from './trattAnnotationSegment';
 
 export function convertFromSupportedConverters(
   converters: Converter[],
@@ -35,7 +35,7 @@ export function contains(haystack: string, needle: string): boolean {
  * returns the segment by the sample position (BrowserSample)
  */
 export function getSegmentBySamplePosition(
-  segments: OctraAnnotationSegment[],
+  segments: TrattAnnotationSegment[],
   samples: SampleUnit,
 ): number {
   let begin = 0;
@@ -54,7 +54,7 @@ export function getSegmentBySamplePosition(
 }
 
 export function getSegmentsOfRange(
-  entries: OctraAnnotationSegment[],
+  entries: TrattAnnotationSegment[],
   startSamples: SampleUnit,
   endSamples: SampleUnit,
 ): {
@@ -102,7 +102,7 @@ export function getSegmentsOfRange(
  * @param mergeTranscripts
  */
 export function removeSegmentByIndex(
-  entries: OctraAnnotationSegment[],
+  entries: TrattAnnotationSegment[],
   index: number,
   silenceValue: string | undefined,
   mergeTranscripts = true,
@@ -159,9 +159,9 @@ export function removeSegmentByIndex(
 }
 
 export function betweenWhichSegment(
-  entries: OctraAnnotationSegment[],
+  entries: TrattAnnotationSegment[],
   samples: number,
-): OctraAnnotationSegment | undefined {
+): TrattAnnotationSegment | undefined {
   let start = 0;
 
   for (const segment of entries) {
@@ -179,15 +179,15 @@ export function betweenWhichSegment(
  */
 export function addSegment(
   itemIDCounter: number,
-  entries: OctraAnnotationSegment[],
+  entries: TrattAnnotationSegment[],
   time: SampleUnit,
   label: string,
   value: string | undefined = undefined,
 ): {
-  entries: OctraAnnotationSegment[];
+  entries: TrattAnnotationSegment[];
   itemIDCounter: number;
 } {
-  const newSegment: OctraAnnotationSegment = new OctraAnnotationSegment(
+  const newSegment: TrattAnnotationSegment = new TrattAnnotationSegment(
     itemIDCounter,
     time,
     [new OLabel(label, value ?? '')],
@@ -213,7 +213,7 @@ export function addSegment(
 /**
  * sorts the segments by time in samples
  */
-export function sort(entries: OctraAnnotationSegment[]) {
+export function sort(entries: TrattAnnotationSegment[]) {
   entries.sort((a, b) => {
     if (a.time!.samples < b.time!.samples) {
       return -1;
@@ -226,7 +226,7 @@ export function sort(entries: OctraAnnotationSegment[]) {
   return entries;
 }
 
-export function cleanup(entries: OctraAnnotationSegment[]) {
+export function cleanup(entries: TrattAnnotationSegment[]) {
   const remove: number[] = [];
 
   if (entries.length > 1) {
@@ -248,7 +248,7 @@ export function cleanup(entries: OctraAnnotationSegment[]) {
 }
 
 export function getStartTimeBySegmentID(
-  entries: OctraAnnotationSegment[],
+  entries: TrattAnnotationSegment[],
   id: number,
 ): SampleUnit | undefined {
   const segmentIndex = entries.findIndex((a) => a.id === id);
@@ -264,7 +264,7 @@ export function getStartTimeBySegmentID(
 }
 
 export function combineSegments(
-  entries: OctraAnnotationSegment[],
+  entries: TrattAnnotationSegment[],
   segmentIndexStart: number,
   segmentIndexEnd: number,
   breakMarker: string,
@@ -280,7 +280,7 @@ export function combineSegments(
  * returns an array of normal segment objects with original values.
  */
 export function convertSegmentsToOSegments(
-  entries: OctraAnnotationSegment[],
+  entries: TrattAnnotationSegment[],
 ): OSegment[] {
   return entries.map((a, i) =>
     a.serializeToOSegment(i > 0 ? entries[i - 1].time.samples : 0),
@@ -290,9 +290,9 @@ export function convertSegmentsToOSegments(
 export function convertOSegmentsToSegments(
   entries: OSegment[],
   sampleRate: number,
-): OctraAnnotationSegment[] {
+): TrattAnnotationSegment[] {
   return entries.map((a) =>
-    OctraAnnotationSegment.deserializeFromOSegment(a, sampleRate),
+    TrattAnnotationSegment.deserializeFromOSegment(a, sampleRate),
   );
 }
 
@@ -300,7 +300,7 @@ export function convertOSegmentsToSegments(
  * removes Segment by number of samples
  */
 export function removeBySamples(
-  entries: OctraAnnotationSegment[],
+  entries: TrattAnnotationSegment[],
   timeSamples: SampleUnit,
 ) {
   for (let i = 0; i < entries.length; i++) {

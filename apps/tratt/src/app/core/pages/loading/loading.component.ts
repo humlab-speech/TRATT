@@ -2,7 +2,7 @@ import { NgStyle } from '@angular/common';
 import { Component, OnInit, Output } from '@angular/core';
 import { Router } from '@angular/router';
 import { TranslocoService } from '@jsverse/transloco';
-import { navigateTo } from '@octra/ngx-utilities';
+import { navigateTo } from '@tratt/ngx-utilities';
 import { AppInfo } from '../../../app.info';
 import { DefaultComponent } from '../../component/default.component';
 import { AudioService, SettingsService } from '../../shared/service';
@@ -11,7 +11,7 @@ import { LoadingStatus } from '../../store';
 import { ApplicationStoreService } from '../../store/application/application-store.service';
 
 @Component({
-  selector: 'octra-loading',
+  selector: 'tratt-loading',
   templateUrl: './loading.component.html',
   styleUrls: ['./loading.component.scss'],
   imports: [NgStyle],

@@ -8,11 +8,11 @@ import {
   ViewContainerRef,
 } from '@angular/core';
 
-import { SubscriptionManager } from '@octra/utilities';
+import { SubscriptionManager } from '@tratt/utilities';
 import { Subscription } from 'rxjs';
 
 @Directive({
-  selector: '[octraDynComponent]',
+  selector: '[trattDynComponent]',
   standalone: true,
 })
 export class DynComponentDirective implements OnInit, OnDestroy {

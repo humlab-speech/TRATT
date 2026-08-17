@@ -1,6 +1,6 @@
 import { ApplicationRef, Injectable } from '@angular/core';
 import { SwUpdate } from '@angular/service-worker';
-import { SubscriberComponent } from '@octra/ngx-utilities';
+import { SubscriberComponent } from '@tratt/ngx-utilities';
 import { interval } from 'rxjs';
 
 export class VersionCheckerOptions {

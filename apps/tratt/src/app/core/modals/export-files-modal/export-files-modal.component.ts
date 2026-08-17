@@ -9,7 +9,7 @@ import {
   NgbPopover,
   NgbTooltip,
 } from '@ng-bootstrap/ng-bootstrap';
-import { Converter, ExportCategory, ExportResult } from '@octra/annotation';
+import { Converter, ExportCategory, ExportResult } from '@tratt/annotation';
 import {
   fadeInExpandOnEnterAnimation,
   fadeOutCollapseOnLeaveAnimation,
@@ -23,10 +23,10 @@ import { RecordedFileService } from '../../shared/service/recorded-file.service'
 import { AnnotationStoreService } from '../../store/login-mode/annotation/annotation.store.service';
 import { NamingDragAndDropComponent } from '../../tools/naming-drag-and-drop/naming-drag-and-drop.component';
 import { TableConfiguratorComponent } from '../../tools/table-configurator/table-configurator.component';
-import { OctraModal } from '../types';
+import { TrattModal } from '../types';
 
 @Component({
-  selector: 'octra-export-files-modal',
+  selector: 'tratt-export-files-modal',
   templateUrl: './export-files-modal.component.html',
   styleUrls: ['./export-files-modal.component.scss'],
   animations: [
@@ -42,7 +42,7 @@ import { OctraModal } from '../types';
     TranslocoPipe,
   ],
 })
-export class ExportFilesModalComponent extends OctraModal implements OnInit {
+export class ExportFilesModalComponent extends TrattModal implements OnInit {
   public static options: NgbModalOptions = {
     size: 'xl',
     keyboard: true,

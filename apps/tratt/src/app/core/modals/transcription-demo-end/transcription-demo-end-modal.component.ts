@@ -6,7 +6,7 @@ import {
   NgbModal,
   NgbModalOptions,
 } from '@ng-bootstrap/ng-bootstrap';
-import { OctraModal } from '../types';
+import { TrattModal } from '../types';
 
 export enum ModalEndAnswer {
   CANCEL = 'CANCEL',
@@ -15,12 +15,12 @@ export enum ModalEndAnswer {
 }
 
 @Component({
-  selector: 'octra-transcription-demo-end-modal',
+  selector: 'tratt-transcription-demo-end-modal',
   templateUrl: './transcription-demo-end-modal.component.html',
   styleUrls: ['./transcription-demo-end-modal.component.scss'],
   imports: [TranslocoPipe],
 })
-export class TranscriptionDemoEndModalComponent extends OctraModal {
+export class TranscriptionDemoEndModalComponent extends TrattModal {
   public static options: NgbModalOptions = {
     keyboard: false,
     backdrop: true,

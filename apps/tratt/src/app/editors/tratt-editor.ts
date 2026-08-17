@@ -1,10 +1,10 @@
 import { EventEmitter } from '@angular/core';
-import { AudioSelection, SampleUnit } from '@octra/media';
-import { AudioViewerComponent } from '@octra/ngx-components';
-import { AudioChunk, AudioManager } from '@octra/web-media';
+import { AudioSelection, SampleUnit } from '@tratt/media';
+import { AudioViewerComponent } from '@tratt/ngx-components';
+import { AudioChunk, AudioManager } from '@tratt/web-media';
 import { DefaultComponent } from '../core/component/default.component';
 
-export interface OctraEditorRequirements {
+export interface TrattEditorRequirements {
   afterFirstInitialization(): void;
 
   disableAllShortcuts(): void;
@@ -14,7 +14,7 @@ export interface OctraEditorRequirements {
   initialized: EventEmitter<void>;
 }
 
-export abstract class OCTRAEditor extends DefaultComponent {
+export abstract class TRATTEditor extends DefaultComponent {
   protected shortcutsEnabled = true;
 
   protected doPlayOnHover(

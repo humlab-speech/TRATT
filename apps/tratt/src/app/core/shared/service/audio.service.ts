@@ -1,9 +1,9 @@
 import { HttpClient } from '@angular/common/http';
 import { EventEmitter, Injectable } from '@angular/core';
 import { TaskInputOutputDto } from '@octra/api-types';
-import { downloadFile } from '@octra/ngx-utilities';
-import { SubscriptionManager } from '@octra/utilities';
-import { AudioManager } from '@octra/web-media';
+import { downloadFile } from '@tratt/ngx-utilities';
+import { SubscriptionManager } from '@tratt/utilities';
+import { AudioManager } from '@tratt/web-media';
 import { Subject, Subscription } from 'rxjs';
 
 @Injectable()

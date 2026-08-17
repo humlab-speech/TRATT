@@ -1,4 +1,4 @@
-import { AudioInfo } from '@octra/web-media';
+import { AudioInfo } from '@tratt/web-media';
 import { DateTime } from 'luxon';
 
 abstract class CuttingFormat {

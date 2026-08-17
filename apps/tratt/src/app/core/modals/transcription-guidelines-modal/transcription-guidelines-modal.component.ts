@@ -12,22 +12,22 @@ import {
   NgbCollapse,
   NgbModalOptions,
 } from '@ng-bootstrap/ng-bootstrap';
-import { OctraGuidelines } from '@octra/assets';
+import { TrattGuidelines } from '@tratt/assets';
 import { timer } from 'rxjs';
 import videojs from 'video.js';
 import { SettingsService } from '../../shared/service';
 import { AnnotationStoreService } from '../../store/login-mode/annotation/annotation.store.service';
-import { OctraModal } from '../types';
+import { TrattModal } from '../types';
 
 @Component({
-  selector: 'octra-transcription-guidelines-modal',
+  selector: 'tratt-transcription-guidelines-modal',
   templateUrl: './transcription-guidelines-modal.component.html',
   styleUrls: ['./transcription-guidelines-modal.component.scss'],
   encapsulation: ViewEncapsulation.None,
   imports: [NgClass, NgbCollapse, TranslocoPipe],
 })
 export class TranscriptionGuidelinesModalComponent
-  extends OctraModal
+  extends TrattModal
   implements OnInit
 {
   public static options: NgbModalOptions = {
@@ -36,8 +36,8 @@ export class TranscriptionGuidelinesModalComponent
     scrollable: true,
   };
 
-  protected guidelines?: OctraGuidelines;
-  public shownGuidelines?: OctraGuidelines;
+  protected guidelines?: TrattGuidelines;
+  public shownGuidelines?: TrattGuidelines;
   public collapsed: any[][] = [];
 
   protected data = undefined;
@@ -69,8 +69,8 @@ export class TranscriptionGuidelinesModalComponent
   }
 
   private async prepareGuidelines(
-    guidelines: OctraGuidelines,
-  ): Promise<OctraGuidelines | undefined> {
+    guidelines: TrattGuidelines,
+  ): Promise<TrattGuidelines | undefined> {
     if (!guidelines) {
       return undefined;
     }

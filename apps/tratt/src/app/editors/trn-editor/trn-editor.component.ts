@@ -15,16 +15,16 @@ import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import {
   AnnotationLevelType,
   ASRContext,
-  OctraAnnotationAnyLevel,
-  OctraAnnotationSegment,
-} from '@octra/annotation';
-import { OctraGuidelines } from '@octra/assets';
+  TrattAnnotationAnyLevel,
+  TrattAnnotationSegment,
+} from '@tratt/annotation';
+import { TrattGuidelines } from '@tratt/assets';
 import {
   AudioViewerComponent,
   AudioviewerConfig,
-  OctraComponentsModule,
-} from '@octra/ngx-components';
-import { OctraUtilitiesModule } from '@octra/ngx-utilities';
+  TrattComponentsModule,
+} from '@tratt/ngx-components';
+import { TrattUtilitiesModule } from '@tratt/ngx-utilities';
 import {
   AudioChunk,
   AudioManager,
@@ -32,7 +32,7 @@ import {
   getAttr,
   ShortcutEvent,
   ShortcutGroup,
-} from '@octra/web-media';
+} from '@tratt/web-media';
 import { timer } from 'rxjs';
 import { AudioNavigationComponent } from '../../core/component/audio-navigation';
 import {
@@ -50,11 +50,11 @@ import {
 } from '../../core/shared/service';
 import { AppStorageService } from '../../core/shared/service/appstorage.service';
 import { AnnotationStoreService } from '../../core/store/login-mode/annotation/annotation.store.service';
-import { OCTRAEditor, OctraEditorRequirements } from '../octra-editor';
+import { TRATTEditor, TrattEditorRequirements } from '../tratt-editor';
 import { PermutationsReplaceModalComponent } from './modals/permutations-replace-modal/permutations-replace-modal.component';
 
 @Component({
-  selector: 'octra-trn-editor',
+  selector: 'tratt-trn-editor',
   templateUrl: './trn-editor.component.html',
   styleUrls: ['./trn-editor.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -64,24 +64,24 @@ import { PermutationsReplaceModalComponent } from './modals/permutations-replace
     NgStyle,
     NgClass,
     AudioNavigationComponent,
-    OctraComponentsModule,
+    TrattComponentsModule,
     TranscrEditorComponent_1,
     TranslocoPipe,
-    OctraUtilitiesModule,
+    TrattUtilitiesModule,
   ],
 })
 export class TrnEditorComponent
-  extends OCTRAEditor
-  implements OnInit, OctraEditorRequirements, OnDestroy
+  extends TRATTEditor
+  implements OnInit, TrattEditorRequirements, OnDestroy
 {
   get textEditor(): Texteditor {
     return this._textEditor;
   }
 
-  private currentLevel!: OctraAnnotationAnyLevel<
-    OctraAnnotationSegment<ASRContext>
+  private currentLevel!: TrattAnnotationAnyLevel<
+    TrattAnnotationSegment<ASRContext>
   >;
-  private guidelines!: OctraGuidelines;
+  private guidelines!: TrattGuidelines;
   private breakMarkerCode?: string;
   private idCounter = 1;
 
@@ -274,7 +274,7 @@ export class TrnEditorComponent
   };
 
   private audioManager!: AudioManager;
-  private tempSegments!: OctraAnnotationSegment[];
+  private tempSegments!: TrattAnnotationSegment[];
   private selectedCell = {
     labelText: '',
     row: 0,
@@ -313,10 +313,10 @@ export class TrnEditorComponent
     let intervalCounter = 0;
 
     for (let i = 1; i < this.currentLevel.items.length; i++) {
-      const segment = this.currentLevel.items[i] as OctraAnnotationSegment;
+      const segment = this.currentLevel.items[i] as TrattAnnotationSegment;
       const previousSegment = this.currentLevel.items[
         i - 1
-      ] as OctraAnnotationSegment;
+      ] as TrattAnnotationSegment;
 
       if (segment.getLabel('Speaker') === previousSegment.getLabel('Speaker')) {
         intervals[intervalCounter].length++;
@@ -370,7 +370,7 @@ export class TrnEditorComponent
         this.currentLevel =
           trasncriptState!.levels[trasncriptState!.selectedLevelIndex!]!;
         this.tempSegments = [
-          ...(this.currentLevel.items as OctraAnnotationSegment[]),
+          ...(this.currentLevel.items as TrattAnnotationSegment[]),
         ];
         this.idCounter = trasncriptState?.idCounters.item ?? 1;
       },
@@ -581,7 +581,7 @@ export class TrnEditorComponent
       ? (
           this.currentLevel.items[
             index - 1
-          ] as OctraAnnotationSegment<ASRContext>
+          ] as TrattAnnotationSegment<ASRContext>
         ).time.unix
       : 0;
   }

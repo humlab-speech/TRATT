@@ -11,7 +11,7 @@ import {
 import { SessionFile } from '../../obj/SessionFile';
 
 @Component({
-  selector: 'octra-drop-zone',
+  selector: 'tratt-drop-zone',
   templateUrl: './drop-zone.component.html',
   styleUrls: ['./drop-zone.component.scss'],
   imports: [NgStyle],

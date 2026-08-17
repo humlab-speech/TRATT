@@ -1,10 +1,10 @@
 import { Component } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
-import { OctraComponentsModule } from '@octra/ngx-components';
-import { OctraUtilitiesModule } from '@octra/ngx-utilities';
+import { TrattComponentsModule } from '@tratt/ngx-components';
+import { TrattUtilitiesModule } from '@tratt/ngx-utilities';
 
 @Component({
-  imports: [RouterOutlet, OctraUtilitiesModule, OctraComponentsModule],
+  imports: [RouterOutlet, TrattUtilitiesModule, TrattComponentsModule],
   selector: 'app-root',
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss',
@@ -14,11 +14,11 @@ export class AppComponent {
     const audioPlayer = createCustomElement(AudioplayerComponent, {
       injector: this.injector,
     });
-    customElements.define('octra-audioplayer', audioPlayer);
+    customElements.define('tratt-audioplayer', audioPlayer);
 
     const audioViewer = createCustomElement(AudioViewerComponent, {
       injector: this.injector,
     });
-    customElements.define('octra-audioviewer', audioViewer);
+    customElements.define('tratt-audioviewer', audioViewer);
   } */
 }

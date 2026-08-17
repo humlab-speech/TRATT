@@ -33,7 +33,7 @@ td.fitwidth {
   display: flex;
   flex: auto;
   flex-direction: column;
-  background-color: var(--octra-surface-background);
+  background-color: var(--tratt-surface-background);
 }
 
 :host {
@@ -58,7 +58,7 @@ td.fitwidth {
 }
 
 #transcription-panel {
-  background-color: var(--octra-surface-background);
+  background-color: var(--tratt-surface-background);
 }
 
 .segment-selected td {
@@ -72,7 +72,7 @@ td.fitwidth {
 }
 
 .sub-header {
-  background-color: var(--octra-surface-background);
+  background-color: var(--tratt-surface-background);
 }
 
 .dropdown-menu {

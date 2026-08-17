@@ -1,8 +1,8 @@
 import {
   AnnotationLevelType,
-  OctraAnnotation,
-  OctraAnnotationSegment,
-} from '@octra/annotation';
+  TrattAnnotation,
+  TrattAnnotationSegment,
+} from '@tratt/annotation';
 
 /**
  * Categorical colours for speaker labels, from the Umeå University palette.
@@ -38,12 +38,12 @@ const naturalCompare = (a: string, b: string) =>
   a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' });
 
 export function getSpeakerIds(
-  annotation: OctraAnnotation<any, OctraAnnotationSegment>,
+  annotation: TrattAnnotation<any, TrattAnnotationSegment>,
 ): string[] {
   const ids = new Set<string>();
   for (const level of annotation.levels) {
     if (level.type !== AnnotationLevelType.SEGMENT) continue;
-    for (const item of level.items as OctraAnnotationSegment[]) {
+    for (const item of level.items as TrattAnnotationSegment[]) {
       const spk = item.getLabel('Speaker')?.value;
       if (spk) ids.add(spk);
     }
@@ -80,15 +80,15 @@ export function cycleNextSpeaker(currentId: string, allIds: string[]): string {
 export function renameSpeakerInAnnotation(
   oldId: string,
   newId: string,
-  annotation: OctraAnnotation<any, OctraAnnotationSegment>,
-): OctraAnnotation<any, OctraAnnotationSegment> {
-  const cloned = annotation.clone() as OctraAnnotation<
+  annotation: TrattAnnotation<any, TrattAnnotationSegment>,
+): TrattAnnotation<any, TrattAnnotationSegment> {
+  const cloned = annotation.clone() as TrattAnnotation<
     any,
-    OctraAnnotationSegment
+    TrattAnnotationSegment
   >;
   for (const level of cloned.levels) {
     if (level.type !== AnnotationLevelType.SEGMENT) continue;
-    for (const item of level.items as OctraAnnotationSegment[]) {
+    for (const item of level.items as TrattAnnotationSegment[]) {
       if (item.getLabel('Speaker')?.value === oldId) {
         item.changeLabel('Speaker', newId);
       }

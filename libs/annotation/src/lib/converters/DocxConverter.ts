@@ -1,4 +1,4 @@
-import { OAudiofile } from '@octra/media';
+import { OAudiofile } from '@tratt/media';
 import { OAnnotJSON, OSegment } from '../annotjson';
 import {
   Converter,
@@ -6,13 +6,13 @@ import {
   ExportResult,
   IFile,
   ImportResult,
-  OctraAnnotationFormatType,
+  TrattAnnotationFormatType,
 } from './Converter';
 import { WordApplication } from './SupportedApplications';
 import { buildZip } from './zip-builder';
 
 export class DocxConverter extends Converter {
-  override _name: OctraAnnotationFormatType = 'DOCX';
+  override _name: TrattAnnotationFormatType = 'DOCX';
   override _category: ExportCategory = 'general';
 
   public override options: {

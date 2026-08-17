@@ -1,5 +1,5 @@
 import { describe, expect, it, jest } from '@jest/globals';
-import { OAnnotJSON, OLabel, OSegment, OSegmentLevel } from '@octra/annotation';
+import { OAnnotJSON, OLabel, OSegment, OSegmentLevel } from '@tratt/annotation';
 import { SpeakerTurn } from '../../shared/service/local-diarization.service';
 import { applyOptionalSpeakerSegmentation } from './local-offline-transcription.helpers';
 

@@ -4,7 +4,7 @@ import {
   TsWorker,
   TsWorkerJob,
   TsWorkerStatus,
-} from '@octra/utilities';
+} from '@tratt/utilities';
 import { Subscription } from 'rxjs/internal/Subscription';
 
 @Injectable({

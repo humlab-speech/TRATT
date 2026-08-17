@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Shortcut, ShortcutGroup } from '@octra/web-media';
+import { Shortcut, ShortcutGroup } from '@tratt/web-media';
 import hotkeys, { HotkeysEvent } from 'hotkeys-js';
 
 @Injectable({

@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { SubscriptionManager } from '@octra/utilities';
+import { SubscriptionManager } from '@tratt/utilities';
 import { Observable } from 'rxjs';
-import { IDBApplicationOptionName } from '../../shared/octra-database';
+import { IDBApplicationOptionName } from '../../shared/tratt-database';
 import { RootState } from '../index';
 import { ApplicationActions } from './application.actions';
 import {

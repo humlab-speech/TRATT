@@ -4,7 +4,7 @@ let annotation = undefined;
 
 function initAudioPlayer(audioManager) {
   // <oc-audioplayer> is a web component from web-components library
-  audioplayer = document.createElement('octra-audioplayer');
+  audioplayer = document.createElement('tratt-audioplayer');
   // connect audiochunk with audioplayer
   audioplayer.audioChunk = audioManager.mainchunk;
 
@@ -25,7 +25,7 @@ function initAudioViewer(audioManager) {
     type: audioManager.resource.info.type,
   };
 
-  const importResult = new OctraAnnotation.AnnotJSONConverter().import(
+  const importResult = new TrattAnnotation.AnnotJSONConverter().import(
     {
       name: 'Bahnauskunft_annot.json',
       content: annotationSample,
@@ -36,13 +36,13 @@ function initAudioViewer(audioManager) {
   );
 
   // retrieve first level object from importResult
-  const annotation = OctraAnnotation.OctraAnnotation.deserialize(
+  const annotation = TrattAnnotation.TrattAnnotation.deserialize(
     importResult.annotjson,
   );
   annotation.changeCurrentLevelIndex(0);
 
-  // <octra-audioplayer> is a web component from web-components library
-  audioViewer = document.createElement('octra-audioviewer');
+  // <tratt-audioplayer> is a web component from web-components library
+  audioViewer = document.createElement('tratt-audioviewer');
   const wrapper = document.getElementById('audioviewer-wrapper');
   wrapper.appendChild(audioViewer);
 

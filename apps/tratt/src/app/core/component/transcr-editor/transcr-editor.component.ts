@@ -17,17 +17,17 @@ import {
   ViewChild,
 } from '@angular/core';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
-import { OctraAnnotationSegment } from '@octra/annotation';
-import { OctraGuidelines } from '@octra/assets';
-import { SampleUnit } from '@octra/media';
-import { TimespanPipe } from '@octra/ngx-utilities';
+import { TrattAnnotationSegment } from '@tratt/annotation';
+import { TrattGuidelines } from '@tratt/assets';
+import { SampleUnit } from '@tratt/media';
+import { TimespanPipe } from '@tratt/ngx-utilities';
 import {
   escapeHtml,
   escapeRegex,
   insertString,
   isNumber,
   unEscapeHtml,
-} from '@octra/utilities';
+} from '@tratt/utilities';
 import {
   AudioChunk,
   AudioManager,
@@ -38,7 +38,7 @@ import {
   Shortcut,
   ShortcutGroup,
   ShortcutManager,
-} from '@octra/web-media';
+} from '@tratt/web-media';
 import { HotkeysEvent } from 'hotkeys-js';
 import { IControlType, IJodit, IToolbarButton } from 'jodit/types/types';
 import { JoditConfig, NgxJoditComponent } from 'ngx-jodit';
@@ -54,7 +54,7 @@ import { ValidationPopoverComponent } from './validation-popover/validation-popo
 declare let document: any;
 
 @Component({
-  selector: 'octra-transcr-editor',
+  selector: 'tratt-transcr-editor',
   templateUrl: './transcr-editor.component.html',
   styleUrls: ['./transcr-editor.component.scss'],
   providers: [],
@@ -119,7 +119,7 @@ export class TranscrEditorComponent
   public focused = false;
 
   public joditOptions: JoditConfig = {};
-  private guidelines?: OctraGuidelines;
+  private guidelines?: TrattGuidelines;
 
   private joditDefaultOptions: JoditConfig = {
     statusbar: false,
@@ -155,7 +155,7 @@ export class TranscrEditorComponent
     },
   };
   @Output() highlightingEnabledChange = new EventEmitter();
-  @Input() segments?: OctraAnnotationSegment[] = undefined;
+  @Input() segments?: TrattAnnotationSegment[] = undefined;
   @Input() public transcript = '';
   private internalTyping: EventEmitter<string> = new EventEmitter<string>();
   private _lastAudioChunkID = -1;
@@ -483,7 +483,7 @@ export class TranscrEditorComponent
       const validationError = document.createElement('div');
       validationError.setAttribute('class', 'card error-card');
       validationError.innerHTML = `
-      <div class="card-header" style="padding:5px 10px; font-weight: bold;background-color:var(--octra-surface-background);">
+      <div class="card-header" style="padding:5px 10px; font-weight: bold;background-color:var(--tratt-surface-background);">
       <span style="color:red;">( ! )</span> <span class="error-title"></span></div>
       <div class="card-body" style="padding:5px 10px;"></div>
       `;
@@ -787,7 +787,7 @@ export class TranscrEditorComponent
       },
       getContent: (a: IJodit, b: IToolbarButton) => {
         const parent: HTMLElement = (b as any).button;
-        const btn = parent.querySelector('.octra-marker-btn');
+        const btn = parent.querySelector('.tratt-marker-btn');
         if (!btn) {
           const content = getContent();
 
@@ -799,7 +799,7 @@ export class TranscrEditorComponent
 
           button.setAttribute(
             'class',
-            'me-2 align-items-center px-1 h-100 octra-marker-btn btn-description',
+            'me-2 align-items-center px-1 h-100 tratt-marker-btn btn-description',
           );
           if (typeof content === 'string') {
             button.innerHTML = getContent();
@@ -812,7 +812,7 @@ export class TranscrEditorComponent
             button.appendChild(content);
           }
 
-          button.setAttribute('octra-initialized', 'true');
+          button.setAttribute('tratt-initialized', 'true');
           return button;
         } else {
           return btn;
@@ -1294,7 +1294,7 @@ export class TranscrEditorComponent
     ) {
       this.saveSelection();
       const currentlyPlayedSegment = this.annotationStoreService.currentLevel
-        .items[segIndexPlayposition]! as OctraAnnotationSegment;
+        .items[segIndexPlayposition]! as TrattAnnotationSegment;
 
       this.removeHighlight();
 
@@ -1479,7 +1479,7 @@ export class TranscrEditorComponent
     }
   }
 
-  private setSegments(segments: OctraAnnotationSegment[]) {
+  private setSegments(segments: TrattAnnotationSegment[]) {
     let result = '';
 
     for (let i = 0; i < segments.length; i++) {

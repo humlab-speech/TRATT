@@ -1,5 +1,5 @@
 <div id="overlay-transcr" style="position: relative">
-  <octra-audio-navigation
+  <tratt-audio-navigation
     #audionav
     (afterPlaybackRateChange)="afterSpeedChange($event)"
     (afterVolumeChange)="afterVolumeChange($event)"
@@ -9,10 +9,10 @@
     [playbackRate]="appStorage.audioSpeed"
     [volume]="appStorage.audioVolume"
   >
-  </octra-audio-navigation>
+  </tratt-audio-navigation>
   <div class="d-flex flex-column h-100">
     @if (appStorage.showMagnifier) {
-      <octra-audio-viewer
+      <tratt-audio-viewer
         #magnifier
         [audioChunk]="audioChunkMagnifier"
         [silencePlaceholder]="annotationStoreService.silencePlaceholder"
@@ -33,9 +33,9 @@
         }"
         [settings]="miniMagnifierSettings"
         [annotation]="annotationStoreService.transcript!"
-      ></octra-audio-viewer>
+      ></tratt-audio-viewer>
     }
-    <octra-audio-viewer
+    <tratt-audio-viewer
       #viewer
       (mousecursorchange)="onMouseOver($event)"
       (segmententer)="onSegmentEntered($event)"
@@ -49,6 +49,6 @@
       id="special"
       style="height: 20px; display: flex; flex: auto; flex-direction: column"
     >
-    </octra-audio-viewer>
+    </tratt-audio-viewer>
   </div>
 </div>

@@ -1,5 +1,5 @@
 import { Inject, Injectable, NgZone, OnDestroy, Optional } from '@angular/core';
-import { AudioManager, resampleChannels } from '@octra/web-media';
+import { AudioManager, resampleChannels } from '@tratt/web-media';
 import { Observable, Subject } from 'rxjs';
 import type {
   WorkerDiarizationOutMessage,

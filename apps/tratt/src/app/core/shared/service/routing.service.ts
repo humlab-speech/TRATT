@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { NavigationExtras, QueryParamsHandling, Router } from '@angular/router';
-import { removeEmptyProperties } from '@octra/utilities';
+import { removeEmptyProperties } from '@tratt/utilities';
 import { SessionStorageService } from 'ngx-webstorage';
 import { environment } from '../../../../environments/environment';
 import { URLParameters } from '../../store/application';

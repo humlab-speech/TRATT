@@ -4,7 +4,7 @@ import { NgbActiveModal, NgbModalOptions } from '@ng-bootstrap/ng-bootstrap';
 import { DefaultComponent } from '../../component/default.component';
 
 @Component({
-  selector: 'octra-unsaved-recording-modal',
+  selector: 'tratt-unsaved-recording-modal',
   templateUrl: './unsaved-recording-modal.component.html',
   standalone: true,
   imports: [TranslocoPipe],

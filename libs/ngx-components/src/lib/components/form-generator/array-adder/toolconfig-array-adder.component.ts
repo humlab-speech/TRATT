@@ -8,7 +8,7 @@ import {
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { NgbPopover } from '@ng-bootstrap/ng-bootstrap';
-import { SubscriberComponent } from '@octra/ngx-utilities';
+import { SubscriberComponent } from '@tratt/ngx-utilities';
 
 export class PreparedItem {
   constructor(
@@ -18,7 +18,7 @@ export class PreparedItem {
 }
 
 @Component({
-  selector: 'octra-toolconfig-array-adder',
+  selector: 'tratt-toolconfig-array-adder',
   templateUrl: './toolconfig-array-adder.component.html',
   styleUrls: ['./toolconfig-array-adder.component.scss'],
   imports: [FormsModule, NgbPopover, NgClass],

@@ -104,7 +104,7 @@ This file was generated using [@jscutlery/semver](https://github.com/jscutlery/s
 
 ### Features
 
-- **annotation:** add type OctraAnnotationFormatType with all supported types ([fabe397](https://github.com/IPS-LMU/octra/commit/fabe397b751c58245890a8651c22fe36d6883179))
+- **annotation:** add type TrattAnnotationFormatType with all supported types ([fabe397](https://github.com/IPS-LMU/octra/commit/fabe397b751c58245890a8651c22fe36d6883179))
 - **annotation:** new converter for WhisperJSON format ([ecc0038](https://github.com/IPS-LMU/octra/commit/ecc00383e6d3f44031440fb664c7880be131fb64))
 - **annotation:** remove redundancy in import and export function ([13910ae](https://github.com/IPS-LMU/octra/commit/13910ae2589f937b17b31744c5454242fc71c325))
 - **annotation:** TextConverter imports/exports timestamps with ">" instead of "/>" ([0f58bd7](https://github.com/IPS-LMU/octra/commit/0f58bd7c2ea3a8dd8360e15f7333abd8791e9fa4))

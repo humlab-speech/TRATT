@@ -6,11 +6,11 @@ import {
   props,
 } from '@ngrx/store';
 import { AppSettings, ASRSettings } from '../../obj';
-import { IDBApplicationOptionName } from '../../shared/octra-database';
 import {
   ConsoleEntry,
   ConsoleGroupEntry,
 } from '../../shared/service/bug-report.service';
+import { IDBApplicationOptionName } from '../../shared/tratt-database';
 import { LoginMode } from '../index';
 
 const context = 'Application';

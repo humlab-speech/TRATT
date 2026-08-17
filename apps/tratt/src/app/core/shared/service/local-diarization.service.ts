@@ -1,4 +1,4 @@
-import { OAnnotJSON, OLabel, OSegment, OSegmentLevel } from '@octra/annotation';
+import { OAnnotJSON, OLabel, OSegment, OSegmentLevel } from '@tratt/annotation';
 
 export interface SpeakerTurn {
   startS: number;

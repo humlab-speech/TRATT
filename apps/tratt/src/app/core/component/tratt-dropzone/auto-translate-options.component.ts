@@ -12,7 +12,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { NgbTooltipModule } from '@ng-bootstrap/ng-bootstrap';
-import { getEnglishLanguageLabel } from '@octra/utilities';
+import { getEnglishLanguageLabel } from '@tratt/utilities';
 import {
   LocalTranslationService,
   TranslationAvailability,
@@ -54,7 +54,7 @@ export const HYMT_LANGUAGES: readonly string[] = [
 ];
 
 @Component({
-  selector: 'octra-auto-translate-options',
+  selector: 'tratt-auto-translate-options',
   standalone: true,
   imports: [FormsModule, NgbTooltipModule, TranslocoPipe],
   template: `
@@ -163,7 +163,7 @@ export const HYMT_LANGUAGES: readonly string[] = [
   styles: [
     `
       .auto-translate-options {
-        background-color: var(--octra-surface-background);
+        background-color: var(--tratt-surface-background);
         font-size: 0.9rem;
       }
     `,

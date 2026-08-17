@@ -1,12 +1,12 @@
-import { OAudiofile } from '@octra/media';
-import { FileInfo } from '@octra/web-media';
+import { OAudiofile } from '@tratt/media';
+import { FileInfo } from '@tratt/web-media';
 import { OAnnotJSON } from '../annotjson';
 import {
   Converter,
   ExportResult,
   IFile,
   ImportResult,
-  OctraAnnotationFormatType,
+  TrattAnnotationFormatType,
 } from './Converter';
 import {
   BASWebservicesApplication,
@@ -15,7 +15,7 @@ import {
 } from './SupportedApplications';
 
 export class AnnotJSONConverter extends Converter {
-  override _name: OctraAnnotationFormatType = 'AnnotJSON';
+  override _name: TrattAnnotationFormatType = 'AnnotJSON';
 
   public constructor() {
     super();

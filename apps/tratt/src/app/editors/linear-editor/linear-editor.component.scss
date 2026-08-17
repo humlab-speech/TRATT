@@ -6,7 +6,7 @@
   flex: auto;
   flex-direction: column;
   display: flex;
-  background-color: var(--octra-surface-background);
+  background-color: var(--tratt-surface-background);
   border: 1px dashed gray;
   padding: 10px;
   width: 100%;
@@ -29,7 +29,7 @@
   flex: 1 0 auto;
 }
 
-octra-transcr-editor {
+tratt-transcr-editor {
   width: 100% !important;
   height: 100% !important;
 }

@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { SubscriptionManager } from '@octra/utilities';
+import { SubscriptionManager } from '@tratt/utilities';
 import { Subscription } from 'rxjs';
 import { TsWorker } from './ts-worker';
 import { TsWorkerJob, TsWorkerStatus } from './ts-worker-job';

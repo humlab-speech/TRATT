@@ -1,5 +1,5 @@
 import { Pipe, PipeTransform } from '@angular/core';
-import { getFileSize } from '@octra/utilities';
+import { getFileSize } from '@tratt/utilities';
 
 @Pipe({
   name: 'filesize',

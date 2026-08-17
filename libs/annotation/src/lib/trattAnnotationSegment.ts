@@ -1,5 +1,5 @@
-import { SampleUnit } from '@octra/media';
-import { Serializable } from '@octra/utilities';
+import { SampleUnit } from '@tratt/media';
+import { Serializable } from '@tratt/utilities';
 import { ISegment, OItem, OLabel, OSegment } from './annotjson';
 import { ASRQueueItemType } from './asr';
 
@@ -17,8 +17,8 @@ export interface ASRContext {
   };
 }
 
-export class OctraAnnotationEvent
-  implements Serializable<OctraAnnotationEvent, OctraAnnotationEvent>
+export class TrattAnnotationEvent
+  implements Serializable<TrattAnnotationEvent, TrattAnnotationEvent>
 {
   public readonly type: 'segment' | 'event' | 'item' = 'event';
   id!: number;
@@ -31,22 +31,22 @@ export class OctraAnnotationEvent
     this.labels = labels ?? [];
   }
 
-  serialize(): OctraAnnotationEvent {
-    return new OctraAnnotationEvent(this.id, this.samplePoint, this.labels);
+  serialize(): TrattAnnotationEvent {
+    return new TrattAnnotationEvent(this.id, this.samplePoint, this.labels);
   }
 
-  deserialize(jsonObject: OctraAnnotationEvent): OctraAnnotationEvent {
-    return OctraAnnotationEvent.deserialize(jsonObject);
+  deserialize(jsonObject: TrattAnnotationEvent): TrattAnnotationEvent {
+    return TrattAnnotationEvent.deserialize(jsonObject);
   }
 
   static deserialize<T extends ASRContext>(
-    jsonObject: OctraAnnotationEvent,
-  ): OctraAnnotationEvent {
+    jsonObject: TrattAnnotationEvent,
+  ): TrattAnnotationEvent {
     return jsonObject;
   }
 
   clone(id?: number) {
-    return new OctraAnnotationEvent(id ?? this.id, this.samplePoint.clone(), [
+    return new TrattAnnotationEvent(id ?? this.id, this.samplePoint.clone(), [
       ...this.labels,
     ]);
   }
@@ -55,7 +55,7 @@ export class OctraAnnotationEvent
     return this.labels?.find((a) => a.name !== notName);
   }
 
-  isEqualWith(other: OctraAnnotationEvent): boolean {
+  isEqualWith(other: TrattAnnotationEvent): boolean {
     if (!other) {
       return false;
     }
@@ -83,10 +83,10 @@ export class OctraAnnotationEvent
   }
 }
 
-export class OctraAnnotationSegment<T extends ASRContext = ASRContext>
+export class TrattAnnotationSegment<T extends ASRContext = ASRContext>
   implements
     SegmentWithContext<T>,
-    Serializable<SegmentWithContext<T>, OctraAnnotationSegment<T>>
+    Serializable<SegmentWithContext<T>, TrattAnnotationSegment<T>>
 {
   public readonly type: 'segment' | 'event' | 'item' = 'segment';
 
@@ -105,7 +105,9 @@ export class OctraAnnotationSegment<T extends ASRContext = ASRContext>
     this._id = id;
     this.labels = labels ?? [];
     this.context = context;
-    console.log(`Created segment with id ${this._id} at time ${this.time.samples}`);
+    console.log(
+      `Created segment with id ${this._id} at time ${this.time.samples}`,
+    );
   }
 
   serialize(): SegmentWithContext<T> {
@@ -126,8 +128,8 @@ export class OctraAnnotationSegment<T extends ASRContext = ASRContext>
     );
   }
 
-  deserialize(jsonObject: SegmentWithContext<T>): OctraAnnotationSegment<T> {
-    return OctraAnnotationSegment.deserialize(jsonObject);
+  deserialize(jsonObject: SegmentWithContext<T>): TrattAnnotationSegment<T> {
+    return TrattAnnotationSegment.deserialize(jsonObject);
   }
 
   getLabel(name: string) {
@@ -166,8 +168,8 @@ export class OctraAnnotationSegment<T extends ASRContext = ASRContext>
 
   static deserialize<T extends ASRContext>(
     jsonObject: SegmentWithContext<T>,
-  ): OctraAnnotationSegment<T> {
-    const result = new OctraAnnotationSegment<T>(
+  ): TrattAnnotationSegment<T> {
+    const result = new TrattAnnotationSegment<T>(
       jsonObject.id,
       jsonObject.time,
       jsonObject.labels.map((a) => OLabel.deserialize(a)),
@@ -180,8 +182,8 @@ export class OctraAnnotationSegment<T extends ASRContext = ASRContext>
     jsonObject: ISegment,
     sampleRate: number,
     context?: T,
-  ): OctraAnnotationSegment<T> {
-    return new OctraAnnotationSegment<T>(
+  ): TrattAnnotationSegment<T> {
+    return new TrattAnnotationSegment<T>(
       jsonObject.id,
       new SampleUnit(jsonObject.sampleStart + jsonObject.sampleDur, sampleRate),
       jsonObject.labels.map((a) => OLabel.deserialize(a)),
@@ -189,8 +191,8 @@ export class OctraAnnotationSegment<T extends ASRContext = ASRContext>
     );
   }
 
-  clone(id?: number): OctraAnnotationSegment<T> {
-    return new OctraAnnotationSegment<T>(
+  clone(id?: number): TrattAnnotationSegment<T> {
+    return new TrattAnnotationSegment<T>(
       id ?? this._id,
       this.time,
       [...this.labels],
@@ -200,7 +202,7 @@ export class OctraAnnotationSegment<T extends ASRContext = ASRContext>
     );
   }
 
-  isEqualWith(other: OctraAnnotationSegment<T>) {
+  isEqualWith(other: TrattAnnotationSegment<T>) {
     let labelsEqual = true;
 
     if (this.labels.length === other.labels.length) {
@@ -226,6 +228,6 @@ export class OctraAnnotationSegment<T extends ASRContext = ASRContext>
 }
 
 export type AnnotationAnySegment =
-  | OctraAnnotationSegment<ASRContext>
+  | TrattAnnotationSegment<ASRContext>
   | OItem
-  | OctraAnnotationEvent;
+  | TrattAnnotationEvent;

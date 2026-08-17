@@ -1,6 +1,6 @@
 import { Injectable, NgZone, OnDestroy } from '@angular/core';
-import { OAnnotJSON, OLabel, OSegment, OSegmentLevel } from '@octra/annotation';
-import { getEnglishLanguageLabel } from '@octra/utilities';
+import { OAnnotJSON, OLabel, OSegment, OSegmentLevel } from '@tratt/annotation';
+import { getEnglishLanguageLabel } from '@tratt/utilities';
 import { Observable, Subject } from 'rxjs';
 import type {
   PlanStage,

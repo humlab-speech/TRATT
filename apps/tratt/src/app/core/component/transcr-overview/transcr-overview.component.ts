@@ -16,17 +16,17 @@ import {
 } from '@angular/core';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { TranslocoPipe } from '@jsverse/transloco';
+import { sum } from '@octra/api-types';
 import {
   ASRContext,
-  OctraAnnotationAnyLevel,
-  OctraAnnotationSegment,
-  OctraAnnotationSegmentLevel,
-} from '@octra/annotation';
-import { sum } from '@octra/api-types';
-import { AudioSelection, PlayBackStatus, SampleUnit } from '@octra/media';
-import { OctraUtilitiesModule } from '@octra/ngx-utilities';
-import { isFunction, SubscriptionManager } from '@octra/utilities';
-import { AudioChunk } from '@octra/web-media';
+  TrattAnnotationAnyLevel,
+  TrattAnnotationSegment,
+  TrattAnnotationSegmentLevel,
+} from '@tratt/annotation';
+import { AudioSelection, PlayBackStatus, SampleUnit } from '@tratt/media';
+import { TrattUtilitiesModule } from '@tratt/ngx-utilities';
+import { isFunction, SubscriptionManager } from '@tratt/utilities';
+import { AudioChunk } from '@tratt/web-media';
 import { Subscription, timer } from 'rxjs';
 import {
   AudioService,
@@ -40,7 +40,7 @@ import { TranscrEditorComponent as TranscrEditorComponent_1 } from '../transcr-e
 import { ValidationPopoverComponent } from '../transcr-editor/validation-popover/validation-popover.component';
 
 @Component({
-  selector: 'octra-transcr-overview',
+  selector: 'tratt-transcr-overview',
   templateUrl: './transcr-overview.component.html',
   styleUrls: ['./transcr-overview.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -49,7 +49,7 @@ import { ValidationPopoverComponent } from '../transcr-editor/validation-popover
     NgStyle,
     TranscrEditorComponent_1,
     ValidationPopoverComponent,
-    OctraUtilitiesModule,
+    TrattUtilitiesModule,
     TranslocoPipe,
   ],
 })
@@ -80,19 +80,19 @@ export class TranscrOverviewComponent implements OnInit, OnDestroy, OnChanges {
   }[] = [];
   public transcript = '';
 
-  @Input() currentLevel?: OctraAnnotationAnyLevel<
-    OctraAnnotationSegment<ASRContext>
+  @Input() currentLevel?: TrattAnnotationAnyLevel<
+    TrattAnnotationSegment<ASRContext>
   >;
-  _internLevel?: OctraAnnotationAnyLevel<OctraAnnotationSegment<ASRContext>>;
+  _internLevel?: TrattAnnotationAnyLevel<TrattAnnotationSegment<ASRContext>>;
 
   get hasSpeakerIds(): boolean {
     if (!this._internLevel || this._internLevel.type !== 'SEGMENT')
       return false;
     const level = this
-      ._internLevel as OctraAnnotationSegmentLevel<OctraAnnotationSegment>;
+      ._internLevel as TrattAnnotationSegmentLevel<TrattAnnotationSegment>;
     return level.items.some(
       (seg) =>
-        !!(seg as OctraAnnotationSegment).labels.find(
+        !!(seg as TrattAnnotationSegment).labels.find(
           (l) => l.name === 'Speaker',
         )?.value,
     );
@@ -307,7 +307,7 @@ export class TranscrOverviewComponent implements OnInit, OnDestroy, OnChanges {
       this.textEditor.selectedSegment > -1
     ) {
       const target = event.target as HTMLElement;
-      const editorContainer = document.querySelector('octra-transcr-editor');
+      const editorContainer = document.querySelector('tratt-transcr-editor');
       if (editorContainer && !editorContainer.contains(target)) {
         void this.onTextEditorLeave(this.textEditor.selectedSegment);
       }
@@ -320,10 +320,10 @@ export class TranscrOverviewComponent implements OnInit, OnDestroy, OnChanges {
         this.textEditor.state = 'active';
         this.textEditor.selectedSegment = i;
 
-        const segment = this.currentLevel?.items[i] as OctraAnnotationSegment;
+        const segment = this.currentLevel?.items[i] as TrattAnnotationSegment;
         const nextSegmentTime: SampleUnit =
           i < this.currentLevel?.items.length - 1
-            ? (this.currentLevel?.items[i + 1] as OctraAnnotationSegment).time
+            ? (this.currentLevel?.items[i + 1] as TrattAnnotationSegment).time
             : this.audio.audioManager.resource.info.duration;
         const audiochunk = new AudioChunk(
           new AudioSelection(segment.time, nextSegmentTime),
@@ -357,9 +357,9 @@ export class TranscrOverviewComponent implements OnInit, OnDestroy, OnChanges {
     this.transcrEditor.updateRawText();
     const rawText = this.transcrEditor.rawText;
     (
-      this._internLevel.items[i] as OctraAnnotationSegment
+      this._internLevel.items[i] as TrattAnnotationSegment
     ).changeFirstLabelWithoutName('Speaker', rawText);
-    const segment = this._internLevel.items[i] as OctraAnnotationSegment;
+    const segment = this._internLevel.items[i] as TrattAnnotationSegment;
 
     // Close editor UI immediately — no await before markForCheck
     this.textEditor.state = 'inactive';
@@ -377,7 +377,7 @@ export class TranscrOverviewComponent implements OnInit, OnDestroy, OnChanges {
 
       const startTime =
         i > 0
-          ? (this._internLevel.items[i - 1] as OctraAnnotationSegment).time
+          ? (this._internLevel.items[i - 1] as TrattAnnotationSegment).time
               .samples
           : 0;
       const validationArray =
@@ -406,7 +406,7 @@ export class TranscrOverviewComponent implements OnInit, OnDestroy, OnChanges {
           ? (
               this.annotationStoreService.currentLevel!.items[
                 i - 1
-              ] as OctraAnnotationSegment
+              ] as TrattAnnotationSegment
             ).time.samples
           : 0;
       this.uiService.addElementFromEvent(
@@ -460,7 +460,7 @@ export class TranscrOverviewComponent implements OnInit, OnDestroy, OnChanges {
       try {
         if (this._internLevel.type === 'SEGMENT') {
           const level = this
-            ._internLevel as OctraAnnotationSegmentLevel<OctraAnnotationSegment>;
+            ._internLevel as TrattAnnotationSegmentLevel<TrattAnnotationSegment>;
 
           console.time('[overview] updateSegments');
           console.log(
@@ -472,7 +472,7 @@ export class TranscrOverviewComponent implements OnInit, OnDestroy, OnChanges {
           let t = 0;
           for (const seg of level.items) {
             startTimes.push(t);
-            t = (seg as OctraAnnotationSegment).time.samples;
+            t = (seg as TrattAnnotationSegment).time.samples;
           }
 
           const levelValidation =
@@ -485,13 +485,13 @@ export class TranscrOverviewComponent implements OnInit, OnDestroy, OnChanges {
             level.items.map((segment, i) =>
               this.getShownSegment(
                 startTimes[i],
-                (segment as OctraAnnotationSegment).time.samples,
+                (segment as TrattAnnotationSegment).time.samples,
                 i,
                 levelValidation,
-                (segment as OctraAnnotationSegment).getFirstLabelWithoutName(
+                (segment as TrattAnnotationSegment).getFirstLabelWithoutName(
                   'Speaker',
                 )?.value ?? '',
-                (segment as OctraAnnotationSegment).labels.find(
+                (segment as TrattAnnotationSegment).labels.find(
                   (l) => l.name === 'Speaker',
                 )?.value ?? '',
               ),
@@ -519,7 +519,7 @@ export class TranscrOverviewComponent implements OnInit, OnDestroy, OnChanges {
   private async updateSingleSegment(
     i: number,
     startTime: number,
-    segment: OctraAnnotationSegment,
+    segment: TrattAnnotationSegment,
     validationArray: any[],
   ): Promise<void> {
     const rawText = segment.getFirstLabelWithoutName('Speaker')?.value ?? '';
@@ -548,7 +548,7 @@ export class TranscrOverviewComponent implements OnInit, OnDestroy, OnChanges {
     if (changes['currentLevel'].currentValue) {
       this._internLevel = (
         changes['currentLevel']
-          .currentValue as OctraAnnotationAnyLevel<OctraAnnotationSegment>
+          .currentValue as TrattAnnotationAnyLevel<TrattAnnotationSegment>
       ).clone();
     }
   }
@@ -747,10 +747,10 @@ export class TranscrOverviewComponent implements OnInit, OnDestroy, OnChanges {
         return;
       }
       const level = this
-        ._internLevel as OctraAnnotationSegmentLevel<OctraAnnotationSegment>;
+        ._internLevel as TrattAnnotationSegmentLevel<TrattAnnotationSegment>;
 
       if (this.playStateSegments[segmentNumber].state === 'stopped') {
-        const segment: OctraAnnotationSegment = level.items[segmentNumber];
+        const segment: TrattAnnotationSegment = level.items[segmentNumber];
 
         this.playStateSegments[segmentNumber].state = 'started';
         this.playStateSegments[segmentNumber].icon = 'bi bi-stop-fill';
@@ -828,7 +828,7 @@ export class TranscrOverviewComponent implements OnInit, OnDestroy, OnChanges {
               ? (
                   this.annotationStoreService.currentLevel?.items[
                     segmentNumber - 1
-                  ] as OctraAnnotationSegment
+                  ] as TrattAnnotationSegment
                 ).time.samples
               : 0;
           this.uiService.addElementFromEvent(
@@ -846,7 +846,7 @@ export class TranscrOverviewComponent implements OnInit, OnDestroy, OnChanges {
                 (
                   this.annotationStoreService.currentLevel?.items[
                     segmentNumber
-                  ] as OctraAnnotationSegment
+                  ] as TrattAnnotationSegment
                 ).time.samples - startSample,
             },
             'overview',
@@ -869,7 +869,7 @@ export class TranscrOverviewComponent implements OnInit, OnDestroy, OnChanges {
           ? (
               this.annotationStoreService.currentLevel!.items[
                 segmentNumber - 1
-              ] as OctraAnnotationSegment
+              ] as TrattAnnotationSegment
             ).time.samples
           : 0;
       this.uiService.addElementFromEvent(
@@ -887,7 +887,7 @@ export class TranscrOverviewComponent implements OnInit, OnDestroy, OnChanges {
             (
               this.annotationStoreService.currentLevel!.items[
                 segmentNumber
-              ] as OctraAnnotationSegment
+              ] as TrattAnnotationSegment
             ).time.samples - startSample,
         },
         'overview',

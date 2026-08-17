@@ -21,10 +21,10 @@ import { AppStorageService } from '../../shared/service/appstorage.service';
 import { ShortcutService } from '../../shared/service/shortcut.service';
 import { LoginMode } from '../../store';
 import { AnnotationStoreService } from '../../store/login-mode/annotation/annotation.store.service';
-import { OctraModal } from '../types';
+import { TrattModal } from '../types';
 
 @Component({
-  selector: 'octra-overview-modal',
+  selector: 'tratt-overview-modal',
   templateUrl: './overview-modal.component.html',
   styleUrls: ['./overview-modal.component.scss'],
   imports: [
@@ -36,7 +36,7 @@ import { OctraModal } from '../types';
   ],
 })
 export class OverviewModalComponent
-  extends OctraModal
+  extends TrattModal
   implements OnInit, OnDestroy, AfterViewInit
 {
   public override name = 'OverviewModalComponent';

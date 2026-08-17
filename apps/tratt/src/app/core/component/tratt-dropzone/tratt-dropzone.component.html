@@ -6,7 +6,7 @@
 >
   <i class="bi bi-info-circle"></i> {{ 'g.supported files' | transloco }}
 </button>
-<octra-drop-zone #dropzone (afterdrop)="afterDrop()" [height]="height">
+<tratt-drop-zone #dropzone (afterdrop)="afterDrop()" [height]="height">
   <table [hidden]="files.length === 0" class="dropzone-table position-relative">
     @for (fileProgress of files; track fileProgress.id) {
       <tr>
@@ -30,7 +30,7 @@
               [popoverTitle]="'dropzone.validation warning' | transloco"
               [triggers]="'hover'"
               [ngbPopover]="fileProgress.warning"
-              style="font-size: 16px; color: var(--octra-accent-warning)"
+              style="font-size: 16px; color: var(--tratt-accent-warning)"
             ></i>
           }
           @if (fileProgress.status === 'waiting') {
@@ -103,7 +103,7 @@
             (click)="
               $event.stopImmediatePropagation();
               $event.stopPropagation();
-              octraDropzoneService.openImportOptionsModal(fileProgress)
+              trattDropzoneService.openImportOptionsModal(fileProgress)
             "
             style="font-size: 14px; color: dimgray"
           >
@@ -119,29 +119,29 @@
       'dropzone.drag&drop here' | transloco
     }}</span>
   }
-</octra-drop-zone>
+</tratt-drop-zone>
 
 @if (showAutoTranscribe) {
   <div class="row g-2">
     @if (!hasAnnotation) {
       <div class="col">
-        <octra-auto-transcribe-options
+        <tratt-auto-transcribe-options
           [audioLoaded]="hasAudio"
           [annotationAlreadyLoaded]="hasAnnotation"
           (optionsChange)="onTranscribeOptionsChange($event)"
-        ></octra-auto-transcribe-options>
+        ></tratt-auto-transcribe-options>
       </div>
     }
     @if (hasAnnotation || transcribeOptions !== null) {
       <div class="col">
-        <octra-auto-translate-options
+        <tratt-auto-translate-options
           [annotationAlreadyLoaded]="hasAnnotation"
           [transcribeWillRun]="transcribeOptions !== null"
           [sourceLanguageHint]="
             transcribeOptions?.language ?? annotationSourceLangCode
           "
           (optionsChange)="onTranslateOptionsChange($event)"
-        ></octra-auto-translate-options>
+        ></tratt-auto-translate-options>
       </div>
     }
   </div>

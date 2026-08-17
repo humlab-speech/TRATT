@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { TranslocoModule } from '@jsverse/transloco';
-import { OctraComponentsModule } from '@octra/ngx-components';
+import { TrattComponentsModule } from '@tratt/ngx-components';
 import { AppSharedModule } from '../../app.shared.module';
 import { StresstestComponent } from '../tools/stresstest/stresstest.component';
 import { Error404Component } from './error404';
@@ -21,7 +21,7 @@ import { BrowserTestComponent } from './browser-test';
     CommonModule,
     FormsModule,
     InternModule,
-    OctraComponentsModule,
+    TrattComponentsModule,
     AppSharedModule,
     RouterModule,
     TranslocoModule,

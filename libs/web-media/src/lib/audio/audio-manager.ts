@@ -1,5 +1,5 @@
-import { AudioSelection, PlayBackStatus, SampleUnit } from '@octra/media';
-import { SubscriptionManager } from '@octra/utilities';
+import { AudioSelection, PlayBackStatus, SampleUnit } from '@tratt/media';
+import { SubscriptionManager } from '@tratt/utilities';
 import { map, Observable, Subject, Subscription, timer } from 'rxjs';
 import { AudioFormat } from './AudioFormats';
 import { normalizeMimeType } from './audio-info';

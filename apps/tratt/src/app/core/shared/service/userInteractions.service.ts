@@ -1,6 +1,6 @@
 import { EventEmitter, Injectable } from '@angular/core';
-import { PlayBackStatus, SampleUnit } from '@octra/media';
-import { contains } from '@octra/utilities';
+import { PlayBackStatus, SampleUnit } from '@tratt/media';
+import { contains } from '@tratt/utilities';
 import { ILog, OLog } from '../../obj/Settings/logging';
 import { KeyStatisticElem } from '../../obj/statistics/KeyStatisticElem';
 import { MouseStatisticElem } from '../../obj/statistics/MouseStatisticElem';

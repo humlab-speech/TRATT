@@ -2,7 +2,7 @@ import { parseBlob } from 'music-metadata';
 import { AudioFormat } from './audio-format';
 
 export class MusicMetadataFormat extends AudioFormat {
-  protected override _decoder: 'web-audio' | 'octra' = 'web-audio';
+  protected override _decoder: 'web-audio' | 'tratt' = 'web-audio';
 
   constructor() {
     super();

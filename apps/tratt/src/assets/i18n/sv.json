@@ -572,7 +572,7 @@
   "modals": {
     "create project request": {
       "description": "Om du vill hantera ditt projekt med OCTRA-servern och låta det bearbetas av transkribenter i onlineläge här i TRATT är du välkommen att skriva ett e-postmeddelande till administratörerna: {{adminEmail}}",
-      "introduction": "TRATT använder {{octraBackendURL}} för onlineläget. Av säkerhetsskäl kan nya projekt endast skapas av administratörer som granskar motsvarande begäranden i förväg.",
+      "introduction": "TRATT använder {{trattBackendURL}} för onlineläget. Av säkerhetsskäl kan nya projekt endast skapas av administratörer som granskar motsvarande begäranden i förväg.",
       "needed data": {
         "label": "E-postmeddelandet ska innehålla följande data:",
         "list1": "Projektnamn, förkortning, intern beskrivning, extern beskrivning (valfritt)",

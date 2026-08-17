@@ -35,7 +35,7 @@
         <div class="container-fluid">
           <div
             class="row py-2"
-            style="background-color: var(--octra-surface-background)"
+            style="background-color: var(--tratt-surface-background)"
           >
             <div class="col">
               <span class="me-1"> ASR: </span>
@@ -132,7 +132,7 @@
           [src]="videoUrl"
         ></video>
       }
-      <octra-audio-navigation
+      <tratt-audio-navigation
         #audionav
         (afterPlaybackRateChange)="afterSpeedChange($event)"
         (afterVolumeChange)="afterVolumeChange($event)"
@@ -142,9 +142,9 @@
         [easyMode]="easyMode"
         [playbackRate]="appStorage.audioSpeed"
         [volume]="appStorage.audioVolume"
-      ></octra-audio-navigation>
+      ></tratt-audio-navigation>
       <div class="position-relative" style="display: inline-block; width: 100%">
-        <octra-audio-viewer
+        <tratt-audio-viewer
           #magnifier
           [audioChunk]="audiochunk"
           [refreshOnInternChanges]="false"
@@ -154,7 +154,7 @@
             height: magnifier?.settings?.lineheight + 'px',
           }"
           id="magnifier"
-        ></octra-audio-viewer>
+        ></tratt-audio-viewer>
         @if (currentSegmentSpeaker) {
           <div
             class="speaker-badge"
@@ -167,7 +167,7 @@
           </div>
         }
       </div>
-      <octra-transcr-editor
+      <tratt-transcr-editor
         #editor
         (boundaryclicked)="onBoundaryClicked($event)"
         [transcript]="transcript"
@@ -183,7 +183,7 @@
         [font]="(appStoreService.options$ | async)?.editorFont"
         (fontChange)="onFontChange($event)"
         (selectionchanged)="onSelectionChange($event)"
-      ></octra-transcr-editor>
+      ></tratt-transcr-editor>
     </div>
   </div>
   <div class="modal-footer">

@@ -8,25 +8,25 @@ import {
   getSegmentBySamplePosition,
   getSegmentsOfRange,
   getStartTimeBySegmentID,
-  OctraAnnotation,
-  OctraAnnotationAnyLevel,
-  OctraAnnotationEvent,
-  OctraAnnotationLink,
-  OctraAnnotationSegment,
-  OctraAnnotationSegmentLevel,
   OItem,
   OLabel,
-} from '@octra/annotation';
-import { AudioSelection, PlayBackStatus, SampleUnit } from '@octra/media';
-import { TimespanPipe } from '@octra/ngx-utilities';
-import { SubscriptionManager, TsWorkerJob } from '@octra/utilities';
+  TrattAnnotation,
+  TrattAnnotationAnyLevel,
+  TrattAnnotationEvent,
+  TrattAnnotationLink,
+  TrattAnnotationSegment,
+  TrattAnnotationSegmentLevel,
+} from '@tratt/annotation';
+import { AudioSelection, PlayBackStatus, SampleUnit } from '@tratt/media';
+import { TimespanPipe } from '@tratt/ngx-utilities';
+import { SubscriptionManager, TsWorkerJob } from '@tratt/utilities';
 import {
   AudioChunk,
   AudioManager,
   AudioTimeCalculator,
   ShortcutGroup,
   ShortcutManager,
-} from '@octra/web-media';
+} from '@tratt/web-media';
 import { Animation } from 'konva/lib/Animation';
 import { Context } from 'konva/lib/Context';
 import { Group } from 'konva/lib/Group';
@@ -43,7 +43,7 @@ import type { Vector2d } from 'konva/lib/types';
 import { ReplaySubject, Subject, timer } from 'rxjs';
 import { Subscription } from 'rxjs/internal/Subscription';
 import { MultiThreadingService } from '../../../multi-threading.service';
-import { OCTRA_COLORS, Position, Size } from '../../../obj';
+import { Position, Size, TRATT_COLORS } from '../../../obj';
 import { PlayCursor } from '../../../obj/play-cursor';
 import { AudioViewerShortcutEvent } from './audio-viewer.component';
 import { AudioviewerConfig } from './audio-viewer.config';
@@ -69,7 +69,7 @@ export class AudioViewerService {
   }
 
   get currentLevel():
-    | OctraAnnotationAnyLevel<OctraAnnotationSegment>
+    | TrattAnnotationAnyLevel<TrattAnnotationSegment>
     | undefined {
     return this.annotation?.currentLevel;
   }
@@ -112,7 +112,7 @@ export class AudioViewerService {
   public playcursorchange = new EventEmitter<PlayCursor>();
 
   public annotationChange = new EventEmitter<
-    OctraAnnotation<ASRContext, OctraAnnotationSegment>
+    TrattAnnotation<ASRContext, TrattAnnotationSegment>
   >();
   public currentLevelChange = new EventEmitter<{
     type: 'change' | 'remove' | 'add';
@@ -163,7 +163,7 @@ export class AudioViewerService {
 
   private styles = {
     playHead: {
-      backgroundColor: OCTRA_COLORS.playhead,
+      backgroundColor: TRATT_COLORS.playhead,
       strokeColor: 'pruple',
       strokeWidth: 1,
       width: 10,
@@ -178,7 +178,7 @@ export class AudioViewerService {
       color: '#b5b5b5',
     },
     background: {
-      color: OCTRA_COLORS.surfaceBackground,
+      color: TRATT_COLORS.surfaceBackground,
     },
     grid: {
       strokeColor: 'gray',
@@ -235,8 +235,8 @@ export class AudioViewerService {
     horizontalLines: 2,
   };
 
-  annotation?: OctraAnnotation<ASRContext, OctraAnnotationSegment>;
-  tempAnnotation?: OctraAnnotation<ASRContext, OctraAnnotationSegment>;
+  annotation?: TrattAnnotation<ASRContext, TrattAnnotationSegment>;
+  tempAnnotation?: TrattAnnotation<ASRContext, TrattAnnotationSegment>;
   public name = '';
 
   // AUDIO
@@ -469,10 +469,10 @@ export class AudioViewerService {
    */
   public applyChanges(
     changes: AnnotationChange[],
-    oldAnnotation: OctraAnnotation<ASRContext, OctraAnnotationSegment>,
+    oldAnnotation: TrattAnnotation<ASRContext, TrattAnnotationSegment>,
   ) {
     const getIndexOfSegmentID = (
-      level: OctraAnnotationAnyLevel<OctraAnnotationSegment>,
+      level: TrattAnnotationAnyLevel<TrattAnnotationSegment>,
       id: number,
     ) => {
       return level.items.findIndex((a) => a.id === id);
@@ -480,7 +480,7 @@ export class AudioViewerService {
 
     const checkNeighbours = (item: AnnotationAnySegment) => {
       const currentLevel = (this
-        .currentLevel as OctraAnnotationSegmentLevel<OctraAnnotationSegment>)!;
+        .currentLevel as TrattAnnotationSegmentLevel<TrattAnnotationSegment>)!;
       const rightNeighbour = currentLevel.getRightSibling(
         getIndexOfSegmentID(currentLevel, item.id),
       );
@@ -515,10 +515,10 @@ export class AudioViewerService {
         if (change.item?.old) {
           this.removeSegmentFromCanvas(change.item.old.id);
           const oldLevel =
-            oldAnnotation.currentLevel as OctraAnnotationSegmentLevel<OctraAnnotationSegment>;
+            oldAnnotation.currentLevel as TrattAnnotationSegmentLevel<TrattAnnotationSegment>;
           const oldLeft = oldLevel.getLeftSibling(
             getIndexOfSegmentID(oldLevel, change!.item!.old!.id!),
-          )! as OctraAnnotationSegment;
+          )! as TrattAnnotationSegment;
           if (oldLeft) {
             checkNeighbours(oldLeft);
           }
@@ -1335,11 +1335,11 @@ export class AudioViewerService {
         }
 
         const { startIndex, endIndex } = getSegmentsOfRange(
-          this.currentLevel.items as OctraAnnotationSegment[],
+          this.currentLevel.items as TrattAnnotationSegment[],
           this.audioChunk.time.start.clone(),
           this.audioChunk.time.end.clone(),
         );
-        const segments = this.currentLevel.items as OctraAnnotationSegment[];
+        const segments = this.currentLevel.items as TrattAnnotationSegment[];
 
         const boundariesToDraw: {
           x: number;
@@ -1481,11 +1481,11 @@ export class AudioViewerService {
     ) {
       let y = 0;
       const { startIndex, endIndex } = getSegmentsOfRange(
-        this.currentLevel.items as OctraAnnotationSegment[],
+        this.currentLevel.items as TrattAnnotationSegment[],
         this.audioChunk.time.start.clone(),
         this.audioChunk.time.end.clone(),
       );
-      const segments = this.currentLevel.items as OctraAnnotationSegment[];
+      const segments = this.currentLevel.items as TrattAnnotationSegment[];
 
       const boundariesToDraw: {
         x: number;
@@ -1599,7 +1599,7 @@ export class AudioViewerService {
         // Speaker label for the segment starting at this boundary
         if (this.annotation && this.currentLevel) {
           const allSegments = this.currentLevel
-            .items as OctraAnnotationSegment[];
+            .items as TrattAnnotationSegment[];
           const boundarySegIndex = allSegments.findIndex(
             (s) => s.id === boundary.id,
           );
@@ -1646,7 +1646,7 @@ export class AudioViewerService {
             labelGroup.on('click tap', () => {
               if (!this.annotation || !this.currentLevel) return;
               const currentAllSegments = this.currentLevel
-                .items as OctraAnnotationSegment[];
+                .items as TrattAnnotationSegment[];
               const currentBoundarySegIndex = currentAllSegments.findIndex(
                 (s) => s.id === boundary.id,
               );
@@ -1659,7 +1659,7 @@ export class AudioViewerService {
               const currentIds = getSpeakerIds(this.annotation);
               const nextId = cycleNextSpeaker(currentSpeakerId, currentIds);
               const clonedSeg =
-                currentNextSeg.clone() as OctraAnnotationSegment;
+                currentNextSeg.clone() as TrattAnnotationSegment;
               const changed = clonedSeg.changeLabel('Speaker', nextId);
               if (!changed) {
                 clonedSeg.labels = [
@@ -1685,7 +1685,7 @@ export class AudioViewerService {
     numOfLines: number,
     segmentData: {
       index: number;
-      segment: OctraAnnotationSegment;
+      segment: TrattAnnotationSegment;
     },
     segmentInterval: {
       start: number;
@@ -1715,9 +1715,9 @@ export class AudioViewerService {
             this.audioChunk.time.duration,
           );
           let beginTime = this.audioManager.createSampleUnit(0);
-          const previousSegment: OctraAnnotationSegment | undefined =
+          const previousSegment: TrattAnnotationSegment | undefined =
             index > segmentInterval.start
-              ? (this.currentLevel.items[index - 1] as OctraAnnotationSegment)
+              ? (this.currentLevel.items[index - 1] as TrattAnnotationSegment)
               : undefined;
 
           if (previousSegment && previousSegment.time !== undefined) {
@@ -1831,16 +1831,16 @@ export class AudioViewerService {
                       segIndex > segmentInterval.start
                         ? (this.currentLevel.items[
                             segIndex - 1
-                          ] as OctraAnnotationSegment)
+                          ] as TrattAnnotationSegment)
                         : undefined;
                     const seg = this.currentLevel.items[
                       segIndex
-                    ] as OctraAnnotationSegment;
+                    ] as TrattAnnotationSegment;
                     const nextSeg =
                       segIndex < segmentInterval.end
                         ? (this.currentLevel.items[
                             segIndex + 1
-                          ] as OctraAnnotationSegment)
+                          ] as TrattAnnotationSegment)
                         : undefined;
 
                     if (seg?.type !== 'segment') {
@@ -1898,7 +1898,7 @@ export class AudioViewerService {
       start: number;
       end: number;
     },
-    segment: OctraAnnotationSegment,
+    segment: TrattAnnotationSegment,
     lineInterval: {
       from: number;
       to: number;
@@ -1911,9 +1911,9 @@ export class AudioViewerService {
       );
       const prevSeg =
         segIndex > segmentInterval.start
-          ? (this.currentLevel.items[segIndex - 1] as OctraAnnotationSegment)
+          ? (this.currentLevel.items[segIndex - 1] as TrattAnnotationSegment)
           : undefined;
-      const seg = this.currentLevel.items[segIndex] as OctraAnnotationSegment;
+      const seg = this.currentLevel.items[segIndex] as TrattAnnotationSegment;
 
       this.transcriptBackgroundSceneFunc(
         lineInterval,
@@ -1930,7 +1930,7 @@ export class AudioViewerService {
   private sceneFuncOverlay = (
     context: Context,
     shape: Shape,
-    segment: OctraAnnotationSegment,
+    segment: TrattAnnotationSegment,
     numOfLines: number,
     segmentInterval: {
       start: number;
@@ -1946,15 +1946,15 @@ export class AudioViewerService {
       const segIndex = this.currentLevel.items.findIndex(
         (a) => a.id === segment.id,
       );
-      const seg = this.currentLevel.items[segIndex] as OctraAnnotationSegment;
+      const seg = this.currentLevel.items[segIndex] as TrattAnnotationSegment;
       const prevSeg =
         segIndex > segmentInterval.start
-          ? (this.currentLevel.items[segIndex - 1] as OctraAnnotationSegment)
+          ? (this.currentLevel.items[segIndex - 1] as TrattAnnotationSegment)
           : undefined;
 
       const nextSeg =
         segIndex < segmentInterval.end
-          ? (this.currentLevel.items[segIndex + 1] as OctraAnnotationSegment)
+          ? (this.currentLevel.items[segIndex + 1] as TrattAnnotationSegment)
           : undefined;
 
       this.overlaySceneFunction(
@@ -2012,7 +2012,7 @@ export class AudioViewerService {
 
             if (this._dragableBoundaryID > -1) {
               const currentLevel = this
-                .currentLevel as OctraAnnotationSegmentLevel<OctraAnnotationSegment>;
+                .currentLevel as TrattAnnotationSegmentLevel<TrattAnnotationSegment>;
               const index = this.annotation.currentLevel.items.findIndex(
                 (a) => a.id === this._dragableBoundaryID,
               );
@@ -2020,7 +2020,7 @@ export class AudioViewerService {
               const segmentBefore = currentLevel!.getLeftSibling(index);
               const segment = this.annotation.currentLevel.items[
                 index
-              ] as OctraAnnotationSegment<ASRContext>;
+              ] as TrattAnnotationSegment<ASRContext>;
               const segmentAfter = currentLevel!.getRightSibling(index);
 
               if (
@@ -2088,7 +2088,7 @@ export class AudioViewerService {
   handleBoundaryDragging(absX: number, absXInTime: SampleUnit, emit = false) {
     let annotation = this.tempAnnotation?.clone();
     const currentLevel =
-      annotation?.currentLevel as OctraAnnotationSegmentLevel<OctraAnnotationSegment>;
+      annotation?.currentLevel as TrattAnnotationSegmentLevel<TrattAnnotationSegment>;
     const limitPadding = 500;
 
     const index = currentLevel?.items.findIndex(
@@ -2112,15 +2112,15 @@ export class AudioViewerService {
         this._dragableBoundaryID > -1
       ) {
         // some boundary dragged
-        const segment: OctraAnnotationSegment | undefined =
+        const segment: TrattAnnotationSegment | undefined =
           draggedItem?.clone();
 
         if (segment) {
           if (!this.shiftPressed) {
             // move only this boundary
-            const previousSegment: OctraAnnotationSegment | undefined =
+            const previousSegment: TrattAnnotationSegment | undefined =
               currentLevel.getLeftSibling(index)!;
-            const nextSegment: OctraAnnotationSegment | undefined =
+            const nextSegment: TrattAnnotationSegment | undefined =
               currentLevel.getRightSibling(index)!;
 
             let newTime = this.audioTCalculator.absXChunktoSampleUnit(
@@ -2170,11 +2170,11 @@ export class AudioViewerService {
                 this.audioChunk,
               )?.samples;
             const diff = newSamplePosition! - oldSamplePosition;
-            let changedItems: OctraAnnotationSegment[] = [];
+            let changedItems: TrattAnnotationSegment[] = [];
 
             if (diff > 0) {
               // shift to right
-              for (const currentLevelElement of (annotation.currentLevel as OctraAnnotationSegmentLevel<OctraAnnotationSegment>)!
+              for (const currentLevelElement of (annotation.currentLevel as TrattAnnotationSegmentLevel<TrattAnnotationSegment>)!
                 .items) {
                 if (
                   currentLevelElement.time.samples >= segment.time.samples &&
@@ -2196,7 +2196,7 @@ export class AudioViewerService {
               }
             } else {
               // shift to left
-              for (const currentLevelElement of (annotation.currentLevel as OctraAnnotationSegmentLevel<OctraAnnotationSegment>)!
+              for (const currentLevelElement of (annotation.currentLevel as TrattAnnotationSegmentLevel<TrattAnnotationSegment>)!
                 .items) {
                 if (
                   currentLevelElement.time.samples <= segment.time.samples &&
@@ -2485,7 +2485,7 @@ export class AudioViewerService {
                     this.currentLevel.items.length > 0
                   ) {
                     const segmentI = getSegmentBySamplePosition(
-                      this.currentLevel.items as OctraAnnotationSegment[],
+                      this.currentLevel.items as TrattAnnotationSegment[],
                       xSamples,
                     );
                     if (
@@ -2493,7 +2493,7 @@ export class AudioViewerService {
                     ) {
                       const segment = this.currentLevel.items[
                         segmentI
-                      ] as OctraAnnotationSegment<ASRContext>;
+                      ] as TrattAnnotationSegment<ASRContext>;
                       console.log('set break');
                       console.log(`
                       ${segmentI > -1} &&
@@ -2556,7 +2556,7 @@ export class AudioViewerService {
                   if (boundarySelect) {
                     const segmentI = getSegmentBySamplePosition(
                       this.currentLevel
-                        .items as OctraAnnotationSegment<ASRContext>[],
+                        .items as TrattAnnotationSegment<ASRContext>[],
                       xSamples,
                     );
                     if (segmentI > -1) {
@@ -2564,13 +2564,13 @@ export class AudioViewerService {
                         this.currentLevel.type === AnnotationLevelType.SEGMENT
                       ) {
                         const currentLevel = this
-                          .currentLevel as OctraAnnotationSegmentLevel<
-                          OctraAnnotationSegment<ASRContext>
+                          .currentLevel as TrattAnnotationSegmentLevel<
+                          TrattAnnotationSegment<ASRContext>
                         >;
                         const segment = currentLevel.items[segmentI];
 
                         const startTime = getStartTimeBySegmentID(
-                          currentLevel.items as OctraAnnotationSegment<ASRContext>[],
+                          currentLevel.items as TrattAnnotationSegment<ASRContext>[],
                           segment.id,
                         );
 
@@ -2598,7 +2598,7 @@ export class AudioViewerService {
                                   this.audioManager.createSampleUnit(0),
                                   [new OLabel(this.currentLevel.name, '')],
                                 )
-                          ) as OctraAnnotationSegment<ASRContext>;
+                          ) as TrattAnnotationSegment<ASRContext>;
 
                           if (
                             begin?.time !== undefined &&
@@ -2718,7 +2718,7 @@ export class AudioViewerService {
                     for (let i = 0; i < this.currentLevel.items.length; i++) {
                       const segment = this.currentLevel.items[
                         i
-                      ] as OctraAnnotationSegment<ASRContext>;
+                      ] as TrattAnnotationSegment<ASRContext>;
 
                       if (segment?.time !== undefined) {
                         if (
@@ -2798,7 +2798,7 @@ export class AudioViewerService {
 
                   const segInde = getSegmentBySamplePosition(
                     this.currentLevel
-                      .items as OctraAnnotationSegment<ASRContext>[],
+                      .items as TrattAnnotationSegment<ASRContext>[],
                     this.mouseCursor,
                   );
                   this.selectSegment(segInde)
@@ -2901,12 +2901,12 @@ export class AudioViewerService {
                 ) {
                   const segmentI = getSegmentBySamplePosition(
                     this.currentLevel
-                      .items as OctraAnnotationSegment<ASRContext>[],
+                      .items as TrattAnnotationSegment<ASRContext>[],
                     this.mouseCursor,
                   );
                   const segment = this.currentLevel.items[
                     segmentI
-                  ] as OctraAnnotationSegment<ASRContext>;
+                  ] as TrattAnnotationSegment<ASRContext>;
 
                   if (segmentI > -1) {
                     if (segment?.context?.asr?.isBlockedBy === undefined) {
@@ -2941,12 +2941,12 @@ export class AudioViewerService {
                 ) {
                   const segmentI = getSegmentBySamplePosition(
                     this.currentLevel
-                      .items as OctraAnnotationSegment<ASRContext>[],
+                      .items as TrattAnnotationSegment<ASRContext>[],
                     this.mouseCursor,
                   );
                   const segment = this.currentLevel.items[
                     segmentI
-                  ] as OctraAnnotationSegment<ASRContext>;
+                  ] as TrattAnnotationSegment<ASRContext>;
 
                   if (segmentI > -1) {
                     if (segment?.context?.asr?.isBlockedBy === undefined) {
@@ -2982,12 +2982,12 @@ export class AudioViewerService {
                 ) {
                   const segmentI = getSegmentBySamplePosition(
                     this.currentLevel
-                      .items as OctraAnnotationSegment<ASRContext>[],
+                      .items as TrattAnnotationSegment<ASRContext>[],
                     this.mouseCursor,
                   );
                   const segment = this.currentLevel.items[
                     segmentI
-                  ] as OctraAnnotationSegment<ASRContext>;
+                  ] as TrattAnnotationSegment<ASRContext>;
 
                   if (segmentI > -1) {
                     if (segment?.context?.asr?.isBlockedBy === undefined) {
@@ -3055,11 +3055,11 @@ export class AudioViewerService {
     ) {
       const segment = this.currentLevel.items[
         segIndex
-      ] as OctraAnnotationSegment;
+      ] as TrattAnnotationSegment;
       if (segment.type !== 'segment') {
         throw new Error("Segment is not of type 'segment'");
       }
-      const items = this.currentLevel.items as OctraAnnotationSegment[];
+      const items = this.currentLevel.items as TrattAnnotationSegment[];
 
       const startTime = getStartTimeBySegmentID(items, segment.id);
 
@@ -3093,12 +3093,12 @@ export class AudioViewerService {
         const tcalc = this.audioTCalculator!;
         const widthForLayout = effectiveInnerWidth!;
         const absX = tcalc.samplestoAbsX(segment.time);
-        let begin: OctraAnnotationSegment;
+        let begin: TrattAnnotationSegment;
 
         if (segIndex > 0) {
           begin = items[segIndex - 1];
         } else {
-          begin = new OctraAnnotationSegment(
+          begin = new TrattAnnotationSegment(
             this.getNextItemID(),
             this.audioManager.createSampleUnit(0),
             [],
@@ -3433,7 +3433,7 @@ export class AudioViewerService {
         for (i = 0; i < this.annotation.currentLevel.items.length; i++) {
           const segment = this.annotation.currentLevel.items[
             i
-          ] as OctraAnnotationSegment<ASRContext>;
+          ] as TrattAnnotationSegment<ASRContext>;
           if (
             segment?.time !== undefined &&
             this.audioManager !== undefined &&
@@ -3470,12 +3470,12 @@ export class AudioViewerService {
         // some part selected
         const segm1 = betweenWhichSegment(
           this.annotation.currentLevel
-            .items as OctraAnnotationSegment<ASRContext>[],
+            .items as TrattAnnotationSegment<ASRContext>[],
           this._drawnSelection.start.samples,
         );
         const segm2 = betweenWhichSegment(
           this.annotation.currentLevel
-            .items as OctraAnnotationSegment<ASRContext>[],
+            .items as TrattAnnotationSegment<ASRContext>[],
           this._drawnSelection.end.samples,
         );
 
@@ -3557,10 +3557,10 @@ export class AudioViewerService {
         segments !== undefined &&
         this.audioManager !== undefined
       ) {
-        const firstSegment = segments[0] as OctraAnnotationSegment<ASRContext>;
+        const firstSegment = segments[0] as TrattAnnotationSegment<ASRContext>;
         const lastSegment = segments[
           segments.length - 1
-        ] as OctraAnnotationSegment<ASRContext>;
+        ] as TrattAnnotationSegment<ASRContext>;
 
         if (firstSegment.time.samples !== lastSegment.time.samples) {
           if (positionSamples < firstSegment.time.samples) {
@@ -3580,10 +3580,10 @@ export class AudioViewerService {
             for (let i = 1; i < length; i++) {
               const currentSegment = segments[
                 i
-              ] as OctraAnnotationSegment<ASRContext>;
+              ] as TrattAnnotationSegment<ASRContext>;
               const previousSegment = segments[
                 i - 1
-              ] as OctraAnnotationSegment<ASRContext>;
+              ] as TrattAnnotationSegment<ASRContext>;
 
               if (
                 previousSegment?.time !== undefined &&
@@ -3815,7 +3815,7 @@ export class AudioViewerService {
         this.currentLevel.items.length > 0 &&
         this.audioChunk !== undefined
       ) {
-        const segments = this.currentLevel.items as OctraAnnotationSegment[];
+        const segments = this.currentLevel.items as TrattAnnotationSegment[];
         const i = this.currentLevel.items.findIndex((a) => a.id === id);
         const segment = segments[i];
         const start = segment.time.sub(this.audioChunk.time.start);
@@ -3829,7 +3829,7 @@ export class AudioViewerService {
             : 0) *
           (this.settings.lineheight + this.settings.margin.top);
         const { startIndex, endIndex } = getSegmentsOfRange(
-          this.currentLevel.items as OctraAnnotationSegment[],
+          this.currentLevel.items as TrattAnnotationSegment[],
           this.audioChunk.time.start,
           this.audioChunk.time.end,
         );
@@ -4004,7 +4004,7 @@ export class AudioViewerService {
     this.annotationChange.emit(result);
   }
 
-  public changeSegment(start: SampleUnit, segment: OctraAnnotationSegment) {
+  public changeSegment(start: SampleUnit, segment: TrattAnnotationSegment) {
     const result = this.annotation!.changeCurrentSegmentBySamplePosition(
       start,
       segment,
@@ -4021,8 +4021,8 @@ export class AudioViewerService {
   }
 
   getChanges(
-    oldAnnotation: OctraAnnotation<ASRContext, OctraAnnotationSegment>,
-    newAnnotation: OctraAnnotation<ASRContext, OctraAnnotationSegment>,
+    oldAnnotation: TrattAnnotation<ASRContext, TrattAnnotationSegment>,
+    newAnnotation: TrattAnnotation<ASRContext, TrattAnnotationSegment>,
   ): AnnotationChange[] {
     if (!oldAnnotation || !newAnnotation) {
       return [];
@@ -4055,12 +4055,12 @@ export class AudioViewerService {
 
     // first read all IDs
     const readIDs: (
-      annotation: OctraAnnotation<ASRContext, OctraAnnotationSegment>,
+      annotation: TrattAnnotation<ASRContext, TrattAnnotationSegment>,
     ) => {
       levelIDs: number[];
       itemIDs: number[];
       linkIDs: number[];
-    } = (annotation: OctraAnnotation<ASRContext, OctraAnnotationSegment>) => {
+    } = (annotation: TrattAnnotation<ASRContext, TrattAnnotationSegment>) => {
       const idResult: {
         levelIDs: number[];
         itemIDs: number[];
@@ -4114,8 +4114,8 @@ export class AudioViewerService {
             if (item.type === found.type) {
               if (item.type === 'segment' && found.type === 'segment') {
                 if (
-                  !(item as OctraAnnotationSegment).isEqualWith(
-                    found as OctraAnnotationSegment,
+                  !(item as TrattAnnotationSegment).isEqualWith(
+                    found as TrattAnnotationSegment,
                   )
                 ) {
                   // changed
@@ -4139,8 +4139,8 @@ export class AudioViewerService {
                 );
               } else if (item.type === 'event' && found.type === 'event') {
                 if (
-                  !(item as OctraAnnotationEvent).isEqualWith(
-                    found as OctraAnnotationEvent,
+                  !(item as TrattAnnotationEvent).isEqualWith(
+                    found as TrattAnnotationEvent,
                   )
                 ) {
                   // changed
@@ -4230,7 +4230,7 @@ export class AudioViewerService {
     if (state.new.levelIDs.length > 0) {
       // new levels added
       for (const id of state.new.levelIDs) {
-        const level: OctraAnnotationAnyLevel<OctraAnnotationSegment> =
+        const level: TrattAnnotationAnyLevel<TrattAnnotationSegment> =
           newAnnotation.levels.find((a) => a.id === id)!;
         result.push({
           type: 'add',
@@ -4250,7 +4250,7 @@ export class AudioViewerService {
       // new levels added
       for (const id of state.new.itemIDs) {
         let item: AnnotationAnySegment | undefined;
-        const level: OctraAnnotationAnyLevel<OctraAnnotationSegment> =
+        const level: TrattAnnotationAnyLevel<TrattAnnotationSegment> =
           newAnnotation.levels.find((a) => {
             const found = a.items.find((b) => b.id === id);
             if (found) {
@@ -4301,7 +4301,7 @@ export class AudioViewerService {
 
     if (state.new.linkIDs.length > 0) {
       for (const id of state.new.linkIDs) {
-        const link: OctraAnnotationLink = newAnnotation.links.find(
+        const link: TrattAnnotationLink = newAnnotation.links.find(
           (a) => a.id === id,
         )!;
         result.push({
@@ -4322,7 +4322,7 @@ export class AudioViewerService {
       from: number;
       to: number;
     },
-    segment: OctraAnnotationSegment,
+    segment: TrattAnnotationSegment,
     isLastSegment: boolean,
     beginTime: SampleUnit,
     numOfLines: number,
@@ -4386,7 +4386,7 @@ export class AudioViewerService {
             transcript.trim().length > 0 &&
             transcript !== this.silencePlaceholder;
           context.fillStyle = hasTranscription
-            ? OCTRA_COLORS.segmentTranscribed
+            ? TRATT_COLORS.segmentTranscribed
             : this.settings.backgroundcolor;
           context.clearRect(x, localY + this.settings.lineheight - 20, w, 20);
           context.fillRect(x, localY + this.settings.lineheight - 20, w, 20);
@@ -4401,7 +4401,7 @@ export class AudioViewerService {
       from: number;
       to: number;
     },
-    sceneSegment: OctraAnnotationSegment,
+    sceneSegment: TrattAnnotationSegment,
     isLastSegment: boolean,
     beginTime: SampleUnit,
     numOfLines: number,
@@ -4510,13 +4510,13 @@ export class AudioViewerService {
               ) {
                 context.fillStyle = 'rgba(179,10,179,0.5)';
                 progressBarFillColor = 'rgba(179,10,179,0.8)';
-                progressBarForeColor = OCTRA_COLORS.surfaceBackground;
+                progressBarForeColor = TRATT_COLORS.surfaceBackground;
               } else if (
                 sceneSegment.context?.asr?.isBlockedBy === ASRQueueItemType.MAUS
               ) {
                 context.fillStyle = 'rgba(26,229,160,0.5)';
                 progressBarFillColor = 'rgba(17,176,122,0.8)';
-                progressBarForeColor = OCTRA_COLORS.surfaceBackground;
+                progressBarForeColor = TRATT_COLORS.surfaceBackground;
               }
               context.clearRect(x, localY, w, h);
               context.fillRect(x, localY, w, h);
@@ -4574,8 +4574,8 @@ export class AudioViewerService {
                     );
                     context.fillStyle =
                       progressStart + loadedPixels > textPosition &&
-                      progressBarForeColor === OCTRA_COLORS.surfaceBackground
-                        ? OCTRA_COLORS.surfaceBackground
+                      progressBarForeColor === TRATT_COLORS.surfaceBackground
+                        ? TRATT_COLORS.surfaceBackground
                         : 'black';
                     context.fillText(progressString, textPosition, localY + 14);
                   }
@@ -4852,7 +4852,7 @@ export class AudioViewerService {
 
   private removeSegmentFromCanvas(
     segmentID: number,
-    oldAnnotation?: OctraAnnotation<any, any>,
+    oldAnnotation?: TrattAnnotation<any, any>,
   ) {
     if (segmentID > -1) {
       const overlayGroup = this.layers?.overlay.findOne(
@@ -4948,7 +4948,7 @@ export class AudioViewerService {
     beginTime: SampleUnit,
     lastI: number | undefined,
     numOfLines: number,
-    segment: OctraAnnotationSegment,
+    segment: TrattAnnotationSegment,
     isLastSegment: boolean,
   ): number | undefined {
     const viewY =
@@ -5386,15 +5386,15 @@ export class AudioViewerService {
 export interface AnnotationChange {
   type: 'add' | 'remove' | 'change';
   level?: {
-    old?: OctraAnnotationAnyLevel<OctraAnnotationSegment>;
-    new?: OctraAnnotationAnyLevel<OctraAnnotationSegment>;
+    old?: TrattAnnotationAnyLevel<TrattAnnotationSegment>;
+    new?: TrattAnnotationAnyLevel<TrattAnnotationSegment>;
   };
   item?: {
     old?: AnnotationAnySegment;
     new?: AnnotationAnySegment;
   };
   link?: {
-    old?: OctraAnnotationLink;
-    new?: OctraAnnotationLink;
+    old?: TrattAnnotationLink;
+    new?: TrattAnnotationLink;
   };
 }

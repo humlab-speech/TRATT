@@ -5,7 +5,7 @@
  * properties in apps/tratt/src/styles.scss — so the tokens are mirrored here.
  * Keep the two files in sync.
  */
-export const OCTRA_COLORS = {
+export const TRATT_COLORS = {
   /** Waveform canvas and panel backgrounds. VISP $white. */
   surfaceBackground: '#FFFFFF',
   /** Page canvas behind the editors. VISP $tertiary-light. */

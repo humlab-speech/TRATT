@@ -6,19 +6,19 @@ import {
   NgbPopover,
   NgbTooltip,
 } from '@ng-bootstrap/ng-bootstrap';
-import { Converter } from '@octra/annotation';
-import { OctraUtilitiesModule } from '@octra/ngx-utilities';
-import { AudioFormat } from '@octra/web-media';
+import { Converter } from '@tratt/annotation';
+import { TrattUtilitiesModule } from '@tratt/ngx-utilities';
+import { AudioFormat } from '@tratt/web-media';
 import { AppInfo } from '../../../app.info';
-import { OctraModal } from '../types';
+import { TrattModal } from '../types';
 
 @Component({
-  selector: 'octra-supportedfiles-modal',
+  selector: 'tratt-supportedfiles-modal',
   templateUrl: './supportedfiles-modal.component.html',
   styleUrls: ['./supportedfiles-modal.component.scss'],
-  imports: [NgbPopover, NgbTooltip, TranslocoPipe, OctraUtilitiesModule],
+  imports: [NgbPopover, NgbTooltip, TranslocoPipe, TrattUtilitiesModule],
 })
-export class SupportedFilesModalComponent extends OctraModal {
+export class SupportedFilesModalComponent extends TrattModal {
   public static options: NgbModalOptions = {
     backdrop: true,
     size: 'lg',

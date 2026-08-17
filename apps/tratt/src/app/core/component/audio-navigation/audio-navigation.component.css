@@ -30,9 +30,9 @@
 
 .audio-nav .btn-group .audio-nav-panel {
   min-height: 40px;
-  color: var(--octra-surface-background);
-  background-color: var(--octra-accent-green);
-  border: 1px solid var(--octra-accent-green);
+  color: var(--tratt-surface-background);
+  background-color: var(--tratt-accent-green);
+  border: 1px solid var(--tratt-accent-green);
 }
 
 .audio-nav .col-1 {

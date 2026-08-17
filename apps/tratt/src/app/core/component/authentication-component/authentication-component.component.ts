@@ -12,7 +12,7 @@ import { DefaultComponent } from '../default.component';
 import { SignupComponent } from './signup/signup.component';
 
 @Component({
-  selector: 'octra-authentication-component',
+  selector: 'tratt-authentication-component',
   templateUrl: './authentication-component.component.html',
   styleUrls: ['./authentication-component.component.scss'],
   imports: [FormsModule, SignupComponent, TranslocoPipe],

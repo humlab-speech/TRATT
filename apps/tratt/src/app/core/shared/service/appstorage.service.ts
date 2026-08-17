@@ -1,17 +1,17 @@
 import { EventEmitter, Injectable } from '@angular/core';
 import { Actions } from '@ngrx/effects';
 import { Action, Store } from '@ngrx/store';
-import {
-  OctraAnnotationAnyLevel,
-  OctraAnnotationSegment,
-} from '@octra/annotation';
 import { ProjectDto, TaskDto } from '@octra/api-types';
 import { OctraAPIService } from '@octra/ngx-octra-api';
+import {
+  TrattAnnotationAnyLevel,
+  TrattAnnotationSegment,
+} from '@tratt/annotation';
 import {
   getBaseHrefURL,
   SubscriptionManager,
   waitTillResultRetrieved,
-} from '@octra/utilities';
+} from '@tratt/utilities';
 import { SessionStorageService } from 'ngx-webstorage';
 import {
   asapScheduler,
@@ -184,7 +184,7 @@ export class AppStorageService {
     );
   }
 
-  get annotationLevels(): OctraAnnotationAnyLevel<OctraAnnotationSegment>[] {
+  get annotationLevels(): TrattAnnotationAnyLevel<TrattAnnotationSegment>[] {
     return getModeState(this._snapshot)!.transcript!.levels;
   }
 
@@ -418,7 +418,7 @@ export class AppStorageService {
 
   public changeAnnotationLevel(
     tiernum: number,
-    level: OctraAnnotationAnyLevel<OctraAnnotationSegment>,
+    level: TrattAnnotationAnyLevel<TrattAnnotationSegment>,
   ): Promise<void> {
     return new Promise<void>((resolve, reject) => {
       if (this.annotationLevels !== undefined) {

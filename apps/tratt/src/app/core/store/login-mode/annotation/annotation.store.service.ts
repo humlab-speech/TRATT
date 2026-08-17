@@ -1,27 +1,27 @@
 import { computed, effect, EventEmitter, Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
+import { TaskDto, TaskInputOutputDto } from '@octra/api-types';
 import {
   AnnotationAnySegment,
   AnnotationLevelType,
   ASRContext,
-  OctraAnnotation,
-  OctraAnnotationAnyLevel,
-  OctraAnnotationSegment,
-  OctraAnnotationSegmentLevel,
   OEvent,
   OItem,
   TextConverter,
-} from '@octra/annotation';
-import { TaskDto, TaskInputOutputDto } from '@octra/api-types';
-import { OctraGuidelines } from '@octra/assets';
-import { MultiThreadingService } from '@octra/ngx-components';
+  TrattAnnotation,
+  TrattAnnotationAnyLevel,
+  TrattAnnotationSegment,
+  TrattAnnotationSegmentLevel,
+} from '@tratt/annotation';
+import { TrattGuidelines } from '@tratt/assets';
+import { MultiThreadingService } from '@tratt/ngx-components';
 import {
   escapeRegex,
   getTranscriptFromIO,
   insertString,
   SubscriptionManager,
   TsWorkerJob,
-} from '@octra/utilities';
+} from '@tratt/utilities';
 import { BehaviorSubject, map, Observable } from 'rxjs';
 import { OLog, OLogging } from '../../../obj/Settings/logging';
 import { KeyStatisticElem } from '../../../obj/statistics/KeyStatisticElem';
@@ -73,7 +73,7 @@ export class AnnotationStoreService {
       pause: 0,
     };
 
-    if (level instanceof OctraAnnotationSegmentLevel) {
+    if (level instanceof TrattAnnotationSegmentLevel) {
       const breakMarkerCode = guidelines?.selected?.json?.markers?.find(
         (a) => a.type === 'break',
       )?.code;
@@ -172,11 +172,11 @@ export class AnnotationStoreService {
     return '';
   });
 
-  private _currentLevel?: OctraAnnotationAnyLevel<OctraAnnotationSegment>;
+  private _currentLevel?: TrattAnnotationAnyLevel<TrattAnnotationSegment>;
   private _currentLevelIndex = 0;
-  private _transcript?: OctraAnnotation<ASRContext, OctraAnnotationSegment>;
+  private _transcript?: TrattAnnotation<ASRContext, TrattAnnotationSegment>;
   private _task?: TaskDto;
-  private _guidelines?: OctraGuidelines;
+  private _guidelines?: TrattGuidelines;
   private _feedback: any;
   private _statistics = { transcribed: 0, empty: 0, pause: 0 };
 
@@ -191,10 +191,10 @@ export class AnnotationStoreService {
 
   // Observable compatibility for components using subscribe()
   transcript$: Observable<
-    OctraAnnotation<ASRContext, OctraAnnotationSegment> | undefined
+    TrattAnnotation<ASRContext, TrattAnnotationSegment> | undefined
   >;
   currentLevel$: Observable<
-    OctraAnnotationAnyLevel<OctraAnnotationSegment> | undefined
+    TrattAnnotationAnyLevel<TrattAnnotationSegment> | undefined
   >;
   currentLevelIndex$: Observable<number>;
   task$: Observable<TaskDto | undefined>;
@@ -205,13 +205,13 @@ export class AnnotationStoreService {
 
   // Value properties for backward compatibility with components
   get transcript():
-    | OctraAnnotation<ASRContext, OctraAnnotationSegment>
+    | TrattAnnotation<ASRContext, TrattAnnotationSegment>
     | undefined {
     return this._transcript;
   }
 
   get currentLevel():
-    | OctraAnnotationAnyLevel<OctraAnnotationSegment>
+    | TrattAnnotationAnyLevel<TrattAnnotationSegment>
     | undefined {
     return this._currentLevel;
   }
@@ -224,11 +224,11 @@ export class AnnotationStoreService {
     return this._task;
   }
 
-  get guidelines(): OctraGuidelines | undefined {
+  get guidelines(): TrattGuidelines | undefined {
     return this.guidelinesValue;
   }
 
-  get guidelinesValue(): OctraGuidelines | undefined {
+  get guidelinesValue(): TrattGuidelines | undefined {
     return this._guidelines;
   }
 
@@ -956,7 +956,7 @@ export class AnnotationStoreService {
       pause: 0,
     };
 
-    if (this.currentLevel instanceof OctraAnnotationSegmentLevel) {
+    if (this.currentLevel instanceof TrattAnnotationSegmentLevel) {
       for (let i = 0; i < this._currentLevel!.items.length; i++) {
         const segment = this._currentLevel!.items[i];
         const valueLabel = segment.getFirstLabelWithoutName('Speaker');
@@ -978,7 +978,7 @@ export class AnnotationStoreService {
   }
 
   overwriteTranscript(
-    transcript: OctraAnnotation<ASRContext, OctraAnnotationSegment>,
+    transcript: TrattAnnotation<ASRContext, TrattAnnotationSegment>,
   ) {
     this.store.dispatch(
       AnnotationActions.overwriteTranscript.do({
@@ -991,7 +991,7 @@ export class AnnotationStoreService {
 
   changeCurrentItemById(
     id: number,
-    item: OItem | OEvent | OctraAnnotationSegment,
+    item: OItem | OEvent | TrattAnnotationSegment,
   ) {
     this.store.dispatch(
       AnnotationActions.changeCurrentItemById.do({

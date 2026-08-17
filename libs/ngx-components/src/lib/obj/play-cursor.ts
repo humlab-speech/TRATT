@@ -1,5 +1,5 @@
-import { SampleUnit } from '@octra/media';
-import { AudioChunk, AudioTimeCalculator } from '@octra/web-media';
+import { SampleUnit } from '@tratt/media';
+import { AudioChunk, AudioTimeCalculator } from '@tratt/web-media';
 
 export class PlayCursor {
   private readonly _innerWidth: number;

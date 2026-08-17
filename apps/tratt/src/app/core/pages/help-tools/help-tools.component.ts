@@ -1,14 +1,14 @@
 import { Component, ElementRef, ViewChild } from '@angular/core';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { RouterLink } from '@angular/router';
-import { getBaseHrefURL, joinURL } from '@octra/utilities';
+import { getBaseHrefURL, joinURL } from '@tratt/utilities';
 import { DefaultComponent } from '../../component/default.component';
-import { OctraModalService } from '../../modals/octra-modal.service';
+import { TrattModalService } from '../../modals/tratt-modal.service';
 import { AppStorageService } from '../../shared/service/appstorage.service';
 import { IDBService } from '../../shared/service/idb.service';
 
 @Component({
-  selector: 'octra-help-tools',
+  selector: 'tratt-help-tools',
   templateUrl: './help-tools.component.html',
   styleUrls: ['./help-tools.component.scss'],
   imports: [RouterLink],
@@ -26,7 +26,7 @@ export class HelpToolsComponent extends DefaultComponent {
     private appStorage: AppStorageService,
     private idbService: IDBService,
     private sanitizer: DomSanitizer,
-    private modalService: OctraModalService,
+    private modalService: TrattModalService,
   ) {
     super();
   }

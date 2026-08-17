@@ -3,12 +3,12 @@ import {
   ChangeDetectorRef,
   Component,
 } from '@angular/core';
-import { getFileSize } from '@octra/utilities';
-import { BrowserInfo } from '@octra/web-media';
+import { getFileSize } from '@tratt/utilities';
+import { BrowserInfo } from '@tratt/web-media';
 import { SessionStorage, SessionStorageService } from 'ngx-webstorage';
 
 @Component({
-  selector: 'octra-stresstest',
+  selector: 'tratt-stresstest',
   templateUrl: './stresstest.component.html',
   styleUrls: ['./stresstest.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,

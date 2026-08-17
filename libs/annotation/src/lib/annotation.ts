@@ -1,4 +1,4 @@
-import { SampleUnit } from '@octra/media';
+import { SampleUnit } from '@tratt/media';
 import {
   AnnotationLevelType,
   IItemLevel,
@@ -16,11 +16,11 @@ import {
 import {
   AnnotationAnySegment,
   ASRContext,
-  OctraAnnotationEvent,
-  OctraAnnotationSegment,
-} from './octraAnnotationSegment';
+  TrattAnnotationEvent,
+  TrattAnnotationSegment,
+} from './trattAnnotationSegment';
 
-export class OctraAnnotationLink {
+export class TrattAnnotationLink {
   get id(): number {
     return this._id;
   }
@@ -35,23 +35,23 @@ export class OctraAnnotationLink {
   ) {}
 
   clone() {
-    return new OctraAnnotationLink(this._id, this._link.clone());
+    return new TrattAnnotationLink(this._id, this._link.clone());
   }
 }
 
-export class OctraAnnotation<
+export class TrattAnnotation<
   S extends ASRContext,
-  T extends OctraAnnotationSegment<S>,
+  T extends TrattAnnotationSegment<S>,
 > {
   get selectedLevelIndex(): number | undefined {
     return this._selectedLevelIndex;
   }
 
-  get links(): OctraAnnotationLink[] {
+  get links(): TrattAnnotationLink[] {
     return this._links;
   }
 
-  get levels(): OctraAnnotationAnyLevel<T>[] {
+  get levels(): TrattAnnotationAnyLevel<T>[] {
     return this._levels;
   }
 
@@ -63,8 +63,8 @@ export class OctraAnnotation<
     return this._idCounters;
   }
 
-  private _levels: OctraAnnotationAnyLevel<T>[] = [];
-  private _links: OctraAnnotationLink[] = [];
+  private _levels: TrattAnnotationAnyLevel<T>[] = [];
+  private _links: TrattAnnotationLink[] = [];
 
   private _idCounters: {
     level: number;
@@ -78,7 +78,7 @@ export class OctraAnnotation<
 
   private _selectedLevelIndex?: number;
 
-  public get currentLevel(): OctraAnnotationAnyLevel<T> | undefined {
+  public get currentLevel(): TrattAnnotationAnyLevel<T> | undefined {
     if (this._selectedLevelIndex !== undefined) {
       return this._levels[this._selectedLevelIndex];
     }
@@ -86,15 +86,17 @@ export class OctraAnnotation<
   }
 
   constructor(
-    levels?: OctraAnnotationAnyLevel<T>[],
-    links?: OctraAnnotationLink[],
+    levels?: TrattAnnotationAnyLevel<T>[],
+    links?: TrattAnnotationLink[],
     idCounters?: {
       level: number;
       link: number;
       item: number;
     },
   ) {
-    console.log(`Created OctraAnnotation with ${levels?.length ?? 0} levels and ${links?.length ?? 0} links`);
+    console.log(
+      `Created TrattAnnotation with ${levels?.length ?? 0} levels and ${links?.length ?? 0} links`,
+    );
     this._levels = levels ?? [];
     this._links = links ?? [];
 
@@ -110,8 +112,8 @@ export class OctraAnnotation<
       1,
       ...this.levels.map((a) => {
         if (
-          a instanceof OctraAnnotationSegmentLevel ||
-          a instanceof OctraAnnotationEventLevel
+          a instanceof TrattAnnotationSegmentLevel ||
+          a instanceof TrattAnnotationEventLevel
         ) {
           return Math.max(0, ...a.items.map((b) => b.id)) + 1;
         }
@@ -130,8 +132,8 @@ export class OctraAnnotation<
   createSegmentLevel(
     name: string,
     items?: T[],
-  ): OctraAnnotationSegmentLevel<T> {
-    return new OctraAnnotationSegmentLevel<T>(
+  ): TrattAnnotationSegmentLevel<T> {
+    return new TrattAnnotationSegmentLevel<T>(
       this._idCounters.level++,
       name,
       items,
@@ -157,17 +159,17 @@ export class OctraAnnotation<
 
   createEventLevel(
     name: string,
-    items: OctraAnnotationEvent[],
-  ): OctraAnnotationEventLevel {
-    return new OctraAnnotationEventLevel(this._idCounters.level++, name, items);
+    items: TrattAnnotationEvent[],
+  ): TrattAnnotationEventLevel {
+    return new TrattAnnotationEventLevel(this._idCounters.level++, name, items);
   }
 
-  createItemLevel(name: string, items: OItem[]): OctraAnnotationItemLevel {
-    return new OctraAnnotationItemLevel(this._idCounters.level++, name, items);
+  createItemLevel(name: string, items: OItem[]): TrattAnnotationItemLevel {
+    return new TrattAnnotationItemLevel(this._idCounters.level++, name, items);
   }
 
   createSegment(time: SampleUnit, labels?: OLabel[], context?: S) {
-    return new OctraAnnotationSegment<ASRContext>(
+    return new TrattAnnotationSegment<ASRContext>(
       this._idCounters.item++,
       time,
       labels,
@@ -175,7 +177,7 @@ export class OctraAnnotation<
     );
   }
 
-  addLevel(level: OctraAnnotationAnyLevel<T>) {
+  addLevel(level: TrattAnnotationAnyLevel<T>) {
     this._levels.push(level);
     return this;
   }
@@ -190,7 +192,7 @@ export class OctraAnnotation<
 
       this._levels = [
         ...this._levels.slice(0, index + 1),
-        duplicate as OctraAnnotationAnyLevel<T>,
+        duplicate as TrattAnnotationAnyLevel<T>,
         ...this._levels.slice(index + 1),
       ];
 
@@ -219,7 +221,7 @@ export class OctraAnnotation<
     return this;
   }
 
-  changeLevelById(id: number, level: OctraAnnotationAnyLevel<T>) {
+  changeLevelById(id: number, level: TrattAnnotationAnyLevel<T>) {
     const index = this._levels.findIndex((a) => a.id === id);
     if (index > -1) {
       this._levels[index] = level;
@@ -229,7 +231,7 @@ export class OctraAnnotation<
     return this;
   }
 
-  changeLevelByIndex(index: number, level: OctraAnnotationAnyLevel<T>) {
+  changeLevelByIndex(index: number, level: TrattAnnotationAnyLevel<T>) {
     if (index > -1 && index < this._levels.length) {
       this._levels[index] = level;
     } else {
@@ -277,8 +279,8 @@ export class OctraAnnotation<
     const curr = this.currentLevel;
 
     // Linked-tier guard + source→linked time mirror (segment levels only).
-    if (curr instanceof OctraAnnotationSegmentLevel) {
-      const prev = curr.items[index] as OctraAnnotationSegment | undefined;
+    if (curr instanceof TrattAnnotationSegmentLevel) {
+      const prev = curr.items[index] as TrattAnnotationSegment | undefined;
       const prevSamples = prev?.time.samples;
       const newSamples = (item as any)?.time?.samples as number | undefined;
       const boundaryChanged =
@@ -303,7 +305,7 @@ export class OctraAnnotation<
         const newTime = (item as any).time as SampleUnit;
         for (const linked of this.getLinkedLevelsOf(curr.id)) {
           if (index < linked.items.length) {
-            const linkedItem = linked.items[index] as OctraAnnotationSegment;
+            const linkedItem = linked.items[index] as TrattAnnotationSegment;
             const updated = linkedItem.clone() as T;
             updated.time = newTime;
             linked.changeItem(updated as any);
@@ -322,18 +324,20 @@ export class OctraAnnotation<
    * mirror boundary edits, inserts, and removes from a source tier to all
    * translation tiers derived from it.
    */
-  private getLinkedLevelsOf(sourceId: number): OctraAnnotationSegmentLevel<T>[] {
+  private getLinkedLevelsOf(
+    sourceId: number,
+  ): TrattAnnotationSegmentLevel<T>[] {
     return this._levels.filter(
       (l) =>
-        l instanceof OctraAnnotationSegmentLevel &&
+        l instanceof TrattAnnotationSegmentLevel &&
         l.linkedToLevelId === sourceId,
-    ) as OctraAnnotationSegmentLevel<T>[];
+    ) as TrattAnnotationSegmentLevel<T>[];
   }
 
   getCurrentSegmentIndexBySamplePosition(samples: SampleUnit): number {
     if (
       !this.currentLevel ||
-      !(this.currentLevel instanceof OctraAnnotationSegmentLevel)
+      !(this.currentLevel instanceof TrattAnnotationSegmentLevel)
     ) {
       return -1;
     }
@@ -364,7 +368,7 @@ export class OctraAnnotation<
   addItemToCurrentLevel(time?: SampleUnit, labels?: OLabel[], context?: S) {
     if (this.currentLevel) {
       if (
-        this.currentLevel instanceof OctraAnnotationSegmentLevel &&
+        this.currentLevel instanceof TrattAnnotationSegmentLevel &&
         this.currentLevel.linkedToLevelId !== undefined
       ) {
         console.warn(
@@ -373,7 +377,7 @@ export class OctraAnnotation<
         return this;
       }
       if (this.currentLevel.type === 'SEGMENT') {
-        const level = this.currentLevel as OctraAnnotationSegmentLevel<T>;
+        const level = this.currentLevel as TrattAnnotationSegmentLevel<T>;
         this.insertSegmentIntoLevel(level, time!, labels, context);
         for (const linked of this.getLinkedLevelsOf(level.id)) {
           this.insertSegmentIntoLevel(linked, time!);
@@ -407,7 +411,7 @@ export class OctraAnnotation<
     }
 
     if (
-      this.currentLevel instanceof OctraAnnotationSegmentLevel &&
+      this.currentLevel instanceof TrattAnnotationSegmentLevel &&
       this.currentLevel.linkedToLevelId !== undefined
     ) {
       console.warn(
@@ -423,7 +427,7 @@ export class OctraAnnotation<
       index < this.currentLevel.items.length
     ) {
       if (this.currentLevel.type === 'SEGMENT') {
-        const level = this.currentLevel as OctraAnnotationSegmentLevel<T>;
+        const level = this.currentLevel as TrattAnnotationSegmentLevel<T>;
         this.removeSegmentFromLevel(
           level,
           index,
@@ -474,14 +478,14 @@ export class OctraAnnotation<
 
   addLink(fromID: number, toID: number) {
     this._links.push(
-      new OctraAnnotationLink(this.idCounters.link++, new OLink(fromID, toID)),
+      new TrattAnnotationLink(this.idCounters.link++, new OLink(fromID, toID)),
     );
   }
 
   changeLinkById(id: number, oLink: OLink) {
     const index = this._links.findIndex((a) => a.id === id);
     if (index > -1) {
-      this._links[index] = new OctraAnnotationLink(id, oLink);
+      this._links[index] = new TrattAnnotationLink(id, oLink);
     } else {
       throw new Error(`Can't find link with id ${id}`);
     }
@@ -489,7 +493,7 @@ export class OctraAnnotation<
 
   changeLinkByIndex(index: number, oLink: OLink) {
     if (index > -1) {
-      this._links[index] = new OctraAnnotationLink(
+      this._links[index] = new TrattAnnotationLink(
         this._links[index].id,
         oLink,
       );
@@ -499,7 +503,7 @@ export class OctraAnnotation<
   }
 
   private insertSegmentIntoLevel(
-    level: OctraAnnotationSegmentLevel<T>,
+    level: TrattAnnotationSegmentLevel<T>,
     time: SampleUnit,
     labels?: OLabel[],
     context?: S,
@@ -510,14 +514,12 @@ export class OctraAnnotation<
       const index = items.findIndex((a) => a.time.samples > time.samples);
       if (index > -1) {
         const oldLabels =
-          index === 0
-            ? [new OLabel(level.name, '')]
-            : [...items[index].labels];
+          index === 0 ? [new OLabel(level.name, '')] : [...items[index].labels];
         items[index].labels =
           index === 0 ? items[index].labels : [new OLabel(level.name, '')];
         items = [
           ...items,
-          new OctraAnnotationSegment(
+          new TrattAnnotationSegment(
             this.idCounters.item++,
             time,
             labels && labels.length > 0 ? labels : oldLabels,
@@ -528,7 +530,7 @@ export class OctraAnnotation<
       }
     } else {
       items.push(
-        new OctraAnnotationSegment(
+        new TrattAnnotationSegment(
           this.idCounters.item++,
           time,
           labels,
@@ -540,7 +542,7 @@ export class OctraAnnotation<
   }
 
   private removeSegmentFromLevel(
-    level: OctraAnnotationSegmentLevel<T>,
+    level: TrattAnnotationSegmentLevel<T>,
     index: number,
     silenceValue?: string,
     mergeTranscripts?: boolean,
@@ -551,9 +553,9 @@ export class OctraAnnotation<
     }
 
     if (index < level.items.length - 1) {
-      const nextSegment = level.items[index + 1] as OctraAnnotationSegment;
+      const nextSegment = level.items[index + 1] as TrattAnnotationSegment;
       let transcript = (
-        level.items[index] as OctraAnnotationSegment
+        level.items[index] as TrattAnnotationSegment
       ).getFirstLabelWithoutName('Speaker')?.value;
 
       if (
@@ -622,21 +624,21 @@ export class OctraAnnotation<
     return 0;
   }
 
-  deserialize(jsonObject: OAnnotJSON): OctraAnnotation<S, T> {
-    return OctraAnnotation.deserialize(jsonObject);
+  deserialize(jsonObject: OAnnotJSON): TrattAnnotation<S, T> {
+    return TrattAnnotation.deserialize(jsonObject);
   }
 
   changeSampleRate(sampleRate: number) {
     const levels = this._levels.map((level, i) => {
       if (level.type === 'SEGMENT') {
-        return new OctraAnnotationSegmentLevel<
-          OctraAnnotationSegment<ASRContext>
+        return new TrattAnnotationSegmentLevel<
+          TrattAnnotationSegment<ASRContext>
         >(
           level.id,
           level.name,
-          (level.items as OctraAnnotationSegment<ASRContext>[]).map(
+          (level.items as TrattAnnotationSegment<ASRContext>[]).map(
             (a) =>
-              new OctraAnnotationSegment<ASRContext>(
+              new TrattAnnotationSegment<ASRContext>(
                 a.id,
                 new SampleUnit(a.time.samples, sampleRate),
                 a.labels,
@@ -645,12 +647,12 @@ export class OctraAnnotation<
           ),
         );
       } else if (level.type === 'EVENT') {
-        return new OctraAnnotationEventLevel(
+        return new TrattAnnotationEventLevel(
           level.id,
           level.name,
-          (level.items as OctraAnnotationEvent[]).map(
+          (level.items as TrattAnnotationEvent[]).map(
             (a) =>
-              new OctraAnnotationEvent(
+              new TrattAnnotationEvent(
                 a.id,
                 new SampleUnit(a.samplePoint.samples, a.samplePoint.sampleRate),
                 a.labels,
@@ -661,7 +663,7 @@ export class OctraAnnotation<
       return level;
     }) as any;
 
-    const result = new OctraAnnotation(
+    const result = new TrattAnnotation(
       levels,
       this._links.map((a) => a.clone()),
       this.idCounters,
@@ -693,7 +695,10 @@ export class OctraAnnotation<
             );
           }
           // Resolve linkedToLevelId → linkedToLevelName for round-trip.
-          if (a instanceof OctraAnnotationSegmentLevel && a.linkedToLevelId !== undefined) {
+          if (
+            a instanceof TrattAnnotationSegmentLevel &&
+            a.linkedToLevelId !== undefined
+          ) {
             const source = this._levels.find((l) => l.id === a.linkedToLevelId);
             if (source) {
               (result as any).linkedToLevelName = source.name;
@@ -707,10 +712,10 @@ export class OctraAnnotation<
     );
   }
 
-  static deserialize<S extends ASRContext, T extends OctraAnnotationSegment<S>>(
+  static deserialize<S extends ASRContext, T extends TrattAnnotationSegment<S>>(
     jsonObject: OAnnotJSON,
-  ): OctraAnnotation<S, T> {
-    const result = new OctraAnnotation<S, T>();
+  ): TrattAnnotation<S, T> {
+    const result = new TrattAnnotation<S, T>();
 
     for (const jsonObjectElement of jsonObject.levels) {
       if (jsonObjectElement.type === AnnotationLevelType.SEGMENT) {
@@ -718,7 +723,7 @@ export class OctraAnnotation<
         const segmentLevel = result.createSegmentLevel(
           level.name,
           level.items.map((a) =>
-            OctraAnnotationSegment.deserializeFromOSegment(
+            TrattAnnotationSegment.deserializeFromOSegment(
               a,
               jsonObject.sampleRate,
             ),
@@ -726,7 +731,8 @@ export class OctraAnnotation<
         );
         // Carry link metadata; linkedToLevelName is resolved to id below
         // after all levels exist.
-        (segmentLevel as any)._linkedToLevelNamePending = level.linkedToLevelName;
+        (segmentLevel as any)._linkedToLevelNamePending =
+          level.linkedToLevelName;
         segmentLevel.linkedKind = level.linkedKind;
         result.levels.push(segmentLevel);
       } else if (jsonObjectElement.type === AnnotationLevelType.EVENT) {
@@ -736,7 +742,7 @@ export class OctraAnnotation<
             level.name,
             level.items.map(
               (a) =>
-                new OctraAnnotationEvent(
+                new TrattAnnotationEvent(
                   a.id,
                   new SampleUnit(a.samplePoint, jsonObject.sampleRate),
                   a.labels,
@@ -761,8 +767,10 @@ export class OctraAnnotation<
     // Resolve pending linkedToLevelName references → linkedToLevelId now that
     // every level has its final id assigned.
     for (const lvl of result.levels) {
-      if (lvl instanceof OctraAnnotationSegmentLevel) {
-        const pending = (lvl as any)._linkedToLevelNamePending as string | undefined;
+      if (lvl instanceof TrattAnnotationSegmentLevel) {
+        const pending = (lvl as any)._linkedToLevelNamePending as
+          | string
+          | undefined;
         if (pending) {
           const source = result.levels.find((l) => l.name === pending);
           if (source) {
@@ -778,7 +786,7 @@ export class OctraAnnotation<
   }
 
   clone() {
-    const result = new OctraAnnotation([], [], {
+    const result = new TrattAnnotation([], [], {
       ...this._idCounters,
     });
 
@@ -792,7 +800,7 @@ export class OctraAnnotation<
   }
 }
 
-export class OctraAnnotationLevel<T extends OLevel<S>, S extends OItem> {
+export class TrattAnnotationLevel<T extends OLevel<S>, S extends OItem> {
   get sortorder(): number {
     return this._sortorder;
   }
@@ -836,8 +844,8 @@ export class OctraAnnotationLevel<T extends OLevel<S>, S extends OItem> {
     this.level.items = items;
   }
 
-  duplicate(id: number, itemIDCounter: number): OctraAnnotationLevel<T, S> {
-    const result = new OctraAnnotationLevel<T, S>(
+  duplicate(id: number, itemIDCounter: number): TrattAnnotationLevel<T, S> {
+    const result = new TrattAnnotationLevel<T, S>(
       id,
       new OLevel<S>(this.level.name + '_2', this.level.type, [
         ...this.level.items.map((a) => {
@@ -880,9 +888,9 @@ export class OctraAnnotationLevel<T extends OLevel<S>, S extends OItem> {
   }
 }
 
-export class OctraAnnotationSegmentLevel<
-  T extends OctraAnnotationSegment<ASRContext>,
-> extends OctraAnnotationLevel<OLevel<T>, T> {
+export class TrattAnnotationSegmentLevel<
+  T extends TrattAnnotationSegment<ASRContext>,
+> extends TrattAnnotationLevel<OLevel<T>, T> {
   /**
    * Id of the source level this level is linked to. When set, this level
    * mirrors source segment boundaries and shares Speaker labels with the
@@ -919,12 +927,12 @@ export class OctraAnnotationSegmentLevel<
     if (this.linkedKind !== undefined) {
       res.linkedKind = this.linkedKind;
     }
-    // linkedToLevelName is resolved by OctraAnnotation.serialize() which has access to all levels
+    // linkedToLevelName is resolved by TrattAnnotation.serialize() which has access to all levels
     return res;
   }
 
   clone() {
-    return new OctraAnnotationSegmentLevel<T>(
+    return new TrattAnnotationSegmentLevel<T>(
       this._id,
       this.name,
       this.level.items.map((a) => a.clone() as any),
@@ -936,13 +944,13 @@ export class OctraAnnotationSegmentLevel<
   override duplicate(
     id: number,
     itemIDCounter: number,
-  ): OctraAnnotationSegmentLevel<T> {
-    return new OctraAnnotationSegmentLevel<T>(
+  ): TrattAnnotationSegmentLevel<T> {
+    return new TrattAnnotationSegmentLevel<T>(
       id,
       `${this.name}_2`,
       this.items.map(
         (a) =>
-          new OctraAnnotationSegment<ASRContext>(
+          new TrattAnnotationSegment<ASRContext>(
             itemIDCounter++,
             a.time,
             [...a.labels],
@@ -955,7 +963,7 @@ export class OctraAnnotationSegmentLevel<
   }
 }
 
-export class OctraAnnotationItemLevel extends OctraAnnotationLevel<
+export class TrattAnnotationItemLevel extends TrattAnnotationLevel<
   OItemLevel,
   OItem
 > {
@@ -972,7 +980,7 @@ export class OctraAnnotationItemLevel extends OctraAnnotationLevel<
   }
 
   clone() {
-    return new OctraAnnotationItemLevel(
+    return new TrattAnnotationItemLevel(
       this.id,
       this.name,
       this.items.map((a) => a.clone()),
@@ -982,8 +990,8 @@ export class OctraAnnotationItemLevel extends OctraAnnotationLevel<
   override duplicate(
     id: number,
     itemIDCounter: number,
-  ): OctraAnnotationItemLevel {
-    return new OctraAnnotationItemLevel(
+  ): TrattAnnotationItemLevel {
+    return new TrattAnnotationItemLevel(
       id,
       `${this.name}_2`,
       this.items.map((a) => new OItem(itemIDCounter++, [...a.labels])),
@@ -991,19 +999,19 @@ export class OctraAnnotationItemLevel extends OctraAnnotationLevel<
   }
 }
 
-export class OctraAnnotationEventLevel {
+export class TrattAnnotationEventLevel {
   id!: number;
   name!: string;
-  items!: OctraAnnotationEvent[];
+  items!: TrattAnnotationEvent[];
   type = AnnotationLevelType.EVENT;
 
-  constructor(id: number, name: string, items?: OctraAnnotationEvent[]) {
+  constructor(id: number, name: string, items?: TrattAnnotationEvent[]) {
     this.id = id;
     this.name = name;
     this.items = items ?? [];
   }
 
-  overwriteItems(items: OctraAnnotationEvent[]) {
+  overwriteItems(items: TrattAnnotationEvent[]) {
     this.items = items;
   }
 
@@ -1015,7 +1023,7 @@ export class OctraAnnotationEventLevel {
   }
 
   clone() {
-    return new OctraAnnotationEventLevel(
+    return new TrattAnnotationEventLevel(
       this.id,
       this.name,
       this.items.map((a) => a.clone()),
@@ -1026,8 +1034,8 @@ export class OctraAnnotationEventLevel {
     this.items = [];
   }
 
-  duplicate(id: number, itemIDCounter: number): OctraAnnotationEventLevel {
-    const result = new OctraAnnotationEventLevel(
+  duplicate(id: number, itemIDCounter: number): TrattAnnotationEventLevel {
+    const result = new TrattAnnotationEventLevel(
       id,
       this.name + '_2',
       this.items.map((a) => {
@@ -1037,7 +1045,7 @@ export class OctraAnnotationEventLevel {
     return result;
   }
 
-  changeItem(item: OctraAnnotationEvent) {
+  changeItem(item: TrattAnnotationEvent) {
     const index = this.items.findIndex((a) => a.id === item.id);
     if (index > -1) {
       this.items = [
@@ -1052,12 +1060,12 @@ export class OctraAnnotationEventLevel {
     return this;
   }
 
-  getLeftSibling(item: OctraAnnotationEvent) {
+  getLeftSibling(item: TrattAnnotationEvent) {
     const index = this.items.findIndex((a) => a.id === item.id);
     return index > 0 ? this.items[index - 1] : undefined;
   }
 
-  getRightSibling(item: OctraAnnotationEvent) {
+  getRightSibling(item: TrattAnnotationEvent) {
     const index = this.items.findIndex((a) => a.id === item.id);
     return index > -1 && index < this.items.length - 1
       ? this.items[index + 1]
@@ -1065,9 +1073,9 @@ export class OctraAnnotationEventLevel {
   }
 }
 
-export type OctraAnnotationAnyLevel<
-  T extends OctraAnnotationSegment<ASRContext>,
+export type TrattAnnotationAnyLevel<
+  T extends TrattAnnotationSegment<ASRContext>,
 > =
-  | OctraAnnotationSegmentLevel<T>
-  | OctraAnnotationItemLevel
-  | OctraAnnotationEventLevel;
+  | TrattAnnotationSegmentLevel<T>
+  | TrattAnnotationItemLevel
+  | TrattAnnotationEventLevel;

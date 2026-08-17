@@ -1,4 +1,4 @@
-import { AudioSelection, PlayBackStatus, SampleUnit } from '@octra/media';
+import { AudioSelection, PlayBackStatus, SampleUnit } from '@tratt/media';
 import {
   AudioDecoder,
   AudioFormat,
@@ -9,15 +9,15 @@ import {
   LibavFormat,
   MusicMetadataFormat,
   WavFormat,
-} from '@octra/web-media';
-import { mixToMono } from './audio-resampler';
-import { decodeWithLibAV } from './libav-decoder';
+} from '@tratt/web-media';
 import { concat, map, Observable, Subject, Subscription, timer } from 'rxjs';
 import { SourceType } from '../types';
 import {
   AudioMechanism,
   AudioMechanismPrepareOptions,
 } from './audio-mechanism';
+import { mixToMono } from './audio-resampler';
+import { decodeWithLibAV } from './libav-decoder';
 
 type HTMLAudioElement = any;
 declare const Audio: any;
@@ -166,8 +166,8 @@ export class HtmlAudioMechanism extends AudioMechanism {
 
             this.afterDecoded.next(this._resource!);
 
-            if (audioformat.decoder === 'octra') {
-              this.decodeAudioWithOctraDecoder(subj);
+            if (audioformat.decoder === 'tratt') {
+              this.decodeAudioWithTrattDecoder(subj);
             } else if (audioformat.decoder === 'web-audio') {
               this.decodeAudioWithWebAPIDecoder(subj);
             } else if (audioformat.decoder === 'libav') {
@@ -185,7 +185,7 @@ export class HtmlAudioMechanism extends AudioMechanism {
     return subj;
   }
 
-  private decodeAudioWithOctraDecoder(
+  private decodeAudioWithTrattDecoder(
     subj: Subject<{
       decodeProgress: number;
     }>,
@@ -281,10 +281,12 @@ export class HtmlAudioMechanism extends AudioMechanism {
             this.statistics.decoding.duration =
               Date.now() - this.statistics.decoding.started;
             this.changeStatus(PlayBackStatus.INITIALIZED);
-            settle(() => setTimeout(() => {
-              subj.next({ decodeProgress: 1 });
-              subj.complete();
-            }, 0));
+            settle(() =>
+              setTimeout(() => {
+                subj.next({ decodeProgress: 1 });
+                subj.complete();
+              }, 0),
+            );
           } catch (_e) {
             this.decodeAudioWithLibavDecoder(subj, settle);
           }
@@ -306,31 +308,42 @@ export class HtmlAudioMechanism extends AudioMechanism {
   ) {
     this.statistics.decoding.started = Date.now();
 
-    decodeWithLibAV(this._resource!.arraybuffer!, this._resource!.info.fullname, (msg) => {
-      subj.next({ decodeProgress: 0.05, status: msg } as any);
-    }).then(async (audioBuffer) => {
-      const channels: Float32Array[] = [];
-      for (let ch = 0; ch < audioBuffer.numberOfChannels; ch++) {
-        channels.push(audioBuffer.getChannelData(ch));
-      }
+    decodeWithLibAV(
+      this._resource!.arraybuffer!,
+      this._resource!.info.fullname,
+      (msg) => {
+        subj.next({ decodeProgress: 0.05, status: msg } as any);
+      },
+    )
+      .then(async (audioBuffer) => {
+        const channels: Float32Array[] = [];
+        for (let ch = 0; ch < audioBuffer.numberOfChannels; ch++) {
+          channels.push(audioBuffer.getChannelData(ch));
+        }
 
-      await this.normalizeAudio(channels, audioBuffer.sampleRate);
-      this.onChannelDataChange.next();
-      this.onChannelDataChange.complete();
-      this.statistics.decoding.duration =
-        Date.now() - this.statistics.decoding.started;
-      this.changeStatus(PlayBackStatus.INITIALIZED);
+        await this.normalizeAudio(channels, audioBuffer.sampleRate);
+        this.onChannelDataChange.next();
+        this.onChannelDataChange.complete();
+        this.statistics.decoding.duration =
+          Date.now() - this.statistics.decoding.started;
+        this.changeStatus(PlayBackStatus.INITIALIZED);
 
-      settle(() => setTimeout(() => {
-        subj.next({ decodeProgress: 1 });
-        subj.complete();
-      }, 0));
-    }).catch((e) => {
-      settle(() => subj.error(e instanceof Error ? e.message : String(e)));
-    });
+        settle(() =>
+          setTimeout(() => {
+            subj.next({ decodeProgress: 1 });
+            subj.complete();
+          }, 0),
+        );
+      })
+      .catch((e) => {
+        settle(() => subj.error(e instanceof Error ? e.message : String(e)));
+      });
   }
 
-  private async normalizeAudio(channels: Float32Array[], srcRate: number): Promise<void> {
+  private async normalizeAudio(
+    channels: Float32Array[],
+    srcRate: number,
+  ): Promise<void> {
     const TARGET_RATE = 16000;
 
     const mono = mixToMono(channels);
@@ -339,7 +352,7 @@ export class HtmlAudioMechanism extends AudioMechanism {
       // Use OfflineAudioContext for non-blocking, browser-native resampling.
       // The old Lanczos path (resampleChannels) runs synchronously on the main
       // thread and blocks the UI for several seconds on long audio files.
-      const outLength = Math.ceil(mono.length * TARGET_RATE / srcRate);
+      const outLength = Math.ceil((mono.length * TARGET_RATE) / srcRate);
       const offlineCtx = new OfflineAudioContext(1, outLength, TARGET_RATE);
       const inputBuf = offlineCtx.createBuffer(1, mono.length, srcRate);
       inputBuf.copyToChannel(mono, 0);
@@ -376,31 +389,37 @@ export class HtmlAudioMechanism extends AudioMechanism {
   }
 
   /** Fast O(n) WAV encoder — avoids BinaryByteWriter's O(n²) 1-KB-at-a-time growth. */
-  private static encodeWav16Mono(samples: Float32Array, sampleRate: number): ArrayBuffer {
+  private static encodeWav16Mono(
+    samples: Float32Array,
+    sampleRate: number,
+  ): ArrayBuffer {
     const dataSize = samples.length * 2; // Int16 = 2 bytes/sample
     const buf = new ArrayBuffer(44 + dataSize);
     const dv = new DataView(buf);
     const u8 = new Uint8Array(buf);
     // RIFF chunk descriptor
-    u8.set([82, 73, 70, 70], 0);             // 'RIFF'
+    u8.set([82, 73, 70, 70], 0); // 'RIFF'
     dv.setUint32(4, 36 + dataSize, true);
-    u8.set([87, 65, 86, 69], 8);             // 'WAVE'
+    u8.set([87, 65, 86, 69], 8); // 'WAVE'
     // fmt sub-chunk
-    u8.set([102, 109, 116, 32], 12);         // 'fmt '
-    dv.setUint32(16, 16, true);              // chunk size
-    dv.setUint16(20, 1, true);               // PCM
-    dv.setUint16(22, 1, true);               // mono
+    u8.set([102, 109, 116, 32], 12); // 'fmt '
+    dv.setUint32(16, 16, true); // chunk size
+    dv.setUint16(20, 1, true); // PCM
+    dv.setUint16(22, 1, true); // mono
     dv.setUint32(24, sampleRate, true);
-    dv.setUint32(28, sampleRate * 2, true);  // byte rate
-    dv.setUint16(32, 2, true);               // block align
-    dv.setUint16(34, 16, true);              // bits per sample
+    dv.setUint32(28, sampleRate * 2, true); // byte rate
+    dv.setUint16(32, 2, true); // block align
+    dv.setUint16(34, 16, true); // bits per sample
     // data sub-chunk
-    u8.set([100, 97, 116, 97], 36);          // 'data'
+    u8.set([100, 97, 116, 97], 36); // 'data'
     dv.setUint32(40, dataSize, true);
     // PCM samples — one allocation, no copies
     const pcm = new Int16Array(buf, 44);
     for (let i = 0; i < samples.length; i++) {
-      pcm[i] = Math.max(-32768, Math.min(32767, Math.round(samples[i] * 32767)));
+      pcm[i] = Math.max(
+        -32768,
+        Math.min(32767, Math.round(samples[i] * 32767)),
+      );
     }
     return buf;
   }

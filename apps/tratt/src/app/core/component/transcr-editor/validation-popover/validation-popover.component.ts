@@ -10,7 +10,7 @@ import {
 import { DomSanitizer } from '@angular/platform-browser';
 
 @Component({
-  selector: 'octra-validation-popover',
+  selector: 'tratt-validation-popover',
   templateUrl: './validation-popover.component.html',
   styleUrls: ['./validation-popover.component.scss'],
   imports: [NgClass],

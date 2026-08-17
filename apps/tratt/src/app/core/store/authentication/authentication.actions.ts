@@ -1,11 +1,11 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Action, createActionGroup, emptyProps, props } from '@ngrx/store';
-import { OAnnotJSON } from '@octra/annotation';
 import {
   AccountLoginMethod,
   AuthDto,
   CurrentAccountDto,
 } from '@octra/api-types';
+import { OAnnotJSON } from '@tratt/annotation';
 import { SessionFile } from '../../obj/SessionFile';
 import { LoginMode } from '../index';
 

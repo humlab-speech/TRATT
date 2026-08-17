@@ -1,6 +1,6 @@
+import { OAudiofile } from '@tratt/media';
 import * as fs from 'fs';
 import * as path from 'path';
-import { OAudiofile } from '@octra/media';
 import { OAnnotJSON } from '../annotjson';
 
 export const BASE = 'Intervju med Stig Bergling';

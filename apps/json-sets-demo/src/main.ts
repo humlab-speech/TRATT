@@ -1,4 +1,4 @@
-import { FileSetValidator } from '@octra/json-sets';
+import { FileSetValidator } from '@tratt/json-sets';
 
 const validator = new FileSetValidator({
   name: 'one audio file and one text file',

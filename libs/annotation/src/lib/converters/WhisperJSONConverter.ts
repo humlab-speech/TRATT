@@ -1,6 +1,6 @@
-import { OAudiofile } from '@octra/media';
-import { last } from '@octra/utilities';
-import { FileInfo } from '@octra/web-media';
+import { OAudiofile } from '@tratt/media';
+import { last } from '@tratt/utilities';
+import { FileInfo } from '@tratt/web-media';
 import {
   OAnnotJSON,
   OLabel,
@@ -13,12 +13,12 @@ import {
   ExportResult,
   IFile,
   ImportResult,
-  OctraAnnotationFormatType,
+  TrattAnnotationFormatType,
 } from './Converter';
 import { OctraApplication, WhisperXApplication } from './SupportedApplications';
 
 export class WhisperJSONConverter extends Converter {
-  override _name: OctraAnnotationFormatType = 'WhisperJSON';
+  override _name: TrattAnnotationFormatType = 'WhisperJSON';
 
   public constructor() {
     super();

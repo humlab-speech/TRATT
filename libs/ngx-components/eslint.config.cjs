@@ -26,7 +26,7 @@ module.exports = [
         'error',
         {
           type: 'attribute',
-          prefix: 'octra',
+          prefix: 'tratt',
           style: 'camelCase',
         },
       ],
@@ -34,7 +34,7 @@ module.exports = [
         'error',
         {
           type: 'element',
-          prefix: 'octra',
+          prefix: 'tratt',
           style: 'kebab-case',
         },
       ],

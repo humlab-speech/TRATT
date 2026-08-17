@@ -1,5 +1,5 @@
-import { OAudiofile } from '@octra/media';
-import { FileInfo } from '@octra/web-media';
+import { OAudiofile } from '@tratt/media';
+import { FileInfo } from '@tratt/web-media';
 import {
   OAnnotJSON,
   OAnyLevel,
@@ -12,7 +12,7 @@ import {
   ExportResult,
   IFile,
   ImportResult,
-  OctraAnnotationFormatType,
+  TrattAnnotationFormatType,
 } from './Converter';
 import {
   AnyTextEditor,
@@ -33,7 +33,7 @@ export class WebVTTConverterImportOptions {
 }
 
 export class WebVTTConverter extends Converter {
-  override _name: OctraAnnotationFormatType = 'WebVTT';
+  override _name: TrattAnnotationFormatType = 'WebVTT';
 
   override defaultImportOptions = new WebVTTConverterImportOptions();
 
@@ -96,13 +96,13 @@ export class WebVTTConverter extends Converter {
       if (level.type === 'SEGMENT') {
         for (let j = 0; j < level.items.length; j++) {
           const item = level.items[j] as OSegment;
-          const rawText =
-            item.getFirstLabelWithoutName('Speaker')?.value ?? '';
+          const rawText = item.getFirstLabelWithoutName('Speaker')?.value ?? '';
           if (rawText === '') continue;
 
           const speaker = item.labels.find((l) => l.name === 'Speaker')?.value;
           const escapedText = this.escapeXml(rawText);
-          const speakerPrefix = this.options.addSpeakerId && speaker ? `[${speaker}] ` : '';
+          const speakerPrefix =
+            this.options.addSpeakerId && speaker ? `[${speaker}] ` : '';
           const prefixedText = speakerPrefix + escapedText;
           const cueText = speaker
             ? `<v ${speaker}>${prefixedText}</v>`
@@ -292,12 +292,9 @@ export class WebVTTConverter extends Converter {
         for (const cue of cues) {
           if (cue.timeStart > lastEnd) {
             level.items.push(
-              new OSegment(
-                counterID++,
-                lastEnd,
-                cue.timeStart - lastEnd,
-                [new OLabel(speakerName, '')],
-              ),
+              new OSegment(counterID++, lastEnd, cue.timeStart - lastEnd, [
+                new OLabel(speakerName, ''),
+              ]),
             );
           }
           level.items.push(
@@ -310,7 +307,12 @@ export class WebVTTConverter extends Converter {
           );
           lastEnd = cue.timeEnd;
         }
-        this.fillTrailingGap(level, audiofile.duration, speakerName, counterID++);
+        this.fillTrailingGap(
+          level,
+          audiofile.duration,
+          speakerName,
+          counterID++,
+        );
         result.levels.push(level);
         levelIdx++;
       }

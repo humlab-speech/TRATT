@@ -5,13 +5,13 @@ import { NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { Action, Store } from '@ngrx/store';
 import { OctraAPIService } from '@octra/ngx-octra-api';
-import { appendURLQueryParams, joinURL } from '@octra/utilities';
+import { appendURLQueryParams, joinURL } from '@tratt/utilities';
 import {
   AudioManager,
   getBaseHrefURL,
   normalizeMimeType,
   popupCenter,
-} from '@octra/web-media';
+} from '@tratt/web-media';
 import { SessionStorageService } from 'ngx-webstorage';
 import {
   catchError,
@@ -27,11 +27,11 @@ import {
 } from 'rxjs';
 import { AppInfo } from '../../../app.info';
 import { ErrorModalComponent } from '../../modals/error-modal/error-modal.component';
-import { OctraModalService } from '../../modals/octra-modal.service';
 import {
   ModalDeleteAnswer,
   TranscriptionDeleteModalComponent,
 } from '../../modals/transcription-delete-modal/transcription-delete-modal.component';
+import { TrattModalService } from '../../modals/tratt-modal.service';
 import { SessionFile } from '../../obj/SessionFile';
 import { AlertService } from '../../shared/service';
 import { RoutingService } from '../../shared/service/routing.service';
@@ -639,6 +639,6 @@ export class AuthenticationEffects {
     private sessionStorageService: SessionStorageService,
     private transloco: TranslocoService,
     private routingService: RoutingService,
-    private modalsService: OctraModalService,
+    private modalsService: TrattModalService,
   ) {}
 }

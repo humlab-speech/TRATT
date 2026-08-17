@@ -1,6 +1,6 @@
-import { OAudiofile } from '@octra/media';
-import { last } from '@octra/utilities';
-import { FileInfo } from '@octra/web-media';
+import { OAudiofile } from '@tratt/media';
+import { last } from '@tratt/utilities';
+import { FileInfo } from '@tratt/web-media';
 import X2JS from 'x2js';
 import { OAnnotJSON, OLabel, OSegment, OSegmentLevel } from '../annotjson';
 import {
@@ -8,7 +8,7 @@ import {
   ExportResult,
   IFile,
   ImportResult,
-  OctraAnnotationFormatType,
+  TrattAnnotationFormatType,
 } from './Converter';
 import {
   BASWebservicesApplication,
@@ -17,7 +17,7 @@ import {
 } from './SupportedApplications';
 
 export class ELANConverter extends Converter {
-  override _name: OctraAnnotationFormatType = 'ELAN';
+  override _name: TrattAnnotationFormatType = 'ELAN';
 
   public constructor() {
     super();

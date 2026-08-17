@@ -4,31 +4,31 @@ import { TranslocoService } from '@jsverse/transloco';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { Store } from '@ngrx/store';
 import {
-  AnnotJSONConverter,
-  ImportResult,
-  ISegment,
-  OAnnotJSON,
-  OctraAnnotation,
-  OctraAnnotationSegment,
-  OctraAnnotationSegmentLevel,
-  OLabel,
-  PraatTextgridConverter,
-} from '@octra/annotation';
-import {
   TaskDto,
   TaskInputOutputCreatorType,
   TaskInputOutputDto,
   TaskStatus,
   ToolConfigurationAssetDto,
 } from '@octra/api-types';
-import { SampleUnit } from '@octra/media';
 import { OctraAPIService } from '@octra/ngx-octra-api';
+import {
+  AnnotJSONConverter,
+  ImportResult,
+  ISegment,
+  OAnnotJSON,
+  OLabel,
+  PraatTextgridConverter,
+  TrattAnnotation,
+  TrattAnnotationSegment,
+  TrattAnnotationSegmentLevel,
+} from '@tratt/annotation';
+import { SampleUnit } from '@tratt/media';
 import {
   extractFileNameFromURL,
   hasProperty,
   pickInitialLevelName,
   SubscriptionManager,
-} from '@octra/utilities';
+} from '@tratt/utilities';
 import {
   catchError,
   exhaustMap,
@@ -46,8 +46,8 @@ import {
 import { AppInfo } from '../../../../app.info';
 import { ErrorModalComponent } from '../../../modals/error-modal/error-modal.component';
 import { NgbModalWrapper } from '../../../modals/ng-modal-wrapper';
-import { OctraModalService } from '../../../modals/octra-modal.service';
 import { TranscriptionSendingModalComponent } from '../../../modals/transcription-sending-modal/transcription-sending-modal.component';
+import { TrattModalService } from '../../../modals/tratt-modal.service';
 import {
   createSampleProjectDto,
   createSampleTask,
@@ -72,7 +72,7 @@ import { LoginModeActions } from '../login-mode.actions';
 import { AnnotationActions } from './annotation.actions';
 import { AnnotationState, GuidelinesItem } from './index';
 
-import { FileInfo } from '@octra/web-media';
+import { FileInfo } from '@tratt/web-media';
 import { DateTime } from 'luxon';
 import mime from 'mime';
 import { MaintenanceAPI } from '../../../component/maintenance/maintenance-api';
@@ -283,7 +283,7 @@ export class AnnotationEffects {
               );
             }
             this.uiService.addElementFromEvent(
-              'octra',
+              'tratt',
               { value: AppInfo.BUILD.version },
               Date.now(),
               undefined,
@@ -1084,8 +1084,8 @@ export class AnnotationEffects {
           modeState.transcript.currentLevel.type === 'SEGMENT'
         ) {
           let transcript = modeState.transcript.clone();
-          let currentLevel: OctraAnnotationSegmentLevel<OctraAnnotationSegment> =
-            modeState.transcript.currentLevel.clone() as OctraAnnotationSegmentLevel<OctraAnnotationSegment>;
+          let currentLevel: TrattAnnotationSegmentLevel<TrattAnnotationSegment> =
+            modeState.transcript.currentLevel.clone() as TrattAnnotationSegmentLevel<TrattAnnotationSegment>;
           const breakMarker =
             modeState.guidelines?.selected?.json?.markers?.find(
               (a) => a.type === 'break',
@@ -1093,7 +1093,7 @@ export class AnnotationEffects {
 
           const maxWords = action.options.maxWordsPerSegment;
           const minSilenceLength = action.options.minSilenceLength;
-          const isSilence = (segment: OctraAnnotationSegment) => {
+          const isSilence = (segment: TrattAnnotationSegment) => {
             return (
               segment.getFirstLabelWithoutName('Speaker')?.value.trim() ===
                 '' ||
@@ -1487,7 +1487,7 @@ export class AnnotationEffects {
                     getModeState(state)!.transcript.currentLevel!.items[
                       segmentIndex
                     ].id;
-                  const newSegments: OctraAnnotationSegment[] = [];
+                  const newSegments: TrattAnnotationSegment[] = [];
 
                   let itemCounter =
                     getModeState(state)?.transcript.idCounters.item ?? 1;
@@ -1502,7 +1502,7 @@ export class AnnotationEffects {
                     wordItemEnd = Math.min(itemEnd, wordItemEnd);
 
                     if (wordItemEnd >= action.timeInterval.sampleStart) {
-                      const readSegment = new OctraAnnotationSegment(
+                      const readSegment = new TrattAnnotationSegment(
                         itemCounter++,
                         new SampleUnit(
                           wordItemEnd,
@@ -1639,7 +1639,7 @@ export class AnnotationEffects {
         modeState.transcript.levels.length === 0
       ) {
         // create new annotation
-        let newAnnotation = new OctraAnnotation();
+        let newAnnotation = new TrattAnnotation();
 
         if (
           rootState.application.mode === LoginMode.ONLINE ||
@@ -1682,7 +1682,7 @@ export class AnnotationEffects {
                 importConverter: importResult?.converter ?? '',
               }),
             );
-            newAnnotation = OctraAnnotation.deserialize(
+            newAnnotation = TrattAnnotation.deserialize(
               importResult?.annotjson,
             );
           }
@@ -1753,7 +1753,7 @@ export class AnnotationEffects {
           }
 
           this.uiService.addElementFromEvent(
-            'octra',
+            'tratt',
             { value: AppInfo.BUILD.version },
             Date.now(),
             undefined,
@@ -1969,7 +1969,7 @@ export class AnnotationEffects {
     private http: HttpClient,
     private alertService: AlertService,
     private routingService: RoutingService,
-    private modalsService: OctraModalService,
+    private modalsService: TrattModalService,
     private audio: AudioService,
     private uiService: UserInteractionsService,
     private appStorage: AppStorageService,

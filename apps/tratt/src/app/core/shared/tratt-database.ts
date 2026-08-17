@@ -1,6 +1,6 @@
-import { IAnnotJSON, ILevel, ILink, OAnnotJSON } from '@octra/annotation';
 import { ProjectDto } from '@octra/api-types';
-import { removeEmptyProperties } from '@octra/utilities';
+import { IAnnotJSON, ILevel, ILink, OAnnotJSON } from '@tratt/annotation';
+import { removeEmptyProperties } from '@tratt/utilities';
 import Dexie, { Transaction } from 'dexie';
 import 'dexie-export-import';
 import { firstValueFrom, from, map, Observable, of, Subject } from 'rxjs';
@@ -12,9 +12,9 @@ import { ASRStateSettings } from '../store/asr';
  * switch their appconfig to a TRATT-named database keep reading these, see
  * resolveDatabaseName().
  */
-export const LEGACY_DB_NAMES = ['octra-2', 'octra'];
+export const LEGACY_DB_NAMES = ['tratt-2', 'octra'];
 
-export class OctraDatabase extends Dexie {
+export class TrattDatabase extends Dexie {
   public demoData!: Dexie.Table<IIDBEntry, string>;
   public onlineData!: Dexie.Table<IIDBEntry, string>;
   public urlData!: Dexie.Table<IIDBEntry, string>;

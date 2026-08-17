@@ -1,10 +1,10 @@
 import { describe, expect, it } from '@jest/globals';
-import { OAnnotJSON, OLabel, OSegment, OSegmentLevel } from '@octra/annotation';
-import { OctraDropzoneService } from './octra-dropzone.service';
+import { OAnnotJSON, OLabel, OSegment, OSegmentLevel } from '@tratt/annotation';
+import { TrattDropzoneService } from './tratt-dropzone.service';
 
-describe('OctraDropzoneService speaker injection', () => {
+describe('TrattDropzoneService speaker injection', () => {
   it('applies speaker turns to the current annotation', () => {
-    const service = new OctraDropzoneService(
+    const service = new TrattDropzoneService(
       {} as never,
       {} as never,
       {} as never,

@@ -5,15 +5,15 @@ import { NgbActiveModal, NgbModalOptions } from '@ng-bootstrap/ng-bootstrap';
 import { OctraAPIService } from '@octra/ngx-octra-api';
 import { Subject } from 'rxjs';
 import { AppInfo } from '../../../app.info';
-import { OctraModal } from '../types';
+import { TrattModal } from '../types';
 
 @Component({
-  selector: 'octra-about-modal',
+  selector: 'tratt-about-modal',
   templateUrl: './about-modal.component.html',
   styleUrls: ['./about-modal.component.scss'],
   imports: [TranslocoPipe],
 })
-export class AboutModalComponent extends OctraModal implements OnDestroy {
+export class AboutModalComponent extends TrattModal implements OnDestroy {
   public static options: NgbModalOptions = {
     size: 'xl',
     keyboard: false,
@@ -43,7 +43,7 @@ export class AboutModalComponent extends OctraModal implements OnDestroy {
     private api: OctraAPIService,
     protected override activeModal: NgbActiveModal,
   ) {
-    super('octraModal', activeModal);
+    super('trattModal', activeModal);
 
     this.legalsExist =
       this.api.appProperties?.legals.imprint_url !== undefined &&
@@ -82,7 +82,7 @@ address={Berlin},
 pages={145--148}
 }`,
       ],
-      'octra-2017.bib',
+      'tratt-2017.bib',
       { type: 'text/plain' },
     );
 

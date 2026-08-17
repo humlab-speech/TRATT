@@ -6,11 +6,11 @@ import {
   Output,
   SimpleChanges,
 } from '@angular/core';
-import { SubscriberComponent } from '@octra/ngx-utilities';
+import { SubscriberComponent } from '@tratt/ngx-utilities';
 import { ToolconfigGroupComponent } from './toolconfig-group/toolconfig-group.component';
 
 @Component({
-  selector: 'octra-form-configurator',
+  selector: 'tratt-form-configurator',
   templateUrl: './tool-configurator.component.html',
   styleUrls: ['./tool-configurator.component.scss'],
   imports: [ToolconfigGroupComponent],

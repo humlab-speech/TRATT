@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Action, Store } from '@ngrx/store';
-import { OAnnotJSON } from '@octra/annotation';
 import { AccountLoginMethod } from '@octra/api-types';
+import { OAnnotJSON } from '@tratt/annotation';
 import { Observable } from 'rxjs';
 import { LoginMode, RootState } from '../index';
 import { AuthenticationActions } from './authentication.actions';

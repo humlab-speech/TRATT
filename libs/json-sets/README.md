@@ -1,4 +1,4 @@
-# @octra/json-sets <a href="https://www.npmjs.com/package/@octra/json-sets"><img alt="npm" src="https://img.shields.io/npm/v/@octra/json-sets"></a>
+# @tratt/json-sets <a href="https://www.npmjs.com/package/@tratt/json-sets"><img alt="npm" src="https://img.shields.io/npm/v/@tratt/json-sets"></a>
 
 This library allows to define sets using JSON. JSONSetValidator parses an array of objects and validates it using a JSON definition. You can extend from JSONSetValidator and create your own validator for specific object.
 
@@ -19,7 +19,7 @@ This library allows to define sets using JSON. JSONSetValidator parses an array 
 You can clone this repository and try the following example running `npm run start:json-sets-demo`.
 
 ```typescript
-import { FileSetValidator } from '@octra/json-sets';
+import { FileSetValidator } from '@tratt/json-sets';
 
 const validator = new FileSetValidator({
   name: 'one audio file and one text file',
@@ -80,7 +80,7 @@ console.log(validator.decisionTree._errors);
 ### ESM, CJS, TS definitions & UMD (optional)
 
 ```shell
-npm install --save @octra/json-sets
+npm install --save @tratt/json-sets
 ```
 
 ### UMD Bundle (for Vanilla JS)
@@ -90,13 +90,13 @@ You have two options to install this package und use it as UMD:
 a) Install via NPM and reference local files (no internet connection needed om production).
 
 ```html
-<script type="application/javascript" src="node_modules/@octra/json-sets/index.umd.js"></script>
+<script type="application/javascript" src="node_modules/@tratt/json-sets/index.umd.js"></script>
 ```
 
 b) Reference remote file (internet connection needed on production).
 
 ```html
-<script type="application/javascript" src="https://unpkg.com/@octra/json-sets/index.umd.js"></script>
+<script type="application/javascript" src="https://unpkg.com/@tratt/json-sets/index.umd.js"></script>
 ```
 
 [See full example here](https://github.com/IPS-LMU/octra/tree/main/apps/web-components-demo)
@@ -107,10 +107,10 @@ b) Reference remote file (internet connection needed on production).
 
 #### ESM, Typescript
 
-Import the classes and functions from `@octra/json-sets`. For example
+Import the classes and functions from `@tratt/json-sets`. For example
 
 ```typescript
-import { JsonSetValidator } from '@octra/json-sets';
+import { JsonSetValidator } from '@tratt/json-sets';
 ```
 
 #### UMD Bundle
@@ -126,7 +126,7 @@ const validator = new OctraJSONSets.JSONSetValidator();
 
 ### API
 
-You can find more information about classes and functions of `@octra/json-sets` [here](https://ips-lmu.github.io/octra/modules/_octra_json_sets.html).
+You can find more information about classes and functions of `@tratt/json-sets` [here](https://ips-lmu.github.io/octra/modules/_octra_json_sets.html).
 
 ### Changelog
 

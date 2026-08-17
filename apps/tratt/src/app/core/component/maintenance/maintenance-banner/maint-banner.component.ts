@@ -8,13 +8,13 @@ import {
   SimpleChanges,
 } from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
-import { hasProperty } from '@octra/utilities';
+import { hasProperty } from '@tratt/utilities';
 import { DateTime } from 'luxon';
 import { MaintenanceAPI, MaintenanceNotification } from '../maintenance-api';
 
 @Component({
   // tslint:disable-next-line:component-selector
-  selector: 'octra-maint-banner',
+  selector: 'tratt-maint-banner',
   templateUrl: './maint-banner.component.html',
   styleUrls: ['./maint-banner.component.scss'],
   imports: [TranslocoPipe],

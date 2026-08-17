@@ -1,5 +1,5 @@
-import { OAudiofile } from '@octra/media';
-import { FileInfo } from '@octra/web-media';
+import { OAudiofile } from '@tratt/media';
+import { FileInfo } from '@tratt/web-media';
 import {
   OAnnotJSON,
   OItem,
@@ -13,7 +13,7 @@ import {
   ExportResult,
   IFile,
   ImportResult,
-  OctraAnnotationFormatType,
+  TrattAnnotationFormatType,
 } from './Converter';
 import {
   BASWebservicesApplication,
@@ -22,7 +22,7 @@ import {
 
 // http://www.bas.uni-muenchen.de/Bas/BasFormatsdeu.html
 export class PartiturConverter extends Converter {
-  override _name: OctraAnnotationFormatType = 'BASPartitur';
+  override _name: TrattAnnotationFormatType = 'BASPartitur';
 
   public constructor() {
     super();

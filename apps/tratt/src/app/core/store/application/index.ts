@@ -1,10 +1,10 @@
 import { pipe } from 'rxjs';
 import { AppSettings } from '../../obj';
-import { IIDBApplicationOptions } from '../../shared/octra-database';
 import {
   ConsoleEntry,
   ConsoleGroupEntry,
 } from '../../shared/service/bug-report.service';
+import { IIDBApplicationOptions } from '../../shared/tratt-database';
 import { LoadingStatus, LoginMode, RootState } from '../index';
 
 export const selectApplication = (state: RootState) => state.application;

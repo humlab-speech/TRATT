@@ -1,4 +1,4 @@
-# @octra/media - Audio
+# @tratt/media - Audio
 
 # AudioManager
 
@@ -7,7 +7,7 @@ The AudioManager is a class that controls an audio file and all of its chunks (a
 ## Example
 
 ```Typescript
-import { AudioManager, AudioSelection, SampleUnit, WavFormat } from "@octra/media";
+import { AudioManager, AudioSelection, SampleUnit, WavFormat } from "@tratt/media";
 
 const xhr = new XMLHttpRequest();
 xhr.responseType = "arraybuffer";

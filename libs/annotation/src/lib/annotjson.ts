@@ -1,4 +1,4 @@
-import { last, Serializable } from '@octra/utilities';
+import { last, Serializable } from '@tratt/utilities';
 
 export interface IAnnotJSON {
   name: string;

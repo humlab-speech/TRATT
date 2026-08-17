@@ -1,12 +1,12 @@
 import { NgStyle } from '@angular/common';
 import { Component } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
-import { OCTRA_COLORS } from '@octra/ngx-components';
-import { BrowserInfo } from '@octra/web-media';
+import { TRATT_COLORS } from '@tratt/ngx-components';
+import { BrowserInfo } from '@tratt/web-media';
 import { CompatibilityService } from '../../shared/service/compatibility.service';
 
 @Component({
-  selector: 'octra-browser-test',
+  selector: 'tratt-browser-test',
   templateUrl: './browser-test.component.html',
   styleUrls: ['./browser-test.component.scss'],
   imports: [NgStyle, RouterLink],
@@ -36,11 +36,11 @@ export class BrowserTestComponent {
   getStateColor(rule: any): string {
     switch (rule.state) {
       case 'processing':
-        return OCTRA_COLORS.textPrimary;
+        return TRATT_COLORS.textPrimary;
       case 'failed':
-        return OCTRA_COLORS.accentError;
+        return TRATT_COLORS.accentError;
       case 'ok':
-        return OCTRA_COLORS.accentGreen;
+        return TRATT_COLORS.accentGreen;
     }
     return 'processing';
   }

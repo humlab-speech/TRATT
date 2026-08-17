@@ -3,13 +3,13 @@
   (change)="updateTextField()"
   class="transcr-editor flex h-100 position-relative"
 >
-  <octra-validation-popover
+  <tratt-validation-popover
     #validationPopover
     [ngStyle]="{
       'margin-left': popoversNew.validation.location.x + 'px',
       'margin-top': popoversNew.validation.location.y + 'px',
     }"
-  ></octra-validation-popover>
+  ></tratt-validation-popover>
   @if (asr.status === 'active') {
     <div
       id="asrOverlay"

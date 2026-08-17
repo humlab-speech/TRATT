@@ -1,14 +1,14 @@
-# @octra/media <a href="https://www.npmjs.com/package/@octra/media"><img alt="npm" src="https://img.shields.io/npm/v/@octra/media"></a>
+# @tratt/media <a href="https://www.npmjs.com/package/@tratt/media"><img alt="npm" src="https://img.shields.io/npm/v/@tratt/media"></a>
 
 This library offers classes that describes data related to media (e.g. SampleUnit class that describes one point in time of type sample with conversions to other time units) used by [Octra](https://github.com/IPS-LMU/octra).
-If you are looking for decoding and playback of audio files see @octra/web-media library.
+If you are looking for decoding and playback of audio files see @tratt/web-media library.
 
 ## Installation
 
 ### ESM, CJS, TS definitions & UMD (optional)
 
 ```shell
-npm install --save @octra/media
+npm install --save @tratt/media
 ```
 
 ### UMD Bundle (for Vanilla JS)
@@ -18,13 +18,13 @@ You have two options to install this package und use it as UMD:
 a) Install via NPM and reference local files (no internet connection needed om production).
 
 ```html
-<script type="application/javascript" src="node_modules/@octra/media/index.umd.js"></script>
+<script type="application/javascript" src="node_modules/@tratt/media/index.umd.js"></script>
 ```
 
 b) Reference remote file (internet connection needed on production).
 
 ```html
-<script type="application/javascript" src="https://unpkg.com/@octra/media/index.umd.js"></script>
+<script type="application/javascript" src="https://unpkg.com/@tratt/media/index.umd.js"></script>
 ```
 
 [See full example here](https://github.com/IPS-LMU/octra/blob/main/apps/web-components-demo/index.html)
@@ -35,10 +35,10 @@ b) Reference remote file (internet connection needed on production).
 
 #### ESM, Typescript
 
-Import the classes and functions from `@octra/media`. For example
+Import the classes and functions from `@tratt/media`. For example
 
 ```typescript
-import { SampleUnit } from '@octra/media';
+import { SampleUnit } from '@tratt/media';
 
 const unit = new SampleUnit(123123, 22100);
 ```
@@ -56,7 +56,7 @@ const validator = new OctraMedia.SampleUnit(123123, 22100);
 
 ### API
 
-You can find more information about classes and functions of `@octra/media` [here](https://ips-lmu.github.io/octra/modules/_octra_media.html).
+You can find more information about classes and functions of `@tratt/media` [here](https://ips-lmu.github.io/octra/modules/_octra_media.html).
 
 ### Changelog
 

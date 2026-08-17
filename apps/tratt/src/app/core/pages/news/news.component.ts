@@ -14,7 +14,7 @@ import { NavbarService } from '../../component/navbar/navbar.service';
 import { SettingsService } from '../../shared/service';
 
 @Component({
-  selector: 'octra-news',
+  selector: 'tratt-news',
   templateUrl: './news.component.html',
   styleUrls: ['./news.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,

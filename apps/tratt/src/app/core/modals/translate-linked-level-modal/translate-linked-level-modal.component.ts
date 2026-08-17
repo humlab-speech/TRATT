@@ -3,15 +3,15 @@ import { FormsModule } from '@angular/forms';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { NgbActiveModal, NgbModalOptions } from '@ng-bootstrap/ng-bootstrap';
 import {
-  OctraAnnotationSegment,
-  OctraAnnotationSegmentLevel,
-} from '@octra/annotation';
-import { getEnglishLanguageLabel } from '@octra/utilities';
+  TrattAnnotationSegment,
+  TrattAnnotationSegmentLevel,
+} from '@tratt/annotation';
+import { getEnglishLanguageLabel } from '@tratt/utilities';
 import { Subscription } from 'rxjs';
-import { HYMT_LANGUAGES } from '../../component/octra-dropzone/auto-translate-options.component';
+import { HYMT_LANGUAGES } from '../../component/tratt-dropzone/auto-translate-options.component';
 import { LocalTranslationService } from '../../shared/service/local-translation.service';
 import { AnnotationStoreService } from '../../store/login-mode/annotation/annotation.store.service';
-import { OctraModal } from '../types';
+import { TrattModal } from '../types';
 
 type Phase =
   | 'idle'
@@ -25,13 +25,13 @@ type Phase =
   | 'cancelled';
 
 @Component({
-  selector: 'octra-translate-linked-level-modal',
+  selector: 'tratt-translate-linked-level-modal',
   standalone: true,
   imports: [FormsModule, TranslocoPipe],
   templateUrl: './translate-linked-level-modal.component.html',
 })
 export class TranslateLinkedLevelModalComponent
-  extends OctraModal
+  extends TrattModal
   implements OnInit, OnDestroy
 {
   public static options: NgbModalOptions = {
@@ -142,12 +142,12 @@ export class TranslateLinkedLevelModalComponent
     const linkedLevel = transcript.levels.find(
       (l) => l.id === this.linkedLevelId,
     );
-    if (!(linkedLevel instanceof OctraAnnotationSegmentLevel)) return;
+    if (!(linkedLevel instanceof TrattAnnotationSegmentLevel)) return;
     if (linkedLevel.linkedToLevelId === undefined) return;
     const sourceLevel = transcript.levels.find(
       (l) => l.id === linkedLevel.linkedToLevelId,
     );
-    if (!(sourceLevel instanceof OctraAnnotationSegmentLevel)) return;
+    if (!(sourceLevel instanceof TrattAnnotationSegmentLevel)) return;
 
     const sourceTexts = sourceLevel.items.map((item) => {
       const primary =
@@ -192,7 +192,7 @@ export class TranslateLinkedLevelModalComponent
               break;
             case 'segments': {
               const emptyBefore = (
-                linkedLevel as OctraAnnotationSegmentLevel<OctraAnnotationSegment>
+                linkedLevel as TrattAnnotationSegmentLevel<TrattAnnotationSegment>
               ).items.filter((item, idx) => {
                 const primary =
                   item.labels.find((l) => l.name === linkedLevel.name) ??

@@ -1,4 +1,4 @@
-import { OAnnotJSON } from '@octra/annotation';
+import { OAnnotJSON } from '@tratt/annotation';
 import {
   applySpeakerTurnsToAnnotJson,
   SpeakerTurn,

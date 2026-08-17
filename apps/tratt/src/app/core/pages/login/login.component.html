@@ -90,12 +90,12 @@
         settingsService.appSettings.tratt.maintenanceNotification.active ===
           'active'
       ) {
-        <octra-maint-banner
+        <tratt-maint-banner
           [serverURL]="
             settingsService.appSettings.tratt.maintenanceNotification.apiURL
           "
           [language]="appStorage.language"
-        ></octra-maint-banner>
+        ></tratt-maint-banner>
       }
     </div>
   </div>
@@ -149,13 +149,13 @@
                     : (authStoreService.serverOnline$ | async)
                 ) {
                   <div class="form-horizontal">
-                    <octra-authentication-component
+                    <tratt-authentication-component
                       [showTitle]="false"
                       (submitClick)="onOnlineSubmit($event)"
                       [authentications]="api.appProperties?.authentications"
                       [passwordReset]="api.appProperties?.reset_password"
                       [registrations]="api.appProperties?.registrations"
-                    ></octra-authentication-component>
+                    ></tratt-authentication-component>
                   </div>
                 } @else {
                   <div
@@ -233,12 +233,12 @@
                       </button>
                       <ng-template ngbNavContent>
                         <div class="pt-3">
-                          <octra-dropzone
+                          <tratt-dropzone
                             #dropzone
                             [height]="'147px'"
                             [oldFiles]="sessionfile ? [sessionfile] : []"
                             [showAutoTranscribe]="true"
-                          ></octra-dropzone>
+                          ></tratt-dropzone>
                         </div>
                       </ng-template>
                     </li>
@@ -249,9 +249,9 @@
                       </button>
                       <ng-template ngbNavContent>
                         <div class="pt-3">
-                          <octra-recording-panel
+                          <tratt-recording-panel
                             (useRecording)="onUseRecording($event)"
-                          ></octra-recording-panel>
+                          ></tratt-recording-panel>
                         </div>
                       </ng-template>
                     </li>
@@ -646,7 +646,7 @@
       </div>
     </div>
   } @else {
-    <octra-browser-test></octra-browser-test>
+    <tratt-browser-test></tratt-browser-test>
   }
 </div>
 <div class="section order-3 order-md-2">

@@ -1,15 +1,15 @@
 import { Component } from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { NgbActiveModal, NgbModalOptions } from '@ng-bootstrap/ng-bootstrap';
-import { OctraModal } from '../types';
+import { TrattModal } from '../types';
 
 @Component({
-  selector: 'octra-transcription-sending-modal',
+  selector: 'tratt-transcription-sending-modal',
   templateUrl: './transcription-sending-modal.component.html',
   styleUrls: ['./transcription-sending-modal.component.scss'],
   imports: [TranslocoPipe],
 })
-export class TranscriptionSendingModalComponent extends OctraModal {
+export class TranscriptionSendingModalComponent extends TrattModal {
   public static options: NgbModalOptions = {
     keyboard: false,
     backdrop: true,

@@ -1,16 +1,16 @@
 import { Action, createActionGroup, emptyProps, props } from '@ngrx/store';
+import { ProjectDto, TaskDto, TaskInputOutputDto } from '@octra/api-types';
 import {
   AnnotationAnySegment,
   AnnotationLevelType,
   ASRContext,
-  OctraAnnotation,
-  OctraAnnotationAnyLevel,
-  OctraAnnotationSegment,
   OEvent,
   OItem,
-} from '@octra/annotation';
-import { ProjectDto, TaskDto, TaskInputOutputDto } from '@octra/api-types';
-import { SampleUnit } from '@octra/media';
+  TrattAnnotation,
+  TrattAnnotationAnyLevel,
+  TrattAnnotationSegment,
+} from '@tratt/annotation';
+import { SampleUnit } from '@tratt/media';
 import { ProjectSettings } from '../../../obj';
 import { FeedBackForm } from '../../../obj/FeedbackForm/FeedBackForm';
 import { ILog } from '../../../obj/Settings/logging';
@@ -109,7 +109,7 @@ export class AnnotationActions {
     source: `annotation/ overwrite transcript`,
     events: {
       do: props<{
-        transcript: OctraAnnotation<ASRContext, OctraAnnotationSegment>;
+        transcript: TrattAnnotation<ASRContext, TrattAnnotationSegment>;
         mode: LoginMode;
         saveToDB: boolean;
       }>(),
@@ -120,7 +120,7 @@ export class AnnotationActions {
     source: `annotation/ change level`,
     events: {
       do: props<{
-        level: OctraAnnotationAnyLevel<OctraAnnotationSegment<ASRContext>>;
+        level: TrattAnnotationAnyLevel<TrattAnnotationSegment<ASRContext>>;
         mode: LoginMode;
       }>(),
     },
@@ -300,9 +300,9 @@ export class AnnotationActions {
       }>(),
       success: props<{
         mode: LoginMode;
-        transcript: OctraAnnotation<
+        transcript: TrattAnnotation<
           ASRContext,
-          OctraAnnotationSegment<ASRContext>
+          TrattAnnotationSegment<ASRContext>
         >;
         feedback?: FeedBackForm;
         saveToDB: boolean;
@@ -413,7 +413,7 @@ export class AnnotationActions {
       success: props<{
         mode: LoginMode;
         segmentID: number;
-        newSegments: OctraAnnotationSegment<ASRContext>[];
+        newSegments: TrattAnnotationSegment<ASRContext>[];
       }>(),
       fail: props<{
         error: string;
@@ -490,7 +490,7 @@ export class AnnotationActions {
     events: {
       do: props<{
         id: number;
-        item: OItem | OEvent | OctraAnnotationSegment<ASRContext>;
+        item: OItem | OEvent | TrattAnnotationSegment<ASRContext>;
         mode: LoginMode;
       }>(),
     },
@@ -508,7 +508,7 @@ export class AnnotationActions {
       }>(),
       success: props<{
         mode: LoginMode;
-        transcript: OctraAnnotation<ASRContext, OctraAnnotationSegment>;
+        transcript: TrattAnnotation<ASRContext, TrattAnnotationSegment>;
       }>(),
       fail: props<{
         error: string;

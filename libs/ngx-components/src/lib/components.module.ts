@@ -5,10 +5,10 @@ import {
 } from '@angular/common/http';
 import { NgModule } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { OctraUtilitiesModule } from '@octra/ngx-utilities';
+import { TrattUtilitiesModule } from '@tratt/ngx-utilities';
+import { AsrOptionsComponent } from './components/asr-options';
 import { AudioViewerComponent } from './components/audio/audio-viewer';
 import { AudioplayerComponent } from './components/audio/audioplayer';
-import { AsrOptionsComponent } from './components/asr-options';
 
 @NgModule({
   declarations: [],
@@ -17,11 +17,11 @@ import { AsrOptionsComponent } from './components/asr-options';
     CommonModule,
     FormsModule,
     ReactiveFormsModule,
-    OctraUtilitiesModule,
+    TrattUtilitiesModule,
     AudioplayerComponent,
     AudioViewerComponent,
     AsrOptionsComponent,
   ],
   providers: [provideHttpClient(withInterceptorsFromDi())],
 })
-export class OctraComponentsModule {}
+export class TrattComponentsModule {}

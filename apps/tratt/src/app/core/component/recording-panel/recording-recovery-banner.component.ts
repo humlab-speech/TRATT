@@ -10,7 +10,7 @@ import { TranslocoPipe } from '@jsverse/transloco';
 import { RecoverableSession } from '../../shared/service/recording-persistence.service';
 
 @Component({
-  selector: 'octra-recording-recovery-banner',
+  selector: 'tratt-recording-recovery-banner',
   standalone: true,
   template: `
     <div

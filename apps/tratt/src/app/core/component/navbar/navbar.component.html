@@ -806,7 +806,7 @@
                   <span style="font-size: 1rem" class="mb-2 d-block">{{
                     'g.asr options' | transloco
                   }}</span>
-                  <octra-asr-options
+                  <tratt-asr-options
                     [options]="asrStoreService.asrOptionsSignal() ?? undefined"
                     (optionsChange)="asrStoreService.setASRSettings($event)"
                     [languageSettings]="
@@ -826,7 +826,7 @@
                       asrProvider: 'asr.asr provider' | transloco,
                       accessCode: 'g.access code' | transloco,
                     }"
-                  ></octra-asr-options>
+                  ></tratt-asr-options>
                   <hr />
                 }
               }
@@ -880,16 +880,16 @@
                 </a>
                 @if (
                   appStorage.useMode === 'online' &&
-                  appStorage.snapshot.application.appConfiguration?.octraBackend
+                  appStorage.snapshot.application.appConfiguration?.trattBackend
                     ?.enabled &&
-                  appStorage.snapshot.application.appConfiguration?.octraBackend
+                  appStorage.snapshot.application.appConfiguration?.trattBackend
                     ?.url
                 ) {
                   <a
                     class="dropdown-item"
                     [href]="
                       appStorage.snapshot.application.appConfiguration
-                        ?.octraBackend?.url
+                        ?.trattBackend?.url
                     "
                     target="_blank"
                   >

@@ -4,7 +4,7 @@
   vertical-align: middle;
   /* width: 30px; */
   text-align: center;
-  background-color: var(--octra-surface-background);
+  background-color: var(--tratt-surface-background);
   color: gray;
   position: relative;
 }
@@ -37,7 +37,7 @@
 }
 
 .dropdown-item.active {
-  background-color: var(--octra-surface-background);
+  background-color: var(--tratt-surface-background);
 }
 
 .btn-group {
@@ -56,7 +56,7 @@
   white-space: nowrap;
   overflow: auto;
   height: 300px;
-  background-color: var(--octra-surface-background);
+  background-color: var(--tratt-surface-background);
   padding: 10px;
   border: 1px lightgray;
 }
@@ -98,7 +98,7 @@
   justify-content: space-between;
   box-sizing: border-box;
   cursor: move;
-  background: var(--octra-surface-background);
+  background: var(--tratt-surface-background);
   font-size: 14px;
   margin: 0;
 }
@@ -111,7 +111,7 @@
   border-bottom: 1px solid lightgray;
   padding: 5px;
   height: 35px;
-  background-color: var(--octra-surface-background);
+  background-color: var(--tratt-surface-background);
 }
 
 .easy-table .cell:last-of-type {
@@ -125,7 +125,7 @@
 
 .settings {
   border: 1px solid lightgray;
-  background-color: var(--octra-surface-background);
+  background-color: var(--tratt-surface-background);
   padding: 8px;
   display: inline;
   border-radius: 3px;

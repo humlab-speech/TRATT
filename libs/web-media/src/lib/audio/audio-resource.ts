@@ -1,4 +1,4 @@
-import { OAudiofile } from '@octra/media';
+import { OAudiofile } from '@tratt/media';
 import { MediaResource } from '../media-resource';
 import { SourceType } from '../types';
 import { AudioInfo } from './audio-info';

@@ -1,15 +1,15 @@
 import { Component, TemplateRef, ViewChild } from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { NgbActiveModal, NgbModalOptions } from '@ng-bootstrap/ng-bootstrap';
-import { OctraModal } from '../types';
+import { TrattModal } from '../types';
 
 @Component({
-  selector: 'octra-error-modal',
+  selector: 'tratt-error-modal',
   templateUrl: './error-modal.component.html',
   styleUrls: ['./error-modal.component.scss'],
   imports: [TranslocoPipe],
 })
-export class ErrorModalComponent extends OctraModal {
+export class ErrorModalComponent extends TrattModal {
   public static options: NgbModalOptions = {
     keyboard: false,
     backdrop: true,

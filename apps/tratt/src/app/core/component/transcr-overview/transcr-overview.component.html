@@ -171,7 +171,7 @@
                   }"
                 >
                   <div>
-                    <octra-transcr-editor
+                    <tratt-transcr-editor
                       #transcrEditor
                       [settings]="editorConfig"
                       [height]="60"
@@ -194,7 +194,7 @@
                       (enterKeyPressed)="onEnterPressed(i)"
                       (shiftEnterKeyPressed)="onShiftEnterPressed(i)"
                       (escapeKeyPressed)="onEscapePressed(i)"
-                    ></octra-transcr-editor>
+                    ></tratt-transcr-editor>
                   </div>
                 </td>
               } @else {
@@ -218,14 +218,14 @@
                   (mouseover)="onMouseOver($event, i, row, validationPopover)"
                   (focus)="onMouseOver($event, i, row, validationPopover)"
                 >
-                  <octra-validation-popover
+                  <tratt-validation-popover
                     #validationPopover
                     style="position: absolute"
                     [ngStyle]="{
                       'margin-left': popovers.validation.location.x + 'px',
                       'margin-top': popovers.validation.location.y + 'px',
                     }"
-                  ></octra-validation-popover>
+                  ></tratt-validation-popover>
                   <p [innerHTML]="sanitizeHTML(segment.transcription.html)"></p>
                 </td>
               }

@@ -1,14 +1,14 @@
 import { Component, SecurityContext } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
-import { OctraModal } from '../types';
+import { TrattModal } from '../types';
 
 @Component({
-  selector: 'octra-protected-modal',
+  selector: 'tratt-protected-modal',
   templateUrl: './protected-modal.component.html',
   styleUrls: ['./protected-modal.component.scss'],
 })
-export class ProtectedModalComponent extends OctraModal {
+export class ProtectedModalComponent extends TrattModal {
   public htmlMessage = '';
 
   public get sanitizedHTMLMessage() {

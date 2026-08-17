@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { BrowserInfo } from '@octra/web-media';
+import { BrowserInfo } from '@tratt/web-media';
 import { SettingsService } from './index';
 
 declare let Modernizr: any;

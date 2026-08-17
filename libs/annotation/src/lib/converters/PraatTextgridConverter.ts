@@ -1,5 +1,5 @@
-import { OAudiofile } from '@octra/media';
-import { FileInfo } from '@octra/web-media';
+import { OAudiofile } from '@tratt/media';
+import { FileInfo } from '@tratt/web-media';
 import {
   OAnnotJSON,
   OEvent,
@@ -14,7 +14,7 @@ import {
   ExportResult,
   IFile,
   ImportResult,
-  OctraAnnotationFormatType,
+  TrattAnnotationFormatType,
 } from './Converter';
 import {
   BASWebservicesApplication,
@@ -24,7 +24,7 @@ import {
 } from './SupportedApplications';
 
 export class PraatTextgridConverter extends Converter {
-  override _name: OctraAnnotationFormatType = 'TextGrid';
+  override _name: TrattAnnotationFormatType = 'TextGrid';
 
   public constructor() {
     super();

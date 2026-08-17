@@ -5,11 +5,11 @@ import {
   IRecordingChunk,
   IRecordingSession,
   LEGACY_RECORDING_DB_NAME,
-  OctraRecordingDatabase,
   RECORDING_DB_NAME,
   RecordingChunkKind,
   RecordingMode,
-} from '../octra-recording-database';
+  TrattRecordingDatabase,
+} from '../tratt-recording-database';
 
 export interface RecoverableSession extends IRecordingSession {
   durationMs: number;
@@ -17,7 +17,7 @@ export interface RecoverableSession extends IRecordingSession {
 
 @Injectable({ providedIn: 'root' })
 export class RecordingPersistenceService {
-  private opened?: Promise<OctraRecordingDatabase>;
+  private opened?: Promise<TrattRecordingDatabase>;
 
   readonly recoverableSessions$ = new BehaviorSubject<RecoverableSession[]>([]);
 
@@ -25,11 +25,11 @@ export class RecordingPersistenceService {
    * Opens the recording database, reusing the OCTRA-era one when this browser
    * still holds it. Resolved once and cached.
    */
-  private db(): Promise<OctraRecordingDatabase> {
+  private db(): Promise<TrattRecordingDatabase> {
     this.opened ??= resolveDatabaseName(
       RECORDING_DB_NAME,
       LEGACY_RECORDING_DB_NAME,
-    ).then((name) => new OctraRecordingDatabase(name));
+    ).then((name) => new TrattRecordingDatabase(name));
     return this.opened;
   }
 

@@ -3,7 +3,7 @@ import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { tap } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 import { ErrorModalComponent } from '../../modals/error-modal/error-modal.component';
-import { OctraModalService } from '../../modals/octra-modal.service';
+import { TrattModalService } from '../../modals/tratt-modal.service';
 import { isIgnoredAction, isIgnoredConsoleAction } from '../../shared';
 import { ApplicationActions } from './application.actions';
 
@@ -77,6 +77,6 @@ export class ApplicationUiEffects {
 
   constructor(
     private actions$: Actions,
-    private modalService: OctraModalService,
+    private modalService: TrattModalService,
   ) {}
 }

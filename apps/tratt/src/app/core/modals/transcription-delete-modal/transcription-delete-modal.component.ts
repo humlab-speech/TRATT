@@ -2,7 +2,7 @@ import { Component } from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { NgbActiveModal, NgbModalOptions } from '@ng-bootstrap/ng-bootstrap';
 import { AppInfo } from '../../../app.info';
-import { OctraModal } from '../types';
+import { TrattModal } from '../types';
 
 export enum ModalDeleteAnswer {
   DELETE = 'DELETE',
@@ -10,12 +10,12 @@ export enum ModalDeleteAnswer {
 }
 
 @Component({
-  selector: 'octra-transcription-delete-modal',
+  selector: 'tratt-transcription-delete-modal',
   templateUrl: './transcription-delete-modal.component.html',
   styleUrls: ['./transcription-delete-modal.component.scss'],
   imports: [TranslocoPipe],
 })
-export class TranscriptionDeleteModalComponent extends OctraModal {
+export class TranscriptionDeleteModalComponent extends TrattModal {
   public static options: NgbModalOptions = {
     keyboard: false,
     backdrop: true,

@@ -12,7 +12,7 @@ import {
 import { OctraAPIService } from '@octra/ngx-octra-api';
 import { DefaultComponent } from '../../../component/default.component';
 import { ErrorModalComponent } from '../../../modals/error-modal/error-modal.component';
-import { OctraModalService } from '../../../modals/octra-modal.service';
+import { TrattModalService } from '../../../modals/tratt-modal.service';
 import { LuxonShortDateTimePipe } from '../../../shared';
 import { AppStorageService } from '../../../shared/service/appstorage.service';
 import { RootState } from '../../../store';
@@ -25,7 +25,7 @@ import { AnnotationStoreService } from '../../../store/login-mode/annotation/ann
 import { ProjectRequestModalComponent } from './project-request-modal/project-request-modal.component';
 
 @Component({
-  selector: 'octra-projects-list',
+  selector: 'tratt-projects-list',
   templateUrl: './projects-list.component.html',
   styleUrls: ['./projects-list.component.scss'],
   imports: [TranslocoPipe, LuxonShortDateTimePipe, NgbPagination],
@@ -54,7 +54,7 @@ export class ProjectsListComponent extends DefaultComponent implements OnInit {
   constructor(
     private api: OctraAPIService,
     public appStorage: AppStorageService,
-    private modalService: OctraModalService,
+    private modalService: TrattModalService,
     public authStoreService: AuthenticationStoreService,
     private annotationStoreService: AnnotationStoreService,
     private store: Store<RootState>,

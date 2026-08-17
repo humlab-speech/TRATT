@@ -1,12 +1,12 @@
-import { OAudiofile } from '@octra/media';
-import { FileInfo } from '@octra/web-media';
+import { OAudiofile } from '@tratt/media';
+import { FileInfo } from '@tratt/web-media';
 import { OAnnotJSON, OLabel, OSegment, OSegmentLevel } from '../annotjson';
 import {
   Converter,
   ExportResult,
   IFile,
   ImportResult,
-  OctraAnnotationFormatType,
+  TrattAnnotationFormatType,
 } from './Converter';
 import {
   AnyTextEditor,
@@ -26,7 +26,7 @@ export class SRTConverterImportOptions {
 }
 // https://matroska.org/technical/specs/subtitles/srt.html
 export class SRTConverter extends Converter {
-  override _name: OctraAnnotationFormatType = 'SRT';
+  override _name: TrattAnnotationFormatType = 'SRT';
 
   override defaultImportOptions = new SRTConverterImportOptions();
 
@@ -130,8 +130,11 @@ export class SRTConverter extends Converter {
           );
 
           if (transcript !== '') {
-            const speaker = item.labels?.find((l) => l.name === 'Speaker')?.value;
-            const speakerPrefix = this.options.addSpeakerId && speaker ? `[${speaker}] ` : '';
+            const speaker = item.labels?.find(
+              (l) => l.name === 'Speaker',
+            )?.value;
+            const speakerPrefix =
+              this.options.addSpeakerId && speaker ? `[${speaker}] ` : '';
             result += `${counter}\n`;
             result += `${start} --> ${end}\n`;
             result += `${speakerPrefix}${transcript}\n\n`;

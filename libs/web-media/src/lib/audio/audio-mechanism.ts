@@ -1,6 +1,6 @@
-import { AudioSelection, PlayBackStatus, SampleUnit } from '@octra/media';
-import { SubscriptionManager } from '@octra/utilities';
-import { AudioResource } from '@octra/web-media';
+import { AudioSelection, PlayBackStatus, SampleUnit } from '@tratt/media';
+import { SubscriptionManager } from '@tratt/utilities';
+import { AudioResource } from '@tratt/web-media';
 import { Observable, of, Subject } from 'rxjs';
 
 declare let window: any;

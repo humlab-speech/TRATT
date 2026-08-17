@@ -1,5 +1,5 @@
-import { OAnnotJSON } from '@octra/annotation';
-import { pickInitialLevelName } from '@octra/utilities';
+import { OAnnotJSON } from '@tratt/annotation';
+import { pickInitialLevelName } from '@tratt/utilities';
 import {
   applySpeakerTurnsToAnnotJson,
   SpeakerTurn,

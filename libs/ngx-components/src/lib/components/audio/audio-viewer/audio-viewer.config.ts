@@ -1,5 +1,5 @@
-import { ShortcutGroup } from '@octra/web-media';
-import { OCTRA_COLORS } from '../../../obj';
+import { ShortcutGroup } from '@tratt/web-media';
+import { TRATT_COLORS } from '../../../obj';
 
 export class AudioviewerConfig {
   public multiLine = false;
@@ -7,7 +7,7 @@ export class AudioviewerConfig {
   public justifySignalHeight = true;
   public cropping = 'none';
   public lineheight = 60;
-  public backgroundcolor = OCTRA_COLORS.surfaceBackground;
+  public backgroundcolor = TRATT_COLORS.surfaceBackground;
   public margin: {
     top: number;
     right: number;
@@ -24,19 +24,19 @@ export class AudioviewerConfig {
     fixed: boolean;
   } = {
     fixed: false,
-    color: OCTRA_COLORS.playhead,
+    color: TRATT_COLORS.playhead,
   };
 
   public scrollbar = {
     enabled: false,
     width: 20,
     background: {
-      color: OCTRA_COLORS.surfaceBackground,
+      color: TRATT_COLORS.surfaceBackground,
       stroke: 'gray',
       strokeWidth: 1,
     },
     selector: {
-      color: OCTRA_COLORS.chrome,
+      color: TRATT_COLORS.chrome,
       stroke: 'gray',
       strokeWidth: 1,
       width: 20,
@@ -50,7 +50,7 @@ export class AudioviewerConfig {
   } = {
     height: 20,
     width: 10,
-    color: OCTRA_COLORS.chrome,
+    color: TRATT_COLORS.chrome,
   };
   public boundaries: {
     enabled: boolean;
@@ -61,7 +61,7 @@ export class AudioviewerConfig {
     enabled: true,
     readonly: false,
     width: 3,
-    color: OCTRA_COLORS.accentWarning,
+    color: TRATT_COLORS.accentWarning,
   };
   public grid: {
     enabled: true;
@@ -74,7 +74,7 @@ export class AudioviewerConfig {
   public data: {
     color: string;
   } = {
-    color: OCTRA_COLORS.waveformSignal,
+    color: TRATT_COLORS.waveformSignal,
   };
 
   public selection: {
@@ -87,7 +87,7 @@ export class AudioviewerConfig {
   public frame: {
     color: string;
   } = {
-    color: OCTRA_COLORS.border,
+    color: TRATT_COLORS.border,
   };
 
   public asr = {

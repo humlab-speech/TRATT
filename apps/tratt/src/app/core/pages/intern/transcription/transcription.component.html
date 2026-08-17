@@ -25,7 +25,7 @@
             type="button"
             (click)="openPromptModal()"
             class="btn btn-link p-0 border-0 text-decoration-none"
-            style="cursor: pointer; color: var(--octra-accent-green-dark)"
+            style="cursor: pointer; color: var(--tratt-accent-green-dark)"
           >
             {{ 'g.prompt' | transloco }}
           </button>
@@ -41,10 +41,10 @@
       <i class="bi bi-save-fill" style="color: #333333"></i>
     }
     @if (saving === 'error') {
-      <i class="bi bi-save-fill" style="color: var(--octra-accent-error)"></i>
+      <i class="bi bi-save-fill" style="color: var(--tratt-accent-error)"></i>
     }
   </span>
-  <octra-fastbar
+  <tratt-fastbar
     (guidelinesbtnclicked)="openGuidelines()"
     (overviewbtnclicked)="openOverview()"
     (shortcutbtnclicked)="openShortcutsModal()"
@@ -54,7 +54,7 @@
       overview: 'g.overview' | transloco,
       help: 'g.help' | transloco,
     }"
-  ></octra-fastbar>
+  ></tratt-fastbar>
 
   <div class="flex">
     @if (
@@ -70,14 +70,14 @@
           <div
             class="spinner-border"
             role="status"
-            style="color: var(--octra-text-muted); height: 150px; width: 150px"
+            style="color: var(--tratt-text-muted); height: 150px; width: 150px"
           >
             <span class="visually-hidden">Loading...</span>
           </div>
         }
       </div>
     }
-    <ng-container octraLoadeditor #showEditor></ng-container>
+    <ng-container trattLoadeditor #showEditor></ng-container>
   </div>
 
   @if (showCommentSection) {
@@ -90,7 +90,7 @@
         placeholder="{{ 'g.insert comment' | transloco }}"
         style="
           resize: none;
-          background-color: var(--octra-note-surface);
+          background-color: var(--tratt-note-surface);
           height: 40px;
         "
       ></textarea>
@@ -123,7 +123,7 @@
           (click)="sendTranscriptionForShortAudioFiles('middle')"
           class="btn btn-raised btn-warning col-md-3 btn btn-warning"
           type="button"
-          style="background-color: var(--octra-accent-warning)"
+          style="background-color: var(--tratt-accent-warning)"
         >
           <i class="bi bi-star-fill"></i>
           <i class="bi bi-star-fill"></i>

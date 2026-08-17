@@ -1,7 +1,7 @@
 import { Injectable, NgZone, OnDestroy } from '@angular/core';
-import { IFile, OAnnotJSON } from '@octra/annotation';
-import { OAudiofile } from '@octra/media';
-import { AudioManager, resampleChannels } from '@octra/web-media';
+import { IFile, OAnnotJSON } from '@tratt/annotation';
+import { OAudiofile } from '@tratt/media';
+import { AudioManager, resampleChannels } from '@tratt/web-media';
 import { Observable, Subject } from 'rxjs';
 import { AppInfo } from '../../../app.info';
 import type {

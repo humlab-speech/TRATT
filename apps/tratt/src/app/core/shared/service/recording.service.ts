@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Subject } from 'rxjs';
-import { RecordingMode } from '../octra-recording-database';
+import { RecordingMode } from '../tratt-recording-database';
 import { RecordingDevicesService } from './recording-devices.service';
 import {
   assemblePcmToWav,

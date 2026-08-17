@@ -1,18 +1,18 @@
-import { OAudiofile } from '@octra/media';
-import { contains } from '@octra/utilities';
-import { FileInfo } from '@octra/web-media';
+import { OAudiofile } from '@tratt/media';
+import { contains } from '@tratt/utilities';
+import { FileInfo } from '@tratt/web-media';
 import { OAnnotJSON, OLabel, OSegment, OSegmentLevel } from '../annotjson';
 import {
   Converter,
   ExportResult,
   IFile,
   ImportResult,
-  OctraAnnotationFormatType,
+  TrattAnnotationFormatType,
 } from './Converter';
 import { OctraApplication } from './SupportedApplications';
 
 export class CTMConverter extends Converter {
-  override _name: OctraAnnotationFormatType = 'CTM';
+  override _name: TrattAnnotationFormatType = 'CTM';
 
   // http://www1.icsi.berkeley.edu/Speech/docs/sctk-1.2/infmts.htm#ctm_fmt_name_0
 

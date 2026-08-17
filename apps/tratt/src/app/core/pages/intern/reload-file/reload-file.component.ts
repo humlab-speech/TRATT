@@ -1,12 +1,12 @@
 import { Component, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
-import { navigateTo } from '@octra/ngx-utilities';
-import { FileSize, getFileSize } from '@octra/utilities';
+import { navigateTo } from '@tratt/ngx-utilities';
+import { FileSize, getFileSize } from '@tratt/utilities';
 import { AppInfo } from '../../../../app.info';
-import { OctraDropzoneComponent } from '../../../component/octra-dropzone/octra-dropzone.component';
+import { TrattDropzoneComponent } from '../../../component/tratt-dropzone/tratt-dropzone.component';
 import { ErrorModalComponent } from '../../../modals/error-modal/error-modal.component';
-import { OctraModalService } from '../../../modals/octra-modal.service';
+import { TrattModalService } from '../../../modals/tratt-modal.service';
 import { SessionFile } from '../../../obj/SessionFile';
 import { AudioService } from '../../../shared/service';
 import { AppStorageService } from '../../../shared/service/appstorage.service';
@@ -14,13 +14,13 @@ import { AuthenticationStoreService } from '../../../store/authentication';
 import { AnnotationStoreService } from '../../../store/login-mode/annotation/annotation.store.service';
 
 @Component({
-  selector: 'octra-reload-file',
+  selector: 'tratt-reload-file',
   templateUrl: './reload-file.component.html',
   styleUrls: ['./reload-file.component.scss'],
-  imports: [OctraDropzoneComponent, TranslocoPipe, OctraDropzoneComponent],
+  imports: [TrattDropzoneComponent, TranslocoPipe, TrattDropzoneComponent],
 })
 export class ReloadFileComponent {
-  @ViewChild('dropzone', { static: true }) dropzone!: OctraDropzoneComponent;
+  @ViewChild('dropzone', { static: true }) dropzone!: TrattDropzoneComponent;
   private error = '';
 
   get sessionfile(): SessionFile {
@@ -31,7 +31,7 @@ export class ReloadFileComponent {
     public router: Router,
     public appStorage: AppStorageService,
     public annotationStoreService: AnnotationStoreService,
-    public modService: OctraModalService,
+    public modService: TrattModalService,
     public langService: TranslocoService,
     private audioService: AudioService,
     private authStoreService: AuthenticationStoreService,

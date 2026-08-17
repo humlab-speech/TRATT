@@ -1,5 +1,5 @@
 {
-  "name": "@octra/ngx-utilities",
+  "name": "@tratt/ngx-utilities",
   "description": "Angular utilities used in OCTRA projects",
   "version": "1.0.1",
   "license": "MIT",
@@ -20,7 +20,7 @@
     "@angular/router": ">18.0.0",
     "@angular/forms": ">18.0.0",
     "@angular/core": ">18.0.0",
-    "@octra/utilities": "^1.1.0",
+    "@tratt/utilities": "^1.1.0",
     "rxjs": ">=7.5.0"
   },
   "dependencies": {

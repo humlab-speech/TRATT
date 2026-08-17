@@ -6,7 +6,7 @@ import { DateTime } from 'luxon';
 import { AudioService } from '../../shared/service';
 import { AppStorageService } from '../../shared/service/appstorage.service';
 import { AnnotationStoreService } from '../../store/login-mode/annotation/annotation.store.service';
-import { OctraModal } from '../types';
+import { TrattModal } from '../types';
 
 export enum ModalEndAnswer {
   CANCEL = 'CANCEL',
@@ -15,13 +15,13 @@ export enum ModalEndAnswer {
 }
 
 @Component({
-  selector: 'octra-transcription-backup-end-modal',
+  selector: 'tratt-transcription-backup-end-modal',
   templateUrl: './transcription-backup-end-modal.component.html',
   styleUrls: ['./transcription-backup-end-modal.component.scss'],
   imports: [TranslocoPipe],
 })
 export class TranscriptionBackupEndModalComponent
-  extends OctraModal
+  extends TrattModal
   implements OnInit, OnDestroy
 {
   downloadClicked = false;

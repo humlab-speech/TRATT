@@ -1,5 +1,5 @@
-import { OAudiofile } from '@octra/media';
-import { FileInfo } from '@octra/web-media';
+import { OAudiofile } from '@tratt/media';
+import { FileInfo } from '@tratt/web-media';
 import {
   OAnnotJSON,
   OAnyLevel,
@@ -13,7 +13,7 @@ import {
   ExportResult,
   IFile,
   ImportResult,
-  OctraAnnotationFormatType,
+  TrattAnnotationFormatType,
 } from './Converter';
 import {
   BASWebservicesApplication,
@@ -22,7 +22,7 @@ import {
 } from './SupportedApplications';
 
 export class PraatTableConverter extends Converter {
-  override _name: OctraAnnotationFormatType = 'PraatTextTable';
+  override _name: TrattAnnotationFormatType = 'PraatTextTable';
 
   public constructor() {
     super();

@@ -4,7 +4,7 @@ import { DefaultComponent } from '../../../component/default.component';
 import { ApplicationStoreService } from '../../../store/application/application-store.service';
 
 @Component({
-  selector: 'octra-re-authentication-page',
+  selector: 'tratt-re-authentication-page',
   templateUrl: './auth-success.page.component.html',
   styleUrls: ['./auth-success.page.component.scss'],
   imports: [TranslocoPipe],

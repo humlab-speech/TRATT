@@ -1,16 +1,16 @@
-# @octra/ngx-utilities <a href="https://www.npmjs.com/package/@octra/ngx-utilities"><img alt="npm" src="https://img.shields.io/npm/v/@octra/ngx-utilities"></a>
+# @tratt/ngx-utilities <a href="https://www.npmjs.com/package/@tratt/ngx-utilities"><img alt="npm" src="https://img.shields.io/npm/v/@tratt/ngx-utilities"></a>
 
 This library angular related classes like pipes used by [Octra](https://github.com/IPS-LMU/octra).
 
 ## Installation
 
-1. Install @octra/ngx-utilities with dependencies
+1. Install @tratt/ngx-utilities with dependencies
 
 ```shell
-npm install --save @octra/ngx-utilities
+npm install --save @tratt/ngx-utilities
 ```
 
-2. Add OctraUtilitiesModule to imports of your app.module.
+2. Add TrattUtilitiesModule to imports of your app.module.
 
 ### Changelog
 

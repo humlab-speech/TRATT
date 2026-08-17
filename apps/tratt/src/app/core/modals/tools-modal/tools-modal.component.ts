@@ -18,9 +18,9 @@ import {
   NgbModalOptions,
   NgbTooltip,
 } from '@ng-bootstrap/ng-bootstrap';
-import { OctraAnnotationSegmentLevel } from '@octra/annotation';
-import { OctraUtilitiesModule } from '@octra/ngx-utilities';
-import { AudioCutter, IntArray } from '@octra/web-media';
+import { TrattAnnotationSegmentLevel } from '@tratt/annotation';
+import { TrattUtilitiesModule } from '@tratt/ngx-utilities';
+import { AudioCutter, IntArray } from '@tratt/web-media';
 import {
   fadeInExpandOnEnterAnimation,
   fadeOutCollapseOnLeaveAnimation,
@@ -40,11 +40,11 @@ import {
 import { AnnotationStoreService } from '../../store/login-mode/annotation/annotation.store.service';
 import { NamingDragAndDropComponent } from '../../tools/naming-drag-and-drop/naming-drag-and-drop.component';
 import { ErrorModalComponent } from '../error-modal/error-modal.component';
-import { OctraModalService } from '../octra-modal.service';
-import { OctraModal } from '../types';
+import { TrattModalService } from '../tratt-modal.service';
+import { TrattModal } from '../types';
 
 @Component({
-  selector: 'octra-tools-modal',
+  selector: 'tratt-tools-modal',
   templateUrl: './tools-modal.component.html',
   styleUrls: ['./tools-modal.component.scss'],
   animations: [
@@ -59,10 +59,10 @@ import { OctraModal } from '../types';
     NgStyle,
     DecimalPipe,
     TranslocoPipe,
-    OctraUtilitiesModule,
+    TrattUtilitiesModule,
   ],
 })
-export class ToolsModalComponent extends OctraModal implements OnDestroy {
+export class ToolsModalComponent extends TrattModal implements OnDestroy {
   public static options: NgbModalOptions = {
     keyboard: false,
     backdrop: true,
@@ -183,7 +183,7 @@ export class ToolsModalComponent extends OctraModal implements OnDestroy {
 
   constructor(
     private sanitizer: DomSanitizer,
-    private modalsService: OctraModalService,
+    private modalsService: TrattModalService,
     public annotationStoreService: AnnotationStoreService,
     public audio: AudioService,
     public transloco: TranslocoService,
@@ -230,7 +230,7 @@ export class ToolsModalComponent extends OctraModal implements OnDestroy {
     }
     if (
       this.annotationStoreService.transcript.currentLevel instanceof
-      OctraAnnotationSegmentLevel
+      TrattAnnotationSegmentLevel
     ) {
       for (
         let i = 0;
@@ -532,7 +532,7 @@ export class ToolsModalComponent extends OctraModal implements OnDestroy {
   isSomethingBlocked(): boolean {
     return (
       this.annotationStoreService.currentLevel instanceof
-        OctraAnnotationSegmentLevel &&
+        TrattAnnotationSegmentLevel &&
       this.annotationStoreService.currentLevel!.items.find((a) => {
         return a.context?.asr?.isBlockedBy !== undefined;
       }) !== undefined

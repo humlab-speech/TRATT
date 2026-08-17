@@ -2,13 +2,13 @@ import { NgClass, NgStyle } from '@angular/common';
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { TranslocoPipe } from '@jsverse/transloco';
-import { SubscriberComponent } from '@octra/ngx-utilities';
+import { SubscriberComponent } from '@tratt/ngx-utilities';
 import { QuestionMarkComponent } from '../../question-mark/question-mark.component';
 import { ToolConfigArrayAdderComponent } from '../array-adder/toolconfig-array-adder.component';
 import { ConfigurationControlGroup } from '../tool-configurator.component';
 
 @Component({
-  selector: 'octra-toolconfig-group',
+  selector: 'tratt-toolconfig-group',
   templateUrl: './toolconfig-group.component.html',
   styleUrls: ['./toolconfig-group.component.scss'],
   imports: [

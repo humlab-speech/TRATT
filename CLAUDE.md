@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-TRATT (Orthographic Transcription) - Angular 19 web app for phonetic transcription of audio files. Nx monorepo with publishable libraries under the `@octra/` namespace (kept from the upstream OCTRA project this is forked from).
+TRATT (Orthographic Transcription) - Angular 19 web app for phonetic transcription of audio files. Nx monorepo with publishable libraries under the `@tratt/` namespace.
 
 ## Commands
 
@@ -17,7 +17,7 @@ npm run lint                 # ESLint
 npm run format               # Prettier format (nx format:write)
 npm test                     # Jest tests
 npm run dep-graph            # Interactive dependency graph
-npm run analyze:octra        # Bundle analysis
+npm run analyze:tratt        # Bundle analysis
 ```
 
 ## Architecture
@@ -45,7 +45,8 @@ npm run analyze:octra        # Bundle analysis
 
 ## Key Config
 
-- TypeScript path aliases: `@octra/*` → `libs/*/src/index.ts` (see `tsconfig.base.json`)
+- TypeScript path aliases: `@tratt/*` → `libs/*/src/index.ts` (see `tsconfig.base.json`)
+- `@octra/api-types` and `@octra/ngx-octra-api` are upstream npm packages, not workspace libs
 - Build budgets: 2MB initial / 6MB error (prod)
 - Node 20+
 - Commit convention: Commitizen with conventional-changelog

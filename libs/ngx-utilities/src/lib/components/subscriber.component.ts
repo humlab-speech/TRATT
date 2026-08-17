@@ -1,5 +1,5 @@
 import { Component, OnDestroy } from '@angular/core';
-import { SubscriptionManager } from '@octra/utilities';
+import { SubscriptionManager } from '@tratt/utilities';
 import { Observable, Observer, Subscription } from 'rxjs';
 
 @Component({

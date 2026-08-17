@@ -4,4 +4,4 @@ export * from './lib/asr';
 export * from './lib/converters';
 export * from './lib/functions';
 export * from './lib/link';
-export * from './lib/octraAnnotationSegment';
+export * from './lib/trattAnnotationSegment';

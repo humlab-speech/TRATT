@@ -2,7 +2,7 @@ import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { Action, Store } from '@ngrx/store';
-import { AudioCutter, FileInfo, readFileContents } from '@octra/web-media';
+import { AudioCutter, FileInfo, readFileContents } from '@tratt/web-media';
 import {
   catchError,
   exhaustMap,

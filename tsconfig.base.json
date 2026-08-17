@@ -18,14 +18,14 @@
     "allowSyntheticDefaultImports": true,
     "baseUrl": ".",
     "paths": {
-      "@octra/annotation": ["libs/annotation/src/index.ts"],
-      "@octra/assets": ["libs/assets/src/index.ts"],
-      "@octra/json-sets": ["libs/json-sets/src/index.ts"],
-      "@octra/media": ["libs/media/src/index.ts"],
-      "@octra/ngx-components": ["libs/ngx-components/src/index.ts"],
-      "@octra/ngx-utilities": ["libs/ngx-utilities/src/index.ts"],
-      "@octra/utilities": ["libs/utilities/src/index.ts"],
-      "@octra/web-media": ["libs/web-media/src/index.ts"]
+      "@tratt/annotation": ["libs/annotation/src/index.ts"],
+      "@tratt/assets": ["libs/assets/src/index.ts"],
+      "@tratt/json-sets": ["libs/json-sets/src/index.ts"],
+      "@tratt/media": ["libs/media/src/index.ts"],
+      "@tratt/ngx-components": ["libs/ngx-components/src/index.ts"],
+      "@tratt/ngx-utilities": ["libs/ngx-utilities/src/index.ts"],
+      "@tratt/utilities": ["libs/utilities/src/index.ts"],
+      "@tratt/web-media": ["libs/web-media/src/index.ts"]
     }
   },
   "exclude": ["node_modules", "tmp", "doc"]

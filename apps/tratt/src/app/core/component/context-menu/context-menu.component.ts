@@ -6,7 +6,7 @@ import {
 } from 'angular-animations';
 
 @Component({
-  selector: 'octra-context-menu',
+  selector: 'tratt-context-menu',
   templateUrl: './context-menu.component.html',
   styleUrls: ['./context-menu.component.scss'],
   animations: [

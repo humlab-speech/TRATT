@@ -564,7 +564,7 @@
   "modals": {
     "create project request": {
       "description": "Wenn Du dein Projekt mit dem OCTRA-Backend verwalten und im Online-Modus hier in TRATT von Transkribierern verarbeiten lassen möchtest, kannst Du gerne eine E-Mail an die Administratoren schreiben: {{adminEmail}}",
-      "introduction": "TRATT nutzt für den Online-Modus das {{octraBackendURL}}. Neue Projekte können aus Sicherheitsgründen nur von Administratoren erstellt werden, die entsprechende Anfragen vorher prüfen.",
+      "introduction": "TRATT nutzt für den Online-Modus das {{trattBackendURL}}. Neue Projekte können aus Sicherheitsgründen nur von Administratoren erstellt werden, die entsprechende Anfragen vorher prüfen.",
       "needed data": {
         "label": "Die Email sollte folgende Daten beinhalten:",
         "list1": "Projektname, Kürzel, interne Beschreibung, externe Beschreibung (optional)",

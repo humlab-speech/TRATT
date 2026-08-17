@@ -1,8 +1,8 @@
-import { OAudiofile } from '@octra/media';
+import { OAudiofile } from '@tratt/media';
 import { OAnnotJSON } from '../annotjson';
 import { SupportedApplication } from './SupportedApplications';
 
-export type OctraAnnotationFormatType =
+export type TrattAnnotationFormatType =
   | 'AnnotJSON'
   | 'BundleJSON'
   | 'CTM'
@@ -61,9 +61,9 @@ export abstract class Converter {
     return this._applications;
   }
 
-  protected _name!: OctraAnnotationFormatType;
+  protected _name!: TrattAnnotationFormatType;
 
-  get name(): OctraAnnotationFormatType {
+  get name(): TrattAnnotationFormatType {
     return this._name;
   }
 

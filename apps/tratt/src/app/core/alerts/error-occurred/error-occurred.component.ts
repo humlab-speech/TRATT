@@ -3,7 +3,7 @@ import { RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 
 @Component({
-  selector: 'octra-error-occurred',
+  selector: 'tratt-error-occurred',
   templateUrl: './error-occurred.component.html',
   styleUrls: ['./error-occurred.component.scss'],
   imports: [RouterLink, TranslocoPipe],

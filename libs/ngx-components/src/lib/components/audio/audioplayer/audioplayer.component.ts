@@ -9,18 +9,18 @@ import {
   SimpleChanges,
   ViewChild,
 } from '@angular/core';
-import { PlayBackStatus, SampleUnit } from '@octra/media';
-import { TimespanPipe } from '@octra/ngx-utilities';
-import { SubscriptionManager } from '@octra/utilities';
-import { AudioChunk } from '@octra/web-media';
+import { PlayBackStatus, SampleUnit } from '@tratt/media';
+import { TimespanPipe } from '@tratt/ngx-utilities';
+import { SubscriptionManager } from '@tratt/utilities';
+import { AudioChunk } from '@tratt/web-media';
 import Konva from 'konva';
 import { Subscription, timer } from 'rxjs';
-import { OCTRA_COLORS } from '../../../obj';
+import { TRATT_COLORS } from '../../../obj';
 import { AudioplayerSettings } from './audioplayer-settings';
 import KonvaEventObject = Konva.KonvaEventObject;
 
 @Component({
-  selector: 'octra-audioplayer',
+  selector: 'tratt-audioplayer',
   templateUrl: './audioplayer.component.html',
   styleUrls: ['./audioplayer.component.css'],
   imports: [TimespanPipe],
@@ -68,16 +68,16 @@ export class AudioplayerComponent
     },
     playHead: {
       height: 20,
-      backgroundColor: OCTRA_COLORS.playhead,
+      backgroundColor: TRATT_COLORS.playhead,
       width: 10,
     },
     height: 60,
     border: {
       width: 1,
-      color: OCTRA_COLORS.border,
+      color: TRATT_COLORS.border,
     },
     background: {
-      color: OCTRA_COLORS.surfaceBackground,
+      color: TRATT_COLORS.surfaceBackground,
     },
   };
 
@@ -202,7 +202,7 @@ export class AudioplayerComponent
           settings.slider.margin.left -
           settings.slider.margin.right,
         height: settings.slider.height,
-        fill: OCTRA_COLORS.chrome,
+        fill: TRATT_COLORS.chrome,
       });
 
       this.canvasElements.sliderBar.on('click', this.onSliderClick);

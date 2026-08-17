@@ -12,16 +12,16 @@ import {
 } from '@ng-bootstrap/ng-bootstrap';
 import { SettingsService } from '../../shared/service';
 import { AnnotationStoreService } from '../../store/login-mode/annotation/annotation.store.service';
-import { OctraModal } from '../types';
+import { TrattModal } from '../types';
 
 @Component({
-  selector: 'octra-prompt-modal',
+  selector: 'tratt-prompt-modal',
   templateUrl: './prompt-modal.component.html',
   styleUrls: ['./prompt-modal.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [AsyncPipe, TranslocoPipe],
 })
-export class PromptModalComponent extends OctraModal {
+export class PromptModalComponent extends TrattModal {
   public static options: NgbModalOptions = {
     keyboard: false,
     backdrop: false,

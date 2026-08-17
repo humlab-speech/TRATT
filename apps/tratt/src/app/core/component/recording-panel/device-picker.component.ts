@@ -13,7 +13,7 @@ import {
 import { RecordingDevicesService } from '../../shared/service/recording-devices.service';
 
 @Component({
-  selector: 'octra-device-picker',
+  selector: 'tratt-device-picker',
   standalone: true,
   templateUrl: './device-picker.component.html',
   styleUrls: ['./device-picker.component.scss'],

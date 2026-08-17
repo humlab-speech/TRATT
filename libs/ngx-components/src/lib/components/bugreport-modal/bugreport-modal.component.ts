@@ -7,7 +7,7 @@ import {
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { NgbActiveModal, NgbModalOptions } from '@ng-bootstrap/ng-bootstrap';
-import { SubscriberComponent } from '@octra/ngx-utilities';
+import { SubscriberComponent } from '@tratt/ngx-utilities';
 import { JoditConfig, NgxJoditComponent } from 'ngx-jodit';
 import { Observable, Subject, timer } from 'rxjs';
 import { BugReportTranslations } from './types';
@@ -31,7 +31,7 @@ const defaultTranslations: BugReportTranslations = {
 };
 
 @Component({
-  selector: 'octra-bugreport-modal',
+  selector: 'tratt-bugreport-modal',
   standalone: true,
   templateUrl: './bugreport-modal.component.html',
   styleUrls: ['./bugreport-modal.component.scss'],

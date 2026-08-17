@@ -1,17 +1,17 @@
-# @octra/ngx-components <a href="https://www.npmjs.com/package/@octra/ngx-components"><img alt="npm" src="https://img.shields.io/npm/v/@octra/ngx-components"></a>
+# @tratt/ngx-components <a href="https://www.npmjs.com/package/@tratt/ngx-components"><img alt="npm" src="https://img.shields.io/npm/v/@tratt/ngx-components"></a>
 
 This library offers all annotation related classes and functions used by Octra. It uses AnnotJSON file format as base
 model. Here you can also find all Annotation converters used by [Octra](https://github.com/IPS-LMU/octra).
 
 ## Installation
 
-1. Install @octra/ngx-components with dependencies
+1. Install @tratt/ngx-components with dependencies
 
 ```shell
-npm install --save @octra/ngx-components
+npm install --save @tratt/ngx-components
 ```
 
-2. Add OctraComponentsModule to imports of your app.module.
+2. Add TrattComponentsModule to imports of your app.module.
 
 ### Changelog
 

@@ -5,10 +5,10 @@ import {
   ASRContext,
   IAnnotJSON,
   OAnnotJSON,
-  OctraAnnotation,
-  OctraAnnotationSegment,
-} from '@octra/annotation';
-import { hasProperty } from '@octra/utilities';
+  TrattAnnotation,
+  TrattAnnotationSegment,
+} from '@tratt/annotation';
+import { hasProperty } from '@tratt/utilities';
 import { SessionStorageService } from 'ngx-webstorage';
 import {
   catchError,
@@ -26,14 +26,14 @@ import {
   timer,
   withLatestFrom,
 } from 'rxjs';
-import {
-  IIDBApplicationOptions,
-  IIDBModeOptions,
-} from '../../shared/octra-database';
 import { AudioService } from '../../shared/service';
 import { ConsoleEntry } from '../../shared/service/bug-report.service';
 import { IDBService } from '../../shared/service/idb.service';
 import { RoutingService } from '../../shared/service/routing.service';
+import {
+  IIDBApplicationOptions,
+  IIDBModeOptions,
+} from '../../shared/tratt-database';
 import { ApplicationActions } from '../application/application.actions';
 import { ASRActions } from '../asr/asr.actions';
 import { AuthenticationActions } from '../authentication';
@@ -211,7 +211,7 @@ export class IDBEffects {
               const deserialize = (json: IAnnotJSON) => {
                 const annotation = OAnnotJSON.deserialize(json);
                 if (annotation) {
-                  const result = OctraAnnotation.deserialize(annotation);
+                  const result = TrattAnnotation.deserialize(annotation);
                   result.changeCurrentLevelIndex(0);
                   return result;
                 }
@@ -220,30 +220,30 @@ export class IDBEffects {
 
               const oAnnotation =
                 deserialize(onlineAnnotation) ??
-                new OctraAnnotation<
+                new TrattAnnotation<
                   ASRContext,
-                  OctraAnnotationSegment<ASRContext>
+                  TrattAnnotationSegment<ASRContext>
                 >();
               const lAnnotation =
                 deserialize(localAnnotation) ??
-                new OctraAnnotation<
+                new TrattAnnotation<
                   ASRContext,
-                  OctraAnnotationSegment<ASRContext>
+                  TrattAnnotationSegment<ASRContext>
                 >();
               const dAnnotation =
                 deserialize(demoAnnotation) ??
-                new OctraAnnotation<
+                new TrattAnnotation<
                   ASRContext,
-                  OctraAnnotationSegment<ASRContext>
+                  TrattAnnotationSegment<ASRContext>
                 >();
 
               return IDBActions.loadAnnotation.success({
                 online: oAnnotation,
                 local: lAnnotation,
                 demo: dAnnotation,
-                url: new OctraAnnotation<
+                url: new TrattAnnotation<
                   ASRContext,
-                  OctraAnnotationSegment<ASRContext>
+                  TrattAnnotationSegment<ASRContext>
                 >(), // IGNORE
               });
             },

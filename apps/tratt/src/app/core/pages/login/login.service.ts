@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { SubscriptionManager } from '@octra/utilities';
+import { SubscriptionManager } from '@tratt/utilities';
 import { Subscription } from 'rxjs';
 
 @Injectable()

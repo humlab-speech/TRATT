@@ -58,8 +58,8 @@
 }
 
 #bottom-feedback {
-  border: 1px solid var(--octra-text-primary);
-  background-color: var(--octra-surface-background);
+  border: 1px solid var(--tratt-text-primary);
+  background-color: var(--tratt-surface-background);
   padding: 5px;
   height: 30px;
   position: relative;
@@ -110,7 +110,7 @@
 }
 
 #bottom-comment textarea {
-  background-color: var(--octra-note-surface);
+  background-color: var(--tratt-note-surface);
 }
 
 #editor-loading {
@@ -129,7 +129,7 @@
 #subnav {
   padding: 3px;
   text-align: center;
-  background-color: var(--octra-waveform-background);
+  background-color: var(--tratt-waveform-background);
   margin-bottom: 0;
 }
 

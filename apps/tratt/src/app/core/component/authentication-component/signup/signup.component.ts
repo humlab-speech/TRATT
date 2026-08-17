@@ -22,7 +22,7 @@ export class PreparedPolicyListItemDto extends PolicyListItemDto {
 }
 
 @Component({
-  selector: 'octra-signup',
+  selector: 'tratt-signup',
   templateUrl: './signup.component.html',
   styleUrls: ['./signup.component.scss'],
   imports: [FormsModule, TranslocoPipe],

@@ -10,14 +10,14 @@ import {
   OLabel,
   OSegment,
   OSegmentLevel,
-} from '@octra/annotation';
-import { OAudiofile } from '@octra/media';
-import { escapeRegex, SubscriptionManager } from '@octra/utilities';
-import { AudioManager, FileInfo, readFile } from '@octra/web-media';
+} from '@tratt/annotation';
+import { OAudiofile } from '@tratt/media';
+import { escapeRegex, SubscriptionManager } from '@tratt/utilities';
+import { AudioManager, FileInfo, readFile } from '@tratt/web-media';
 import { exhaustMap, forkJoin, map, Observable, throwError } from 'rxjs';
 import { AppInfo } from '../../../app.info';
 import { ImportOptionsModalComponent } from '../../modals/import-options-modal/import-options-modal.component';
-import { OctraModalService } from '../../modals/octra-modal.service';
+import { TrattModalService } from '../../modals/tratt-modal.service';
 import { FileProgress } from '../../obj/objects';
 import {
   applySpeakerTurnsToAnnotJson,
@@ -35,7 +35,7 @@ export interface DropzoneStatistics {
 }
 
 @Injectable()
-export class OctraDropzoneService {
+export class TrattDropzoneService {
   get oannotation(): OAnnotJSON | undefined {
     return this._oannotation;
   }
@@ -126,14 +126,14 @@ export class OctraDropzoneService {
   private _audioManager?: AudioManager;
 
   constructor(
-    private modService: OctraModalService,
+    private modService: TrattModalService,
     private store: Store<RootState>,
     private translocoService: TranslocoService,
   ) {}
 
   add(file: File) {
     const progressFile: FileProgress = {
-      id: OctraDropzoneService.id++,
+      id: TrattDropzoneService.id++,
       status: 'progress',
       progress: 0,
       checked_converters: 0,
@@ -415,7 +415,7 @@ export class OctraDropzoneService {
                   // is bundle file
                   this.dropFiles('audio');
                   const audioProcess: FileProgress = {
-                    id: OctraDropzoneService.id++,
+                    id: TrattDropzoneService.id++,
                     status: 'progress',
                     file: fileProgress.file,
                     content: importResult?.audiofile?.arraybuffer,

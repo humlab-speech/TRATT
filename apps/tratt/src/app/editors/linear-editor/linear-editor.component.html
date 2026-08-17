@@ -1,5 +1,5 @@
 @if (appStorage.showMagnifier) {
-  <octra-audio-viewer
+  <tratt-audio-viewer
     #minimagnifierComponent
     [audioChunk]="audioChunkMagnifier"
     [silencePlaceholder]="annotationStoreService.silencePlaceholder"
@@ -21,9 +21,9 @@
     [settings]="miniMagnifierSettings"
     [annotation]="annotationStoreService.transcript!"
   >
-  </octra-audio-viewer>
+  </tratt-audio-viewer>
 }
-<octra-audio-navigation
+<tratt-audio-navigation
   #nav
   (afterPlaybackRateChange)="afterSpeedChange($event)"
   (afterVolumeChange)="afterVolumeChange($event)"
@@ -33,9 +33,9 @@
   [playbackRate]="appStorage.audioSpeed"
   [volume]="appStorage.audioVolume"
 >
-</octra-audio-navigation>
+</tratt-audio-navigation>
 <div id="viewer">
-  <octra-audio-viewer
+  <tratt-audio-viewer
     #signalDisplayTop
     [name]="'top magnifier'"
     (mousecursorchange)="onMouseOver($event)"
@@ -58,11 +58,11 @@
     (currentLevelChange)="onCurrentLevelChange($event)"
     style="height: 80px"
   >
-  </octra-audio-viewer>
+  </tratt-audio-viewer>
 </div>
 
 @if (audioChunkDown !== undefined) {
-  <octra-audio-viewer
+  <tratt-audio-viewer
     #signalDisplayDown
     [refreshOnInternChanges]="false"
     (shortcut)="onViewerShortcutTriggered($event, 'signaldisplay_down')"
@@ -79,7 +79,7 @@
     [annotation]="annotationStoreService.transcript!"
     (currentLevelChange)="onCurrentLevelChange($event)"
   >
-  </octra-audio-viewer>
+  </tratt-audio-viewer>
 }
 <div [hidden]="segmentselected" id="editor-placeholder">
   @if (!segmentselected && audioChunkDown !== undefined) {
@@ -98,7 +98,7 @@
     ></div>
   }
 </div>
-<octra-transcr-editor
+<tratt-transcr-editor
   [ngClass]="{
     'd-none': !segmentselected,
     'd-grid': segmentselected,
@@ -119,4 +119,4 @@
   "
   [settings]="editorSettings"
 >
-</octra-transcr-editor>
+</tratt-transcr-editor>

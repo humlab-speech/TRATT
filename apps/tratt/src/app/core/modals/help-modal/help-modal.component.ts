@@ -1,15 +1,15 @@
 import { Component, ElementRef, ViewChild } from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { NgbActiveModal, NgbModalOptions } from '@ng-bootstrap/ng-bootstrap';
-import { OctraModal } from '../types';
+import { TrattModal } from '../types';
 
 @Component({
-  selector: 'octra-help-modal',
+  selector: 'tratt-help-modal',
   templateUrl: './help-modal.component.html',
   styleUrls: ['./help-modal.component.scss'],
   imports: [TranslocoPipe],
 })
-export class HelpModalComponent extends OctraModal {
+export class HelpModalComponent extends TrattModal {
   public static options: NgbModalOptions = {
     size: 'xl',
     backdrop: true,

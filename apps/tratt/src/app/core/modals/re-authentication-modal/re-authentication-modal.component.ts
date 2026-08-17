@@ -13,7 +13,7 @@ import { LoginMode } from '../../store';
 import { AuthenticationStoreService } from '../../store/authentication';
 
 @Component({
-  selector: 'octra-re-authentication-modal',
+  selector: 'tratt-re-authentication-modal',
   templateUrl: './re-authentication-modal.component.html',
   styleUrls: ['./re-authentication-modal.component.scss'],
   imports: [AuthenticationComponent, TranslocoPipe],

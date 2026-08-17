@@ -26,21 +26,21 @@ describe('resolveDatabaseName', () => {
   });
 
   it('uses the new name when no legacy database exists', async () => {
-    expect(await resolveDatabaseName('tratt', ['octra-2', 'octra'])).toBe(
+    expect(await resolveDatabaseName('tratt', ['tratt-2', 'octra'])).toBe(
       'tratt',
     );
   });
 
   it('keeps an existing legacy database so data is not orphaned', async () => {
-    existing = ['octra-2'];
-    expect(await resolveDatabaseName('tratt', ['octra-2', 'octra'])).toBe(
-      'octra-2',
+    existing = ['tratt-2'];
+    expect(await resolveDatabaseName('tratt', ['tratt-2', 'octra'])).toBe(
+      'tratt-2',
     );
   });
 
   it('prefers the first matching legacy name', async () => {
     existing = ['octra'];
-    expect(await resolveDatabaseName('tratt', ['octra-2', 'octra'])).toBe(
+    expect(await resolveDatabaseName('tratt', ['tratt-2', 'octra'])).toBe(
       'octra',
     );
   });
@@ -49,6 +49,6 @@ describe('resolveDatabaseName', () => {
     jest
       .spyOn(Dexie, 'exists')
       .mockImplementation(() => Promise.reject(new Error('private browsing')));
-    expect(await resolveDatabaseName('tratt', 'octra-2')).toBe('tratt');
+    expect(await resolveDatabaseName('tratt', 'tratt-2')).toBe('tratt');
   });
 });

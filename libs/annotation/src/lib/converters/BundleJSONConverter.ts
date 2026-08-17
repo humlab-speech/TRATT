@@ -1,11 +1,11 @@
-import { OAudiofile } from '@octra/media';
+import { OAudiofile } from '@tratt/media';
 import { IAnnotJSON, OAnnotJSON } from '../annotjson';
 import {
   Converter,
   ExportResult,
   IFile,
   ImportResult,
-  OctraAnnotationFormatType,
+  TrattAnnotationFormatType,
 } from './Converter';
 
 export interface Bundle {
@@ -22,7 +22,7 @@ export interface Bundle {
 }
 
 export class BundleJSONConverter extends Converter {
-  override _name: OctraAnnotationFormatType = 'BundleJSON';
+  override _name: TrattAnnotationFormatType = 'BundleJSON';
 
   public constructor() {
     super();

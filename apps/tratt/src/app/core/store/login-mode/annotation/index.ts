@@ -1,12 +1,12 @@
+import { ProjectDto, TaskDto, TaskInputOutputDto } from '@octra/api-types';
 import {
   ASRContext,
-  OctraAnnotation,
-  OctraAnnotationSegment,
   OSegment,
   SegmentWithContext,
-} from '@octra/annotation';
-import { ProjectDto, TaskDto, TaskInputOutputDto } from '@octra/api-types';
-import { OctraGuidelines } from '@octra/assets';
+  TrattAnnotation,
+  TrattAnnotationSegment,
+} from '@tratt/annotation';
+import { TrattGuidelines } from '@tratt/assets';
 import { Histories, UndoRedoState } from 'ngrx-wieder';
 import { pipe } from 'rxjs';
 import { ProjectSettings } from '../../../obj';
@@ -18,13 +18,13 @@ import { getModeState, RootState } from '../../index';
 export interface GuidelinesItem {
   filename: string;
   name: string;
-  json: OctraGuidelines;
+  json: TrattGuidelines;
   type?: string;
 }
 
 export class AnnotationStateSegment<
   T extends ASRContext,
-> extends OctraAnnotationSegment<T> {
+> extends TrattAnnotationSegment<T> {
   static override deserialize<T extends ASRContext>(
     jsonObject: SegmentWithContext<T>,
   ): AnnotationStateSegment<T> {
@@ -75,7 +75,7 @@ export interface AnnotationState extends UndoRedoState {
     validate: (transcript: string, guidelines: any) => any;
     tidyUp: (transcript: string, guidelines: any) => any;
   };
-  transcript: OctraAnnotation<ASRContext, OctraAnnotationSegment<ASRContext>>;
+  transcript: TrattAnnotation<ASRContext, TrattAnnotationSegment<ASRContext>>;
   histories: Histories;
   currentSession: AnnotationSessionState;
   previousSession?: {

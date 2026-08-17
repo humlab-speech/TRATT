@@ -1,8 +1,8 @@
 import { Component, OnDestroy } from '@angular/core';
-import { SubscriberComponent } from '@octra/ngx-utilities';
+import { SubscriberComponent } from '@tratt/ngx-utilities';
 
 @Component({
-  selector: 'octra-default',
+  selector: 'tratt-default',
   template: '',
   standalone: true,
 })

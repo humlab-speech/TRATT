@@ -9,8 +9,8 @@ import {
 } from '@ng-bootstrap/ng-bootstrap';
 import { EffectsModule } from '@ngrx/effects';
 import { StoreModule } from '@ngrx/store';
-import { OctraComponentsModule } from '@octra/ngx-components';
-import { OctraUtilitiesModule } from '@octra/ngx-utilities';
+import { TrattComponentsModule } from '@tratt/ngx-components';
+import { TrattUtilitiesModule } from '@tratt/ngx-utilities';
 import { AppSharedModule } from '../../../app.shared.module';
 import {
   DictaphoneEditorComponent,
@@ -55,7 +55,7 @@ export const EDITORS: any[] = [
   imports: [
     CommonModule,
     FormsModule,
-    OctraComponentsModule,
+    TrattComponentsModule,
     InternRoutingModule,
     AppSharedModule,
     TranslocoModule,
@@ -76,7 +76,7 @@ export const EDITORS: any[] = [
       new LoginModeReducers(LoginMode.URL).create(),
     ),
     EffectsModule.forFeature([AnnotationEffects]),
-    OctraUtilitiesModule,
+    TrattUtilitiesModule,
     NgbDropdown,
     NgbDropdownToggle,
     NgbDropdownMenu,

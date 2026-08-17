@@ -26,4 +26,4 @@ import { ToolconfigGroupComponent } from './toolconfig-group/toolconfig-group.co
     ToolConfigArrayAdderComponent,
   ],
 })
-export class OctraFormGeneratorModule {}
+export class TrattFormGeneratorModule {}

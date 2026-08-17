@@ -43,7 +43,7 @@ export interface AppSettings {
       url?: string;
     };
   };
-  octraBackend?: {
+  trattBackend?: {
     enabled: boolean;
     url: string;
   };

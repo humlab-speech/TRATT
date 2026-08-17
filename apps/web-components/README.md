@@ -1,6 +1,6 @@
-# @octra/web-components
+# @tratt/web-components
 
-This library offers the same components from @octra/ngx-components without the limitation of using it in Angular projects.
+This library offers the same components from @tratt/ngx-components without the limitation of using it in Angular projects.
 
 ## Installation
 

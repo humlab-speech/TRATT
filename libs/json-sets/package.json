@@ -1,5 +1,5 @@
 {
-  "name": "@octra/json-sets",
+  "name": "@tratt/json-sets",
   "description": "library that allows to define and parse a set of objects using JSON.",
   "version": "1.0.1",
   "license": "MIT",

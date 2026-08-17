@@ -1,6 +1,6 @@
 <div
   class="container panel"
-  style="background-color: var(--octra-surface-background); padding: 20px"
+  style="background-color: var(--tratt-surface-background); padding: 20px"
 >
   <h3>{{ 'reload-file.header' | transloco }}</h3>
   <p>
@@ -10,10 +10,10 @@
     <b>{{ 'g.wanted' | transloco }}: {{ getDropzoneFileString(sessionfile) }}</b
     ><br /><br />
   </p>
-  <octra-dropzone
+  <tratt-dropzone
     #dropzone
     [oldFiles]="sessionfile ? [sessionfile] : []"
-  ></octra-dropzone>
+  ></tratt-dropzone>
 
   @if (
     dropzone.statistics && dropzone.statistics.new === 0 && !dropzone.hasAudio

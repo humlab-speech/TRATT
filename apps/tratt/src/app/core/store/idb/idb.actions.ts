@@ -1,14 +1,14 @@
 import { createActionGroup, emptyProps, props } from '@ngrx/store';
 import {
   ASRContext,
-  OctraAnnotation,
-  OctraAnnotationSegment,
-} from '@octra/annotation';
+  TrattAnnotation,
+  TrattAnnotationSegment,
+} from '@tratt/annotation';
+import { ConsoleEntry } from '../../shared/service/bug-report.service';
 import {
   IIDBApplicationOptions,
   IIDBModeOptions,
-} from '../../shared/octra-database';
-import { ConsoleEntry } from '../../shared/service/bug-report.service';
+} from '../../shared/tratt-database';
 import { LoginMode } from '../index';
 
 export class IDBActions {
@@ -46,10 +46,10 @@ export class IDBActions {
     events: {
       do: emptyProps(),
       success: props<{
-        online: OctraAnnotation<ASRContext, OctraAnnotationSegment<ASRContext>>;
-        demo: OctraAnnotation<ASRContext, OctraAnnotationSegment<ASRContext>>;
-        local: OctraAnnotation<ASRContext, OctraAnnotationSegment<ASRContext>>;
-        url: OctraAnnotation<ASRContext, OctraAnnotationSegment<ASRContext>>;
+        online: TrattAnnotation<ASRContext, TrattAnnotationSegment<ASRContext>>;
+        demo: TrattAnnotation<ASRContext, TrattAnnotationSegment<ASRContext>>;
+        local: TrattAnnotation<ASRContext, TrattAnnotationSegment<ASRContext>>;
+        url: TrattAnnotation<ASRContext, TrattAnnotationSegment<ASRContext>>;
       }>(),
       fail: props<{
         error: string;

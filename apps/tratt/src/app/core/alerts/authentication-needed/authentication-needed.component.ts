@@ -8,7 +8,7 @@ import {
 import { TranslocoPipe } from '@jsverse/transloco';
 
 @Component({
-  selector: 'octra-authentication-needed',
+  selector: 'tratt-authentication-needed',
   templateUrl: './authentication-needed.component.html',
   styleUrls: ['./authentication-needed.component.scss'],
   imports: [TranslocoPipe],

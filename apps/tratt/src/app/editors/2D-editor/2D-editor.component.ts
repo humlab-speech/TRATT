@@ -11,7 +11,7 @@ import {
   ViewChild,
 } from '@angular/core';
 import { TranslocoService } from '@jsverse/transloco';
-import { contains, hasProperty } from '@octra/utilities';
+import { contains, hasProperty } from '@tratt/utilities';
 import { TranscrEditorComponent } from '../../core/component';
 
 import { NgStyle } from '@angular/common';
@@ -19,29 +19,29 @@ import {
   ASRContext,
   ASRQueueItemType,
   getSegmentBySamplePosition,
-  OctraAnnotation,
-  OctraAnnotationSegment,
-} from '@octra/annotation';
-import { AudioSelection, PlayBackStatus, SampleUnit } from '@octra/media';
+  TrattAnnotation,
+  TrattAnnotationSegment,
+} from '@tratt/annotation';
+import { AudioSelection, PlayBackStatus, SampleUnit } from '@tratt/media';
 import {
   AudioViewerComponent,
   AudioviewerConfig,
   AudioViewerShortcutEvent,
   CurrentLevelChangeEvent,
   NgbModalWrapper,
-  OctraComponentsModule,
-} from '@octra/ngx-components';
+  TrattComponentsModule,
+} from '@tratt/ngx-components';
 import {
   AudioChunk,
   AudioManager,
   Shortcut,
   ShortcutGroup,
-} from '@octra/web-media';
+} from '@tratt/web-media';
 import { HotkeysEvent } from 'hotkeys-js';
 import { interval, Subscription, timer } from 'rxjs';
 import { AudioNavigationComponent } from '../../core/component/audio-navigation';
 import { NavbarService } from '../../core/component/navbar/navbar.service';
-import { OctraModalService } from '../../core/modals/octra-modal.service';
+import { TrattModalService } from '../../core/modals/tratt-modal.service';
 import {
   AlertService,
   AlertType,
@@ -54,19 +54,19 @@ import { ShortcutService } from '../../core/shared/service/shortcut.service';
 import { ASRProcessStatus, ASRTimeInterval } from '../../core/store/asr';
 import { AsrStoreService } from '../../core/store/asr/asr-store-service.service';
 import { AnnotationStoreService } from '../../core/store/login-mode/annotation/annotation.store.service';
-import { OCTRAEditor, OctraEditorRequirements } from '../octra-editor';
+import { TRATTEditor, TrattEditorRequirements } from '../tratt-editor';
 import { TranscrWindowComponent } from './transcr-window';
 
 @Component({
-  selector: 'octra-overlay-gui',
+  selector: 'tratt-overlay-gui',
   templateUrl: './2D-editor.component.html',
   styleUrls: ['./2D-editor.component.scss'],
-  imports: [OctraComponentsModule, NgStyle, AudioNavigationComponent],
+  imports: [TrattComponentsModule, NgStyle, AudioNavigationComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class TwoDEditorComponent
-  extends OCTRAEditor
-  implements OnInit, AfterViewInit, OctraEditorRequirements, OnDestroy
+  extends TRATTEditor
+  implements OnInit, AfterViewInit, TrattEditorRequirements, OnDestroy
 {
   public static editorname = '2D-Editor';
   public initialized: EventEmitter<void> = new EventEmitter<void>();
@@ -356,7 +356,7 @@ export class TwoDEditorComponent
     private cd: ChangeDetectorRef,
     private langService: TranslocoService,
     private asrStoreService: AsrStoreService,
-    private modalService: OctraModalService,
+    private modalService: TrattModalService,
     private shortcutService: ShortcutService,
     private navbarService: NavbarService,
   ) {
@@ -600,7 +600,7 @@ export class TwoDEditorComponent
     ) {
       const segment = currentLevel.items[selected.index];
 
-      if (segment !== undefined && segment instanceof OctraAnnotationSegment) {
+      if (segment !== undefined && segment instanceof TrattAnnotationSegment) {
         if (
           segment.context?.asr?.isBlockedBy !== ASRQueueItemType.ASRMAUS &&
           segment.context?.asr?.isBlockedBy !== ASRQueueItemType.MAUS
@@ -610,7 +610,7 @@ export class TwoDEditorComponent
               ? (
                   currentLevel.items[
                     selected.index - 1
-                  ] as OctraAnnotationSegment
+                  ] as TrattAnnotationSegment
                 ).time.clone()
               : this.audioManager.createSampleUnit(0);
           this.selectedIndex = selected.index;
@@ -652,7 +652,7 @@ export class TwoDEditorComponent
             {
               start: start.samples,
               length:
-                (currentLevel.items[selected.index] as OctraAnnotationSegment)
+                (currentLevel.items[selected.index] as TrattAnnotationSegment)
                   .time.samples - start.samples,
             },
             TwoDEditorComponent.editorname,
@@ -810,7 +810,7 @@ export class TwoDEditorComponent
       const currentLevel = this.annotationStoreService.currentLevel;
 
       const segmentNumber = getSegmentBySamplePosition(
-        currentLevel!.items as OctraAnnotationSegment[],
+        currentLevel!.items as TrattAnnotationSegment[],
         timePosition,
       );
 
@@ -821,7 +821,7 @@ export class TwoDEditorComponent
         ) {
           const segment = currentLevel!.items[
             segmentNumber
-          ].clone() as OctraAnnotationSegment;
+          ].clone() as TrattAnnotationSegment;
 
           if (segment !== undefined) {
             const sampleStart =
@@ -829,7 +829,7 @@ export class TwoDEditorComponent
                 ? (
                     currentLevel!.items[
                       segmentNumber - 1
-                    ] as OctraAnnotationSegment
+                    ] as TrattAnnotationSegment
                   ).time.samples
                 : 0;
 
@@ -1115,7 +1115,7 @@ export class TwoDEditorComponent
   }
 
   onEntriesChange(
-    annotation: OctraAnnotation<ASRContext, OctraAnnotationSegment>,
+    annotation: TrattAnnotation<ASRContext, TrattAnnotationSegment>,
   ) {
     // this.annotationStoreService.saveSegments();
     this.annotationStoreService.overwriteTranscript(annotation);

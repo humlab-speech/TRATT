@@ -10,6 +10,6 @@ function generate(filename, variableName) {
   export const ${variableName} = ${json};`);
 }
 
-generate("projectconfig", "OctraProjectConfigJSONSchema");
-generate("guidelines", "OctraGuidelinesJSONSchema");
-generate("logging", "OctraLoggingJSONSchema");
+generate("projectconfig", "TrattProjectConfigJSONSchema");
+generate("guidelines", "TrattGuidelinesJSONSchema");
+generate("logging", "TrattLoggingJSONSchema");

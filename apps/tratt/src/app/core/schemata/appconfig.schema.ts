@@ -208,7 +208,7 @@ export const AppConfigSchema: JSONSchema4 = {
       },
       type: 'object',
     },
-    octraBackend: {
+    trattBackend: {
       required: ['enabled', 'url'],
       type: 'object',
       description: 'Defines if the OCB shall be integrated into TRATT.',

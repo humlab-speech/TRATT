@@ -11,11 +11,11 @@ import {
 } from '@ng-bootstrap/ng-bootstrap';
 import {
   ASRContext,
-  OctraAnnotation,
-  OctraAnnotationAnyLevel,
-  OctraAnnotationSegment,
-  OctraAnnotationSegmentLevel,
-} from '@octra/annotation';
+  TrattAnnotation,
+  TrattAnnotationAnyLevel,
+  TrattAnnotationSegment,
+  TrattAnnotationSegmentLevel,
+} from '@tratt/annotation';
 import { ClipTextPipe } from '../../shared/clip-text.pipe';
 
 export interface ColumnDefinition {
@@ -28,14 +28,14 @@ export interface ColumnFormat {
   defaultValue: string;
   formatString: string;
   formatFunction: (
-    level: OctraAnnotationAnyLevel<OctraAnnotationSegment<ASRContext>>,
+    level: TrattAnnotationAnyLevel<TrattAnnotationSegment<ASRContext>>,
     segmentNumber: number,
     counter: number,
   ) => string;
 }
 
 @Component({
-  selector: 'octra-table-configurator',
+  selector: 'tratt-table-configurator',
   templateUrl: './table-configurator.component.html',
   styleUrls: ['./table-configurator.component.scss'],
   providers: [],
@@ -65,9 +65,9 @@ export class TableConfiguratorComponent implements OnInit {
       }[];
     };
   }[] = [];
-  @Input() annotation!: OctraAnnotation<
+  @Input() annotation!: TrattAnnotation<
     ASRContext,
-    OctraAnnotationSegment<ASRContext>
+    TrattAnnotationSegment<ASRContext>
   >;
   @Input() options = {};
   @Input() currentLevelID!: number;
@@ -114,11 +114,11 @@ export class TableConfiguratorComponent implements OnInit {
           defaultValue: '01:30:02.234',
           formatString: 'HH:mm:ss.mss',
           formatFunction: (
-            level: OctraAnnotationAnyLevel<OctraAnnotationSegment>,
+            level: TrattAnnotationAnyLevel<TrattAnnotationSegment>,
             segmentNumber: number,
             counter: number,
           ) => {
-            if (level instanceof OctraAnnotationSegmentLevel) {
+            if (level instanceof TrattAnnotationSegmentLevel) {
               // the value must be a unix timestamp
               let segmentStart =
                 segmentNumber > 0
@@ -136,11 +136,11 @@ export class TableConfiguratorComponent implements OnInit {
           defaultValue: '120345',
           formatString: '120345',
           formatFunction: (
-            level: OctraAnnotationAnyLevel<OctraAnnotationSegment>,
+            level: TrattAnnotationAnyLevel<TrattAnnotationSegment>,
             segmentNumber: number,
             counter: number,
           ) => {
-            if (level instanceof OctraAnnotationSegmentLevel) {
+            if (level instanceof TrattAnnotationSegmentLevel) {
               // the value must be a unix timestamp
               return (
                 (segmentNumber > 0
@@ -156,11 +156,11 @@ export class TableConfiguratorComponent implements OnInit {
           formatString: '23.4567...',
           defaultValue: '23.4567',
           formatFunction: (
-            level: OctraAnnotationAnyLevel<OctraAnnotationSegment>,
+            level: TrattAnnotationAnyLevel<TrattAnnotationSegment>,
             segmentNumber: number,
             counter: number,
           ) => {
-            if (level instanceof OctraAnnotationSegmentLevel) {
+            if (level instanceof TrattAnnotationSegmentLevel) {
               // the value must be a unix timestamp
               return (
                 (segmentNumber > 0
@@ -180,11 +180,11 @@ export class TableConfiguratorComponent implements OnInit {
           name: 'Timestamp',
           defaultValue: '01:30:02.234',
           formatFunction: (
-            level: OctraAnnotationAnyLevel<OctraAnnotationSegment>,
+            level: TrattAnnotationAnyLevel<TrattAnnotationSegment>,
             segmentNumber: number,
             counter: number,
           ) => {
-            if (level instanceof OctraAnnotationSegmentLevel) {
+            if (level instanceof TrattAnnotationSegmentLevel) {
               // the value must be a unix timestamp
               const segment = level.items[segmentNumber];
               return this.convertMilliSecondsIntoLegibleString(
@@ -200,11 +200,11 @@ export class TableConfiguratorComponent implements OnInit {
           formatString: '120345',
           defaultValue: '120345',
           formatFunction: (
-            level: OctraAnnotationAnyLevel<OctraAnnotationSegment>,
+            level: TrattAnnotationAnyLevel<TrattAnnotationSegment>,
             segmentNumber: number,
             counter: number,
           ) => {
-            if (level instanceof OctraAnnotationSegmentLevel) {
+            if (level instanceof TrattAnnotationSegmentLevel) {
               // the value must be a unix timestamp
               return level.items[segmentNumber]!.time.samples + '';
             }
@@ -216,11 +216,11 @@ export class TableConfiguratorComponent implements OnInit {
           formatString: '23.4567...',
           defaultValue: '23.4567',
           formatFunction: (
-            level: OctraAnnotationAnyLevel<OctraAnnotationSegment>,
+            level: TrattAnnotationAnyLevel<TrattAnnotationSegment>,
             segmentNumber: number,
             counter: number,
           ) => {
-            if (level instanceof OctraAnnotationSegmentLevel) {
+            if (level instanceof TrattAnnotationSegmentLevel) {
               // the value must be a unix timestamp
               return level.items[segmentNumber]!.time.seconds.toFixed(4) + '';
             }
@@ -236,11 +236,11 @@ export class TableConfiguratorComponent implements OnInit {
           name: 'Timestamp',
           defaultValue: '01:30:02.234',
           formatFunction: (
-            level: OctraAnnotationAnyLevel<OctraAnnotationSegment>,
+            level: TrattAnnotationAnyLevel<TrattAnnotationSegment>,
             segmentNumber: number,
             counter: number,
           ) => {
-            if (level instanceof OctraAnnotationSegmentLevel) {
+            if (level instanceof TrattAnnotationSegmentLevel) {
               // the value must be a unix timestamp
               const segmentStart =
                 segmentNumber > 0
@@ -260,11 +260,11 @@ export class TableConfiguratorComponent implements OnInit {
           formatString: '120345',
           defaultValue: '120345',
           formatFunction: (
-            level: OctraAnnotationAnyLevel<OctraAnnotationSegment>,
+            level: TrattAnnotationAnyLevel<TrattAnnotationSegment>,
             segmentNumber: number,
             counter: number,
           ) => {
-            if (level instanceof OctraAnnotationSegmentLevel) {
+            if (level instanceof TrattAnnotationSegmentLevel) {
               // the value must be a unix timestamp
               const segmentStart =
                 segmentNumber > 0
@@ -283,11 +283,11 @@ export class TableConfiguratorComponent implements OnInit {
           formatString: '23.4567...',
           defaultValue: '23.4567',
           formatFunction: (
-            level: OctraAnnotationAnyLevel<OctraAnnotationSegment>,
+            level: TrattAnnotationAnyLevel<TrattAnnotationSegment>,
             segmentNumber: number,
             counter: number,
           ) => {
-            if (level instanceof OctraAnnotationSegmentLevel) {
+            if (level instanceof TrattAnnotationSegmentLevel) {
               // the value must be a unix timestamp
               const segmentStart =
                 segmentNumber > 0
@@ -312,11 +312,11 @@ export class TableConfiguratorComponent implements OnInit {
           defaultValue: 'Some transcript...',
           formatString: '',
           formatFunction: (
-            level: OctraAnnotationAnyLevel<OctraAnnotationSegment>,
+            level: TrattAnnotationAnyLevel<TrattAnnotationSegment>,
             segmentNumber: number,
             counter: number,
           ) => {
-            if (level instanceof OctraAnnotationSegmentLevel) {
+            if (level instanceof TrattAnnotationSegmentLevel) {
               // the value must be a unix timestamp
               return (
                 level.items[segmentNumber]!.getFirstLabelWithoutName('Speaker')
@@ -336,11 +336,11 @@ export class TableConfiguratorComponent implements OnInit {
           defaultValue: 'OCTRA_1',
           formatString: '',
           formatFunction: (
-            level: OctraAnnotationAnyLevel<OctraAnnotationSegment>,
+            level: TrattAnnotationAnyLevel<TrattAnnotationSegment>,
             segmentNumber: number,
             counter: number,
           ) => {
-            if (level instanceof OctraAnnotationSegmentLevel) {
+            if (level instanceof TrattAnnotationSegmentLevel) {
               // the value must be a unix timestamp
               return level.name;
             }
@@ -358,11 +358,11 @@ export class TableConfiguratorComponent implements OnInit {
           defaultValue: '44100',
           formatString: '44100',
           formatFunction: (
-            level: OctraAnnotationAnyLevel<OctraAnnotationSegment>,
+            level: TrattAnnotationAnyLevel<TrattAnnotationSegment>,
             segmentNumber: number,
             counter: number,
           ) => {
-            if (level instanceof OctraAnnotationSegmentLevel) {
+            if (level instanceof TrattAnnotationSegmentLevel) {
               // the value must be a unix timestamp
               return `${level.items[0]!.time.sampleRate}`;
             }
@@ -374,11 +374,11 @@ export class TableConfiguratorComponent implements OnInit {
           defaultValue: '44,1kHz',
           formatString: '44,1kHz',
           formatFunction: (
-            level: OctraAnnotationAnyLevel<OctraAnnotationSegment>,
+            level: TrattAnnotationAnyLevel<TrattAnnotationSegment>,
             segmentNumber: number,
             counter: number,
           ) => {
-            if (level instanceof OctraAnnotationSegmentLevel) {
+            if (level instanceof TrattAnnotationSegmentLevel) {
               // the value must be a unix timestamp
               return `${level.items[0]!.time.sampleRate / 1000}kHz`;
             }
@@ -395,11 +395,11 @@ export class TableConfiguratorComponent implements OnInit {
           defaultValue: '1',
           formatString: '1',
           formatFunction: (
-            level: OctraAnnotationAnyLevel<OctraAnnotationSegment>,
+            level: TrattAnnotationAnyLevel<TrattAnnotationSegment>,
             segmentNumber: number,
             counter: number,
           ) => {
-            if (level instanceof OctraAnnotationSegmentLevel) {
+            if (level instanceof TrattAnnotationSegmentLevel) {
               // the value must be a unix timestamp
               return `${counter}`;
             }
@@ -568,7 +568,7 @@ export class TableConfiguratorComponent implements OnInit {
     for (let i = startAt; i < this.annotation.levels.length; i++) {
       const level = this.annotation.levels[i];
 
-      if (level instanceof OctraAnnotationSegmentLevel) {
+      if (level instanceof TrattAnnotationSegmentLevel) {
         for (let j = 0; j < level.items.length; j++) {
           const segment = level.items[j];
 
@@ -666,7 +666,7 @@ export class TableConfiguratorComponent implements OnInit {
       const level = this.annotation.levels[i];
       let start = 0;
 
-      if (level instanceof OctraAnnotationSegmentLevel) {
+      if (level instanceof TrattAnnotationSegmentLevel) {
         for (let j = 0; j < level.items.length; j++) {
           const segment = level.items[j];
           const text = def.formatFunction(level, j, counter);

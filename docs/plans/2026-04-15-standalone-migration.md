@@ -17,6 +17,7 @@
 ### Task 1: Migrate DefaultComponent to standalone
 
 **Files:**
+
 - Modify: `apps/octra/src/app/core/component/default.component.ts`
 
 **Step 1: Read DefaultComponent**
@@ -31,12 +32,12 @@ cat apps/octra/src/app/core/component/default.component.ts
 // apps/octra/src/app/core/component/default.component.ts
 
 import { Component } from '@angular/core';
-import { SubscriberComponent } from '@octra/ngx-utilities';
+import { SubscriberComponent } from '@tratt/ngx-utilities';
 
 @Component({
   selector: 'octra-default',
   template: '',
-  standalone: true
+  standalone: true,
 })
 export class DefaultComponent extends SubscriberComponent {}
 ```
@@ -53,6 +54,7 @@ git commit -m "refactor: make DefaultComponent standalone"
 ### Task 2: Convert DynComponentDirective to modern API
 
 **Files:**
+
 - Modify: `apps/octra/src/app/core/shared/directive/dyn-component.directive.ts`
 
 **Step 1: Replace ComponentFactoryResolver with ViewContainerRef.createComponent()**
@@ -64,7 +66,7 @@ import { Directive, Input, Output, ViewContainerRef, EventEmitter, OnInit, OnDes
 
 @Directive({
   selector: '[octraDynComponent]',
-  standalone: true
+  standalone: true,
 })
 export class DynComponentDirective implements OnInit, OnDestroy {
   @Input() component!: { id: number; class: any; instance: any };
@@ -76,17 +78,17 @@ export class DynComponentDirective implements OnInit, OnDestroy {
   ngOnInit(): void {
     const viewContainerRef = this.viewContainerRef;
     viewContainerRef.clear();
-    
+
     // Modern API: no ComponentFactoryResolver needed
     const comp = viewContainerRef.createComponent(this.component!.class);
-    
+
     // subscribe to comp.instance lifecycle events
     if (comp.instance.initialized) {
       comp.instance.initialized.subscribe(() => {
         this.initialized.emit({ id: this.component!.id, instance: comp.instance });
       });
     }
-    
+
     if (comp.instance.destroyed) {
       comp.instance.destroyed.subscribe(() => {
         this.destroyed.emit({ id: this.component!.id });
@@ -114,6 +116,7 @@ git commit -m "refactor: replace ComponentFactoryResolver with modern ViewContai
 ### Task 3: Convert AppSharedModule to providers array
 
 **Files:**
+
 - Create: `apps/octra/src/app/app.shared.providers.ts`
 - Modify: `apps/octra/src/app/app.shared.module.ts` (mark as deprecated)
 
@@ -123,10 +126,7 @@ git commit -m "refactor: replace ComponentFactoryResolver with modern ViewContai
 // apps/octra/src/app/app.shared.providers.ts
 
 import { Provider } from '@angular/core';
-import {
-  OctraComponentsModule,
-  OctraUtilitiesModule
-} from '@octra/ngx-components';
+import { OctraComponentsModule, OctraUtilitiesModule } from '@tratt/ngx-components';
 import { TranslocoModule } from '@jsverse/transloco';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -160,7 +160,7 @@ export const SHARED_PROVIDERS: Provider[] = [
   OctraComponentsModule,
   OctraUtilitiesModule,
   NgxJoditComponent,
-  
+
   // Standalone components (these will be imported directly where needed)
   TranscriptionFeedbackComponent,
   ClipTextPipe,
@@ -171,7 +171,7 @@ export const SHARED_PROVIDERS: Provider[] = [
   TranscrOverviewComponent,
   TranscrEditorComponent,
   ValidationPopoverComponent,
-  AsrOptionsComponent
+  AsrOptionsComponent,
 ];
 ```
 
@@ -184,8 +184,12 @@ export const SHARED_PROVIDERS: Provider[] = [
  * @deprecated Use SHARED_PROVIDERS from app.shared.providers.ts instead
  */
 @NgModule({
-  imports: [/* ... existing imports ... */],
-  exports: [/* ... existing exports ... */]
+  imports: [
+    /* ... existing imports ... */
+  ],
+  exports: [
+    /* ... existing exports ... */
+  ],
 })
 export class AppSharedModule {}
 ```
@@ -202,7 +206,7 @@ bootstrapApplication(AppComponent, {
     // ... other providers ...
     SHARED_PROVIDERS,
     // ... rest ...
-  ]
+  ],
 });
 ```
 
@@ -218,6 +222,7 @@ git commit -m "refactor: extract AppSharedModule providers to standalone array"
 ### Task 4: Convert ModalsModule to providers + direct imports
 
 **Files:**
+
 - Create: `apps/octra/src/app/core/modals/modals.providers.ts`
 - Modify: `apps/octra/src/app/core/modals/modals.module.ts` (deprecate)
 - Modify: `apps/octra/src/app/core/pages/intern/intern-routing.module.ts` (update imports)
@@ -228,42 +233,10 @@ git commit -m "refactor: extract AppSharedModule providers to standalone array"
 // apps/octra/src/app/core/modals/modals.providers.ts
 
 import { Provider } from '@angular/core';
-import {
-  ErrorModalComponent,
-  ExportFilesModalComponent,
-  HelpModalComponent,
-  InactivityModalComponent,
-  LoginInvalidModalComponent,
-  MissingPermissionsModalComponent,
-  OctraModalComponent,
-  OverviewModalComponent,
-  PromptModalComponent,
-  ShortcutsModalComponent,
-  StatisticsModalComponent,
-  SupportedFilesModalComponent,
-  ToolsModalComponent,
-  TranscriptionDeleteModalComponent,
-  TranscriptionDemoEndModalComponent,
-  TranscriptionGuidelinesModalComponent,
-  TranscriptionSendingModalComponent,
-  TranscriptionStopModalComponent,
-  YesNoModalComponent,
-  ProtectedModalComponent,
-  ShortcutComponent,
-  TableConfiguratorComponent,
-  ReAuthenticationModalComponent,
-  AuthenticationComponent,
-  AboutModalComponent,
-  FeedbackNoticeModalComponent,
-  TranscriptionBackupEndModalComponent,
-  ImportOptionsModalComponent,
-  WaitingModalComponent,
-  BugreportModalComponent,
-  NamingDragAndDropComponent
-} from './modals.barrel'; // Create a barrel export if not present
+import { ErrorModalComponent, ExportFilesModalComponent, HelpModalComponent, InactivityModalComponent, LoginInvalidModalComponent, MissingPermissionsModalComponent, OctraModalComponent, OverviewModalComponent, PromptModalComponent, ShortcutsModalComponent, StatisticsModalComponent, SupportedFilesModalComponent, ToolsModalComponent, TranscriptionDeleteModalComponent, TranscriptionDemoEndModalComponent, TranscriptionGuidelinesModalComponent, TranscriptionSendingModalComponent, TranscriptionStopModalComponent, YesNoModalComponent, ProtectedModalComponent, ShortcutComponent, TableConfiguratorComponent, ReAuthenticationModalComponent, AuthenticationComponent, AboutModalComponent, FeedbackNoticeModalComponent, TranscriptionBackupEndModalComponent, ImportOptionsModalComponent, WaitingModalComponent, BugreportModalComponent, NamingDragAndDropComponent } from './modals.barrel'; // Create a barrel export if not present
 
 import { AppSharedModule } from '../../app.shared.module';
-import { OctraFormGeneratorModule } from '@octra/ngx-components';
+import { OctraFormGeneratorModule } from '@tratt/ngx-components';
 import { NgbModalModule } from '@ng-bootstrap/ng-bootstrap';
 import { CommonModule } from '@angular/common';
 
@@ -272,13 +245,13 @@ export const MODALS_PROVIDERS: Provider[] = [
   AppSharedModule,
   NgbModalModule,
   OctraFormGeneratorModule,
-  
+
   // All modal components as standalone imports
   ErrorModalComponent,
   ExportFilesModalComponent,
   HelpModalComponent,
   // ... (full list)
-  WaitingModalComponent
+  WaitingModalComponent,
 ];
 ```
 
@@ -291,7 +264,7 @@ import { MODALS_PROVIDERS } from '../modals/modals.providers';
 @NgModule({
   imports: [
     // ... existing ...
-    ...MODALS_PROVIDERS
+    ...MODALS_PROVIDERS,
   ],
   // ...
 })
@@ -312,6 +285,7 @@ git commit -m "refactor: extract ModalsModule to standalone providers"
 ### Task 5: Convert InternModule to loadComponent routes
 
 **Files:**
+
 - Modify: `apps/octra/src/app/core/pages/intern/intern-routing.module.ts`
 - Modify: `apps/octra/src/app/core/pages/intern/intern.module.ts`
 
@@ -327,39 +301,39 @@ import { AUTHENTICATED_GUARD } from '../../pages/intern/intern.activateguard';
 const INTERN_ROUTES: Routes = [
   {
     path: 'projects',
-    loadComponent: () => import('./projects-list/projects-list.component').then(m => m.ProjectsListComponent),
-    canActivate: [AUTHENTICATED_GUARD]
+    loadComponent: () => import('./projects-list/projects-list.component').then((m) => m.ProjectsListComponent),
+    canActivate: [AUTHENTICATED_GUARD],
   },
   {
     path: 'transcr',
-    loadComponent: () => import('./transcription/transcription.component').then(m => m.TranscriptionComponent),
-    canActivate: [AUTHENTICATED_GUARD]
+    loadComponent: () => import('./transcription/transcription.component').then((m) => m.TranscriptionComponent),
+    canActivate: [AUTHENTICATED_GUARD],
   },
   {
     path: 'transcr/end',
-    loadComponent: () => import('./transcription-end/transcription-end.component').then(m => m.TranscriptionEndComponent),
-    canActivate: [AUTHENTICATED_GUARD]
+    loadComponent: () => import('./transcription-end/transcription-end.component').then((m) => m.TranscriptionEndComponent),
+    canActivate: [AUTHENTICATED_GUARD],
   },
   {
     path: 'transcr/reload-file',
-    loadComponent: () => import('./reload-file/reload-file.component').then(m => m.ReloadFileComponent),
-    canActivate: [AUTHENTICATED_GUARD]
+    loadComponent: () => import('./reload-file/reload-file.component').then((m) => m.ReloadFileComponent),
+    canActivate: [AUTHENTICATED_GUARD],
   },
   {
     path: 'auth',
-    loadComponent: () => import('./auth/auth.component').then(m => m.AuthComponent),
-    canActivate: [AUTHENTICATED_GUARD]
+    loadComponent: () => import('./auth/auth.component').then((m) => m.AuthComponent),
+    canActivate: [AUTHENTICATED_GUARD],
   },
   {
     path: 'auth-success',
-    loadComponent: () => import('./auth-success-page/auth-success-page.component').then(m => m.AuthSuccessPageComponent),
-    canActivate: [AUTHENTICATED_GUARD]
-  }
+    loadComponent: () => import('./auth-success-page/auth-success-page.component').then((m) => m.AuthSuccessPageComponent),
+    canActivate: [AUTHENTICATED_GUARD],
+  },
 ];
 
 @NgModule({
   imports: [RouterModule.forChild(INTERN_ROUTES)],
-  exports: [RouterModule]
+  exports: [RouterModule],
 })
 export class InternRoutingModule {}
 ```
@@ -394,6 +368,7 @@ git commit -m "refactor: migrate InternModule child routes to loadComponent"
 ### Task 6: Remove importProvidersFrom() calls
 
 **Files:**
+
 - Modify: `apps/octra/src/main.ts`
 
 **Step 1: Replace all importProvidersFrom() with direct standalone imports**
@@ -414,17 +389,9 @@ import { ApplicationUIEffects } from './app/core/store/application/effects/appli
 import { AsrQueueEffects } from './app/core/store/asr/asr-queue.effects';
 import { AsrProcessingEffects } from './app/core/store/asr/asr-processing.effects';
 import { IDBEffectsService } from './app/core/store/idb/idb-effects.service';
-import {
-  NgbDropdownModule,
-  NgbNavModule,
-  NgbModalModule,
-  NgbPopoverModule,
-  NgbTooltipModule,
-  NgbCollapseModule,
-  NgbOffcanvasModule
-} from '@ng-bootstrap/ng-bootstrap';
-import { OctraComponentsModule } from '@octra/ngx-components';
-import { OctraUtilitiesModule } from '@octra/ngx-utilities';
+import { NgbDropdownModule, NgbNavModule, NgbModalModule, NgbPopoverModule, NgbTooltipModule, NgbCollapseModule, NgbOffcanvasModule } from '@ng-bootstrap/ng-bootstrap';
+import { OctraComponentsModule } from '@tratt/ngx-components';
+import { OctraUtilitiesModule } from '@tratt/ngx-utilities';
 import { NgxOctraApiModule } from '@octra/ngx-octra-api';
 import { ModalsModule } from './app/core/modals/modals.module';
 import { PagesModule } from './app/core/pages/pages.module';
@@ -440,42 +407,27 @@ import { asrRootState, asrRootReducer } from './app/core/store/asr/asr.reducer';
 import { authenticationRootState, authenticationRootReducer } from './app/core/store/authentication/authentication.reducer';
 import { userRootState, userRootReducer } from './app/core/store/user/user.reducer';
 import { appConfig } from './app/app.transloco';
-import {
-  ALoginGuard,
-  AudioService,
-  NavbarService,
-  AppStorageService,
-  IDBService,
-  SettingsService
-} from './app/core/shared/service';
+import { ALoginGuard, AudioService, NavbarService, AppStorageService, IDBService, SettingsService } from './app/core/shared/service';
 
 bootstrapApplication(AppComponent, {
   providers: [
     // Router
     provideRouter(APP_ROUTES, withEnabledBlockingInitialNavigation()),
-    
+
     // Forms
     FormsModule,
     ReactiveFormsModule,
-    
+
     // NgRx store
     StoreModule.forRoot({
       [appRootState]: appRootReducer,
       [asrRootState]: asrRootReducer,
       [authenticationRootState]: authenticationRootReducer,
-      [userRootState]: userRootReducer
+      [userRootState]: userRootReducer,
     }),
     StoreDevtoolsModule.instrument({ maxAge: 25, logOnly: environment.production }),
-    EffectsModule.forRoot([
-      ApplicationRootEffects,
-      AuthenticationEffects,
-      ApplicationSessionEffects,
-      ApplicationUIEffects,
-      AsrQueueEffects,
-      AsrProcessingEffects,
-      IDBEffectsService
-    ]),
-    
+    EffectsModule.forRoot([ApplicationRootEffects, AuthenticationEffects, ApplicationSessionEffects, ApplicationUIEffects, AsrQueueEffects, AsrProcessingEffects, IDBEffectsService]),
+
     // ng-bootstrap modules
     NgbDropdownModule,
     NgbNavModule,
@@ -484,35 +436,35 @@ bootstrapApplication(AppComponent, {
     NgbTooltipModule,
     NgbCollapseModule,
     NgbOffcanvasModule,
-    
+
     // @octra packages
     OctraComponentsModule,
     OctraUtilitiesModule,
     NgxOctraApiModule,
-    
+
     // Legacy compatibility (mark for eventual removal)
     ModalsModule,
     PagesModule,
-    
+
     // Shared providers (Components, Pipes, etc)
     ...SHARED_PROVIDERS,
-    
+
     // HTTP and animations
     provideHttpClient(withInterceptorsFromDi()),
     provideAnimations(),
-    
+
     // Service worker
     provideServiceWorker('ngsw-worker.js', { enabled: environment.production }),
-    
+
     // Services
     ALoginGuard,
     AudioService,
     NavbarService,
     AppStorageService,
     IDBService,
-    SettingsService
-  ]
-}).catch(err => console.error(err));
+    SettingsService,
+  ],
+}).catch((err) => console.error(err));
 ```
 
 **Step 2: Commit**

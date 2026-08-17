@@ -9,122 +9,122 @@
  * palette-compliant when it runs standalone.
  *
  * Canvas colours cannot read CSS variables; they live in
- * libs/ngx-components/src/lib/obj/octra-colors.ts. Keep the two in sync.
+ * libs/ngx-components/src/lib/obj/tratt-colors.ts. Keep the two in sync.
  */
 :root {
   /* Surfaces — VISP $tertiary-light / $white / $tertiary */
-  --octra-surface-page: #eef0f4;
-  --octra-surface-card: #ffffff;
-  --octra-surface-sunken: #e6e8ed;
+  --tratt-surface-page: #eef0f4;
+  --tratt-surface-card: #ffffff;
+  --tratt-surface-sunken: #e6e8ed;
 
   /* Structural chrome — UMU "Blå", within a hair of VISP $primary #2f4f71 */
-  --octra-chrome: #2a4765;
-  --octra-chrome-hover: #3c6289; /* VISP $primary-light */
-  --octra-on-chrome: #ffffff;
+  --tratt-chrome: #2a4765;
+  --tratt-chrome-hover: #3c6289; /* VISP $primary-light */
+  --tratt-on-chrome: #ffffff;
 
   /* Primary action — VISP $secondary verbatim, so buttons read as one system */
-  --octra-cta: #d47752;
-  --octra-cta-hover: #b76545; /* VISP $secondary-dark */
-  --octra-cta-contrast: #a85832; /* 5.1:1 against white text, unlike $secondary */
-  --octra-on-cta: #ffffff;
+  --tratt-cta: #d47752;
+  --tratt-cta-hover: #b76545; /* VISP $secondary-dark */
+  --tratt-cta-contrast: #a85832; /* 5.1:1 against white text, unlike $secondary */
+  --tratt-on-cta: #ffffff;
 
   /* Text and lines — VISP $dark-font-color / $border / $border-light */
-  --octra-text-primary: #1f3044;
-  --octra-text-muted: #667a90;
-  --octra-border: #d4d9e0;
+  --tratt-text-primary: #1f3044;
+  --tratt-text-muted: #667a90;
+  --tratt-border: #d4d9e0;
 
   /* Signal display */
-  --octra-waveform-background: #ffffff;
-  --octra-waveform-signal: rgba(42, 71, 101, 0.8);
-  --octra-segment-transcribed: rgba(60, 98, 137, 0.15);
-  --octra-playhead: #d7263d; /* VISP $crimson */
+  --tratt-waveform-background: #ffffff;
+  --tratt-waveform-signal: rgba(42, 71, 101, 0.8);
+  --tratt-segment-transcribed: rgba(60, 98, 137, 0.15);
+  --tratt-playhead: #d7263d; /* VISP $crimson */
 
   /* Status. Green is demoted from chrome to semantics — UMU "Barrskog". */
-  --octra-success: #3d6b5c;
-  --octra-warning: #d7b17c; /* UMU "Guld" */
-  --octra-danger: #d7263d; /* VISP $crimson */
-  --octra-danger-surface: #fdf2f3;
-  --octra-note-surface: #fdf8ee; /* comment fields — a tint of --octra-warning */
-  --octra-info: #3c6289;
+  --tratt-success: #3d6b5c;
+  --tratt-warning: #d7b17c; /* UMU "Guld" */
+  --tratt-danger: #d7263d; /* VISP $crimson */
+  --tratt-danger-surface: #fdf2f3;
+  --tratt-note-surface: #fdf8ee; /* comment fields — a tint of --tratt-warning */
+  --tratt-info: #3c6289;
 
   /* Deprecated aliases. Drop once the hardcoded-hex sweep lands. */
-  --octra-surface-background: var(--octra-surface-page);
-  --octra-accent-green: var(--octra-chrome);
-  --octra-accent-green-dark: var(--octra-chrome-hover);
-  --octra-accent-error: var(--octra-danger);
-  --octra-accent-warning: var(--octra-warning);
+  --tratt-surface-background: var(--tratt-surface-page);
+  --tratt-accent-green: var(--tratt-chrome);
+  --tratt-accent-green-dark: var(--tratt-chrome-hover);
+  --tratt-accent-error: var(--tratt-danger);
+  --tratt-accent-warning: var(--tratt-warning);
 }
 
 /* Bootstrap ships stock colours (#0d6efd blue, #198754 green, #dc3545 red) that
  * leaked into every badge, alert, progress bar and link. Remapping its theme
  * variables here covers all of them, so the utility classes stay usable. */
 :root {
-  --bs-primary: var(--octra-chrome);
+  --bs-primary: var(--tratt-chrome);
   --bs-primary-rgb: 42, 71, 101;
-  --bs-secondary: var(--octra-text-muted);
+  --bs-secondary: var(--tratt-text-muted);
   --bs-secondary-rgb: 102, 122, 144;
-  --bs-success: var(--octra-success);
+  --bs-success: var(--tratt-success);
   --bs-success-rgb: 61, 107, 92;
-  --bs-danger: var(--octra-danger);
+  --bs-danger: var(--tratt-danger);
   --bs-danger-rgb: 215, 38, 61;
-  --bs-warning: var(--octra-warning);
+  --bs-warning: var(--tratt-warning);
   --bs-warning-rgb: 215, 177, 124;
-  --bs-info: var(--octra-info);
+  --bs-info: var(--tratt-info);
   --bs-info-rgb: 60, 98, 137;
 
-  --bs-body-color: var(--octra-text-primary);
+  --bs-body-color: var(--tratt-text-primary);
   --bs-body-color-rgb: 31, 48, 68;
-  --bs-body-bg: var(--octra-surface-card);
-  --bs-border-color: var(--octra-border);
-  --bs-link-color: var(--octra-chrome);
+  --bs-body-bg: var(--tratt-surface-card);
+  --bs-border-color: var(--tratt-border);
+  --bs-link-color: var(--tratt-chrome);
   --bs-link-color-rgb: 42, 71, 101;
-  --bs-link-hover-color: var(--octra-chrome-hover);
+  --bs-link-hover-color: var(--tratt-chrome-hover);
 }
 
 /* btn-success marks the handful of headline CTAs (9 call sites), btn-primary
  * the everyday buttons (55). That split already matches VISP's two-tier
  * hierarchy, so it maps straight onto accent-vs-chrome. */
 .btn.btn-success {
-  color: var(--octra-on-cta);
-  background-color: var(--octra-cta);
-  border-color: var(--octra-cta);
+  color: var(--tratt-on-cta);
+  background-color: var(--tratt-cta);
+  border-color: var(--tratt-cta);
 }
 
 .btn.btn-success:hover,
 .btn.btn-success:focus {
-  color: var(--octra-on-cta);
-  background-color: var(--octra-cta-hover);
-  border-color: var(--octra-cta-hover);
+  color: var(--tratt-on-cta);
+  background-color: var(--tratt-cta-hover);
+  border-color: var(--tratt-cta-hover);
 }
 
 .btn.btn-warning {
   color: #fff;
-  background-color: var(--octra-accent-warning);
-  border-color: var(--octra-accent-warning);
+  background-color: var(--tratt-accent-warning);
+  border-color: var(--tratt-accent-warning);
 }
 
 .btn.btn-danger {
   color: #fff;
-  background-color: var(--octra-danger);
-  border-color: var(--octra-danger);
+  background-color: var(--tratt-danger);
+  border-color: var(--tratt-danger);
 }
 
 .btn.btn-primary {
-  color: var(--octra-on-chrome) !important;
-  background-color: var(--octra-chrome) !important;
-  border-color: var(--octra-chrome) !important;
+  color: var(--tratt-on-chrome) !important;
+  background-color: var(--tratt-chrome) !important;
+  border-color: var(--tratt-chrome) !important;
 }
 
 .btn.btn-primary:hover,
 .btn.btn-primary:focus {
-  background-color: var(--octra-chrome-hover) !important;
-  border-color: var(--octra-chrome-hover) !important;
+  background-color: var(--tratt-chrome-hover) !important;
+  border-color: var(--tratt-chrome-hover) !important;
 }
 
 .btn.btn-secondary {
   color: #fff !important;
-  background-color: var(--octra-text-muted) !important;
-  border-color: var(--octra-text-muted) !important;
+  background-color: var(--tratt-text-muted) !important;
+  border-color: var(--tratt-text-muted) !important;
 }
 
 .modal-open {
@@ -146,7 +146,7 @@ body {
   min-height: 100vh;
   height: 100%;
   overflow: hidden;
-  background-color: var(--octra-surface-background);
+  background-color: var(--tratt-surface-background);
 }
 
 main {
@@ -155,7 +155,7 @@ main {
   flex: 1 0 auto;
   display: flex;
   flex-direction: column;
-  background-color: var(--octra-surface-background);
+  background-color: var(--tratt-surface-background);
 }
 
 @media (max-width: 400px) {
@@ -189,7 +189,7 @@ footer {
 }
 
 .link {
-  color: var(--octra-text-primary);
+  color: var(--tratt-text-primary);
   cursor: pointer;
 }
 
@@ -234,7 +234,7 @@ footer {
 }
 
 .export-button {
-  background-color: var(--octra-surface-background);
+  background-color: var(--tratt-surface-background);
   border: 1px solid grey;
   text-align: center;
   padding: 20px;
@@ -250,15 +250,15 @@ footer {
 }
 
 .error_underline {
-  border-bottom: 2px solid var(--octra-accent-error);
+  border-bottom: 2px solid var(--tratt-accent-error);
   display: inline;
   cursor: pointer;
 }
 
 .error-tooltip {
   display: none;
-  background-color: var(--octra-danger-surface);
-  border: 1px solid var(--octra-danger);
+  background-color: var(--tratt-danger-surface);
+  border: 1px solid var(--tratt-danger);
   padding: 10px;
   max-width: 70%;
   position: absolute;
@@ -317,8 +317,8 @@ footer {
 }
 
 .seg-popover {
-  border: 1px solid var(--octra-accent-warning);
-  background-color: var(--octra-surface-background);
+  border: 1px solid var(--tratt-accent-warning);
+  background-color: var(--tratt-surface-background);
   z-index: 100;
   position: absolute;
   padding: 5px;
@@ -338,13 +338,13 @@ footer {
 }
 
 .alert-warning {
-  color: var(--octra-surface-background);
-  background-color: var(--octra-accent-warning);
-  border-color: var(--octra-accent-warning);
+  color: var(--tratt-surface-background);
+  background-color: var(--tratt-accent-warning);
+  border-color: var(--tratt-accent-warning);
 }
 
 .note-toolbar button.note-btn.btn.btn-light.btn-sm {
-  background-color: var(--octra-surface-background);
+  background-color: var(--tratt-surface-background);
   color: black;
   padding: 2px 6px;
 }
@@ -379,7 +379,7 @@ footer {
 }
 
 .note-toolbar-wrapper.panel-default {
-  background-color: var(--octra-surface-background);
+  background-color: var(--tratt-surface-background);
 }
 
 .val-error {
@@ -471,7 +471,7 @@ label.radio-inline .bmd-radio {
   vertical-align: middle;
   /* width: 30px; */
   text-align: center;
-  background-color: var(--octra-surface-background);
+  background-color: var(--tratt-surface-background);
   color: gray;
   position: relative;
 }
@@ -497,7 +497,7 @@ label.radio-inline .bmd-radio {
   justify-content: space-between;
   box-sizing: border-box;
   cursor: move;
-  background: var(--octra-surface-background);
+  background: var(--tratt-surface-background);
   font-size: 14px;
   margin: 0;
 }
@@ -506,7 +506,7 @@ label.radio-inline .bmd-radio {
   border-bottom: 1px solid lightgray;
   padding: 5px;
   height: 35px;
-  background-color: var(--octra-surface-background);
+  background-color: var(--tratt-surface-background);
 }
 
 .column.ng-star-inserted.gu-mirror .cell:last-of-type {
@@ -515,7 +515,7 @@ label.radio-inline .bmd-radio {
 
 .note-toolbar.card-header {
   padding: 0;
-  background-color: var(--octra-surface-background);
+  background-color: var(--tratt-surface-background);
 }
 
 .highlighted {
@@ -526,7 +526,7 @@ label.radio-inline .bmd-radio {
 
 .modal-content {
   border-radius: 20px !important;
-  background-color: var(--octra-surface-background);
+  background-color: var(--tratt-surface-background);
 }
 
 .bg-white,
@@ -534,15 +534,15 @@ label.radio-inline .bmd-radio {
 .card,
 .dropdown-menu,
 .panel {
-  background-color: var(--octra-surface-background) !important;
+  background-color: var(--tratt-surface-background) !important;
 }
 
 .btn-info,
 .bg-info,
 .btn-info:hover {
-  color: var(--octra-surface-background);
-  background-color: var(--octra-accent-green);
-  border-color: var(--octra-accent-green);
+  color: var(--tratt-surface-background);
+  background-color: var(--tratt-accent-green);
+  border-color: var(--tratt-accent-green);
 }
 
 a {
@@ -572,7 +572,7 @@ a {
 
 .jodit-toolbar__box:not(:empty):not(:empty),
 .jodit-toolbar-editor-collection_size_middle.jodit-toolbar-editor-collection_mode_horizontal {
-  background: var(--octra-surface-background) !important;
+  background: var(--tratt-surface-background) !important;
 }
 
 .jodit-toolbar__box .btn-shortcut {
@@ -591,10 +591,10 @@ a {
 
 .text-outline-white {
   text-shadow:
-    -1px -1px 0 var(--octra-surface-background),
-    1px -1px 0 var(--octra-surface-background),
-    -1px 1px 0 var(--octra-surface-background),
-    1px 1px 0 var(--octra-surface-background) !important;
+    -1px -1px 0 var(--tratt-surface-background),
+    1px -1px 0 var(--tratt-surface-background),
+    -1px 1px 0 var(--tratt-surface-background),
+    1px 1px 0 var(--tratt-surface-background) !important;
 }
 
 .beta_mark {

@@ -9,7 +9,7 @@ import {
 } from '@angular/core';
 
 @Component({
-  selector: 'octra-vu-meter',
+  selector: 'tratt-vu-meter',
   standalone: true,
   template: `<canvas
     #cv

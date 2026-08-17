@@ -1,19 +1,19 @@
 import { Component, Input } from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { NgbActiveModal, NgbModalOptions } from '@ng-bootstrap/ng-bootstrap';
-import { BrowserInfo } from '@octra/web-media';
+import { BrowserInfo } from '@tratt/web-media';
 import { AppStorageService } from '../../shared/service/appstorage.service';
 import { ShortcutService } from '../../shared/service/shortcut.service';
 import { ShortcutComponent } from '../../shortcut/shortcut.component';
-import { OctraModal } from '../types';
+import { TrattModal } from '../types';
 
 @Component({
-  selector: 'octra-shortcuts-modal',
+  selector: 'tratt-shortcuts-modal',
   templateUrl: './shortcuts-modal.component.html',
   styleUrls: ['./shortcuts-modal.component.scss'],
   imports: [ShortcutComponent, TranslocoPipe],
 })
-export class ShortcutsModalComponent extends OctraModal {
+export class ShortcutsModalComponent extends TrattModal {
   public static options: NgbModalOptions = {
     keyboard: true,
     backdrop: true,

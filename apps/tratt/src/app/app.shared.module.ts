@@ -11,9 +11,9 @@ import {
 } from '@ng-bootstrap/ng-bootstrap';
 import {
   AsrOptionsComponent,
-  OctraComponentsModule,
-} from '@octra/ngx-components';
-import { OctraUtilitiesModule } from '@octra/ngx-utilities';
+  TrattComponentsModule,
+} from '@tratt/ngx-components';
+import { TrattUtilitiesModule } from '@tratt/ngx-utilities';
 import { NgxJoditComponent } from 'ngx-jodit';
 import {
   AlertComponent,
@@ -21,10 +21,10 @@ import {
   TranscrEditorComponent,
 } from './core/component';
 import { SignupComponent } from './core/component/authentication-component/signup/signup.component';
-import { OctraDropzoneComponent } from './core/component/octra-dropzone/octra-dropzone.component';
 import { ValidationPopoverComponent } from './core/component/transcr-editor/validation-popover/validation-popover.component';
 import { TranscrOverviewComponent } from './core/component/transcr-overview';
 import { TranscriptionFeedbackComponent } from './core/component/transcription-feedback/transcription-feedback.component';
+import { TrattDropzoneComponent } from './core/component/tratt-dropzone/tratt-dropzone.component';
 import { ClipTextPipe } from './core/shared/clip-text.pipe';
 
 /**
@@ -38,14 +38,14 @@ import { ClipTextPipe } from './core/shared/clip-text.pipe';
     DragDropModule,
     NgbDropdownModule,
     NgbPopoverModule,
-    OctraComponentsModule,
-    OctraUtilitiesModule,
+    TrattComponentsModule,
+    TrattUtilitiesModule,
     TranslocoModule,
     NgbToast,
     NgxJoditComponent,
     TranscriptionFeedbackComponent,
     ClipTextPipe,
-    OctraDropzoneComponent,
+    TrattDropzoneComponent,
     DropZoneComponent,
     AlertComponent,
     SignupComponent,
@@ -57,7 +57,7 @@ import { ClipTextPipe } from './core/shared/clip-text.pipe';
   exports: [
     TranscriptionFeedbackComponent,
     ClipTextPipe,
-    OctraDropzoneComponent,
+    TrattDropzoneComponent,
     DropZoneComponent,
     AlertComponent,
     SignupComponent,

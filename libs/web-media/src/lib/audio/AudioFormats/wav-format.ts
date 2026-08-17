@@ -6,7 +6,7 @@ export class WavFormat extends AudioFormat {
   private status: 'running' | 'stopRequested' | 'stopped' = 'stopped';
 
   protected _blockAlign!: number;
-  protected override _decoder: 'web-audio' | 'octra' = 'octra';
+  protected override _decoder: 'web-audio' | 'tratt' = 'tratt';
 
   public get blockAlign() {
     return this._blockAlign;
@@ -101,9 +101,7 @@ export class WavFormat extends AudioFormat {
       if ([32, 16, 8].includes(this._bitsPerSample)) {
         dataChunkLength = Math.round(dataChunkLength / divider);
         result = new this.formatConstructor(dataChunkLength);
-        convertedData = new this.formatConstructor(
-          uint8Array.buffer
-        );
+        convertedData = new this.formatConstructor(uint8Array.buffer);
         start = Math.round(start / divider);
         startPos = 44 / divider + Math.round(start);
       }

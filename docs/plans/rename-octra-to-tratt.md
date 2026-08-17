@@ -11,14 +11,15 @@ tagline (commits `59d65fea8`, `ffa65dbff`, `a3ed886af`).
 
 ## 0. Scope decision: four tiers
 
-| Tier | What | Rename? |
-|---|---|---|
-| **T1** | User-visible strings & docs | **Yes — required** |
-| **T2** | Persisted identifiers (IndexedDB, storage keys, config keys, URLs) | Yes, with migration |
+| Tier   | What                                                                   | Rename?                |
+| ------ | ---------------------------------------------------------------------- | ---------------------- |
+| **T1** | User-visible strings & docs                                            | **Yes — required**     |
+| **T2** | Persisted identifiers (IndexedDB, storage keys, config keys, URLs)     | Yes, with migration    |
 | **T3** | Internal code identifiers, paths, Nx project names, `@octra/*` aliases | Optional, staged, last |
-| **T4** | External / legal | **No** |
+| **T4** | External / legal                                                       | **No**                 |
 
 **T4 — do not touch:**
+
 - npm deps `@octra/api-types`, `@octra/ngx-octra-api` (upstream IPS-LMU packages, not ours).
 - `octraBackend` API contract keys where they mirror the remote backend's payloads.
 - `LICENSE.txt` / copyright attribution to the original OCTRA authors, and the README's
@@ -35,7 +36,7 @@ Targets (grep `-i octra` in `*.html`, `*.ts`, excluding component selectors `oct
 1. `apps/octra/src/app/core/component/navbar/navbar.component.html:18` — `VISP TRATT` → `TRATT`.
 2. `apps/octra/src/app/core/modals/about-modal/about-modal.component.html:3` — `About VISP OCTRA` → `About TRATT`.
    Check the rest of the modal body for OCTRA prose and the VISP slogan image — decide whether the
-   VISP slogan stays as an *organisation* mark (recommended: keep it in About + login footer only,
+   VISP slogan stays as an _organisation_ mark (recommended: keep it in About + login footer only,
    as provenance, since it is not part of the product name).
 3. `apps/octra/src/app/core/pages/login/login.component.html`, `loading.component.html`,
    `auth.component.html`, `visp-task.component.html`, `project-request-modal.component.html` —
@@ -73,7 +74,7 @@ Steps:
 2. Per-language wording review, not translation-by-substitution:
    - `sv` has the most hits (21) and is the primary VISP audience — TRATT is a Swedish word (funnel);
      check that sentences still read naturally (`OCTRA sparar` → `TRATT sparar`, article/gender agreement:
-     TRATT is *en*-gender, `en tratt`, so `TRATT:s` for genitive).
+     TRATT is _en_-gender, `en tratt`, so `TRATT:s` for genitive).
    - `de` `der/die/das` agreement around the name; `zh`/`ko` — the name stays Latin-script,
      check the surrounding particles.
    - `it`/`nl` — straight substitution is usually fine.
@@ -106,14 +107,14 @@ key sets must remain identical across all 7 locales.
 user's saved transcription session. The app's whole local-mode value proposition is "your last session
 is still there".**
 
-| Identifier | Location | Action |
-|---|---|---|
-| `'octra-recordings'` (Dexie DB) | `core/shared/octra-recording-database.ts:31` | Rename **only** with a migration that copies/opens the old DB name first; otherwise keep. |
-| DB name from config `octra.database.name` = `"octra-2"` | `config/appconfig.json:9`, `appconfig_sample.json:5` | Same. Renaming = every deployed user loses their session. |
-| `appconfig.json` top-level key `"octra"` | `config/*.json` + JSON schema in `libs/assets/src/lib/schemata/projectconfig.schema.{ts,json}` | Renameable, but breaks every existing deployment's config file. Needs schema change + accept-both-keys shim. |
-| `octraBackend` config key | `appconfig.json:54` | Keep (T4, backend-owned). |
-| localStorage/sessionStorage keys | `core/store/**`, `recording-devices.service.ts` | Audited: keys are generic (`cid`, `authType`, `language`) — **nothing to rename**. |
-| Service worker cache | `apps/octra/ngsw-config.json` | Check for name-derived cache keys; a name change forces one extra cache bust. |
+| Identifier                                              | Location                                                                                       | Action                                                                                                       |
+| ------------------------------------------------------- | ---------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| `'octra-recordings'` (Dexie DB)                         | `core/shared/octra-recording-database.ts:31`                                                   | Rename **only** with a migration that copies/opens the old DB name first; otherwise keep.                    |
+| DB name from config `octra.database.name` = `"octra-2"` | `config/appconfig.json:9`, `appconfig_sample.json:5`                                           | Same. Renaming = every deployed user loses their session.                                                    |
+| `appconfig.json` top-level key `"octra"`                | `config/*.json` + JSON schema in `libs/assets/src/lib/schemata/projectconfig.schema.{ts,json}` | Renameable, but breaks every existing deployment's config file. Needs schema change + accept-both-keys shim. |
+| `octraBackend` config key                               | `appconfig.json:54`                                                                            | Keep (T4, backend-owned).                                                                                    |
+| localStorage/sessionStorage keys                        | `core/store/**`, `recording-devices.service.ts`                                                | Audited: keys are generic (`cid`, `authType`, `language`) — **nothing to rename**.                           |
+| Service worker cache                                    | `apps/octra/ngsw-config.json`                                                                  | Check for name-derived cache keys; a name change forces one extra cache bust.                                |
 
 **Recommendation:** defer the whole of Phase 4 to a separate, explicitly-approved change. The product
 rename does not require it. If it goes ahead, ship it as: read new name → fall back to old name →
@@ -125,16 +126,17 @@ copy → delete old, with a test that opens a DB seeded under the old name.
 
 Cost estimate before committing to this:
 
-| Item | Scale | Blast radius |
-|---|---|---|
-| `Octra*` classes (`OctraAnnotationSegment` 344, `OctraAnnotation` 82, `OctraModal` 49, `OctraAPIService` 28, …) | ~1000 refs | Pure rename, IDE-assisted. Public API of publishable libs → **semver-major for `@octra/annotation` etc.** |
-| Component selector prefix `octra-` | every template + `eslint` `@angular-eslint/component-selector` rule | **`apps/web-components/` publishes these as custom element tags.** Renaming breaks external embedders. Needs a deprecation window or dual registration. |
-| Nx project/dir `apps/octra` → `apps/tratt` | `project.json`, `nx.json`, `tsconfig*.json`, `jest.config.ts`, `eslint.config.cjs`, CI, npm scripts (`prestart:octra`, `analyze:octra`) | Use `nx g @nx/workspace:move`, not manual. One PR, nothing else in it. |
-| `@octra/*` path aliases → `@tratt/*` | `tsconfig.base.json` + every import in 376 files | Collides conceptually with the real npm `@octra/api-types`. Doing this makes the two easier to tell apart — genuine upside. Still a huge diff. |
-| Root `package.json` `"name": "octra-source"` | 1 line | Free. |
-| File names (`octra-database.ts`, `octraAnnotationSegment.ts`, `octra-colors.ts`) | ~15 files | Free-ish, `git mv` + import fixups. |
+| Item                                                                                                            | Scale                                                                                                                                   | Blast radius                                                                                                                                            |
+| --------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Octra*` classes (`OctraAnnotationSegment` 344, `OctraAnnotation` 82, `OctraModal` 49, `OctraAPIService` 28, …) | ~1000 refs                                                                                                                              | Pure rename, IDE-assisted. Public API of publishable libs → **semver-major for `@tratt/annotation` etc.**                                               |
+| Component selector prefix `octra-`                                                                              | every template + `eslint` `@angular-eslint/component-selector` rule                                                                     | **`apps/web-components/` publishes these as custom element tags.** Renaming breaks external embedders. Needs a deprecation window or dual registration. |
+| Nx project/dir `apps/octra` → `apps/tratt`                                                                      | `project.json`, `nx.json`, `tsconfig*.json`, `jest.config.ts`, `eslint.config.cjs`, CI, npm scripts (`prestart:octra`, `analyze:octra`) | Use `nx g @nx/workspace:move`, not manual. One PR, nothing else in it.                                                                                  |
+| `@octra/*` path aliases → `@tratt/*`                                                                            | `tsconfig.base.json` + every import in 376 files                                                                                        | Collides conceptually with the real npm `@octra/api-types`. Doing this makes the two easier to tell apart — genuine upside. Still a huge diff.          |
+| Root `package.json` `"name": "octra-source"`                                                                    | 1 line                                                                                                                                  | Free.                                                                                                                                                   |
+| File names (`octra-database.ts`, `octraAnnotationSegment.ts`, `octra-colors.ts`)                                | ~15 files                                                                                                                               | Free-ish, `git mv` + import fixups.                                                                                                                     |
 
 **Recommended split:**
+
 - 5a: root package name + file renames + `.run` configs. (cheap, no API change)
 - 5b: `apps/octra` → `apps/tratt` via `nx g move`. (mechanical, isolated)
 - 5c: `Octra*` symbols + `@octra/*` aliases. (major version bump of libs — only if the libs are not
@@ -188,7 +190,7 @@ rg -i 'visp[ _-]?(tratt|octra)' -g '!node_modules'
 
 Kept as OCTRA on purpose: the upstream citation and translation-portal links in the About modal,
 the "fork of OCTRA" provenance in README, the OCTRA backend service name in prose,
-`OctraApplication` in `SupportedApplications.ts` (that entry *is* upstream OCTRA), `OCTRA_1` tier
+`OctraApplication` in `SupportedApplications.ts` (that entry _is_ upstream OCTRA), `OCTRA_1` tier
 names (annotation data format), `OCTRA_ASRqueueItem_*` temp filenames, `{{octraBackendURL}}`,
 `@octra/*` npm deps and aliases, LICENSE.
 

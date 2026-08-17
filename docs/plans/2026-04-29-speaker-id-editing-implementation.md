@@ -6,7 +6,7 @@
 
 **Architecture:** Pure derivation — speaker IDs and colors computed from existing `Speaker` annotation labels on each `OctraAnnotationSegment`. Pure helper functions live in `libs/ngx-components` so both the app and the canvas service can import them. The app-level `SpeakerManagementService` wraps these helpers and dispatches to the NgRx store. The `AudioViewerService` calls the helpers directly when drawing Konva labels.
 
-**Tech Stack:** Angular 19, NgRx, Konva.js (via audio-viewer.service.ts), NgBootstrap dropdowns, `@octra/annotation` types (`OctraAnnotation`, `OctraAnnotationSegment`, `AnnotationLevelType`, `OLabel`)
+**Tech Stack:** Angular 19, NgRx, Konva.js (via audio-viewer.service.ts), NgBootstrap dropdowns, `@tratt/annotation` types (`OctraAnnotation`, `OctraAnnotationSegment`, `AnnotationLevelType`, `OLabel`)
 
 **Design reference:** `docs/plans/2026-04-29-speaker-id-editing-design.md`
 
@@ -15,6 +15,7 @@
 ## Background: Key Types and Patterns
 
 ### Speaker label storage
+
 Each `OctraAnnotationSegment` carries a `labels: OLabel[]` array. Speaker ID is stored as `OLabel { name: 'Speaker', value: 'Speaker 1' }`. Transcript text is the label whose `name` is NOT `'Speaker'`.
 
 - `segment.getLabel('Speaker')` → finds label by name
@@ -22,21 +23,27 @@ Each `OctraAnnotationSegment` carries a `labels: OLabel[]` array. Speaker ID is 
 - `segment.getFirstLabelWithoutName('Speaker')` → transcript text label
 
 ### Boundary vs segment in the viewer
+
 The canvas draws a **boundary line** at each segment's `time` (= the segment END). The speaker to show at that boundary is the **next** segment (index + 1) — because the boundary marks the START of the next utterance. The first segment has no boundary before it (starts at 0) and gets no canvas label.
 
 ### Dispatch patterns used elsewhere
+
 - Rename all segments: `this.annotationStoreService.overwriteTranscript(clonedAnnotation)` (full replace, persists to IDB)
 - Update current level items: `this.annotationStoreService.changeCurrentLevelItems(items)`
 
 ### Settings access pattern in editors
+
 Editors (2D, Linear) access the viewer's config directly after `ngAfterViewInit`:
+
 ```typescript
 this.viewer.settings.multiLine = true;
 this.viewer.settings.showTranscripts = true;
 ```
+
 Settings are the `AudioviewerConfig` instance; no `@Input` binding needed.
 
 ### Navbar tier dropdown pattern (to mirror for speakers)
+
 Located in `apps/octra/src/app/core/component/navbar/navbar.component.html` lines 161–249.
 Uses `ngbDropdown`, renders `@for (level of annotationStoreService.transcript!.levels; ...)`.
 `onLevelNameLeave(event, i)` calls `this.annotationStoreService.changeLevelName(i, event.target.value)`.
@@ -46,6 +53,7 @@ Uses `ngbDropdown`, renders `@for (level of annotationStoreService.transcript!.l
 ## Task 1: Speaker color pure helpers in libs/ngx-components
 
 **Files:**
+
 - Create: `libs/ngx-components/src/lib/components/audio/audio-viewer/speaker-colors.ts`
 - Create: `libs/ngx-components/src/lib/components/audio/audio-viewer/speaker-colors.spec.ts`
 - Modify: `libs/ngx-components/src/lib/index.ts` (or wherever the lib's public API is exported)
@@ -56,31 +64,14 @@ Create `libs/ngx-components/src/lib/components/audio/audio-viewer/speaker-colors
 
 ```typescript
 import { describe, expect, it } from '@jest/globals';
-import {
-  BEIGE_TEXT,
-  BLACK_TEXT,
-  SPEAKER_COLORS,
-  cycleNextSpeaker,
-  getSpeakerColor,
-  getSpeakerIds,
-  getSpeakerTextColor,
-  renameSpeakerInAnnotation,
-} from './speaker-colors';
-import {
-  AnnotationLevelType,
-  OctraAnnotation,
-  OctraAnnotationSegment,
-  OctraAnnotationSegmentLevel,
-} from '@octra/annotation';
-import { SampleUnit } from '@octra/media';
+import { BEIGE_TEXT, BLACK_TEXT, SPEAKER_COLORS, cycleNextSpeaker, getSpeakerColor, getSpeakerIds, getSpeakerTextColor, renameSpeakerInAnnotation } from './speaker-colors';
+import { AnnotationLevelType, OctraAnnotation, OctraAnnotationSegment, OctraAnnotationSegmentLevel } from '@tratt/annotation';
+import { SampleUnit } from '@tratt/media';
 
 function makeAnnotation(speakerValues: (string | undefined)[]): OctraAnnotation<any, OctraAnnotationSegment> {
   const annotation = new OctraAnnotation<any, OctraAnnotationSegment>();
   const items = speakerValues.map((spk, i) => {
-    const seg = new OctraAnnotationSegment<any>(
-      i + 1,
-      new SampleUnit((i + 1) * 16000, 16000),
-    );
+    const seg = new OctraAnnotationSegment<any>(i + 1, new SampleUnit((i + 1) * 16000, 16000));
     seg.changeLabel('Transcript', 'hello');
     if (spk) {
       seg.labels.push({ name: 'Speaker', value: spk });
@@ -189,6 +180,7 @@ describe('renameSpeakerInAnnotation', () => {
 ```bash
 npx nx test octra-ngx-components --testFile=libs/ngx-components/src/lib/components/audio/audio-viewer/speaker-colors.spec.ts
 ```
+
 Expected: FAIL — module not found.
 
 ### Step 3: Implement speaker-colors.ts
@@ -196,25 +188,14 @@ Expected: FAIL — module not found.
 Create `libs/ngx-components/src/lib/components/audio/audio-viewer/speaker-colors.ts`:
 
 ```typescript
-import {
-  AnnotationLevelType,
-  OctraAnnotation,
-  OctraAnnotationSegment,
-} from '@octra/annotation';
+import { AnnotationLevelType, OctraAnnotation, OctraAnnotationSegment } from '@tratt/annotation';
 
-export const SPEAKER_COLORS: readonly string[] = [
-  '#2A4765', '#4A5E7A', '#A8C3D4', '#3D6B5C', '#73A790',
-  '#C4D4C0', '#5B8E8A', '#D7B17C', '#C2A08A', '#B87D5E',
-  '#C9918A', '#EABAB9', '#9C7A8C', '#6B5B6E', '#8B8FAE',
-  '#D4C7B5', '#000000',
-];
+export const SPEAKER_COLORS: readonly string[] = ['#2A4765', '#4A5E7A', '#A8C3D4', '#3D6B5C', '#73A790', '#C4D4C0', '#5B8E8A', '#D7B17C', '#C2A08A', '#B87D5E', '#C9918A', '#EABAB9', '#9C7A8C', '#6B5B6E', '#8B8FAE', '#D4C7B5', '#000000'];
 
 export const BEIGE_TEXT = '#F1EFE4';
 export const BLACK_TEXT = '#000000';
 
-export function getSpeakerIds(
-  annotation: OctraAnnotation<any, OctraAnnotationSegment>,
-): string[] {
+export function getSpeakerIds(annotation: OctraAnnotation<any, OctraAnnotationSegment>): string[] {
   const ids = new Set<string>();
   for (const level of annotation.levels) {
     if (level.type !== AnnotationLevelType.SEGMENT) continue;
@@ -237,8 +218,7 @@ export function getSpeakerTextColor(bgHex: string): string {
   const r = parseInt(bgHex.slice(1, 3), 16) / 255;
   const g = parseInt(bgHex.slice(3, 5), 16) / 255;
   const b = parseInt(bgHex.slice(5, 7), 16) / 255;
-  const toLinear = (c: number) =>
-    c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+  const toLinear = (c: number) => (c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4));
   const L = 0.2126 * toLinear(r) + 0.7152 * toLinear(g) + 0.0722 * toLinear(b);
   return L < 0.179 ? BEIGE_TEXT : BLACK_TEXT;
 }
@@ -251,11 +231,7 @@ export function cycleNextSpeaker(currentId: string, allIds: string[]): string {
   return sorted[(index + 1) % sorted.length];
 }
 
-export function renameSpeakerInAnnotation(
-  oldId: string,
-  newId: string,
-  annotation: OctraAnnotation<any, OctraAnnotationSegment>,
-): OctraAnnotation<any, OctraAnnotationSegment> {
+export function renameSpeakerInAnnotation(oldId: string, newId: string, annotation: OctraAnnotation<any, OctraAnnotationSegment>): OctraAnnotation<any, OctraAnnotationSegment> {
   const cloned = annotation.clone() as OctraAnnotation<any, OctraAnnotationSegment>;
   for (const level of cloned.levels) {
     if (level.type !== AnnotationLevelType.SEGMENT) continue;
@@ -282,6 +258,7 @@ export * from './lib/components/audio/audio-viewer/speaker-colors';
 ```bash
 npx nx test octra-ngx-components --testFile=libs/ngx-components/src/lib/components/audio/audio-viewer/speaker-colors.spec.ts
 ```
+
 Expected: all PASS.
 
 ### Step 6: Commit
@@ -298,6 +275,7 @@ git commit -m "feat(speaker-colors): add pure speaker color utilities to ngx-com
 ## Task 2: SpeakerManagementService in the app
 
 **Files:**
+
 - Create: `apps/octra/src/app/core/shared/service/speaker-management.service.ts`
 - Modify: `apps/octra/src/app/core/shared/service/index.ts` (add export)
 
@@ -306,14 +284,8 @@ git commit -m "feat(speaker-colors): add pure speaker color utilities to ngx-com
 ```typescript
 // apps/octra/src/app/core/shared/service/speaker-management.service.ts
 import { Injectable, inject } from '@angular/core';
-import { OctraAnnotationSegment } from '@octra/annotation';
-import {
-  cycleNextSpeaker,
-  getSpeakerColor,
-  getSpeakerIds,
-  getSpeakerTextColor,
-  renameSpeakerInAnnotation,
-} from '@octra/ngx-components';
+import { OctraAnnotationSegment } from '@tratt/annotation';
+import { cycleNextSpeaker, getSpeakerColor, getSpeakerIds, getSpeakerTextColor, renameSpeakerInAnnotation } from '@tratt/ngx-components';
 import { AnnotationStoreService } from '../../store/login-mode/annotation/annotation.store.service';
 
 @Injectable({ providedIn: 'root' })
@@ -370,6 +342,7 @@ export * from './speaker-management.service';
 ```bash
 npx nx build octra --skip-nx-cache 2>&1 | grep -i error | head -20
 ```
+
 Expected: no type errors related to the new service.
 
 ### Step 4: Commit
@@ -385,6 +358,7 @@ git commit -m "feat(speaker-management): add SpeakerManagementService"
 ## Task 3: Navbar speaker dropdown
 
 **Files:**
+
 - Modify: `apps/octra/src/app/core/component/navbar/navbar.component.ts`
 - Modify: `apps/octra/src/app/core/component/navbar/navbar.component.html`
 
@@ -427,9 +401,9 @@ Add the speaker dropdown as an additional `<li>` inside that same `<ul>` block, 
 
 ```html
 @if (hasSpeakers) {
-  <li
-    class="nav-item dropdown"
-    [ngStyle]="{
+<li
+  class="nav-item dropdown"
+  [ngStyle]="{
       display:
         !appStorage.loggedIn ||
         appStorage.onlineSession?.currentProject === undefined ||
@@ -437,55 +411,30 @@ Add the speaker dropdown as an additional `<li>` inside that same `<ul>` block, 
           ? 'none'
           : 'inherit',
     }"
-    ngbDropdown
-    placement="bottom-left"
-  >
-    <a
-      ngbDropdownToggle
-      type="button"
-      class="nav-link dropdown-toggle"
-    >
-      <i class="bi bi-people-fill me-1"></i>
-      <span class="d-inline d-md-none mt-2">Speakers</span>
-    </a>
-    <div
-      ngbDropdownMenu
-      class="dropdown-menu dropdown dropdown-primary dropdown-menu-right rounded rounded-3 py-0"
-      role="menu"
-      style="min-width: 280px"
-      (click)="$event.stopPropagation()"
-      (keydown.enter)="$event.stopPropagation()"
-      (keydown.space)="$event.stopPropagation()"
-      tabindex="0"
-    >
-      <table class="w-100">
-        <tbody>
-          @for (spk of speakerIds; track spk; let i = $index) {
-            <tr
-              [ngClass]="{ last: i === speakerIds.length - 1 }"
-              class="level-row"
-            >
-              <td style="width: 28px; padding: 6px 4px 6px 8px;">
-                <span
-                  style="display: inline-block; width: 16px; height: 16px; border-radius: 3px; vertical-align: middle;"
-                  [style.background-color]="speakerService.getColor(spk)"
-                ></span>
-              </td>
-              <td style="padding: 2px 8px 2px 0;">
-                <input
-                  (blur)="onSpeakerNameLeave($event, spk)"
-                  maxlength="100"
-                  type="text"
-                  [value]="spk"
-                  style="width: 100%"
-                />
-              </td>
-            </tr>
-          }
-        </tbody>
-      </table>
-    </div>
-  </li>
+  ngbDropdown
+  placement="bottom-left"
+>
+  <a ngbDropdownToggle type="button" class="nav-link dropdown-toggle">
+    <i class="bi bi-people-fill me-1"></i>
+    <span class="d-inline d-md-none mt-2">Speakers</span>
+  </a>
+  <div ngbDropdownMenu class="dropdown-menu dropdown dropdown-primary dropdown-menu-right rounded rounded-3 py-0" role="menu" style="min-width: 280px" (click)="$event.stopPropagation()" (keydown.enter)="$event.stopPropagation()" (keydown.space)="$event.stopPropagation()" tabindex="0">
+    <table class="w-100">
+      <tbody>
+        @for (spk of speakerIds; track spk; let i = $index) {
+        <tr [ngClass]="{ last: i === speakerIds.length - 1 }" class="level-row">
+          <td style="width: 28px; padding: 6px 4px 6px 8px;">
+            <span style="display: inline-block; width: 16px; height: 16px; border-radius: 3px; vertical-align: middle;" [style.background-color]="speakerService.getColor(spk)"></span>
+          </td>
+          <td style="padding: 2px 8px 2px 0;">
+            <input (blur)="onSpeakerNameLeave($event, spk)" maxlength="100" type="text" [value]="spk" style="width: 100%" />
+          </td>
+        </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</li>
 }
 ```
 
@@ -494,6 +443,7 @@ Add the speaker dropdown as an additional `<li>` inside that same `<ul>` block, 
 ```bash
 npm start
 ```
+
 Open browser at http://localhost:5321. Load a file with speaker diarization. Verify the Speakers dropdown appears in the navbar next to the tier dropdown, showing color swatches. Rename a speaker and verify all segments update.
 
 ### Step 4: Commit
@@ -509,6 +459,7 @@ git commit -m "feat(navbar): add speaker ID rename dropdown"
 ## Task 4: Colored badge + click-to-cycle in popup editor
 
 **Files:**
+
 - Modify: `apps/octra/src/app/editors/2D-editor/transcr-window/transcr-window.component.ts`
 - Modify: `apps/octra/src/app/editors/2D-editor/transcr-window/transcr-window.component.html`
 - Modify: `apps/octra/src/app/editors/2D-editor/transcr-window/transcr-window.component.scss`
@@ -564,7 +515,7 @@ Find the existing speaker badge block (around line 149):
 
 ```html
 @if (currentSegmentSpeaker) {
-  <div class="speaker-badge">{{ currentSegmentSpeaker }}</div>
+<div class="speaker-badge">{{ currentSegmentSpeaker }}</div>
 }
 ```
 
@@ -572,13 +523,7 @@ Replace with:
 
 ```html
 @if (currentSegmentSpeaker) {
-  <div
-    class="speaker-badge"
-    [style.background-color]="currentSpeakerColor"
-    [style.color]="currentSpeakerTextColor"
-    (click)="cycleSpeaker()"
-    title="Click to cycle speaker"
-  >{{ currentSegmentSpeaker }}</div>
+<div class="speaker-badge" [style.background-color]="currentSpeakerColor" [style.color]="currentSpeakerTextColor" (click)="cycleSpeaker()" title="Click to cycle speaker">{{ currentSegmentSpeaker }}</div>
 }
 ```
 
@@ -612,6 +557,7 @@ git commit -m "feat(transcr-window): colored speaker badge with click-to-cycle"
 ## Task 5: Canvas speaker labels in audio-viewer.service.ts
 
 **Files:**
+
 - Modify: `libs/ngx-components/src/lib/components/audio/audio-viewer/audio-viewer.service.ts`
 
 ### Background
@@ -627,6 +573,7 @@ for (const boundary of boundariesToDraw) {
 ```
 
 Each `boundary` object has:
+
 - `boundary.id` — the id of the segment **ending** at this boundary
 - `boundary.x` — canvas x position
 - `boundary.y` — canvas y position (top of the line)
@@ -638,12 +585,7 @@ The segment that **starts** at this boundary is the one AFTER the segment with `
 Add to existing imports (they're in the same lib so import by relative path):
 
 ```typescript
-import {
-  cycleNextSpeaker,
-  getSpeakerColor,
-  getSpeakerIds,
-  getSpeakerTextColor,
-} from './speaker-colors';
+import { cycleNextSpeaker, getSpeakerColor, getSpeakerIds, getSpeakerTextColor } from './speaker-colors';
 ```
 
 ### Step 2: Add speaker label drawing inside the boundary loop

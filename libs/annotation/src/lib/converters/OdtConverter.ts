@@ -1,4 +1,4 @@
-import { OAudiofile } from '@octra/media';
+import { OAudiofile } from '@tratt/media';
 import { OAnnotJSON, OSegment } from '../annotjson';
 import {
   Converter,
@@ -6,13 +6,13 @@ import {
   ExportResult,
   IFile,
   ImportResult,
-  OctraAnnotationFormatType,
+  TrattAnnotationFormatType,
 } from './Converter';
 import { LibreOfficeApplication } from './SupportedApplications';
 import { buildZip } from './zip-builder';
 
 export class OdtConverter extends Converter {
-  override _name: OctraAnnotationFormatType = 'ODT';
+  override _name: TrattAnnotationFormatType = 'ODT';
   override _category: ExportCategory = 'general';
 
   public override options: {

@@ -1,4 +1,4 @@
-import { getProperties } from '@octra/utilities';
+import { getProperties } from '@tratt/utilities';
 import { Group } from './Group';
 
 export class FeedBackForm {

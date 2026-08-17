@@ -5,7 +5,7 @@
  * Extracted: 2024-11-04
  */
 
-import { TsWorker, TsWorkerJob } from '@octra/utilities';
+import { TsWorker, TsWorkerJob } from '@tratt/utilities';
 import { BinaryByteWriter } from './BinaryWriter';
 import { WavFileFormat } from './wavformat';
 

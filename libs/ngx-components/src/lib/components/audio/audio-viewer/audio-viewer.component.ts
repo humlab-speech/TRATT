@@ -17,12 +17,12 @@ import {
 import {
   AnnotationAnySegment,
   ASRContext,
-  OctraAnnotation,
-  OctraAnnotationSegment,
-} from '@octra/annotation';
-import { AudioSelection, PlayBackStatus, SampleUnit } from '@octra/media';
-import { SubscriptionManager, wait } from '@octra/utilities';
-import { AudioChunk } from '@octra/web-media';
+  TrattAnnotation,
+  TrattAnnotationSegment,
+} from '@tratt/annotation';
+import { AudioSelection, PlayBackStatus, SampleUnit } from '@tratt/media';
+import { SubscriptionManager, wait } from '@tratt/utilities';
+import { AudioChunk } from '@tratt/web-media';
 import Konva from 'konva';
 import { Subject, Subscription, timer } from 'rxjs';
 import { AudioviewerConfig } from './audio-viewer.config';
@@ -43,7 +43,7 @@ export interface CurrentLevelChangeEvent {
 }
 
 @Component({
-  selector: 'octra-audio-viewer',
+  selector: 'tratt-audio-viewer',
   templateUrl: './audio-viewer.component.html',
   styleUrls: ['./audio-viewer.component.css'],
   providers: [AudioViewerService],
@@ -53,17 +53,17 @@ export class AudioViewerComponent
   implements OnInit, OnChanges, OnDestroy, AfterViewInit
 {
   /**
-   * annotation of type OctraAnnotation
+   * annotation of type TrattAnnotation
    * @param value
    */
   @Input() set annotation(
-    value: OctraAnnotation<ASRContext, OctraAnnotationSegment> | undefined,
+    value: TrattAnnotation<ASRContext, TrattAnnotationSegment> | undefined,
   ) {
     this.av.annotation = value ? value.clone() : undefined;
   }
 
   get annotation():
-    | OctraAnnotation<ASRContext, OctraAnnotationSegment>
+    | TrattAnnotation<ASRContext, TrattAnnotationSegment>
     | undefined {
     return this.av.annotation;
   }
@@ -84,7 +84,7 @@ export class AudioViewerComponent
    * triggered when annotation changes.
    */
   @Output() get annotationChange(): EventEmitter<
-    OctraAnnotation<ASRContext, OctraAnnotationSegment>
+    TrattAnnotation<ASRContext, TrattAnnotationSegment>
   > {
     return this.av.annotationChange;
   }
@@ -404,7 +404,7 @@ export class AudioViewerComponent
 
   private afterLevelUpdated(
     changes: AnnotationChange[],
-    oldAnnotation: OctraAnnotation<ASRContext, OctraAnnotationSegment>,
+    oldAnnotation: TrattAnnotation<ASRContext, TrattAnnotationSegment>,
   ) {
     if (this.av.currentLevel && this.av.currentLevel.items.length > 0) {
       // subscribe to levelChanges for extern changes

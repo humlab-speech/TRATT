@@ -16,7 +16,7 @@ import {
   ViewChild,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { getProperties } from '@octra/utilities';
+import { getProperties } from '@tratt/utilities';
 import { TranscrEditorComponent } from '../../../core/component';
 
 import { AsyncPipe, NgClass, NgStyle } from '@angular/common';
@@ -34,16 +34,16 @@ import {
   ASRContext,
   ASRQueueItemType,
   getSegmentBySamplePosition,
-  OctraAnnotationSegment,
-  OctraAnnotationSegmentLevel,
-} from '@octra/annotation';
-import { OctraGuidelines } from '@octra/assets';
-import { AudioSelection, PlayBackStatus, SampleUnit } from '@octra/media';
+  TrattAnnotationSegment,
+  TrattAnnotationSegmentLevel,
+} from '@tratt/annotation';
+import { TrattGuidelines } from '@tratt/assets';
+import { AudioSelection, PlayBackStatus, SampleUnit } from '@tratt/media';
 import {
   AudioViewerComponent,
   AudioViewerShortcutEvent,
-  OctraComponentsModule,
-} from '@octra/ngx-components';
+  TrattComponentsModule,
+} from '@tratt/ngx-components';
 import {
   AudioChunk,
   AudioManager,
@@ -51,7 +51,7 @@ import {
   FileInfo,
   Shortcut,
   ShortcutGroup,
-} from '@octra/web-media';
+} from '@tratt/web-media';
 import { HotkeysEvent } from 'hotkeys-js';
 import { fromEvent, interval, Subscription, timer } from 'rxjs';
 import { take } from 'rxjs/operators';
@@ -75,7 +75,7 @@ import { AsrStoreService } from '../../../core/store/asr/asr-store-service.servi
 import { AnnotationStoreService } from '../../../core/store/login-mode/annotation/annotation.store.service';
 
 @Component({
-  selector: 'octra-transcr-window',
+  selector: 'tratt-transcr-window',
   templateUrl: './transcr-window.component.html',
   styleUrls: ['./transcr-window.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -85,7 +85,7 @@ import { AnnotationStoreService } from '../../../core/store/login-mode/annotatio
     NgbDropdownToggle,
     NgbDropdownMenu,
     AudioNavigationComponent_1,
-    OctraComponentsModule,
+    TrattComponentsModule,
     TranscrEditorComponent_1,
     NgClass,
     AsyncPipe,
@@ -156,7 +156,7 @@ export class TranscrWindowComponent
   segmentIndex!: number;
 
   private showWindow = false;
-  private tempSegments!: OctraAnnotationSegment[];
+  private tempSegments!: TrattAnnotationSegment[];
   private oldRaw = '';
   protected showOverviewButton = false;
 
@@ -164,7 +164,7 @@ export class TranscrWindowComponent
     return this.annotationStoreService.currentLevel;
   }
 
-  private guidelines!: OctraGuidelines;
+  private guidelines!: TrattGuidelines;
   private breakMarkerCode?: string;
   private idCounter = 1;
 
@@ -225,7 +225,7 @@ export class TranscrWindowComponent
   cycleSpeaker(): void {
     const level = this.annotationStoreService.currentLevel;
     if (!level || this.segmentIndex < 0) return;
-    const segment = level.items[this.segmentIndex] as OctraAnnotationSegment;
+    const segment = level.items[this.segmentIndex] as TrattAnnotationSegment;
     if (!segment) return;
     this.speakerService.cycleSpeakerOnSegment(segment.id);
     this.cd.markForCheck();
@@ -515,7 +515,7 @@ export class TranscrWindowComponent
             const currentLevel = this.annotationStoreService.currentLevel;
             const segment = currentLevel!.items[
               this.segmentIndex
-            ] as OctraAnnotationSegment;
+            ] as TrattAnnotationSegment;
 
             if (!segment?.context?.asr?.isBlockedBy) {
               this.audiochunk.startPlayback().catch((error) => {
@@ -544,7 +544,7 @@ export class TranscrWindowComponent
   ngOnInit() {
     if (this.currentLevel) {
       this.tempSegments = [
-        ...(this.currentLevel.clone().items as OctraAnnotationSegment[]),
+        ...(this.currentLevel.clone().items as TrattAnnotationSegment[]),
       ];
       this.idCounter =
         this.annotationStoreService.transcript?.idCounters.item ?? 1;
@@ -591,7 +591,7 @@ export class TranscrWindowComponent
         (
           this.annotationStoreService.currentLevel!.items[
             this.segmentIndex
-          ] as OctraAnnotationSegment
+          ] as TrattAnnotationSegment
         ).getFirstLabelWithoutName('Speaker')?.value ?? '';
     }
 
@@ -690,7 +690,7 @@ export class TranscrWindowComponent
     this.subscribe(timer(500), () => {
       const segment = this.annotationStoreService.currentLevel!.items[
         this.segmentIndex
-      ] as OctraAnnotationSegment;
+      ] as TrattAnnotationSegment;
 
       if (!segment!.context?.asr?.isBlockedBy) {
         this.audiochunk.startPlayback().catch((error) => {
@@ -722,7 +722,7 @@ export class TranscrWindowComponent
         ? (
             this.currentLevel?.items[
               this.segmentIndex - 1
-            ] as OctraAnnotationSegment
+            ] as TrattAnnotationSegment
           ).time.samples
         : 0;
 
@@ -741,7 +741,7 @@ export class TranscrWindowComponent
           (
             this.currentLevel?.items[
               this.segmentIndex
-            ] as OctraAnnotationSegment
+            ] as TrattAnnotationSegment
           ).time.samples - startSample,
       },
       'transcription window',
@@ -788,7 +788,7 @@ export class TranscrWindowComponent
 
         if (this.currentLevel) {
           if (this.currentLevel.type === 'SEGMENT') {
-            const seg = segment as OctraAnnotationSegment<ASRContext>;
+            const seg = segment as TrattAnnotationSegment<ASRContext>;
             seg.changeFirstLabelWithoutName('Speaker', this.editor.rawText);
             this.annotationStoreService.changeCurrentLevelItems([seg]);
           }
@@ -809,14 +809,14 @@ export class TranscrWindowComponent
       if (this.segmentIndex > -1) {
         const annoSegment = this.currentLevel!.items[
           this.segmentIndex
-        ] as OctraAnnotationSegment;
+        ] as TrattAnnotationSegment;
         segment.start = 0;
 
         if (this.segmentIndex > 0) {
           segment.start = (
             this.currentLevel!.items[
               this.segmentIndex - 1
-            ] as OctraAnnotationSegment
+            ] as TrattAnnotationSegment
           ).time.samples;
         }
 
@@ -865,7 +865,7 @@ export class TranscrWindowComponent
       ) {
         const segmentsLength = this.currentLevel.items.length;
 
-        let segment: OctraAnnotationSegment | undefined = undefined;
+        let segment: TrattAnnotationSegment | undefined = undefined;
 
         let startIndex = 0;
         let limitFunc: (i: number) => boolean = (i) => true;
@@ -888,7 +888,7 @@ export class TranscrWindowComponent
           for (let i = startIndex; limitFunc(i); i = counterFunc(i)) {
             const tempSegment = this.currentLevel.items[
               i
-            ] as OctraAnnotationSegment;
+            ] as TrattAnnotationSegment;
             const breakMarker = this.guidelines.markers.find(
               (a) => a.type === 'break',
             );
@@ -912,7 +912,7 @@ export class TranscrWindowComponent
               ? (
                   this.currentLevel.items[
                     this.segmentIndex - 1
-                  ] as OctraAnnotationSegment
+                  ] as TrattAnnotationSegment
                 ).time.samples
               : 0;
           const valueString =
@@ -930,7 +930,7 @@ export class TranscrWindowComponent
                 (
                   this.currentLevel.items[
                     this.segmentIndex
-                  ] as OctraAnnotationSegment
+                  ] as TrattAnnotationSegment
                 ).time.samples - start,
             },
             'transcription window',
@@ -941,7 +941,7 @@ export class TranscrWindowComponent
         if (this.segmentIndex > 0) {
           begin = (this.currentLevel.items[
             this.segmentIndex - 1
-          ] as OctraAnnotationSegment)!.time.clone();
+          ] as TrattAnnotationSegment)!.time.clone();
         } else {
           begin = new SampleUnit(0, this.audioManager.sampleRate);
         }
@@ -951,7 +951,7 @@ export class TranscrWindowComponent
             (
               this.currentLevel.items[
                 this.segmentIndex
-              ] as OctraAnnotationSegment
+              ] as TrattAnnotationSegment
             ).getFirstLabelWithoutName('Speaker')?.value ?? '';
           // noinspection JSObjectNullOrUndefined
           this.audiochunk = this.audioManager.createNewAudioChunk(
@@ -992,14 +992,14 @@ export class TranscrWindowComponent
     if (this.segmentIndex > -1) {
       const annoSegment = this.currentLevel!.items[
         this.segmentIndex
-      ] as OctraAnnotationSegment;
+      ] as TrattAnnotationSegment;
 
       if (this.segmentIndex > 0) {
         segment = {
           start: (
             this.currentLevel!.items[
               this.segmentIndex - 1
-            ] as OctraAnnotationSegment
+            ] as TrattAnnotationSegment
           ).time.samples,
         };
       } else {
@@ -1056,13 +1056,13 @@ export class TranscrWindowComponent
     if (this.segmentIndex > -1) {
       const annoSegment = this.currentLevel!.items[
         this.segmentIndex
-      ] as OctraAnnotationSegment;
+      ] as TrattAnnotationSegment;
       segment.start = 0;
       if (this.segmentIndex > 0) {
         segment.start = (
           this.currentLevel!.items[
             this.segmentIndex - 1
-          ] as OctraAnnotationSegment
+          ] as TrattAnnotationSegment
         ).time.samples;
       }
 
@@ -1105,13 +1105,13 @@ export class TranscrWindowComponent
     if (this.segmentIndex > -1) {
       const annoSegment = this.currentLevel!.items[
         this.segmentIndex
-      ] as OctraAnnotationSegment;
+      ] as TrattAnnotationSegment;
       segment.start = 0;
       if (this.segmentIndex > 0) {
         segment.start = (
           this.currentLevel!.items[
             this.segmentIndex - 1
-          ] as OctraAnnotationSegment
+          ] as TrattAnnotationSegment
         ).time.samples;
       }
 
@@ -1182,14 +1182,14 @@ export class TranscrWindowComponent
     if (this.segmentIndex > -1) {
       const annoSegment = this.currentLevel!.items[
         this.segmentIndex
-      ] as OctraAnnotationSegment;
+      ] as TrattAnnotationSegment;
       segment.start = 0;
 
       if (this.segmentIndex > 0) {
         segment.start = (
           this.currentLevel!.items[
             this.segmentIndex - 1
-          ] as OctraAnnotationSegment
+          ] as TrattAnnotationSegment
         ).time.samples;
       }
 
@@ -1240,13 +1240,13 @@ export class TranscrWindowComponent
     if (this.segmentIndex > -1) {
       const annoSegment = this.currentLevel!.items[
         this.segmentIndex
-      ] as OctraAnnotationSegment;
+      ] as TrattAnnotationSegment;
       segment.start = 0;
       if (this.segmentIndex > 0) {
         segment.start = (
           this.currentLevel!.items[
             this.segmentIndex - 1
-          ] as OctraAnnotationSegment
+          ] as TrattAnnotationSegment
         ).time.samples;
       }
 
@@ -1282,7 +1282,7 @@ export class TranscrWindowComponent
 
   onBoundaryClicked(sample: SampleUnit) {
     const i: number = getSegmentBySamplePosition(
-      this.currentLevel!.items as OctraAnnotationSegment[],
+      this.currentLevel!.items as TrattAnnotationSegment[],
       sample,
     );
 
@@ -1333,14 +1333,14 @@ export class TranscrWindowComponent
 
   saveTranscript() {
     const segStart = getSegmentBySamplePosition(
-      this.currentLevel?.items as OctraAnnotationSegment[],
+      this.currentLevel?.items as TrattAnnotationSegment[],
       this.audiochunk.time.start.add(
         new SampleUnit(20, this.audioManager.sampleRate),
       ),
     );
 
     this.tempSegments = [
-      ...(this.currentLevel?.items as OctraAnnotationSegment[]),
+      ...(this.currentLevel?.items as TrattAnnotationSegment[]),
     ];
     const html = this.editor.getRawText();
     // split text at the position of every boundary marker
@@ -1387,7 +1387,7 @@ export class TranscrWindowComponent
     if (this.tempSegments[segStart + segTexts.length - 1]) {
       this.tempSegments[segStart + segTexts.length - 1] = (this.tempSegments[
         segStart + segTexts.length - 1
-      ] as OctraAnnotationSegment)!.clone();
+      ] as TrattAnnotationSegment)!.clone();
       this.tempSegments[
         segStart + segTexts.length - 1
       ].changeFirstLabelWithoutName('Speaker', segTexts[segTexts.length - 1]);
@@ -1434,7 +1434,7 @@ export class TranscrWindowComponent
   public isNextSegmentLastAndBreak(segmentIndex: number) {
     const nextSegment = this.currentLevel!.items[
       segmentIndex + 1
-    ] as OctraAnnotationSegment;
+    ] as TrattAnnotationSegment;
     return (
       segmentIndex === this.currentLevel!.items.length - 2 &&
       (nextSegment!.getFirstLabelWithoutName('Speaker')?.value ===
@@ -1483,7 +1483,7 @@ export class TranscrWindowComponent
       } else {
         if (
           this.annotationStoreService.currentLevel instanceof
-          OctraAnnotationSegmentLevel
+          TrattAnnotationSegmentLevel
         ) {
           const time = this.audiochunk!.time.start.add(
             this.audiochunk!.time.duration,
@@ -1496,7 +1496,7 @@ export class TranscrWindowComponent
           if (segNumber > -1) {
             const segment = this.annotationStoreService.currentLevel!.items[
               segNumber
-            ] as OctraAnnotationSegment;
+            ] as TrattAnnotationSegment;
 
             if (segment !== undefined) {
               this.asrStoreService.addToQueue(
@@ -1530,7 +1530,7 @@ export class TranscrWindowComponent
       segNumber > -1 &&
       this.annotationStoreService.transcript?.currentLevel &&
       this.annotationStoreService.transcript?.currentLevel instanceof
-        OctraAnnotationSegmentLevel
+        TrattAnnotationSegmentLevel
     ) {
       for (
         let i = segNumber;

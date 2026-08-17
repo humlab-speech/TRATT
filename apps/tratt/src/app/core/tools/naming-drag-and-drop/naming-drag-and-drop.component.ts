@@ -10,12 +10,12 @@ import {
 } from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { NgbDropdownItem, NgbDropdownModule } from '@ng-bootstrap/ng-bootstrap';
-import { OctraAnnotationSegment, OEvent, OItem } from '@octra/annotation';
+import { OEvent, OItem, TrattAnnotationSegment } from '@tratt/annotation';
 import { Subject } from 'rxjs';
 import { DefaultComponent } from '../../component/default.component';
 
 @Component({
-  selector: 'octra-naming-drag-and-drop',
+  selector: 'tratt-naming-drag-and-drop',
   templateUrl: './naming-drag-and-drop.component.html',
   styleUrls: ['./naming-drag-and-drop.component.scss'],
   imports: [
@@ -40,7 +40,7 @@ export class NamingDragAndDropComponent extends DefaultComponent {
 
   @ViewChild('list', { static: true }) list!: ElementRef;
   @Input() fileName = '';
-  @Input() firstSegment?: OEvent | OItem | OctraAnnotationSegment;
+  @Input() firstSegment?: OEvent | OItem | TrattAnnotationSegment;
 
   @Output() namingConventionchanged: Subject<string> = new Subject<string>();
 
@@ -64,7 +64,7 @@ export class NamingDragAndDropComponent extends DefaultComponent {
     let result = '';
     if (
       this.firstSegment !== undefined &&
-      this.firstSegment instanceof OctraAnnotationSegment
+      this.firstSegment instanceof TrattAnnotationSegment
     ) {
       for (const resultConvention of this.resultConvention) {
         const item = resultConvention;

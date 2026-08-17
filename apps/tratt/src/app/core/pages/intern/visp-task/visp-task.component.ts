@@ -13,7 +13,7 @@ import { ApplicationStoreService } from '../../../store/application/application-
 import { AuthenticationStoreService } from '../../../store/authentication';
 
 @Component({
-  selector: 'octra-visp-task',
+  selector: 'tratt-visp-task',
   imports: [CommonModule],
   templateUrl: './visp-task.component.html',
   styleUrl: './visp-task.component.scss',
@@ -140,11 +140,11 @@ export class VispTaskComponent implements OnInit {
         }
         return response.json();
       })
-      .then((octraProject: ProjectDto) => {
-        console.log('Starting online annotation for project:', octraProject);
+      .then((trattProject: ProjectDto) => {
+        console.log('Starting online annotation for project:', trattProject);
 
         // Start the online annotation process
-        this.appStorage.startOnlineAnnotation(octraProject);
+        this.appStorage.startOnlineAnnotation(trattProject);
 
         // Navigate to transcription page
         console.log('Redirecting to transcription interface...');

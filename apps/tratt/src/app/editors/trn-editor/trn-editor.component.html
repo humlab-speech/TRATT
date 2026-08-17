@@ -1,18 +1,18 @@
 <div id="scroll-container" #scrollContainer>
-  <octra-context-menu
+  <tratt-context-menu
     #contextMenu
     [x]="contextMenuProperties.x"
     [y]="contextMenuProperties.y"
     [actions]="contextMenuProperties.actions"
-  ></octra-context-menu>
-  <octra-validation-popover
+  ></tratt-context-menu>
+  <tratt-validation-popover
     #validationPopover
     [ngStyle]="{
       'margin-left': popovers.validation.location.x + 'px',
       'margin-top': popovers.validation.location.y + 'px',
     }"
   >
-  </octra-validation-popover>
+  </tratt-validation-popover>
   <table class="table table-bordered bg-white">
     <thead>
       <tr id="table-head">
@@ -165,14 +165,14 @@
           ) {
             <td class="alert transcript-column">
               <div id="transcription-panel">
-                <octra-audio-navigation
+                <tratt-audio-navigation
                   [easyMode]="appStorage.easyMode"
                   [playbackRate]="appStorage.audioSpeed"
                   [audioChunk]="textEditor.audiochunk"
                   [volume]="appStorage.audioVolume"
-                ></octra-audio-navigation>
+                ></tratt-audio-navigation>
                 @if (!showSignalDisplay) {
-                  <octra-audio-viewer
+                  <tratt-audio-viewer
                     class="viewer"
                     #viewer
                     [settings]="audioViewerSettings"
@@ -182,16 +182,16 @@
                     [annotation]="annotationStoreService.transcript!"
                     style="height: 50px"
                   >
-                  </octra-audio-viewer>
+                  </tratt-audio-viewer>
                 }
-                <octra-transcr-editor
+                <tratt-transcr-editor
                   #transcrEditor
                   (onkeyup)="onKeyUp($event, i)"
                   [transcript]="textEditor.transcript"
                   [audiochunk]="textEditor.audiochunk"
                   [height]="60"
                   [markers]="annotationStoreService.guidelines!.markers!"
-                ></octra-transcr-editor>
+                ></tratt-transcr-editor>
                 <button
                   class="btn btn-sm btn-primary btn-info btn-raised w-50"
                   (click)="navigateBetweenCells('up', i)"

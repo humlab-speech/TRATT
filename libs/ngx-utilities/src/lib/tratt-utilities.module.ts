@@ -38,4 +38,4 @@ import {
     FileSizePipe,
   ],
 })
-export class OctraUtilitiesModule {}
+export class TrattUtilitiesModule {}

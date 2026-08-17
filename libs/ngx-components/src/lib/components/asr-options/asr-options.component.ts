@@ -19,7 +19,7 @@ import {
   NgbDropdownToggle,
   NgbPopover,
 } from '@ng-bootstrap/ng-bootstrap';
-import { SubscriberComponent } from '@octra/ngx-utilities';
+import { SubscriberComponent } from '@tratt/ngx-utilities';
 import { ASROptionsTranslations, ServiceProvider } from './types';
 
 const defaultI18n: ASROptionsTranslations = {
@@ -32,7 +32,7 @@ const defaultI18n: ASROptionsTranslations = {
 };
 
 @Component({
-  selector: 'octra-asr-options',
+  selector: 'tratt-asr-options',
   templateUrl: './asr-options.component.html',
   styleUrls: ['./asr-options.component.scss'],
   imports: [

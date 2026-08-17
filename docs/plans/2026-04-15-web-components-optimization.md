@@ -17,6 +17,7 @@
 ### Task 1: Measure current bundle size
 
 **Files:**
+
 - Read: `apps/web-components/project.json`
 
 **Step 1: Build current version**
@@ -82,6 +83,7 @@ EOF
 ### Task 2: Update web-components build config
 
 **Files:**
+
 - Modify: `apps/web-components/project.json`
 
 **Step 1: Check current build config**
@@ -155,6 +157,7 @@ git commit -m "config: enable production optimizations for web-components build"
 ### Task 3: Remove zone.js polyfill from web-components
 
 **Files:**
+
 - Modify: `apps/web-components/src/main.ts`
 - Modify: `apps/web-components/tsconfig.app.json`
 
@@ -180,10 +183,10 @@ import { ViewEncapsulation } from '@angular/core';
 
 bootstrapApplication(AppComponent, {
   providers: [
-    provideExperimentalZonelessChangeDetection()
+    provideExperimentalZonelessChangeDetection(),
     // Remove: provideZoneChangeDetection() — no longer needed
-  ]
-}).catch(err => console.error(err));
+  ],
+}).catch((err) => console.error(err));
 ```
 
 **Step 3: Update polyfills in tsconfig**
@@ -217,6 +220,7 @@ git commit -m "perf: remove zone.js from web-components, enable zoneless change 
 ### Task 4: Optimize Konva usage in AudioViewerComponent
 
 **Files:**
+
 - Read: `libs/ngx-components/src/lib/components/audio-viewer/audio-viewer.component.ts`
 - Read: `libs/ngx-components/src/lib/audio-viewer.service.ts`
 
@@ -275,6 +279,7 @@ git commit -m "perf: tree-shake unused Konva plugins (~30-50KB saved)"
 ### Task 5: Strip ViewEncapsulation.ShadowDom if not strictly needed
 
 **Files:**
+
 - Read: `libs/ngx-components/src/lib/components/audio-viewer/audio-viewer.component.ts`
 - Read: `libs/ngx-components/src/lib/components/audio-player/audio-player.component.ts`
 
@@ -327,6 +332,7 @@ git commit -m "perf: use ViewEncapsulation.Emulated for audio-viewer, remove Sha
 ### Task 6: Configure custom post-processor for web-components output
 
 **Files:**
+
 - Create: `scripts/optimize-web-components.js` (or update existing `prepare_web-components.js`)
 
 **Step 1: Create or update post-processor**
@@ -341,7 +347,7 @@ const { minify } = require('terser');
 const distDir = 'dist/apps/web-components';
 
 async function optimizeBundle() {
-  const files = fs.readdirSync(distDir).filter(f => f.endsWith('.js'));
+  const files = fs.readdirSync(distDir).filter((f) => f.endsWith('.js'));
 
   for (const file of files) {
     const filePath = path.join(distDir, file);
@@ -350,9 +356,7 @@ async function optimizeBundle() {
     console.log(`Optimizing ${file}...`);
 
     // Remove unused Angular modules
-    let optimized = code
-      .replace(/import\s*{[^}]*}\s*from\s*["']@angular\/localize["'];?/g, '')
-      .replace(/import\s*["']zone\.js["'];?/g, '');
+    let optimized = code.replace(/import\s*{[^}]*}\s*from\s*["']@angular\/localize["'];?/g, '').replace(/import\s*["']zone\.js["'];?/g, '');
 
     // Minify if not already
     if (!file.includes('.min.')) {
@@ -360,10 +364,10 @@ async function optimizeBundle() {
         const minified = await minify(optimized, {
           compress: {
             drop_console: true,
-            passes: 2
+            passes: 2,
           },
           mangle: true,
-          output: { comments: false }
+          output: { comments: false },
         });
         optimized = minified.code;
       } catch (e) {
@@ -372,7 +376,7 @@ async function optimizeBundle() {
     }
 
     fs.writeFileSync(filePath, optimized, 'utf-8');
-    
+
     const before = Buffer.byteLength(code, 'utf-8');
     const after = Buffer.byteLength(optimized, 'utf-8');
     console.log(`  ${file}: ${(before / 1024).toFixed(1)}KB → ${(after / 1024).toFixed(1)}KB`);
@@ -381,7 +385,7 @@ async function optimizeBundle() {
   console.log('\nOptimization complete.');
 }
 
-optimizeBundle().catch(err => {
+optimizeBundle().catch((err) => {
   console.error('Optimization failed:', err);
   process.exit(1);
 });
@@ -421,6 +425,7 @@ git commit -m "build: add post-processor for web-components bundle optimization"
 ### Task 7: Create separate entrypoints for AudioViewer and Audioplayer
 
 **Files:**
+
 - Create: `apps/web-components/src/viewer.ts`
 - Create: `apps/web-components/src/player.ts`
 - Modify: `apps/web-components/project.json`
@@ -432,7 +437,7 @@ git commit -m "build: add post-processor for web-components bundle optimization"
 
 import { createCustomElement } from '@angular/elements';
 import { Injector } from '@angular/core';
-import { AudioViewerComponent } from '@octra/ngx-components';
+import { AudioViewerComponent } from '@tratt/ngx-components';
 
 export function registerAudioViewer(injector: Injector) {
   const viewerElement = createCustomElement(AudioViewerComponent, { injector });
@@ -447,7 +452,7 @@ export function registerAudioViewer(injector: Injector) {
 
 import { createCustomElement } from '@angular/elements';
 import { Injector } from '@angular/core';
-import { AudioplayerComponent } from '@octra/ngx-components';
+import { AudioplayerComponent } from '@tratt/ngx-components';
 
 export function registerAudioPlayer(injector: Injector) {
   const playerElement = createCustomElement(AudioplayerComponent, { injector });
@@ -545,6 +550,7 @@ echo "Savings: $(((baseline_gzip_size - final_gzip_size) / baseline_gzip_size * 
 ```
 
 **Expected:** 30-40% reduction. If < 25%, review optimization checklist:
+
 - [ ] zone.js removed (50KB)
 - [ ] Konva tree-shaking enabled (~30KB)
 - [ ] ViewEncapsulation.ShadowDom replaced (~5KB)
@@ -594,14 +600,14 @@ git commit -m "perf: web-components bundle optimized from XXXkb to XXXkb gzipped
 
 ## Success Criteria
 
-| Target | Status |
-|--------|--------|
-| Gzipped size < 180KB | [ ] |
-| zone.js removed | [ ] |
-| Separate viewer/player bundles | [ ] |
-| Konva tree-shaken | [ ] |
-| All tests pass | [ ] |
-| Web-components-demo renders correctly | [ ] |
+| Target                                | Status |
+| ------------------------------------- | ------ |
+| Gzipped size < 180KB                  | [ ]    |
+| zone.js removed                       | [ ]    |
+| Separate viewer/player bundles        | [ ]    |
+| Konva tree-shaken                     | [ ]    |
+| All tests pass                        | [ ]    |
+| Web-components-demo renders correctly | [ ]    |
 
 ---
 

@@ -6,7 +6,7 @@ import { DefaultComponent } from '../../../component/default.component';
 import { NavbarService } from '../../../component/navbar/navbar.service';
 
 @Component({
-  selector: 'octra-auth',
+  selector: 'tratt-auth',
   templateUrl: './auth.component.html',
   styleUrls: ['./auth.component.scss'],
   imports: [TranslocoPipe],

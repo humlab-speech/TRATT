@@ -35,13 +35,13 @@
             {{ 'p.authenticated' | transloco }}
           </button>
         }
-        <octra-authentication-component
+        <tratt-authentication-component
           [type]="type"
           (submitClick)="onSubmit($event)"
           [authentications]="apiService.appProperties?.authentications"
           [passwordReset]="apiService.appProperties?.reset_password"
           [registrations]="false"
-        ></octra-authentication-component>
+        ></tratt-authentication-component>
       </div>
       <div class="col"></div>
     </div>

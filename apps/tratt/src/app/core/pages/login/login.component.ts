@@ -4,20 +4,20 @@ import { NgForm } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { NgbNavModule } from '@ng-bootstrap/ng-bootstrap';
-import type { OAnnotJSON } from '@octra/annotation';
 import { AccountLoginMethod } from '@octra/api-types';
 import { OctraAPIService } from '@octra/ngx-octra-api';
-import { FileSize, getFileSize } from '@octra/utilities';
+import type { OAnnotJSON } from '@tratt/annotation';
+import { FileSize, getFileSize } from '@tratt/utilities';
 import { filter, firstValueFrom, Observable, Subscription, tap } from 'rxjs';
 import { AuthenticationComponent } from '../../component/authentication-component/authentication-component.component';
 import { DefaultComponent } from '../../component/default.component';
 import { MaintenanceBannerComponent } from '../../component/maintenance/maintenance-banner/maint-banner.component';
+import { RecordingPanelComponent } from '../../component/recording-panel/recording-panel.component';
 import {
   KB_WHISPER_MODELS,
   OPENAI_WHISPER_MODELS,
-} from '../../component/octra-dropzone/auto-transcribe-options.component';
-import { OctraDropzoneComponent } from '../../component/octra-dropzone/octra-dropzone.component';
-import { RecordingPanelComponent } from '../../component/recording-panel/recording-panel.component';
+} from '../../component/tratt-dropzone/auto-transcribe-options.component';
+import { TrattDropzoneComponent } from '../../component/tratt-dropzone/tratt-dropzone.component';
 import { AppSettings } from '../../obj';
 import { SessionFile } from '../../obj/SessionFile';
 import { AudioService, SettingsService } from '../../shared/service';
@@ -62,7 +62,7 @@ function formatDuration(seconds: number): string {
 }
 
 @Component({
-  selector: 'octra-login',
+  selector: 'tratt-login',
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.scss'],
   providers: [
@@ -82,7 +82,7 @@ function formatDuration(seconds: number): string {
   imports: [
     MaintenanceBannerComponent,
     AuthenticationComponent,
-    OctraDropzoneComponent,
+    TrattDropzoneComponent,
     RecordingPanelComponent,
     BrowserTestComponent,
     NgbNavModule,
@@ -96,7 +96,7 @@ export class LoginComponent
   implements ComponentCanDeactivate
 {
   @ViewChild('f', { static: false }) loginform?: NgForm;
-  @ViewChild('dropzone', { static: false }) dropzone?: OctraDropzoneComponent;
+  @ViewChild('dropzone', { static: false }) dropzone?: TrattDropzoneComponent;
   @ViewChild('agreement', { static: false }) agreement?: ElementRef;
   @ViewChild('localmode', { static: true }) localmode?: ElementRef;
   @ViewChild('onlinemode', { static: true }) onlinemode?: ElementRef;

@@ -1,9 +1,9 @@
 /// <reference lib="dom" />
 /// <reference lib="dom.iterable" />
 
-import { OctraGuidelines } from '@octra/assets';
+import { TrattGuidelines } from '@tratt/assets';
 
-export interface OctraValidationItem {
+export interface TrattValidationItem {
   start: number;
   length: number;
   code: string;
@@ -14,11 +14,11 @@ export {};
 declare global {
   export const validateAnnotation: (
     transcript: string,
-    guidelines: OctraGuidelines,
-  ) => OctraValidationItem[];
+    guidelines: TrattGuidelines,
+  ) => TrattValidationItem[];
   export const tidyUpAnnotation: (
     transcript: string,
-    guidelines: OctraGuidelines,
+    guidelines: TrattGuidelines,
   ) => string;
 
   interface FileSystemEntry {

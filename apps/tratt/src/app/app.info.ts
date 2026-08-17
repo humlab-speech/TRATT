@@ -14,8 +14,8 @@ import {
   TextConverter,
   WebVTTConverter,
   WhisperJSONConverter,
-} from '@octra/annotation';
-import { LibavFormat, MusicMetadataFormat, WavFormat } from '@octra/web-media';
+} from '@tratt/annotation';
+import { LibavFormat, MusicMetadataFormat, WavFormat } from '@tratt/web-media';
 import { BUILD_INFO } from './build-info';
 
 export class AppInfo {

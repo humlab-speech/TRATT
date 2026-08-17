@@ -1,4 +1,4 @@
-import { extractFileNameFromURL } from '@octra/utilities';
+import { extractFileNameFromURL } from '@tratt/utilities';
 import { DataInfo } from './data-info';
 
 export class FileInfo extends DataInfo {

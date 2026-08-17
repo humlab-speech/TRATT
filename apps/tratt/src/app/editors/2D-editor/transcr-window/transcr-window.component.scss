@@ -31,7 +31,7 @@
 
 .tw-loading .background {
   opacity: 0.75;
-  background-color: var(--octra-surface-background);
+  background-color: var(--tratt-surface-background);
   position: absolute;
   z-index: 110;
 }
@@ -43,7 +43,7 @@
   z-index: 120;
 }
 
-octra-transcr-editor {
+tratt-transcr-editor {
   display: flex;
   flex-direction: column;
   flex: auto;
@@ -53,7 +53,7 @@ octra-transcr-editor {
   position: absolute;
   top: 12px;
   left: 12px;
-  background-color: var(--octra-primary-color);
+  background-color: var(--tratt-primary-color);
   color: rgba(42, 71, 101, 0.8);
   padding: 6px 12px;
   border-radius: 20px;

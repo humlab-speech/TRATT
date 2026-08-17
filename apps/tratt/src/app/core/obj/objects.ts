@@ -1,5 +1,5 @@
-import { Converter } from '@octra/annotation';
-import { FileInfo } from '@octra/web-media';
+import { Converter } from '@tratt/annotation';
+import { FileInfo } from '@tratt/web-media';
 
 export interface FileProgress {
   id: number;

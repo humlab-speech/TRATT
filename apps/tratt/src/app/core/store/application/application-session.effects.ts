@@ -74,7 +74,7 @@ export class ApplicationSessionEffects {
         if (
           a.settings.api?.url &&
           a.settings.api?.appToken &&
-          a.settings.octraBackend?.enabled !== false
+          a.settings.trattBackend?.enabled !== false
         ) {
           return of(
             APIActions.init.do({

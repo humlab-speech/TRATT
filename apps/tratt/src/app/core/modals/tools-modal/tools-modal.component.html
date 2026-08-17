@@ -59,7 +59,7 @@
                 >{{ 'tools.combine phrases.description' | transloco }}
               </span>
               <a
-                [href]="manualURL + 'using-tools.html#octra-combine-units'"
+                [href]="manualURL + 'using-tools.html#tratt-combine-units'"
                 target="_blank"
               >
                 <i class="bi bi-question-circle text-info"></i>
@@ -229,13 +229,13 @@
                     [hidden]="!tools.audioCutting.showConfigurator"
                     class="configurator"
                   >
-                    <octra-naming-drag-and-drop
+                    <tratt-naming-drag-and-drop
                       #namingConvention
                       [fileName]="audio.audioManager!.resource!.name"
                       [firstSegment]="
                         annotationStoreService.currentLevel!.items[0]
                       "
-                    ></octra-naming-drag-and-drop>
+                    ></tratt-naming-drag-and-drop>
                     <div class="form-control">
                       <span
                         >{{ 'tools.cut audio.append meta files' | transloco }}:

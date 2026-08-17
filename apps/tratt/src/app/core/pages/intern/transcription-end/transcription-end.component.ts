@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { Router } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
-import { navigateTo } from '@octra/ngx-utilities';
+import { navigateTo } from '@tratt/ngx-utilities';
 import { DefaultComponent } from '../../../component/default.component';
 import { NavbarService } from '../../../component/navbar/navbar.service';
 import { UserInteractionsService } from '../../../shared/service';
@@ -9,7 +9,7 @@ import { AppStorageService } from '../../../shared/service/appstorage.service';
 import { AnnotationStoreService } from '../../../store/login-mode/annotation/annotation.store.service';
 
 @Component({
-  selector: 'octra-transcription-submitted',
+  selector: 'tratt-transcription-submitted',
   templateUrl: './transcription-end.component.html',
   styleUrls: ['./transcription-end.component.scss'],
   imports: [TranslocoPipe],

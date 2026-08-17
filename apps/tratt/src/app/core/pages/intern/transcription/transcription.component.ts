@@ -9,16 +9,15 @@ import {
 } from '@angular/core';
 import { Router } from '@angular/router';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
-import { hasProperty } from '@octra/utilities';
+import { hasProperty } from '@tratt/utilities';
 import { interval, timer } from 'rxjs';
 import { editorComponents } from '../../../../editors/components';
 import {
-  OCTRAEditor,
-  OctraEditorRequirements,
-} from '../../../../editors/octra-editor';
+  TRATTEditor,
+  TrattEditorRequirements,
+} from '../../../../editors/tratt-editor';
 import { InactivityModalComponent } from '../../../modals/inactivity-modal/inactivity-modal.component';
 import { MissingPermissionsModalComponent } from '../../../modals/missing-permissions/missing-permissions.component';
-import { OctraModalService } from '../../../modals/octra-modal.service';
 import { OverviewModalComponent } from '../../../modals/overview-modal/overview-modal.component';
 import {
   ModalEndAnswer,
@@ -30,6 +29,7 @@ import {
   TranscriptionStopModalAnswer,
   TranscriptionStopModalComponent,
 } from '../../../modals/transcription-stop-modal/transcription-stop-modal.component';
+import { TrattModalService } from '../../../modals/tratt-modal.service';
 import { ProjectSettings } from '../../../obj/Settings';
 
 import { LoadeditorDirective } from '../../../shared/directive/loadeditor.directive';
@@ -37,13 +37,13 @@ import { LoadeditorDirective } from '../../../shared/directive/loadeditor.direct
 import { NgClass } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
-import { AnnotJSONConverter, Converter } from '@octra/annotation';
+import { AnnotJSONConverter, Converter } from '@tratt/annotation';
 import {
   AudioManager,
   BrowserInfo,
   Shortcut,
   ShortcutGroup,
-} from '@octra/web-media';
+} from '@tratt/web-media';
 import { HotkeysEvent } from 'hotkeys-js';
 import { AppInfo } from '../../../../app.info';
 import { DefaultComponent } from '../../../component/default.component';
@@ -67,7 +67,7 @@ import { AuthenticationStoreService } from '../../../store/authentication';
 import { AnnotationStoreService } from '../../../store/login-mode/annotation/annotation.store.service';
 
 @Component({
-  selector: 'octra-transcription',
+  selector: 'tratt-transcription',
   templateUrl: './transcription.component.html',
   styleUrls: ['./transcription.component.scss'],
   imports: [
@@ -345,7 +345,7 @@ export class TranscriptionComponent
     public shortcutService: ShortcutService,
     public navbarServ: NavbarService,
     public settingsService: SettingsService,
-    public modService: OctraModalService,
+    public modService: TrattModalService,
     private appStoreService: ApplicationStoreService,
     public langService: TranslocoService,
     public routingService: RoutingService,
@@ -470,10 +470,10 @@ export class TranscriptionComponent
       next: (shortcutsEnabled) => {
         if (this._currentEditor?.instance) {
           if (shortcutsEnabled) {
-            (this._currentEditor.instance as OCTRAEditor).enableAllShortcuts();
+            (this._currentEditor.instance as TRATTEditor).enableAllShortcuts();
             this.shortcutService.enableAll();
           } else {
-            (this._currentEditor.instance as OCTRAEditor).disableAllShortcuts();
+            (this._currentEditor.instance as TRATTEditor).disableAllShortcuts();
             this.shortcutService.disableAll();
           }
         }
@@ -639,7 +639,7 @@ export class TranscriptionComponent
             viewContainerRef.clear();
 
             this._currentEditor =
-              viewContainerRef.createComponent<OCTRAEditor>(comp);
+              viewContainerRef.createComponent<TRATTEditor>(comp);
 
             const id = this.subscribe(
               this._currentEditor.instance.initialized,
@@ -923,7 +923,7 @@ export class TranscriptionComponent
     this.subscribe(
       this.modalOverview.componentInstance.transcriptionSend,
       () => {
-        const editor = this._currentEditor.instance as OctraEditorRequirements;
+        const editor = this._currentEditor.instance as TrattEditorRequirements;
         this.appStoreService.setShortcutsEnabled(true);
         this.modalOverview?.close();
         this.modalVisiblities.overview = false;

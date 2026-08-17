@@ -26,9 +26,9 @@ import {
 import { EffectsModule } from '@ngrx/effects';
 import { StoreModule } from '@ngrx/store';
 import { StoreDevtoolsModule } from '@ngrx/store-devtools';
-import { OctraComponentsModule } from '@octra/ngx-components';
 import { NgxOctraApiModule } from '@octra/ngx-octra-api';
-import { OctraUtilitiesModule } from '@octra/ngx-utilities';
+import { TrattComponentsModule } from '@tratt/ngx-components';
+import { TrattUtilitiesModule } from '@tratt/ngx-utilities';
 import 'jodit/esm/plugins/justify/justify.js';
 import {
   provideNgxWebstorage,
@@ -42,7 +42,7 @@ import { SHARED_PROVIDERS } from './app/app.shared.providers';
 import { TranslocoRootModule } from './app/app.transloco';
 import { NavbarService } from './app/core/component/navbar/navbar.service';
 import { MODALS_PROVIDERS } from './app/core/modals/modals.providers';
-import { OctraModalService } from './app/core/modals/octra-modal.service';
+import { TrattModalService } from './app/core/modals/tratt-modal.service';
 import { ReloadFileGuard } from './app/core/pages/intern/reload-file/reload-file.activateguard';
 import { PagesModule } from './app/core/pages/pages.module';
 import { ALoginGuard, DeALoginGuard } from './app/core/shared/guard';
@@ -168,14 +168,14 @@ bootstrapApplication(AppComponent, {
     // Feature Modules (NgModules must be wrapped in importProvidersFrom)
     importProvidersFrom(PagesModule),
     importProvidersFrom(NgxOctraApiModule),
-    OctraComponentsModule,
-    OctraUtilitiesModule,
+    TrattComponentsModule,
+    TrattUtilitiesModule,
 
     // Guards & Services
     ALoginGuard,
     DeALoginGuard,
     AudioService,
-    OctraModalService,
+    TrattModalService,
     NavbarService,
     ReloadFileGuard,
     AppStorageService,

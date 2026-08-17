@@ -2,16 +2,16 @@ import { Injectable, inject } from '@angular/core';
 import {
   AnnotationAnySegment,
   OLabel,
-  OctraAnnotationSegment,
-  OctraAnnotationSegmentLevel,
-} from '@octra/annotation';
+  TrattAnnotationSegment,
+  TrattAnnotationSegmentLevel,
+} from '@tratt/annotation';
 import {
   cycleNextSpeaker,
   getSpeakerColor,
   getSpeakerIds,
   getSpeakerTextColor,
   renameSpeakerInAnnotation,
-} from '@octra/ngx-components';
+} from '@tratt/ngx-components';
 import { AnnotationStoreService } from '../../store/login-mode/annotation/annotation.store.service';
 
 @Injectable({ providedIn: 'root' })
@@ -61,7 +61,7 @@ export class SpeakerManagementService {
     if (!level) return;
     const segIndex = level.items.findIndex((s) => s.id === segmentId);
     if (segIndex < 0) return;
-    const segment = level.items[segIndex] as OctraAnnotationSegment;
+    const segment = level.items[segIndex] as TrattAnnotationSegment;
     const current = segment.getLabel('Speaker')?.value ?? '';
     const next = this.cycleNext(current);
 
@@ -88,9 +88,9 @@ export class SpeakerManagementService {
     }
     for (const id of linkGroupIds) {
       const lvl = cloned.levels.find((l) => l.id === id);
-      if (!(lvl instanceof OctraAnnotationSegmentLevel)) continue;
+      if (!(lvl instanceof TrattAnnotationSegmentLevel)) continue;
       if (segIndex < 0 || segIndex >= lvl.items.length) continue;
-      const seg = lvl.items[segIndex] as OctraAnnotationSegment;
+      const seg = lvl.items[segIndex] as TrattAnnotationSegment;
       const updated = this.applySpeakerLabel(seg, next);
       lvl.overwriteItems([
         ...lvl.items.slice(0, segIndex),
@@ -102,10 +102,10 @@ export class SpeakerManagementService {
   }
 
   private applySpeakerLabel(
-    segment: OctraAnnotationSegment,
+    segment: TrattAnnotationSegment,
     value: string,
-  ): OctraAnnotationSegment {
-    const updated = segment.clone() as OctraAnnotationSegment;
+  ): TrattAnnotationSegment {
+    const updated = segment.clone() as TrattAnnotationSegment;
     const changed = updated.changeLabel('Speaker', value);
     if (!changed) {
       updated.labels = [...updated.labels, new OLabel('Speaker', value)];
@@ -123,13 +123,13 @@ export class SpeakerManagementService {
     const transcript = this.annotationStore.transcript;
     if (!transcript) return result;
     const origin = transcript.levels.find((l) => l.id === levelId);
-    if (!(origin instanceof OctraAnnotationSegmentLevel)) return result;
+    if (!(origin instanceof TrattAnnotationSegmentLevel)) return result;
     const sourceLevelId =
       origin.linkedToLevelId !== undefined ? origin.linkedToLevelId : origin.id;
     result.add(sourceLevelId);
     for (const l of transcript.levels) {
       if (
-        l instanceof OctraAnnotationSegmentLevel &&
+        l instanceof TrattAnnotationSegmentLevel &&
         l.linkedToLevelId === sourceLevelId
       ) {
         result.add(l.id);

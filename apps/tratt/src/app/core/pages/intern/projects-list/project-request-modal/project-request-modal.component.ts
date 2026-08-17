@@ -7,11 +7,11 @@ import {
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { NgbActiveModal, NgbModalOptions } from '@ng-bootstrap/ng-bootstrap';
 import { OctraAPIService } from '@octra/ngx-octra-api';
-import { SubscriberComponent } from '@octra/ngx-utilities';
+import { SubscriberComponent } from '@tratt/ngx-utilities';
 import { ApplicationStoreService } from '../../../../store/application/application-store.service';
 
 @Component({
-  selector: 'octra-project-request-modal',
+  selector: 'tratt-project-request-modal',
   templateUrl: './project-request-modal.component.html',
   styleUrls: ['./project-request-modal.component.scss'],
   imports: [TranslocoPipe],
@@ -47,9 +47,9 @@ export class ProjectRequestModalComponent extends SubscriberComponent {
         const introRaw = this.transloco.translate(
           'modals.create project request.introduction',
           {
-            octraBackendURL:
+            trattBackendURL:
               "<a href='" +
-              appSettings?.octraBackend?.url +
+              appSettings?.trattBackend?.url +
               "' target='_blank'>OCTRA-Backend</a>",
           },
         );

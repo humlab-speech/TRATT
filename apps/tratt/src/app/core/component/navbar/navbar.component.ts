@@ -19,15 +19,15 @@ import {
   NgbOffcanvas,
   NgbPopover,
 } from '@ng-bootstrap/ng-bootstrap';
+import { AccountRole, ProjectDto } from '@octra/api-types';
+import { OctraAPIService } from '@octra/ngx-octra-api';
 import {
   AnnotationLevelType,
-  OctraAnnotationAnyLevel,
-  OctraAnnotationSegment,
-} from '@octra/annotation';
-import { AccountRole, ProjectDto } from '@octra/api-types';
-import { OctraComponentsModule } from '@octra/ngx-components';
-import { OctraAPIService } from '@octra/ngx-octra-api';
-import { TimespanPipe } from '@octra/ngx-utilities';
+  TrattAnnotationAnyLevel,
+  TrattAnnotationSegment,
+} from '@tratt/annotation';
+import { TrattComponentsModule } from '@tratt/ngx-components';
+import { TimespanPipe } from '@tratt/ngx-utilities';
 import { filter, first } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 import { AppInfo } from '../../../app.info';
@@ -38,10 +38,10 @@ import {
   AddTranslatedLevelResult,
 } from '../../modals/add-translated-level-modal/add-translated-level-modal.component';
 import { ExportFilesModalComponent } from '../../modals/export-files-modal/export-files-modal.component';
-import { OctraModalService } from '../../modals/octra-modal.service';
 import { StatisticsModalComponent } from '../../modals/statistics-modal/statistics-modal.component';
 import { ToolsModalComponent } from '../../modals/tools-modal/tools-modal.component';
 import { TranslateLinkedLevelModalComponent } from '../../modals/translate-linked-level-modal/translate-linked-level-modal.component';
+import { TrattModalService } from '../../modals/tratt-modal.service';
 import { YesNoModalComponent } from '../../modals/yes-no-modal/yes-no-modal.component';
 import {
   AudioService,
@@ -66,7 +66,7 @@ import { DefaultComponent } from '../default.component';
 import { NavbarService } from './navbar.service';
 
 @Component({
-  selector: 'octra-navigation',
+  selector: 'tratt-navigation',
   templateUrl: './navbar.component.html',
   styleUrls: ['./navbar.component.scss'],
   imports: [
@@ -83,7 +83,7 @@ import { NavbarService } from './navbar.service';
     UpperCasePipe,
     TranslocoPipe,
     TimespanPipe,
-    OctraComponentsModule,
+    TrattComponentsModule,
   ],
 })
 export class NavigationComponent extends DefaultComponent implements OnInit {
@@ -169,7 +169,7 @@ export class NavigationComponent extends DefaultComponent implements OnInit {
     public navbarServ: NavbarService,
     public sanitizer: DomSanitizer,
     public langService: TranslocoService,
-    public modalService: OctraModalService,
+    public modalService: TrattModalService,
     public settService: SettingsService,
     public bugService: BugReportService,
     public annotationStoreService: AnnotationStoreService,
@@ -369,7 +369,7 @@ export class NavigationComponent extends DefaultComponent implements OnInit {
       });
   }
 
-  onLevelRemoveClick(level: OctraAnnotationAnyLevel<OctraAnnotationSegment>) {
+  onLevelRemoveClick(level: TrattAnnotationAnyLevel<TrattAnnotationSegment>) {
     this.modalService
       .openModal(YesNoModalComponent, YesNoModalComponent.options, {
         message: this.langService.translate('modal.level remove', {
@@ -392,12 +392,12 @@ export class NavigationComponent extends DefaultComponent implements OnInit {
     this.annotationStoreService.duplicateLevel(tiernum);
   }
 
-  onDetachLinkedClick(level: OctraAnnotationAnyLevel<OctraAnnotationSegment>) {
+  onDetachLinkedClick(level: TrattAnnotationAnyLevel<TrattAnnotationSegment>) {
     this.annotationStoreService.detachLinkedLevel(level.id);
   }
 
   onTranslateLinkedClick(
-    level: OctraAnnotationAnyLevel<OctraAnnotationSegment>,
+    level: TrattAnnotationAnyLevel<TrattAnnotationSegment>,
   ) {
     const linkedToLevelId = (level as any).linkedToLevelId as
       | number

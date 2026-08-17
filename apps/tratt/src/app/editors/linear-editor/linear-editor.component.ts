@@ -7,7 +7,7 @@ import {
   OnInit,
   ViewChild,
 } from '@angular/core';
-import { contains } from '@octra/utilities';
+import { contains } from '@tratt/utilities';
 import {
   TranscrEditorComponent,
   TranscrEditorConfig,
@@ -17,25 +17,25 @@ import { NgClass, NgStyle } from '@angular/common';
 import { TranslocoPipe } from '@jsverse/transloco';
 import {
   ASRContext,
-  OctraAnnotation,
-  OctraAnnotationSegment,
-  OctraAnnotationSegmentLevel,
-} from '@octra/annotation';
-import { AudioSelection, SampleUnit } from '@octra/media';
+  TrattAnnotation,
+  TrattAnnotationSegment,
+  TrattAnnotationSegmentLevel,
+} from '@tratt/annotation';
+import { AudioSelection, SampleUnit } from '@tratt/media';
 import {
   AudioViewerComponent,
   AudioviewerConfig,
   AudioViewerShortcutEvent,
   CurrentLevelChangeEvent,
-  OctraComponentsModule,
-} from '@octra/ngx-components';
+  TrattComponentsModule,
+} from '@tratt/ngx-components';
 import {
   AudioChunk,
   AudioManager,
   BrowserInfo,
   Shortcut,
   ShortcutGroup,
-} from '@octra/web-media';
+} from '@tratt/web-media';
 import { HotkeysEvent } from 'hotkeys-js';
 import { timer } from 'rxjs';
 import { AudioNavigationComponent } from '../../core/component/audio-navigation';
@@ -52,14 +52,14 @@ import {
 import { AppStorageService } from '../../core/shared/service/appstorage.service';
 import { ShortcutService } from '../../core/shared/service/shortcut.service';
 import { AnnotationStoreService } from '../../core/store/login-mode/annotation/annotation.store.service';
-import { OCTRAEditor, OctraEditorRequirements } from '../octra-editor';
+import { TRATTEditor, TrattEditorRequirements } from '../tratt-editor';
 
 @Component({
-  selector: 'octra-signal-gui',
+  selector: 'tratt-signal-gui',
   templateUrl: './linear-editor.component.html',
   styleUrls: ['./linear-editor.component.scss'],
   imports: [
-    OctraComponentsModule,
+    TrattComponentsModule,
     NgStyle,
     AudioNavigationComponent_1,
     TranscrEditorComponent_1,
@@ -68,8 +68,8 @@ import { OCTRAEditor, OctraEditorRequirements } from '../octra-editor';
   ],
 })
 export class LinearEditorComponent
-  extends OCTRAEditor
-  implements OnInit, AfterViewInit, OctraEditorRequirements, OnDestroy
+  extends TRATTEditor
+  implements OnInit, AfterViewInit, TrattEditorRequirements, OnDestroy
 {
   public static editorname = 'Linear Editor';
   public initialized: EventEmitter<void> = new EventEmitter<void>();
@@ -659,7 +659,7 @@ export class LinearEditorComponent
     if (
       this.appStorage.logging &&
       this.annotationStoreService.currentLevel instanceof
-        OctraAnnotationSegmentLevel
+        TrattAnnotationSegmentLevel
     ) {
       const start =
         $event.index > 0
@@ -741,7 +741,7 @@ export class LinearEditorComponent
           this.segmentselected &&
           this.selectedIndex > -1 &&
           this.annotationStoreService.currentLevel instanceof
-            OctraAnnotationSegmentLevel
+            TrattAnnotationSegmentLevel
         ) {
           const annoSegment =
             this.annotationStoreService.currentLevel!.items[this.selectedIndex];
@@ -797,7 +797,7 @@ export class LinearEditorComponent
       this.selectedIndex > -1 &&
       this.annotationStoreService.currentLevel?.items &&
       this.annotationStoreService.currentLevel instanceof
-        OctraAnnotationSegmentLevel
+        TrattAnnotationSegmentLevel
     ) {
       const endSamples =
         this.annotationStoreService.currentLevel.items[this.selectedIndex]!.time
@@ -830,7 +830,7 @@ export class LinearEditorComponent
         this.selectedIndex > -1 &&
         this.annotationStoreService.currentLevel?.items &&
         this.annotationStoreService.currentLevel instanceof
-          OctraAnnotationSegmentLevel
+          TrattAnnotationSegmentLevel
       ) {
         const annoSegment =
           this.annotationStoreService.currentLevel?.items[this.selectedIndex];
@@ -870,7 +870,7 @@ export class LinearEditorComponent
         this.selectedIndex > -1 &&
         this.annotationStoreService.currentLevel?.items &&
         this.annotationStoreService.currentLevel instanceof
-          OctraAnnotationSegmentLevel
+          TrattAnnotationSegmentLevel
       ) {
         const annoSegment =
           this.annotationStoreService.currentLevel.items[this.selectedIndex];
@@ -939,7 +939,7 @@ export class LinearEditorComponent
         this.selectedIndex > -1 &&
         this.annotationStoreService.currentLevel?.items &&
         this.annotationStoreService.currentLevel instanceof
-          OctraAnnotationSegmentLevel
+          TrattAnnotationSegmentLevel
       ) {
         const annoSegment =
           this.annotationStoreService.currentLevel.items[this.selectedIndex];
@@ -976,7 +976,7 @@ export class LinearEditorComponent
         this.selectedIndex > -1 &&
         this.annotationStoreService.currentLevel?.items &&
         this.annotationStoreService.currentLevel instanceof
-          OctraAnnotationSegmentLevel
+          TrattAnnotationSegmentLevel
       ) {
         const annoSegment =
           this.annotationStoreService.currentLevel.items[this.selectedIndex];
@@ -1044,7 +1044,7 @@ export class LinearEditorComponent
       if (
         this.annotationStoreService.currentLevel?.items &&
         this.annotationStoreService.currentLevel instanceof
-          OctraAnnotationSegmentLevel
+          TrattAnnotationSegmentLevel
       ) {
         const segment = this.annotationStoreService.currentLevel.items[index];
         this.transcript =
@@ -1067,7 +1067,7 @@ export class LinearEditorComponent
         this.selectedIndex > -1 &&
         this.annotationStoreService.currentLevel?.items &&
         this.annotationStoreService.currentLevel instanceof
-          OctraAnnotationSegmentLevel &&
+          TrattAnnotationSegmentLevel &&
         this.selectedIndex <
           this.annotationStoreService.currentLevel.items.length
       ) {
@@ -1099,7 +1099,7 @@ export class LinearEditorComponent
   }
 
   onEntriesChange(
-    annotation: OctraAnnotation<ASRContext, OctraAnnotationSegment>,
+    annotation: TrattAnnotation<ASRContext, TrattAnnotationSegment>,
   ) {
     this.annotationStoreService.overwriteTranscript(annotation);
   }

@@ -9,7 +9,7 @@ import { AlertService } from '../../shared/service/alert.service';
 import { DefaultComponent } from '../default.component';
 
 @Component({
-  selector: 'octra-alert',
+  selector: 'tratt-alert',
   templateUrl: './alert.component.html',
   styleUrls: ['./alert.component.scss'],
   animations: [fadeInOnEnterAnimation(), fadeOutOnLeaveAnimation()],

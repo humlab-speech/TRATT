@@ -5,7 +5,7 @@ import {
   Router,
   RouterStateSnapshot,
 } from '@angular/router';
-import { navigateTo } from '@octra/ngx-utilities';
+import { navigateTo } from '@tratt/ngx-utilities';
 import { AppInfo } from '../../../app.info';
 import { AppStorageService } from '../../shared/service/appstorage.service';
 

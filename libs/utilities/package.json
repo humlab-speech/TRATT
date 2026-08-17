@@ -1,5 +1,5 @@
 {
-  "name": "@octra/utilities",
+  "name": "@tratt/utilities",
   "description": "This library offers JS functions and classes to make some parts of app development easier. This library is used by [Octra](https://github.com/IPS-LMU/octra) and Octra-Backend.",
   "version": "1.1.0",
   "license": "MIT",

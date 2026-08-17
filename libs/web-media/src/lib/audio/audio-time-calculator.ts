@@ -1,4 +1,4 @@
-import { SampleUnit } from '@octra/media';
+import { SampleUnit } from '@tratt/media';
 import { AudioChunk } from './audio-manager';
 
 export class AudioTimeCalculator {

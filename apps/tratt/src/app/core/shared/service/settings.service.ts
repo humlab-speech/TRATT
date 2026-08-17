@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { SubscriptionManager } from '@octra/utilities';
+import { SubscriptionManager } from '@tratt/utilities';
 
 import { Subscription } from 'rxjs';
 import { AppSettings, ProjectSettings } from '../../obj/Settings';

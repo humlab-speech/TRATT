@@ -6,12 +6,12 @@ describe('migrateLegacyConfigKey', () => {
     const migrated = migrateLegacyConfigKey({
       version: '1.0.0',
       octra: { supportEmail: 'a@b.c' },
-      octraBackend: { enabled: true },
+      trattBackend: { enabled: true },
     }) as any;
 
     expect(migrated.tratt).toEqual({ supportEmail: 'a@b.c' });
     expect(migrated.octra).toBeUndefined();
-    expect(migrated.octraBackend).toEqual({ enabled: true });
+    expect(migrated.trattBackend).toEqual({ enabled: true });
     expect(migrated.version).toBe('1.0.0');
   });
 

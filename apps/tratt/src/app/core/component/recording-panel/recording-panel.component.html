@@ -1,10 +1,10 @@
-<octra-recording-recovery-banner
+<tratt-recording-recovery-banner
   *ngIf="recoverable.length > 0"
   [sessions]="recoverable"
   (continueSession)="onContinueRecovery($event)"
   (downloadSession)="onDownloadRecovery($event)"
   (discardSession)="onDiscardRecovery($event)"
-></octra-recording-recovery-banner>
+></tratt-recording-recovery-banner>
 
 <div class="recording-panel border rounded p-2 mt-2">
   <div class="recording-toolbar">
@@ -54,7 +54,7 @@
             >
               <i class="bi bi-camera-video-fill"></i>
             </button>
-            <octra-device-picker [mode]="selectedMode"></octra-device-picker>
+            <tratt-device-picker [mode]="selectedMode"></tratt-device-picker>
           </div>
 
           <button
@@ -106,11 +106,11 @@
 
           <ng-container *ngIf="state === 'recording' || state === 'paused'">
             <ng-container *ngIf="service.levels$ | async as levels">
-              <octra-vu-meter
+              <tratt-vu-meter
                 class="ms-2"
                 [peakDb]="levels.peakDb"
                 [rmsDb]="levels.rmsDb"
-              ></octra-vu-meter>
+              ></tratt-vu-meter>
 
               <span
                 class="level-light ms-1"

@@ -6,8 +6,8 @@ import {
   it,
   jest,
 } from '@jest/globals';
-import { AudioSelection, PlayBackStatus, SampleUnit } from '@octra/media';
-import { AudioChunk, AudioManager } from '@octra/web-media';
+import { AudioSelection, PlayBackStatus, SampleUnit } from '@tratt/media';
+import { AudioChunk, AudioManager } from '@tratt/web-media';
 import { Subject } from 'rxjs';
 
 describe('AudioChunk', () => {

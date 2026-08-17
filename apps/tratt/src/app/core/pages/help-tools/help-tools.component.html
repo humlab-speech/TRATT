@@ -93,7 +93,7 @@
           <button
             type="button"
             class="btn btn-raised text-light w-100"
-            style="background-color: var(--octra-chrome)"
+            style="background-color: var(--tratt-chrome)"
             (click)="backupLocalData()"
           >
             Backup local data
@@ -139,7 +139,7 @@
           <button
             [disabled]="!backupFiles || backupFiles.length === 0"
             class="btn btn-raised text-light w-100"
-            style="background-color: var(--octra-accent-error)"
+            style="background-color: var(--tratt-accent-error)"
             (click)="importBackup(backupFiles![0])"
           >
             Backup local data

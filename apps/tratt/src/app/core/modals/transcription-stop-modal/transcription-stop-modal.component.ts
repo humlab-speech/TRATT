@@ -12,7 +12,7 @@ export enum TranscriptionStopModalAnswer {
 }
 
 @Component({
-  selector: 'octra-transcription-stop-modal',
+  selector: 'tratt-transcription-stop-modal',
   templateUrl: './transcription-stop-modal.component.html',
   styleUrls: ['./transcription-stop-modal.component.scss'],
   imports: [TranslocoPipe, NgClass],

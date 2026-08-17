@@ -8,14 +8,14 @@ import {
 } from '@angular/core';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { NgbToast, NgbToastHeader } from '@ng-bootstrap/ng-bootstrap';
-import { SubscriberComponent } from '@octra/ngx-utilities';
+import { SubscriberComponent } from '@tratt/ngx-utilities';
 import { swingAnimation } from 'angular-animations';
 import { interval } from 'rxjs';
 import { VersionCheckerService } from '../version-checker.service';
 
 @Component({
   standalone: true,
-  selector: 'octra-version-notification',
+  selector: 'tratt-version-notification',
   templateUrl: './version-notification.component.html',
   styleUrls: ['./version-notification.component.scss'],
   animations: [swingAnimation()],

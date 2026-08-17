@@ -1,5 +1,5 @@
 {
-  "name": "@octra/assets",
+  "name": "@tratt/assets",
   "description": "This library contains assets like JSON schema definitions related to OCTRA.",
   "version": "1.1.0",
   "license": "MIT",

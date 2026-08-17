@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { IAnnotJSON, OAnnotJSON } from '@octra/annotation';
+import { IAnnotJSON, OAnnotJSON } from '@tratt/annotation';
 import { from, map, Observable, switchMap, throwError } from 'rxjs';
 import { LoginMode } from '../../store';
 import { resolveDatabaseName } from '../db-name';
@@ -9,8 +9,8 @@ import {
   IIDBApplicationOptions,
   IIDBModeOptions,
   LEGACY_DB_NAMES,
-  OctraDatabase,
-} from '../octra-database';
+  TrattDatabase,
+} from '../tratt-database';
 import { ConsoleEntry, ConsoleGroupEntry } from './bug-report.service';
 
 @Injectable({
@@ -20,7 +20,7 @@ export class IDBService {
   private _isReady = false;
   private _isOpened = false;
 
-  private database!: OctraDatabase;
+  private database!: TrattDatabase;
 
   public get isReady(): boolean {
     return this._isReady;
@@ -33,7 +33,7 @@ export class IDBService {
   public initialize(dbName: string): Observable<void> {
     return from(resolveDatabaseName(dbName, LEGACY_DB_NAMES)).pipe(
       switchMap((resolvedName) => {
-        this.database = new OctraDatabase(resolvedName);
+        this.database = new TrattDatabase(resolvedName);
         return from(this.database.init());
       }),
       map((a) => {

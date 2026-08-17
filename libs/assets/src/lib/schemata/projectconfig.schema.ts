@@ -4,7 +4,7 @@
 
 import { JSONSchema4 } from 'json-schema';
 
-export const OctraProjectConfigJSONSchema: JSONSchema4 = {
+export const TrattProjectConfigJSONSchema: JSONSchema4 = {
   $id: 'v2.0.0',
   type: 'object',
   required: ['version', 'navigation', 'languages', 'interfaces'],

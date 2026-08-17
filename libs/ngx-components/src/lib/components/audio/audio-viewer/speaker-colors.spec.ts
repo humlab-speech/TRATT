@@ -1,9 +1,9 @@
 import {
-  OctraAnnotation,
-  OctraAnnotationSegment,
   OLabel,
-} from '@octra/annotation';
-import { SampleUnit } from '@octra/media';
+  TrattAnnotation,
+  TrattAnnotationSegment,
+} from '@tratt/annotation';
+import { SampleUnit } from '@tratt/media';
 import { describe, expect, it } from 'vitest';
 import {
   BLACK_TEXT,
@@ -18,14 +18,14 @@ import {
 
 function makeAnnotation(
   speakerValues: (string | undefined)[],
-): OctraAnnotation<any, OctraAnnotationSegment> {
-  const annotation = new OctraAnnotation<any, OctraAnnotationSegment>();
+): TrattAnnotation<any, TrattAnnotationSegment> {
+  const annotation = new TrattAnnotation<any, TrattAnnotationSegment>();
   const items = speakerValues.map((spk, i) => {
     const labels: OLabel[] = [new OLabel('Transcript', 'hello')];
     if (spk) {
       labels.push(new OLabel('Speaker', spk));
     }
-    return new OctraAnnotationSegment<any>(
+    return new TrattAnnotationSegment<any>(
       i + 1,
       new SampleUnit((i + 1) * 16000, 16000),
       labels,

@@ -1,4 +1,4 @@
-import { SampleUnit } from '@octra/media';
+import { SampleUnit } from '@tratt/media';
 import { FileInfo } from '../data-info';
 
 export class AudioInfo extends FileInfo {

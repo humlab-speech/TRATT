@@ -3,13 +3,13 @@ import { FormsModule } from '@angular/forms';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { NgbActiveModal, NgbModalOptions } from '@ng-bootstrap/ng-bootstrap';
 import {
-  OctraAnnotationAnyLevel,
-  OctraAnnotationSegment,
-  OctraAnnotationSegmentLevel,
-} from '@octra/annotation';
-import { getEnglishLanguageLabel } from '@octra/utilities';
-import { HYMT_LANGUAGES } from '../../component/octra-dropzone/auto-translate-options.component';
-import { OctraModal } from '../types';
+  TrattAnnotationAnyLevel,
+  TrattAnnotationSegment,
+  TrattAnnotationSegmentLevel,
+} from '@tratt/annotation';
+import { getEnglishLanguageLabel } from '@tratt/utilities';
+import { HYMT_LANGUAGES } from '../../component/tratt-dropzone/auto-translate-options.component';
+import { TrattModal } from '../types';
 
 export interface AddTranslatedLevelResult {
   sourceLevelId: number;
@@ -19,13 +19,13 @@ export interface AddTranslatedLevelResult {
 }
 
 @Component({
-  selector: 'octra-add-translated-level-modal',
+  selector: 'tratt-add-translated-level-modal',
   standalone: true,
   imports: [FormsModule, TranslocoPipe],
   templateUrl: './add-translated-level-modal.component.html',
 })
 export class AddTranslatedLevelModalComponent
-  extends OctraModal
+  extends TrattModal
   implements OnInit
 {
   public static options: NgbModalOptions = {
@@ -33,7 +33,7 @@ export class AddTranslatedLevelModalComponent
     backdrop: true,
   };
 
-  @Input() sourceLevels: OctraAnnotationAnyLevel<OctraAnnotationSegment>[] = [];
+  @Input() sourceLevels: TrattAnnotationAnyLevel<TrattAnnotationSegment>[] = [];
 
   readonly languages = HYMT_LANGUAGES.map((code) => ({
     code,
@@ -47,12 +47,12 @@ export class AddTranslatedLevelModalComponent
     super('addTranslatedLevel', activeModal);
   }
 
-  get eligibleSourceLevels(): OctraAnnotationSegmentLevel<OctraAnnotationSegment>[] {
+  get eligibleSourceLevels(): TrattAnnotationSegmentLevel<TrattAnnotationSegment>[] {
     return this.sourceLevels.filter(
       (l) =>
-        l instanceof OctraAnnotationSegmentLevel &&
+        l instanceof TrattAnnotationSegmentLevel &&
         l.linkedToLevelId === undefined,
-    ) as OctraAnnotationSegmentLevel<OctraAnnotationSegment>[];
+    ) as TrattAnnotationSegmentLevel<TrattAnnotationSegment>[];
   }
 
   ngOnInit() {

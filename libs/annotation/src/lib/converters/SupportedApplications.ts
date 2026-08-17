@@ -28,8 +28,8 @@ export class OctraApplication implements SupportedApplication {
   name = 'Octra';
   description =
     'OCTRA is a web-application for the orthographic transcription of audio files.';
-  homepage = 'https://clarin.phonetik.uni-muenchen.de/apps/octra/octra-2/login';
-  appURL = 'https://clarin.phonetik.uni-muenchen.de/apps/octra/octra-2/login';
+  homepage = 'https://clarin.phonetik.uni-muenchen.de/apps/octra/tratt-2/login';
+  appURL = 'https://clarin.phonetik.uni-muenchen.de/apps/octra/tratt-2/login';
 }
 
 export class ELANApplication implements SupportedApplication {

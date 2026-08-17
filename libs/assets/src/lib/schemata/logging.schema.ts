@@ -4,7 +4,7 @@
 
 import { JSONSchema4 } from 'json-schema';
 
-export const OctraLoggingJSONSchema: JSONSchema4 = {
+export const TrattLoggingJSONSchema: JSONSchema4 = {
   properties: {
     version: {
       type: 'string',

@@ -29,7 +29,7 @@ const RECOVERY_PRUNE_AGE_MS = 7 * 24 * 3600 * 1000;
 type StagedResult = RecordingResult;
 
 @Component({
-  selector: 'octra-recording-panel',
+  selector: 'tratt-recording-panel',
   standalone: true,
   templateUrl: './recording-panel.component.html',
   styleUrls: ['./recording-panel.component.scss'],

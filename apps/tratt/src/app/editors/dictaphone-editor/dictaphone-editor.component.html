@@ -1,4 +1,4 @@
-<octra-audio-navigation
+<tratt-audio-navigation
   #nav
   (afterPlaybackRateChange)="afterSpeedChange($event)"
   (afterVolumeChange)="afterVolumeChange($event)"
@@ -7,9 +7,9 @@
   [easyMode]="appStorage.easyMode"
   [playbackRate]="appStorage.audioSpeed"
   [volume]="appStorage.audioVolume"
-></octra-audio-navigation>
-<octra-audioplayer #audioplayer [audioChunk]="audiochunk"></octra-audioplayer>
-<octra-transcr-editor
+></tratt-audio-navigation>
+<tratt-audioplayer #audioplayer [audioChunk]="audiochunk"></tratt-audioplayer>
+<tratt-transcr-editor
   #transcr
   (boundaryclicked)="onBoundaryClicked($event)"
   (boundaryinserted)="onBoundaryInserted()"
@@ -31,4 +31,4 @@
   [(highlightingEnabled)]="highlighting"
   (redoUndo)="onTranscrEditorRedoUndo($event)"
 >
-</octra-transcr-editor>
+</tratt-transcr-editor>

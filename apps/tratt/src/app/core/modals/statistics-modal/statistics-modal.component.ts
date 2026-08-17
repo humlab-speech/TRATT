@@ -7,15 +7,15 @@ import { StatisticElem } from '../../obj/statistics/StatisticElement';
 import { UserInteractionsService } from '../../shared/service';
 import { AppStorageService } from '../../shared/service/appstorage.service';
 import { AnnotationStoreService } from '../../store/login-mode/annotation/annotation.store.service';
-import { OctraModal } from '../types';
+import { TrattModal } from '../types';
 
 @Component({
-  selector: 'octra-statistics-modal',
+  selector: 'tratt-statistics-modal',
   templateUrl: './statistics-modal.component.html',
   styleUrls: ['./statistics-modal.component.scss'],
   imports: [AsyncPipe, DatePipe, TranslocoPipe],
 })
-export class StatisticsModalComponent extends OctraModal {
+export class StatisticsModalComponent extends TrattModal {
   public static options: NgbModalOptions = {
     keyboard: false,
     backdrop: true,

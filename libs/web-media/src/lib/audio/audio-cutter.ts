@@ -1,4 +1,4 @@
-import { NumeratedSegment } from '@octra/media';
+import { NumeratedSegment } from '@tratt/media';
 import { Subject } from 'rxjs';
 import { FileInfo } from '../data-info';
 import { IntArray } from './AudioFormats';

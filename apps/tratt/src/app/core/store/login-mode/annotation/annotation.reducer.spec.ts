@@ -2,32 +2,32 @@ import { describe, expect, it } from '@jest/globals';
 import { createReducer } from '@ngrx/store';
 import {
   ASRContext,
-  OctraAnnotation,
-  OctraAnnotationSegment,
-  OctraAnnotationSegmentLevel,
   OLabel,
-} from '@octra/annotation';
-import { SampleUnit } from '@octra/media';
+  TrattAnnotation,
+  TrattAnnotationSegment,
+  TrattAnnotationSegmentLevel,
+} from '@tratt/annotation';
+import { SampleUnit } from '@tratt/media';
 import { LoginMode } from '../../index';
 import { AnnotationActions } from './annotation.actions';
 import { AnnotationStateReducers, initialState } from './annotation.reducer';
 import { AnnotationState } from './index';
 
 function buildState(): AnnotationState {
-  const transcript = new OctraAnnotation<
+  const transcript = new TrattAnnotation<
     ASRContext,
-    OctraAnnotationSegment<ASRContext>
+    TrattAnnotationSegment<ASRContext>
   >();
-  const source = new OctraAnnotationSegmentLevel<OctraAnnotationSegment>(
+  const source = new TrattAnnotationSegmentLevel<TrattAnnotationSegment>(
     transcript.idCounters.level++,
     'OCTRA_1',
     [
-      new OctraAnnotationSegment(
+      new TrattAnnotationSegment(
         transcript.idCounters.item++,
         new SampleUnit(48000, 48000),
         [new OLabel('OCTRA_1', 'hello'), new OLabel('Speaker', 'Speaker 1')],
       ) as any,
-      new OctraAnnotationSegment(
+      new TrattAnnotationSegment(
         transcript.idCounters.item++,
         new SampleUnit(96000, 48000),
         [new OLabel('OCTRA_1', 'world'), new OLabel('Speaker', 'Speaker 2')],
@@ -36,16 +36,16 @@ function buildState(): AnnotationState {
   );
   transcript.addLevel(source as any);
 
-  const linked = new OctraAnnotationSegmentLevel<OctraAnnotationSegment>(
+  const linked = new TrattAnnotationSegmentLevel<TrattAnnotationSegment>(
     transcript.idCounters.level++,
     'German',
     [
-      new OctraAnnotationSegment(
+      new TrattAnnotationSegment(
         transcript.idCounters.item++,
         new SampleUnit(48000, 48000),
         [new OLabel('German', ''), new OLabel('Speaker', 'Speaker 1')],
       ) as any,
-      new OctraAnnotationSegment(
+      new TrattAnnotationSegment(
         transcript.idCounters.item++,
         new SampleUnit(96000, 48000),
         [new OLabel('German', 'manuell'), new OLabel('Speaker', 'Speaker 2')],
@@ -66,7 +66,7 @@ describe('applyTranslationToLinkedLevel reducer', () => {
   it('fills empty translation labels and preserves manual edits + Speaker', () => {
     const state = buildState();
     const linkedLevel = state.transcript
-      .levels[1] as OctraAnnotationSegmentLevel<OctraAnnotationSegment>;
+      .levels[1] as TrattAnnotationSegmentLevel<TrattAnnotationSegment>;
 
     const next = reducer(
       state,
@@ -82,7 +82,7 @@ describe('applyTranslationToLinkedLevel reducer', () => {
 
     const updatedLinked = next.transcript.levels.find(
       (l) => l.id === linkedLevel.id,
-    ) as OctraAnnotationSegmentLevel<OctraAnnotationSegment>;
+    ) as TrattAnnotationSegmentLevel<TrattAnnotationSegment>;
 
     const item0Translation = updatedLinked.items[0].labels.find(
       (l) => l.name === 'German',
@@ -106,7 +106,7 @@ describe('applyTranslationToLinkedLevel reducer', () => {
   it('ignores non-linked levels', () => {
     const state = buildState();
     const sourceLevel = state.transcript
-      .levels[0] as OctraAnnotationSegmentLevel<OctraAnnotationSegment>;
+      .levels[0] as TrattAnnotationSegmentLevel<TrattAnnotationSegment>;
     const originalText = sourceLevel.items[0].labels.find(
       (l) => l.name === 'OCTRA_1',
     )?.value;
@@ -122,7 +122,7 @@ describe('applyTranslationToLinkedLevel reducer', () => {
 
     const updatedSource = next.transcript.levels.find(
       (l) => l.id === sourceLevel.id,
-    ) as OctraAnnotationSegmentLevel<OctraAnnotationSegment>;
+    ) as TrattAnnotationSegmentLevel<TrattAnnotationSegment>;
     expect(
       updatedSource.items[0].labels.find((l) => l.name === 'OCTRA_1')?.value,
     ).toBe(originalText);
@@ -131,7 +131,7 @@ describe('applyTranslationToLinkedLevel reducer', () => {
   it('ignores mode mismatch', () => {
     const state = buildState();
     const linkedLevel = state.transcript
-      .levels[1] as OctraAnnotationSegmentLevel<OctraAnnotationSegment>;
+      .levels[1] as TrattAnnotationSegmentLevel<TrattAnnotationSegment>;
 
     const next = reducer(
       state,

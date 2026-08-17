@@ -2,15 +2,15 @@ import { ActionCreator, on, ReducerTypes } from '@ngrx/store';
 import {
   AnnotationLevelType,
   ASRContext,
-  OctraAnnotation,
-  OctraAnnotationAnyLevel,
-  OctraAnnotationSegment,
-  OctraAnnotationSegmentLevel,
   OLabel,
-} from '@octra/annotation';
-import { SampleUnit } from '@octra/media';
-import { getProperties } from '@octra/utilities';
-import { IIDBModeOptions } from '../../../shared/octra-database';
+  TrattAnnotation,
+  TrattAnnotationAnyLevel,
+  TrattAnnotationSegment,
+  TrattAnnotationSegmentLevel,
+} from '@tratt/annotation';
+import { SampleUnit } from '@tratt/media';
+import { getProperties } from '@tratt/utilities';
+import { IIDBModeOptions } from '../../../shared/tratt-database';
 import { AuthenticationActions } from '../../authentication';
 import { IDBActions } from '../../idb/idb.actions';
 import { LoginMode } from '../../index';
@@ -19,9 +19,9 @@ import { AnnotationActions } from './annotation.actions';
 import { AnnotationState } from './index';
 
 export const initialState: AnnotationState = {
-  transcript: new OctraAnnotation<
+  transcript: new TrattAnnotation<
     ASRContext,
-    OctraAnnotationSegment<ASRContext>
+    TrattAnnotationSegment<ASRContext>
   >(),
   savingNeeded: false,
   isSaving: false,
@@ -92,7 +92,7 @@ export class AnnotationStateReducers {
             let transcript = state.transcript.clone();
             const currentSegment = transcript
               .currentLevel!.items.find((a) => a.id === segmentID)!
-              .clone() as OctraAnnotationSegment;
+              .clone() as TrattAnnotationSegment;
             currentSegment.context = {
               ...currentSegment.context,
               asr: {
@@ -219,7 +219,7 @@ export class AnnotationStateReducers {
           if (this.mode === mode) {
             const transcript = state.transcript.clone();
             let level:
-              | OctraAnnotationAnyLevel<OctraAnnotationSegment<ASRContext>>
+              | TrattAnnotationAnyLevel<TrattAnnotationSegment<ASRContext>>
               | undefined = undefined;
 
             if (levelType === AnnotationLevelType.SEGMENT) {
@@ -257,7 +257,7 @@ export class AnnotationStateReducers {
           }
           const transcript = state.transcript.clone();
           const source = transcript.levels.find((l) => l.id === sourceLevelId);
-          if (!(source instanceof OctraAnnotationSegmentLevel)) {
+          if (!(source instanceof TrattAnnotationSegmentLevel)) {
             console.warn(
               `addTranslatedLevel: source level ${sourceLevelId} is not a segment level.`,
             );
@@ -278,7 +278,7 @@ export class AnnotationStateReducers {
           }
 
           const targetItems = source.items.map((item) => {
-            const cloned = (item as OctraAnnotationSegment).clone(
+            const cloned = (item as TrattAnnotationSegment).clone(
               transcript.idCounters.item++,
             );
             const speakerLabel = item.labels.find((l) => l.name === 'Speaker');
@@ -291,8 +291,8 @@ export class AnnotationStateReducers {
             return cloned;
           });
 
-          const targetLevel = new OctraAnnotationSegmentLevel<
-            OctraAnnotationSegment<ASRContext>
+          const targetLevel = new TrattAnnotationSegmentLevel<
+            TrattAnnotationSegment<ASRContext>
           >(
             transcript.idCounters.level++,
             uniqueName,
@@ -313,7 +313,7 @@ export class AnnotationStateReducers {
           const transcript = state.transcript.clone();
           const level = transcript.levels.find((l) => l.id === linkedLevelId);
           if (
-            !(level instanceof OctraAnnotationSegmentLevel) ||
+            !(level instanceof TrattAnnotationSegmentLevel) ||
             level.linkedToLevelId === undefined
           ) {
             console.warn(
@@ -340,7 +340,7 @@ export class AnnotationStateReducers {
                 : item.labels.findIndex((l) => l.name !== 'Speaker');
 
             if (targetIdx < 0) {
-              const cloned = (item as OctraAnnotationSegment).clone();
+              const cloned = (item as TrattAnnotationSegment).clone();
               cloned.labels = [new OLabel(level.name, tr.text), ...item.labels];
               return cloned;
             }
@@ -350,7 +350,7 @@ export class AnnotationStateReducers {
               // Only-fill-empty policy: preserve manual edits.
               return item;
             }
-            const cloned = (item as OctraAnnotationSegment).clone();
+            const cloned = (item as TrattAnnotationSegment).clone();
             cloned.labels = [
               ...item.labels.slice(0, targetIdx),
               new OLabel(existing.name, tr.text),
@@ -639,9 +639,9 @@ export class AnnotationStateReducers {
           // Reset the transcript to a new empty annotation
           return {
             ...state,
-            transcript: new OctraAnnotation<
+            transcript: new TrattAnnotation<
               ASRContext,
-              OctraAnnotationSegment<ASRContext>
+              TrattAnnotationSegment<ASRContext>
             >(),
           };
         }
@@ -665,7 +665,7 @@ export class AnnotationStateReducers {
           const currentLevel = state.transcript.currentLevel;
           if (
             this.mode === mode &&
-            currentLevel instanceof OctraAnnotationSegmentLevel
+            currentLevel instanceof TrattAnnotationSegmentLevel
           ) {
             const segmentBoundary = new SampleUnit(
               timeInterval.sampleStart + timeInterval.sampleLength / 2,
@@ -678,14 +678,14 @@ export class AnnotationStateReducers {
 
             if (segmentIndex > -1) {
               const segment = (
-                currentLevel as OctraAnnotationSegmentLevel<OctraAnnotationSegment>
+                currentLevel as TrattAnnotationSegmentLevel<TrattAnnotationSegment>
               ).level.items[segmentIndex];
 
               return {
                 ...state,
                 transcript: state.transcript.clone().changeCurrentItemByIndex(
                   segmentIndex,
-                  OctraAnnotationSegment.deserialize<ASRContext>({
+                  TrattAnnotationSegment.deserialize<ASRContext>({
                     ...segment.clone(segment.id),
                     id: segment.id,
                     labels: result

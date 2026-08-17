@@ -9,13 +9,13 @@ import {
 } from '@angular/core';
 import { FormsModule, NgForm } from '@angular/forms';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
-import { getProperties } from '@octra/utilities';
+import { getProperties } from '@tratt/utilities';
 import { SettingsService } from '../../shared/service';
 import { AppStorageService } from '../../shared/service/appstorage.service';
 import { AnnotationStoreService } from '../../store/login-mode/annotation/annotation.store.service';
 
 @Component({
-  selector: 'octra-transcription-feedback',
+  selector: 'tratt-transcription-feedback',
   templateUrl: './transcription-feedback.component.html',
   styleUrls: ['./transcription-feedback.component.scss'],
   imports: [FormsModule, AsyncPipe, TranslocoPipe],
