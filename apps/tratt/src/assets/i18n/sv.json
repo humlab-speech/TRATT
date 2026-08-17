@@ -426,7 +426,7 @@
       "diarizingLabel": "Identifierar talare…",
       "initializing speaker segmentation": "Talarsegmenteringsmodellen laddas"
     },
-    "app description": "TRATT är ett gratis webbprogram för transkription av talinspelningar till klartext (ortografiskt). Det har tre olika redigerare som tillgodoser olika behov vid transkribering, och du kan fritt växla mellan dem under en session.",
+    "app description": "TRATT är ett fritt tillgängligt webbprogram för transkription av talinspelningar till text (ortografiskt). Det har tre olika redigerare som tillgodoser olika behov vid transkribering, och du kan fritt växla mellan dem under en session.",
     "funding support and development": "Finansiärer och samarbeten",
     "groups that developed the language models": "Utvecklare av språkmodellerna som används",
     "tabs": {
