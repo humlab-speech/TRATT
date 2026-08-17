@@ -562,7 +562,7 @@ export class ToolsModalComponent extends OctraModal implements OnDestroy {
 
   isToolEnabled(tool: string) {
     return (
-      this.settings.projectsettings?.octra?.tools?.find((a) => a === tool) !==
+      this.settings.projectsettings?.tratt?.tools?.find((a) => a === tool) !==
       undefined
     );
   }

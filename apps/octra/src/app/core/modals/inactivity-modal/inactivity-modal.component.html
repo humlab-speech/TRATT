@@ -19,7 +19,8 @@
         | transloco
           : {
               value:
-                (settService.appSettings.octra.inactivityNotice?.showAfter ?? 0) + '',
+                (settService.appSettings.tratt.inactivityNotice?.showAfter ??
+                  0) + '',
             }
     "
   ></div>

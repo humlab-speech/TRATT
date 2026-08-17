@@ -86,10 +86,15 @@ export class TranscrOverviewComponent implements OnInit, OnDestroy, OnChanges {
   _internLevel?: OctraAnnotationAnyLevel<OctraAnnotationSegment<ASRContext>>;
 
   get hasSpeakerIds(): boolean {
-    if (!this._internLevel || this._internLevel.type !== 'SEGMENT') return false;
-    const level = this._internLevel as OctraAnnotationSegmentLevel<OctraAnnotationSegment>;
+    if (!this._internLevel || this._internLevel.type !== 'SEGMENT')
+      return false;
+    const level = this
+      ._internLevel as OctraAnnotationSegmentLevel<OctraAnnotationSegment>;
     return level.items.some(
-      seg => !!((seg as OctraAnnotationSegment).labels.find(l => l.name === 'Speaker')?.value)
+      (seg) =>
+        !!(seg as OctraAnnotationSegment).labels.find(
+          (l) => l.name === 'Speaker',
+        )?.value,
     );
   }
 
@@ -297,7 +302,10 @@ export class TranscrOverviewComponent implements OnInit, OnDestroy, OnChanges {
 
   @HostListener('document:mousedown', ['$event'])
   onDocumentMouseDown(event: MouseEvent) {
-    if (this.textEditor.state === 'active' && this.textEditor.selectedSegment > -1) {
+    if (
+      this.textEditor.state === 'active' &&
+      this.textEditor.selectedSegment > -1
+    ) {
       const target = event.target as HTMLElement;
       const editorContainer = document.querySelector('octra-transcr-editor');
       if (editorContainer && !editorContainer.contains(target)) {
@@ -348,8 +356,9 @@ export class TranscrOverviewComponent implements OnInit, OnDestroy, OnChanges {
     // Capture data before resetting state
     this.transcrEditor.updateRawText();
     const rawText = this.transcrEditor.rawText;
-    (this._internLevel.items[i] as OctraAnnotationSegment)
-      .changeFirstLabelWithoutName('Speaker', rawText);
+    (
+      this._internLevel.items[i] as OctraAnnotationSegment
+    ).changeFirstLabelWithoutName('Speaker', rawText);
     const segment = this._internLevel.items[i] as OctraAnnotationSegment;
 
     // Close editor UI immediately — no await before markForCheck
@@ -371,9 +380,10 @@ export class TranscrOverviewComponent implements OnInit, OnDestroy, OnChanges {
           ? (this._internLevel.items[i - 1] as OctraAnnotationSegment).time
               .samples
           : 0;
-      const validationArray = this.annotationStoreService.validationArray.filter(
-        (a) => a.level === this._internLevel!.id,
-      );
+      const validationArray =
+        this.annotationStoreService.validationArray.filter(
+          (a) => a.level === this._internLevel!.id,
+        );
 
       const updatePromise = this.updateSingleSegment(
         i,
@@ -436,7 +446,7 @@ export class TranscrOverviewComponent implements OnInit, OnDestroy, OnChanges {
       this._internLevel &&
       (this.annotationStoreService.validationArray.length > 0 ||
         this.appStorage.useMode === 'url' ||
-        !this.settingsService.projectsettings?.octra?.validationEnabled)
+        !this.settingsService.projectsettings?.tratt?.validationEnabled)
     ) {
       if (!this.currentLevel?.items) {
         this.shownSegments = [];
@@ -453,7 +463,9 @@ export class TranscrOverviewComponent implements OnInit, OnDestroy, OnChanges {
             ._internLevel as OctraAnnotationSegmentLevel<OctraAnnotationSegment>;
 
           console.time('[overview] updateSegments');
-          console.log(`[overview] updateSegments: processing ${level.items.length} segments in parallel`);
+          console.log(
+            `[overview] updateSegments: processing ${level.items.length} segments in parallel`,
+          );
 
           // Precompute start times and playState array before launching promises.
           const startTimes: number[] = [];
@@ -463,9 +475,10 @@ export class TranscrOverviewComponent implements OnInit, OnDestroy, OnChanges {
             t = (seg as OctraAnnotationSegment).time.samples;
           }
 
-          const levelValidation = this.annotationStoreService.validationArray.filter(
-            (a) => a.level === level.id,
-          );
+          const levelValidation =
+            this.annotationStoreService.validationArray.filter(
+              (a) => a.level === level.id,
+            );
 
           // Parallel: launch all rawToHTML worker jobs simultaneously instead of serially.
           const result = await Promise.all(
@@ -475,8 +488,12 @@ export class TranscrOverviewComponent implements OnInit, OnDestroy, OnChanges {
                 (segment as OctraAnnotationSegment).time.samples,
                 i,
                 levelValidation,
-                (segment as OctraAnnotationSegment).getFirstLabelWithoutName('Speaker')?.value ?? '',
-                (segment as OctraAnnotationSegment).labels.find(l => l.name === 'Speaker')?.value ?? '',
+                (segment as OctraAnnotationSegment).getFirstLabelWithoutName(
+                  'Speaker',
+                )?.value ?? '',
+                (segment as OctraAnnotationSegment).labels.find(
+                  (l) => l.name === 'Speaker',
+                )?.value ?? '',
               ),
             ),
           );
@@ -506,7 +523,8 @@ export class TranscrOverviewComponent implements OnInit, OnDestroy, OnChanges {
     validationArray: any[],
   ): Promise<void> {
     const rawText = segment.getFirstLabelWithoutName('Speaker')?.value ?? '';
-    const speakerId = segment.labels.find(l => l.name === 'Speaker')?.value ?? '';
+    const speakerId =
+      segment.labels.find((l) => l.name === 'Speaker')?.value ?? '';
     const obj = await this.getShownSegment(
       startTime,
       segment.time.samples,

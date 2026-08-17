@@ -24,11 +24,15 @@ export interface IRecordingChunk {
   createdAt: number;
 }
 
+export const RECORDING_DB_NAME = 'tratt-recordings';
+/** Name used before the rename from OCTRA to TRATT, see resolveDatabaseName(). */
+export const LEGACY_RECORDING_DB_NAME = 'octra-recordings';
+
 export class OctraRecordingDatabase extends Dexie {
   public sessions!: Dexie.Table<IRecordingSession, string>;
   public chunks!: Dexie.Table<IRecordingChunk, number>;
 
-  constructor(dbName = 'octra-recordings') {
+  constructor(dbName = RECORDING_DB_NAME) {
     super(dbName);
 
     this.version(1).stores({

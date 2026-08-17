@@ -17,13 +17,9 @@ import {
 import X2JS from 'x2js';
 import { ASRSettings, ServiceProvider } from '../../obj';
 import { AudioService } from '../../shared/service';
-import { LoginMode, RootState } from '../index';
+import { RootState } from '../index';
 import { ASRActions } from './asr.actions';
-import {
-  ASRProcessStatus,
-  ASRQueueItemType,
-  ASRStateQueueItem,
-} from './index';
+import { ASRProcessStatus, ASRStateQueueItem } from './index';
 
 @Injectable({
   providedIn: 'root',
@@ -197,7 +193,7 @@ export class AsrProcessingEffects {
           outFormat,
           item,
           audioURL,
-          state.application.appConfiguration!.octra.plugins!.asr!,
+          state.application.appConfiguration!.tratt.plugins!.asr!,
         ).pipe(
           withLatestFrom(this.store),
           exhaustMap(([result, state2]) => {
@@ -297,7 +293,7 @@ export class AsrProcessingEffects {
           item.selectedASRService.host,
           audioURL,
           transcriptURL,
-          state.application.appConfiguration!.octra!.plugins!.asr!,
+          state.application.appConfiguration!.tratt!.plugins!.asr!,
         ).pipe(
           exhaustMap((result) => {
             if (item.status !== ASRProcessStatus.STOPPED) {

@@ -25,8 +25,8 @@
     appStorage.useMode !== 'url' &&
     (appStorage.useMode === 'demo' ||
       (settingsService.projectsettings !== undefined &&
-        settingsService.projectsettings!.octra !== undefined &&
-        settingsService.projectsettings!.octra!.validationEnabled === true))
+        settingsService.projectsettings!.tratt !== undefined &&
+        settingsService.projectsettings!.tratt!.validationEnabled === true))
   "
   [(highlightingEnabled)]="highlighting"
   (redoUndo)="onTranscrEditorRedoUndo($event)"

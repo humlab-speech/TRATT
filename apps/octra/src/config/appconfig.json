@@ -4,9 +4,9 @@
     "url": "http://localhost:3000",
     "appToken":"960e14f598da9765777f44942034a49b3fd754af"
   },
-  "octra": {
+  "tratt": {
     "database": {
-      "name": "octra-2"
+      "name": "tratt"
     },
     "login": {
       "enabled": true

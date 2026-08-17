@@ -249,10 +249,10 @@ I just want to let you know, that the OCTRA server is currently offline.
  a TRATT user
  `;
     const url = `mailto:${
-      this.settingsService.appSettings.octra.supportEmail
+      this.settingsService.appSettings.tratt.supportEmail
     }?subject=${encodeURI(subject)}&body=${encodeURI(body)}`;
 
-    this.email_link = `<br/><a href="${url}">${this.settingsService.appSettings.octra.supportEmail}</a>`;
+    this.email_link = `<br/><a href="${url}">${this.settingsService.appSettings.tratt.supportEmail}</a>`;
   }
 
   onOfflineSubmit = (removeData: boolean) => {

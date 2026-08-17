@@ -1,8 +1,8 @@
 {
   "version": "2.0.0",
-  "octra": {
+  "tratt": {
     "database": {
-      "name": "octra"
+      "name": "tratt"
     },
     "login": {
       "enabled": true

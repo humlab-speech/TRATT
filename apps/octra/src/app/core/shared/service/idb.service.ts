@@ -1,12 +1,14 @@
 import { Injectable } from '@angular/core';
 import { IAnnotJSON, OAnnotJSON } from '@octra/annotation';
-import { from, map, Observable, throwError } from 'rxjs';
+import { from, map, Observable, switchMap, throwError } from 'rxjs';
 import { LoginMode } from '../../store';
+import { resolveDatabaseName } from '../db-name';
 import {
   DefaultModeOptions,
   IDBApplicationOptionName,
   IIDBApplicationOptions,
   IIDBModeOptions,
+  LEGACY_DB_NAMES,
   OctraDatabase,
 } from '../octra-database';
 import { ConsoleEntry, ConsoleGroupEntry } from './bug-report.service';
@@ -29,8 +31,11 @@ export class IDBService {
    * @param dbName
    */
   public initialize(dbName: string): Observable<void> {
-    this.database = new OctraDatabase(dbName);
-    return from(this.database.init()).pipe(
+    return from(resolveDatabaseName(dbName, LEGACY_DB_NAMES)).pipe(
+      switchMap((resolvedName) => {
+        this.database = new OctraDatabase(resolvedName);
+        return from(this.database.init());
+      }),
       map((a) => {
         this._isOpened = true;
       }),
@@ -163,7 +168,9 @@ export class IDBService {
     );
   }
 
-  public loadImportOptions(mode: LoginMode): Observable<IIDBModeOptions | undefined> {
+  public loadImportOptions(
+    mode: LoginMode,
+  ): Observable<IIDBModeOptions | undefined> {
     return this.database.loadDataOfMode<IIDBModeOptions | undefined>(
       mode,
       'importOptions',

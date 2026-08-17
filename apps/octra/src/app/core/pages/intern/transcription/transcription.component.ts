@@ -423,7 +423,7 @@ export class TranscriptionComponent
   }
 
   abortTranscription = async () => {
-    if (!await this.recordedFileService.checkUnsaved(this.modService)) return;
+    if (!(await this.recordedFileService.checkUnsaved(this.modService))) return;
     if ([LoginMode.ONLINE, LoginMode.URL].includes(this.appStorage.useMode)) {
       this.modService
         .openModal(
@@ -448,7 +448,10 @@ export class TranscriptionComponent
 
   @HostListener('window:beforeunload', ['$event'])
   onBeforeUnload(event: BeforeUnloadEvent): void {
-    if (this.recordedFileService.recordedFile && !this.recordedFileService.exported) {
+    if (
+      this.recordedFileService.recordedFile &&
+      !this.recordedFileService.exported
+    ) {
       event.preventDefault();
       event.returnValue = '';
     }
@@ -456,9 +459,9 @@ export class TranscriptionComponent
 
   ngOnInit() {
     this._useMode = this.appStorage.useMode;
-    this._selectedTheme = !this.projectsettings?.octra?.theme
+    this._selectedTheme = !this.projectsettings?.tratt?.theme
       ? 'default'
-      : this.projectsettings?.octra.theme;
+      : this.projectsettings?.tratt.theme;
     this.showCommentSection =
       this.settingsService.isTheme('shortAudioFiles') &&
       (this._useMode === 'online' || this._useMode === 'demo');
@@ -544,14 +547,14 @@ export class TranscriptionComponent
       this._useMode === LoginMode.DEMO
     ) {
       if (
-        this.settingsService.appSettings.octra.inactivityNotice !== undefined &&
-        this.settingsService.appSettings.octra.inactivityNotice.showAfter !==
+        this.settingsService.appSettings.tratt.inactivityNotice !== undefined &&
+        this.settingsService.appSettings.tratt.inactivityNotice.showAfter !==
           undefined &&
-        this.settingsService.appSettings.octra.inactivityNotice.showAfter > 0
+        this.settingsService.appSettings.tratt.inactivityNotice.showAfter > 0
       ) {
         // if waitTime is 0 the inactivity modal isn't shown
         let waitTime =
-          this.settingsService.appSettings.octra.inactivityNotice.showAfter;
+          this.settingsService.appSettings.tratt.inactivityNotice.showAfter;
         waitTime = waitTime * 60 * 1000;
         this.subscribe(interval(5000), () => {
           if (
@@ -758,13 +761,13 @@ export class TranscriptionComponent
 
   onSendButtonClick() {
     const showOverview =
-      this.projectsettings.octra?.showOverviewIfTranscriptNotValid === undefined
+      this.projectsettings.tratt?.showOverviewIfTranscriptNotValid === undefined
         ? true
-        : this.projectsettings.octra?.sendValidatedTranscriptionOnly;
+        : this.projectsettings.tratt?.sendValidatedTranscriptionOnly;
     const validTranscriptOnly =
-      this.projectsettings.octra?.sendValidatedTranscriptionOnly === undefined
+      this.projectsettings.tratt?.sendValidatedTranscriptionOnly === undefined
         ? false
-        : this.projectsettings.octra?.sendValidatedTranscriptionOnly;
+        : this.projectsettings.tratt?.sendValidatedTranscriptionOnly;
 
     this.annotationStoreService.validateAll();
     const validTranscript = this.annotationStoreService.transcriptValid;

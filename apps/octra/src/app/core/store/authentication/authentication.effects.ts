@@ -77,7 +77,7 @@ export class AuthenticationEffects {
           };
 
           const filteredParams = Object.fromEntries(
-            Object.entries(params).filter(([, v]) => v != null)
+            Object.entries(params).filter(([, v]) => v != null),
           ) as Record<string, string | number | boolean>;
           const newURL = appendURLQueryParams(url, filteredParams);
           popupCenter(
@@ -96,13 +96,13 @@ export class AuthenticationEffects {
         ) {
           // local re-authentication
           if (
-            state.application.appConfiguration?.octra.plugins?.asr
+            state.application.appConfiguration?.tratt.plugins?.asr
               ?.shibbolethURL
           ) {
             return of(
               waitForWindowResponse(
                 a.actionAfterSuccess,
-                state.application.appConfiguration?.octra.plugins.asr
+                state.application.appConfiguration?.tratt.plugins.asr
                   .shibbolethURL,
                 {
                   nc: true,
@@ -139,7 +139,10 @@ export class AuthenticationEffects {
 
               if (a.type === AuthenticationActions.loginOnline.do.type) {
                 // redirect directly
-                url = appendURLQueryParams(url, urlParams as Record<string, string | number | boolean>);
+                url = appendURLQueryParams(
+                  url,
+                  urlParams as Record<string, string | number | boolean>,
+                );
 
                 if (auth.agreementToken) {
                   this.sessionStorageService.store('authType', a.method);
@@ -272,7 +275,9 @@ export class AuthenticationEffects {
                   ofType(IDBActions.saveModeOptions.fail),
                   take(1),
                   tap(() =>
-                    console.warn('[onLoginLocal$] saveModeOptions failed — proceeding without IDB'),
+                    console.warn(
+                      '[onLoginLocal$] saveModeOptions failed — proceeding without IDB',
+                    ),
                   ),
                 ),
               ).pipe(

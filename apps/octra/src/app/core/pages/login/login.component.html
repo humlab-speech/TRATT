@@ -85,27 +85,27 @@
   <div class="row">
     <div class="col-12" style="text-align: center">
       @if (
-        settingsService.appSettings.octra.maintenanceNotification !==
+        settingsService.appSettings.tratt.maintenanceNotification !==
           undefined &&
-        settingsService.appSettings.octra.maintenanceNotification.active ===
+        settingsService.appSettings.tratt.maintenanceNotification.active ===
           'active'
       ) {
         <octra-maint-banner
           [serverURL]="
-            settingsService.appSettings.octra.maintenanceNotification.apiURL
+            settingsService.appSettings.tratt.maintenanceNotification.apiURL
           "
           [language]="appStorage.language"
         ></octra-maint-banner>
       }
     </div>
   </div>
-  @if (settingsService.appSettings.octra.oldVersion?.url) {
+  @if (settingsService.appSettings.tratt.oldVersion?.url) {
     <div class="row">
       <div class="col">
         <div class="alert mb-0 py-1" style="font-size: 0.8rem">
           <i class="bi bi-info-circle"></i>
           {{ 'login.old version.notice' | transloco }}
-          <a [href]="settingsService.appSettings.octra.oldVersion?.url">{{
+          <a [href]="settingsService.appSettings.tratt.oldVersion?.url">{{
             'login.old version.click here' | transloco
           }}</a>
         </div>
@@ -128,7 +128,7 @@
                   {{ 'login.online mode description' | transloco }}
                 </p>
                 @if (
-                  !apc.octra.login?.enabled ||
+                  !apc.tratt.login?.enabled ||
                   !apc.api?.url ||
                   !apc.api?.appToken
                 ) {

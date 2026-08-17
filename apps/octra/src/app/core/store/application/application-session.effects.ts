@@ -3,13 +3,7 @@ import { getBrowserLang, TranslocoService } from '@jsverse/transloco';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { Action, Store } from '@ngrx/store';
 import { LocalStorageService, SessionStorageService } from 'ngx-webstorage';
-import {
-  exhaustMap,
-  of,
-  Subject,
-  tap,
-  withLatestFrom,
-} from 'rxjs';
+import { exhaustMap, of, Subject, tap, withLatestFrom } from 'rxjs';
 import { AppInfo } from '../../../app.info';
 import { AppSettings } from '../../obj';
 import { AppStorageService } from '../../shared/service/appstorage.service';
@@ -53,7 +47,7 @@ export class ApplicationSessionEffects {
       exhaustMap((a) => {
         // set language
         const language = this.localStorage.retrieve('language');
-        const availableLangs = a.settings.octra.languages as string[];
+        const availableLangs = a.settings.tratt.languages as string[];
         this.transloco.setAvailableLangs(availableLangs);
         const browserLang = getBrowserLang()?.replace(/-.*/g, '');
         const resolvedLang =
@@ -63,7 +57,7 @@ export class ApplicationSessionEffects {
             : 'en');
         this.transloco.setActiveLang(resolvedLang);
 
-        if (a.settings.octra.plugins?.asr?.enabled) {
+        if (a.settings.tratt.plugins?.asr?.enabled) {
           this.store.dispatch(
             ApplicationActions.loadASRSettings.do({
               settings: a.settings,
@@ -75,7 +69,7 @@ export class ApplicationSessionEffects {
         const authType = this.sessStr.retrieve('authType');
         const authenticated = this.sessStr.retrieve('loggedIn');
 
-        this.transloco.setAvailableLangs(a.settings.octra.languages);
+        this.transloco.setAvailableLangs(a.settings.tratt.languages);
 
         if (
           a.settings.api?.url &&
@@ -109,11 +103,11 @@ export class ApplicationSessionEffects {
         withLatestFrom(this.store),
         tap(([a, state]) => {
           if (
-            state.application.appConfiguration?.octra?.tracking?.active &&
-            state.application.appConfiguration.octra.tracking.active !== ''
+            state.application.appConfiguration?.tratt?.tracking?.active &&
+            state.application.appConfiguration.tratt.tracking.active !== ''
           ) {
             this.appendTrackingCode(
-              state.application.appConfiguration.octra.tracking.active,
+              state.application.appConfiguration.tratt.tracking.active,
               state.application.appConfiguration,
             );
           }
@@ -139,7 +133,9 @@ export class ApplicationSessionEffects {
         ),
         withLatestFrom(this.store),
         tap(([a, state]) => {
-          console.log(`[CHAIN] afterInitApplication$ action=${(a as any).type}, initialized=${state.application.initialized}, startup=${(a as any).startup}, loggedIn=${state.application.loggedIn}, mode=${state.application.mode}`);
+          console.log(
+            `[CHAIN] afterInitApplication$ action=${(a as any).type}, initialized=${state.application.initialized}, startup=${(a as any).startup}, loggedIn=${state.application.loggedIn}, mode=${state.application.mode}`,
+          );
           if (state.application.initialized && !(a as any).startup) {
             if (!state.application.mode) {
               // no mode active
@@ -187,8 +183,7 @@ export class ApplicationSessionEffects {
                     }),
                   );
                 } else if (
-                  this.sessStr.retrieve('last_page_path') !==
-                  '/help-tools'
+                  this.sessStr.retrieve('last_page_path') !== '/help-tools'
                 ) {
                   this.store.dispatch(
                     AuthenticationActions.redirectToProjects.do(),
@@ -258,7 +253,11 @@ export class ApplicationSessionEffects {
                     if (!matched) return null;
                     return { key: matched[1], value: matched[2] };
                   })
-                  .filter((item: { key: string; value: string } | null): item is { key: string; value: string } => item !== null);
+                  .filter(
+                    (
+                      item: { key: string; value: string } | null,
+                    ): item is { key: string; value: string } => item !== null,
+                  );
 
                 for (const splittedElement of splitted) {
                   queryParams[splittedElement.key] = splittedElement.value;
@@ -307,7 +306,7 @@ export class ApplicationSessionEffects {
           this.bugService.addEntriesFromDB(this.appStorage.consoleEntries);
 
           // define languages
-          const languages = state.application.appConfiguration!.octra.languages;
+          const languages = state.application.appConfiguration!.tratt.languages;
           const browserLang = getBrowserLang() ?? '';
 
           // check if browser language is available in translations
@@ -316,7 +315,7 @@ export class ApplicationSessionEffects {
             this.appStorage.language === ''
           ) {
             if (
-              state.application.appConfiguration!.octra.languages.find(
+              state.application.appConfiguration!.tratt.languages.find(
                 (value) => {
                   return value === browserLang;
                 },
@@ -329,7 +328,7 @@ export class ApplicationSessionEffects {
             }
           } else {
             if (
-              state.application.appConfiguration!.octra.languages.find(
+              state.application.appConfiguration!.tratt.languages.find(
                 (value) => {
                   return value === this.appStorage.language;
                 },
@@ -421,11 +420,11 @@ export class ApplicationSessionEffects {
     // check if matomo is activated
     if (type === 'matomo') {
       if (
-        settings.octra.tracking?.matomo !== undefined &&
-        settings.octra.tracking?.matomo.host !== undefined &&
-        settings.octra.tracking?.matomo.siteID !== undefined
+        settings.tratt.tracking?.matomo !== undefined &&
+        settings.tratt.tracking?.matomo.host !== undefined &&
+        settings.tratt.tracking?.matomo.siteID !== undefined
       ) {
-        const matomoSettings = settings.octra.tracking!.matomo;
+        const matomoSettings = settings.tratt.tracking!.matomo;
 
         const trackingCode = document.createElement('script');
         trackingCode.setAttribute('type', 'text/javascript');

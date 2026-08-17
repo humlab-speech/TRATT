@@ -8,12 +8,12 @@ import {
   ElementRef,
   EventEmitter,
   HostListener,
+  inject,
   OnChanges,
   OnInit,
   Output,
   SimpleChanges,
   ViewChild,
-  inject,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { getProperties } from '@octra/utilities';
@@ -119,9 +119,10 @@ export class TranscrWindowComponent
   private _videoBlobUrl?: string;
 
   get isVideoFile(): boolean {
-    const mime = this.audioManager?.resource?.originalType
-                 ?? this.audioManager?.resource?.info?.type
-                 ?? '';
+    const mime =
+      this.audioManager?.resource?.originalType ??
+      this.audioManager?.resource?.info?.type ??
+      '';
     return FileInfo.isVideoMimeType(mime);
   }
 
@@ -135,7 +136,9 @@ export class TranscrWindowComponent
     const ab = resource?.originalArraybuffer ?? resource?.arraybuffer;
     if (ab) {
       if (!this._videoBlobUrl) {
-        this._videoBlobUrl = URL.createObjectURL(new Blob([ab], { type: originalType }));
+        this._videoBlobUrl = URL.createObjectURL(
+          new Blob([ab], { type: originalType }),
+        );
       }
       return this.sanitizer.bypassSecurityTrustUrl(this._videoBlobUrl);
     }
@@ -203,7 +206,9 @@ export class TranscrWindowComponent
   public get currentSegmentSpeaker(): string | undefined {
     const segment = this.currentLevel?.items?.[this.segmentIndex];
     if (!segment) return undefined;
-    const speakerLabel = segment.labels?.find((label) => label.name === 'Speaker');
+    const speakerLabel = segment.labels?.find(
+      (label) => label.name === 'Speaker',
+    );
     return speakerLabel?.value;
   }
 
@@ -604,7 +609,7 @@ export class TranscrWindowComponent
     this._validationEnabled =
       this.appStorage.useMode !== 'url' &&
       (this.appStorage.useMode === 'demo' ||
-        this.settingsService?.projectsettings?.octra?.validationEnabled ===
+        this.settingsService?.projectsettings?.tratt?.validationEnabled ===
           true);
   }
 
@@ -1646,7 +1651,7 @@ export class TranscrWindowComponent
         .pipe(take(1), takeUntilDestroyed(this.destroyRef))
         .subscribe(() => {
           video.currentTime = this.audiochunk.time.start.seconds;
-        })
+        }),
     );
 
     // Mirror play/pause state from AudioChunk to video element
@@ -1663,7 +1668,7 @@ export class TranscrWindowComponent
           } else {
             video.pause();
           }
-        })
+        }),
     );
 
     // Position sync: poll every 50ms, correct if drift > 100ms
@@ -1676,7 +1681,7 @@ export class TranscrWindowComponent
           if (pos !== undefined && Math.abs(video.currentTime - pos) > 0.1) {
             video.currentTime = pos;
           }
-        })
+        }),
     );
 
     this.videoSyncSubscription = subs;

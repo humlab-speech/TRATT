@@ -1,9 +1,12 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
+import { resolveDatabaseName } from '../db-name';
 import {
   IRecordingChunk,
   IRecordingSession,
+  LEGACY_RECORDING_DB_NAME,
   OctraRecordingDatabase,
+  RECORDING_DB_NAME,
   RecordingChunkKind,
   RecordingMode,
 } from '../octra-recording-database';
@@ -14,9 +17,21 @@ export interface RecoverableSession extends IRecordingSession {
 
 @Injectable({ providedIn: 'root' })
 export class RecordingPersistenceService {
-  private db = new OctraRecordingDatabase();
+  private opened?: Promise<OctraRecordingDatabase>;
 
   readonly recoverableSessions$ = new BehaviorSubject<RecoverableSession[]>([]);
+
+  /**
+   * Opens the recording database, reusing the OCTRA-era one when this browser
+   * still holds it. Resolved once and cached.
+   */
+  private db(): Promise<OctraRecordingDatabase> {
+    this.opened ??= resolveDatabaseName(
+      RECORDING_DB_NAME,
+      LEGACY_RECORDING_DB_NAME,
+    ).then((name) => new OctraRecordingDatabase(name));
+    return this.opened;
+  }
 
   async createSession(params: {
     id: string;
@@ -37,7 +52,8 @@ export class RecordingPersistenceService {
       sampleRate: params.sampleRate,
       channels: params.channels,
     };
-    await this.db.sessions.put(session);
+    const db = await this.db();
+    await db.sessions.put(session);
     return session;
   }
 
@@ -48,33 +64,30 @@ export class RecordingPersistenceService {
     blob: Blob;
   }): Promise<void> {
     const now = Date.now();
-    await this.db.transaction(
-      'rw',
-      this.db.chunks as any,
-      this.db.sessions,
-      async () => {
-        await (this.db.chunks as any).add({
-          sessionId: params.sessionId,
-          index: params.index,
-          kind: params.kind,
-          blob: params.blob,
-          createdAt: now,
-        });
-        const session = await this.db.sessions.get(params.sessionId);
-        if (session) {
-          session.lastChunkAt = now;
-          session.totalBytes += params.blob.size;
-          await this.db.sessions.put(session);
-        }
-      },
-    );
+    const db = await this.db();
+    await db.transaction('rw', db.chunks as any, db.sessions, async () => {
+      await (db.chunks as any).add({
+        sessionId: params.sessionId,
+        index: params.index,
+        kind: params.kind,
+        blob: params.blob,
+        createdAt: now,
+      });
+      const session = await db.sessions.get(params.sessionId);
+      if (session) {
+        session.lastChunkAt = now;
+        session.totalBytes += params.blob.size;
+        await db.sessions.put(session);
+      }
+    });
   }
 
   async loadChunks(
     sessionId: string,
     kind?: RecordingChunkKind,
   ): Promise<IRecordingChunk[]> {
-    const coll = (this.db.chunks as any).where('sessionId').equals(sessionId);
+    const db = await this.db();
+    const coll = (db.chunks as any).where('sessionId').equals(sessionId);
     const all = (await coll.toArray()) as IRecordingChunk[];
     const filtered = kind ? all.filter((c) => c.kind === kind) : all;
     return filtered.sort((a, b) => a.index - b.index);
@@ -83,37 +96,33 @@ export class RecordingPersistenceService {
   async listSessions(
     opts: { finalized?: boolean } = {},
   ): Promise<IRecordingSession[]> {
-    const all = await this.db.sessions.toArray();
+    const db = await this.db();
+    const all = await db.sessions.toArray();
     if (opts.finalized === undefined) return all;
     const target = opts.finalized ? 1 : 0;
     return all.filter((s) => s.finalized === target);
   }
 
   async finalizeSession(sessionId: string): Promise<void> {
-    const session = await this.db.sessions.get(sessionId);
+    const db = await this.db();
+    const session = await db.sessions.get(sessionId);
     if (!session) return;
     session.finalized = 1;
-    await this.db.sessions.put(session);
+    await db.sessions.put(session);
   }
 
   async discardSession(sessionId: string): Promise<void> {
-    await this.db.transaction(
-      'rw',
-      this.db.chunks as any,
-      this.db.sessions,
-      async () => {
-        await (this.db.chunks as any)
-          .where('sessionId')
-          .equals(sessionId)
-          .delete();
-        await this.db.sessions.delete(sessionId);
-      },
-    );
+    const db = await this.db();
+    await db.transaction('rw', db.chunks as any, db.sessions, async () => {
+      await (db.chunks as any).where('sessionId').equals(sessionId).delete();
+      await db.sessions.delete(sessionId);
+    });
   }
 
   async pruneOlderThan(ageMs: number): Promise<number> {
     const cutoff = Date.now() - ageMs;
-    const stale = await this.db.sessions
+    const db = await this.db();
+    const stale = await db.sessions
       .filter((s) => s.startedAt < cutoff)
       .toArray();
     for (const s of stale) {

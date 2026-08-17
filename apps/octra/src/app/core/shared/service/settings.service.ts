@@ -57,22 +57,22 @@ export class SettingsService {
    */
   public isTheme(theme: string) {
     const selectedTheme =
-      this.projectsettings?.octra === undefined ||
-      this.projectsettings?.octra?.theme === undefined
+      this.projectsettings?.tratt === undefined ||
+      this.projectsettings?.tratt?.theme === undefined
         ? 'default'
-        : this.projectsettings?.octra.theme;
+        : this.projectsettings?.tratt.theme;
 
     return selectedTheme === theme;
   }
 
   public getAudioExample(language: string) {
-    if (this.appSettings.octra.audioExamples !== undefined) {
-      let example = this.appSettings.octra.audioExamples.find((a) => {
+    if (this.appSettings.tratt.audioExamples !== undefined) {
+      let example = this.appSettings.tratt.audioExamples.find((a) => {
         return a.language === language;
       });
 
       if (example === undefined) {
-        example = this.appSettings.octra.audioExamples[0];
+        example = this.appSettings.tratt.audioExamples[0];
       }
 
       return example;

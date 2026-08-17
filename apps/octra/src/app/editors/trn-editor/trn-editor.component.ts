@@ -5,8 +5,9 @@ import {
   Component,
   EventEmitter,
   HostListener,
+  OnDestroy,
   OnInit,
-  ViewChild, OnDestroy,
+  ViewChild,
 } from '@angular/core';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
@@ -1432,7 +1433,7 @@ export class TrnEditorComponent
       this.transcrEditor.validationEnabled =
         this.appStorage.useMode !== LoginMode.URL &&
         (this.appStorage.useMode === LoginMode.DEMO ||
-          this.settingsService?.projectsettings?.octra?.validationEnabled ===
+          this.settingsService?.projectsettings?.tratt?.validationEnabled ===
             true);
       started = Date.now();
       this.transcrEditor.initialize();

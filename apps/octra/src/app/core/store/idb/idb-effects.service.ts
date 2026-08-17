@@ -54,7 +54,7 @@ export class IDBEffects {
       withLatestFrom(this.store),
       exhaustMap(([action, state]) => {
         return this.idbService
-          .initialize(state.application.appConfiguration!.octra.database.name)
+          .initialize(state.application.appConfiguration!.tratt.database.name)
           .pipe(
             map(() => {
               this.store.dispatch(
@@ -972,7 +972,9 @@ export class IDBEffects {
           .saveImportOptions(action.mode, action.importOptions!)
           .pipe(
             map(() => IDBActions.saveImportOptions.success()),
-            catchError((error: Error) => of(IDBActions.saveImportOptions.fail({ error: error.message }))),
+            catchError((error: Error) =>
+              of(IDBActions.saveImportOptions.fail({ error: error.message })),
+            ),
           ),
       ),
     ),
@@ -989,12 +991,19 @@ export class IDBEffects {
           } catch (e) {
             // Safari private browsing may throw QuotaExceededError
           }
-          this.idbService.clearAllData().then(() => {
-            this.store.dispatch(IDBActions.clearAllData.success());
-          }).catch((e: Error) => {
-            console.error('Failed to clear IDB data:', e);
-            this.store.dispatch(IDBActions.clearAllData.fail({ error: e?.message ?? String(e) }));
-          });
+          this.idbService
+            .clearAllData()
+            .then(() => {
+              this.store.dispatch(IDBActions.clearAllData.success());
+            })
+            .catch((e: Error) => {
+              console.error('Failed to clear IDB data:', e);
+              this.store.dispatch(
+                IDBActions.clearAllData.fail({
+                  error: e?.message ?? String(e),
+                }),
+              );
+            });
         }),
       ),
     { dispatch: false },

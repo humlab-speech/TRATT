@@ -122,15 +122,15 @@ export class CompatibilityService {
     ) {
       for (
         let i = 0;
-        i < this.settingsService.appSettings.octra.allowed_browsers.length;
+        i < this.settingsService.appSettings.tratt.allowed_browsers.length;
         i++
       ) {
         const browser =
-          this.settingsService.appSettings.octra.allowed_browsers[i];
+          this.settingsService.appSettings.tratt.allowed_browsers[i];
         result += browser.name;
         if (
           i <
-          this.settingsService.appSettings.octra.allowed_browsers.length - 1
+          this.settingsService.appSettings.tratt.allowed_browsers.length - 1
         ) {
           result += ', ';
         }
@@ -152,10 +152,10 @@ export class CompatibilityService {
         }
       } else {
         if (
-          this.settingsService.appSettings.octra.allowed_browsers.length > 0
+          this.settingsService.appSettings.tratt.allowed_browsers.length > 0
         ) {
           const valid = this.isValidBrowser(
-            this.settingsService.appSettings.octra.allowed_browsers,
+            this.settingsService.appSettings.tratt.allowed_browsers,
           );
           resolve(valid);
         } else {

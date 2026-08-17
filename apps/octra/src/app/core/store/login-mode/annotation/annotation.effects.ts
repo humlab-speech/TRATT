@@ -56,6 +56,7 @@ import {
   isValidAnnotation,
   StatisticElem,
 } from '../../../shared';
+import { migrateLegacyConfigKey } from '../../../shared/legacy-config';
 import {
   AlertService,
   AudioService,
@@ -97,11 +98,11 @@ export class AnnotationEffects {
         console.log(a);
         console.log(a.mode, LoginMode.ONLINE, a.mode === LoginMode.ONLINE);
 
-        console.log("apiInit", this.apiService.initialized);
+        console.log('apiInit', this.apiService.initialized);
 
         if (a.mode === LoginMode.ONLINE) {
           this.store.dispatch(ApplicationActions.waitForEffects.do());
-          
+
           // start
           return this.apiService
             .startTask(a.project.id, {
@@ -227,7 +228,10 @@ export class AnnotationEffects {
             a.task,
             'audio',
             (io: TaskInputOutputDto) => {
-              if (io.fileType && (io.fileType.includes('audio') || io.fileType.includes('video'))) {
+              if (
+                io.fileType &&
+                (io.fileType.includes('audio') || io.fileType.includes('video'))
+              ) {
                 return io;
               }
               return undefined;
@@ -308,7 +312,7 @@ export class AnnotationEffects {
             this.store.dispatch(
               LoginModeActions.changeImportOptions.do({
                 mode: a.mode,
-                importOptions: a.projectSettings.octra?.importOptions,
+                importOptions: a.projectSettings.tratt?.importOptions,
               }),
             );
           }
@@ -414,7 +418,9 @@ export class AnnotationEffects {
             }
           } else if (state.application.mode === LoginMode.LOCAL) {
             // local mode
-            console.log(`[CHAIN] onAudioLoad$ LOCAL: sessionFile=${!!state.localMode.sessionFile}, audiomanagers=${this.audio.audiomanagers.length}, audioAlreadyLoaded=${state.application.audioAlreadyLoaded}`);
+            console.log(
+              `[CHAIN] onAudioLoad$ LOCAL: sessionFile=${!!state.localMode.sessionFile}, audiomanagers=${this.audio.audiomanagers.length}, audioAlreadyLoaded=${state.application.audioAlreadyLoaded}`,
+            );
             if (state.localMode.sessionFile !== undefined) {
               if (this.audio.audiomanagers.length > 0) {
                 this.store.dispatch(
@@ -430,7 +436,9 @@ export class AnnotationEffects {
               } else if (state.application.audioAlreadyLoaded) {
                 // Audio was registered in proceedWithLogin but is no longer in audiomanagers —
                 // this is unexpected and indicates a bug (e.g. premature destroy() call).
-                console.error('[onAudioLoad$ LOCAL] BUG: audioAlreadyLoaded=true but audiomanagers is empty — audio manager was lost after registration');
+                console.error(
+                  '[onAudioLoad$ LOCAL] BUG: audioAlreadyLoaded=true but audiomanagers is empty — audio manager was lost after registration',
+                );
                 this.store.dispatch(
                   AnnotationActions.loadAudio.fail({
                     error: 'audio from sessionfile not loaded. Reload needed.',
@@ -445,7 +453,10 @@ export class AnnotationEffects {
                 );
               }
             } else {
-              console.error('[onAudioLoad$ LOCAL] FAIL: sessionFile is undefined — audiomanagers.length=', this.audio.audiomanagers.length);
+              console.error(
+                '[onAudioLoad$ LOCAL] FAIL: sessionFile is undefined — audiomanagers.length=',
+                this.audio.audiomanagers.length,
+              );
               this.store.dispatch(
                 AnnotationActions.loadAudio.fail({
                   error: 'sessionfile is undefined',
@@ -630,7 +641,9 @@ export class AnnotationEffects {
         ofType(AnnotationActions.initTranscriptionService.success),
         withLatestFrom(this.store),
         tap(([action, state]) => {
-          console.log(`[CHAIN] loadSegmentsSuccess$: navigating to /intern/transcr, loading.status=${(state as RootState).application.loading.status}`);
+          console.log(
+            `[CHAIN] loadSegmentsSuccess$: navigating to /intern/transcr, loading.status=${(state as RootState).application.loading.status}`,
+          );
           this.routingService.navigate(
             'transcription initialized',
             ['/intern/transcr'],
@@ -777,11 +790,22 @@ export class AnnotationEffects {
               any,
             ]
           >([
-            this.http.get('config/localmode/projectconfig.json', {
-              responseType: 'json',
-            }).pipe(catchError((err) => { console.error('[onLoadOnlineInfo$] projectconfig.json failed', err); return of({}); })),
+            this.http
+              .get('config/localmode/projectconfig.json', {
+                responseType: 'json',
+              })
+              .pipe(
+                map(migrateLegacyConfigKey),
+                catchError((err) => {
+                  console.error(
+                    '[onLoadOnlineInfo$] projectconfig.json failed',
+                    err,
+                  );
+                  return of({});
+                }),
+              ),
             forkJoin(
-              state.application.appConfiguration!.octra.languages.map(
+              state.application.appConfiguration!.tratt.languages.map(
                 (b: string) =>
                   this.http
                     .get(`config/localmode/guidelines/guidelines_${b}.json`, {
@@ -796,9 +820,11 @@ export class AnnotationEffects {
                     ),
               ),
             ),
-            this.http.get('config/localmode/functions.js', {
-              responseType: 'text',
-            }).pipe(catchError(() => of(''))),
+            this.http
+              .get('config/localmode/functions.js', {
+                responseType: 'text',
+              })
+              .pipe(catchError(() => of(''))),
           ]).pipe(
             exhaustMap(([projectConfig, guidelines, functions]) => {
               const currentProject = createSampleProjectDto('1234');
@@ -811,7 +837,7 @@ export class AnnotationEffects {
                 observables.push(
                   of({
                     inputs: state.application
-                      .appConfiguration!.octra.audioExamples.map((a) => {
+                      .appConfiguration!.tratt.audioExamples.map((a) => {
                         return {
                           id: Date.now().toString(),
                           filename: FileInfo.fromURL(a.url).fullname,
@@ -878,7 +904,10 @@ export class AnnotationEffects {
                     )
                   : undefined;
 
-                const urlInfoIndexed = urlInfo as Record<string, { url?: string; fileInfo?: FileInfo }>;
+                const urlInfoIndexed = urlInfo as Record<
+                  string,
+                  { url?: string; fileInfo?: FileInfo }
+                >;
                 for (const key of Object.keys(urlInfo)) {
                   if (urlInfoIndexed[key].url) {
                     let mediaType: string | undefined =
@@ -945,7 +974,9 @@ export class AnnotationEffects {
                   ]).pipe(
                     exhaustMap(([event]) => {
                       if (!urlInfo.audio.fileInfo) {
-                        return throwError(() => new Error('Audio URL is required for URL mode'));
+                        return throwError(
+                          () => new Error('Audio URL is required for URL mode'),
+                        );
                       }
                       const inputs: TaskInputOutputDto[] = [
                         {
@@ -995,7 +1026,7 @@ export class AnnotationEffects {
                     {
                       orgtext:
                         LoginMode.DEMO === state.application.mode!
-                          ? state.application.appConfiguration!.octra
+                          ? state.application.appConfiguration!.tratt
                               .audioExamples[0].description
                           : '',
                     },
@@ -1018,8 +1049,13 @@ export class AnnotationEffects {
                       LoginModeActions.loadProjectAndTaskInformation.fail(e),
                     );
                   }
-                  console.error('[onLoadOnlineInfo$] forkJoin(observables) failed', e);
-                  return of(LoginModeActions.loadProjectAndTaskInformation.fail(e));
+                  console.error(
+                    '[onLoadOnlineInfo$] forkJoin(observables) failed',
+                    e,
+                  );
+                  return of(
+                    LoginModeActions.loadProjectAndTaskInformation.fail(e),
+                  );
                 }),
               );
             }),
@@ -1129,7 +1165,8 @@ export class AnnotationEffects {
                       '',
                       false,
                       (transcript: string) => {
-                        const guidelinesJson = modeState.guidelines?.selected?.json;
+                        const guidelinesJson =
+                          modeState.guidelines?.selected?.json;
                         if (!guidelinesJson) {
                           return transcript;
                         }
@@ -1810,14 +1847,14 @@ export class AnnotationEffects {
     if (
       state.application.appConfiguration !== undefined &&
       hasProperty(
-        state.application.appConfiguration.octra,
+        state.application.appConfiguration.tratt,
         'maintenanceNotification',
       ) &&
-      state.application.appConfiguration.octra.maintenanceNotification
+      state.application.appConfiguration.tratt.maintenanceNotification
         .active === 'active'
     ) {
       const maintenanceAPI = new MaintenanceAPI(
-        state.application.appConfiguration.octra.maintenanceNotification.apiURL,
+        state.application.appConfiguration.tratt.maintenanceNotification.apiURL,
         this.http,
       );
 
@@ -1941,7 +1978,9 @@ export class AnnotationEffects {
 }
 
 function renamePlaceholderLevels(
-  annotation: { levels?: { name: string; items?: { labels?: { name: string }[] }[] }[] },
+  annotation: {
+    levels?: { name: string; items?: { labels?: { name: string }[] }[] }[];
+  },
   newName: string,
 ): void {
   const placeholder = 'OCTRA_1';

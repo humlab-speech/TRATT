@@ -9,7 +9,7 @@
   },
   "languages": ["de", "en", "it", "nl", "ko", "zh"],
   "interfaces": ["2D-Editor", "Dictaphone Editor", "Linear Editor"],
-  "octra": {
+  "tratt": {
     "validationEnabled": false,
     "tools": ["combine-phrases", "cut-audio"],
     "sendValidatedTranscriptionOnly": false,

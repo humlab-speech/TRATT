@@ -4,7 +4,7 @@ export interface AppSettings {
     url: string;
     appToken: string;
   };
-  octra: {
+  tratt: {
     database: {
       name: string;
     };

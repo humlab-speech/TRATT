@@ -3,6 +3,7 @@ import { TranslocoService } from '@jsverse/transloco';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { Store } from '@ngrx/store';
 import { AccountLoginMethod } from '@octra/api-types';
+import { exhaustMap, mergeMap, of, tap, withLatestFrom } from 'rxjs';
 import { ProjectSettings } from '../../obj';
 import { AlertService, UserInteractionsService } from '../../shared/service';
 import { AuthenticationActions } from '../authentication';
@@ -15,13 +16,6 @@ import {
   ASRStateQueue,
   ASRStateQueueItem,
 } from './index';
-import {
-  exhaustMap,
-  mergeMap,
-  of,
-  tap,
-  withLatestFrom,
-} from 'rxjs';
 
 @Injectable({
   providedIn: 'root',
@@ -43,7 +37,7 @@ export class AsrQueueEffects {
         }
 
         const asrSettings =
-          state.application.appConfiguration?.octra.plugins?.asr;
+          state.application.appConfiguration?.tratt.plugins?.asr;
 
         if (!asrSettings) {
           return of(
@@ -452,23 +446,23 @@ export class AsrQueueEffects {
           state.application.mode === LoginMode.ONLINE &&
           state.authentication.type === AccountLoginMethod.shibboleth;
         const localASRSettingsComplete =
-          settings?.octra.plugins?.asr?.shibbolethURL !== undefined &&
-          settings.octra.plugins?.asr?.shibbolethURL !== '';
+          settings?.tratt.plugins?.asr?.shibbolethURL !== undefined &&
+          settings.tratt.plugins?.asr?.shibbolethURL !== '';
         const asrSettingsComplete =
-          settings?.octra.plugins?.asr?.enabled === true &&
-          settings.octra.plugins.asr.calls.length === 2 &&
-          settings.octra.plugins.asr.calls[0] !== '' &&
-          settings.octra.plugins.asr.calls[1] !== '';
+          settings?.tratt.plugins?.asr?.enabled === true &&
+          settings.tratt.plugins.asr.calls.length === 2 &&
+          settings.tratt.plugins.asr.calls[0] !== '' &&
+          settings.tratt.plugins.asr.calls[1] !== '';
 
         return of(
           ASRActions.enableASR.do({
             isEnabled:
               asrSettingsComplete &&
               (((action.task.tool_configuration?.value as ProjectSettings)
-                ?.octra?.asrEnabled === true &&
+                ?.tratt?.asrEnabled === true &&
                 isShibbolethUser) ||
                 ((action.task.tool_configuration?.value as ProjectSettings)
-                  ?.octra?.asrEnabled === true &&
+                  ?.tratt?.asrEnabled === true &&
                   localASRSettingsComplete)),
           }),
         );

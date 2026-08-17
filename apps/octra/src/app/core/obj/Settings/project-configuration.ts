@@ -11,7 +11,7 @@ export interface ProjectSettings {
   };
   interfaces: string[];
   feedback_form?: Group[]; // re-add feedback form generation later
-  octra?: {
+  tratt?: {
     asrEnabled?: boolean;
     tools?: ('combine-phrases' | 'cut-audio')[];
     validationEnabled?: boolean;

@@ -48,7 +48,7 @@ export const OctraProjectConfigJSONSchema: JSONSchema4 = {
       description:
         'Defines the names of editors that may be used for transcription. The user can only switch between these editors.',
     },
-    octra: {
+    tratt: {
       properties: {
         tools: {
           type: 'array',

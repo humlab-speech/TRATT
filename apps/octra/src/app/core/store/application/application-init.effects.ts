@@ -1,8 +1,8 @@
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
+import { TranslocoService } from '@jsverse/transloco';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { Store } from '@ngrx/store';
-import { getBrowserLang, TranslocoService } from '@jsverse/transloco';
 import { uniqueHTTPRequest } from '@octra/ngx-utilities';
 import { formatLanguageLabel, isNumber } from '@octra/utilities';
 import { findElements, getAttr } from '@octra/web-media';
@@ -24,6 +24,7 @@ import { AppInfo } from '../../../app.info';
 import { ASRSettings } from '../../obj';
 import { AppConfigSchema } from '../../schemata/appconfig.schema';
 import { isIgnoredAction } from '../../shared';
+import { migrateLegacyConfigKey } from '../../shared/legacy-config';
 import { AppStorageService } from '../../shared/service/appstorage.service';
 import {
   BugReportService,
@@ -92,7 +93,8 @@ export class ApplicationInitEffects {
             undefined,
           ),
         ]).pipe(
-          map(([appconfig]) => {
+          map(([loadedConfig]) => {
+            const appconfig = migrateLegacyConfigKey(loadedConfig);
             const validation = this.configurationService.validateJSON(
               appconfig,
               AppConfigSchema,
@@ -136,17 +138,17 @@ export class ApplicationInitEffects {
         // load information from BASWebservices ASR page
 
         if (
-          settings.octra.plugins?.asr?.asrInfoURL !== undefined &&
-          typeof settings.octra.plugins.asr.asrInfoURL === 'string' &&
-          settings.octra.plugins.asr.asrInfoURL
+          settings.tratt.plugins?.asr?.asrInfoURL !== undefined &&
+          typeof settings.tratt.plugins.asr.asrInfoURL === 'string' &&
+          settings.tratt.plugins.asr.asrInfoURL
         ) {
           return this.http
-            .get(settings.octra.plugins.asr.asrInfoURL, {
+            .get(settings.tratt.plugins.asr.asrInfoURL, {
               responseType: 'text',
             })
             .pipe(
               map((result) => {
-                if (!settings.octra.plugins?.asr?.services) {
+                if (!settings.tratt.plugins?.asr?.services) {
                   throw new Error(
                     'Missing asr.services property in application settings.',
                   );
@@ -263,7 +265,7 @@ export class ApplicationInitEffects {
 
                 // overwrite data of config
                 const asrSettings = JSON.parse(
-                  JSON.stringify(settings.octra.plugins.asr),
+                  JSON.stringify(settings.tratt.plugins.asr),
                 );
 
                 for (let i = 0; i < asrSettings.services.length; i++) {
@@ -651,7 +653,7 @@ export class ApplicationInitEffects {
             }
           }
           serv.addEntry(ConsoleType.LOG, args[0]);
-           
+
           oldLog.apply(console, args);
         };
       })();
@@ -701,7 +703,6 @@ export class ApplicationInitEffects {
             );
           }
 
-           
           oldError.apply(console, args);
         };
       })();
@@ -718,7 +719,7 @@ export class ApplicationInitEffects {
           }
 
           serv.addEntry(ConsoleType.WARN, args[0]);
-           
+
           oldWarn.apply(console, args);
         };
       })();
@@ -729,7 +730,7 @@ export class ApplicationInitEffects {
         // tslint:disable-next-line:only-arrow-functions
         console.groupCollapsed = function (...args) {
           serv.beginGroup(args[0]);
-           
+
           oldGroupCollapsed.apply(console, args);
         };
       })();
@@ -740,7 +741,7 @@ export class ApplicationInitEffects {
         // tslint:disable-next-line:only-arrow-functions
         console.groupEnd = function (...args) {
           serv.endGroup();
-           
+
           oldGroupEnd.apply(console, args);
         };
       })();

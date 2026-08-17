@@ -2,7 +2,7 @@ import { JSONSchema4 } from 'json-schema';
 
 export const AppConfigSchema: JSONSchema4 = {
   $id: '2.0.0',
-  required: ['version', 'octra'],
+  required: ['version', 'tratt'],
   type: 'object',
   properties: {
     version: {
@@ -24,7 +24,7 @@ export const AppConfigSchema: JSONSchema4 = {
       },
       type: 'object',
     },
-    octra: {
+    tratt: {
       required: ['database', 'supportEmail', 'allowed_browsers', 'languages'],
       properties: {
         database: {

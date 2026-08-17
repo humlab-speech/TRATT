@@ -7,6 +7,13 @@ import { firstValueFrom, from, map, Observable, of, Subject } from 'rxjs';
 import { LoginMode } from '../store';
 import { ASRStateSettings } from '../store/asr';
 
+/**
+ * Database names used before the rename from OCTRA to TRATT. Deployments that
+ * switch their appconfig to a TRATT-named database keep reading these, see
+ * resolveDatabaseName().
+ */
+export const LEGACY_DB_NAMES = ['octra-2', 'octra'];
+
 export class OctraDatabase extends Dexie {
   public demoData!: Dexie.Table<IIDBEntry, string>;
   public onlineData!: Dexie.Table<IIDBEntry, string>;
@@ -96,8 +103,8 @@ export class OctraDatabase extends Dexie {
     } catch (e) {
       this.onReady.error(
         new Error(
-          `Failed to open IndexedDB database. This may happen in private browsing mode. Original error: ${e}`
-        )
+          `Failed to open IndexedDB database. This may happen in private browsing mode. Original error: ${e}`,
+        ),
       );
       return;
     }
