@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" role="img" aria-label="TRATT">
+  <rect width="64" height="64" rx="14" fill="#1F4477"></rect>
+  <path d="M12 13h40a4 4 0 0 1 4 4v20a4 4 0 0 1-4 4H27l-11 9v-9h-4a4 4 0 0 1-4-4V17a4 4 0 0 1 4-4z" fill="#FFFFFF"></path>
+  <rect x="17" y="21" width="30" height="5" rx="2.5" fill="#1F4477"></rect>
+  <rect x="17" y="31" width="15" height="5" rx="2.5" fill="#E8863C"></rect>
+</svg>
