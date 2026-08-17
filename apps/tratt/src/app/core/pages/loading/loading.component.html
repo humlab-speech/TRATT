@@ -1,0 +1,77 @@
+<div id="loading">
+  <img
+    id="logo"
+    src="assets/img/tratt/tratt-favicon-transparent.svg"
+    alt="TRATT"
+    width="96"
+    height="96"
+  />
+  <div
+    class="progress"
+    role="progressbar"
+    aria-label="Overall progress"
+    [attr.aria-valuenow]="loading!.progress"
+    aria-valuemin="0"
+    aria-valuemax="100"
+  >
+    @if (settService.log === '') {
+      <div
+        [ngStyle]="{
+          width: (loading.status === 'LOADING' ? loading!.progress : 0) + '%',
+        }"
+        class="progress-bar"
+      ></div>
+    }
+    @if (settService.log !== '') {
+      <div
+        [ngStyle]="{
+          width: '100%',
+          'background-color': 'red',
+        }"
+        class="progress-bar"
+      ></div>
+    }
+  </div>
+  @if (settService.log === '') {
+    <div class="description">
+      {{ text }}{{ state }}<br />
+      @for (error of loading.errors; track error) {
+        <div class="text-danger" style="font-size: 0.85rem; margin-top: 0.5rem">
+          {{ error }}
+        </div>
+      }
+      <div class="text-info">{{ warning }}</div>
+      @if (warning !== undefined && warning !== '') {
+        <div>
+          <button type="button" (click)="retry()" class="btn btn-link link p-0">
+            Retry
+          </button>
+          @if (appStorage.useMode !== 'url') {
+            or
+            <button
+              type="button"
+              (click)="goBack()"
+              class="btn btn-link link p-0"
+            >
+              Back
+            </button>
+          }
+        </div>
+      }
+    </div>
+  }
+  <div [innerHTML]="settService.log" class="log"></div>
+  @if (settService.log !== '') {
+    <div>
+      <button type="button" (click)="retry()" class="btn btn-link link p-0">
+        Retry
+      </button>
+      @if (appStorage.useMode !== 'url') {
+        or
+        <button type="button" (click)="goBack()" class="btn btn-link link p-0">
+          Back
+        </button>
+      }
+    </div>
+  }
+</div>

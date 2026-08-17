@@ -2,7 +2,7 @@
  * Canvas colours for the signal displays.
  *
  * The audio viewer paints to a `<canvas>`, which cannot read the CSS custom
- * properties in apps/octra/src/styles.scss — so the tokens are mirrored here.
+ * properties in apps/tratt/src/styles.scss — so the tokens are mirrored here.
  * Keep the two files in sync.
  */
 export const OCTRA_COLORS = {

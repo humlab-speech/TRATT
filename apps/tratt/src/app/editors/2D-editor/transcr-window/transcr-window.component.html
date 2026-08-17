@@ -1,0 +1,275 @@
+<div class="modal-content">
+  <div class="modal-header">
+    <button
+      type="button"
+      class="btn-close"
+      aria-describedby="modal-title"
+      (click)="close()"
+    >
+      <span class="visually-hidden">Close</span>
+    </button>
+  </div>
+  <div class="modal-body">
+    <div #main class="d-flex flex-column h-100">
+      @if (loading) {
+        <div
+          [ngStyle]="{
+            width: mainSize.width + 'px',
+            height: mainSize.height + 'px',
+          }"
+          class="tw-loading"
+        >
+          <div
+            [ngStyle]="{
+              width: mainSize.width + 'px',
+              height: mainSize.height + 'px',
+            }"
+            class="background"
+          ></div>
+          <div class="spinner-border fs-4" role="status">
+            <span class="visually-hidden">Loading...</span>
+          </div>
+        </div>
+      }
+      @if (asrStoreService.asrEnabled$ | async) {
+        <div class="container-fluid">
+          <div
+            class="row py-2"
+            style="background-color: var(--octra-surface-background)"
+          >
+            <div class="col">
+              <span class="me-1"> ASR: </span>
+              <div ngbDropdown class="btn-group dropend">
+                <button
+                  [disabled]="
+                    !(asrStoreService.asrOptions$ | async)
+                      ?.selectedASRLanguage ||
+                    !(asrStoreService.asrOptions$ | async)
+                      ?.selectedServiceProvider
+                  "
+                  class="btn btn-primary btn-sm dropdown-toggle"
+                  type="button"
+                  id="dropdownMenuButton2"
+                  aria-expanded="false"
+                  ngbDropdownToggle
+                >
+                  {{ 'g.SELECT ACTION' | transloco }}
+                </button>
+                <div
+                  ngbDropdownMenu
+                  class="dropdown-menu"
+                  aria-labelledby="dropdownMenuButton"
+                  style="padding: 5px"
+                >
+                  @if ((asrStoreService.queue$ | async)?.status !== 'STARTED') {
+                    <li role="menuitem">
+                      <button
+                        (click)="startASRForThisSegment()"
+                        class="dropdown-item"
+                      >
+                        {{ 'asr.start this segment' | transloco }}
+                      </button>
+                    </li>
+                    <li role="menuitem">
+                      <button
+                        (click)="startASRForAllSegmentsNext()"
+                        class="dropdown-item"
+                      >
+                        {{ 'asr.start for all next' | transloco }}
+                      </button>
+                    </li>
+                  }
+                  @if ((asrStoreService.queue$ | async)?.status === 'STARTED') {
+                    <li role="menuitem">
+                      <button
+                        (click)="stopASRForThisSegment()"
+                        class="dropdown-item"
+                      >
+                        {{ 'asr.stop this segment' | transloco }}
+                      </button>
+                    </li>
+                    <li role="menuitem">
+                      <button class="dropdown-item">
+                        {{ 'asr.stop for all next' | transloco }}
+                      </button>
+                    </li>
+                    <li role="menuitem">
+                      <button (click)="stopASRForAll()" class="dropdown-item">
+                        {{ 'asr.stop all' | transloco }}
+                      </button>
+                    </li>
+                  }
+                </div>
+              </div>
+              <span>
+                <button
+                  type="button"
+                  class="btn btn-link p-0 ms-2"
+                  style="color: gray"
+                  (click)="openSettings()"
+                >
+                  <i class="bi bi-gear-fill pointer"></i>
+                  <span class="visually-hidden">Open settings</span>
+                </button>
+              </span>
+            </div>
+          </div>
+        </div>
+      }
+      @if (isVideoFile) {
+        <video
+          #videoEl
+          style="
+            display: block;
+            max-height: 40vh;
+            max-width: 100%;
+            margin: 0 auto;
+            background: #000;
+          "
+          muted
+          playsinline
+          preload="metadata"
+          [src]="videoUrl"
+        ></video>
+      }
+      <octra-audio-navigation
+        #audionav
+        (afterPlaybackRateChange)="afterSpeedChange($event)"
+        (afterVolumeChange)="afterVolumeChange($event)"
+        (buttonClick)="onButtonClick($event)"
+        (keyup)="onKeyUp()"
+        [audioChunk]="audiochunk"
+        [easyMode]="easyMode"
+        [playbackRate]="appStorage.audioSpeed"
+        [volume]="appStorage.audioVolume"
+      ></octra-audio-navigation>
+      <div class="position-relative" style="display: inline-block; width: 100%">
+        <octra-audio-viewer
+          #magnifier
+          [audioChunk]="audiochunk"
+          [refreshOnInternChanges]="false"
+          [annotation]="annotationStoreService.transcript!"
+          (shortcut)="triggerUIAction($event)"
+          [ngStyle]="{
+            height: magnifier?.settings?.lineheight + 'px',
+          }"
+          id="magnifier"
+        ></octra-audio-viewer>
+        @if (currentSegmentSpeaker) {
+          <div
+            class="speaker-badge"
+            [style.background-color]="currentSpeakerColor"
+            [style.color]="currentSpeakerTextColor"
+            (click)="cycleSpeaker()"
+            title="Click to cycle speaker"
+          >
+            {{ currentSegmentSpeaker }}
+          </div>
+        }
+      </div>
+      <octra-transcr-editor
+        #editor
+        (boundaryclicked)="onBoundaryClicked($event)"
+        [transcript]="transcript"
+        (boundaryinserted)="onBoundaryInserted()"
+        (markerClick)="onMarkerClick($event)"
+        (markerInsert)="onMarkerInsert($event)"
+        (typing)="afterTyping($event)"
+        [audiochunk]="audiochunk"
+        [easymode]="easyMode"
+        [height]="100"
+        [markers]="annotationStoreService.guidelines?.markers!"
+        [validationEnabled]="validationEnabled"
+        [font]="(appStoreService.options$ | async)?.editorFont"
+        (fontChange)="onFontChange($event)"
+        (selectionchanged)="onSelectionChange($event)"
+      ></octra-transcr-editor>
+    </div>
+  </div>
+  <div class="modal-footer">
+    <div class="window-nav-bottom">
+      <div class="row g-1">
+        <div class="col-md-4 d-flex">
+          <button
+            class="btn btn-info w-100 rounded-0"
+            (click)="save(); doDirectionAction('left')"
+          >
+            @if (easyMode) {
+              <span [ngClass]="{ 'd-lg-none': !easyMode }">
+                <i class="bi bi-save-fill"></i> &
+                <i class="bi bi-arrow-left"></i>
+              </span>
+            }
+            @if (!easyMode) {
+              <span>
+                {{ 'g.save' | transloco }} &
+                {{ 'segments.previous' | transloco }}
+              </span>
+            }
+          </button>
+        </div>
+        <div class="col-md-4 d-flex">
+          <button
+            (click)="save(); close()"
+            class="btn btn-info w-100 rounded-0"
+          >
+            @if (easyMode) {
+              <span [ngClass]="{ 'd-lg-none': !easyMode }">
+                <i class="bi bi-save-fill"></i>
+              </span>
+            }
+            @if (!easyMode) {
+              <span>
+                {{ 'g.save' | transloco }} &
+                {{ 'g.close' | transloco }}
+              </span>
+            }
+          </button>
+        </div>
+        @if (!showOverviewButton) {
+          <div class="col-md-4 d-flex">
+            <button
+              class="btn btn-info w-100 rounded-0"
+              (click)="save(); doDirectionAction('right')"
+            >
+              @if (easyMode) {
+                <span [ngClass]="{ 'd-lg-none': !easyMode }">
+                  <i class="bi bi-save-fill"></i> &
+                  <i class="bi bi-arrow-right"></i>
+                </span>
+              }
+              @if (!easyMode) {
+                <span>
+                  {{ 'g.save' | transloco }} &
+                  {{ 'segments.next' | transloco }}
+                </span>
+              }
+            </button>
+          </div>
+        }
+        @if (showOverviewButton) {
+          <div class="col-md-4 d-flex">
+            <!-- check if last segment ord if the next segment is a break -->
+            <button
+              (click)="save(); close(); openOverview()"
+              class="btn btn-info w-100 rounded-0"
+            >
+              @if (easyMode) {
+                <span [ngClass]="{ 'd-lg-none': !easyMode }">
+                  <i class="bi bi-save-fill"></i> &
+                  <i class="bi bi-eye-fill"></i>
+                </span>
+              }
+              @if (!easyMode) {
+                <span>
+                  {{ 'g.save' | transloco }} &
+                  {{ 'g.overview' | transloco }}
+                </span>
+              }
+            </button>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+</div>

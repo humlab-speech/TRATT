@@ -1,0 +1,246 @@
+<div class="modal-content">
+  <div class="modal-header">
+    <h5 class="modal-title" id="modal-title">
+      {{ 'g.guidelines' | transloco
+      }}<span class="version"> v {{ guidelines?.meta?.version }}</span>
+    </h5>
+    <button
+      type="button"
+      class="btn-close"
+      aria-describedby="modal-title"
+      (click)="close()"
+    >
+      <span class="visually-hidden">Close</span>
+    </button>
+  </div>
+  <div class="modal-body">
+    <div class="row" style="width: 100%">
+      <div class="col-md-7">
+        <h3 style="display: inline">
+          {{ 'g.guidelines' | transloco
+          }}<span class="version"> v {{ guidelines?.meta?.version }} </span>
+        </h3>
+        @if (guidelines?.meta?.pdf?.url) {
+          <a
+            [href]="guidelines?.meta?.pdf?.url"
+            target="_blank"
+            class="btn btn-sm btn-danger"
+            style="border: 1px solid red"
+          >
+            <i class="bi bi-printer-fill"></i>
+            PDF
+          </a>
+        }
+        <span class="project">
+          {{ 'g.project' | transloco }}: {{ guidelines?.meta?.project }}
+        </span>
+        <span class="authors">
+          {{ 'g.authors' | transloco }}: {{ guidelines?.meta?.authors }}
+        </span>
+      </div>
+      <div class="col-md-5">
+        <div class="form-group">
+          <div class="input-group">
+            <span class="input-group-text">
+              <i class="bi bi-search"></i>
+            </span>
+            <input
+              #input
+              (keyup)="search(input.value)"
+              class="form-control"
+              id="addon1"
+              placeholder="{{ 'g.search' | transloco }}"
+              type="text"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+    @if ((shownGuidelines?.instructions?.length ?? 0) === 0) {
+      <div class="bg-warning">
+        {{ 'g.no guidelines found' | transloco }}
+      </div>
+    } @else {
+      @for (
+        instructions of shownGuidelines!.instructions;
+        track instructions;
+        let j = $index
+      ) {
+        <div class="row" style="margin-bottom: 20px">
+          <div class="col-12">
+            <div class="card">
+              <div class="card-header">
+                {{ instructions.group }}
+              </div>
+              @if (collapsed.length > 0) {
+                <div class="card-body">
+                  @for (
+                    entry of instructions.entries;
+                    track entry;
+                    let k = $index
+                  ) {
+                    <div class="row select-row">
+                      <div class="col-1 chevron">
+                        <button
+                          type="button"
+                          class="btn btn-link p-0"
+                          (click)="toggle(j, k)"
+                        >
+                          <i
+                            class="bi"
+                            [ngClass]="{
+                              'bi-chevron-down': collapsed[j][k],
+                              'bi-chevron-up': !collapsed[j][k],
+                            }"
+                          ></i>
+                          <span class="visually-hidden">Toggle guideline</span>
+                        </button>
+                      </div>
+                      <div class="col-2 code">
+                        <button
+                          type="button"
+                          class="btn btn-link p-0 text-start"
+                          (click)="toggle(j, k)"
+                        >
+                          {{ entry.code }}
+                        </button>
+                      </div>
+                      <div class="col-8">
+                        <button
+                          type="button"
+                          class="btn btn-link p-0 guidelines-title text-start"
+                          (click)="toggle(j, k)"
+                        >
+                          {{ entry.title }}
+                        </button>
+                        <div [(ngbCollapse)]="collapsed[j][k]">
+                          <div
+                            [innerHTML]="entry.description"
+                            class="guidelines-descr"
+                          ></div>
+                          <div class="row entry-row">
+                            @if (entry.examples && entry.examples.length > 0) {
+                              <div class="col-md-12">
+                                @for (
+                                  example of entry.examples;
+                                  track example;
+                                  let i = $index
+                                ) {
+                                  <div class="card card-example">
+                                    @if (
+                                      settService.projectsettings
+                                        ?.guidelines === undefined ||
+                                      settService.projectsettings?.guidelines
+                                        ?.showExampleHeader
+                                    ) {
+                                      <div class="card-header example">
+                                        {{ 'g.example' | transloco }}
+                                        @if (
+                                          settService.projectsettings
+                                            ?.guidelines !== undefined &&
+                                          settService.projectsettings
+                                            ?.guidelines?.showExampleNumbers
+                                        ) {
+                                          {{ i + 1 }}
+                                        }
+                                      </div>
+                                    }
+                                    <div class="card-body">
+                                      @if (example.url !== undefined) {
+                                        @if (example.url.indexOf('.wav') > -1) {
+                                          <div class="media">
+                                            <audio
+                                              controls
+                                              src="{{ example.url }}"
+                                            ></audio>
+                                          </div>
+                                        }
+                                        @if (example.url.indexOf('.mp4') > -1) {
+                                          <div class="media">
+                                            <video
+                                              class="video-js vjs-default-skin vjs-big-play-centered"
+                                              controls
+                                              data-setup="{}"
+                                              id="my-player_g{{ j }}i{{ k }}e{{
+                                                i
+                                              }}"
+                                              preload="auto"
+                                            >
+                                              <source
+                                                src="{{ example.url }}"
+                                                type="video/mp4"
+                                              />
+                                              <p class="vjs-no-js">
+                                                To view this video please enable
+                                                JavaScript, and consider
+                                                upgrading to a web browser that
+                                                <a
+                                                  href="http://videojs.com/html5-video-support/"
+                                                  target="_blank"
+                                                >
+                                                  supports HTML5 video
+                                                </a>
+                                              </p>
+                                            </video>
+                                          </div>
+                                        }
+                                        @if (
+                                          example.url.indexOf('.png') > -1 ||
+                                          example.url.indexOf('.jpg') > -1
+                                        ) {
+                                          <div class="media">
+                                            <a
+                                              [href]="example.url"
+                                              target="_blank"
+                                              ><img
+                                                [src]="example.url"
+                                                alt="Guideline example image"
+                                            /></a>
+                                          </div>
+                                        }
+                                      }
+                                      <div class="text">
+                                        <div
+                                          [innerHTML]="example.annotation"
+                                        ></div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                }
+                              </div>
+                            }
+                          </div>
+                        </div>
+                      </div>
+                      <div class="col-1 d-none d-sm-inline col-priority">
+                        <button
+                          type="button"
+                          class="btn btn-link p-0"
+                          (click)="toggle(j, k)"
+                        >
+                          <span class="label label-info">{{
+                            entry.priority
+                          }}</span>
+                        </button>
+                      </div>
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+          </div>
+        </div>
+      }
+    }
+  </div>
+  <div class="modal-footer">
+    <button
+      (click)="close()"
+      class="btn btn-primary"
+      data-dismiss="modal"
+      type="button"
+    >
+      {{ 'g.close' | transloco }}
+    </button>
+  </div>
+</div>

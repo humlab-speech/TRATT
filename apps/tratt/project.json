@@ -1,0 +1,235 @@
+{
+  "name": "tratt",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "application",
+  "prefix": "octra",
+  "sourceRoot": "apps/tratt/src",
+  "tags": [],
+  "targets": {
+    "build": {
+      "executor": "@angular-devkit/build-angular:browser",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/apps/tratt",
+        "index": "apps/tratt/src/index.html",
+        "main": "apps/tratt/src/main.ts",
+        "polyfills": ["zone.js"],
+        "tsConfig": "apps/tratt/tsconfig.app.json",
+        "webWorkerTsConfig": "apps/tratt/tsconfig.worker.json",
+        "allowedCommonJsDependencies": [
+          "jodit-angular",
+          "ajv",
+          "x2js",
+          "konva",
+          "platform",
+          "content-type",
+          "debug",
+          "media-typer",
+          "@videojs/xhr",
+          "global/document",
+          "global/window",
+          "mux.js/lib/tools/parse-sidx",
+          "mux.js/lib/utils/clock",
+          "videojs-vtt.js"
+        ],
+        "assets": [
+          "apps/tratt/src/assets",
+          "apps/tratt/src/config",
+          "apps/tratt/src/media",
+          "apps/tratt/src/LICENSE.txt",
+          "apps/tratt/src/.htaccess",
+          "apps/tratt/src/ocb_info.json",
+          "apps/tratt/src/manifest.json",
+          {
+            "glob": "ort-wasm-simd-threaded.jsep.wasm",
+            "input": "node_modules/@huggingface/transformers/dist",
+            "output": "assets/ort/"
+          },
+          {
+            "glob": "ort-wasm-simd-threaded.jsep.mjs",
+            "input": "node_modules/@huggingface/transformers/dist",
+            "output": "assets/ort/"
+          },
+          {
+            "glob": "libav-fat.mjs",
+            "input": "apps/tratt/src/assets/libav",
+            "output": "assets/libav/"
+          },
+          {
+            "glob": "libav-6.0.0-nightly.29.f420ff.ffmpeg.6.1.1-fat.wasm.mjs",
+            "input": "apps/tratt/src/assets/libav",
+            "output": "assets/libav/"
+          },
+          {
+            "glob": "libav-6.0.0-nightly.29.f420ff.ffmpeg.6.1.1-fat.wasm.wasm",
+            "input": "apps/tratt/src/assets/libav",
+            "output": "assets/libav/"
+          }
+        ],
+        "styles": [
+          "video.js/dist/video-js.min.css",
+          "jodit/es2021/jodit.min.css",
+          "apps/tratt/src/styles.scss"
+        ],
+        "scripts": ["apps/tratt/src/assets/js/modernizr.js"],
+        "extractLicenses": true,
+        "serviceWorker": true,
+        "ngswConfigPath": "apps/tratt/ngsw-config.json"
+      },
+      "configurations": {
+        "production": {
+          "optimization": true,
+          "buildOptimizer": true,
+          "budgets": [
+            {
+              "type": "initial",
+              "maximumWarning": "2mb",
+              "maximumError": "6mb"
+            },
+            {
+              "type": "anyComponentStyle",
+              "maximumWarning": "6kb",
+              "maximumError": "10kb"
+            }
+          ],
+          "fileReplacements": [
+            {
+              "replace": "apps/tratt/src/environments/environment.ts",
+              "with": "apps/tratt/src/environments/environment.prod.ts"
+            }
+          ],
+          "outputHashing": "all"
+        },
+        "beta": {
+          "buildOptimizer": true,
+          "optimization": true,
+          "budgets": [
+            {
+              "type": "initial",
+              "maximumWarning": "2mb",
+              "maximumError": "6mb"
+            },
+            {
+              "type": "anyComponentStyle",
+              "maximumWarning": "6kb",
+              "maximumError": "10kb"
+            }
+          ],
+          "fileReplacements": [
+            {
+              "replace": "apps/tratt/src/environments/environment.ts",
+              "with": "apps/tratt/src/environments/environment.beta.ts"
+            }
+          ],
+          "outputHashing": "all"
+        },
+        "beta-dev": {
+          "buildOptimizer": false,
+          "optimization": false,
+          "sourceMap": true,
+          "fileReplacements": [
+            {
+              "replace": "apps/tratt/src/environments/environment.ts",
+              "with": "apps/tratt/src/environments/environment.beta-dev.ts"
+            }
+          ],
+          "outputHashing": "none"
+        },
+        "development": {
+          "buildOptimizer": false,
+          "optimization": false,
+          "vendorChunk": true,
+          "extractLicenses": false,
+          "sourceMap": true,
+          "namedChunks": true,
+          "fileReplacements": [
+            {
+              "replace": "apps/tratt/src/environments/environment.ts",
+              "with": "apps/tratt/src/environments/environment.dev.ts"
+            }
+          ]
+        },
+        "public-development": {
+          "outputHashing": "none",
+          "buildOptimizer": false,
+          "optimization": false,
+          "vendorChunk": true,
+          "extractLicenses": false,
+          "sourceMap": true,
+          "namedChunks": true,
+          "fileReplacements": [
+            {
+              "replace": "apps/tratt/src/environments/environment.ts",
+              "with": "apps/tratt/src/environments/environment.public.dev.ts"
+            }
+          ]
+        }
+      },
+      "defaultConfiguration": "production"
+    },
+    "serve": {
+      "executor": "@angular-devkit/build-angular:dev-server",
+      "options": {
+        "allowedHosts": ["all"],
+        "headers": {
+          "Cross-Origin-Opener-Policy": "same-origin",
+          "Cross-Origin-Embedder-Policy": "credentialless"
+        }
+      },
+      "configurations": {
+        "production": {
+          "port": 5321,
+          "buildTarget": "tratt:build:production"
+        },
+        "development": {
+          "port": 5321,
+          "buildTarget": "tratt:build:development"
+        }
+      },
+      "defaultConfiguration": "development"
+    },
+    "extract-i18n": {
+      "executor": "@angular-devkit/build-angular:extract-i18n",
+      "options": {
+        "buildTarget": "tratt:build"
+      }
+    },
+    "lint": {
+      "executor": "@nx/eslint:lint",
+      "options": {
+        "maxWarnings": -1
+      },
+      "outputs": ["{options.outputFile}"]
+    },
+    "test": {
+      "executor": "@nx/jest:jest",
+      "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
+      "options": {
+        "jestConfig": "apps/tratt/jest.config.ts"
+      }
+    },
+    "serve-static": {
+      "executor": "@nx/web:file-server",
+      "options": {
+        "buildTarget": "tratt:build"
+      }
+    },
+    "version": {
+      "executor": "@jscutlery/semver:version",
+      "options": {
+        "preset": "angular",
+        "postTargets": ["tratt:github"],
+        "baseBranch": "main",
+        "releaseAs": "patch",
+        "commitMessageFormat": "build({projectName}): release version ${version}"
+      }
+    },
+    "github": {
+      "executor": "@jscutlery/semver:github",
+      "options": {
+        "tag": "${tag}",
+        "notes": "${notes}"
+      }
+    }
+  }
+}

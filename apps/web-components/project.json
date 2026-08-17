@@ -20,22 +20,22 @@
         "assets": [
           {
             "glob": "libav-default.mjs",
-            "input": "apps/octra/src/assets/libav",
+            "input": "apps/tratt/src/assets/libav",
             "output": "assets/libav/"
           },
           {
             "glob": "libav-fat.mjs",
-            "input": "apps/octra/src/assets/libav",
+            "input": "apps/tratt/src/assets/libav",
             "output": "assets/libav/"
           },
           {
             "glob": "libav-6.0.0-nightly.29.f420ff.ffmpeg.6.1.1-fat.wasm.mjs",
-            "input": "apps/octra/src/assets/libav",
+            "input": "apps/tratt/src/assets/libav",
             "output": "assets/libav/"
           },
           {
             "glob": "libav-6.0.0-nightly.29.f420ff.ffmpeg.6.1.1-fat.wasm.wasm",
-            "input": "apps/octra/src/assets/libav",
+            "input": "apps/tratt/src/assets/libav",
             "output": "assets/libav/"
           }
         ],
@@ -143,22 +143,22 @@
         "assets": [
           {
             "glob": "libav-default.mjs",
-            "input": "apps/octra/src/assets/libav",
+            "input": "apps/tratt/src/assets/libav",
             "output": "assets/libav/"
           },
           {
             "glob": "libav-fat.mjs",
-            "input": "apps/octra/src/assets/libav",
+            "input": "apps/tratt/src/assets/libav",
             "output": "assets/libav/"
           },
           {
             "glob": "libav-6.0.0-nightly.29.f420ff.ffmpeg.6.1.1-fat.wasm.mjs",
-            "input": "apps/octra/src/assets/libav",
+            "input": "apps/tratt/src/assets/libav",
             "output": "assets/libav/"
           },
           {
             "glob": "libav-6.0.0-nightly.29.f420ff.ffmpeg.6.1.1-fat.wasm.wasm",
-            "input": "apps/octra/src/assets/libav",
+            "input": "apps/tratt/src/assets/libav",
             "output": "assets/libav/"
           }
         ],
@@ -206,22 +206,22 @@
         "assets": [
           {
             "glob": "libav-default.mjs",
-            "input": "apps/octra/src/assets/libav",
+            "input": "apps/tratt/src/assets/libav",
             "output": "assets/libav/"
           },
           {
             "glob": "libav-fat.mjs",
-            "input": "apps/octra/src/assets/libav",
+            "input": "apps/tratt/src/assets/libav",
             "output": "assets/libav/"
           },
           {
             "glob": "libav-6.0.0-nightly.29.f420ff.ffmpeg.6.1.1-fat.wasm.mjs",
-            "input": "apps/octra/src/assets/libav",
+            "input": "apps/tratt/src/assets/libav",
             "output": "assets/libav/"
           },
           {
             "glob": "libav-6.0.0-nightly.29.f420ff.ffmpeg.6.1.1-fat.wasm.wasm",
-            "input": "apps/octra/src/assets/libav",
+            "input": "apps/tratt/src/assets/libav",
             "output": "assets/libav/"
           }
         ],

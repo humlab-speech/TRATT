@@ -7,7 +7,7 @@ temp
 /out-tsc
 
 # generated at build time (see scripts/generate-build-info.mjs)
-/apps/octra/src/app/build-info.ts
+/apps/tratt/src/app/build-info.ts
 
 # dependencies
 node_modules
@@ -46,7 +46,7 @@ Thumbs.db
 /deploy.config.json
 /extern/
 
-/apps/octra/src/config/appconfig.json
+/apps/tratt/src/config/appconfig.json
 future_features.txt
 /src/
 

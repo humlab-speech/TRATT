@@ -24,7 +24,7 @@ npm run analyze:octra        # Bundle analysis
 
 **Monorepo layout** (Nx 20):
 
-- `apps/octra/` — Main Angular app
+- `apps/tratt/` — Main Angular app
 - `apps/web-components/` — Web components build
 - `libs/annotation/` — Annotation task objects
 - `libs/media/` — Core media classes (no DOM deps)
@@ -35,9 +35,9 @@ npm run analyze:octra        # Bundle analysis
 - `libs/json-sets/` — JSON validation
 - `libs/assets/` — JSON schemas & shared assets
 
-**State**: NgRx store split into: app, user, annotation, idb, asr, login-mode. Actions/reducers/effects per slice in `apps/octra/src/app/core/store/`.
+**State**: NgRx store split into: app, user, annotation, idb, asr, login-mode. Actions/reducers/effects per slice in `apps/tratt/src/app/core/store/`.
 
-**Editors**: Specialized transcription editors in `apps/octra/src/app/editors/` — 2D-Editor (signal viz + segments), Dictaphone-Editor, Linear-Editor (dual signal), TRN-Editor, New-Editor.
+**Editors**: Specialized transcription editors in `apps/tratt/src/app/editors/` — 2D-Editor (signal viz + segments), Dictaphone-Editor, Linear-Editor (dual signal), TRN-Editor, New-Editor.
 
 **Routing**: Lazy-loaded InternModule with guards for auth, config loading, and IndexedDB init. Task routes follow visp-task/project/session/bundle pattern.
 

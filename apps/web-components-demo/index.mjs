@@ -69,7 +69,7 @@ function initAudioViewer(audioManager) {
 async function main() {
   // download audio file
   const downloadedBlob = await OctraWebMedia.downloadFile(
-    '../../apps/octra/src/media/Bahnauskunft.wav',
+    '../../apps/tratt/src/media/Bahnauskunft.wav',
     'blob',
   );
   const file = new File([downloadedBlob], 'Bahnauskunft.wav', {

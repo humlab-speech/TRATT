@@ -1,0 +1,58 @@
+#export-table td {
+  cursor: pointer;
+}
+
+#export-table a {
+  cursor: pointer;
+}
+
+progressbar {
+  height: 20px;
+}
+
+.top-tr td {
+  background-color: rgb(242, 242, 242);
+}
+
+.options {
+  margin-left: 10px;
+  margin-bottom: 20px;
+  padding: 10px;
+  border: 1px solid lightgray;
+}
+
+.options table tbody tr td {
+  padding: 3px;
+  border: none;
+}
+
+.options .option {
+  line-height: 0.9;
+}
+
+.options .option td {
+  vertical-align: top;
+}
+
+.options .option label {
+  font-size: 0.9em;
+}
+
+.options .option input {
+  margin-top: 2px;
+}
+
+.recommended {
+  margin-left: 2px !important;
+  white-space: nowrap;
+}
+
+.category-header td {
+  padding: 12px 8px 4px;
+  border-bottom: 2px solid #dee2e6;
+  font-size: 1em;
+  font-weight: bold;
+  color: #495057;
+  background-color: transparent !important;
+  cursor: default !important;
+}

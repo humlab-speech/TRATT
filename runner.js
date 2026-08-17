@@ -21,15 +21,15 @@ async function buildLibrary(libraryName) {
   await run(`nx build ${libraryName} --skip-nx-cache`);
   await fs.copyFile(
     `libs/${libraryName}/LICENSE.txt`,
-    `dist/libs/${libraryName}/LICENSE.txt`
+    `dist/libs/${libraryName}/LICENSE.txt`,
   );
   await fs.copyFile(
     `libs/${libraryName}/README.md`,
-    `dist/libs/${libraryName}/README.md`
+    `dist/libs/${libraryName}/README.md`,
   );
   await fs.copyFile(
     `libs/${libraryName}/CHANGELOG.md`,
-    `dist/libs/${libraryName}/CHANGELOG.md`
+    `dist/libs/${libraryName}/CHANGELOG.md`,
   );
 }
 
@@ -69,38 +69,36 @@ const OCTRA = {
   },
   buildRelease: async function () {
     await run('node ./build.js beta=false isUpdate=false url=/');
-    await fs.remove("dist/apps/octra/config/appconfig.json");
+    await fs.remove('dist/apps/tratt/config/appconfig.json');
     await setBuildVariable();
   },
   buildDev: async function () {
     await run(
-      'node ./build.js dev=true isUpdate=true url=/apps/octra/octra-dev/'
+      'node ./build.js dev=true isUpdate=true url=/apps/octra/octra-dev/',
     );
     await setBuildVariable();
   },
   buildBetaDevUpdate: async function () {
     await run(
-      'node ./build.js beta=dev isUpdate=true url=/apps/octra/octra-dev/'
+      'node ./build.js beta=dev isUpdate=true url=/apps/octra/octra-dev/',
     );
     await setBuildVariable();
   },
   buildBetaProdUpdate: async function () {
-    await run(
-      'node ./build.js beta=true isUpdate=true url=/apps/octra/octra/'
-    );
+    await run('node ./build.js beta=true isUpdate=true url=/apps/octra/octra/');
     await setBuildVariable();
   },
   buildProdUpdate: async function () {
     await run(
-      'node ./build.js beta=false isUpdate=true url=/apps/octra/octra/'
+      'node ./build.js beta=false isUpdate=true url=/apps/octra/octra/',
     );
     await setBuildVariable();
   },
   buildBetaProd: async function () {
     await run('node ./build.js beta=true isUpdate=false url=/');
     await setBuildVariable();
-    await fs.rm('dist/apps/octra/media', { recursive: true });
-    await fs.rm('dist/apps/octra/config/appconfig.json');
+    await fs.rm('dist/apps/tratt/media', { recursive: true });
+    await fs.rm('dist/apps/tratt/config/appconfig.json');
   },
   prepareExtern: async function () {
     if (fs.pathExistsSync('extern')) {
@@ -120,11 +118,11 @@ const OCTRA = {
     await run(`node prepare_web-components.js`);
     await fs.copyFile(
       `apps/web-components/README.md`,
-      `dist/libs/web-components/README.md`
+      `dist/libs/web-components/README.md`,
     );
     await fs.copyFile(
       `apps/web-components/CHANGELOG.md`,
-      `dist/libs/web-components/CHANGELOG.md`
+      `dist/libs/web-components/CHANGELOG.md`,
     );
     await JSONValidator.build();
     await buildLibrary('utilities');
@@ -137,19 +135,19 @@ const OCTRA = {
     await buildLibrary('assets');
     await fs.copyFile(
       './libs/assets/src/lib/schemata/inputs_outputs.set.json',
-      './dist/libs/assets/lib/schemata/inputs_outputs.set.json'
+      './dist/libs/assets/lib/schemata/inputs_outputs.set.json',
     );
     await fs.copyFile(
       './libs/assets/src/lib/schemata/guidelines.schema.json',
-      './dist/libs/assets/lib/schemata/guidelines.schema.json'
+      './dist/libs/assets/lib/schemata/guidelines.schema.json',
     );
     await fs.copyFile(
       './libs/assets/src/lib/schemata/logging.schema.json',
-      './dist/libs/assets/lib/schemata/logging.schema.json'
+      './dist/libs/assets/lib/schemata/logging.schema.json',
     );
     await fs.copyFile(
       './libs/assets/src/lib/schemata/projectconfig.schema.json',
-      './dist/libs/assets/lib/schemata/projectconfig.schema.json'
+      './dist/libs/assets/lib/schemata/projectconfig.schema.json',
     );
   },
 };
@@ -162,7 +160,7 @@ yargs
   .command(
     'build:release',
     'Builds release version of OCTRA.',
-    OCTRA.buildRelease
+    OCTRA.buildRelease,
   )
   .command('build:prod', 'Builds production version of OCTRA.', OCTRA.buildProd)
   .command('build:dev', 'Builds development version of OCTRA.', OCTRA.buildDev)
@@ -170,22 +168,22 @@ yargs
   .command(
     'build:prod:beta',
     'Builds prod beta version of OCTRA.',
-    OCTRA.buildBetaProd
+    OCTRA.buildBetaProd,
   )
   .command(
     'build:prod:update:beta',
     'Builds prod beta update version of OCTRA.',
-    OCTRA.buildBetaProdUpdate
+    OCTRA.buildBetaProdUpdate,
   )
   .command(
     'build:prod:update',
     'Builds prod update version of OCTRA.',
-    OCTRA.buildProdUpdate
+    OCTRA.buildProdUpdate,
   )
   .command(
     'build:dev:update:beta',
     'Builds dev beta update version of OCTRA.',
-    OCTRA.buildBetaDevUpdate
+    OCTRA.buildBetaDevUpdate,
   )
   .command('build:libs', 'Builds all libraries.', OCTRA.buildLibs)
   .command(
@@ -197,7 +195,7 @@ yargs
       }),
     (argv) => {
       buildLibrary(argv.library);
-    }
+    },
   )
   .command('build:assets', 'Builds assets library.', OCTRA.buildAssets)
   .command('build:extern', 'Builds extern libraries.', OCTRA.buildExtern)
@@ -205,7 +203,7 @@ yargs
   .command(
     'update:licenses',
     'Updates licenses with current version from root.',
-    Project.updateLicenses
+    Project.updateLicenses,
   )
   .command('prepare:docs', 'Prepares docs', Project.prepareDocs).argv;
 
@@ -259,7 +257,7 @@ async function run(scriptPath, showOutput = true, returnAfterExit = true) {
 }
 
 async function setBuildVariable() {
-  let content = await readFile('./dist/apps/octra/index.html', {
+  let content = await readFile('./dist/apps/tratt/index.html', {
     encoding: 'utf-8',
   });
 
@@ -280,7 +278,7 @@ async function setBuildVariable() {
     return `var BUILD = ${JSON.stringify(build)};`;
   });
 
-  await writeFile('./dist/apps/octra/index.html', content, {
+  await writeFile('./dist/apps/tratt/index.html', content, {
     encoding: 'utf-8',
   });
 
