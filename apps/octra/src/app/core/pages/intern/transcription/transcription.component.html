@@ -70,7 +70,7 @@
           <div
             class="spinner-border"
             role="status"
-            style="color: #8b8fae; height: 150px; width: 150px"
+            style="color: var(--octra-text-muted); height: 150px; width: 150px"
           >
             <span class="visually-hidden">Loading...</span>
           </div>
@@ -88,7 +88,11 @@
         class="w-100 d-flex"
         name="comment"
         placeholder="{{ 'g.insert comment' | transloco }}"
-        style="resize: none; background-color: lightyellow; height: 40px"
+        style="
+          resize: none;
+          background-color: var(--octra-note-surface);
+          height: 40px;
+        "
       ></textarea>
     </div>
   }
@@ -167,7 +171,8 @@
         }
         @if (
           (useMode === 'local' ||
-            (useMode === 'url' && routingService.staticQueryParams.bottomNav)) &&
+            (useMode === 'url' &&
+              routingService.staticQueryParams.bottomNav)) &&
           recordedFileService.recordedFile
         ) {
           <button

@@ -163,7 +163,7 @@ export class AudioViewerService {
 
   private styles = {
     playHead: {
-      backgroundColor: OCTRA_COLORS.accentGreenDark,
+      backgroundColor: OCTRA_COLORS.playhead,
       strokeColor: 'pruple',
       strokeWidth: 1,
       width: 10,
@@ -4386,7 +4386,7 @@ export class AudioViewerService {
             transcript.trim().length > 0 &&
             transcript !== this.silencePlaceholder;
           context.fillStyle = hasTranscription
-            ? 'rgba(234, 186, 185, 0.6)'
+            ? OCTRA_COLORS.segmentTranscribed
             : this.settings.backgroundcolor;
           context.clearRect(x, localY + this.settings.lineheight - 20, w, 20);
           context.fillRect(x, localY + this.settings.lineheight - 20, w, 20);

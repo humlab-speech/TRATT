@@ -7,8 +7,7 @@
           'projects-list.other user logged in'
             | transloco
               : {
-                  username: authStoreService.otherUserLoggedIn()
-                    ?.username,
+                  username: authStoreService.otherUserLoggedIn()?.username,
                 }
         "
       ></div>
@@ -20,8 +19,9 @@
               'projects-list.same user free task'
                 | transloco
                   : {
-                      project: authStoreService.sameUserWithOpenTask()
-                        ?.currentProject?.name,
+                      project:
+                        authStoreService.sameUserWithOpenTask()?.currentProject
+                          ?.name,
                       resumeTranscription:
                         'projects-list.resume transcription' | transloco,
                     }
@@ -106,7 +106,7 @@
                   <div class="col mb-2">
                     <span
                       class="rounded-pill text-white property-pill me-1"
-                      style="background-color: #9c7a8c"
+                      style="background-color: var(--octra-chrome)"
                     >
                       <i class="bi bi-list-ol"></i>
                       {{ 'g.free tasks' | transloco }}:

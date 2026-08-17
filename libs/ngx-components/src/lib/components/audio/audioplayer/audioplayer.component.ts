@@ -15,6 +15,7 @@ import { SubscriptionManager } from '@octra/utilities';
 import { AudioChunk } from '@octra/web-media';
 import Konva from 'konva';
 import { Subscription, timer } from 'rxjs';
+import { OCTRA_COLORS } from '../../../obj';
 import { AudioplayerSettings } from './audioplayer-settings';
 import KonvaEventObject = Konva.KonvaEventObject;
 
@@ -67,16 +68,16 @@ export class AudioplayerComponent
     },
     playHead: {
       height: 20,
-      backgroundColor: '#5b8e8a',
+      backgroundColor: OCTRA_COLORS.playhead,
       width: 10,
     },
     height: 60,
     border: {
       width: 1,
-      color: '#b5b5b5',
+      color: OCTRA_COLORS.border,
     },
     background: {
-      color: '#8b8fae',
+      color: OCTRA_COLORS.surfaceBackground,
     },
   };
 
@@ -201,7 +202,7 @@ export class AudioplayerComponent
           settings.slider.margin.left -
           settings.slider.margin.right,
         height: settings.slider.height,
-        fill: '#73a790',
+        fill: OCTRA_COLORS.chrome,
       });
 
       this.canvasElements.sliderBar.on('click', this.onSliderClick);

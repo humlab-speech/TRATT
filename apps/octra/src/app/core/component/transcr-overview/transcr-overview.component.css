@@ -12,11 +12,11 @@
 .segment-number .btn-link:hover,
 .segment-number .btn-link:focus,
 .segment-number .btn-link:active {
-  color: #73a790;
+  color: var(--octra-chrome-hover);
 }
 
 .segment-warning {
-  color: #f0581a;
+  color: var(--octra-danger);
 }
 
 .segment-transcript {
@@ -77,13 +77,12 @@
 .last-column .btn-link:hover,
 .last-column .btn-link:focus,
 .last-column .btn-link:active {
-  color: #73a790;
+  color: var(--octra-chrome-hover);
 }
 
 .table fa-icon {
   cursor: pointer;
 }
-
 
 .ripple-container {
   display: none;
@@ -96,14 +95,14 @@
 }
 
 .bg-info {
-  background-color: #8b8fae !important;
+  background-color: var(--octra-surface-sunken) !important;
   border: 1px solid var(--octra-text-primary) !important;
   color: black !important;
 }
 
 .bg-success {
-  background-color: rgba(234, 186, 185, 0.6) !important;
-  border: 1px solid #eabab9 !important;
+  background-color: var(--octra-segment-transcribed) !important;
+  border: 1px solid var(--octra-border) !important;
   color: black !important;
 }
 

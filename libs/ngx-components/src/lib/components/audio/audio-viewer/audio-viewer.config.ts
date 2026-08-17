@@ -24,7 +24,7 @@ export class AudioviewerConfig {
     fixed: boolean;
   } = {
     fixed: false,
-    color: 'rgb(255, 0, 0)',
+    color: OCTRA_COLORS.playhead,
   };
 
   public scrollbar = {
@@ -36,7 +36,7 @@ export class AudioviewerConfig {
       strokeWidth: 1,
     },
     selector: {
-      color: OCTRA_COLORS.accentGreenDark,
+      color: OCTRA_COLORS.chrome,
       stroke: 'gray',
       strokeWidth: 1,
       width: 20,
@@ -50,7 +50,7 @@ export class AudioviewerConfig {
   } = {
     height: 20,
     width: 10,
-    color: '#9C7A8C',
+    color: OCTRA_COLORS.chrome,
   };
   public boundaries: {
     enabled: boolean;
@@ -74,7 +74,7 @@ export class AudioviewerConfig {
   public data: {
     color: string;
   } = {
-    color: 'rgba(42, 71, 101, 0.8)',
+    color: OCTRA_COLORS.waveformSignal,
   };
 
   public selection: {
@@ -87,7 +87,7 @@ export class AudioviewerConfig {
   public frame: {
     color: string;
   } = {
-    color: '#b5b5b5',
+    color: OCTRA_COLORS.border,
   };
 
   public asr = {

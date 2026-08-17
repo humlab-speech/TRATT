@@ -1,22 +1,24 @@
-import { describe, expect, it } from 'vitest';
-import {
-  BEIGE_TEXT,
-  BLACK_TEXT,
-  SPEAKER_COLORS,
-  cycleNextSpeaker,
-  getSpeakerColor,
-  getSpeakerIds,
-  getSpeakerTextColor,
-  renameSpeakerInAnnotation,
-} from './speaker-colors';
 import {
   OctraAnnotation,
   OctraAnnotationSegment,
   OLabel,
 } from '@octra/annotation';
 import { SampleUnit } from '@octra/media';
+import { describe, expect, it } from 'vitest';
+import {
+  BLACK_TEXT,
+  cycleNextSpeaker,
+  getSpeakerColor,
+  getSpeakerIds,
+  getSpeakerTextColor,
+  LIGHT_TEXT,
+  renameSpeakerInAnnotation,
+  SPEAKER_COLORS,
+} from './speaker-colors';
 
-function makeAnnotation(speakerValues: (string | undefined)[]): OctraAnnotation<any, OctraAnnotationSegment> {
+function makeAnnotation(
+  speakerValues: (string | undefined)[],
+): OctraAnnotation<any, OctraAnnotationSegment> {
   const annotation = new OctraAnnotation<any, OctraAnnotationSegment>();
   const items = speakerValues.map((spk, i) => {
     const labels: OLabel[] = [new OLabel('Transcript', 'hello')];
@@ -42,7 +44,13 @@ describe('SPEAKER_COLORS', () => {
 
 describe('getSpeakerIds', () => {
   it('returns sorted unique non-empty Speaker label values', () => {
-    const ann = makeAnnotation(['Speaker 2', 'Speaker 1', 'Speaker 2', undefined, '']);
+    const ann = makeAnnotation([
+      'Speaker 2',
+      'Speaker 1',
+      'Speaker 2',
+      undefined,
+      '',
+    ]);
     expect(getSpeakerIds(ann)).toEqual(['Speaker 1', 'Speaker 2']);
   });
 
@@ -72,9 +80,9 @@ describe('getSpeakerColor', () => {
 
 describe('getSpeakerTextColor', () => {
   it('returns beige for dark backgrounds', () => {
-    expect(getSpeakerTextColor('#000000')).toBe(BEIGE_TEXT);
-    expect(getSpeakerTextColor('#2A4765')).toBe(BEIGE_TEXT);
-    expect(getSpeakerTextColor('#3D6B5C')).toBe(BEIGE_TEXT);
+    expect(getSpeakerTextColor('#000000')).toBe(LIGHT_TEXT);
+    expect(getSpeakerTextColor('#2A4765')).toBe(LIGHT_TEXT);
+    expect(getSpeakerTextColor('#3D6B5C')).toBe(LIGHT_TEXT);
   });
 
   it('returns black for light backgrounds', () => {

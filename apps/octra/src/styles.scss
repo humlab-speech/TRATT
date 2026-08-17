@@ -1,20 +1,100 @@
 @use 'bootstrap/scss/bootstrap';
 @use 'bootstrap-icons/font/bootstrap-icons';
 
+/* Design tokens.
+ *
+ * OCTRA renders inside the VISP shell, so structural colours mirror VISP's
+ * tokens (humlab-speech/webclient, src/colors.scss lines 106-124). Where the
+ * Umeå University palette has a near-equivalent it wins, which keeps OCTRA
+ * palette-compliant when it runs standalone.
+ *
+ * Canvas colours cannot read CSS variables; they live in
+ * libs/ngx-components/src/lib/obj/octra-colors.ts. Keep the two in sync.
+ */
 :root {
-  --octra-waveform-background: #eabab9;
-  --octra-surface-background: #f1efe4;
-  --octra-accent-green: #73a790;
-  --octra-accent-green-dark: #5b8e8a;
-  --octra-text-primary: #2a4765;
-  --octra-accent-error: #b87d5e;
-  --octra-accent-warning: #d7b17c;
+  /* Surfaces — VISP $tertiary-light / $white / $tertiary */
+  --octra-surface-page: #eef0f4;
+  --octra-surface-card: #ffffff;
+  --octra-surface-sunken: #e6e8ed;
+
+  /* Structural chrome — UMU "Blå", within a hair of VISP $primary #2f4f71 */
+  --octra-chrome: #2a4765;
+  --octra-chrome-hover: #3c6289; /* VISP $primary-light */
+  --octra-on-chrome: #ffffff;
+
+  /* Primary action — VISP $secondary verbatim, so buttons read as one system */
+  --octra-cta: #d47752;
+  --octra-cta-hover: #b76545; /* VISP $secondary-dark */
+  --octra-cta-contrast: #a85832; /* 5.1:1 against white text, unlike $secondary */
+  --octra-on-cta: #ffffff;
+
+  /* Text and lines — VISP $dark-font-color / $border / $border-light */
+  --octra-text-primary: #1f3044;
+  --octra-text-muted: #667a90;
+  --octra-border: #d4d9e0;
+
+  /* Signal display */
+  --octra-waveform-background: #ffffff;
+  --octra-waveform-signal: rgba(42, 71, 101, 0.8);
+  --octra-segment-transcribed: rgba(60, 98, 137, 0.15);
+  --octra-playhead: #d7263d; /* VISP $crimson */
+
+  /* Status. Green is demoted from chrome to semantics — UMU "Barrskog". */
+  --octra-success: #3d6b5c;
+  --octra-warning: #d7b17c; /* UMU "Guld" */
+  --octra-danger: #d7263d; /* VISP $crimson */
+  --octra-danger-surface: #fdf2f3;
+  --octra-note-surface: #fdf8ee; /* comment fields — a tint of --octra-warning */
+  --octra-info: #3c6289;
+
+  /* Deprecated aliases. Drop once the hardcoded-hex sweep lands. */
+  --octra-surface-background: var(--octra-surface-page);
+  --octra-accent-green: var(--octra-chrome);
+  --octra-accent-green-dark: var(--octra-chrome-hover);
+  --octra-accent-error: var(--octra-danger);
+  --octra-accent-warning: var(--octra-warning);
 }
 
+/* Bootstrap ships stock colours (#0d6efd blue, #198754 green, #dc3545 red) that
+ * leaked into every badge, alert, progress bar and link. Remapping its theme
+ * variables here covers all of them, so the utility classes stay usable. */
+:root {
+  --bs-primary: var(--octra-chrome);
+  --bs-primary-rgb: 42, 71, 101;
+  --bs-secondary: var(--octra-text-muted);
+  --bs-secondary-rgb: 102, 122, 144;
+  --bs-success: var(--octra-success);
+  --bs-success-rgb: 61, 107, 92;
+  --bs-danger: var(--octra-danger);
+  --bs-danger-rgb: 215, 38, 61;
+  --bs-warning: var(--octra-warning);
+  --bs-warning-rgb: 215, 177, 124;
+  --bs-info: var(--octra-info);
+  --bs-info-rgb: 60, 98, 137;
+
+  --bs-body-color: var(--octra-text-primary);
+  --bs-body-color-rgb: 31, 48, 68;
+  --bs-body-bg: var(--octra-surface-card);
+  --bs-border-color: var(--octra-border);
+  --bs-link-color: var(--octra-chrome);
+  --bs-link-color-rgb: 42, 71, 101;
+  --bs-link-hover-color: var(--octra-chrome-hover);
+}
+
+/* btn-success marks the handful of headline CTAs (9 call sites), btn-primary
+ * the everyday buttons (55). That split already matches VISP's two-tier
+ * hierarchy, so it maps straight onto accent-vs-chrome. */
 .btn.btn-success {
-  color: var(--octra-surface-background);
-  background-color: var(--octra-accent-green);
-  border-color: var(--octra-accent-green);
+  color: var(--octra-on-cta);
+  background-color: var(--octra-cta);
+  border-color: var(--octra-cta);
+}
+
+.btn.btn-success:hover,
+.btn.btn-success:focus {
+  color: var(--octra-on-cta);
+  background-color: var(--octra-cta-hover);
+  border-color: var(--octra-cta-hover);
 }
 
 .btn.btn-warning {
@@ -25,20 +105,26 @@
 
 .btn.btn-danger {
   color: #fff;
-  background-color: var(--octra-accent-error);
-  border-color: var(--octra-accent-error);
+  background-color: var(--octra-danger);
+  border-color: var(--octra-danger);
 }
 
 .btn.btn-primary {
-  color: var(--octra-surface-background) !important;
-  background-color: var(--octra-accent-green) !important;
-  border-color: var(--octra-accent-green) !important;
+  color: var(--octra-on-chrome) !important;
+  background-color: var(--octra-chrome) !important;
+  border-color: var(--octra-chrome) !important;
+}
+
+.btn.btn-primary:hover,
+.btn.btn-primary:focus {
+  background-color: var(--octra-chrome-hover) !important;
+  border-color: var(--octra-chrome-hover) !important;
 }
 
 .btn.btn-secondary {
   color: #fff !important;
-  background-color: #6c757d !important;
-  border-color: #6c757d !important;
+  background-color: var(--octra-text-muted) !important;
+  border-color: var(--octra-text-muted) !important;
 }
 
 .modal-open {
@@ -171,7 +257,8 @@ footer {
 
 .error-tooltip {
   display: none;
-  background-color: var(--octra-waveform-background);
+  background-color: var(--octra-danger-surface);
+  border: 1px solid var(--octra-danger);
   padding: 10px;
   max-width: 70%;
   position: absolute;
