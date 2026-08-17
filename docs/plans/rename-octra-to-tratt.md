@@ -185,14 +185,25 @@ rg -i 'visp[ _-]?(tratt|octra)' -g '!node_modules'
 - **Phase 3 — done except screenshots.** README, CLAUDE.md, `Creating-Editors.md`,
   `.run/*.run.xml`, root package name (`octra-source` → `tratt-source`).
   `docs/assets/visp_octra_*.png` still show the old branding — re-capture needed.
-- **Phase 4 — not started** (deliberate; needs a migration + approval).
-- **Phase 5 — not started** (deliberate; internal identifiers, `@octra/*`, `octra-` selectors).
+- **Phase 4 — done.** New installs use `tratt-recordings` and a `tratt` main database;
+  `resolveDatabaseName()` keeps an OCTRA-era database when the browser still holds one, so no
+  session is orphaned. The appconfig/projectconfig `octra` block is now `tratt`, with
+  `migrateLegacyConfigKey()` accepting old configs before schema validation. Both fallbacks
+  have specs.
+- **Phase 5 — done.** 5b: `apps/octra` → `apps/tratt` and the Nx project renamed. 5c: the eight
+  workspace libraries are now `@tratt/*`, 965 `Octra*` symbol references renamed to `Tratt*`,
+  files and directories renamed to match. 5d: the `octra-` selector prefix, custom element tags,
+  `--octra-*` CSS custom properties and octra-named image assets all moved to `tratt`.
+  **Breaking:** the published library names and the `apps/web-components` custom element tags
+  both changed; external consumers need a coordinated release.
 
 Kept as OCTRA on purpose: the upstream citation and translation-portal links in the About modal,
 the "fork of OCTRA" provenance in README, the OCTRA backend service name in prose,
 `OctraApplication` in `SupportedApplications.ts` (that entry _is_ upstream OCTRA), `OCTRA_1` tier
 names (annotation data format), `OCTRA_ASRqueueItem_*` temp filenames, `{{octraBackendURL}}`,
-`@octra/*` npm deps and aliases, LICENSE.
+the `@octra/api-types` and `@octra/ngx-octra-api` npm deps (with `OctraAPIService` and
+`NgxOctraApiModule`), the legacy database names and config key the Phase 4 fallbacks look for,
+and LICENSE.
 
 ## Open decisions (need an answer before the relevant phase)
 
