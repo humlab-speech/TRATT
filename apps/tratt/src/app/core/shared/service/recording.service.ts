@@ -339,13 +339,23 @@ export class RecordingService {
     const blob = new Blob([merged.buffer], {
       type: 'application/octet-stream',
     });
-    await this.persistence.appendChunk({
-      sessionId: this.sessionId,
-      index: this.pcmIndex++,
-      kind: 'pcm',
-      blob,
-    });
-    this.bumpChunkStats(blob.size);
+    const index = this.pcmIndex;
+    try {
+      await this.persistence.appendChunk({
+        sessionId: this.sessionId,
+        index,
+        kind: 'pcm',
+        blob,
+      });
+      this.pcmIndex++;
+      this.bumpChunkStats(blob.size);
+    } catch (error) {
+      console.error(
+        '[recording.service] failed to persist PCM chunk, will retry on next flush',
+        error,
+      );
+      this.pcmPending = [...pending, ...this.pcmPending];
+    }
   }
 
   private setupMediaRecorder(): void {
