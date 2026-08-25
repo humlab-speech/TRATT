@@ -19,7 +19,6 @@ import {
   TwoDEditorComponent,
 } from '../../../editors';
 import { TranscrWindowComponent } from '../../../editors/2D-editor/transcr-window';
-import { NewEditorComponent } from '../../../editors/new-editor/new-editor.component';
 import { PermutationsReplaceModalComponent } from '../../../editors/trn-editor/modals/permutations-replace-modal/permutations-replace-modal.component';
 import { AuthenticationNeededComponent } from '../../alerts/authentication-needed/authentication-needed.component';
 import { ErrorOccurredComponent } from '../../alerts/error-occurred/error-occurred.component';
@@ -91,7 +90,6 @@ export const EDITORS: any[] = [
     LoadingComponent,
     LoadeditorDirective,
     EDITORS,
-    NewEditorComponent,
     InternComponent,
     TranscrWindowComponent,
     AuthComponent,
@@ -116,7 +114,6 @@ export const EDITORS: any[] = [
     LoadingComponent,
     LoadeditorDirective,
     EDITORS,
-    NewEditorComponent,
     InternComponent,
     TranscrWindowComponent,
     AuthComponent,
