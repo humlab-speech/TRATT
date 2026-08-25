@@ -10,7 +10,7 @@ import { environment } from '../environments/environment';
 import { AlertComponent, NavigationComponent } from './core/component';
 import { DefaultComponent } from './core/component/default.component';
 import { TrattModalComponent } from './core/modals/tratt-modal';
-import { MultiThreadingService } from './core/shared/multi-threading/multi-threading.service';
+import { MultiThreadingService } from '@tratt/ngx-components';
 import { AppStorageService } from './core/shared/service/appstorage.service';
 import { RoutePrinterService } from './core/shared/service/router-printer.service';
 import { LoginMode } from './core/store';

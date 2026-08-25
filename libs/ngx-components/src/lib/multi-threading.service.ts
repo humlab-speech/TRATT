@@ -103,7 +103,7 @@ export class MultiThreadingService {
 
         bestWorker.addJob(job);
       } else {
-        console.error(new Error(`found no worker to run job ${job.id}`));
+        reject(new Error(`found no worker to run job ${job.id}`));
       }
     });
   }

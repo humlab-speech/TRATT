@@ -47,7 +47,7 @@ import { ReloadFileGuard } from './app/core/pages/intern/reload-file/reload-file
 import { PagesModule } from './app/core/pages/pages.module';
 import { ALoginGuard, DeALoginGuard } from './app/core/shared/guard';
 import { TranscActivateGuard } from './app/core/shared/guard/transcr.activateguard';
-import { MultiThreadingService } from './app/core/shared/multi-threading/multi-threading.service';
+import { MultiThreadingService } from '@tratt/ngx-components';
 import { AudioService, SettingsService } from './app/core/shared/service';
 import { AppStorageService } from './app/core/shared/service/appstorage.service';
 import { BugReportService } from './app/core/shared/service/bug-report.service';
