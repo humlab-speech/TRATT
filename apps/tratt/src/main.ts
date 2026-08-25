@@ -209,9 +209,11 @@ bootstrapApplication(AppComponent, {
     <div style="font-family:sans-serif;padding:2rem;max-width:600px;margin:auto;text-align:center;">
       <h1 style="color:#c00;">TRATT failed to start</h1>
       <p>An error occurred during initialization. This may be caused by browser incompatibility or private browsing mode.</p>
-      <pre style="text-align:left;background:#f5f5f5;padding:1rem;border-radius:4px;overflow:auto;max-height:200px;">${
-        err?.message || err
-      }</pre>
+      <pre id="tratt-startup-error" style="text-align:left;background:#f5f5f5;padding:1rem;border-radius:4px;overflow:auto;max-height:200px;"></pre>
       <button onclick="location.reload()" style="margin-top:1rem;padding:0.5rem 1.5rem;cursor:pointer;">Retry</button>
     </div>`;
+  const errorEl = document.getElementById('tratt-startup-error');
+  if (errorEl) {
+    errorEl.textContent = err?.message || err;
+  }
 });

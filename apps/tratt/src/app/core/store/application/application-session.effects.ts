@@ -425,6 +425,10 @@ export class ApplicationSessionEffects {
         settings.tratt.tracking?.matomo.siteID !== undefined
       ) {
         const matomoSettings = settings.tratt.tracking!.matomo;
+        // config values come from appconfig.json; encode as JS literals so they
+        // can't break out of the string context or close the <script> tag early.
+        const toInlineScriptLiteral = (value: string | number) =>
+          JSON.stringify(value).replace(/</g, '\\u003C');
 
         const trackingCode = document.createElement('script');
         trackingCode.setAttribute('type', 'text/javascript');
@@ -435,9 +439,9 @@ export class ApplicationSessionEffects {
   _paq.push(['trackPageView']);
   _paq.push(['enableLinkTracking']);
   (function() {
-    var u="${matomoSettings.host}";
+    var u=${toInlineScriptLiteral(matomoSettings.host)};
     _paq.push(['setTrackerUrl', u+'piwik.php']);
-    _paq.push(['setSiteId', '${matomoSettings.siteID}']);
+    _paq.push(['setSiteId', ${toInlineScriptLiteral(matomoSettings.siteID)}]);
     var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
     g.type='text/javascript'; g.async=true; g.defer=true; g.src=u+'piwik.js'; s.parentNode.insertBefore(g,s);
   })();
