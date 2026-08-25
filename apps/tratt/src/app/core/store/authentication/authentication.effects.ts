@@ -44,6 +44,8 @@ import { AuthenticationActions } from './authentication.actions';
 
 @Injectable()
 export class AuthenticationEffects {
+  private static readonly REAUTHENTICATION_TIMEOUT_MS = 5 * 60 * 1000;
+
   login$ = createEffect(() =>
     this.actions$.pipe(
       ofType(
@@ -60,8 +62,27 @@ export class AuthenticationEffects {
           const baseURL = getBaseHrefURL();
 
           const bc = new BroadcastChannel('ocb_authentication');
+          let settled = false;
+          const timeoutId = window.setTimeout(
+            () => {
+              if (!settled) {
+                settled = true;
+                bc.close();
+                this.store.dispatch(
+                  AuthenticationActions.reauthenticate.fail({
+                    error:
+                      'Re-authentication window timed out. Please try again.',
+                  }),
+                );
+              }
+            },
+            AuthenticationEffects.REAUTHENTICATION_TIMEOUT_MS,
+          );
+
           bc.addEventListener('message', (e) => {
-            if (e.data === true) {
+            if (e.data === true && !settled) {
+              settled = true;
+              window.clearTimeout(timeoutId);
               this.store.dispatch(
                 AuthenticationActions.needReAuthentication.success({
                   actionAfterSuccess,
