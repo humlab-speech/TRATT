@@ -16,11 +16,7 @@
           width="26"
           height="21"
         />TRATT
-        @if (
-          appStorage.useMode !== undefined &&
-          appStorage.useMode !== undefined &&
-          !localOnly
-        ) {
+        @if (appStorage.useMode !== undefined && !localOnly) {
           ({{ appStorage.useMode }})
         }
         @if (environment.beta_version && !localOnly) {
