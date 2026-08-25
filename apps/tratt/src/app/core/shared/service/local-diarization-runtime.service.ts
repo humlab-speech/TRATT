@@ -2,7 +2,7 @@ import { Inject, Injectable, NgZone, OnDestroy, Optional } from '@angular/core';
 import {
   AudioManager,
   ML_MODEL_SAMPLE_RATE,
-  resampleChannels,
+  prepareMonoAudioForMlModel,
 } from '@tratt/web-media';
 import { Observable, Subject } from 'rxjs';
 import type {
@@ -87,21 +87,13 @@ export class LocalDiarizationRuntimeService implements OnDestroy {
     const subject = new Subject<DiarizationEvent>();
     this.subject = subject;
 
-    const channel = audioManager.channel;
-    if (!channel) {
+    const prepared = prepareMonoAudioForMlModel(audioManager);
+    if (!prepared) {
       subject.error(new Error('Audio channel data not available'));
       return subject.asObservable();
     }
+    const { mono, srcRate, audioDurationS } = prepared;
 
-    const srcRate =
-      audioManager.resource.info.audioBufferInfo?.sampleRate ??
-      audioManager.sampleRate;
-    const mono: Float32Array =
-      srcRate !== ML_MODEL_SAMPLE_RATE
-        ? resampleChannels([channel], srcRate, ML_MODEL_SAMPLE_RATE)[0]
-        : new Float32Array(channel);
-
-    const audioDurationS = mono.length / ML_MODEL_SAMPLE_RATE;
     console.info('[octra:diarization] audio sent to worker', {
       srcRate,
       resampledSampleRate: ML_MODEL_SAMPLE_RATE,

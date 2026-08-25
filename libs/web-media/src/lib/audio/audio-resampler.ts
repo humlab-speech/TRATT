@@ -1,3 +1,5 @@
+import type { AudioManager } from './audio-manager';
+
 /**
  * sample rate required by the on-device Whisper/pyannote ML models
  */
@@ -22,6 +24,32 @@ export function resampleChannels(
 ): Float32Array[] {
   const outLength = Math.ceil((channels[0].length * targetRate) / srcRate);
   return channels.map((ch) => resampleChannel(ch, srcRate, targetRate, outLength));
+}
+
+/**
+ * fetches an AudioManager's mono channel data and resamples it to
+ * ML_MODEL_SAMPLE_RATE if needed, for on-device Whisper/pyannote inference.
+ * returns undefined if the channel data isn't available yet.
+ */
+export function prepareMonoAudioForMlModel(audioManager: AudioManager):
+  | { mono: Float32Array; srcRate: number; audioDurationS: number }
+  | undefined {
+  const channel = audioManager.channel;
+  if (!channel) {
+    return undefined;
+  }
+
+  const srcRate =
+    audioManager.resource.info.audioBufferInfo?.sampleRate ??
+    audioManager.sampleRate;
+  const mono: Float32Array =
+    srcRate !== ML_MODEL_SAMPLE_RATE
+      ? resampleChannels([channel], srcRate, ML_MODEL_SAMPLE_RATE)[0]
+      : new Float32Array(channel); // copy — never transfer the AudioManager's own buffer
+
+  const audioDurationS = mono.length / ML_MODEL_SAMPLE_RATE;
+
+  return { mono, srcRate, audioDurationS };
 }
 
 export function mixToMono(channels: Float32Array[]): Float32Array {

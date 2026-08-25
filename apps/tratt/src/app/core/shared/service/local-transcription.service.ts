@@ -1,11 +1,7 @@
 import { Injectable, NgZone, OnDestroy } from '@angular/core';
 import { IFile, OAnnotJSON, srtTimestamp } from '@tratt/annotation';
 import { OAudiofile } from '@tratt/media';
-import {
-  AudioManager,
-  ML_MODEL_SAMPLE_RATE,
-  resampleChannels,
-} from '@tratt/web-media';
+import { AudioManager, prepareMonoAudioForMlModel } from '@tratt/web-media';
 import { Observable, Subject } from 'rxjs';
 import { AppInfo } from '../../../app.info';
 import type {
@@ -86,22 +82,13 @@ export class LocalTranscriptionService implements OnDestroy {
     const subject = new Subject<TranscriptionEvent>();
     this.subject = subject;
 
-    const channel = audioManager.channel;
-    if (!channel) {
+    // Tiers 1/3 normalize to 16 kHz; Tier 4 (WAV/OCTRA decoder) may not.
+    const prepared = prepareMonoAudioForMlModel(audioManager);
+    if (!prepared) {
       subject.error(new Error('Audio channel data not available'));
       return subject.asObservable();
     }
-
-    // Tiers 1/3 normalize to 16 kHz; Tier 4 (WAV/OCTRA decoder) may not.
-    const srcRate =
-      audioManager.resource.info.audioBufferInfo?.sampleRate ??
-      audioManager.sampleRate;
-    const mono: Float32Array =
-      srcRate !== ML_MODEL_SAMPLE_RATE
-        ? resampleChannels([channel], srcRate, ML_MODEL_SAMPLE_RATE)[0]
-        : new Float32Array(channel); // copy — never transfer the AudioManager's own buffer
-
-    const audioDurationS = mono.length / ML_MODEL_SAMPLE_RATE;
+    const { mono, audioDurationS } = prepared;
 
     this.startWorker(subject, mono, oaudiofile, options, audioDurationS, false);
 
