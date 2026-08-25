@@ -1,6 +1,7 @@
 import { OAudiofile } from '@tratt/media';
 import { FileInfo } from '@tratt/web-media';
 import { OAnnotJSON, OLabel, OSegment, OSegmentLevel } from '../annotjson';
+import { srtTimestamp } from '../functions';
 import {
   Converter,
   ExportResult,
@@ -440,24 +441,6 @@ export class SRTConverter extends Converter {
   }
 
   public getTimeStringFromSamples(samples: number, sampleRate: number) {
-    const miliseconds = Math.round((samples / sampleRate) * 1000);
-    const seconds = Math.floor(miliseconds / 1000);
-    const minutes = Math.floor(seconds / 60);
-    const hours = Math.floor(minutes / 60);
-
-    const miliStr = this.formatNumber(miliseconds % 1000, 3);
-    const secondsStr = this.formatNumber(seconds % 60, 2);
-    const minutesStr = this.formatNumber(minutes % 60, 2);
-    const hoursStr = this.formatNumber(hours, 2);
-
-    return `${hoursStr}:${minutesStr}:${secondsStr},${miliStr}`;
+    return srtTimestamp(samples / sampleRate);
   }
-
-  public formatNumber = (num: number, length: number): string => {
-    let result = '' + num.toFixed(0);
-    while (result.length < length) {
-      result = '0' + result;
-    }
-    return result;
-  };
 }

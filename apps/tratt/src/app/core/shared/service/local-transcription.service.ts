@@ -1,5 +1,5 @@
 import { Injectable, NgZone, OnDestroy } from '@angular/core';
-import { IFile, OAnnotJSON } from '@tratt/annotation';
+import { IFile, OAnnotJSON, srtTimestamp } from '@tratt/annotation';
 import { OAudiofile } from '@tratt/media';
 import { AudioManager, resampleChannels } from '@tratt/web-media';
 import { Observable, Subject } from 'rxjs';
@@ -305,20 +305,8 @@ export class LocalTranscriptionService implements OnDestroy {
       .map((c) => {
         const start = c.timestamp[0];
         const end = c.timestamp[1] ?? audioDurationS;
-        return `${counter++}\n${this.toSrtTime(start)} --> ${this.toSrtTime(end)}\n${c.text.trim()}`;
+        return `${counter++}\n${srtTimestamp(start)} --> ${srtTimestamp(end)}\n${c.text.trim()}`;
       });
     return lines.length > 0 ? lines.join('\n\n') + '\n' : '';
-  }
-
-  private toSrtTime(seconds: number): string {
-    const h = Math.floor(seconds / 3600);
-    const m = Math.floor((seconds % 3600) / 60);
-    const s = Math.floor(seconds % 60);
-    const ms = Math.round((seconds % 1) * 1000);
-    return `${this.pad2(h)}:${this.pad2(m)}:${this.pad2(s)},${ms.toString().padStart(3, '0')}`;
-  }
-
-  private pad2(n: number): string {
-    return n.toString().padStart(2, '0');
   }
 }

@@ -32,6 +32,19 @@ export function contains(haystack: string, needle: string): boolean {
 }
 
 /**
+ * formats a duration in seconds as an SRT timestamp: HH:MM:SS,mmm
+ */
+export function srtTimestamp(seconds: number): string {
+  const totalMs = Math.round(seconds * 1000);
+  const h = Math.floor(totalMs / 3600000);
+  const m = Math.floor((totalMs % 3600000) / 60000);
+  const s = Math.floor((totalMs % 60000) / 1000);
+  const ms = totalMs % 1000;
+
+  return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')},${String(ms).padStart(3, '0')}`;
+}
+
+/**
  * returns the segment by the sample position (BrowserSample)
  */
 export function getSegmentBySamplePosition(
