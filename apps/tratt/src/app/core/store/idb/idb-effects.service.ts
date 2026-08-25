@@ -53,8 +53,18 @@ export class IDBEffects {
       ofType(ApplicationActions.initApplication.setSessionStorageOptions),
       withLatestFrom(this.store),
       exhaustMap(([action, state]) => {
+        const databaseName = state.application.appConfiguration?.tratt.database.name;
+
+        if (!databaseName) {
+          return of(
+            IDBActions.loadOptions.fail({
+              error: 'App configuration is not loaded',
+            }),
+          );
+        }
+
         return this.idbService
-          .initialize(state.application.appConfiguration!.tratt.database.name)
+          .initialize(databaseName)
           .pipe(
             map(() => {
               this.store.dispatch(

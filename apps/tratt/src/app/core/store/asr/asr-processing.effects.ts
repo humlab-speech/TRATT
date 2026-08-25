@@ -32,6 +32,16 @@ export class AsrProcessingEffects {
       mergeMap(([action, state]) => {
         const audioManager = this.audio.audiomanagers[0];
 
+        if (!audioManager) {
+          return of(
+            ASRActions.cutAndUploadQueueItem.fail({
+              item: action.item,
+              error: 'No audio loaded',
+              newStatus: ASRProcessStatus.FAILED,
+            }),
+          );
+        }
+
         if (!audioManager.resource.arraybuffer) {
           return throwError(() => new Error(`arraybuffer is undefined`));
         }
@@ -189,16 +199,28 @@ export class AsrProcessingEffects {
       ofType(ASRActions.runASROnItem.do),
       withLatestFrom(this.store),
       mergeMap(([{ outFormat, item, options, audioURL }, state]) => {
+        const asrConfig = state.application.appConfiguration?.tratt.plugins?.asr;
+
+        if (!asrConfig) {
+          return of(
+            ASRActions.runASROnItem.fail({
+              item,
+              error: 'ASR plugin configuration is not loaded',
+              newStatus: ASRProcessStatus.FAILED,
+            }),
+          );
+        }
+
         return this.transcribeSignalWithASR(
           outFormat,
           item,
           audioURL,
-          state.application.appConfiguration!.tratt.plugins!.asr!,
+          asrConfig,
         ).pipe(
           withLatestFrom(this.store),
           exhaustMap(([result, state2]) => {
             const item2 = state2.asr.queue?.items?.find(
-              (a) => a.time === item.time,
+              (a) => a.id === item.id,
             );
 
             if (item2) {
@@ -287,13 +309,25 @@ export class AsrProcessingEffects {
       ofType(ASRActions.runWordAlignmentOnItem.do),
       withLatestFrom(this.store),
       mergeMap(([{ item, audioURL, transcriptURL }, state]) => {
+        const asrConfig = state.application.appConfiguration?.tratt.plugins?.asr;
+
+        if (!asrConfig) {
+          return of(
+            ASRActions.runWordAlignmentOnItem.fail({
+              item,
+              error: 'ASR plugin configuration is not loaded',
+              newStatus: ASRProcessStatus.FAILED,
+            }),
+          );
+        }
+
         return this.callMAUS(
           item.selectedASRLanguage,
           item.selectedMausLanguage,
           item.selectedASRService.host,
           audioURL,
           transcriptURL,
-          state.application.appConfiguration!.tratt!.plugins!.asr!,
+          asrConfig,
         ).pipe(
           exhaustMap((result) => {
             if (item.status !== ASRProcessStatus.STOPPED) {
@@ -303,7 +337,7 @@ export class AsrProcessingEffects {
                 withLatestFrom(this.store),
                 exhaustMap(([contents, state2]) => {
                   const item2 = state2.asr.queue?.items?.find(
-                    (a) => a.time === item.time,
+                    (a) => a.id === item.id,
                   );
 
                   if (item2) {
