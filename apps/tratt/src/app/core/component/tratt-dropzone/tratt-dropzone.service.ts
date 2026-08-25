@@ -602,23 +602,23 @@ export class TrattDropzoneService {
 
     if (result.action === 'apply') {
       fileProgress.options = result.result;
+
+      const importOptions: Record<string, any> = {};
+      importOptions[fileProgress.converter!.name] = fileProgress.options;
+
+      this.store.dispatch(
+        LoginModeActions.setImportConverter.do({
+          mode: LoginMode.LOCAL,
+          importConverter: fileProgress.converter!.name,
+        }),
+      );
+      this.store.dispatch(
+        LoginModeActions.changeImportOptions.do({
+          mode: LoginMode.LOCAL,
+          importOptions,
+        }),
+      );
     }
-
-    const importOptions: Record<string, any> = {};
-    importOptions[fileProgress.converter!.name] = fileProgress.options;
-
-    this.store.dispatch(
-      LoginModeActions.setImportConverter.do({
-        mode: LoginMode.LOCAL,
-        importConverter: fileProgress.converter!.name,
-      }),
-    );
-    this.store.dispatch(
-      LoginModeActions.changeImportOptions.do({
-        mode: LoginMode.LOCAL,
-        importOptions,
-      }),
-    );
   }
 
   destroy() {

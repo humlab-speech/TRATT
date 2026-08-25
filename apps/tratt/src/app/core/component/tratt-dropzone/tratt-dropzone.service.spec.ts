@@ -1,6 +1,7 @@
-import { describe, expect, it } from '@jest/globals';
+import { describe, expect, it, jest } from '@jest/globals';
 import { OAnnotJSON, OLabel, OSegment, OSegmentLevel } from '@tratt/annotation';
 import { TrattDropzoneService } from './tratt-dropzone.service';
+import { FileInfo } from '@tratt/web-media';
 
 describe('TrattDropzoneService speaker injection', () => {
   it('applies speaker turns to the current annotation', () => {
@@ -31,5 +32,32 @@ describe('TrattDropzoneService speaker injection', () => {
     expect(
       level.items[1].labels.find((label) => label.name === 'Speaker')?.value,
     ).toBe('Speaker 2');
+  });
+});
+
+describe('TrattDropzoneService openImportOptionsModal', () => {
+  it('does not dispatch import options when the modal is cancelled', async () => {
+    const dispatch = jest.fn();
+    const modService = {
+      openModal: jest.fn().mockResolvedValue({ action: 'cancel' } as never),
+    };
+    const service = new TrattDropzoneService(
+      modService as never,
+      { dispatch } as never,
+      {} as never,
+    );
+
+    const fileProgress = {
+      id: 1,
+      status: 'progress',
+      file: new FileInfo('test.srt', 'text/plain', 0),
+      converter: { name: 'SRT' } as never,
+      checked_converters: 0,
+      progress: 0,
+    } as never;
+
+    await service.openImportOptionsModal(fileProgress);
+
+    expect(dispatch).not.toHaveBeenCalled();
   });
 });

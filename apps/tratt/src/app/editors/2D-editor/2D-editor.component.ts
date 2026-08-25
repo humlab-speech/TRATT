@@ -559,7 +559,7 @@ export class TwoDEditorComponent
       next: (importOptions) => {
         if (importOptions && Object.keys(importOptions).includes('SRT')) {
           this.viewer.settings.speakerPattern =
-            importOptions['SRT']['speakerIdentifierPattern'];
+            importOptions['SRT']?.speakerIdentifierPattern;
         }
       },
     });

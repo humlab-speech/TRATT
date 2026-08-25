@@ -105,9 +105,6 @@ export class TrattAnnotationSegment<T extends ASRContext = ASRContext>
     this._id = id;
     this.labels = labels ?? [];
     this.context = context;
-    console.log(
-      `Created segment with id ${this._id} at time ${this.time.samples}`,
-    );
   }
 
   serialize(): SegmentWithContext<T> {
