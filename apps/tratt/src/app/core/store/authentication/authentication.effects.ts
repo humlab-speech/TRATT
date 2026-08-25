@@ -5,13 +5,13 @@ import { NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { Action, Store } from '@ngrx/store';
 import { OctraAPIService } from '@octra/ngx-octra-api';
-import { appendURLQueryParams, joinURL } from '@tratt/utilities';
 import {
-  AudioManager,
+  appendURLQueryParams,
   getBaseHrefURL,
-  normalizeMimeType,
+  joinURL,
   popupCenter,
-} from '@tratt/web-media';
+} from '@tratt/utilities';
+import { AudioManager, normalizeMimeType } from '@tratt/web-media';
 import { SessionStorageService } from 'ngx-webstorage';
 import {
   catchError,
