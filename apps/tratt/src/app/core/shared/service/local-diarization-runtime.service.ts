@@ -1,5 +1,9 @@
 import { Inject, Injectable, NgZone, OnDestroy, Optional } from '@angular/core';
-import { AudioManager, resampleChannels } from '@tratt/web-media';
+import {
+  AudioManager,
+  ML_MODEL_SAMPLE_RATE,
+  resampleChannels,
+} from '@tratt/web-media';
 import { Observable, Subject } from 'rxjs';
 import type {
   WorkerDiarizationOutMessage,
@@ -62,8 +66,6 @@ export type DiarizationDType =
 export const DIARIZATION_DEFAULT_MODEL_ID =
   'onnx-community/pyannote-segmentation-3.0';
 
-const DIARIZATION_SAMPLE_RATE = 16000;
-
 @Injectable()
 export class LocalDiarizationRuntimeService implements OnDestroy {
   private worker: Worker | null = null;
@@ -95,14 +97,14 @@ export class LocalDiarizationRuntimeService implements OnDestroy {
       audioManager.resource.info.audioBufferInfo?.sampleRate ??
       audioManager.sampleRate;
     const mono: Float32Array =
-      srcRate !== DIARIZATION_SAMPLE_RATE
-        ? resampleChannels([channel], srcRate, DIARIZATION_SAMPLE_RATE)[0]
+      srcRate !== ML_MODEL_SAMPLE_RATE
+        ? resampleChannels([channel], srcRate, ML_MODEL_SAMPLE_RATE)[0]
         : new Float32Array(channel);
 
-    const audioDurationS = mono.length / DIARIZATION_SAMPLE_RATE;
+    const audioDurationS = mono.length / ML_MODEL_SAMPLE_RATE;
     console.info('[octra:diarization] audio sent to worker', {
       srcRate,
-      resampledSampleRate: DIARIZATION_SAMPLE_RATE,
+      resampledSampleRate: ML_MODEL_SAMPLE_RATE,
       monoSamples: mono.length,
       audioDurationS,
     });

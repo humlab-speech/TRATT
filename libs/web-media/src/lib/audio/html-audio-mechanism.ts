@@ -16,7 +16,7 @@ import {
   AudioMechanism,
   AudioMechanismPrepareOptions,
 } from './audio-mechanism';
-import { mixToMono } from './audio-resampler';
+import { ML_MODEL_SAMPLE_RATE, mixToMono } from './audio-resampler';
 import { decodeWithLibAV } from './libav-decoder';
 
 type HTMLAudioElement = any;
@@ -344,16 +344,14 @@ export class HtmlAudioMechanism extends AudioMechanism {
     channels: Float32Array[],
     srcRate: number,
   ): Promise<void> {
-    const TARGET_RATE = 16000;
-
     const mono = mixToMono(channels);
     let resampled: Float32Array;
-    if (srcRate !== TARGET_RATE) {
+    if (srcRate !== ML_MODEL_SAMPLE_RATE) {
       // Use OfflineAudioContext for non-blocking, browser-native resampling.
       // The old Lanczos path (resampleChannels) runs synchronously on the main
       // thread and blocks the UI for several seconds on long audio files.
-      const outLength = Math.ceil((mono.length * TARGET_RATE) / srcRate);
-      const offlineCtx = new OfflineAudioContext(1, outLength, TARGET_RATE);
+      const outLength = Math.ceil((mono.length * ML_MODEL_SAMPLE_RATE) / srcRate);
+      const offlineCtx = new OfflineAudioContext(1, outLength, ML_MODEL_SAMPLE_RATE);
       const inputBuf = offlineCtx.createBuffer(1, mono.length, srcRate);
       inputBuf.copyToChannel(mono, 0);
       const src = offlineCtx.createBufferSource();
@@ -366,7 +364,7 @@ export class HtmlAudioMechanism extends AudioMechanism {
       resampled = new Float32Array(mono);
     }
 
-    const wavBuf = HtmlAudioMechanism.encodeWav16Mono(resampled, TARGET_RATE);
+    const wavBuf = HtmlAudioMechanism.encodeWav16Mono(resampled, ML_MODEL_SAMPLE_RATE);
     this._resource!.arraybuffer = wavBuf;
 
     // AudioInfo.sampleRate is readonly — construct a new instance with updated values.
@@ -375,11 +373,11 @@ export class HtmlAudioMechanism extends AudioMechanism {
       oldInfo.fullname,
       'audio/wav',
       wavBuf.byteLength,
-      TARGET_RATE,
+      ML_MODEL_SAMPLE_RATE,
       resampled.length,
       1,
       oldInfo.bitrate,
-      { sampleRate: TARGET_RATE, samples: resampled.length },
+      { sampleRate: ML_MODEL_SAMPLE_RATE, samples: resampled.length },
     );
     newInfo.file = oldInfo.file;
     this._resource!.info = newInfo;

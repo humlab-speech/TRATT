@@ -1,7 +1,11 @@
 import { Injectable, NgZone, OnDestroy } from '@angular/core';
 import { IFile, OAnnotJSON, srtTimestamp } from '@tratt/annotation';
 import { OAudiofile } from '@tratt/media';
-import { AudioManager, resampleChannels } from '@tratt/web-media';
+import {
+  AudioManager,
+  ML_MODEL_SAMPLE_RATE,
+  resampleChannels,
+} from '@tratt/web-media';
 import { Observable, Subject } from 'rxjs';
 import { AppInfo } from '../../../app.info';
 import type {
@@ -65,8 +69,6 @@ export interface TranscriptionOptions {
   speakerTurns?: SpeakerTurn[];
 }
 
-const WHISPER_SAMPLE_RATE = 16000;
-
 @Injectable({ providedIn: 'root' })
 export class LocalTranscriptionService implements OnDestroy {
   private worker: Worker | null = null;
@@ -95,11 +97,11 @@ export class LocalTranscriptionService implements OnDestroy {
       audioManager.resource.info.audioBufferInfo?.sampleRate ??
       audioManager.sampleRate;
     const mono: Float32Array =
-      srcRate !== WHISPER_SAMPLE_RATE
-        ? resampleChannels([channel], srcRate, WHISPER_SAMPLE_RATE)[0]
+      srcRate !== ML_MODEL_SAMPLE_RATE
+        ? resampleChannels([channel], srcRate, ML_MODEL_SAMPLE_RATE)[0]
         : new Float32Array(channel); // copy — never transfer the AudioManager's own buffer
 
-    const audioDurationS = mono.length / WHISPER_SAMPLE_RATE;
+    const audioDurationS = mono.length / ML_MODEL_SAMPLE_RATE;
 
     this.startWorker(subject, mono, oaudiofile, options, audioDurationS, false);
 

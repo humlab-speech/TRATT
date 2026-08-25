@@ -1,4 +1,5 @@
 import { OAudiofile } from '@tratt/media';
+import { contains } from '@tratt/utilities';
 import { FileInfo } from '@tratt/web-media';
 import {
   OAnnotJSON,
@@ -8,7 +9,6 @@ import {
   OSegment,
   OSegmentLevel,
 } from '../annotjson';
-import { contains } from '../functions';
 import {
   Converter,
   ExportResult,

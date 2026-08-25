@@ -5,6 +5,7 @@ import {
   AutoProcessor,
   env,
 } from '@huggingface/transformers';
+import { ML_MODEL_SAMPLE_RATE } from '@tratt/web-media';
 import { normalizePyannoteSpeakerTurns } from '../shared/service/local-diarization-postprocess';
 import { DiarizationDType } from '../shared/service/local-diarization-runtime.service';
 import { SpeakerTurn } from '../shared/service/local-diarization.service';
@@ -12,8 +13,6 @@ import { SpeakerTurn } from '../shared/service/local-diarization.service';
 if (env.backends.onnx.wasm) {
   env.backends.onnx.wasm.wasmPaths = '/assets/ort/';
 }
-
-const DIARIZATION_SAMPLE_RATE = 16000;
 
 async function isCacheAvailable(): Promise<boolean> {
   try {
@@ -156,8 +155,8 @@ addEventListener(
       };
       postMessage(startMsg);
 
-      const WINDOW_SAMPLES = Math.round(10 * DIARIZATION_SAMPLE_RATE);
-      const STRIDE_SAMPLES = Math.round(2.5 * DIARIZATION_SAMPLE_RATE);
+      const WINDOW_SAMPLES = Math.round(10 * ML_MODEL_SAMPLE_RATE);
+      const STRIDE_SAMPLES = Math.round(2.5 * ML_MODEL_SAMPLE_RATE);
 
       const allRawSegments: Array<{
         id: number;
@@ -171,7 +170,7 @@ addEventListener(
       while (chunkStart < audio.length) {
         const chunkEnd = Math.min(chunkStart + WINDOW_SAMPLES, audio.length);
         const chunk = audio.slice(chunkStart, chunkEnd);
-        const chunkStartS = chunkStart / DIARIZATION_SAMPLE_RATE;
+        const chunkStartS = chunkStart / ML_MODEL_SAMPLE_RATE;
 
         const inputs = await loadedProcessor(chunk);
         const { logits } = await loadedModel(inputs);
@@ -190,7 +189,7 @@ addEventListener(
 
         console.info(`[octra:pyannote-worker] chunk ${chunkIndex}`, {
           chunkStartS,
-          chunkEndS: chunkEnd / DIARIZATION_SAMPLE_RATE,
+          chunkEndS: chunkEnd / ML_MODEL_SAMPLE_RATE,
           rawSegments: chunkDiarization[0]?.length ?? 0,
         });
 

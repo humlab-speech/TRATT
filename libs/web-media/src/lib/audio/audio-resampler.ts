@@ -1,3 +1,8 @@
+/**
+ * sample rate required by the on-device Whisper/pyannote ML models
+ */
+export const ML_MODEL_SAMPLE_RATE = 16000;
+
 export function isSafariOrWebKit(): boolean {
   if (typeof navigator === 'undefined') return false;
   return (

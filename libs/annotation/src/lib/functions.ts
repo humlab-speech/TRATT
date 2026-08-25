@@ -1,4 +1,5 @@
 import { OAudiofile, SampleUnit } from '@tratt/media';
+import { contains } from '@tratt/utilities';
 import { OLabel, OSegment } from './annotjson';
 import { Converter, IFile } from './converters';
 import { TrattAnnotationSegment } from './trattAnnotationSegment';
@@ -22,14 +23,7 @@ export function convertFromSupportedConverters(
   return undefined;
 }
 
-/**
- * checks if a given string contains a given substring
- * @param haystack string that should be searched
- * @param needle substring that is searched for
- */
-export function contains(haystack: string, needle: string): boolean {
-  return haystack.indexOf(needle) !== -1;
-}
+export { contains };
 
 /**
  * formats a duration in seconds as an SRT timestamp: HH:MM:SS,mmm
