@@ -55,7 +55,7 @@ import { checkAndThrowError } from '../../error.handlers';
 import { getModeState, LoginMode, RootState } from '../../index';
 import { LoginModeActions } from '../login-mode.actions';
 import { AnnotationActions } from './annotation.actions';
-import { AnnotationMaintenanceEffects } from './annotation-maintenance.effects';
+import { AnnotationMaintenanceService } from './annotation-maintenance.service';
 import { AnnotationState, GuidelinesItem } from './index';
 
 import { FileInfo } from '@tratt/web-media';
@@ -1178,7 +1178,7 @@ export class AnnotationLoadEffects {
     private uiService: UserInteractionsService,
     private appStorage: AppStorageService,
     private transloco: TranslocoService,
-    private maintenance: AnnotationMaintenanceEffects,
+    private maintenance: AnnotationMaintenanceService,
   ) {}
 }
 
