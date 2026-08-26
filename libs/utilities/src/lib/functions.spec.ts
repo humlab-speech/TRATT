@@ -1,4 +1,4 @@
-import { escapeXmlEntities, escapeHtml, formatMinutesSeconds } from './functions';
+import { escapeXmlEntities, escapeHtml, formatMinutesSeconds, padSequenceNumber } from './functions';
 
 describe('escapeXmlEntities', () => {
   it('escapes the 5 reserved characters with the given apostrophe entity', () => {
@@ -17,5 +17,13 @@ describe('formatMinutesSeconds', () => {
     expect(formatMinutesSeconds(0)).toBe('0:00');
     expect(formatMinutesSeconds(65)).toBe('1:05');
     expect(formatMinutesSeconds(3661)).toBe('61:01');
+  });
+});
+
+describe('padSequenceNumber', () => {
+  it('zero-pads to maxDecimals digits', () => {
+    expect(padSequenceNumber(3, 4)).toBe('0003');
+    expect(padSequenceNumber(42, 4)).toBe('0042');
+    expect(padSequenceNumber(10000, 4)).toBe('10000');
   });
 });

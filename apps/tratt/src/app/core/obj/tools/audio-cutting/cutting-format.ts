@@ -1,4 +1,5 @@
 import { AudioInfo } from '@tratt/web-media';
+import { padSequenceNumber } from '@tratt/utilities';
 import { DateTime } from 'luxon';
 
 abstract class CuttingFormat {
@@ -111,21 +112,13 @@ export function getNewFileName(
   const name = fileName.substring(0, fileName.lastIndexOf('.'));
   const extension = fileName.substring(fileName.lastIndexOf('.'));
 
-  let leadingNull = '';
-  const maxDecimals = 4;
-  const decimals = (segmentNumber + 1).toString().length;
-
-  for (let i = 0; i < maxDecimals - decimals; i++) {
-    leadingNull += '0';
-  }
-
   return (
     namingConvention.replace(/<([^<>]+)>/g, (g0, g1) => {
       switch (g1) {
         case 'name':
           return name;
         case 'sequNumber':
-          return `${leadingNull}${segmentNumber + 1}`;
+          return padSequenceNumber(segmentNumber + 1, 4);
         case 'sampleStart':
           return cutList[segmentNumber].sampleStart;
         case 'sampleDur':

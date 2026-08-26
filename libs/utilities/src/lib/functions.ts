@@ -144,6 +144,18 @@ export function formatMinutesSeconds(totalSeconds: number): string {
   return `${m}:${s.toString().padStart(2, '0')}`;
 }
 
+export function padSequenceNumber(
+  oneBasedNumber: number,
+  maxDecimals: number,
+): string {
+  const decimals = oneBasedNumber.toString().length;
+  let leadingNull = '';
+  for (let i = 0; i < maxDecimals - decimals; i++) {
+    leadingNull += '0';
+  }
+  return `${leadingNull}${oneBasedNumber}`;
+}
+
 export function unEscapeHtml(text: string): string {
   return text
     .replace(/&amp;/g, '&')

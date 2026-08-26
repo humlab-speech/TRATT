@@ -1,4 +1,5 @@
 import { NumeratedSegment } from '@tratt/media';
+import { padSequenceNumber } from '@tratt/utilities';
 import { Subject } from 'rxjs';
 import { FileInfo } from '../data-info';
 import { IntArray } from './AudioFormats';
@@ -115,20 +116,12 @@ export class AudioCutter {
     const name = fileName.substring(0, fileName.lastIndexOf('.'));
     const extension = fileName.substring(fileName.lastIndexOf('.'));
 
-    let leadingNull = '';
-    const maxDecimals = 4;
-    const decimals = (segment.number + 1).toString().length;
-
-    for (let i = 0; i < maxDecimals - decimals; i++) {
-      leadingNull += '0';
-    }
-
     return namingConvention.replace(/<([^<>]+)>/g, (g0, g1) => {
       switch (g1) {
         case 'name':
           return name;
         case 'sequNumber':
-          return `${leadingNull}${segment.number + 1}`;
+          return padSequenceNumber(segment.number + 1, 4);
         case 'sampleStart':
           return segment.sampleStart;
         case 'sampleDur':
