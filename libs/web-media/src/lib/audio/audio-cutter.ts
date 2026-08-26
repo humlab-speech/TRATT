@@ -196,8 +196,6 @@ export class AudioCutter {
 
           if (pointer < segments.length - 1) {
             // continue
-            // const freeSpace = window.performance.memory.totalJSHeapSize - window.performance.memory.usedJSHeapSize;
-            // console.log(`${freeSpace / 1024 / 1024} MB left.`);
             if (this.status === 'running') {
               setTimeout(
                 () =>

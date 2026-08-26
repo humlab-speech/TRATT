@@ -256,7 +256,6 @@ I just want to let you know, that the OCTRA server is currently offline.
   onOfflineSubmit = (removeData: boolean) => {
     const opts = this.dropzone?.transcribeOptions;
     const trOpts = this.dropzone?.translateOptions;
-    console.log('[LoginComponent.onOfflineSubmit] transcribeOptions:', opts);
     this._pendingRemoveData = removeData;
 
     if (opts && this.dropzone?.hasAudio && !this.dropzone?.hasAnnotation) {

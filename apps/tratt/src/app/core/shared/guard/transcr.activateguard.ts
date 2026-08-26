@@ -28,7 +28,6 @@ export class TranscActivateGuard {
       take(1),
       map((state) => {
         const status = state.application.loading.status;
-        console.log(`[CHAIN] TranscActivateGuard: loading.status=${status}`);
         if (status !== LoadingStatus.FINISHED) {
           console.error(`audio not loaded`);
           const params = AppInfo.queryParamsHandling;

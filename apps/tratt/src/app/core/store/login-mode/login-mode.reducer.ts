@@ -277,8 +277,6 @@ export class LoginModeReducers {
           },
         ) => {
           if (this.mode === mode) {
-            console.log('Project:', project);
-
             // Normalize empty/whitespace-only segments to the break marker so
             // they display as "Silent transcription units" rather than "Empty".
             const breakMarkerCode = (
@@ -340,7 +338,6 @@ export class LoginModeReducers {
                         ...project.statistics,
                         tasks:
                           project.statistics?.tasks.map((a) => {
-                            console.log(a);
                             if (a.type === 'annotation') {
                               return {
                                 ...a,

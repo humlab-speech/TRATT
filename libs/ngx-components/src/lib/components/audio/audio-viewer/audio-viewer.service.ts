@@ -1884,8 +1884,6 @@ export class AudioViewerService {
           }
         }
       }
-    } else {
-      console.log('no segment created');
     }
 
     return undefined;
@@ -2494,12 +2492,6 @@ export class AudioViewerService {
                       const segment = this.currentLevel.items[
                         segmentI
                       ] as TrattAnnotationSegment<ASRContext>;
-                      console.log('set break');
-                      console.log(`
-                      ${segmentI > -1} &&
-                        ${segment.context?.asr?.isBlockedBy} === undefined &&
-                        ${this.silencePlaceholder !== undefined}
-`);
                       if (
                         segmentI > -1 &&
                         segment.context?.asr?.isBlockedBy === undefined &&
@@ -4490,7 +4482,6 @@ export class AudioViewerService {
               continue;
             }
 
-            // console.log(`draw overlay for line ${j + lineInterval.from} and segment at ${sceneSegment.time.seconds}`);
             if (sceneSegment.context?.asr?.isBlockedBy === undefined) {
               context.clearRect(x, localY, w, h);
             } else {

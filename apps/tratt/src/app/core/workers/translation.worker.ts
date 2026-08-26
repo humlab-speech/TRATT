@@ -119,11 +119,8 @@ async function persistToCache(url: string, buf: ArrayBuffer): Promise<void> {
       },
     });
     await cache.put(new Request(url), resp);
-    console.debug(
-      `[translation.worker] cache.put ok ${url} bytes=${buf.byteLength}`,
-    );
-  } catch (e) {
-    console.debug(`[translation.worker] cache.put failed ${url}`, e);
+  } catch {
+    // ignore cache write failures
   }
 }
 
@@ -187,8 +184,6 @@ async function prefetchOnnxFile(
   emit: (loaded: number, total: number) => void,
 ): Promise<void> {
   if (prefetchedBuffers.has(url)) return;
-  console.debug(`[translation.worker] prefetch start ${url}`);
-  const t0 = performance.now();
   const chunks: Uint8Array[] = [];
   let loaded = 0;
   let total = 0;
@@ -200,19 +195,13 @@ async function prefetchOnnxFile(
     let resp: Response;
     try {
       resp = await fetch(url, { headers, signal: ctrl.signal });
-    } catch (e) {
-      console.debug(
-        `[translation.worker] prefetch fetch err attempt=${attempt} loaded=${loaded} ${(e as Error).message}`,
-      );
+    } catch {
       continue;
     }
     if (!resp.ok && resp.status !== 206) {
       throw new Error(`prefetch ${url} status=${resp.status}`);
     }
     if (loaded > 0 && resp.status === 200) {
-      console.debug(
-        `[translation.worker] prefetch server ignored Range, restarting from 0 (had ${loaded})`,
-      );
       chunks.length = 0;
       loaded = 0;
     }
@@ -268,18 +257,10 @@ async function prefetchOnnxFile(
         off += c.byteLength;
       }
       prefetchedBuffers.set(url, merged.buffer);
-      console.debug(
-        `[translation.worker] prefetch done ${url} bytes=${loaded} elapsedMs=${Math.round(
-          performance.now() - t0,
-        )}`,
-      );
       return;
     } catch (e) {
       const msg = (e as Error).message;
       if (stalled || msg === 'read-timeout' || msg.includes('aborted')) {
-        console.debug(
-          `[translation.worker] prefetch stall attempt=${attempt} loaded=${loaded}/${total} resuming with Range`,
-        );
         continue;
       }
       throw e;
@@ -340,9 +321,6 @@ async function downloadStageFiles(
     ? await Promise.all(urls.map((u) => isCachedInBrowser(u)))
     : urls.map(() => false);
   if (cacheHits.every(Boolean)) {
-    console.debug(
-      `[translation.worker] ${stage.modelId} fully cached, skipping prefetch`,
-    );
     return;
   }
   installFetchOverride();
@@ -351,7 +329,6 @@ async function downloadStageFiles(
     const url = urls[i];
     const key = `${stage.modelId}::${rel}`;
     if (cacheHits[i]) {
-      console.debug(`[translation.worker] cache hit ${url}`);
       continue;
     }
     if (prefetchedBuffers.has(url)) continue;
@@ -374,14 +351,6 @@ async function loadStageTranslator(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const pipelineFn = pipeline as any;
   const t0 = performance.now();
-  console.debug(
-    `[translation.worker] pipeline() start modelId=${stage.modelId} dtype=${STAGE_DTYPE}`,
-  );
-  const heartbeat = setInterval(() => {
-    console.debug(
-      `[translation.worker] pipeline(${stage.modelId}) still pending t+${Math.round(performance.now() - t0)}ms`,
-    );
-  }, 5000);
   try {
     const translator = await pipelineFn('translation', stage.modelId, {
       device: 'wasm',
@@ -405,13 +374,8 @@ async function loadStageTranslator(
         }
       },
     });
-    clearInterval(heartbeat);
-    console.debug(
-      `[translation.worker] pipeline(${stage.modelId}) resolved elapsedMs=${Math.round(performance.now() - t0)}`,
-    );
     return translator;
   } catch (e) {
-    clearInterval(heartbeat);
     const decoded = decodeWorkerError(e);
     console.error(
       `[translation.worker] pipeline(${stage.modelId}) threw elapsedMs=${Math.round(performance.now() - t0)} typeof=${typeof e} decoded=${decoded}`,
@@ -451,14 +415,8 @@ addEventListener(
     try {
       if (skipBrowserCache) {
         env.useBrowserCache = false;
-        console.debug(
-          '[translation.worker] browser cache disabled by user opt-out',
-        );
       } else if (!(await isCacheAvailable())) {
         env.useBrowserCache = false;
-        console.debug(
-          '[translation.worker] browser cache unavailable, disabled',
-        );
       }
 
       if (!plan?.stages?.length) {

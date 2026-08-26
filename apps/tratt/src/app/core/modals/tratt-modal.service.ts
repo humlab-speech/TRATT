@@ -196,7 +196,6 @@ export class TrattModalService implements OnDestroy {
           sendProtocol: boolean;
           screenshots: any[];
         }) => {
-          console.log('Sending bug report...');
           ref.componentInstance.sendStatus = 'sending';
           ref.componentInstance.waitForSendResponse(
             this.bugService.sendReport(

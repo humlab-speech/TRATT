@@ -133,9 +133,6 @@ export class ApplicationSessionEffects {
         ),
         withLatestFrom(this.store),
         tap(([a, state]) => {
-          console.log(
-            `[CHAIN] afterInitApplication$ action=${(a as any).type}, initialized=${state.application.initialized}, startup=${(a as any).startup}, loggedIn=${state.application.loggedIn}, mode=${state.application.mode}`,
-          );
           if (state.application.initialized && !(a as any).startup) {
             if (!state.application.mode) {
               // no mode active

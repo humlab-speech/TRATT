@@ -423,7 +423,6 @@ export class SRTConverter extends Converter {
         });
 
         result.levels = levels;
-        console.log(result);
         return {
           annotjson: result,
           error: '',

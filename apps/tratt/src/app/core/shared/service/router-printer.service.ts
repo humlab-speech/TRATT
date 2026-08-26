@@ -6,14 +6,12 @@ export class RoutePrinterService {
   constructor(private router: Router) {}
 
   printRoutes(): void {
-    console.log('Registered Angular Routes:');
     //this.logRoutes(this.router.config);
   }
 
   private logRoutes(routes: Route[], parentPath = '') {
     for (const route of routes) {
       const fullPath = parentPath + '/' + (route.path || '');
-      console.log(fullPath);
 
       if (route.children) {
         this.logRoutes(route.children, fullPath);

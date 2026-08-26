@@ -61,18 +61,6 @@ export class AppComponent
       interval: 5 * 60 * 1000, // check every 5 minutes
     });
 
-    if (environment.debugging.enabled && environment.debugging.logging.routes) {
-      this.subscribe(this.router.events, {
-        next: (event: any) => {
-          if (event.snapshot) {
-            console.log(
-              `route from ${event.url} to guard: ${event.snapshot.url}, component: ${event.snapshot.component?.name}`,
-            );
-          }
-        },
-      });
-    }
-
     routePrinter.printRoutes();
   }
 

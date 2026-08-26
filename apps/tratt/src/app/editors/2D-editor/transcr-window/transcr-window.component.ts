@@ -469,8 +469,6 @@ export class TranscrWindowComponent
             item.result !== undefined
           ) {
             this.transcript = item.result;
-          } else {
-            console.log(`Can't set transcript, ${item.status}, ${item.result}`);
           }
 
           this.magnifier.redraw();

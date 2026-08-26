@@ -507,10 +507,6 @@ export class TranscriptionComponent
       });
     });
 
-    if (this._useMode === LoginMode.ONLINE) {
-      // console.log(`opened job ${this.appStorage.dataID} in project ${this.appStorage.onlineSession?.loginData?.project}`);
-    }
-
     // first change
     if (this.interface) {
       this.changeEditor(this.interface)

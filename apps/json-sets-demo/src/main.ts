@@ -49,7 +49,3 @@ validator.validate([
     type: 'application/json',
   },
 ]);
-console.log(`TREE__________`);
-console.log(validator.decisionTree.output());
-console.log('ERRORS');
-console.log(validator.decisionTree._errors);

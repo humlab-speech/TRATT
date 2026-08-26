@@ -60,7 +60,6 @@ export class AnnotJSONConverter extends Converter {
   }
 
   public import(file: IFile, audiofile: OAudiofile): ImportResult {
-    console.log(`Importing audio file`, file, audiofile);
     file.name = audiofile.name;
     if (audiofile) {
       let result = new OAnnotJSON(

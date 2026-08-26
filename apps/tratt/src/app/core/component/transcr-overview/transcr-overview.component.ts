@@ -463,9 +463,6 @@ export class TranscrOverviewComponent implements OnInit, OnDestroy, OnChanges {
             ._internLevel as TrattAnnotationSegmentLevel<TrattAnnotationSegment>;
 
           console.time('[overview] updateSegments');
-          console.log(
-            `[overview] updateSegments: processing ${level.items.length} segments in parallel`,
-          );
 
           // Precompute start times and playState array before launching promises.
           const startTimes: number[] = [];
@@ -670,8 +667,6 @@ export class TranscrOverviewComponent implements OnInit, OnDestroy, OnChanges {
       this.playAllState.icon = 'bi bi-play-fill';
 
       this.cd.markForCheck();
-    } else {
-      console.log(`playAll failed`);
     }
   }
 

@@ -44,7 +44,6 @@ export class ApplicationUiEffects {
             (!environment.production || !isIgnoredAction(action.type))
           ) {
             console.groupCollapsed(`ACTION ${action.type} ---`);
-            console.log(action);
             console.groupEnd();
           }
         }),

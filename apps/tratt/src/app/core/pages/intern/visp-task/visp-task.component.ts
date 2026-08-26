@@ -35,7 +35,6 @@ export class VispTaskComponent implements OnInit {
   }
 
   startTask() {
-    console.log('Starting VISP task...');
     const projectId = this.route.snapshot.paramMap.get('projectId');
 
     if (!projectId) {
@@ -48,17 +47,12 @@ export class VispTaskComponent implements OnInit {
     const appMode = this.appStoreService.useMode;
     const loggedIn = this.appStoreService.loggedIn();
 
-    console.log('Current state:', { authenticated, appMode, loggedIn });
 
     if (authenticated && appMode === LoginMode.ONLINE && loggedIn) {
       // User is already authenticated and in online mode
-      console.log('User already authenticated, starting annotation directly');
       this.fetchProjectAndStartAnnotation(projectId);
     } else {
       // User needs to be authenticated first
-      console.log(
-        'User not authenticated or not in online mode, logging in first',
-      );
       this.authenticateAndStartAnnotation(projectId);
     }
   }
@@ -68,7 +62,6 @@ export class VispTaskComponent implements OnInit {
     const apiUrl = 'http://localhost:3000';
     const appToken = '';
 
-    console.log('Initializing API service...');
     this.store.dispatch(
       APIActions.init.do({
         url: apiUrl,
@@ -87,8 +80,6 @@ export class VispTaskComponent implements OnInit {
       )
       .subscribe((serverOnline) => {
         if (serverOnline) {
-          console.log('API initialized, logging in user...');
-
           // For VISP tasks, we'll use a simple local authentication
           // You might need to adjust this based on your authentication requirements
           this.authStoreService.loginOnline(
@@ -106,7 +97,6 @@ export class VispTaskComponent implements OnInit {
               takeUntilDestroyed(this.destroyRef),
             )
             .subscribe(() => {
-              console.log('Authentication successful, fetching project...');
               this.fetchProjectAndStartAnnotation(projectId);
             });
 
@@ -131,8 +121,6 @@ export class VispTaskComponent implements OnInit {
   }
 
   private fetchProjectAndStartAnnotation(projectId: string) {
-    console.log('Fetching project from VISP server...');
-
     fetch('http://localhost:3000/visp/project/' + projectId, {})
       .then((response) => {
         if (!response.ok) {
@@ -141,13 +129,10 @@ export class VispTaskComponent implements OnInit {
         return response.json();
       })
       .then((trattProject: ProjectDto) => {
-        console.log('Starting online annotation for project:', trattProject);
-
         // Start the online annotation process
         this.appStorage.startOnlineAnnotation(trattProject);
 
         // Navigate to transcription page
-        console.log('Redirecting to transcription interface...');
         this.router.navigate(['/intern/transcr']);
       })
       .catch((error) => {

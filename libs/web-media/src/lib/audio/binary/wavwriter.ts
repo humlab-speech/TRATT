@@ -25,7 +25,6 @@ export class WavWriter {
   private static worker?: TsWorker;
 
   constructor(encodingFloat?: boolean, sampleSize?: SampleSize) {
-    //console.debug("WavWriter: "+encodingFloat+", "+sampleSize);
     if (encodingFloat !== undefined && encodingFloat !== null) {
       this.encodingFloat = encodingFloat;
       if (encodingFloat) {
@@ -229,7 +228,6 @@ export class WavWriter {
     this.writeChunkHeader('fmt ', fmtChunkSize);
     this.writeFmtChunk(channelData, sampleRate);
     if (this.encodingFloat) {
-      console.debug("Write WAV header: Write 'fact' chunk.");
       this.writeChunkHeader('fact', 4);
       this.writeFactChunk(channelData[0]);
     }

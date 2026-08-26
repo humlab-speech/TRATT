@@ -339,18 +339,6 @@ export class TrnEditorComponent
         interval.start + interval.length,
         this.transcrService.breakMarker.code
       );
-
-      for (
-        let i = interval.start + interval.length - 1;
-        i > interval.start - 1;
-        i--
-      ) {
-        console.log(
-          `remove boundary at row ${i} (${interval.start} - ${
-            interval.start + interval.length
-          })`
-        );
-      }
     }
     this.transcrService.validateAll();
      */
@@ -503,18 +491,6 @@ export class TrnEditorComponent
         interval.start + interval.length,
         this.transcrService.breakMarker.code
       );
-
-      for (
-        let i = interval.start + interval.length - 1;
-        i > interval.start - 1;
-        i--
-      ) {
-        console.log(
-          `remove boundary at row ${i} (${interval.start} - ${
-            interval.start + interval.length
-          })`
-        );
-      }
        */
     }
     // TODO this.transcrService.validateAll();
@@ -966,13 +942,6 @@ export class TrnEditorComponent
 
         this.cd.markForCheck();
         this.cd.detectChanges();
-
-        console.log(
-          `should be: ${segment.time.seconds - startSampleUnit.seconds}`
-        );
-        console.log(
-          `start from ${startSampleUnit.seconds} with duration ${playDuration.duration.seconds}`
-        );
 
         this.audio.audiomanagers[0].playPosition =
           this.audio.audiomanagers[0].createSampleUnit(startSample);

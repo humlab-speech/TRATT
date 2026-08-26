@@ -94,9 +94,6 @@ export class TrattAnnotation<
       item: number;
     },
   ) {
-    console.log(
-      `Created TrattAnnotation with ${levels?.length ?? 0} levels and ${links?.length ?? 0} links`,
-    );
     this._levels = levels ?? [];
     this._links = links ?? [];
 

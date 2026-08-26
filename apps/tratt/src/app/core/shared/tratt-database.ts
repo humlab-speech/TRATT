@@ -118,7 +118,6 @@ export class TrattDatabase extends Dexie {
   }
 
   private upgradeToDatabaseV2(transaction: Transaction) {
-    console.log('upgrade to V2');
     return transaction.table('options').bulkPut([
       {
         name: 'submitted',
@@ -211,7 +210,6 @@ export class TrattDatabase extends Dexie {
   }
 
   private async upgradeToDatabaseV3(transaction: Transaction) {
-    console.log('upgrade to V3');
     return transaction
       .table('options')
       .toCollection()
@@ -228,9 +226,7 @@ export class TrattDatabase extends Dexie {
   }
 
   private async upgradeToDatabaseV4(tr: Transaction) {
-    console.log('Upgrade to V4...');
 
-    console.log('-> Copy all new options to app_options table...');
     const optionKeys = [
       'accessCode',
       'audioSettings',
@@ -251,7 +247,6 @@ export class TrattDatabase extends Dexie {
       (a) => a !== undefined,
     );
 
-    console.log(`-> Migrate ${options.length} options from v3 to v4...`);
 
     for (let i = 0; i < options.length; i++) {
       const option = options[i];
@@ -286,7 +281,6 @@ export class TrattDatabase extends Dexie {
       }
     }
 
-    console.log('-> Migrate ASR settings to v4...');
     const oldASRSettings:
       | {
           name: 'asr';
@@ -332,9 +326,6 @@ export class TrattDatabase extends Dexie {
     // before v4 only one active mode with data was valid. So we only need to check for local mode
     const usemode = (await tr.table('options').get('usemode'))?.value;
     if (usemode === 'local') {
-      console.log('-> usemode is local.');
-
-      console.log('-> Migrate Local mode settings to v4...');
       const oldSessionFile:
         | {
             name: 'sessionfile';
@@ -356,7 +347,6 @@ export class TrattDatabase extends Dexie {
         value: newLocalModeOptions,
       });
 
-      console.log('-> Migrate annotation data of local mode to v4...');
       const oldAnnotationLevels:
         | {
             id: number;
@@ -392,7 +382,6 @@ export class TrattDatabase extends Dexie {
           value: newAnnotation,
         });
 
-        console.log('-> Migrate logs to v4...');
         let oldLogs = await tr.table('logs').toArray();
         oldLogs.sort((a, b) => {
           if (a.timestamp > b.timestamp) {
@@ -414,26 +403,16 @@ export class TrattDatabase extends Dexie {
           value: oldLogs,
         });
 
-        console.log('-> Migration to v4 successful.');
       }
     }
   }
 
   private async upgradeToDatabaseV5(transaction: Transaction) {
-    console.log('upgrade to V5');
   }
 
   private async backupCurrentDatabase() {
     await this.open();
     const backup = await this.export({ prettyJson: true });
-    const backupFile = new File(
-      [await backup.arrayBuffer()],
-      `${this.name}.json`,
-      {
-        type: 'application/json',
-      },
-    );
-    console.log(`BACKUP URL: ${URL.createObjectURL(backupFile)}`);
     this.close();
     const dexie = await Dexie.import(backup, {
       name: `${this.name}_backup_${Date.now()}`,

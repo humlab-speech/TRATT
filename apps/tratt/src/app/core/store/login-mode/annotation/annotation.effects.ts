@@ -94,12 +94,6 @@ export class AnnotationEffects {
       ofType(AnnotationActions.startNewAnnotation.do),
       withLatestFrom(this.store),
       exhaustMap(([a, state]) => {
-        console.log(`Start new annotation in mode ${a.mode}`);
-        console.log(a);
-        console.log(a.mode, LoginMode.ONLINE, a.mode === LoginMode.ONLINE);
-
-        console.log('apiInit', this.apiService.initialized);
-
         if (a.mode === LoginMode.ONLINE) {
           this.store.dispatch(ApplicationActions.waitForEffects.do());
 
@@ -163,8 +157,6 @@ export class AnnotationEffects {
       ofType(AnnotationActions.prepareTaskDataForAnnotation.do),
       withLatestFrom(this.store),
       map(([{ task, currentProject, mode }, state]) => {
-        console.log(`Prepare task for annotation: ${task.id} in mode ${mode}`);
-        console.log(task);
         if (!task.tool_configuration) {
           return AnnotationActions.startAnnotation.fail({
             error: 'Missing tool configuration',
@@ -418,9 +410,6 @@ export class AnnotationEffects {
             }
           } else if (state.application.mode === LoginMode.LOCAL) {
             // local mode
-            console.log(
-              `[CHAIN] onAudioLoad$ LOCAL: sessionFile=${!!state.localMode.sessionFile}, audiomanagers=${this.audio.audiomanagers.length}, audioAlreadyLoaded=${state.application.audioAlreadyLoaded}`,
-            );
             if (state.localMode.sessionFile !== undefined) {
               if (this.audio.audiomanagers.length > 0) {
                 this.store.dispatch(
@@ -641,9 +630,6 @@ export class AnnotationEffects {
         ofType(AnnotationActions.initTranscriptionService.success),
         withLatestFrom(this.store),
         tap(([action, state]) => {
-          console.log(
-            `[CHAIN] loadSegmentsSuccess$: navigating to /intern/transcr, loading.status=${(state as RootState).application.loading.status}`,
-          );
           this.routingService.navigate(
             'transcription initialized',
             ['/intern/transcr'],

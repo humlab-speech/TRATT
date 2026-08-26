@@ -142,8 +142,6 @@ export class ProjectsListComponent extends DefaultComponent implements OnInit {
   }
 
   showProjects(page: number) {
-    console.log('showProjects', page);
-    console.log(this.projects);
     this.shownProjects = this.projects!.list!.slice(
       (page - 1) * this.itemsPerPage,
       page * this.itemsPerPage,
@@ -156,7 +154,6 @@ export class ProjectsListComponent extends DefaultComponent implements OnInit {
 
   onProjectClick(project: ProjectDto) {
     this.projectStarting = true;
-    console.log(project);
     this.appStorage.startOnlineAnnotation(project);
   }
 

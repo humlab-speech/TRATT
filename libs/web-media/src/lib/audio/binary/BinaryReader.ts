@@ -93,7 +93,6 @@ export class BinaryByteReader {
     for (i = 0; i < 4; i++) {
       seg[i] = this.buf[this._pos++];
     }
-    // console.log("len:", seg.length, " ", seg.byteLength, " ", seg[0], " ", seg[1], " ", seg[2], " ", seg[3]);
     let val = 0;
     val |= seg[3] << 24;
     val |= seg[2] << 16;
