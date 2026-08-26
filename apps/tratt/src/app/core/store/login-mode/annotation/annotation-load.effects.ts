@@ -7,24 +7,17 @@ import {
   TaskDto,
   TaskInputOutputCreatorType,
   TaskInputOutputDto,
-  TaskStatus,
   ToolConfigurationAssetDto,
 } from '@octra/api-types';
 import { OctraAPIService } from '@octra/ngx-octra-api';
 import {
   ImportResult,
-  ISegment,
   OAnnotJSON,
   OLabel,
-  PraatTextgridConverter,
   TrattAnnotation,
-  TrattAnnotationSegment,
-  TrattAnnotationSegmentLevel,
 } from '@tratt/annotation';
-import { SampleUnit } from '@tratt/media';
 import {
   extractFileNameFromURL,
-  hasProperty,
   pickInitialLevelName,
   SubscriptionManager,
 } from '@tratt/utilities';
@@ -32,20 +25,14 @@ import {
   catchError,
   exhaustMap,
   forkJoin,
-  interval,
   map,
   Observable,
   of,
-  Subscription,
   tap,
   throwError,
-  timer,
   withLatestFrom,
 } from 'rxjs';
 import { AppInfo } from '../../../../app.info';
-import { ErrorModalComponent } from '../../../modals/error-modal/error-modal.component';
-import { NgbModalWrapper } from '../../../modals/ng-modal-wrapper';
-import { TranscriptionSendingModalComponent } from '../../../modals/transcription-sending-modal/transcription-sending-modal.component';
 import { TrattModalService } from '../../../modals/tratt-modal.service';
 import {
   createSampleProjectDto,
@@ -64,29 +51,19 @@ import {
 import { AppStorageService } from '../../../shared/service/appstorage.service';
 import { RoutingService } from '../../../shared/service/routing.service';
 import { ApplicationActions } from '../../application/application.actions';
-import { AuthenticationActions } from '../../authentication';
 import { checkAndThrowError } from '../../error.handlers';
 import { getModeState, LoginMode, RootState } from '../../index';
 import { LoginModeActions } from '../login-mode.actions';
 import { AnnotationActions } from './annotation.actions';
-import { AnnotationPersistenceService } from './annotation-persistence.service';
+import { AnnotationMaintenanceEffects } from './annotation-maintenance.effects';
 import { AnnotationState, GuidelinesItem } from './index';
 
 import { FileInfo } from '@tratt/web-media';
-import { DateTime } from 'luxon';
 import mime from 'mime';
-import { MaintenanceAPI } from '../../../component/maintenance/maintenance-api';
 import { FeedBackForm } from '../../../obj/FeedbackForm/FeedBackForm';
-import { ASRQueueItemType } from '../../asr';
 
 @Injectable()
-export class AnnotationEffects {
-  transcrSendingModal: {
-    ref?: NgbModalWrapper<TranscriptionSendingModalComponent>;
-    timeout?: Subscription;
-    error?: string;
-  } = {};
-
+export class AnnotationLoadEffects {
   subscrManager = new SubscriptionManager();
 
   startNewAnnotation$ = createEffect(() =>
@@ -317,23 +294,6 @@ export class AnnotationEffects {
     { dispatch: false },
   );
 
-  setLogging$ = createEffect(
-    () =>
-      this.actions$.pipe(
-        ofType(AnnotationActions.setLogging.do),
-        withLatestFrom(this.store),
-        tap(([action, state]) => {
-          const modeState = getModeState(state)!;
-          this.uiService.init(
-            action.logging,
-            modeState.logging.startTime,
-            modeState.logging.startReference,
-          );
-        }),
-      ),
-    { dispatch: false },
-  );
-
   onAudioLoad$ = createEffect(
     () =>
       this.actions$.pipe(
@@ -483,144 +443,12 @@ export class AnnotationEffects {
     { dispatch: false },
   );
 
-  onTranscriptionEnd$ = createEffect(
-    () =>
-      this.actions$.pipe(
-        ofType(LoginModeActions.endTranscription.do),
-        tap((a) => {
-          this.routingService.navigate(
-            'end transcription',
-            ['/intern/transcr/end'],
-            AppInfo.queryParamsHandling,
-          );
-          this.audio.destroy(true);
-        }),
-      ),
-    { dispatch: false },
-  );
-
-  onQuit$ = createEffect(() =>
-    this.actions$.pipe(
-      ofType(AnnotationActions.quit.do),
-      withLatestFrom(this.store),
-      exhaustMap(([a, state]) => {
-        if (state.application.mode === LoginMode.ONLINE) {
-          if (
-            a.freeTask &&
-            state.onlineMode.currentSession.currentProject &&
-            state.onlineMode.currentSession.task
-          ) {
-            this.store.dispatch(ApplicationActions.waitForEffects.do());
-            return this.apiService
-              .freeTask(
-                state.onlineMode.currentSession.currentProject.id,
-                state.onlineMode.currentSession.task.id,
-              )
-              .pipe(
-                map((result) => {
-                  if (a.redirectToProjects) {
-                    return AnnotationActions.redirectToProjects.do();
-                  } else {
-                    return AuthenticationActions.logout.do({
-                      clearSession: a.clearSession,
-                      mode: state.application.mode!,
-                    });
-                  }
-                }),
-                catchError((error) =>
-                  checkAndThrowError(
-                    {
-                      statusCode: error.status,
-                      message: error.error?.message ?? error.message,
-                    },
-                    a,
-                    AuthenticationActions.logout.do({
-                      clearSession: a.clearSession,
-                      mode: state.application.mode!,
-                    }),
-                    this.store,
-                    () => {
-                      this.alertService.showAlert(
-                        'danger',
-                        error.error?.message ?? error.message,
-                      );
-                    },
-                  ),
-                ),
-              );
-          } else {
-            if (a.redirectToProjects) {
-              this.store.dispatch(ApplicationActions.waitForEffects.do());
-              return of(AnnotationActions.redirectToProjects.do());
-            } else {
-              this.store.dispatch(ApplicationActions.waitForEffects.do());
-              return this.persistence
-                .saveTaskToServer(state, TaskStatus.paused)
-                .pipe(
-                map(() => {
-                  return AuthenticationActions.logout.do({
-                    clearSession: a.clearSession,
-                    mode: state.application.mode,
-                  });
-                }),
-                catchError(() => {
-                  return of(
-                    AuthenticationActions.logout.do({
-                      clearSession: a.clearSession,
-                      mode: state.application.mode,
-                    }),
-                  );
-                }),
-              );
-            }
-          }
-        } else {
-          this.store.dispatch(ApplicationActions.waitForEffects.do());
-          return of(
-            AuthenticationActions.logout.do({
-              clearSession: a.clearSession,
-              mode: state.application.mode!,
-            }),
-          );
-        }
-      }),
-    ),
-  );
-
-  showNoRemainingTasksModal$ = createEffect(
-    () =>
-      this.actions$.pipe(
-        ofType(AnnotationActions.showNoRemainingTasksModal.do),
-        tap((a) => {
-          const ref = this.modalsService.openModalRef(
-            ErrorModalComponent,
-            ErrorModalComponent.options,
-          );
-          (ref.componentInstance as ErrorModalComponent).text =
-            this.transloco.translate('projects-list.no remaining tasks');
-        }),
-      ),
-    { dispatch: false },
-  );
-
-  afterLogoutSuccess$ = createEffect(
-    () =>
-      this.actions$.pipe(
-        ofType(AuthenticationActions.logout.success),
-        withLatestFrom(this.store),
-        tap(([action, state]) => {
-          this.audio.destroy(true);
-        }),
-      ),
-    { dispatch: false },
-  );
-
   loadSegments$ = createEffect(() =>
     this.actions$.pipe(
       ofType(AnnotationActions.initTranscriptionService.do),
       withLatestFrom(this.store),
       exhaustMap(([a, state]) => {
-        this.initMaintenance(state);
+        this.maintenance.initMaintenance(state);
         return this.loadSegments(getModeState(state)!, state);
       }),
     ),
@@ -1060,290 +888,6 @@ export class AnnotationEffects {
     ),
   );
 
-  combinePhrases$ = createEffect(() =>
-    this.actions$.pipe(
-      ofType(AnnotationActions.combinePhrases.do),
-      withLatestFrom(this.store),
-      exhaustMap(([action, state]) => {
-        const modeState = getModeState(state)!;
-
-        if (
-          modeState.transcript.currentLevel &&
-          modeState.transcript.currentLevel.type === 'SEGMENT'
-        ) {
-          let transcript = modeState.transcript.clone();
-          let currentLevel: TrattAnnotationSegmentLevel<TrattAnnotationSegment> =
-            modeState.transcript.currentLevel.clone() as TrattAnnotationSegmentLevel<TrattAnnotationSegment>;
-          const breakMarker =
-            modeState.guidelines?.selected?.json?.markers?.find(
-              (a) => a.type === 'break',
-            );
-
-          const maxWords = action.options.maxWordsPerSegment;
-          const minSilenceLength = action.options.minSilenceLength;
-          const isSilence = (segment: TrattAnnotationSegment) => {
-            return (
-              segment.getFirstLabelWithoutName('Speaker')?.value.trim() ===
-                '' ||
-              segment.getFirstLabelWithoutName('Speaker')?.value.trim() ===
-                breakMarker?.code ||
-              segment.getFirstLabelWithoutName('Speaker')?.value.trim() ===
-                '<p:>' ||
-              segment.getFirstLabelWithoutName('Speaker')?.value.trim() ===
-                breakMarker?.code
-            );
-          };
-
-          const countWords = (text: string) => {
-            return text.trim().split(' ').length;
-          };
-
-          let wordCounter = 0;
-
-          for (let i = 0; i < currentLevel.items.length; i++) {
-            const segment = currentLevel.items[i];
-
-            let startPos = 0;
-            if (i > 0) {
-              startPos = currentLevel.items[i - 1].time.unix;
-            }
-            let duration = segment.time.unix - startPos;
-            if (!isSilence(segment) || duration < minSilenceLength) {
-              if (maxWords > 0 && wordCounter >= maxWords) {
-                wordCounter = isSilence(segment)
-                  ? 0
-                  : countWords(
-                      segment.getFirstLabelWithoutName('Speaker')?.value ?? '',
-                    );
-              } else {
-                if (i > 0) {
-                  const lastSegment = currentLevel.items[i - 1];
-                  startPos = 0;
-                  if (i > 1) {
-                    startPos = currentLevel.items[i - 2].time.unix;
-                  }
-                  duration = lastSegment.time.unix - startPos;
-                  if (!isSilence(lastSegment) || duration < minSilenceLength) {
-                    let lastSegmentText =
-                      lastSegment.getFirstLabelWithoutName('Speaker')?.value;
-                    let segmentText =
-                      segment.getFirstLabelWithoutName('Speaker')?.value;
-
-                    if (isSilence(lastSegment)) {
-                      lastSegmentText = '';
-                    }
-
-                    if (!isSilence(segment)) {
-                      segment.changeFirstLabelWithoutName(
-                        'Speaker',
-                        `${lastSegmentText} ${segmentText}`,
-                      );
-                      wordCounter = countWords(
-                        `${lastSegmentText} ${segmentText}`,
-                      );
-                    } else {
-                      segmentText = '';
-                      segment.changeFirstLabelWithoutName(
-                        'Speaker',
-                        `${lastSegmentText}`,
-                      );
-                    }
-                    transcript = transcript!.removeItemByIndex(
-                      i - 1,
-                      '',
-                      false,
-                      (transcript: string) => {
-                        const guidelinesJson =
-                          modeState.guidelines?.selected?.json;
-                        if (!guidelinesJson) {
-                          return transcript;
-                        }
-                        return tidyUpAnnotation(transcript, guidelinesJson);
-                      },
-                    );
-                    currentLevel = transcript.currentLevel as any;
-                    i--;
-                  }
-                }
-              }
-            }
-          }
-          return of(
-            AnnotationActions.combinePhrases.success({
-              mode: state.application.mode!,
-              transcript,
-            }),
-          );
-        }
-        return of(
-          AnnotationActions.combinePhrases.fail({
-            error:
-              "Can't combine phrases: current level must be of type SEGMENT.",
-          }),
-        );
-      }),
-    ),
-  );
-
-  onAnnotationSend$ = createEffect(() =>
-    this.actions$.pipe(
-      ofType(AnnotationActions.sendOnlineAnnotation.do),
-      withLatestFrom(this.store),
-      exhaustMap(([a, state]) => {
-        if (state.application.mode === LoginMode.ONLINE) {
-          this.transcrSendingModal.timeout = timer(2000).subscribe({
-            next: () => {
-              this.transcrSendingModal.ref = this.modalsService.openModalRef(
-                TranscriptionSendingModalComponent,
-                TranscriptionSendingModalComponent.options,
-              );
-              this.transcrSendingModal.ref.componentInstance.error =
-                this.transcrSendingModal.error ?? '';
-            },
-          });
-
-          if (
-            !state.onlineMode.currentSession.currentProject ||
-            !state.onlineMode.currentSession.task?.id
-          ) {
-            return of(
-              AnnotationActions.sendOnlineAnnotation.fail({
-                mode: state.application.mode!,
-                error: 'Current project or current task is undefined',
-              }),
-            );
-          }
-
-          return this.persistence
-            .saveTaskToServer(state, TaskStatus.finished)
-            .pipe(
-            map((a) => {
-              return AnnotationActions.sendOnlineAnnotation.success({
-                mode: state.application.mode!,
-                task: a!,
-              });
-            }),
-            catchError((error: HttpErrorResponse) => {
-              if (error.status === 401) {
-                this.transcrSendingModal.timeout?.unsubscribe();
-              }
-
-              return checkAndThrowError(
-                {
-                  statusCode: error.status,
-                  message: error.error?.message ?? error.message,
-                },
-                a,
-                AnnotationActions.sendOnlineAnnotation.fail({
-                  mode: state.application.mode!,
-                  error: error.error?.message ?? error.message,
-                }),
-                this.store,
-                () => {
-                  if (this.transcrSendingModal.ref) {
-                    this.transcrSendingModal.ref.componentInstance.error =
-                      error.error?.message ?? error.message;
-                  }
-                },
-              );
-            }),
-          );
-        }
-
-        return of(
-          AnnotationActions.sendOnlineAnnotation.fail({
-            mode: state.application.mode!,
-            error: 'Not implemented',
-          }),
-        );
-      }),
-    ),
-  );
-
-  sendAnnotationFail$ = createEffect(
-    () =>
-      this.actions$.pipe(
-        ofType(AnnotationActions.sendOnlineAnnotation.fail),
-        withLatestFrom(this.store),
-        tap(([action, state]) => {
-          this.transcrSendingModal.timeout?.unsubscribe();
-          this.transcrSendingModal.ref?.close();
-
-          this.modalsService.openErrorModal(action.error);
-        }),
-      ),
-    { dispatch: false },
-  );
-
-  afterAnnotationSent$ = createEffect(() =>
-    this.actions$.pipe(
-      ofType(AnnotationActions.sendOnlineAnnotation.success),
-      withLatestFrom(this.store),
-      exhaustMap(([a, state]) => {
-        this.transcrSendingModal.timeout?.unsubscribe();
-        this.transcrSendingModal.ref?.close();
-
-        this.alertService.showAlert(
-          'success',
-          this.transloco.translate('g.submission success'),
-          true,
-          2000,
-        );
-
-        this.store.dispatch(ApplicationActions.waitForEffects.do());
-
-        return of(
-          LoginModeActions.clearOnlineSession.do({
-            mode: a.mode,
-            actionAfterSuccess: AnnotationActions.startNewAnnotation.do({
-              mode: a.mode,
-              project: state.onlineMode.currentSession.currentProject!,
-              actionAfterFail: LoginModeActions.endTranscription.do({
-                clearSession: true,
-                mode: LoginMode.ONLINE,
-              }),
-            }),
-          }),
-        );
-      }),
-    ),
-  );
-
-  afterClearOnlineSession$ = createEffect(() =>
-    this.actions$.pipe(
-      ofType(LoginModeActions.clearOnlineSession.do),
-      exhaustMap((a) => {
-        this.audio.destroy(true);
-        return of(a.actionAfterSuccess);
-      }),
-    ),
-  );
-
-  onClearWholeSession$ = createEffect(() =>
-    this.actions$.pipe(
-      ofType(LoginModeActions.clearOnlineSession.do),
-      exhaustMap((a) => {
-        this.audio.destroy(true);
-        return of(a.actionAfterSuccess);
-      }),
-    ),
-  );
-
-  redirectToProjects$ = createEffect(() =>
-    this.actions$.pipe(
-      ofType(AnnotationActions.redirectToProjects.do),
-      exhaustMap((a) => {
-        console.warn('redirect to projects');
-        this.routingService.navigate(
-          'redirect to projects after quit',
-          ['/intern/projects'],
-          AppInfo.queryParamsHandling,
-        );
-        return of(AnnotationActions.redirectToProjects.success());
-      }),
-    ),
-  );
-
   resumeTaskManually$ = createEffect(() =>
     this.actions$.pipe(
       ofType(AnnotationActions.resumeTaskManually.do),
@@ -1382,195 +926,6 @@ export class AnnotationEffects {
         }),
       ),
     { dispatch: false },
-  );
-
-  combinePhrasesSuccess$ = createEffect(
-    () =>
-      this.actions$.pipe(
-        ofType(AnnotationActions.combinePhrases.success),
-        withLatestFrom(this.store),
-        tap(() => {
-          this.alertService.showAlert(
-            'success',
-            this.transloco.translate('tools.alerts.done', {
-              value: 'Combine Phrases',
-            }),
-          );
-        }),
-      ),
-    { dispatch: false },
-  );
-
-  combinePhrasesFailed$ = createEffect(
-    () =>
-      this.actions$.pipe(
-        ofType(AnnotationActions.combinePhrases.fail),
-        tap((action) => {
-          this.alertService.showAlert(
-            'danger',
-            this.transloco.translate('tools.alerts.fail', {
-              value: 'Combine Phrases',
-              error: action.error,
-            }),
-          );
-        }),
-      ),
-    { dispatch: false },
-  );
-
-  asrRunWordAlignmentSuccess$ = createEffect(() =>
-    this.actions$.pipe(
-      ofType(AnnotationActions.updateASRSegmentInformation.do),
-      withLatestFrom(this.store),
-      exhaustMap(([action, state]) => {
-        if (
-          (action.itemType === ASRQueueItemType.ASRMAUS ||
-            action.itemType === ASRQueueItemType.MAUS) &&
-          action.result
-        ) {
-          const segmentBoundary = new SampleUnit(
-            action.timeInterval.sampleStart +
-              action.timeInterval.sampleLength / 2,
-            getModeState(state)!.audio.sampleRate!,
-          );
-          const segmentIndex =
-            getModeState(
-              state,
-            )!.transcript.getCurrentSegmentIndexBySamplePosition(
-              segmentBoundary,
-            );
-
-          const converter = new PraatTextgridConverter();
-          const audioManager = this.audio.audioManager;
-          const audiofile = audioManager.resource.getOAudioFile();
-          audiofile.name = `OCTRA_ASRqueueItem_${segmentIndex}.wav`;
-
-          if (action.result) {
-            const convertedResult = converter.import(
-              {
-                name: `OCTRA_ASRqueueItem_${segmentIndex}.TextGrid`,
-                content: action.result,
-                type: 'text',
-                encoding: 'utf-8',
-              },
-              audiofile,
-            );
-
-            if (convertedResult?.annotjson) {
-              const wordsTier = convertedResult.annotjson.levels.find(
-                (a: any) => {
-                  return a.name === 'ORT-MAU';
-                },
-              );
-
-              if (wordsTier !== undefined) {
-                let counter = 0;
-
-                if (segmentIndex < 0) {
-                  return of(
-                    AnnotationActions.addMultipleASRSegments.fail({
-                      error: `could not find segment to be precessed by ASRMAUS!`,
-                    }),
-                  );
-                } else {
-                  const segmentID =
-                    getModeState(state)!.transcript.currentLevel!.items[
-                      segmentIndex
-                    ].id;
-                  const newSegments: TrattAnnotationSegment[] = [];
-
-                  let itemCounter =
-                    getModeState(state)?.transcript.idCounters.item ?? 1;
-
-                  for (const wordItem of wordsTier.items as ISegment[]) {
-                    const itemEnd =
-                      action.timeInterval.sampleStart +
-                      action.timeInterval.sampleLength;
-                    let wordItemEnd =
-                      action.timeInterval.sampleStart +
-                      Math.ceil(wordItem.sampleStart + wordItem.sampleDur);
-                    wordItemEnd = Math.min(itemEnd, wordItemEnd);
-
-                    if (wordItemEnd >= action.timeInterval.sampleStart) {
-                      const readSegment = new TrattAnnotationSegment(
-                        itemCounter++,
-                        new SampleUnit(
-                          wordItemEnd,
-                          this.audio.audioManager.resource.info.sampleRate,
-                        ),
-                        wordItem.labels.map((a) =>
-                          OLabel.deserialize({
-                            ...a,
-                            name:
-                              a.name === 'ORT-MAU'
-                                ? getModeState(state)!.transcript!.currentLevel!
-                                    .name!
-                                : a.name,
-                          }),
-                        ),
-                      );
-
-                      const labelIndex = readSegment.labels.findIndex(
-                        (a) => a.value === '<p:>' || a.value === '',
-                      );
-
-                      if (labelIndex > -1) {
-                        readSegment.labels[labelIndex].value =
-                          getModeState(
-                            state,
-                          )!.guidelines?.selected?.json.markers.find(
-                            (a) => a.type === 'break',
-                          )?.code ?? '';
-                      }
-
-                      newSegments.push(readSegment);
-                      // the last segment is the original segment
-                    } else {
-                      // tslint:disable-next-line:max-line-length
-                      console.error(
-                        `Invalid word item boundary:! ${wordItemEnd} <= ${action.timeInterval.sampleStart}`,
-                      );
-                      return of(
-                        AnnotationActions.addMultipleASRSegments.fail({
-                          error: `wordItem samples are out of the correct boundaries.`,
-                        }),
-                      );
-                    }
-                    counter++;
-                  }
-                  return of(
-                    AnnotationActions.addMultipleASRSegments.success({
-                      mode: state.application.mode!,
-                      segmentID,
-                      newSegments,
-                    }),
-                  );
-                }
-              } else {
-                return of(
-                  AnnotationActions.addMultipleASRSegments.fail({
-                    error: 'word tier not found!',
-                  }),
-                );
-              }
-            } else {
-              return of(
-                AnnotationActions.addMultipleASRSegments.fail({
-                  error: 'importresult ist undefined',
-                }),
-              );
-            }
-          } else {
-            return of(
-              AnnotationActions.addMultipleASRSegments.fail({
-                error: 'Result is undefined',
-              }),
-            );
-          }
-        }
-        return of();
-      }),
-    ),
   );
 
   private addFunctions(assets: ToolConfigurationAssetDto[]) {
@@ -1811,93 +1166,6 @@ export class AnnotationEffects {
     }
   }
 
-  levelIndexChange$ = createEffect(
-    () =>
-      this.actions$.pipe(
-        ofType(AnnotationActions.setLevelIndex.do),
-        withLatestFrom(this.store),
-        tap(([action, state]) => {
-          this.uiService.addElementFromEvent(
-            'level',
-            { value: 'changed' },
-            Date.now(),
-            this.audio.audioManager.createSampleUnit(0),
-            undefined,
-            undefined,
-            undefined,
-            getModeState(state)?.transcript?.levels[action.currentLevelIndex]
-              ?.name,
-          );
-        }),
-      ),
-    { dispatch: false },
-  );
-
-  public initMaintenance(state: RootState) {
-    if (
-      state.application.appConfiguration !== undefined &&
-      hasProperty(
-        state.application.appConfiguration.tratt,
-        'maintenanceNotification',
-      ) &&
-      state.application.appConfiguration.tratt.maintenanceNotification
-        .active === 'active'
-    ) {
-      const maintenanceAPI = new MaintenanceAPI(
-        state.application.appConfiguration.tratt.maintenanceNotification.apiURL,
-        this.http,
-      );
-
-      maintenanceAPI
-        .readMaintenanceNotifications(24)
-        .then((notification) => {
-          // only check in interval if there is a pending maintenance in the next 24 hours
-          if (notification !== undefined) {
-            const readNotification = () => {
-              // notify after 15 minutes one hour before the maintenance begins
-              maintenanceAPI
-                .readMaintenanceNotifications(1)
-                .then((notification2) => {
-                  if (notification2 !== undefined) {
-                    this.alertService.showAlert(
-                      'warning',
-                      '⚠️ ' +
-                        this.transloco.translate('maintenance.in app', {
-                          start: DateTime.fromISO(notification.begin)
-                            .setLocale(this.appStorage.language)
-                            .toLocaleString(DateTime.DATETIME_SHORT),
-                          end: DateTime.fromISO(notification.end)
-                            .setLocale(this.appStorage.language)
-                            .toLocaleString(DateTime.DATETIME_SHORT),
-                        }),
-                      true,
-                      60,
-                    );
-                  }
-                })
-                .catch(() => {
-                  // ignore
-                });
-            };
-
-            if (this.maintenanceChecker !== undefined) {
-              this.maintenanceChecker.unsubscribe();
-            }
-
-            // run each 15 minutes
-            this.maintenanceChecker = interval(15 * 60000).subscribe(
-              readNotification,
-            );
-          }
-        })
-        .catch(() => {
-          // ignore
-        });
-    }
-  }
-
-  private maintenanceChecker?: Subscription;
-
   constructor(
     private actions$: Actions,
     private store: Store<RootState>,
@@ -1910,7 +1178,7 @@ export class AnnotationEffects {
     private uiService: UserInteractionsService,
     private appStorage: AppStorageService,
     private transloco: TranslocoService,
-    private persistence: AnnotationPersistenceService,
+    private maintenance: AnnotationMaintenanceEffects,
   ) {}
 }
 

@@ -29,7 +29,10 @@ import { DynComponentDirective } from '../../shared/directive/dyn-component.dire
 import { LoadeditorDirective } from '../../shared/directive/loadeditor.directive';
 import { LoginMode } from '../../store';
 import { LoginModeReducers } from '../../store/login-mode';
-import { AnnotationEffects } from '../../store/login-mode/annotation/annotation.effects';
+import { AnnotationLoadEffects } from '../../store/login-mode/annotation/annotation-load.effects';
+import { AnnotationSaveEffects } from '../../store/login-mode/annotation/annotation-save.effects';
+import { AnnotationMaintenanceEffects } from '../../store/login-mode/annotation/annotation-maintenance.effects';
+import { AnnotationToolsEffects } from '../../store/login-mode/annotation/annotation-tools.effects';
 import { LoadingComponent } from '../loading';
 import { AuthComponent } from './auth';
 import { AuthSuccessPageComponent } from './auth-success/auth-success.page.component';
@@ -74,7 +77,12 @@ export const EDITORS: any[] = [
       'urlMode',
       new LoginModeReducers(LoginMode.URL).create(),
     ),
-    EffectsModule.forFeature([AnnotationEffects]),
+    EffectsModule.forFeature([
+      AnnotationLoadEffects,
+      AnnotationSaveEffects,
+      AnnotationMaintenanceEffects,
+      AnnotationToolsEffects,
+    ]),
     TrattUtilitiesModule,
     NgbDropdown,
     NgbDropdownToggle,
