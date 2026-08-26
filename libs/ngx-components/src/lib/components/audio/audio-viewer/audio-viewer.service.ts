@@ -185,7 +185,7 @@ export class AudioViewerService {
       strokeWidth: 1,
     },
     signal: {
-      strokeColor: 'rgba(42, 71, 101, 0.8)',
+      strokeColor: TRATT_COLORS.waveformSignal,
       strokeWidth: 1,
     },
   };
@@ -4501,21 +4501,21 @@ export class AudioViewerService {
                 sceneSegment.context?.asr?.isBlockedBy === ASRQueueItemType.ASR
               ) {
                 // blocked by ASR
-                context.fillStyle = 'rgba(255,191,0,0.5)';
-                progressBarFillColor = 'rgba(221,167,14,0.8)';
+                context.fillStyle = TRATT_COLORS.asrBlockedFill;
+                progressBarFillColor = TRATT_COLORS.asrBlockedProgress;
                 progressBarForeColor = 'black';
               } else if (
                 sceneSegment.context?.asr?.isBlockedBy ===
                 ASRQueueItemType.ASRMAUS
               ) {
-                context.fillStyle = 'rgba(179,10,179,0.5)';
-                progressBarFillColor = 'rgba(179,10,179,0.8)';
+                context.fillStyle = TRATT_COLORS.asrMausBlockedFill;
+                progressBarFillColor = TRATT_COLORS.asrMausBlockedProgress;
                 progressBarForeColor = TRATT_COLORS.surfaceBackground;
               } else if (
                 sceneSegment.context?.asr?.isBlockedBy === ASRQueueItemType.MAUS
               ) {
-                context.fillStyle = 'rgba(26,229,160,0.5)';
-                progressBarFillColor = 'rgba(17,176,122,0.8)';
+                context.fillStyle = TRATT_COLORS.mausBlockedFill;
+                progressBarFillColor = TRATT_COLORS.mausBlockedProgress;
                 progressBarForeColor = TRATT_COLORS.surfaceBackground;
               }
               context.clearRect(x, localY, w, h);
