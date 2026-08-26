@@ -1,4 +1,5 @@
 import { OAudiofile } from '@tratt/media';
+import { escapeXmlEntities } from '@tratt/utilities';
 import { OAnnotJSON } from '../annotjson';
 import { SupportedApplication } from './SupportedApplications';
 
@@ -122,12 +123,7 @@ export abstract class Converter {
   }
 
   protected escapeXml(s: string): string {
-    return s
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;')
-      .replace(/'/g, '&apos;');
+    return escapeXmlEntities(s, '&apos;');
   }
 
   /**

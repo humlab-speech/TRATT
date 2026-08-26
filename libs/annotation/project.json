@@ -13,6 +13,12 @@
         "tsConfig": "libs/annotation/tsconfig.lib.json"
       }
     },
+    "test": {
+      "executor": "@nx/vite:test",
+      "options": {
+        "config": "libs/annotation/vite.config.ts"
+      }
+    },
     "lint": {
       "executor": "@nx/eslint:lint",
       "options": {

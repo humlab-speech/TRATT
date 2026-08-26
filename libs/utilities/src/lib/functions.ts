@@ -122,13 +122,20 @@ export function getFileSize(bytes: number): FileSize {
   return result;
 }
 
-export function escapeHtml(text: string): string {
+export function escapeXmlEntities(
+  text: string,
+  apostropheEntity: string,
+): string {
   return text
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#039;');
+    .replace(/'/g, apostropheEntity);
+}
+
+export function escapeHtml(text: string): string {
+  return escapeXmlEntities(text, '&#039;');
 }
 
 export function unEscapeHtml(text: string): string {
