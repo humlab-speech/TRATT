@@ -138,6 +138,12 @@ export function escapeHtml(text: string): string {
   return escapeXmlEntities(text, '&#039;');
 }
 
+export function formatMinutesSeconds(totalSeconds: number): string {
+  const m = Math.floor(totalSeconds / 60);
+  const s = Math.floor(totalSeconds % 60);
+  return `${m}:${s.toString().padStart(2, '0')}`;
+}
+
 export function unEscapeHtml(text: string): string {
   return text
     .replace(/&amp;/g, '&')

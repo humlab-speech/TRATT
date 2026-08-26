@@ -7,7 +7,7 @@ import { NgbNavModule } from '@ng-bootstrap/ng-bootstrap';
 import { AccountLoginMethod } from '@octra/api-types';
 import { OctraAPIService } from '@octra/ngx-octra-api';
 import type { OAnnotJSON } from '@tratt/annotation';
-import { FileSize, getFileSize } from '@tratt/utilities';
+import { FileSize, getFileSize, formatMinutesSeconds } from '@tratt/utilities';
 import { filter, firstValueFrom, Observable, Subscription, tap } from 'rxjs';
 import { AuthenticationComponent } from '../../component/authentication-component/authentication-component.component';
 import { DefaultComponent } from '../../component/default.component';
@@ -56,9 +56,7 @@ const TRANSLATION_DOWNLOAD_STALL_MS = 30_000;
 const TRANSLATION_INIT_STALL_MS = 60_000;
 
 function formatDuration(seconds: number): string {
-  const m = Math.floor(seconds / 60);
-  const s = Math.floor(seconds % 60);
-  return `${m}:${s.toString().padStart(2, '0')}`;
+  return formatMinutesSeconds(seconds);
 }
 
 @Component({
