@@ -12,7 +12,6 @@ import {
 } from '@octra/api-types';
 import { OctraAPIService } from '@octra/ngx-octra-api';
 import {
-  AnnotJSONConverter,
   ImportResult,
   ISegment,
   OAnnotJSON,
@@ -70,6 +69,7 @@ import { checkAndThrowError } from '../../error.handlers';
 import { getModeState, LoginMode, RootState } from '../../index';
 import { LoginModeActions } from '../login-mode.actions';
 import { AnnotationActions } from './annotation.actions';
+import { AnnotationPersistenceService } from './annotation-persistence.service';
 import { AnnotationState, GuidelinesItem } from './index';
 
 import { FileInfo } from '@tratt/web-media';
@@ -554,7 +554,9 @@ export class AnnotationEffects {
               return of(AnnotationActions.redirectToProjects.do());
             } else {
               this.store.dispatch(ApplicationActions.waitForEffects.do());
-              return this.saveTaskToServer(state, TaskStatus.paused).pipe(
+              return this.persistence
+                .saveTaskToServer(state, TaskStatus.paused)
+                .pipe(
                 map(() => {
                   return AuthenticationActions.logout.do({
                     clearSession: a.clearSession,
@@ -1212,7 +1214,9 @@ export class AnnotationEffects {
             );
           }
 
-          return this.saveTaskToServer(state, TaskStatus.finished).pipe(
+          return this.persistence
+            .saveTaskToServer(state, TaskStatus.finished)
+            .pipe(
             map((a) => {
               return AnnotationActions.sendOnlineAnnotation.success({
                 mode: state.application.mode!,
@@ -1892,60 +1896,6 @@ export class AnnotationEffects {
     }
   }
 
-  private saveTaskToServer(
-    state: RootState,
-    status: TaskStatus,
-  ): Observable<TaskDto | undefined> {
-    if (!this.audio.audioManager?.resource) {
-      return of(undefined);
-    }
-
-    const result = new AnnotJSONConverter().export(
-      state.onlineMode.transcript
-        .clone()
-        .serialize(
-          this.audio.audioManager.resource.info.fullname,
-          this.audio.audioManager.resource.info.sampleRate,
-          this.audio.audioManager.resource.info.duration.clone(),
-        ),
-    )?.file?.content;
-
-    const outputs = result
-      ? [
-          new File(
-            [result],
-            state.onlineMode.audio.fileName.substring(
-              0,
-              state.onlineMode.audio.fileName.lastIndexOf('.'),
-            ) + '_annot.json',
-            {
-              type: 'application/json',
-            },
-          ),
-        ]
-      : [];
-
-    return this.apiService.saveTask(
-      state.onlineMode.currentSession!.currentProject!.id,
-      state.onlineMode.currentSession!.task!.id,
-      {
-        assessment: state.onlineMode.currentSession.assessment,
-        comment: state.onlineMode.currentSession.comment,
-        status,
-      },
-      state.onlineMode.logging.logs
-        ? new File(
-            [JSON.stringify(state.onlineMode.logging.logs)],
-            'log.json',
-            {
-              type: 'application/json',
-            },
-          )
-        : undefined,
-      outputs,
-    );
-  }
-
   private maintenanceChecker?: Subscription;
 
   constructor(
@@ -1960,6 +1910,7 @@ export class AnnotationEffects {
     private uiService: UserInteractionsService,
     private appStorage: AppStorageService,
     private transloco: TranslocoService,
+    private persistence: AnnotationPersistenceService,
   ) {}
 }
 
