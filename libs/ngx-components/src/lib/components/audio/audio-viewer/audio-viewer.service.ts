@@ -1749,7 +1749,7 @@ export class AudioViewerService {
               segmentEnd.samples >= audioChunkEnd.samples)
           ) {
             let lastI: number | undefined = 0;
-            this.removeSegmentFromCanvas(segment.id); // TODO hier werden segmente entfernt
+            this.removeSegmentFromCanvas(segment.id);
             const segmentHeight =
               (lineNum2 - lineNum1 + 1) *
               (this.settings.lineheight + this.settings.margin.top);
