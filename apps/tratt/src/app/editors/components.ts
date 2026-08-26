@@ -22,15 +22,15 @@ export const editorComponents: {
     icon: 'bi bi-window-desktop',
   },
   {
-    name: TwoDEditorComponent.editorname,
-    editor: TwoDEditorComponent,
-    translate: 'interfaces.2D editor',
-    icon: 'bi bi-justify',
-  },
-  {
     name: TrnEditorComponent.editorname,
     editor: TrnEditorComponent,
     translate: 'interfaces.TRN editor',
     icon: 'bi bi-table',
+  },
+  {
+    name: TwoDEditorComponent.editorname,
+    editor: TwoDEditorComponent,
+    translate: 'interfaces.2D editor',
+    icon: 'bi bi-justify',
   },
 ];

@@ -62,24 +62,22 @@ What was verified statically instead:
   loading a task will not error there, but will also visibly do
   nothing where the working editors would size/prepare the view.
 
-**Side-effect worth flagging** (found during the trace, not called out
-in the brief): `changeEditor()` has a fallback — when called with an
-empty/undefined interface name, it defaults to
+**Side-effect found and resolved**: `changeEditor()` has a fallback —
+when called with an empty/undefined interface name, it defaults to
 `editorComponents[editorComponents.length - 1]` (~line 620), i.e. "the
 last registered editor." Before this task, that was
-`TwoDEditorComponent` (fully functional). After this task, appending
-TRN-Editor to the end of the array makes it the new empty-name
-fallback. The normal load path first runs `checkCurrentEditor()`,
-which resets `appStorage.interface` to `projectsettings.interfaces[0]`
-when the stored value isn't in the project's interface list — so this
-fallback looks like a rare edge case in practice (empty stored
-interface *and* an empty `projectsettings.interfaces[0]`), not the
-common path. Still, it means the empty-name fallback silently
-downgraded from a working editor to a broken one. Worth either
-reordering the registry (functional editors last) or making the
-fallback explicit/safe in a follow-up — flagging here rather than
-fixing, since reordering/changing fallback behavior is outside this
-task's stated scope (registry re-enable only).
+`TwoDEditorComponent` (fully functional). Appending TRN-Editor to the
+end of the array had made it the new empty-name fallback, silently
+downgrading that edge case from a working editor to a broken one.
+
+Fixed: `apps/tratt/src/app/editors/components.ts`'s `editorComponents`
+array was reordered so `TrnEditorComponent`'s entry now comes before
+`TwoDEditorComponent`'s (Dictaphone, Linear, TrnEditor, TwoD), keeping
+`TwoDEditorComponent` as the last entry. This closes the regression —
+the empty-name fallback still resolves to the working 2D editor,
+unchanged from before this task. TRN-Editor remains fully selectable
+by name from the switcher UI regardless of its position in the array,
+since selection there is name-based, not position-based.
 
 ## Suggested next step
 Dedicated plan, one task per commented block, each task: read the block,
