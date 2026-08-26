@@ -60,6 +60,7 @@ export class AuthenticationEffects {
           params: Record<string, string | number | undefined | null | boolean>,
         ) => {
           const baseURL = getBaseHrefURL();
+          const nonce = crypto.randomUUID();
 
           const bc = new BroadcastChannel('ocb_authentication');
           let settled = false;
@@ -80,7 +81,10 @@ export class AuthenticationEffects {
           );
 
           bc.addEventListener('message', (e) => {
-            if (e.data === true && !settled) {
+            const data = e.data as
+              | { ok?: boolean; nonce?: string }
+              | undefined;
+            if (data?.ok === true && data.nonce === nonce && !settled) {
               settled = true;
               window.clearTimeout(timeoutId);
               this.store.dispatch(
@@ -94,7 +98,9 @@ export class AuthenticationEffects {
 
           params = {
             ...params,
-            r: joinURL(baseURL, 'auth-success'),
+            r: appendURLQueryParams(joinURL(baseURL, 'auth-success'), {
+              nonce,
+            }),
           };
 
           const filteredParams = Object.fromEntries(

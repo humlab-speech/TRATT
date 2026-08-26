@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { DefaultComponent } from '../../../component/default.component';
 import { ApplicationStoreService } from '../../../store/application/application-store.service';
@@ -13,13 +14,17 @@ export class AuthSuccessPageComponent
   extends DefaultComponent
   implements OnInit
 {
-  constructor(private appService: ApplicationStoreService) {
+  constructor(
+    private appService: ApplicationStoreService,
+    private route: ActivatedRoute,
+  ) {
     super();
   }
 
   ngOnInit() {
+    const nonce = this.route.snapshot.queryParamMap.get('nonce');
     const bc = new BroadcastChannel('ocb_authentication');
-    bc.postMessage(true);
+    bc.postMessage({ ok: true, nonce });
     bc.close();
     window.close();
   }
