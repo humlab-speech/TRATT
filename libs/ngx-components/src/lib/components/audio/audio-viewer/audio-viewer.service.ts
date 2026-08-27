@@ -14,17 +14,12 @@ import {
   AudioChunk,
   AudioManager,
   AudioTimeCalculator,
-  ShortcutGroup,
   ShortcutManager,
 } from '@tratt/web-media';
-import { Context } from 'konva/lib/Context';
-import { Group } from 'konva/lib/Group';
-import { Shape } from 'konva/lib/Shape';
 import type { Vector2d } from 'konva/lib/types';
 import { ReplaySubject, Subject } from 'rxjs';
 import { Subscription } from 'rxjs/internal/Subscription';
 import { MultiThreadingService } from '../../../multi-threading.service';
-import { Position, Size } from '../../../obj';
 import { PlayCursor } from '../../../obj/play-cursor';
 import {
   AudioViewerInteractionService,
@@ -161,24 +156,6 @@ export class AudioViewerService {
     this.canvasRenderer.audioTCalculator = value;
   }
 
-  /** Moved to AudioViewerInteractionService (S1 split, task 15/21). */
-  public get overboundary(): boolean {
-    return this.interaction.overboundary;
-  }
-
-  public set overboundary(value: boolean) {
-    this.interaction.overboundary = value;
-  }
-
-  /** Moved to AudioViewerInteractionService (S1 split, task 15/21). */
-  public get shiftPressed(): boolean {
-    return this.interaction.shiftPressed;
-  }
-
-  public set shiftPressed(value: boolean) {
-    this.interaction.shiftPressed = value;
-  }
-
   /** Moved to AudioViewerRendererService (read live by
    * `transcriptBackgroundSceneFunc`/`drawTextLabel`); externally settable
    * by audio-viewer.component.ts (`av.silencePlaceholder = ...`), so this
@@ -236,8 +213,6 @@ export class AudioViewerService {
   protected set audioPxW(value: number) {
     this.canvasRenderer.audioPxWidth = value;
   }
-
-  protected hZoom = 0;
 
   /** Moved to AudioViewerRendererService (read live by `sceneFuncGrid`/
    * `sceneFuncSignal`/the segment-layout scene functions and set once,
@@ -599,7 +574,8 @@ export class AudioViewerService {
     };
   }
 
-  /** Keyboard/mouse handlers `initializeStageContainer` wires onto the
+  /** Keyboard/mouse handlers the renderer's `initializeStageContainer`
+   * wires onto the
    * stage container's native DOM events — these stay on
    * AudioViewerService (interaction, not rendering) so they're passed in
    * rather than referenced by the renderer via `this`. */
@@ -749,9 +725,6 @@ export class AudioViewerService {
       this.onInitialized.next();
     }
   }
-  public updateLines = () => {
-    this.canvasRenderer.updateLines();
-  };
   private updateViewPort() {
     this.canvasRenderer.updateViewPort();
   }
@@ -779,9 +752,6 @@ export class AudioViewerService {
     }
   }
 
-  private createCropContainer(id?: string): Group {
-    return this.canvasRenderer.createCropContainer(id);
-  }
   public onPlaybackStarted() {
     if (
       this.canvasRenderer.animation.playHead &&
@@ -811,56 +781,8 @@ export class AudioViewerService {
     this.canvasRenderer.layers?.playhead.draw();
   }
 
-  private createLineBackground(line: Group, size: Size) {
-    this.canvasRenderer.createLineBackground(line, size);
-  }
-  private createLineBorder(line: Group, size: Size) {
-    this.canvasRenderer.createLineBorder(line, size);
-  }
-  private createLineSelection(line: Group, size: Size) {
-    this.canvasRenderer.createLineSelection(line, size);
-  }
-  private createLineGrid(line: Group, size: Size) {
-    this.canvasRenderer.createLineGrid(line, size);
-  }
-  private sceneFuncGrid = (context: Context, shape: Shape) => {
-    this.canvasRenderer.sceneFuncGrid(context, shape);
-  };
-  private createLinePlayCursor() {
-    return this.canvasRenderer.createLinePlayCursor();
-  }
-  private createLine(size: Size, position: Position, lineNum: number): Group {
-    return this.canvasRenderer.createLine(size, position, lineNum);
-  }
-  private createLineSelectionGroup(
-    size: Size,
-    position: Position,
-    lineNum: number,
-  ): Group {
-    return this.canvasRenderer.createLineSelectionGroup(
-      size,
-      position,
-      lineNum,
-    );
-  }
-  private createLineSignal(line: Group, size: Size, lineNum: number) {
-    this.canvasRenderer.createLineSignal(line, size, lineNum);
-  }
-  private sceneFuncSignal = (
-    context: Context,
-    shape: Shape,
-    lineNum: number,
-  ) => {
-    this.canvasRenderer.sceneFuncSignal(context, shape, lineNum);
-  };
-  private doPlayHeadAnimation = () => {
-    this.canvasRenderer.doPlayHeadAnimation();
-  };
   public updatePlayCursor = () => {
     this.canvasRenderer.updatePlayCursor();
-  };
-  private changePlayCursorAbsX = (newValue: number) => {
-    this.canvasRenderer.changePlayCursorAbsX(newValue);
   };
   updateAllSegments(clearAll = false) {
     this.canvasRenderer.updateAllSegments(
@@ -870,104 +792,6 @@ export class AudioViewerService {
   }
   drawAllBoundaries() {
     this.canvasRenderer.drawAllBoundaries(this.buildSegmentRenderContext());
-  }
-  private drawNewBoundaries(
-    boundariesToDraw: {
-      x: number;
-      y: number;
-      num: number;
-      id: number;
-    }[],
-  ) {
-    this.canvasRenderer.drawNewBoundaries(
-      boundariesToDraw,
-      this.buildSegmentRenderContext(),
-    );
-  }
-  private createSegmentOnCanvas(
-    numOfLines: number,
-    segmentData: {
-      index: number;
-      segment: TrattAnnotationSegment;
-    },
-    segmentInterval: {
-      start: number;
-      end: number;
-    },
-  ):
-    | {
-        overlayGroup: Group;
-      }
-    | undefined {
-    return this.canvasRenderer.createSegmentOnCanvas(
-      numOfLines,
-      segmentData,
-      segmentInterval,
-      () => this.currentLevel,
-    );
-  }
-  private sceneFuncTranscripts = (
-    context: Context,
-    shape: Shape,
-    segmentInterval: {
-      start: number;
-      end: number;
-    },
-    segment: TrattAnnotationSegment,
-    lineInterval: {
-      from: number;
-      to: number;
-    },
-    numOfLines: number,
-  ) => {
-    this.canvasRenderer.sceneFuncTranscripts(
-      context,
-      shape,
-      segmentInterval,
-      segment,
-      lineInterval,
-      numOfLines,
-      this.currentLevel,
-    );
-  };
-  private sceneFuncOverlay = (
-    context: Context,
-    shape: Shape,
-    segment: TrattAnnotationSegment,
-    numOfLines: number,
-    segmentInterval: {
-      start: number;
-      end: number;
-    },
-    lineInterval: {
-      start: number;
-      end: number;
-    },
-  ) => {
-    this.canvasRenderer.sceneFuncOverlay(
-      context,
-      shape,
-      segment,
-      numOfLines,
-      segmentInterval,
-      lineInterval,
-      this.currentLevel,
-    );
-  };
-  /** Moved to AudioViewerInteractionService (S1 split, task 15/21).
-   * Thin delegate: the public signature is unchanged so the editors and
-   * the component keep calling it exactly as before. */
-  public async setMouseClickPosition(
-    absX: number,
-    lineNum: number,
-    $event: Event,
-  ): Promise<number | undefined> {
-    return this.interaction.setMouseClickPosition(absX, lineNum, $event);
-  }
-
-  /** Moved to AudioViewerInteractionService (S1 split, task 15/21). */
-  handleBoundaryDragging(absX: number, absXInTime: SampleUnit, emit = false) {
-    this.interaction.handleBoundaryDragging(absX, absXInTime, emit);
   }
 
   /**
@@ -1084,9 +908,6 @@ export class AudioViewerService {
     }
   }
 
-  private isVisibleInView(x: number, y: number, width: number, height: number) {
-    return this.canvasRenderer.isVisibleInView(x, y, width, height);
-  }
   // `onKeyDown` moved to AudioViewerInteractionService (task 15/21) and
   // decomposed there into one `handle*` method per shortcut (or per group
   // of shortcuts that shared a body verbatim).
@@ -1280,48 +1101,6 @@ export class AudioViewerService {
   }
 
   /**
-   * get Line by absolute width of the audio sample
-   */
-  getPlayCursorPositionOfLineByAbsX(absX: number): {
-    x: number;
-    y: number;
-  } {
-    return this.timeUtils.getPlayCursorPositionOfLineByAbsX(
-      absX,
-      this.innerWidth,
-      this.settings,
-    );
-  }
-
-  /**
-   * get selection of an sample relative to its position and width
-   */
-  public getRelativeSelectionByLine(
-    lineNum: number,
-    lineWidth: number,
-    startSamples: SampleUnit,
-    endSamples: SampleUnit,
-    innerWidth: number,
-  ): { start: number; end: number } {
-    return this.timeUtils.getRelativeSelectionByLine(
-      lineNum,
-      lineWidth,
-      startSamples,
-      endSamples,
-      innerWidth,
-      this.audioTCalculator,
-      this.audioChunk,
-    );
-  }
-
-  /**
-   * save mouse position for further processing
-   */
-  public setMouseMovePosition(absX: number) {
-    this.interaction.setMouseMovePosition(absX);
-  }
-
-  /**
    * addSegment() adds a boundary to the list of segments or removes the segment
    */
   public addOrRemoveSegment():
@@ -1360,45 +1139,6 @@ export class AudioViewerService {
       this.audioManager,
     );
   }
-
-  /**
-   * move cursor to one direction and x samples
-   */
-  public moveCursor(direction: string, samples: number) {
-    this.interaction.moveCursor(direction, samples);
-  }
-
-  /**
-   *
-   * IMPORTANT! DON'T make async from this method, because it's not working with async in a web worker!
-   *
-   * @param width
-   * @param height
-   * @param channel
-   * @param interval
-   * @param roundValues
-   * @param xZoom
-   */
-  private computeDisplayData = (
-    width: number,
-    height: number,
-    channel: Float32Array,
-    interval: {
-      start: number;
-      end: number;
-    },
-    roundValues: boolean,
-    xZoom: number,
-  ) => {
-    return this.timeUtils.computeDisplayData(
-      width,
-      height,
-      channel,
-      interval,
-      roundValues,
-      xZoom,
-    );
-  };
 
   private calculateZoom(height: number, width: number, minmaxarray: number[]) {
     const result = this.timeUtils.calculateZoom(
@@ -1448,14 +1188,6 @@ export class AudioViewerService {
       this.buildSegmentRenderContext(),
     );
   }
-  private timeLabelSceneFunction = (
-    y: number,
-    numOfLines: number,
-    context: Context,
-    shape: Shape,
-  ) => {
-    this.canvasRenderer.timeLabelSceneFunction(y, numOfLines, context, shape);
-  };
   public removeSegmentByIndex(
     index: number,
     silenceCode: string | undefined,
@@ -1472,16 +1204,6 @@ export class AudioViewerService {
       this.currentLevelChange,
       this.annotationChange,
       changeTranscript,
-    );
-  }
-
-  public addSegment(start: SampleUnit, value?: string) {
-    this.segments.addSegment(
-      this.annotation!,
-      this.currentLevelChange,
-      this.annotationChange,
-      start,
-      value,
     );
   }
 
@@ -1502,88 +1224,8 @@ export class AudioViewerService {
     return this.segments.getChanges(oldAnnotation, newAnnotation);
   }
 
-  private transcriptBackgroundSceneFunc = (
-    lineInterval: {
-      from: number;
-      to: number;
-    },
-    segment: TrattAnnotationSegment,
-    isLastSegment: boolean,
-    beginTime: SampleUnit,
-    numOfLines: number,
-    context: Context,
-    shape: Shape,
-  ) => {
-    this.canvasRenderer.transcriptBackgroundSceneFunc(
-      lineInterval,
-      segment,
-      isLastSegment,
-      beginTime,
-      numOfLines,
-      context,
-      shape,
-    );
-  };
-  private overlaySceneFunction = (
-    lineInterval: {
-      from: number;
-      to: number;
-    },
-    sceneSegment: TrattAnnotationSegment,
-    isLastSegment: boolean,
-    beginTime: SampleUnit,
-    numOfLines: number,
-    context: Context,
-    shape: Shape,
-  ) => {
-    this.canvasRenderer.overlaySceneFunction(
-      lineInterval,
-      sceneSegment,
-      isLastSegment,
-      beginTime,
-      numOfLines,
-      context,
-      shape,
-      this.currentLevel,
-    );
-  };
-  private drawRoundedRect(
-    context: any,
-    x: number,
-    y: number,
-    height: number,
-    width: number,
-    radius: number,
-    fillColor: string,
-    strokeColor?: string,
-  ) {
-    this.canvasRenderer.drawRoundedRect(
-      context,
-      x,
-      y,
-      height,
-      width,
-      radius,
-      fillColor,
-      strokeColor,
-    );
-  }
-  private createScrollBar = () => {
-    return this.canvasRenderer.createScrollBar(
-      this.interaction.onScrollbarDragged,
-    );
-  };
-  private drawSelection = (lineNum: number, lineWidth: number) => {
-    this.canvasRenderer.drawSelection(lineNum, lineWidth, this.drawnSelection);
-  };
-  private resetSelection() {
-    this.canvasRenderer.resetSelection();
-  }
   private drawWholeSelection() {
     this.canvasRenderer.drawWholeSelection(this.drawnSelection);
-  }
-  private getNumberOfLines() {
-    return this.timeUtils.getNumberOfLines(this.innerWidth, this.AudioPxWidth);
   }
 
   // `changeMouseCursorSamples` moved to AudioViewerInteractionService
@@ -1618,62 +1260,13 @@ export class AudioViewerService {
   private redrawSegment(segmentID: number) {
     this.canvasRenderer.redrawSegment(segmentID);
   }
-  private createLineMouseCaret() {
-    return this.canvasRenderer.createLineMouseCaret();
-  }
-  public refresh = () => {
-    this.canvasRenderer.refresh(this.buildSegmentRenderContext());
-  };
-  public updateShortcuts(shortcuts: ShortcutGroup) {
-    this.interaction.updateShortcuts(shortcuts);
-  }
 
-  private drawTextLabel(
-    context: Context,
-    text: string,
-    lineNum1: number,
-    lineNum2: number,
-    segmentEnd: SampleUnit,
-    beginTime: SampleUnit,
-    lastI: number | undefined,
-    numOfLines: number,
-    segment: TrattAnnotationSegment,
-    isLastSegment: boolean,
-  ): number | undefined {
-    return this.canvasRenderer.drawTextLabel(
-      context,
-      text,
-      lineNum1,
-      lineNum2,
-      segmentEnd,
-      beginTime,
-      lastI,
-      numOfLines,
-      segment,
-      isLastSegment,
-    );
-  }
-  private initializeStageContainer() {
-    this.canvasRenderer.initializeStageContainer(
-      this.buildStageEventHandlers(),
-    );
-  }
   public redraw() {
     this.canvasRenderer.redraw();
   }
-  public redrawOverlay() {
-    this.canvasRenderer.redrawOverlay();
-  }
-  private updateSize(stageWidth: number, stageHeight: number) {
-    this.canvasRenderer.updateSize(stageWidth, stageHeight);
-  }
-  private initializeLayers() {
-    this.canvasRenderer.initializeLayers(this.interaction.onWheel);
-  }
   // `onWheel` and `onScrollbarDragged` moved to
   // AudioViewerInteractionService (task 15/21); they are handed to the
-  // renderer as callbacks by `initialize`/`initializeLayers`/
-  // `initializeView` above.
+  // renderer as callbacks by `initialize`/`initializeView` above.
 
   /** Delegate kept because `scrollToAbsY` (facade-owned) calls it. */
   private scrollWithDeltaY(deltaY: number) {
