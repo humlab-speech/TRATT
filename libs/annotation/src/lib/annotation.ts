@@ -2,6 +2,7 @@ import { SampleUnit } from '@tratt/media';
 import {
   AnnotationLevelType,
   IItemLevel,
+  ISegmentLevel,
   OAnnotJSON,
   OEvent,
   OEventLevel,
@@ -253,7 +254,7 @@ export class TrattAnnotation<
     return this;
   }
 
-  changeCurrentItemById(id: number, item: OItem | OEvent | T) {
+  changeCurrentItemById(id: number, item: OItem | TrattAnnotationEvent | T) {
     if (this.currentLevel) {
       const index = this.currentLevel.items.findIndex((a) => a.id === id);
       if (index > -1) {
@@ -265,7 +266,10 @@ export class TrattAnnotation<
     return this;
   }
 
-  changeCurrentItemByIndex(index: number, item: OItem | OEvent | T) {
+  changeCurrentItemByIndex(
+    index: number,
+    item: OItem | TrattAnnotationEvent | T,
+  ) {
     if (!this.currentLevel) {
       throw new Error('Current level not selected');
     }
@@ -279,7 +283,8 @@ export class TrattAnnotation<
     if (curr instanceof TrattAnnotationSegmentLevel) {
       const prev = curr.items[index] as TrattAnnotationSegment | undefined;
       const prevSamples = prev?.time.samples;
-      const newSamples = (item as any)?.time?.samples as number | undefined;
+      const newSamples =
+        item instanceof TrattAnnotationSegment ? item.time.samples : undefined;
       const boundaryChanged =
         prevSamples !== undefined &&
         newSamples !== undefined &&
@@ -292,27 +297,31 @@ export class TrattAnnotation<
         return this;
       }
 
-      curr.changeItem(item as any);
+      curr.changeItem(item as T);
 
       if (
         curr.linkedToLevelId === undefined &&
         boundaryChanged &&
-        (item as any).time
+        item instanceof TrattAnnotationSegment
       ) {
-        const newTime = (item as any).time as SampleUnit;
+        const newTime = item.time;
         for (const linked of this.getLinkedLevelsOf(curr.id)) {
           if (index < linked.items.length) {
             const linkedItem = linked.items[index] as TrattAnnotationSegment;
             const updated = linkedItem.clone() as T;
             updated.time = newTime;
-            linked.changeItem(updated as any);
+            linked.changeItem(updated);
           }
         }
       }
       return this;
     }
 
-    this.currentLevel.changeItem(item as any);
+    if (curr instanceof TrattAnnotationItemLevel) {
+      curr.changeItem(item as OItem);
+    } else {
+      curr.changeItem(item as TrattAnnotationEvent);
+    }
     return this;
   }
 
@@ -373,21 +382,21 @@ export class TrattAnnotation<
         );
         return this;
       }
-      if (this.currentLevel.type === 'SEGMENT') {
-        const level = this.currentLevel as TrattAnnotationSegmentLevel<T>;
+      if (this.currentLevel instanceof TrattAnnotationSegmentLevel) {
+        const level = this.currentLevel;
         this.insertSegmentIntoLevel(level, time!, labels, context);
         for (const linked of this.getLinkedLevelsOf(level.id)) {
           this.insertSegmentIntoLevel(linked, time!);
         }
-      } else if (this.currentLevel.type === 'ITEM') {
+      } else if (this.currentLevel instanceof TrattAnnotationItemLevel) {
         this.currentLevel.overwriteItems([
           ...this.currentLevel.items,
-          new OItem(this.idCounters.item++, labels) as any,
+          new OItem(this.idCounters.item++, labels),
         ]);
       } else {
         const newEvents = [
           ...this.currentLevel.items,
-          new OEvent(this.idCounters.item++, time!.samples!, labels) as any,
+          new TrattAnnotationEvent(this.idCounters.item++, time!, labels),
         ];
         newEvents.sort(this.sortEventsBySampleUnit);
         this.currentLevel.overwriteItems(newEvents);
@@ -423,8 +432,8 @@ export class TrattAnnotation<
       index > -1 &&
       index < this.currentLevel.items.length
     ) {
-      if (this.currentLevel.type === 'SEGMENT') {
-        const level = this.currentLevel as TrattAnnotationSegmentLevel<T>;
+      if (this.currentLevel instanceof TrattAnnotationSegmentLevel) {
+        const level = this.currentLevel;
         this.removeSegmentFromLevel(
           level,
           index,
@@ -441,11 +450,16 @@ export class TrattAnnotation<
             undefined,
           );
         }
+      } else if (this.currentLevel instanceof TrattAnnotationItemLevel) {
+        this.currentLevel.overwriteItems([
+          ...this.currentLevel.items.slice(0, index),
+          ...this.currentLevel.items.slice(index + 1),
+        ]);
       } else {
         this.currentLevel.overwriteItems([
           ...this.currentLevel.items.slice(0, index),
           ...this.currentLevel.items.slice(index + 1),
-        ] as any);
+        ]);
       }
     }
 
@@ -516,26 +530,26 @@ export class TrattAnnotation<
           index === 0 ? items[index].labels : [new OLabel(level.name, '')];
         items = [
           ...items,
-          new TrattAnnotationSegment(
+          new TrattAnnotationSegment<S>(
             this.idCounters.item++,
             time,
             labels && labels.length > 0 ? labels : oldLabels,
-            context ?? ({} as any),
-          ) as any,
+            context ?? ({} as S),
+          ) as T,
         ];
         items.sort(this.sortSegmentsBySampleUnit);
       }
     } else {
       items.push(
-        new TrattAnnotationSegment(
+        new TrattAnnotationSegment<S>(
           this.idCounters.item++,
           time,
           labels,
-          context ?? ({} as any),
-        ) as any,
+          context ?? ({} as S),
+        ) as T,
       );
     }
-    level.overwriteItems(items as any);
+    level.overwriteItems(items);
   }
 
   private removeSegmentFromLevel(
@@ -550,10 +564,10 @@ export class TrattAnnotation<
     }
 
     if (index < level.items.length - 1) {
-      const nextSegment = level.items[index + 1] as TrattAnnotationSegment;
-      let transcript = (
-        level.items[index] as TrattAnnotationSegment
-      ).getFirstLabelWithoutName('Speaker')?.value;
+      const nextSegment = level.items[index + 1];
+      let transcript = level.items[index].getFirstLabelWithoutName(
+        'Speaker',
+      )?.value;
 
       if (
         !silenceValue ||
@@ -594,13 +608,13 @@ export class TrattAnnotation<
         }
         nextSegment.changeFirstLabelWithoutName('Speaker', transcript);
       }
-      level.changeItem(nextSegment as any);
+      level.changeItem(nextSegment);
     }
 
     level.overwriteItems([
       ...level.items.slice(0, index),
       ...level.items.slice(index + 1),
-    ] as any);
+    ]);
   }
 
   private sortSegmentsBySampleUnit(a: T, b: T) {
@@ -612,10 +626,13 @@ export class TrattAnnotation<
     return 0;
   }
 
-  private sortEventsBySampleUnit(a: OEvent, b: OEvent) {
-    if (a.samplePoint > b.samplePoint) {
+  private sortEventsBySampleUnit(
+    a: TrattAnnotationEvent,
+    b: TrattAnnotationEvent,
+  ) {
+    if (a.samplePoint.samples > b.samplePoint.samples) {
       return 1;
-    } else if (a.samplePoint < b.samplePoint) {
+    } else if (a.samplePoint.samples < b.samplePoint.samples) {
       return -1;
     }
     return 0;
@@ -658,7 +675,7 @@ export class TrattAnnotation<
         );
       }
       return level;
-    }) as any;
+    }) as TrattAnnotationAnyLevel<T>[];
 
     const result = new TrattAnnotation(
       levels,
@@ -679,31 +696,36 @@ export class TrattAnnotation<
       mediaFileName.replace(/\.[^.]+$/g, ''),
       sampleRate,
       this.levels.map((a) => {
-        const result = a.serialize();
+        if (a instanceof TrattAnnotationSegmentLevel) {
+          const result = a.serialize();
 
-        if (a.type === 'SEGMENT') {
           const lastItem = result.items[result.items.length - 1];
           if (
             lastItem.sampleStart + lastItem.sampleDur <
             lastSegmentTime.samples
           ) {
+            const paddingStart = lastItem.sampleStart + lastItem.sampleDur;
             result.items.push(
-              this.createSegment(lastSegmentTime, [new OLabel(a.name, '')]),
+              new OSegment(
+                this.idCounters.item++,
+                paddingStart,
+                lastSegmentTime.samples - paddingStart,
+                [new OLabel(a.name, '')],
+              ),
             );
           }
           // Resolve linkedToLevelId → linkedToLevelName for round-trip.
-          if (
-            a instanceof TrattAnnotationSegmentLevel &&
-            a.linkedToLevelId !== undefined
-          ) {
+          if (a.linkedToLevelId !== undefined) {
             const source = this._levels.find((l) => l.id === a.linkedToLevelId);
             if (source) {
-              (result as any).linkedToLevelName = source.name;
+              result.linkedToLevelName = source.name;
             }
           }
+
+          return result;
         }
 
-        return result;
+        return a.serialize();
       }),
       this.links.map((a) => a.link.serialize()),
     );
@@ -728,8 +750,7 @@ export class TrattAnnotation<
         );
         // Carry link metadata; linkedToLevelName is resolved to id below
         // after all levels exist.
-        (segmentLevel as any)._linkedToLevelNamePending =
-          level.linkedToLevelName;
+        segmentLevel._linkedToLevelNamePending = level.linkedToLevelName;
         segmentLevel.linkedKind = level.linkedKind;
         result.levels.push(segmentLevel);
       } else if (jsonObjectElement.type === AnnotationLevelType.EVENT) {
@@ -765,16 +786,14 @@ export class TrattAnnotation<
     // every level has its final id assigned.
     for (const lvl of result.levels) {
       if (lvl instanceof TrattAnnotationSegmentLevel) {
-        const pending = (lvl as any)._linkedToLevelNamePending as
-          | string
-          | undefined;
+        const pending = lvl._linkedToLevelNamePending;
         if (pending) {
           const source = result.levels.find((l) => l.name === pending);
           if (source) {
             lvl.linkedToLevelId = source.id;
           }
         }
-        delete (lvl as any)._linkedToLevelNamePending;
+        delete lvl._linkedToLevelNamePending;
       }
     }
 
@@ -897,6 +916,14 @@ export class TrattAnnotationSegmentLevel<
   linkedToLevelId?: number;
   linkedKind?: string;
 
+  /**
+   * Internal: holds the source level name read from JSON during
+   * {@link TrattAnnotation.deserialize}, until every level has been created
+   * and {@link linkedToLevelId} can be resolved by name → id lookup. Cleared
+   * once resolved; not part of the level's public/serialized shape.
+   */
+  _linkedToLevelNamePending?: string;
+
   constructor(
     id: number,
     name: string,
@@ -909,9 +936,9 @@ export class TrattAnnotationSegmentLevel<
     this.linkedKind = linkedKind;
   }
 
-  override serialize(): any {
+  override serialize(): ISegmentLevel {
     let start = 0;
-    const res: any = {
+    const res: ISegmentLevel = {
       items: this.level.items.map((a) => {
         const result = a.serializeToOSegment(start);
         start = a.time.samples;
@@ -932,7 +959,7 @@ export class TrattAnnotationSegmentLevel<
     return new TrattAnnotationSegmentLevel<T>(
       this._id,
       this.name,
-      this.level.items.map((a) => a.clone() as any),
+      this.level.items.map((a) => a.clone() as T),
       this.linkedToLevelId,
       this.linkedKind,
     );
