@@ -922,8 +922,8 @@ export class LinearEditorComponent
       if (newMagnifierChunk !== undefined) {
         this.audioChunkMagnifier = newMagnifierChunk;
       }
+      this.cd.detectChanges();
     });
-    this.cd.detectChanges();
   }
 
   onViewerMouseDown() {
@@ -1017,6 +1017,7 @@ export class LinearEditorComponent
     this.segmentselected = false;
     this.audioChunkTop.startpos = this.audioChunkTop.time.start.clone();
     this.audioChunkDown!.startpos = this.audioChunkDown!.time.start.clone();
+    this.cd.markForCheck();
   }
 
   afterFirstInitialization() {

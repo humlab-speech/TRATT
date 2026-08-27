@@ -457,6 +457,7 @@ export class DictaphoneEditorComponent
   public update() {
     this.audiochunk.startpos = this.audiochunk.time.start;
     this.loadEditor();
+    this.cdr.markForCheck();
   }
 
   public afterFirstInitialization() {
