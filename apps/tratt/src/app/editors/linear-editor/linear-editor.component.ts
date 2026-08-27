@@ -1,5 +1,6 @@
 import {
   AfterViewInit,
+  ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
   EventEmitter,
@@ -66,6 +67,7 @@ import { TRATTEditor, TrattEditorRequirements } from '../tratt-editor';
     NgClass,
     TranslocoPipe,
   ],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class LinearEditorComponent
   extends TRATTEditor
@@ -578,6 +580,7 @@ export class LinearEditorComponent
       this.annotationStoreService.segmentrequested,
       (segnumber: number) => {
         this.openSegment(segnumber);
+        this.cd.markForCheck();
       },
     );
 

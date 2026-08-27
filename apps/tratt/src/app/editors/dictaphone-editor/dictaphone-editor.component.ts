@@ -1,5 +1,7 @@
 import {
   AfterViewInit,
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
   Component,
   EventEmitter,
   OnDestroy,
@@ -48,6 +50,7 @@ import { TRATTEditor, TrattEditorRequirements } from '../tratt-editor';
     TrattComponentsModule,
     TranscrEditorComponent_1,
   ],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DictaphoneEditorComponent
   extends TRATTEditor
@@ -210,6 +213,7 @@ export class DictaphoneEditorComponent
     private uiService: UserInteractionsService,
     public settingsService: SettingsService,
     public appStorage: AppStorageService,
+    private cdr: ChangeDetectorRef,
   ) {
     super();
   }
@@ -477,6 +481,7 @@ export class DictaphoneEditorComponent
       this.appStorage.annotationChanged.subscribe(() => {
         this.subscriptionManager.removeByTag('annochange');
         this.loadEditor();
+        this.cdr.markForCheck();
       }),
       'annochange',
     );

@@ -1,5 +1,7 @@
 import { NgClass, NgStyle, UpperCasePipe } from '@angular/common';
 import {
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
   Component,
   OnInit,
   TemplateRef,
@@ -85,6 +87,7 @@ import { NavbarService } from './navbar.service';
     TimespanPipe,
     TrattComponentsModule,
   ],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class NavigationComponent extends DefaultComponent implements OnInit {
   readonly speakerService = inject(SpeakerManagementService);
@@ -180,6 +183,7 @@ export class NavigationComponent extends DefaultComponent implements OnInit {
     protected asrStoreService: AsrStoreService,
     private router: Router,
     public recordedFileService: RecordedFileService,
+    private cdr: ChangeDetectorRef,
   ) {
     super();
   }
@@ -220,6 +224,7 @@ export class NavigationComponent extends DefaultComponent implements OnInit {
     this.subscribe(this.router.events, {
       next: () => {
         this.localOnly = !!this.getRouteData('localOnly');
+        this.cdr.markForCheck();
       },
     });
   }
