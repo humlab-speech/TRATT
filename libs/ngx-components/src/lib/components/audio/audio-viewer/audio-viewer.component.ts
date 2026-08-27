@@ -25,6 +25,7 @@ import { SubscriptionManager, wait } from '@tratt/utilities';
 import { AudioChunk } from '@tratt/web-media';
 import Konva from 'konva';
 import { Subject, Subscription, timer } from 'rxjs';
+import { AudioViewerInteractionService } from './audio-viewer-interaction.service';
 import { AudioViewerRendererService } from './audio-viewer-renderer.service';
 import { AudioViewerSegmentsService } from './audio-viewer-segments.service';
 import { AudioviewerConfig } from './audio-viewer.config';
@@ -52,6 +53,7 @@ export interface CurrentLevelChangeEvent {
     AudioViewerService,
     AudioViewerSegmentsService,
     AudioViewerRendererService,
+    AudioViewerInteractionService,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

@@ -1,18 +1,14 @@
 import { EventEmitter, Injectable, NgZone, Renderer2 } from '@angular/core';
 import {
   AnnotationAnySegment,
-  AnnotationLevelType,
   ASRContext,
-  ASRQueueItemType,
-  getSegmentBySamplePosition,
   getStartTimeBySegmentID,
-  OLabel,
   TrattAnnotation,
   TrattAnnotationAnyLevel,
   TrattAnnotationSegment,
   TrattAnnotationSegmentLevel,
 } from '@tratt/annotation';
-import { AudioSelection, PlayBackStatus, SampleUnit } from '@tratt/media';
+import { AudioSelection, SampleUnit } from '@tratt/media';
 import { SubscriptionManager } from '@tratt/utilities';
 import {
   AudioChunk,
@@ -23,14 +19,18 @@ import {
 } from '@tratt/web-media';
 import { Context } from 'konva/lib/Context';
 import { Group } from 'konva/lib/Group';
-import type { KonvaEventObject } from 'konva/lib/Node';
 import { Shape } from 'konva/lib/Shape';
 import type { Vector2d } from 'konva/lib/types';
-import { ReplaySubject, Subject, timer } from 'rxjs';
+import { ReplaySubject, Subject } from 'rxjs';
 import { Subscription } from 'rxjs/internal/Subscription';
 import { MultiThreadingService } from '../../../multi-threading.service';
 import { Position, Size } from '../../../obj';
 import { PlayCursor } from '../../../obj/play-cursor';
+import {
+  AudioViewerInteractionService,
+  type AudioViewerInteractionHost,
+  type AudioViewerRenderRequest,
+} from './audio-viewer-interaction.service';
 import {
   AudioViewerRendererService,
   type AudioViewerSegmentRenderContext,
@@ -46,8 +46,17 @@ import { AudioviewerConfig } from './audio-viewer.config';
 
 @Injectable()
 export class AudioViewerService {
+  /** Moved to AudioViewerInteractionService (S1 split, task 15/21) along
+   * with the rest of the interaction state machine; pass-through accessors
+   * keep the external contract (`audio-viewer.component.ts` reads
+   * `av.focused`, `av.boundaryDragging`, `av.mouseDown`, `av.mouseCursor`,
+   * `av.MouseClickPos`, `av.shortcutsManager`). */
   get focused(): boolean {
-    return this._focused;
+    return this.interaction.focused;
+  }
+
+  set focused(value: boolean) {
+    this.interaction.focused = value;
   }
 
   get boundaryDragging(): Subject<{
@@ -55,7 +64,7 @@ export class AudioViewerService {
     id: number;
     shiftPressed?: boolean;
   }> {
-    return this._boundaryDragging;
+    return this.interaction.boundaryDragging;
   }
 
   get currentLevel():
@@ -134,7 +143,11 @@ export class AudioViewerService {
   // AudioViewerRendererService (S1 split, task 14/21); reach
   // `this.canvasRenderer.X` directly where needed outside the bucket.
 
-  public shortcutsManager: ShortcutManager;
+  /** Moved to AudioViewerInteractionService (S1 split, task 15/21). */
+  public get shortcutsManager(): ShortcutManager {
+    return this.interaction.shortcutsManager;
+  }
+
   public refreshOnInternChanges = true;
 
   /** Moved to AudioViewerRendererService (read live by its `sceneFuncGrid`
@@ -148,8 +161,23 @@ export class AudioViewerService {
     this.canvasRenderer.audioTCalculator = value;
   }
 
-  public overboundary = false;
-  public shiftPressed = false;
+  /** Moved to AudioViewerInteractionService (S1 split, task 15/21). */
+  public get overboundary(): boolean {
+    return this.interaction.overboundary;
+  }
+
+  public set overboundary(value: boolean) {
+    this.interaction.overboundary = value;
+  }
+
+  /** Moved to AudioViewerInteractionService (S1 split, task 15/21). */
+  public get shiftPressed(): boolean {
+    return this.interaction.shiftPressed;
+  }
+
+  public set shiftPressed(value: boolean) {
+    this.interaction.shiftPressed = value;
+  }
 
   /** Moved to AudioViewerRendererService (read live by
    * `transcriptBackgroundSceneFunc`/`drawTextLabel`); externally settable
@@ -164,15 +192,10 @@ export class AudioViewerService {
   }
 
   public channelInitialized = new Subject<void>();
-  protected mouseClickPos: SampleUnit | undefined;
-  private _focused = false;
   public onInitialized = new ReplaySubject<void>(1);
 
-  private _boundaryDragging: Subject<{
-    status: 'started' | 'stopped' | 'dragging';
-    id: number;
-    shiftPressed?: boolean;
-  }>;
+  // `mouseClickPos`, `_focused` and `_boundaryDragging` moved to
+  // AudioViewerInteractionService (S1 split, task 15/21).
   currentLevelID?: number;
 
   /** Moved to AudioViewerRendererService (read live by
@@ -187,7 +210,7 @@ export class AudioViewerService {
     this.canvasRenderer.secondsPerLine = value;
   }
 
-  private hoveredLine = -1;
+  // `hoveredLine` moved to AudioViewerInteractionService (task 15/21).
   public mousecursorchange = new EventEmitter<{
     event: MouseEvent | undefined;
     time: SampleUnit | undefined;
@@ -244,16 +267,15 @@ export class AudioViewerService {
   }
 
   // MOUSE
-  private _mouseDown = false;
-
+  // `_mouseDown`/`_mouseCursor` moved to AudioViewerInteractionService
+  // (task 15/21); these stay as pass-through getters because
+  // 2D-editor/linear-editor read `av.mouseCursor` and `av.mouseDown`.
   get mouseDown(): boolean {
-    return this._mouseDown;
+    return this.interaction.mouseDown;
   }
 
-  private _mouseCursor: SampleUnit | undefined;
-
   get mouseCursor(): SampleUnit | undefined {
-    return this._mouseCursor;
+    return this.interaction.mouseCursor;
   }
 
   /** Moved to AudioViewerRendererService (set once, inside the also-moved
@@ -267,11 +289,11 @@ export class AudioViewerService {
   }
 
   get MouseClickPos(): SampleUnit | undefined {
-    return this.mouseClickPos;
+    return this.interaction.MouseClickPos;
   }
 
   set MouseClickPos(mouseClickPos: SampleUnit | undefined) {
-    this.mouseClickPos = mouseClickPos;
+    this.interaction.MouseClickPos = mouseClickPos;
   }
 
   // PlayCursor in absX
@@ -285,37 +307,15 @@ export class AudioViewerService {
     this.canvasRenderer.PlayCursor = playcursor;
   }
 
-  private _dragableBoundaryID = -1;
-
+  /** Moved to AudioViewerInteractionService (task 15/21). The setter's
+   * `redrawSegment`/`drawAllBoundaries`/`drawWholeSelection` calls are now
+   * `renderRequest` emissions handled by `handleRenderRequest` below. */
   get dragableBoundaryID(): number {
-    return this._dragableBoundaryID;
+    return this.interaction.dragableBoundaryID;
   }
 
   set dragableBoundaryID(value: number) {
-    if (value > -1 && this._dragableBoundaryID === -1) {
-      // started
-      this.tempAnnotation = this.annotation;
-      this.subscrManager.add(
-        timer(0).subscribe({
-          next: () => {
-            this.redrawSegment(value);
-            this.drawAllBoundaries();
-            this.drawWholeSelection();
-          },
-        }),
-      );
-
-      if (this.refreshOnInternChanges) {
-        this.redrawSegment(value);
-      }
-
-      this._boundaryDragging.next({
-        shiftPressed: this.shiftPressed,
-        id: value,
-        status: 'started',
-      });
-    }
-    this._dragableBoundaryID = value;
+    this.interaction.dragableBoundaryID = value;
   }
 
   public alert = new EventEmitter<{ type: string; message: string }>();
@@ -386,17 +386,186 @@ export class AudioViewerService {
     private ngZone: NgZone,
     private segments: AudioViewerSegmentsService,
     private canvasRenderer: AudioViewerRendererService,
+    private interaction: AudioViewerInteractionService,
   ) {
-    this.shortcutsManager = new ShortcutManager();
-    this._boundaryDragging = new Subject<{
-      status: 'started' | 'stopped' | 'dragging';
-      id: number;
-      shiftPressed?: boolean;
-    }>();
     // Sync the same AudioviewerConfig instance into the renderer so its
     // Konva scene functions read live settings (see settings setter
     // below for why this is a reference sync, not an accessor proxy).
     this.canvasRenderer.settings = this._settings;
+
+    this.interaction.initialize(this.buildInteractionHost());
+    this.subscrManager.add(
+      this.interaction.renderRequest.subscribe((request) => {
+        this.handleRenderRequest(request);
+      }),
+    );
+  }
+
+  /**
+   * Bundles everything AudioViewerInteractionService needs but doesn't own.
+   *
+   * Every state read is a *method*, never a captured value — see
+   * `AudioViewerInteractionHost`'s doc for the full reasoning. In short:
+   * the interaction handlers are installed once on the stage container and
+   * live for the viewer's lifetime, while `annotation` is replaced
+   * wholesale on every change, so a captured value would freeze a stale
+   * model into every keystroke and mouse move. The `EventEmitter`s are the
+   * one exception: they are created once in this class's field
+   * initializers and never reassigned.
+   */
+  private buildInteractionHost(): AudioViewerInteractionHost {
+    return {
+      canvas: {
+        hasStage: () => this.canvasRenderer.stage !== undefined,
+        hasLayers: () => this.canvasRenderer.layers !== undefined,
+        hasCanvasElements: () =>
+          this.canvasRenderer.canvasElements !== undefined,
+        hasMouseCaret: () =>
+          this.canvasRenderer.canvasElements?.mouseCaret !== undefined,
+        hasScrollBar: () =>
+          this.canvasRenderer.canvasElements?.scrollBar !== undefined,
+        hasScrollbarSelector: () =>
+          this.canvasRenderer.canvasElements?.scrollbarSelector !== undefined,
+        hasLastLine: () =>
+          this.canvasRenderer.canvasElements?.lastLine !== undefined,
+        getStageHeight: () => this.canvasRenderer.size?.height,
+        getScrollBarHeight: () =>
+          this.canvasRenderer.canvasElements?.scrollBar?.height(),
+        getScrollBarX: () => this.canvasRenderer.canvasElements?.scrollBar?.x(),
+        getScrollbarSelectorY: () =>
+          this.canvasRenderer.canvasElements?.scrollbarSelector?.y(),
+        getScrollbarSelectorHeight: () =>
+          this.canvasRenderer.canvasElements?.scrollbarSelector?.height(),
+        getLastLineY: () => this.canvasRenderer.canvasElements?.lastLine?.y(),
+        getLastLineHeight: () =>
+          this.canvasRenderer.canvasElements?.lastLine?.height(),
+        getBackgroundLayerY: () => this.canvasRenderer.layers?.background.y(),
+      },
+
+      getSettings: () => this.settings,
+      getAnnotation: () => this.annotation,
+      setAnnotation: (value) => {
+        this.annotation = value;
+      },
+      getTempAnnotation: () => this.tempAnnotation,
+      setTempAnnotation: (value) => {
+        this.tempAnnotation = value;
+      },
+      getCurrentLevel: () => this.currentLevel,
+      getAudioChunk: () => this.audioChunk,
+      getAudioManager: () => this.audioManager,
+      getAudioTCalculator: () => this.audioTCalculator,
+      getPlayCursor: () => this.PlayCursor,
+      getDrawnSelection: () => this.drawnSelection,
+      setDrawnSelection: (value) => {
+        this.drawnSelection = value;
+      },
+      getInnerWidth: () => this.innerWidth,
+      getAudioPxWidth: () => this.AudioPxWidth,
+      getSilencePlaceholder: () => this.silencePlaceholder,
+      getRefreshOnInternChanges: () => this.refreshOnInternChanges,
+
+      addOrRemoveSegment: () => this.addOrRemoveSegment(),
+      getSegmentSelection: (positionSamples: number) =>
+        this.getSegmentSelection(positionSamples),
+      changeSegment: (start, segment) => this.changeSegment(start, segment),
+      removeSegmentByIndex: (
+        index,
+        silenceCode,
+        mergeTranscripts,
+        triggerChange,
+      ) =>
+        this.removeSegmentByIndex(
+          index,
+          silenceCode,
+          mergeTranscripts,
+          triggerChange,
+        ),
+      selectSegment: (segIndex: number) => this.selectSegment(segIndex),
+      changePlayCursorSamples: (newValue, chunk) =>
+        this.changePlayCursorSamples(newValue, chunk),
+      playSelection: (afterAudioEnded) => this.playSelection(afterAudioEnded),
+      afterAudioEnded: () => this.afterAudioEnded(),
+      getLineNumber: (x: number, y: number) => this.getLineNumber(x, y),
+
+      shortcut: this.shortcut,
+      alert: this.alert,
+      segmententer: this.segmententer,
+      selchange: this.selchange,
+      mousecursorchange: this.mousecursorchange,
+      currentLevelChange: this.currentLevelChange,
+      annotationChange: this.annotationChange,
+    };
+  }
+
+  /**
+   * Performs the rendering side effects the interaction bucket asks for.
+   *
+   * Per the S1 split's DAG `AudioViewerInteractionService` may not reach
+   * the renderer, so it emits an `AudioViewerRenderRequest` instead of
+   * calling into it. This is the (only) place those are turned back into
+   * renderer calls. `EventEmitter.emit` is synchronous, so each request is
+   * handled at exactly the point in the interaction method where the
+   * original direct call sat — the ordering of interleaved state mutation
+   * and drawing is unchanged.
+   */
+  private handleRenderRequest(request: AudioViewerRenderRequest) {
+    switch (request.type) {
+      case 'redraw':
+        this.redraw();
+        break;
+      case 'redraw-segment':
+        this.redrawSegment(request.segmentID);
+        break;
+      case 'draw-all-boundaries':
+        this.drawAllBoundaries();
+        break;
+      case 'draw-whole-selection':
+        this.drawWholeSelection();
+        break;
+      case 'update-all-segments':
+        this.updateAllSegments();
+        break;
+      case 'draw-stage':
+        this.canvasRenderer.stage?.draw();
+        break;
+      case 'focus-stage-container':
+        this.canvasRenderer.stage?.container().focus();
+        break;
+      case 'update-play-cursor':
+        this.updatePlayCursor();
+        break;
+      case 'draw-playhead-layer':
+        this.canvasRenderer.layers?.playhead.draw();
+        break;
+      case 'batch-draw-playhead-layer':
+        this.canvasRenderer.layers?.playhead.batchDraw();
+        break;
+      case 'batch-draw-overlay-layer':
+        this.canvasRenderer.layers?.overlay.batchDraw();
+        break;
+      case 'set-scrollbar-selector-y':
+        this.canvasRenderer.canvasElements?.scrollbarSelector?.y(request.y);
+        break;
+      case 'set-mouse-caret-position':
+        this.canvasRenderer.canvasElements?.mouseCaret?.position({
+          x: request.x,
+          y: request.y,
+        });
+        break;
+      case 'scroll-layers-to-y':
+        if (this.canvasRenderer.layers !== undefined) {
+          // move all layers but keep scrollbars fixed
+          this.canvasRenderer.layers.background.y(request.y);
+          this.canvasRenderer.layers.overlay.y(request.y);
+          this.canvasRenderer.layers.boundaries.y(request.y);
+          this.canvasRenderer.layers.playhead.y(request.y);
+          this.updateViewPort();
+          this.showOnlyLinesInViewport();
+          this.updateAllSegments();
+        }
+        break;
+    }
   }
 
   /**
@@ -436,10 +605,10 @@ export class AudioViewerService {
    * rather than referenced by the renderer via `this`. */
   private buildStageEventHandlers(): AudioViewerStageEventHandlers {
     return {
-      onKeyDown: this.onKeyDown,
-      onKeyUp: this.onKeyUp,
-      onMouseEnter: this.onMouseEnter,
-      onMouseLeave: this.onMouseLeave,
+      onKeyDown: this.interaction.onKeyDown,
+      onKeyUp: this.interaction.onKeyUp,
+      onMouseEnter: this.interaction.onMouseEnter,
+      onMouseLeave: this.interaction.onMouseLeave,
     };
   }
 
@@ -456,7 +625,7 @@ export class AudioViewerService {
         container,
         audioChunk,
         this.buildStageEventHandlers(),
-        this.onWheel,
+        this.interaction.onWheel,
       );
       this.removeEventListenersFromContainer(container);
       this.addEventListenersForContainer(container);
@@ -557,8 +726,8 @@ export class AudioViewerService {
       newHeight,
       this.buildSegmentRenderContext(),
       this.buildStageEventHandlers(),
-      this.onWheel,
-      this.onScrollbarDragged,
+      this.interaction.onWheel,
+      this.interaction.onScrollbarDragged,
       {
         initializeSettings: this.initializeSettings,
         scrollToAbsY: (absY: number) => this.scrollToAbsY(absY),
@@ -574,7 +743,7 @@ export class AudioViewerService {
     if (
       this.canvasRenderer.initializeViewAndReportInitialized(
         this.buildSegmentRenderContext(),
-        this.onScrollbarDragged,
+        this.interaction.onScrollbarDragged,
       )
     ) {
       this.onInitialized.next();
@@ -785,327 +954,63 @@ export class AudioViewerService {
       this.currentLevel,
     );
   };
+  /** Moved to AudioViewerInteractionService (S1 split, task 15/21).
+   * Thin delegate: the public signature is unchanged so the editors and
+   * the component keep calling it exactly as before. */
   public async setMouseClickPosition(
     absX: number,
     lineNum: number,
     $event: Event,
   ): Promise<number | undefined> {
-    if (this.audioChunk !== undefined) {
-      const absXInTime = this.audioTCalculator?.absXChunktoSampleUnit(
-        absX,
-        this.audioChunk,
-      );
-
-      if (
-        absXInTime !== undefined &&
-        this.audioManager !== undefined &&
-        this.audioChunk !== undefined &&
-        this.annotation?.currentLevel !== undefined &&
-        this.annotation.currentLevel.items.length > 0 &&
-        this.audioTCalculator !== undefined &&
-        this.PlayCursor !== undefined
-      ) {
-        this._mouseCursor = absXInTime.clone();
-
-        if (!this.audioManager.isPlaying) {
-          // same line
-          // fix margin settings
-          if ($event.type === 'mousedown') {
-            // no line defined or same line
-            this.mouseClickPos = absXInTime.clone();
-            this.audioChunk.startpos = this.mouseClickPos.clone();
-            this.audioChunk.selection.start = absXInTime.clone();
-            this.audioChunk.selection.end = absXInTime.clone();
-            if (!this.shiftPressed) {
-              this._drawnSelection = this.audioChunk.selection.clone();
-            }
-
-            if (this._dragableBoundaryID > -1) {
-              const currentLevel = this
-                .currentLevel as TrattAnnotationSegmentLevel<TrattAnnotationSegment>;
-              const index = this.annotation.currentLevel.items.findIndex(
-                (a) => a.id === this._dragableBoundaryID,
-              );
-
-              const segmentBefore = currentLevel!.getLeftSibling(index);
-              const segment = this.annotation.currentLevel.items[
-                index
-              ] as TrattAnnotationSegment<ASRContext>;
-              const segmentAfter = currentLevel!.getRightSibling(index);
-
-              if (
-                segment?.context?.asr?.isBlockedBy === ASRQueueItemType.ASR ||
-                segmentBefore?.context?.asr?.isBlockedBy ===
-                  ASRQueueItemType.ASR ||
-                segmentAfter?.context?.asr?.isBlockedBy === ASRQueueItemType.ASR
-              ) {
-                // prevent dragging boundary of blocked segment
-                this._dragableBoundaryID = -1;
-              }
-            }
-            this._mouseDown = true;
-          } else if ($event.type === 'mouseup') {
-            this.handleBoundaryDragging(absX, absXInTime, true);
-
-            this.overboundary = false;
-            this._mouseDown = false;
-
-            this._boundaryDragging.next({
-              shiftPressed: this.shiftPressed,
-              id: this._dragableBoundaryID,
-              status: 'stopped',
-            });
-            this._dragableBoundaryID = -1;
-            this.updateAllSegments();
-          }
-
-          return lineNum;
-        } else if (
-          this.audioManager.state === PlayBackStatus.PLAYING &&
-          $event.type === 'mouseup'
-        ) {
-          try {
-            await this.audioChunk.stopPlayback();
-
-            if (
-              this.audioChunk !== undefined &&
-              this.audioTCalculator !== undefined
-            ) {
-              this.audioChunk.startpos = absXInTime.clone();
-              this.audioChunk.selection.end = absXInTime.clone();
-              this._drawnSelection = this.audioChunk.selection.clone();
-              this.PlayCursor?.changeSamples(
-                absXInTime,
-                this.audioTCalculator,
-                this.audioChunk,
-              );
-
-              this._mouseDown = false;
-              this._dragableBoundaryID = -1;
-            }
-
-            return lineNum;
-          } catch (e) {
-            console.error(e);
-          }
-        }
-      }
-    }
-
-    return undefined;
+    return this.interaction.setMouseClickPosition(absX, lineNum, $event);
   }
 
+  /** Moved to AudioViewerInteractionService (S1 split, task 15/21). */
   handleBoundaryDragging(absX: number, absXInTime: SampleUnit, emit = false) {
-    let annotation = this.tempAnnotation?.clone();
-    const currentLevel =
-      annotation?.currentLevel as TrattAnnotationSegmentLevel<TrattAnnotationSegment>;
-    const limitPadding = 500;
-
-    const index = currentLevel?.items.findIndex(
-      (a) => a.id === this._dragableBoundaryID,
-    );
-    if (
-      annotation &&
-      currentLevel &&
-      index !== undefined &&
-      index > -1 &&
-      this.audioTCalculator &&
-      this.audioChunk &&
-      this.audioManager &&
-      this.PlayCursor
-    ) {
-      const draggedItem = currentLevel.items[index];
-
-      if (
-        this.settings.boundaries.enabled &&
-        !this.settings.boundaries.readonly &&
-        this._dragableBoundaryID > -1
-      ) {
-        // some boundary dragged
-        const segment: TrattAnnotationSegment | undefined =
-          draggedItem?.clone();
-
-        if (segment) {
-          if (!this.shiftPressed) {
-            // move only this boundary
-            const previousSegment: TrattAnnotationSegment | undefined =
-              currentLevel.getLeftSibling(index)!;
-            const nextSegment: TrattAnnotationSegment | undefined =
-              currentLevel.getRightSibling(index)!;
-
-            let newTime = this.audioTCalculator.absXChunktoSampleUnit(
-              absX,
-              this.audioChunk,
-            )!;
-
-            if (
-              previousSegment &&
-              newTime.samples < previousSegment.time.samples + limitPadding
-            ) {
-              newTime = previousSegment.time.add(
-                this.audioManager.createSampleUnit(limitPadding),
-              );
-            } else if (
-              nextSegment &&
-              newTime.samples > nextSegment.time.samples - limitPadding
-            ) {
-              newTime = nextSegment.time.sub(
-                this.audioManager.createSampleUnit(limitPadding),
-              );
-            }
-
-            segment.time = newTime;
-            annotation.changeCurrentSegmentBySamplePosition(
-              segment.time,
-              segment,
-            );
-
-            if (emit) {
-              this.currentLevelChange.emit({
-                type: 'change',
-                items: [
-                  {
-                    instance: segment,
-                  },
-                ],
-              });
-              this.annotationChange.emit(annotation);
-            }
-          } else if (this.drawnSelection?.duration?.samples) {
-            // move all segments with difference to left or right
-            const oldSamplePosition = segment.time.samples;
-            const newSamplePosition =
-              this.audioTCalculator.absXChunktoSampleUnit(
-                absX,
-                this.audioChunk,
-              )?.samples;
-            const diff = newSamplePosition! - oldSamplePosition;
-            let changedItems: TrattAnnotationSegment[] = [];
-
-            if (diff > 0) {
-              // shift to right
-              for (const currentLevelElement of (annotation.currentLevel as TrattAnnotationSegmentLevel<TrattAnnotationSegment>)!
-                .items) {
-                if (
-                  currentLevelElement.time.samples >= segment.time.samples &&
-                  currentLevelElement.time.samples + diff <
-                    this.drawnSelection.end!.samples
-                ) {
-                  const newItem = currentLevelElement.clone(
-                    currentLevelElement.id,
-                  );
-                  newItem.time = currentLevelElement.time.add(
-                    this.audioManager.createSampleUnit(diff),
-                  );
-                  annotation = annotation.changeCurrentItemById(
-                    currentLevelElement.id,
-                    newItem,
-                  );
-                  changedItems.push(newItem);
-                }
-              }
-            } else {
-              // shift to left
-              for (const currentLevelElement of (annotation.currentLevel as TrattAnnotationSegmentLevel<TrattAnnotationSegment>)!
-                .items) {
-                if (
-                  currentLevelElement.time.samples <= segment.time.samples &&
-                  currentLevelElement.time.samples + diff >
-                    this.drawnSelection.start!.samples
-                ) {
-                  const newItem = currentLevelElement.clone(
-                    currentLevelElement.id,
-                  );
-                  newItem.time = currentLevelElement.time.add(
-                    this.audioManager.createSampleUnit(diff),
-                  );
-                  annotation = annotation.changeCurrentItemById(
-                    currentLevelElement.id,
-                    newItem,
-                  );
-                  changedItems.push(newItem);
-                } else if (currentLevelElement.time.samples - diff < 0) {
-                  changedItems = [];
-                  break;
-                }
-              }
-            }
-
-            if (changedItems.length > 0 && emit) {
-              this.currentLevelChange.emit({
-                type: 'change',
-                items: changedItems.map((a) => ({ instance: a })),
-              });
-              this.annotationChange.emit(annotation);
-            }
-          }
-        }
-        this.annotation = annotation;
-      } else {
-        // set selection
-        this.audioChunk.selection.end = absXInTime.clone();
-        this.audioChunk.selection.checkSelection();
-        this._drawnSelection = this.audioChunk.selection.clone();
-
-        this.PlayCursor.changeSamples(
-          this.audioChunk.absolutePlayposition.clone(),
-          this.audioTCalculator,
-          this.audioChunk,
-        );
-      }
-    }
+    this.interaction.handleBoundaryDragging(absX, absXInTime, emit);
   }
-
-  onKeyUp = (event: KeyboardEvent) => {
-    this.shiftPressed = false;
-    this.shortcutsManager.checkKeyEvent(event, Date.now());
-  };
 
   /**
    * destroy this audioviewer object
    */
   public destroy() {
     this.subscrManager.destroy();
+    this.interaction.destroy();
     this.canvasRenderer.stage?.destroy();
 
     this.canvasRenderer.konvaContainer?.removeEventListener(
       'keydown',
-      this.onKeyDown,
+      this.interaction.onKeyDown,
     );
     this.canvasRenderer.konvaContainer?.removeEventListener(
       'keyup',
-      this.onKeyUp,
+      this.interaction.onKeyUp,
     );
     this.canvasRenderer.konvaContainer?.removeEventListener(
       'mouseleave',
-      this.onMouseLeave,
+      this.interaction.onMouseLeave,
     );
     this.canvasRenderer.konvaContainer?.removeEventListener(
       'mouseenter',
-      this.onMouseEnter,
+      this.interaction.onMouseEnter,
     );
     this.canvasRenderer.konvaContainer?.removeEventListener(
       'mousemove',
-      this.onMouseMove,
+      this.interaction.onMouseMove,
     );
     this.canvasRenderer.konvaContainer?.removeEventListener(
       'mousedown',
-      this.mouseChange,
+      this.interaction.mouseChange,
     );
     this.canvasRenderer.konvaContainer?.removeEventListener(
       'mouseup',
-      this.mouseChange,
+      this.interaction.mouseChange,
     );
   }
 
-  private onMouseEnter = () => {
-    this.canvasRenderer.stage?.container().focus();
-    this._focused = true;
-  };
-
-  private onMouseLeave = () => {
-    this._focused = false;
-  };
+  // `onMouseEnter`/`onMouseLeave` moved to AudioViewerInteractionService
+  // (task 15/21); wired onto the stage container via
+  // `buildStageEventHandlers()` above.
 
   /**
    * initialize settings
@@ -1142,7 +1047,7 @@ export class AudioViewerService {
       this.AudioPxWidth,
     );
     this.MouseClickPos = this.audioManager.createSampleUnit(0);
-    this._mouseCursor = this.audioManager.createSampleUnit(0);
+    this.interaction.setMouseCursor(this.audioManager.createSampleUnit(0));
     this.PlayCursor = new PlayCursor(
       0,
       new SampleUnit(0, this.audioChunk.sampleRate),
@@ -1182,630 +1087,9 @@ export class AudioViewerService {
   private isVisibleInView(x: number, y: number, width: number, height: number) {
     return this.canvasRenderer.isVisibleInView(x, y, width, height);
   }
-  private onKeyDown = (event: KeyboardEvent) => {
-    const shortcutInfo = this.shortcutsManager.checkKeyEvent(event, Date.now());
-
-    this.shiftPressed =
-      event.keyCode === 16 ||
-      event.code?.includes('Shift') ||
-      event.key?.includes('Shift');
-
-    if (shortcutInfo !== undefined) {
-      const comboKey = shortcutInfo.shortcut;
-
-      if (this.settings.shortcutsEnabled) {
-        if (this._focused && this.isDisabledKey(comboKey)) {
-          // key pressed is disabled by config
-          event.preventDefault();
-        } else {
-          const shortcutName = shortcutInfo.shortcutName;
-          const focuscheck =
-            shortcutInfo.onFocusOnly === false ||
-            shortcutInfo.onFocusOnly === this._focused;
-
-          if (focuscheck) {
-            switch (shortcutName) {
-              case 'undo':
-                if (
-                  this.settings.boundaries.enabled &&
-                  this._focused &&
-                  !this.settings.boundaries.readonly
-                ) {
-                  this.shortcut.emit({
-                    shortcut: comboKey,
-                    shortcutName,
-                    type: 'application',
-                    timePosition: this?.mouseCursor?.clone(),
-                    timestamp: shortcutInfo.timestamp,
-                  });
-                }
-                break;
-              case 'redo':
-                if (
-                  this.settings.boundaries.enabled &&
-                  this._focused &&
-                  !this.settings.boundaries.readonly
-                ) {
-                  this.shortcut.emit({
-                    shortcut: comboKey,
-                    shortcutName,
-                    type: 'application',
-                    timePosition: this?.mouseCursor?.clone(),
-                    timestamp: shortcutInfo.timestamp,
-                  });
-                }
-                break;
-              case 'set_boundary':
-                if (
-                  this.settings.boundaries.enabled &&
-                  !this.settings.boundaries.readonly &&
-                  this._focused &&
-                  this.audioManager !== undefined &&
-                  this.annotation?.currentLevel?.items
-                ) {
-                  const result = this.addOrRemoveSegment();
-                  if (result !== undefined && result.msg !== undefined) {
-                    if (result.msg.text && result.msg.text !== '') {
-                      this.alert.emit({
-                        type: result.msg.type,
-                        message: result.msg.text,
-                      });
-                    } else if (result.type !== undefined) {
-                      this.shortcut.emit({
-                        shortcut: comboKey,
-                        shortcutName,
-                        value: result.type,
-                        type: 'boundary',
-                        timePosition: this.audioManager.createSampleUnit(
-                          result.seg_samples,
-                        ),
-                        timestamp: shortcutInfo.timestamp,
-                      });
-                    }
-                  }
-                }
-                break;
-              case 'set_break':
-                if (
-                  this.settings.boundaries.enabled &&
-                  this._focused &&
-                  this.mouseCursor !== undefined
-                ) {
-                  const xSamples = this.mouseCursor.clone();
-
-                  if (
-                    xSamples !== undefined &&
-                    this.currentLevel &&
-                    this.currentLevel.items.length > 0
-                  ) {
-                    const segmentI = getSegmentBySamplePosition(
-                      this.currentLevel.items as TrattAnnotationSegment[],
-                      xSamples,
-                    );
-                    if (
-                      this.currentLevel.type === AnnotationLevelType.SEGMENT
-                    ) {
-                      const segment = this.currentLevel.items[
-                        segmentI
-                      ] as TrattAnnotationSegment<ASRContext>;
-                      if (
-                        segmentI > -1 &&
-                        segment.context?.asr?.isBlockedBy === undefined &&
-                        this.silencePlaceholder !== undefined
-                      ) {
-                        if (
-                          segment.getFirstLabelWithoutName('Speaker')?.value !==
-                          this.silencePlaceholder
-                        ) {
-                          segment.changeFirstLabelWithoutName(
-                            'Speaker',
-                            this.silencePlaceholder,
-                          );
-                          this.shortcut.emit({
-                            shortcut: comboKey,
-                            shortcutName,
-                            value: 'set_break',
-                            type: 'segment',
-                            timePosition: xSamples.clone(),
-                            timestamp: shortcutInfo.timestamp,
-                          });
-                        } else {
-                          segment.changeFirstLabelWithoutName('Speaker', '');
-                          this.shortcut.emit({
-                            shortcut: comboKey,
-                            shortcutName,
-                            value: 'remove_break',
-                            type: 'segment',
-                            timePosition: xSamples.clone(),
-                            timestamp: shortcutInfo.timestamp,
-                          });
-                        }
-                        this.changeSegment(xSamples, segment);
-                        this.redraw();
-                      }
-                    }
-                  }
-                }
-                break;
-              case 'play_selection':
-                if (
-                  this._focused &&
-                  this.currentLevel?.items &&
-                  this.currentLevel.items.length > 0 &&
-                  this.audioChunk !== undefined &&
-                  this.audioManager !== undefined &&
-                  this.mouseCursor !== undefined
-                ) {
-                  const xSamples = this.mouseCursor.clone();
-
-                  const boundarySelect = this.getSegmentSelection(
-                    this.mouseCursor.samples,
-                  );
-                  if (boundarySelect) {
-                    const segmentI = getSegmentBySamplePosition(
-                      this.currentLevel
-                        .items as TrattAnnotationSegment<ASRContext>[],
-                      xSamples,
-                    );
-                    if (segmentI > -1) {
-                      if (
-                        this.currentLevel.type === AnnotationLevelType.SEGMENT
-                      ) {
-                        const currentLevel = this
-                          .currentLevel as TrattAnnotationSegmentLevel<
-                          TrattAnnotationSegment<ASRContext>
-                        >;
-                        const segment = currentLevel.items[segmentI];
-
-                        const startTime = getStartTimeBySegmentID(
-                          currentLevel.items as TrattAnnotationSegment<ASRContext>[],
-                          segment.id,
-                        );
-
-                        // make shure, that segments boundaries are visible
-                        if (
-                          segment?.time !== undefined &&
-                          (startTime as any).samples >=
-                            this.audioChunk.time.start.samples &&
-                          segment.time.samples <=
-                            this.audioChunk.time.end.samples + 1 &&
-                          this.audioTCalculator !== undefined
-                        ) {
-                          const absX = this.audioTCalculator.samplestoAbsX(
-                            segment.time,
-                          );
-                          this.audioChunk.selection = boundarySelect.clone();
-                          this.drawnSelection = boundarySelect.clone();
-                          this.selchange.emit(this.audioChunk.selection);
-                          this.drawWholeSelection();
-
-                          const begin = (
-                            segmentI > 0
-                              ? this.currentLevel.items[segmentI - 1]
-                              : this.annotation!.createSegment(
-                                  this.audioManager.createSampleUnit(0),
-                                  [new OLabel(this.currentLevel.name, '')],
-                                )
-                          ) as TrattAnnotationSegment<ASRContext>;
-
-                          if (
-                            begin?.time !== undefined &&
-                            this.innerWidth !== undefined
-                          ) {
-                            const beginX = this.audioTCalculator.samplestoAbsX(
-                              begin.time,
-                            );
-
-                            const posY1 =
-                              this.innerWidth < this.AudioPxWidth
-                                ? Math.floor(beginX / this.innerWidth + 1) *
-                                    (this.settings.lineheight +
-                                      this.settings.margin.bottom) -
-                                  this.settings.margin.bottom
-                                : 0;
-
-                            const posY2 =
-                              this.innerWidth < this.AudioPxWidth
-                                ? Math.floor(absX / this.innerWidth + 1) *
-                                    (this.settings.lineheight +
-                                      this.settings.margin.bottom) -
-                                  this.settings.margin.bottom
-                                : 0;
-
-                            if (
-                              xSamples.samples >=
-                                this.audioChunk.selection.start.samples &&
-                              xSamples.samples <=
-                                this.audioChunk.selection.end.samples
-                            ) {
-                              this.audioChunk.absolutePlayposition =
-                                this.audioChunk.selection.start.clone();
-                              this.changePlayCursorSamples(
-                                this.audioChunk.selection.start,
-                              );
-                              this.updatePlayCursor();
-
-                              this.shortcut.emit({
-                                shortcut: comboKey,
-                                shortcutName,
-                                value: shortcutName,
-                                type: 'audio',
-                                timePosition: xSamples.clone(),
-                                selection: boundarySelect.clone(),
-                                timestamp: shortcutInfo.timestamp,
-                              });
-
-                              this.audioChunk.stopPlayback().then(() => {
-                                if (this.audioChunk !== undefined) {
-                                  // after stopping start audio playback
-                                  this.audioChunk.selection =
-                                    boundarySelect.clone();
-                                  this.playSelection(this.afterAudioEnded);
-                                }
-                              });
-                            }
-
-                            if (!this.settings.multiLine) {
-                              this.segmententer.emit({
-                                index: segmentI,
-                                pos: { Y1: posY1, Y2: posY2 },
-                              });
-                            }
-                          } else {
-                            console.warn(
-                              '[audio-viewer.play_selection] segment invisible guard rejected',
-                              {
-                                segmentI,
-                                currentLevelName: this.currentLevel?.name,
-                                currentLevelLinkedKind: (
-                                  this.currentLevel as any
-                                )?.linkedKind,
-                                segSamples: segment?.time?.samples,
-                                startSamples: (startTime as any)?.samples,
-                                chunkStart: this.audioChunk?.time.start.samples,
-                                chunkEnd: this.audioChunk?.time.end.samples,
-                                audioTCalculator:
-                                  this.audioTCalculator !== undefined,
-                              },
-                            );
-                            this.alert.emit({
-                              type: 'error',
-                              message: 'segment invisible',
-                            });
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-                break;
-              case 'delete_boundaries':
-                if (
-                  this.settings.boundaries.enabled &&
-                  !this.settings.boundaries.readonly &&
-                  this._focused &&
-                  this.currentLevel?.items &&
-                  this.currentLevel.items.length > 0 &&
-                  this.audioManager !== undefined
-                ) {
-                  let start = undefined;
-                  let end = undefined;
-                  const removedIDs: number[] = [];
-
-                  if (this.currentLevel.items.length > 0) {
-                    this.shortcut.emit({
-                      shortcut: comboKey,
-                      shortcutName,
-                      value: shortcutName,
-                      type: 'audio',
-                      timePosition: this.mouseCursor?.clone(),
-                      selection: this.drawnSelection?.clone(),
-                      timestamp: shortcutInfo.timestamp,
-                    });
-
-                    for (let i = 0; i < this.currentLevel.items.length; i++) {
-                      const segment = this.currentLevel.items[
-                        i
-                      ] as TrattAnnotationSegment<ASRContext>;
-
-                      if (segment?.time !== undefined) {
-                        if (
-                          this.drawnSelection !== undefined &&
-                          segment.time.samples >=
-                            this.drawnSelection.start.samples &&
-                          segment.time.samples <=
-                            this.drawnSelection.end.samples &&
-                          i < this.currentLevel.items.length - 1
-                        ) {
-                          this.removeSegmentByIndex(
-                            i,
-                            this.silencePlaceholder,
-                            true,
-                            false,
-                          );
-                          removedIDs.push(segment.id);
-                          i--;
-                          if (start === undefined) {
-                            start = i;
-                          }
-                          end = i;
-                        } else if (
-                          this.drawnSelection !== undefined &&
-                          this.drawnSelection.end.samples < segment.time.samples
-                        ) {
-                          break;
-                        }
-                      }
-                    }
-                  }
-
-                  if (
-                    start !== undefined &&
-                    end !== undefined &&
-                    this.drawnSelection !== undefined
-                  ) {
-                    this.drawnSelection.start =
-                      this.audioManager.createSampleUnit(0);
-                    this.drawnSelection.end = this.drawnSelection.start.clone();
-                  }
-
-                  if (removedIDs && removedIDs.length > 0) {
-                    this.annotationChange.emit(this.annotation);
-                    this.currentLevelChange.emit({
-                      type: 'remove',
-                      items: removedIDs.map((a) => ({
-                        id: a,
-                      })),
-                      removeOptions: {
-                        silenceCode: this.silencePlaceholder,
-                        mergeTranscripts: true,
-                      },
-                    });
-                  }
-                }
-                break;
-              case 'segment_enter':
-                if (
-                  this.settings.boundaries.enabled &&
-                  !this.settings.boundaries.readonly &&
-                  this._focused &&
-                  this.currentLevel?.items &&
-                  this.currentLevel.items.length > 0 &&
-                  this.canvasRenderer.stage !== undefined &&
-                  this.mouseCursor !== undefined
-                ) {
-                  event.preventDefault();
-                  this.shortcut.emit({
-                    shortcut: comboKey,
-                    shortcutName,
-                    value: shortcutName,
-                    type: 'segment',
-                    timePosition: this.mouseCursor?.clone(),
-                    timestamp: shortcutInfo.timestamp,
-                  });
-
-                  const segInde = getSegmentBySamplePosition(
-                    this.currentLevel
-                      .items as TrattAnnotationSegment<ASRContext>[],
-                    this.mouseCursor,
-                  );
-                  this.selectSegment(segInde)
-                    .then(({ posY1, posY2 }) => {
-                      this._focused = false;
-                      this.drawWholeSelection();
-                      this.canvasRenderer.stage?.draw();
-                      this.segmententer.emit({
-                        index: segInde,
-                        pos: { Y1: posY1, Y2: posY2 },
-                      });
-                    })
-                    .catch(() => {
-                      this.alert.emit({
-                        type: 'error',
-                        message: 'segment invisible',
-                      });
-                    });
-                }
-                break;
-              case 'cursor_left':
-                if (
-                  this._focused &&
-                  this.audioManager !== undefined &&
-                  this.mouseCursor !== undefined
-                ) {
-                  // move cursor to left
-                  this.shortcut.emit({
-                    shortcut: comboKey,
-                    shortcutName,
-                    value: shortcutName,
-                    type: 'mouse',
-                    timePosition: this.mouseCursor?.clone(),
-                    timestamp: shortcutInfo.timestamp,
-                  });
-                  this.moveCursor(
-                    'left',
-                    this.settings.stepWidthRatio * this.audioManager.sampleRate,
-                  );
-                  this.changeMouseCursorSamples(this.mouseCursor);
-                  this.mousecursorchange.emit({
-                    event: undefined,
-                    time: this.mouseCursor,
-                  });
-                }
-                break;
-              case 'cursor_right':
-                if (
-                  this._focused &&
-                  this.audioManager !== undefined &&
-                  this.mouseCursor !== undefined
-                ) {
-                  // move cursor to right
-                  this.shortcut.emit({
-                    shortcut: comboKey,
-                    shortcutName,
-                    value: shortcutName,
-                    type: 'mouse',
-                    timePosition: this.mouseCursor.clone(),
-                    timestamp: shortcutInfo.timestamp,
-                  });
-
-                  this.moveCursor(
-                    'right',
-                    this.settings.stepWidthRatio * this.audioManager.sampleRate,
-                  );
-                  this.changeMouseCursorSamples(this.mouseCursor);
-                  this.mousecursorchange.emit({
-                    event: undefined,
-                    time: this.mouseCursor,
-                  });
-                }
-                break;
-              case 'playonhover':
-                if (
-                  this._focused &&
-                  !this.settings.boundaries.readonly &&
-                  this.mouseCursor !== undefined
-                ) {
-                  // move cursor to right
-                  this.shortcut.emit({
-                    shortcut: comboKey,
-                    shortcutName,
-                    value: shortcutName,
-                    type: 'option',
-                    timePosition: this.mouseCursor.clone(),
-                    timestamp: shortcutInfo.timestamp,
-                  });
-                }
-                break;
-
-              case 'do_asr':
-                if (
-                  this.settings.boundaries.enabled &&
-                  this.focused &&
-                  this.settings.asr.enabled &&
-                  this.currentLevel?.items &&
-                  this.currentLevel.items.length > 0 &&
-                  this.mouseCursor !== undefined
-                ) {
-                  const segmentI = getSegmentBySamplePosition(
-                    this.currentLevel
-                      .items as TrattAnnotationSegment<ASRContext>[],
-                    this.mouseCursor,
-                  );
-                  const segment = this.currentLevel.items[
-                    segmentI
-                  ] as TrattAnnotationSegment<ASRContext>;
-
-                  if (segmentI > -1) {
-                    if (segment?.context?.asr?.isBlockedBy === undefined) {
-                      this.shortcut.emit({
-                        shortcut: comboKey,
-                        shortcutName,
-                        value: 'do_asr',
-                        type: 'segment',
-                        timePosition: this.mouseCursor.clone(),
-                        timestamp: shortcutInfo.timestamp,
-                      });
-                    } else {
-                      this.shortcut.emit({
-                        shortcut: comboKey,
-                        shortcutName,
-                        value: 'cancel_asr',
-                        type: 'segment',
-                        timePosition: this.mouseCursor.clone(),
-                        timestamp: shortcutInfo.timestamp,
-                      });
-                    }
-                  }
-                }
-                break;
-              case 'do_asr_maus':
-                if (
-                  this.settings.boundaries.enabled &&
-                  this.settings.asr.enabled &&
-                  this.currentLevel?.items &&
-                  this.currentLevel.items.length > 0 &&
-                  this.mouseCursor !== undefined
-                ) {
-                  const segmentI = getSegmentBySamplePosition(
-                    this.currentLevel
-                      .items as TrattAnnotationSegment<ASRContext>[],
-                    this.mouseCursor,
-                  );
-                  const segment = this.currentLevel.items[
-                    segmentI
-                  ] as TrattAnnotationSegment<ASRContext>;
-
-                  if (segmentI > -1) {
-                    if (segment?.context?.asr?.isBlockedBy === undefined) {
-                      this.shortcut.emit({
-                        shortcut: comboKey,
-                        shortcutName,
-                        value: 'do_asr_maus',
-                        type: 'segment',
-                        timePosition: this.mouseCursor.clone(),
-                        timestamp: shortcutInfo.timestamp,
-                      });
-                    } else {
-                      this.shortcut.emit({
-                        shortcut: comboKey,
-                        shortcutName,
-                        value: 'cancel_asr_maus',
-                        type: 'segment',
-                        timePosition: this.mouseCursor.clone(),
-                        timestamp: shortcutInfo.timestamp,
-                      });
-                    }
-                  }
-                }
-                break;
-
-              case 'do_maus':
-                if (
-                  this.settings.boundaries.enabled &&
-                  this.settings.asr.enabled &&
-                  this.currentLevel?.items &&
-                  this.currentLevel.items.length > 0 &&
-                  this.mouseCursor !== undefined
-                ) {
-                  const segmentI = getSegmentBySamplePosition(
-                    this.currentLevel
-                      .items as TrattAnnotationSegment<ASRContext>[],
-                    this.mouseCursor,
-                  );
-                  const segment = this.currentLevel.items[
-                    segmentI
-                  ] as TrattAnnotationSegment<ASRContext>;
-
-                  if (segmentI > -1) {
-                    if (segment?.context?.asr?.isBlockedBy === undefined) {
-                      this.shortcut.emit({
-                        shortcut: comboKey,
-                        shortcutName,
-                        value: 'do_maus',
-                        type: 'segment',
-                        timePosition: this.mouseCursor.clone(),
-                        timestamp: shortcutInfo.timestamp,
-                      });
-                    } else {
-                      this.shortcut.emit({
-                        shortcut: comboKey,
-                        shortcutName,
-                        value: 'cancel_maus',
-                        type: 'segment',
-                        timePosition: this.mouseCursor.clone(),
-                        timestamp: shortcutInfo.timestamp,
-                      });
-                    }
-                  }
-                }
-                break;
-            }
-          }
-        }
-      }
-    }
-  };
+  // `onKeyDown` moved to AudioViewerInteractionService (task 15/21) and
+  // decomposed there into one `handle*` method per shortcut (or per group
+  // of shortcuts that shared a body verbatim).
 
   /**
    * playSelection() plays the selected signal fragment or the selection in this chunk
@@ -1960,15 +1244,7 @@ export class AudioViewerService {
   /**
    * checks if the comboKey is part of the list of disabled keys
    */
-  private isDisabledKey(comboKey: string): boolean {
-    for (const disabledKey of this.settings.disabledKeys) {
-      if (disabledKey === comboKey) {
-        return true;
-      }
-    }
-
-    return false;
-  }
+  // `isDisabledKey` moved to AudioViewerInteractionService (task 15/21).
 
   /**
    * change samples of playcursor
@@ -2042,42 +1318,7 @@ export class AudioViewerService {
    * save mouse position for further processing
    */
   public setMouseMovePosition(absX: number) {
-    if (
-      this.audioTCalculator !== undefined &&
-      this.audioChunk !== undefined &&
-      this.annotation?.currentLevel?.items &&
-      this.annotation.currentLevel.items.length > 0
-    ) {
-      const absXTime = this.audioTCalculator.absXChunktoSampleUnit(
-        absX,
-        this.audioChunk,
-      );
-
-      if (absXTime !== undefined) {
-        this._mouseCursor = absXTime.clone();
-
-        if (this.mouseDown && this._dragableBoundaryID < 0) {
-          // mouse down, nothing dragged
-          if (!this.shiftPressed) {
-            this.audioChunk.selection.end = absXTime.clone();
-            this._drawnSelection = this.audioChunk.selection.clone();
-          }
-        } else if (
-          this.settings.boundaries.enabled &&
-          this.mouseDown &&
-          this._dragableBoundaryID > -1
-        ) {
-          this.handleBoundaryDragging(absX, absXTime, false);
-
-          this._boundaryDragging.next({
-            shiftPressed: this.shiftPressed,
-            id: this._dragableBoundaryID,
-            status: 'dragging',
-          });
-          this.canvasRenderer.layers?.overlay.batchDraw();
-        }
-      }
-    }
+    this.interaction.setMouseMovePosition(absX);
   }
 
   /**
@@ -2096,7 +1337,7 @@ export class AudioViewerService {
       audioTCalculator: this.audioTCalculator,
       audioChunk: this.audioChunk,
       audioPxW: this.audioPxW,
-      mouseCursor: this._mouseCursor,
+      mouseCursor: this.interaction.mouseCursor,
       annotation: this.annotation,
       audioManager: this.audioManager,
       silencePlaceholder: this.silencePlaceholder,
@@ -2124,48 +1365,7 @@ export class AudioViewerService {
    * move cursor to one direction and x samples
    */
   public moveCursor(direction: string, samples: number) {
-    if (
-      this._mouseCursor !== undefined &&
-      this.audioChunk !== undefined &&
-      this.audioManager !== undefined
-    ) {
-      if (samples > 0) {
-        const mouseCursorPosition = this._mouseCursor.samples;
-        if (
-          (direction === 'left' || direction === 'right') &&
-          ((mouseCursorPosition >=
-            this.audioChunk.time.start.samples + samples &&
-            direction === 'left') ||
-            (mouseCursorPosition <=
-              this.audioChunk.time.end.samples - samples &&
-              direction === 'right'))
-        ) {
-          if (direction === 'left') {
-            if (
-              this._mouseCursor.samples >=
-              this.audioChunk.time.start.samples + samples
-            ) {
-              this._mouseCursor = this._mouseCursor.sub(
-                this.audioManager.createSampleUnit(samples),
-              );
-            }
-          } else if (direction === 'right') {
-            if (
-              this._mouseCursor.samples <=
-              this.audioChunk.time.end.samples - samples
-            ) {
-              this._mouseCursor = this._mouseCursor.add(
-                this.audioManager.createSampleUnit(samples),
-              );
-            }
-          }
-        }
-      } else {
-        throw new Error(
-          'can not move cursor by given samples. Number of samples less than 0.',
-        );
-      }
-    }
+    this.interaction.moveCursor(direction, samples);
   }
 
   /**
@@ -2369,7 +1569,9 @@ export class AudioViewerService {
     );
   }
   private createScrollBar = () => {
-    return this.canvasRenderer.createScrollBar(this.onScrollbarDragged);
+    return this.canvasRenderer.createScrollBar(
+      this.interaction.onScrollbarDragged,
+    );
   };
   private drawSelection = (lineNum: number, lineWidth: number) => {
     this.canvasRenderer.drawSelection(lineNum, lineWidth, this.drawnSelection);
@@ -2384,25 +1586,8 @@ export class AudioViewerService {
     return this.timeUtils.getNumberOfLines(this.innerWidth, this.AudioPxWidth);
   }
 
-  private changeMouseCursorSamples = (newValue: SampleUnit) => {
-    if (
-      this.canvasRenderer.canvasElements?.mouseCaret !== undefined &&
-      this.canvasRenderer.layers !== undefined &&
-      this.audioTCalculator !== undefined &&
-      this.innerWidth !== undefined
-    ) {
-      const absX = this.audioTCalculator.samplestoAbsX(newValue);
-      const lines = Math.floor(absX / this.innerWidth);
-      const x = absX % this.innerWidth;
-      const y = lines * (this.settings.lineheight + this.settings.margin.top);
-
-      this.canvasRenderer.canvasElements.mouseCaret.position({
-        x,
-        y,
-      });
-      this.canvasRenderer.layers.playhead.batchDraw();
-    }
-  };
+  // `changeMouseCursorSamples` moved to AudioViewerInteractionService
+  // (task 15/21).
 
   /**
    * called if audio ended normally because end of segment reached
@@ -2440,11 +1625,7 @@ export class AudioViewerService {
     this.canvasRenderer.refresh(this.buildSegmentRenderContext());
   };
   public updateShortcuts(shortcuts: ShortcutGroup) {
-    this.settings.shortcuts = shortcuts;
-    if (this.shortcutsManager.shortcuts.length > 1) {
-      this.shortcutsManager.clearShortcuts();
-      this.shortcutsManager.registerShortcutGroup(shortcuts);
-    }
+    this.interaction.updateShortcuts(shortcuts);
   }
 
   private drawTextLabel(
@@ -2487,116 +1668,25 @@ export class AudioViewerService {
     this.canvasRenderer.updateSize(stageWidth, stageHeight);
   }
   private initializeLayers() {
-    this.canvasRenderer.initializeLayers(this.onWheel);
+    this.canvasRenderer.initializeLayers(this.interaction.onWheel);
   }
-  private onWheel = (event: KonvaEventObject<any>) => {
-    if (
-      this.canvasRenderer.canvasElements?.scrollBar !== undefined &&
-      this.canvasRenderer.canvasElements?.scrollbarSelector !== undefined &&
-      this.canvasRenderer.size?.height !== undefined
-    ) {
-      event.evt.preventDefault();
-      let newY = Math.max(
-        0,
-        Math.min(
-          this.canvasRenderer.canvasElements.scrollBar.height(),
-          this.canvasRenderer.canvasElements.scrollbarSelector.y() +
-            event.evt.deltaY / 2,
-        ),
-      );
-      newY = Math.max(
-        Math.min(
-          newY,
-          this.canvasRenderer.size.height -
-            this.canvasRenderer.canvasElements.scrollbarSelector.height(),
-        ),
-        0,
-      );
-      this.canvasRenderer.canvasElements.scrollbarSelector.y(newY);
-      this.onScrollbarDragged();
-    }
-  };
+  // `onWheel` and `onScrollbarDragged` moved to
+  // AudioViewerInteractionService (task 15/21); they are handed to the
+  // renderer as callbacks by `initialize`/`initializeLayers`/
+  // `initializeView` above.
 
+  /** Delegate kept because `scrollToAbsY` (facade-owned) calls it. */
   private scrollWithDeltaY(deltaY: number) {
-    if (
-      this.canvasRenderer.layers !== undefined &&
-      this.canvasRenderer.stage !== undefined &&
-      this.canvasRenderer.canvasElements !== undefined &&
-      this.canvasRenderer.canvasElements.lastLine !== undefined
-    ) {
-      const newY =
-        (this.canvasRenderer.canvasElements.lastLine.y() +
-          this.canvasRenderer.canvasElements.lastLine.height()) *
-        deltaY;
-
-      if (newY !== this.canvasRenderer.layers.background.y()) {
-        // move all layers but keep scrollbars fixed
-        this.canvasRenderer.layers.background.y(newY);
-        this.canvasRenderer.layers.overlay.y(newY);
-        this.canvasRenderer.layers.boundaries.y(newY);
-        this.canvasRenderer.layers.playhead.y(newY);
-        this.updateViewPort();
-        this.showOnlyLinesInViewport();
-        this.updateAllSegments();
-      }
-    }
+    this.interaction.scrollWithDeltaY(deltaY);
   }
-
-  private onScrollbarDragged = () => {
-    if (
-      this.canvasRenderer.canvasElements.scrollbarSelector !== undefined &&
-      this.canvasRenderer.canvasElements?.scrollBar
-    ) {
-      // delta in %
-      const delta =
-        this.canvasRenderer.canvasElements.scrollbarSelector.y() /
-        this.canvasRenderer.canvasElements.scrollBar.height();
-
-      this.scrollWithDeltaY(-delta);
-    }
-  };
 
   private removeEventListenersFromContainer(container: HTMLElement) {
-    container.removeEventListener('mousemove', this.onMouseMove);
-    container.removeEventListener('mousedown', this.mouseChange);
-    container.removeEventListener('mouseup', this.mouseChange);
+    container.removeEventListener('mousemove', this.interaction.onMouseMove);
+    container.removeEventListener('mousedown', this.interaction.mouseChange);
+    container.removeEventListener('mouseup', this.interaction.mouseChange);
   }
 
-  private mouseChange = async (event: any) => {
-    if (this.innerWidth) {
-      const absXPos = this.hoveredLine * this.innerWidth + event.layerX;
-
-      if (
-        absXPos !== undefined &&
-        absXPos > 0 &&
-        this.settings?.selection.enabled &&
-        this.audioChunk &&
-        this.canvasRenderer.layers !== undefined &&
-        (!this.canvasRenderer.canvasElements.scrollBar ||
-          event.layerX < this.canvasRenderer.canvasElements.scrollBar!.x())
-      ) {
-        if (event.type === 'mousedown') {
-          this.audioChunk.selection.start =
-            this.audioChunk.absolutePlayposition.clone();
-          this.audioChunk.selection.end =
-            this.audioChunk.absolutePlayposition.clone();
-        }
-
-        await this.setMouseClickPosition(absXPos, this.hoveredLine, event);
-
-        if (this.canvasRenderer.layers !== undefined) {
-          this.updatePlayCursor();
-          this.canvasRenderer.layers.playhead.draw();
-        }
-
-        if (event.type !== 'mousedown') {
-          this.selchange.emit(this.audioChunk.selection);
-        }
-        this.drawWholeSelection();
-      }
-      this._focused = true;
-    }
-  };
+  // `mouseChange` moved to AudioViewerInteractionService (task 15/21).
 
   public getLineNumber(x: number, y: number) {
     return this.timeUtils.getLineNumber(
@@ -2608,61 +1698,16 @@ export class AudioViewerService {
     );
   }
 
-  private onMouseMove = (event: any) => {
-    if (
-      this.canvasRenderer.canvasElements?.mouseCaret &&
-      this.canvasRenderer.layers &&
-      this.canvasRenderer.stage &&
-      this.innerWidth
-    ) {
-      const tempLine = this.getLineNumber(
-        event.layerX,
-        event.layerY + Math.abs(this.canvasRenderer.layers.background.y()),
-      );
-      this.hoveredLine = tempLine > -1 ? tempLine : this.hoveredLine;
-      const maxLines = Math.ceil(this.AudioPxWidth / this.innerWidth);
-      const restAbsX = this.hoveredLine * this.innerWidth;
-      const lineWidth =
-        this.hoveredLine === maxLines - 1 && maxLines > 1
-          ? this.AudioPxWidth - restAbsX
-          : this.innerWidth;
-      const layerX = Math.min(event.layerX, lineWidth);
-      const absXPos = Math.min(
-        this.hoveredLine * this.innerWidth + layerX,
-        this.AudioPxWidth,
-      );
-
-      if (!this.settings.cursor.fixed) {
-        this.canvasRenderer.canvasElements.mouseCaret.position({
-          x: layerX,
-          y:
-            this.hoveredLine *
-            (this.settings.lineheight + this.settings.margin.top),
-        });
-        this.canvasRenderer.layers.playhead.batchDraw();
-        if (this.drawnSelection && this.drawnSelection.duration.samples > 0) {
-          this.drawWholeSelection();
-        }
-      }
-      this.setMouseMovePosition(absXPos);
-      this.mousecursorchange.emit({
-        event,
-        time: this.mouseCursor,
-      });
-      this.canvasRenderer.stage.container().focus();
-      this._focused = true;
-    }
-  };
+  // `onMouseMove` moved to AudioViewerInteractionService (task 15/21).
 
   private addEventListenersForContainer(container: HTMLElement) {
-    container.addEventListener('mousemove', this.onMouseMove);
-    container.addEventListener('mousedown', this.mouseChange);
-    container.addEventListener('mouseup', this.mouseChange);
+    container.addEventListener('mousemove', this.interaction.onMouseMove);
+    container.addEventListener('mousedown', this.interaction.mouseChange);
+    container.addEventListener('mouseup', this.interaction.mouseChange);
   }
 
   focus() {
-    this.canvasRenderer.stage?.container().focus();
-    this._focused = true;
+    this.interaction.focus();
   }
 }
 
