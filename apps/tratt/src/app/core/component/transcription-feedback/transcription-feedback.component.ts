@@ -10,6 +10,7 @@ import {
 import { FormsModule, NgForm } from '@angular/forms';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { getProperties } from '@tratt/utilities';
+import { FeedBackForm } from '../../obj/FeedbackForm/FeedBackForm';
 import { SettingsService } from '../../shared/service';
 import { AppStorageService } from '../../shared/service/appstorage.service';
 import { AnnotationStoreService } from '../../store/login-mode/annotation/annotation.store.service';
@@ -51,20 +52,24 @@ export class TranscriptionFeedbackComponent implements OnChanges, OnDestroy {
   }
 
   public saveFeedbackform() {
+    const feedback = this.annotationStoreService.feedback;
+    // feedback can also be a legacy rating string ('SEVERE'/'SLIGHT'/'OK') or {}
+    // (set via AppStorageService.feedback) — neither has .comment/.exportData().
+    const isFeedbackForm = feedback instanceof FeedBackForm;
+
     if (
-      !(this.annotationStoreService?.feedback?.comment === undefined) &&
-      this.annotationStoreService.feedback.comment !== ''
+      isFeedbackForm &&
+      feedback.comment !== undefined &&
+      feedback.comment !== ''
     ) {
       this.annotationStoreService.changeFeedback({
-        ...this.annotationStoreService.feedback,
-        comment: this.annotationStoreService.feedback.comment.replace(
-          /(<)|(\/>)|(>)/g,
-          ' ',
-        ),
+        ...feedback,
+        comment: feedback.comment.replace(/(<)|(\/>)|(>)/g, ' '),
       });
     }
-    this.annotationStoreService.comment =
-      this.annotationStoreService?.feedback?.comment;
+    this.annotationStoreService.comment = isFeedbackForm
+      ? feedback.comment
+      : undefined;
 
     if (!this.settingsService.isTheme('shortAudioFiles')) {
       for (const [name, value] of getProperties(this.feedbackData)) {
@@ -72,14 +77,16 @@ export class TranscriptionFeedbackComponent implements OnChanges, OnDestroy {
       }
       this.appStorage.save(
         'feedback',
-        this.annotationStoreService?.feedback?.exportData(),
+        isFeedbackForm ? feedback.exportData() : undefined,
       );
     }
   }
 
   changeValue(control: string, value: any) {
     const feedback = this.annotationStoreService.feedback;
-    if (!feedback) {
+    if (!(feedback instanceof FeedBackForm)) {
+      // feedback can also be a legacy rating string ('SEVERE'/'SLIGHT'/'OK') or {}
+      // (set via AppStorageService.feedback) — neither has setValueForControl().
       return;
     }
     const result = feedback.setValueForControl(control, value.toString());
@@ -105,7 +112,13 @@ export class TranscriptionFeedbackComponent implements OnChanges, OnDestroy {
   }
 
   public checkBoxChanged(groupName: string, checkb: string) {
-    const groups = this.annotationStoreService.feedback?.groups;
+    const feedback = this.annotationStoreService.feedback;
+    if (!(feedback instanceof FeedBackForm)) {
+      // feedback can also be a legacy rating string ('SEVERE'/'SLIGHT'/'OK') or {}
+      // (set via AppStorageService.feedback) — neither has a .groups property.
+      return;
+    }
+    const groups = feedback.groups;
     if (!groups) {
       return;
     }

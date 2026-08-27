@@ -40,6 +40,20 @@ import {
 } from './annotation.selectors';
 import { AnnotationState } from './index';
 
+/**
+ * Honest shape of `AnnotationSessionState.assessment` as actually written at runtime:
+ * a `FeedBackForm` instance (intended shape), one of the legacy rating strings
+ * `'SEVERE' | 'SLIGHT' | 'OK'`, or `{}` (all set via `AppStorageService.feedback` ->
+ * `LoginModeActions.setFeedback`, see `login-mode.reducer.ts`) — or `undefined` before
+ * any of those have been set. `FeedBackForm | undefined` alone is dishonest; see Task 20
+ * review finding.
+ */
+export type FeedbackAssessment =
+  | FeedBackForm
+  | string
+  | Record<string, never>
+  | undefined;
+
 @Injectable({
   providedIn: 'root',
 })
@@ -172,7 +186,7 @@ export class AnnotationStoreService {
   private _transcript?: TrattAnnotation<ASRContext, TrattAnnotationSegment>;
   private _task?: TaskDto;
   private _guidelines?: TrattGuidelines;
-  private _feedback: FeedBackForm | undefined;
+  private _feedback: FeedbackAssessment;
   private _statistics = { transcribed: 0, empty: 0, pause: 0 };
 
   // Signals
@@ -194,7 +208,7 @@ export class AnnotationStoreService {
   currentLevelIndex$: Observable<number>;
   task$: Observable<TaskDto | undefined>;
   guidelines$: Observable<AnnotationState['guidelines']>;
-  feedback$: Observable<FeedBackForm | undefined>;
+  feedback$: Observable<FeedbackAssessment>;
   textInput$: Observable<TaskInputOutputDto | undefined>;
   transcriptString$: Observable<string>;
 
@@ -227,7 +241,7 @@ export class AnnotationStoreService {
     return this._guidelines;
   }
 
-  get feedback(): FeedBackForm | undefined {
+  get feedback(): FeedbackAssessment {
     return this._feedback;
   }
 
@@ -269,7 +283,7 @@ export class AnnotationStoreService {
     this.guidelines$ = this.store.select(selectGuidelines);
     this.feedback$ = this.store
       .select(selectCurrentSession)
-      .pipe(map((session) => session?.assessment as FeedBackForm | undefined));
+      .pipe(map((session) => session?.assessment as FeedbackAssessment));
     this.textInput$ = this.store.select(selectCurrentSession).pipe(
       map((session) => {
         if (!session) return undefined;
