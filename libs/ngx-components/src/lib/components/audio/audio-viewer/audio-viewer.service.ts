@@ -5,7 +5,6 @@ import {
   ASRContext,
   ASRQueueItemType,
   getSegmentBySamplePosition,
-  getSegmentsOfRange,
   getStartTimeBySegmentID,
   OLabel,
   TrattAnnotation,
@@ -14,8 +13,7 @@ import {
   TrattAnnotationSegmentLevel,
 } from '@tratt/annotation';
 import { AudioSelection, PlayBackStatus, SampleUnit } from '@tratt/media';
-import { TimespanPipe } from '@tratt/ngx-utilities';
-import { SubscriptionManager, TsWorkerJob } from '@tratt/utilities';
+import { SubscriptionManager } from '@tratt/utilities';
 import {
   AudioChunk,
   AudioManager,
@@ -23,37 +21,28 @@ import {
   ShortcutGroup,
   ShortcutManager,
 } from '@tratt/web-media';
-import { Animation } from 'konva/lib/Animation';
 import { Context } from 'konva/lib/Context';
 import { Group } from 'konva/lib/Group';
-import { Layer } from 'konva/lib/Layer';
 import type { KonvaEventObject } from 'konva/lib/Node';
 import { Shape } from 'konva/lib/Shape';
-import { Stage } from 'konva/lib/Stage';
-import { Util } from 'konva/lib/Util';
-import { Circle } from 'konva/lib/shapes/Circle';
-import { Line } from 'konva/lib/shapes/Line';
-import { Rect } from 'konva/lib/shapes/Rect';
-import { Text } from 'konva/lib/shapes/Text';
 import type { Vector2d } from 'konva/lib/types';
 import { ReplaySubject, Subject, timer } from 'rxjs';
 import { Subscription } from 'rxjs/internal/Subscription';
 import { MultiThreadingService } from '../../../multi-threading.service';
-import { Position, Size, TRATT_COLORS } from '../../../obj';
+import { Position, Size } from '../../../obj';
 import { PlayCursor } from '../../../obj/play-cursor';
-import { AudioViewerShortcutEvent } from './audio-viewer.component';
-import { AudioviewerConfig } from './audio-viewer.config';
+import {
+  AudioViewerRendererService,
+  type AudioViewerSegmentRenderContext,
+  type AudioViewerStageEventHandlers,
+} from './audio-viewer-renderer.service';
 import {
   AudioViewerSegmentsService,
   type AnnotationChange,
 } from './audio-viewer-segments.service';
 import { AudioViewerTimeUtils } from './audio-viewer-time-utils';
-import {
-  cycleNextSpeaker,
-  getSpeakerColor,
-  getSpeakerIds,
-  getSpeakerTextColor,
-} from './speaker-colors';
+import { AudioViewerShortcutEvent } from './audio-viewer.component';
+import { AudioviewerConfig } from './audio-viewer.config';
 
 @Injectable()
 export class AudioViewerService {
@@ -75,13 +64,6 @@ export class AudioViewerService {
     return this.annotation?.currentLevel;
   }
 
-  private viewport?: {
-    x: number;
-    y: number;
-    width: number;
-    height: number;
-  };
-
   public get mouseCursorCanvasElement(): {
     location: Vector2d | undefined;
     size:
@@ -91,7 +73,7 @@ export class AudioViewerService {
         }
       | undefined;
   } {
-    if (this.canvasElements.mouseCaret === undefined) {
+    if (this.canvasRenderer.canvasElements.mouseCaret === undefined) {
       return {
         location: {
           x: 0,
@@ -104,8 +86,8 @@ export class AudioViewerService {
       };
     } else {
       return {
-        location: this.canvasElements?.mouseCaret?.position(),
-        size: this.canvasElements?.mouseCaret?.size(),
+        location: this.canvasRenderer.canvasElements?.mouseCaret?.position(),
+        size: this.canvasRenderer.canvasElements?.mouseCaret?.size(),
       };
     }
   }
@@ -128,78 +110,61 @@ export class AudioViewerService {
     };
   }>();
 
-  private size?: {
-    width: number;
-    height: number;
-  };
-  private stage: Stage | undefined;
-  private konvaContainer?: HTMLDivElement;
-  public renderer?: Renderer2;
+  // `stage`, `konvaContainer` and `size` moved to AudioViewerRendererService
+  // (S1 split, task 14/21) — no pass-through accessor since nothing
+  // outside the rendering bucket reads them; reach `this.canvasRenderer.X`
+  // directly where needed.
+
+  /** Angular DOM renderer, used by the rendering bucket to set cursor
+   * styles on the canvas container. Moved to AudioViewerRendererService;
+   * this pass-through preserves the external contract
+   * (`audio-viewer.component.ts` does `this.av.renderer = this.renderer`). */
+  public get renderer(): Renderer2 | undefined {
+    return this.canvasRenderer.renderer;
+  }
+
+  public set renderer(value: Renderer2 | undefined) {
+    this.canvasRenderer.renderer = value;
+  }
+
   public shortcut = new EventEmitter<AudioViewerShortcutEvent>();
   public selchange = new EventEmitter<AudioSelection>();
 
-  private layers:
-    | {
-        background: Layer;
-        playhead: Layer;
-        boundaries: Layer;
-        overlay: Layer;
-        scrollBars: Layer;
-      }
-    | undefined;
-
-  private canvasElements: {
-    playHead: Group | undefined;
-    mouseCaret: Group | undefined;
-    scrollBar: Group | undefined;
-    scrollbarSelector: Rect | undefined;
-    lastLine: Group | undefined;
-  } = {
-    playHead: undefined,
-    mouseCaret: undefined,
-    scrollBar: undefined,
-    scrollbarSelector: undefined,
-    lastLine: undefined,
-  };
-
-  private styles = {
-    playHead: {
-      backgroundColor: TRATT_COLORS.playhead,
-      strokeColor: 'pruple',
-      strokeWidth: 1,
-      width: 10,
-    },
-    caret: {
-      strokeColor: 'red',
-      strokeWidth: 1,
-    },
-    height: 200,
-    border: {
-      width: 1,
-      color: '#b5b5b5',
-    },
-    background: {
-      color: TRATT_COLORS.surfaceBackground,
-    },
-    grid: {
-      strokeColor: 'gray',
-      strokeWidth: 1,
-    },
-    signal: {
-      strokeColor: TRATT_COLORS.waveformSignal,
-      strokeWidth: 1,
-    },
-  };
+  // `layers`, `canvasElements`, `styles` moved to
+  // AudioViewerRendererService (S1 split, task 14/21); reach
+  // `this.canvasRenderer.X` directly where needed outside the bucket.
 
   public shortcutsManager: ShortcutManager;
   public refreshOnInternChanges = true;
-  public audioTCalculator: AudioTimeCalculator | undefined;
+
+  /** Moved to AudioViewerRendererService (read live by its `sceneFuncGrid`
+   * closure); pass-through accessor keeps this field's many other
+   * (non-rendering) call sites in this class compiling unchanged. */
+  public get audioTCalculator(): AudioTimeCalculator | undefined {
+    return this.canvasRenderer.audioTCalculator;
+  }
+
+  public set audioTCalculator(value: AudioTimeCalculator | undefined) {
+    this.canvasRenderer.audioTCalculator = value;
+  }
+
   public overboundary = false;
   public shiftPressed = false;
-  public silencePlaceholder?: string;
+
+  /** Moved to AudioViewerRendererService (read live by
+   * `transcriptBackgroundSceneFunc`/`drawTextLabel`); externally settable
+   * by audio-viewer.component.ts (`av.silencePlaceholder = ...`), so this
+   * is a full accessor, not a one-time sync. */
+  public get silencePlaceholder(): string | undefined {
+    return this.canvasRenderer.silencePlaceholder;
+  }
+
+  public set silencePlaceholder(value: string | undefined) {
+    this.canvasRenderer.silencePlaceholder = value;
+  }
+
   public channelInitialized = new Subject<void>();
   protected mouseClickPos: SampleUnit | undefined;
-  protected playcursor: PlayCursor | undefined;
   private _focused = false;
   public onInitialized = new ReplaySubject<void>(1);
 
@@ -210,40 +175,60 @@ export class AudioViewerService {
   }>;
   currentLevelID?: number;
 
-  public secondsPerLine = 5;
+  /** Moved to AudioViewerRendererService (read live by
+   * `overlaySceneFunction`/`timeLabelSceneFunction`); externally settable
+   * by audio-viewer.component.ts (`av.secondsPerLine = value`), so this is
+   * a full accessor, not a one-time sync. */
+  public get secondsPerLine(): number {
+    return this.canvasRenderer.secondsPerLine;
+  }
+
+  public set secondsPerLine(value: number) {
+    this.canvasRenderer.secondsPerLine = value;
+  }
+
   private hoveredLine = -1;
-  private refreshRunning = false;
   public mousecursorchange = new EventEmitter<{
     event: MouseEvent | undefined;
     time: SampleUnit | undefined;
   }>();
 
-  private croppingData:
-    | {
-        x: number;
-        y: number;
-        radius: number;
-      }
-    | undefined;
-  private animation: {
-    playHead: Animation | undefined;
-  } = {
-    playHead: undefined,
-  };
-
-  private grid = {
-    verticalLines: 3,
-    horizontalLines: 2,
-  };
+  // `croppingData`, `animation`, `grid` moved to AudioViewerRendererService
+  // (S1 split, task 14/21); reach `this.canvasRenderer.X` directly where
+  // needed outside the bucket.
 
   annotation?: TrattAnnotation<ASRContext, TrattAnnotationSegment>;
   tempAnnotation?: TrattAnnotation<ASRContext, TrattAnnotationSegment>;
   public name = '';
 
   // AUDIO
-  protected audioPxW = 0;
+  /** Moved to AudioViewerRendererService (read live by
+   * `updatePlayCursor`/`changePlayCursorAbsX` and the segment-layout
+   * scene functions); pass-through accessor keeps this field's many other
+   * call sites in this class compiling unchanged. */
+  protected get audioPxW(): number {
+    return this.canvasRenderer.AudioPxWidth;
+  }
+
+  protected set audioPxW(value: number) {
+    this.canvasRenderer.audioPxWidth = value;
+  }
+
   protected hZoom = 0;
-  protected audioChunk: AudioChunk | undefined;
+
+  /** Moved to AudioViewerRendererService (read live by `sceneFuncGrid`/
+   * `sceneFuncSignal`/the segment-layout scene functions and set once,
+   * inside the (also-moved) `initialize` method); pass-through accessor
+   * keeps this field's many other call sites in this class compiling
+   * unchanged. */
+  protected get audioChunk(): AudioChunk | undefined {
+    return this.canvasRenderer.audioChunk;
+  }
+
+  protected set audioChunk(value: AudioChunk | undefined) {
+    this.canvasRenderer.audioChunk = value;
+  }
+
   private subscrManager: SubscriptionManager<Subscription> =
     new SubscriptionManager<Subscription>();
   private timeUtils = new AudioViewerTimeUtils();
@@ -271,13 +256,10 @@ export class AudioViewerService {
     return this._mouseCursor;
   }
 
-  private _innerWidth: number | undefined;
-
-  get innerWidth(): number | undefined {
-    if (this._innerWidth !== undefined) {
-      return this._innerWidth;
-    }
-    return 0;
+  /** Moved to AudioViewerRendererService (set once, inside the also-moved
+   * `initialize` method; read live by several scene functions). */
+  get innerWidth(): number {
+    return this.canvasRenderer.innerWidth;
   }
 
   get AudioPxWidth(): number {
@@ -293,12 +275,14 @@ export class AudioViewerService {
   }
 
   // PlayCursor in absX
+  // Moved to AudioViewerRendererService (read live by `updatePlayCursor`/
+  // `changePlayCursorAbsX`).
   get PlayCursor(): PlayCursor | undefined {
-    return this.playcursor;
+    return this.canvasRenderer.PlayCursor;
   }
 
   set PlayCursor(playcursor: PlayCursor | undefined) {
-    this.playcursor = playcursor;
+    this.canvasRenderer.PlayCursor = playcursor;
   }
 
   private _dragableBoundaryID = -1;
@@ -334,19 +318,19 @@ export class AudioViewerService {
     this._dragableBoundaryID = value;
   }
 
-  private _zoomY = 1;
   public alert = new EventEmitter<{ type: string; message: string }>();
   public segmententer = new EventEmitter<{
     index: number;
     pos: { Y1: number; Y2: number };
   }>();
 
+  /** Moved to AudioViewerRendererService (read live by `sceneFuncSignal`). */
   get zoomY(): number {
-    return this._zoomY;
+    return this.canvasRenderer.zoomY;
   }
 
   set zoomY(value: number) {
-    this._zoomY = value;
+    this.canvasRenderer.zoomY = value;
   }
 
   private _settings = new AudioviewerConfig();
@@ -355,20 +339,38 @@ export class AudioViewerService {
     return this._settings;
   }
 
+  /** `_settings` stays the storage of record here (not moved to the
+   * renderer, unlike the other rendering-adjacent fields above) — its
+   * default requires constructing an AudioviewerConfig, which the
+   * renderer deliberately avoids importing (see that file's doc comment
+   * on AudioViewerRenderSettings). Since AudioviewerConfig instances are
+   * mutated in place elsewhere (`this.settings.pixelPerSec = ...` etc.)
+   * rather than replaced, pushing the same object reference into the
+   * renderer keeps its copy in sync automatically without a proxy. */
   set settings(value: AudioviewerConfig) {
     this._settings = value;
+    this.canvasRenderer.settings = value;
   }
 
-  private _zoomX = 1;
-
+  /** Moved to AudioViewerRendererService (read live by `sceneFuncSignal`).
+   * The original had no public setter (only `calculateZoom` wrote it,
+   * internally, via the private `_zoomX` field); this setter replaces
+   * that internal write path now that the field lives on the renderer. */
   get zoomX(): number {
-    return this._zoomX;
+    return this.canvasRenderer.zoomX;
   }
 
-  private _minmaxarray: number[] = [];
+  set zoomX(value: number) {
+    this.canvasRenderer.zoomX = value;
+  }
 
+  /** Moved to AudioViewerRendererService (read live by `sceneFuncSignal`). */
   get minmaxarray(): number[] {
-    return this._minmaxarray;
+    return this.canvasRenderer.minmaxarray;
+  }
+
+  set minmaxarray(value: number[]) {
+    this.canvasRenderer.minmaxarray = value;
   }
 
   public get audioManager(): AudioManager | undefined {
@@ -383,6 +385,7 @@ export class AudioViewerService {
     private multiThreadingService: MultiThreadingService,
     private ngZone: NgZone,
     private segments: AudioViewerSegmentsService,
+    private canvasRenderer: AudioViewerRendererService,
   ) {
     this.shortcutsManager = new ShortcutManager();
     this._boundaryDragging = new Subject<{
@@ -390,6 +393,46 @@ export class AudioViewerService {
       id: number;
       shiftPressed?: boolean;
     }>();
+    // Sync the same AudioviewerConfig instance into the renderer so its
+    // Konva scene functions read live settings (see settings setter
+    // below for why this is a reference sync, not an accessor proxy).
+    this.canvasRenderer.settings = this._settings;
+  }
+
+  /**
+   * Bundles the segment/annotation-model data and callbacks that
+   * AudioViewerRendererService's segment-drawing methods need but
+   * deliberately don't own (see that service's class doc) — built fresh
+   * on each call so it always reflects the current `annotation`/
+   * `currentLevel`.
+   */
+  private buildSegmentRenderContext(): AudioViewerSegmentRenderContext {
+    return {
+      currentLevel: this.currentLevel,
+      annotation: this.annotation,
+      onBoundaryMouseDown: (id: number) => {
+        this.dragableBoundaryID = id;
+      },
+      onSpeakerLabelChanged: (item: AnnotationAnySegment) => {
+        this.currentLevelChange.emit({
+          type: 'change',
+          items: [{ instance: item }],
+        });
+      },
+    };
+  }
+
+  /** Keyboard/mouse handlers `initializeStageContainer` wires onto the
+   * stage container's native DOM events — these stay on
+   * AudioViewerService (interaction, not rendering) so they're passed in
+   * rather than referenced by the renderer via `this`. */
+  private buildStageEventHandlers(): AudioViewerStageEventHandlers {
+    return {
+      onKeyDown: this.onKeyDown,
+      onKeyUp: this.onKeyUp,
+      onMouseEnter: this.onMouseEnter,
+      onMouseLeave: this.onMouseLeave,
+    };
   }
 
   public initialize(
@@ -399,48 +442,16 @@ export class AudioViewerService {
     audioChunk: AudioChunk | undefined,
   ) {
     if (stageWidth && stageHeight && container && this.renderer) {
-      this.konvaContainer = container;
-      this.audioChunk = audioChunk;
-      this.updateSize(stageWidth, stageHeight);
-      const optionalScrollbarWidth = this.settings.scrollbar.enabled
-        ? this.settings.scrollbar.width
-        : 0;
-      this._innerWidth =
-        this.size!.width -
-        (this.settings.margin.left + this.settings.margin.right) -
-        optionalScrollbarWidth;
-      this.settings.pixelPerSec = this.getPixelPerSecond(this.secondsPerLine);
-
-      if (!this.settings.multiLine && this.size) {
-        this.settings.lineheight =
-          this.size.height -
-          this.settings.margin.top -
-          this.settings.margin.bottom;
-      }
-
-      if (!this.stage) {
-        this.stage = new Stage({
-          container, // id of container <div>,
-          width: this.size!.width,
-          height: this.size!.height,
-        });
-        this.initializeLayers();
-
-        if (this.layers) {
-          for (const [, layer] of Object.entries(this.layers)) {
-            this.stage.add(layer);
-          }
-        }
-      } else {
-        this.stage.width(this.size!.width);
-        this.stage.height(this.size!.height);
-      }
-
-      this.updateViewPort();
+      this.canvasRenderer.initialize(
+        stageWidth,
+        stageHeight,
+        container,
+        audioChunk,
+        this.buildStageEventHandlers(),
+        this.onWheel,
+      );
       this.removeEventListenersFromContainer(container);
       this.addEventListenersForContainer(container);
-
-      this.initializeStageContainer();
 
       this.shortcutsManager.clearShortcuts();
       this.shortcutsManager.registerShortcutGroup(this.settings.shortcuts);
@@ -448,16 +459,7 @@ export class AudioViewerService {
   }
 
   private showOnlyLinesInViewport() {
-    if (this.viewport && this.layers?.background) {
-      const lines = this.layers.background.find('.line');
-      let i = 0;
-      for (const line of lines) {
-        line.visible(
-          this.isVisibleInView(line.x(), line.y(), line.width(), line.height()),
-        );
-        i++;
-      }
-    }
+    this.canvasRenderer.showOnlyLinesInViewport();
   }
 
   /**
@@ -529,11 +531,7 @@ export class AudioViewerService {
   }
 
   private bringToFront(name: string) {
-    this.layers?.overlay.find(name).map((a) => {
-      // selections to foreground
-      a.zIndex((this.layers?.overlay.children?.length ?? 1) - 1);
-      return a;
-    });
+    this.canvasRenderer.bringToFront(name);
   }
 
   public getPixelPerSecond(secondsPerLine: number) {
@@ -545,283 +543,50 @@ export class AudioViewerService {
   }
 
   onResize = async (newWidth?: number, newHeight?: number) => {
-    try {
-      if (
-        this.audioChunk !== undefined &&
-        this.currentLevel &&
-        this.stage !== undefined &&
-        newWidth &&
-        newHeight &&
-        this.currentLevel.items.length > 0
-      ) {
-        const playpos = this.audioChunk?.absolutePlayposition.clone();
-        const drawnSelection = this.drawnSelection?.clone();
-        const viewport = this.viewport;
-        this.initialize(
-          newWidth,
-          newHeight,
-          this.konvaContainer,
-          this.audioChunk,
-        );
-        this.settings.pixelPerSec = this.getPixelPerSecond(this.secondsPerLine);
-        await this.initializeSettings();
-        this.initializeView();
-
-        if (this.audioChunk !== undefined) {
-          if (!this.audioChunk.isPlaying) {
-            this.audioChunk.absolutePlayposition = playpos.clone();
-          }
-          this.drawnSelection = drawnSelection;
-        }
-        this.scrollToAbsY(viewport!.y!);
-        this.bringToFront('#timeStamps');
-        this.bringToFront('.line-selections');
-
-        this.drawWholeSelection();
-        this.updatePlayCursor();
-        this.layers?.playhead.draw();
-      }
-    } catch (e) {
-      //ignore
-      console.error(e);
+    const drawnSelection = this.drawnSelection?.clone();
+    const completed = await this.canvasRenderer.onResize(
+      newWidth,
+      newHeight,
+      this.buildSegmentRenderContext(),
+      this.buildStageEventHandlers(),
+      this.onWheel,
+      this.onScrollbarDragged,
+      {
+        initializeSettings: this.initializeSettings,
+        scrollToAbsY: (absY: number) => this.scrollToAbsY(absY),
+      },
+    );
+    if (completed) {
+      this.drawnSelection = drawnSelection;
+      this.drawWholeSelection();
     }
   };
 
   public initializeView() {
     if (
-      this.currentLevel &&
-      this.currentLevel.items.length > 0 &&
-      this.stage &&
-      this.size?.height &&
-      this.layers
+      this.canvasRenderer.initializeViewAndReportInitialized(
+        this.buildSegmentRenderContext(),
+        this.onScrollbarDragged,
+      )
     ) {
-      this.stage.height(this.size.height);
-
-      for (const [, value] of Object.entries(this.layers)) {
-        value.removeChildren();
-      }
-
-      if (
-        this.settings.cropping === 'circle' &&
-        this.innerWidth !== undefined
-      ) {
-        this.settings.lineheight = this.innerWidth;
-        const circleWidth = this.innerWidth - 5;
-        this.croppingData = {
-          x: circleWidth / 2 + 2 + this.settings.margin.left,
-          y: circleWidth / 2 + 2 + this.settings.margin.top,
-          radius: circleWidth / 2,
-        };
-      }
-
-      const addSingleLineOnly = () => {
-        if (this.innerWidth !== undefined) {
-          const line = this.createLine(
-            new Size(this.innerWidth, this.settings.lineheight),
-            new Position(this.settings.margin.left, 0),
-            0,
-          );
-          this.layers?.background.add(line);
-          this.canvasElements.lastLine = line;
-        }
-      };
-
-      if (
-        this.settings.multiLine &&
-        this.audioChunk!.time!.duration.seconds > this.secondsPerLine
-      ) {
-        let lineWidth = this.innerWidth;
-
-        if (lineWidth !== undefined) {
-          const numOfLines = Math.ceil(this.AudioPxWidth / lineWidth);
-          let y = 0;
-          if (numOfLines > 1) {
-            let drawnWidth = 0;
-            for (let i = 0; i < numOfLines - 1; i++) {
-              const line = this.createLine(
-                new Size(lineWidth, this.settings.lineheight),
-                new Position(this.settings.margin.left, y),
-                i,
-              );
-              line.listening(false);
-              line.visible(
-                this.isVisibleInView(
-                  line.x(),
-                  line.y(),
-                  line.width(),
-                  line.height(),
-                ),
-              );
-
-              this.layers.background.add(line);
-              y += this.settings.lineheight + this.settings.margin.top;
-              this.canvasElements.lastLine = line;
-              drawnWidth += lineWidth;
-            }
-            // add last line
-            lineWidth = this.AudioPxWidth - drawnWidth;
-            if (lineWidth > 0) {
-              const line = this.createLine(
-                new Size(lineWidth, this.settings.lineheight),
-                new Position(this.settings.margin.left, y),
-                numOfLines - 1,
-              );
-              this.layers.background.add(line);
-              this.canvasElements.lastLine = line;
-            }
-          } else {
-            addSingleLineOnly();
-          }
-        } else {
-          addSingleLineOnly();
-        }
-      } else {
-        addSingleLineOnly();
-      }
-
-      // this.layers.background.batchDraw();
-      this.updateAllSegments();
-
-      let y = 0;
-      let lineWidth = this.innerWidth!;
-      const numOfLines = Math.ceil(this.AudioPxWidth / lineWidth);
-
-      let drawnWidth = 0;
-      const selectionGroup = new Group({
-        name: 'line-selections',
-      });
-
-      for (let i = 0; i < numOfLines - 1; i++) {
-        const selectElem = this.createLineSelectionGroup(
-          new Size(lineWidth, this.settings.lineheight),
-          new Position(this.settings.margin.left, y),
-          i,
-        );
-
-        selectionGroup.add(selectElem);
-        y += this.settings.lineheight + this.settings.margin.top;
-        drawnWidth += lineWidth;
-      }
-
-      // add last line
-      lineWidth = this.AudioPxWidth - drawnWidth;
-      if (lineWidth > 0) {
-        const selectElem = this.createLineSelectionGroup(
-          new Size(lineWidth, this.settings.lineheight),
-          new Position(this.settings.margin.left, y),
-          numOfLines - 1,
-        );
-        selectionGroup.add(selectElem);
-      }
-
-      this.layers.overlay.add(selectionGroup);
-      this.layers.overlay.batchDraw();
-
-      this.canvasElements.playHead = this.createLinePlayCursor();
-      if (this.settings.selection.enabled) {
-        this.layers.playhead.add(this.canvasElements.playHead);
-      }
-
-      this.canvasElements.mouseCaret = this.createLineMouseCaret();
-      this.layers.playhead.add(this.canvasElements.mouseCaret);
-
-      if (
-        this.settings.cropping === 'circle' &&
-        this.croppingData !== undefined
-      ) {
-        const cropGroup = this.createCropContainer();
-        this.layers.playhead.removeChildren();
-        this.canvasElements.mouseCaret.position({
-          x: this.croppingData.radius + 2,
-          y: 2,
-        });
-
-        cropGroup.add(this.canvasElements.playHead);
-        cropGroup.add(this.canvasElements.mouseCaret);
-        this.layers.playhead.add(cropGroup);
-      }
-
-      if (this.settings.scrollbar.enabled) {
-        this.canvasElements.scrollBar = this.createScrollBar();
-        if (this.canvasElements?.scrollBar !== undefined) {
-          this.layers.scrollBars.add(this.canvasElements.scrollBar);
-        }
-      }
-
-      this.stage.batchDraw();
       this.onInitialized.next();
     }
   }
-
   public updateLines = () => {
-    if (this.layers?.background && this.layers?.overlay) {
-      const lines: Group[] | undefined = this.layers.background.find('.line');
-      const lineSelections: Group[] | undefined =
-        this.layers.overlay.find('.line-selection');
-
-      if (this.innerWidth !== undefined) {
-        if (lines && lineSelections) {
-          // check all lines but the last one
-          for (let i = 0; i < lines.length; i++) {
-            const line = lines[i];
-            const lineSelection = lineSelections[i];
-            line.width(this.innerWidth);
-            lineSelection.width(this.innerWidth);
-            const geometrics = line.getChildren();
-            for (let j = 0; j < geometrics.length; j++) {
-              const elem = geometrics[j];
-              if (
-                (lines.length > 1 && i < lines.length - 1) ||
-                lines.length === 1
-              ) {
-                elem.width(this.innerWidth);
-              } else {
-                const width = this.AudioPxWidth % this.innerWidth;
-                line.width(width);
-                // last line
-                elem.width(width);
-              }
-            }
-
-            line.visible(
-              this.isVisibleInView(
-                line.x(),
-                line.y(),
-                line.width(),
-                line.height(),
-              ),
-            );
-          }
-        }
-
-        const scrollbars = this.layers?.scrollBars.find('#scrollBar');
-        if (scrollbars !== undefined && scrollbars.length > 0) {
-          scrollbars[0].x(this.innerWidth + this.settings.margin.left);
-        }
-      }
-    }
+    this.canvasRenderer.updateLines();
   };
-
   private updateViewPort() {
-    if (this.size && this.layers?.background) {
-      this.viewport = {
-        x: Math.abs(this.layers.background.x()),
-        y: Math.abs(this.layers.background.y()),
-        width: this.size.width,
-        height: this.size.height,
-      };
-    }
+    this.canvasRenderer.updateViewPort();
   }
-
   public scrollToAbsY(absY: number) {
     if (
-      this.canvasElements !== undefined &&
-      this.canvasElements.lastLine !== undefined
+      this.canvasRenderer.canvasElements !== undefined &&
+      this.canvasRenderer.canvasElements.lastLine !== undefined
     ) {
       const deltaY =
         absY /
-        (this.canvasElements.lastLine.y() +
-          this.canvasElements.lastLine.height());
+        (this.canvasRenderer.canvasElements.lastLine.y() +
+          this.canvasRenderer.canvasElements.lastLine.height());
       this.scrollWithDeltaY(-deltaY);
     }
   }
@@ -838,697 +603,97 @@ export class AudioViewerService {
   }
 
   private createCropContainer(id?: string): Group {
-    return new Group({
-      id,
-      clipFunc: (ctx) => {
-        if (this.croppingData !== undefined) {
-          ctx.arc(
-            this.croppingData.x,
-            this.croppingData.y,
-            this.croppingData.radius,
-            0,
-            Math.PI * 2,
-            false,
-          );
-        }
-      },
-    });
+    return this.canvasRenderer.createCropContainer(id);
   }
-
   public onPlaybackStarted() {
-    if (this.animation.playHead && !this.animation.playHead.isRunning()) {
+    if (
+      this.canvasRenderer.animation.playHead &&
+      !this.canvasRenderer.animation.playHead.isRunning()
+    ) {
       this.ngZone.runOutsideAngular(() => {
-        this.animation.playHead!.start();
+        this.canvasRenderer.animation.playHead!.start();
       });
     }
   }
 
   public onPlaybackPaused() {
-    if (this.animation.playHead !== undefined) {
-      this.animation.playHead.stop();
+    if (this.canvasRenderer.animation.playHead !== undefined) {
+      this.canvasRenderer.animation.playHead.stop();
     }
   }
 
   public onPlaybackStopped() {
-    this.animation.playHead?.stop();
+    this.canvasRenderer.animation.playHead?.stop();
     this.updatePlayCursor();
-    this.layers?.playhead.draw();
+    this.canvasRenderer.layers?.playhead.draw();
   }
 
   public onPlaybackEnded() {
-    this.animation.playHead?.stop();
+    this.canvasRenderer.animation.playHead?.stop();
     this.updatePlayCursor();
-    this.layers?.playhead.draw();
+    this.canvasRenderer.layers?.playhead.draw();
   }
 
   private createLineBackground(line: Group, size: Size) {
-    const container = new Rect({
-      fill: this.settings.backgroundcolor,
-      width: size.width,
-      height: size.height,
-      transformsEnabled: 'position',
-    });
-    line.add(container);
+    this.canvasRenderer.createLineBackground(line, size);
   }
-
   private createLineBorder(line: Group, size: Size) {
-    const frame = new Rect({
-      stroke: this.settings.frame.color,
-      strokeWidth: 1,
-      width: size.width,
-      height: size.height,
-      transformsEnabled: 'position',
-    });
-    line.add(frame);
+    this.canvasRenderer.createLineBorder(line, size);
   }
-
   private createLineSelection(line: Group, size: Size) {
-    const frame = new Rect({
-      name: 'selection',
-      opacity: 0.2,
-      fill: this.settings.selection.color,
-      width: 0,
-      height: size.height,
-      transformsEnabled: 'position',
-    });
-    line.add(frame);
+    this.canvasRenderer.createLineSelection(line, size);
   }
-
   private createLineGrid(line: Group, size: Size) {
-    const frame = new Shape({
-      opacity: 0.2,
-      stroke: this.settings.grid.color,
-      strokeWidth: 1,
-      width: size.width,
-      height: size.height,
-      sceneFunc: this.sceneFuncGrid,
-      transformsEnabled: 'position',
-    });
-    frame.perfectDrawEnabled(false);
-    line.add(frame);
+    this.canvasRenderer.createLineGrid(line, size);
   }
-
   private sceneFuncGrid = (context: Context, shape: Shape) => {
-    if (
-      this.layers !== undefined &&
-      this.stage !== undefined &&
-      this.audioManager !== undefined &&
-      this.audioTCalculator !== undefined
-    ) {
-      const position = {
-        x: 0,
-        y: 0,
-      };
-      const pxPerSecond = Math.round(
-        this.audioTCalculator.samplestoAbsX(
-          new SampleUnit(
-            this.audioManager.sampleRate,
-            this.audioManager.sampleRate,
-          ),
-        ),
-      );
-
-      if (pxPerSecond >= 5) {
-        const timeLineHeight = this.settings.timeline.enabled
-          ? this.settings.timeline.height
-          : 0;
-        const vZoom = Math.round(
-          (this.settings.lineheight - timeLineHeight) /
-            this.grid.horizontalLines,
-        );
-
-        if (pxPerSecond > 0 && vZoom > 0) {
-          // --- get the appropriate context
-          context.beginPath();
-
-          // set horizontal lines
-          for (
-            let y = Math.round(vZoom / 2);
-            y < this.settings.lineheight - timeLineHeight;
-            y = y + vZoom
-          ) {
-            context.moveTo(position.x, y + position.y);
-            context.lineTo(
-              position.x +
-                shape.width() -
-                (this.settings.margin.left + this.settings.margin.right),
-              y + position.y,
-            );
-          }
-          // set vertical lines
-          for (
-            let x = pxPerSecond;
-            x <
-            shape.width() -
-              (this.settings.margin.left + this.settings.margin.right);
-            x = x + pxPerSecond
-          ) {
-            context.moveTo(position.x + x, position.y);
-            context.lineTo(
-              position.x + x,
-              position.y + this.settings.lineheight - timeLineHeight,
-            );
-          }
-
-          context.stroke();
-          context.fillStrokeShape(shape);
-        }
-      }
-    }
+    this.canvasRenderer.sceneFuncGrid(context, shape);
   };
-
   private createLinePlayCursor() {
-    const group = new Group({
-      name: 'playhead',
-      x: this.settings.margin.left - this.settings.playcursor.width / 2,
-      y: 0,
-      transformsEnabled: 'position',
-    });
-
-    const frame = new Rect({
-      fill: this.settings.playcursor.color,
-      width: this.settings.playcursor.width,
-      height: this.settings.lineheight,
-      opacity: 0.25,
-      transformsEnabled: 'position',
-    });
-
-    const caret = new Line({
-      points: [
-        this.settings.playcursor.width / 2,
-        0,
-        this.settings.playcursor.width / 2,
-        this.settings.lineheight,
-      ],
-      stroke: 'black',
-      strokeWidth: 2,
-      transformsEnabled: 'position',
-    });
-
-    group.add(frame);
-    group.add(caret);
-
-    if (this.layers !== undefined) {
-      this.animation.playHead = new Animation(
-        this.doPlayHeadAnimation,
-        this.layers.playhead,
-      );
-    }
-
-    return group;
+    return this.canvasRenderer.createLinePlayCursor();
   }
-
   private createLine(size: Size, position: Position, lineNum: number): Group {
-    const result = new Group({
-      name: 'line',
-      x: position.x,
-      y: position.y,
-      width: size.width,
-      height: size.height,
-      transformsEnabled: 'position',
-    });
-
-    let lineGroup = result;
-
-    if (this.settings.cropping === 'circle' && this.innerWidth !== undefined) {
-      lineGroup = this.createCropContainer();
-      size = new Size(this.innerWidth, this.innerWidth);
-    }
-
-    this.createLineBackground(lineGroup, size);
-    this.createLineGrid(lineGroup, size);
-    this.createLineSignal(lineGroup, size, lineNum);
-    this.createLineBorder(lineGroup, size);
-
-    if (
-      this.settings.cropping === 'circle' &&
-      this.croppingData !== undefined
-    ) {
-      const shadowCircle = new Circle({
-        stroke: '#555555',
-        strokeWidth: 1,
-        x: this.croppingData.x,
-        y: this.croppingData.y,
-        radius: this.croppingData.radius,
-        shadowColor: 'gray',
-        shadowEnabled: true,
-        shadowBlur: 5,
-        shadowOffset: { x: 2.5, y: 0 },
-        shadowOpacity: 1,
-      });
-      result.add(shadowCircle);
-      result.add(lineGroup);
-      const borderedCircle = new Circle({
-        stroke: '#555555',
-        strokeWidth: 1,
-        x: this.croppingData.x,
-        y: this.croppingData.y,
-        radius: this.croppingData.radius,
-      });
-      result.add(borderedCircle);
-    }
-
-    return result;
+    return this.canvasRenderer.createLine(size, position, lineNum);
   }
-
   private createLineSelectionGroup(
     size: Size,
     position: Position,
     lineNum: number,
   ): Group {
-    const result = new Group({
-      name: 'line-selection',
-      x: position.x,
-      y: position.y,
-      width: size.width,
-      height: size.height,
-    });
-
-    let lineGroup = result;
-
-    if (this.settings.cropping === 'circle' && this.innerWidth !== undefined) {
-      lineGroup = this.createCropContainer();
-      size = new Size(this.innerWidth, this.innerWidth);
-    }
-
-    this.createLineSelection(lineGroup, size);
-
-    if (
-      this.settings.cropping === 'circle' &&
-      this.croppingData !== undefined
-    ) {
-      const shadowCircle = new Circle({
-        stroke: '#555555',
-        strokeWidth: 1,
-        x: this.croppingData.x,
-        y: this.croppingData.y,
-        radius: this.croppingData.radius,
-        shadowColor: 'gray',
-        shadowEnabled: true,
-        shadowBlur: 5,
-        shadowOffset: { x: 2.5, y: 0 },
-        shadowOpacity: 1,
-      });
-      result.add(shadowCircle);
-      result.add(lineGroup);
-      const borderedCircle = new Circle({
-        stroke: '#555555',
-        strokeWidth: 1,
-        x: this.croppingData.x,
-        y: this.croppingData.y,
-        radius: this.croppingData.radius,
-      });
-      result.add(borderedCircle);
-    }
-
-    return result;
+    return this.canvasRenderer.createLineSelectionGroup(
+      size,
+      position,
+      lineNum,
+    );
   }
-
   private createLineSignal(line: Group, size: Size, lineNum: number) {
-    const frame = new Shape({
-      stroke: this.settings.data.color,
-      strokeWidth: 1,
-      width: size.width,
-      height: size.height,
-      sceneFunc: (context, shape) => {
-        this.sceneFuncSignal(context, shape, lineNum);
-      },
-      transformsEnabled: 'position',
-    });
-    line.add(frame);
+    this.canvasRenderer.createLineSignal(line, size, lineNum);
   }
-
   private sceneFuncSignal = (
     context: Context,
     shape: Shape,
     lineNum: number,
   ) => {
-    if (
-      this.layers !== undefined &&
-      this.stage !== undefined &&
-      this.innerWidth
-    ) {
-      const timeLineHeight = this.settings.timeline.enabled
-        ? this.settings.timeline.height
-        : 0;
-      const midline = Math.round(
-        (this.settings.lineheight - timeLineHeight) / 2,
-      );
-      const absXPos = lineNum * this.innerWidth;
-
-      const zoomX = this.zoomX;
-      const zoomY = this.zoomY;
-
-      const position = {
-        x: 0,
-        y: 0,
-      };
-      context.beginPath();
-      context.moveTo(
-        position.x,
-        position.y + midline - this.minmaxarray[absXPos],
-      );
-
-      if (
-        !(midline === null || midline === undefined) &&
-        !(zoomY === null || zoomY === undefined)
-      ) {
-        for (let x = 0; x + absXPos < absXPos + shape.width(); x++) {
-          const xDraw = !this.settings.roundValues
-            ? position.x + x * zoomX
-            : Math.round(position.x + x * zoomX);
-          const yDraw = !this.settings.roundValues
-            ? position.y + midline - this.minmaxarray[x + absXPos] * zoomY
-            : Math.round(
-                position.y + midline - this.minmaxarray[x + absXPos] * zoomY,
-              );
-
-          if (!isNaN(yDraw) && !isNaN(xDraw)) {
-            context.lineTo(xDraw, yDraw);
-          } else {
-            context.lineTo(x, midline);
-          }
-        }
-      } else {
-        if (midline === undefined || midline === undefined) {
-          throw Error('midline is undefined!');
-        } else if (zoomY === undefined || zoomY === undefined) {
-          throw Error('ZoomY is undefined!');
-        }
-      }
-      context.fillStrokeShape(shape);
-    }
+    this.canvasRenderer.sceneFuncSignal(context, shape, lineNum);
   };
-
   private doPlayHeadAnimation = () => {
-    this.updatePlayCursor();
+    this.canvasRenderer.doPlayHeadAnimation();
   };
-
   public updatePlayCursor = () => {
-    if (
-      this.settings.selection.enabled &&
-      this.audioChunk &&
-      this.canvasElements?.playHead &&
-      this.audioTCalculator &&
-      this.audioChunk.relativePlayposition &&
-      this.PlayCursor
-    ) {
-      let currentAbsX = this.audioTCalculator.samplestoAbsX(
-        this.audioChunk.relativePlayposition,
-      );
-      const endAbsX = this.audioTCalculator.samplestoAbsX(
-        this.audioChunk.time.end.sub(this.audioChunk.time.start),
-      );
-      currentAbsX = Math.min(currentAbsX, endAbsX - 1);
-      this.changePlayCursorAbsX(currentAbsX);
-
-      // get line of PlayCursor
-      const cursorPosition = this.getPlayCursorPositionOfLineByAbsX(
-        this.PlayCursor.absX,
-      );
-      this.canvasElements.playHead.position(cursorPosition);
-    }
+    this.canvasRenderer.updatePlayCursor();
   };
-
   private changePlayCursorAbsX = (newValue: number) => {
-    if (
-      this.audioChunk !== undefined &&
-      this.PlayCursor !== undefined &&
-      this.audioTCalculator !== undefined
-    ) {
-      this.PlayCursor.changeAbsX(
-        newValue,
-        this.audioTCalculator,
-        this.AudioPxWidth,
-        this.audioChunk,
-      );
-    }
+    this.canvasRenderer.changePlayCursorAbsX(newValue);
   };
-
   updateAllSegments(clearAll = false) {
-    let y = 0;
-    const segCanvasElements = this.layers?.overlay.find('.segments');
-    if (clearAll) {
-      segCanvasElements?.forEach((a) => a.destroy());
-    }
-
-    const segTimeLabels = this.layers?.overlay.find('#timeStamps');
-    if (clearAll) {
-      segTimeLabels?.forEach((a) => a.destroy());
-    }
-
-    if (clearAll && this.layers?.boundaries) {
-      this.layers.boundaries.children.forEach((a) => a.destroy());
-      this.layers.boundaries.children = [];
-    }
-
-    if (this.innerWidth !== undefined) {
-      const maxLineWidth = this.innerWidth;
-      let numOfLines = Math.ceil(this.AudioPxWidth / maxLineWidth);
-      if (!this.settings.multiLine) {
-        numOfLines = 1;
-      }
-
-      if (
-        this.audioManager !== undefined &&
-        this.layers !== undefined &&
-        this.layers.overlay !== undefined &&
-        this.currentLevel &&
-        this.currentLevel.items.length > 0 &&
-        this.audioChunk !== undefined &&
-        this.viewport &&
-        this._innerWidth &&
-        this.size
-      ) {
-        let root: Group | Layer = this.layers.overlay;
-
-        if (this.settings.cropping === 'circle' && !this.settings.multiLine) {
-          const cropGroup = new Group({
-            clipFunc: (ctx) => {
-              if (this.croppingData !== undefined) {
-                ctx.arc(
-                  this.croppingData.x,
-                  this.croppingData.y,
-                  this.croppingData.radius,
-                  0,
-                  Math.PI * 2,
-                  false,
-                );
-              }
-            },
-          });
-
-          this.layers.overlay.add(cropGroup);
-          root = cropGroup;
-        }
-
-        const { startIndex, endIndex } = getSegmentsOfRange(
-          this.currentLevel.items as TrattAnnotationSegment[],
-          this.audioChunk.time.start.clone(),
-          this.audioChunk.time.end.clone(),
-        );
-        const segments = this.currentLevel.items as TrattAnnotationSegment[];
-
-        const boundariesToDraw: {
-          x: number;
-          y: number;
-          num: number;
-          id: number;
-        }[] = [];
-
-        if (
-          this.audioTCalculator !== undefined &&
-          startIndex >= 0 &&
-          endIndex >= 0 &&
-          endIndex >= startIndex
-        ) {
-          const newShapes: (Group | Shape)[] = [];
-
-          for (let i = startIndex; i <= endIndex; i++) {
-            const segment = segments[i];
-            const beginTime =
-              i > 0
-                ? segments[i - 1].time.clone()
-                : this.audioManager.createSampleUnit(0);
-            const start = beginTime.sub(this.audioChunk.time.start.clone());
-            const absXStart = this.audioTCalculator.samplestoAbsX(
-              start,
-              this.audioChunk.time.duration,
-            );
-            const absXEnd = this.audioTCalculator.samplestoAbsX(
-              segment.time,
-              this.audioChunk.time.duration,
-            );
-
-            const yStart =
-              (this.innerWidth < this.AudioPxWidth
-                ? Math.floor(absXStart / this.innerWidth)
-                : 0) *
-              (this.settings.lineheight + this.settings.margin.top);
-
-            const yEnd =
-              (this.innerWidth < this.AudioPxWidth
-                ? Math.ceil(absXEnd / this.innerWidth)
-                : 0) *
-              (this.settings.lineheight + this.settings.margin.top);
-
-            if (
-              this.isVisibleInView(
-                0,
-                yStart,
-                this._innerWidth!,
-                yEnd - yStart === 0 ? this.settings.lineheight : yEnd - yStart,
-              )
-            ) {
-              const createdShapes = this.createSegmentOnCanvas(
-                numOfLines,
-                {
-                  index: i,
-                  segment: segments[i],
-                },
-                { start: startIndex, end: endIndex },
-              );
-
-              if (createdShapes) {
-                newShapes.push(createdShapes.overlayGroup);
-              }
-
-              // draw boundary
-              if (
-                segment.time.samples !==
-                  this.audioManager.resource.info.duration.samples &&
-                segment.time.samples <=
-                  this.audioManager.resource.info.duration.samples
-              ) {
-                let relX = 0;
-                if (this.settings.multiLine) {
-                  relX =
-                    (absXStart % this.innerWidth) + this.settings.margin.left;
-                } else {
-                  relX = absXStart + this.settings.margin.left;
-                }
-
-                boundariesToDraw.push({
-                  x: relX,
-                  y: yStart,
-                  num: i,
-                  id: segment.id,
-                });
-              }
-            }
-          }
-
-          // draw time labels
-          if (this.settings.showTimePerLine) {
-            const foundText = this.layers.overlay.findOne('#timeStamps');
-            if (foundText !== undefined) {
-              foundText.remove();
-            }
-            const timeStampLabels = new Shape({
-              id: 'timeStamps',
-              width: this.innerWidth,
-              height: this.size.height,
-              x: this.settings.margin.left,
-              y: this.settings.margin.top,
-              fontSize: 10,
-              fontFamily: 'Arial',
-              transformsEnabled: 'position',
-              sceneFunc: (context, shape) => {
-                this.timeLabelSceneFunction(y, numOfLines, context, shape);
-              },
-            });
-            this.layers.overlay.add(timeStampLabels);
-          }
-
-          this.drawAllBoundaries();
-
-          const segmentsGroup = new Group({
-            name: 'segments',
-          });
-          segmentsGroup.add(...newShapes);
-          root.add(segmentsGroup);
-        }
-      }
-    }
-
-    this.bringToFront('#timeStamps');
-    this.bringToFront('.line-selections');
+    this.canvasRenderer.updateAllSegments(
+      clearAll,
+      this.buildSegmentRenderContext(),
+    );
   }
-
   drawAllBoundaries() {
-    // draw boundaries after all overlays were drawn
-
-    if (
-      this.audioManager !== undefined &&
-      this.layers !== undefined &&
-      this.layers.overlay !== undefined &&
-      this.currentLevel &&
-      this.innerWidth &&
-      this.currentLevel.items.length > 0 &&
-      this.audioChunk !== undefined
-    ) {
-      let y = 0;
-      const { startIndex, endIndex } = getSegmentsOfRange(
-        this.currentLevel.items as TrattAnnotationSegment[],
-        this.audioChunk.time.start.clone(),
-        this.audioChunk.time.end.clone(),
-      );
-      const segments = this.currentLevel.items as TrattAnnotationSegment[];
-
-      const boundariesToDraw: {
-        x: number;
-        y: number;
-        num: number;
-        id: number;
-      }[] = [];
-
-      if (this.audioTCalculator !== undefined) {
-        for (let i = startIndex; i <= endIndex; i++) {
-          const segment = segments[i];
-          const start = segment.time.sub(this.audioChunk.time.start.clone());
-          const absX = this.audioTCalculator.samplestoAbsX(
-            start,
-            this.audioChunk.time.duration,
-          );
-
-          y =
-            (this.innerWidth < this.AudioPxWidth
-              ? Math.floor(absX / this.innerWidth)
-              : 0) *
-            (this.settings.lineheight + this.settings.margin.top);
-
-          // draw boundary
-          if (
-            segment.time.samples !==
-              this.audioManager.resource.info.duration.samples &&
-            segment.time.samples <=
-              this.audioManager.resource.info.duration.samples
-          ) {
-            let relX = 0;
-            if (this.settings.multiLine) {
-              relX = (absX % this.innerWidth) + this.settings.margin.left;
-            } else {
-              relX = absX + this.settings.margin.left;
-            }
-
-            boundariesToDraw.push({
-              x: relX,
-              y,
-              num: i,
-              id: segment.id,
-            });
-          }
-        }
-
-        if (this.settings.boundaries.enabled) {
-          this.layers.boundaries.children.forEach((a) => a.destroy());
-          this.drawNewBoundaries(boundariesToDraw);
-          this.layers.boundaries.batchDraw();
-        }
-      }
-    }
+    this.canvasRenderer.drawAllBoundaries(this.buildSegmentRenderContext());
   }
-
   private drawNewBoundaries(
     boundariesToDraw: {
       x: number;
@@ -1537,138 +702,11 @@ export class AudioViewerService {
       id: number;
     }[],
   ) {
-    if (this.layers) {
-      let boundaryRoot: Group | Layer = this.layers.boundaries;
-      if (this.settings.cropping === 'circle') {
-        boundaryRoot = this.layers.boundaries.findOne(`#boundary-root`) as any;
-
-        if (boundaryRoot === undefined) {
-          boundaryRoot = this.createCropContainer('boundary-root');
-          this.layers.boundaries.add(boundaryRoot);
-        }
-      }
-
-      for (const boundary of boundariesToDraw) {
-        const h = this.settings.lineheight;
-
-        const foundBoundary = this.layers.boundaries.findOne(
-          `#boundary_${boundary.id}`,
-        );
-        if (foundBoundary !== undefined) {
-          foundBoundary.remove();
-        }
-
-        const boundaryObj = new Line({
-          id: `boundary_${boundary.id}`,
-          strokeWidth: this.settings.boundaries.width,
-          stroke: this.settings.boundaries.color,
-          points: [boundary.x, boundary.y, boundary.x, boundary.y + h],
-          transformsEnabled: 'position',
-        });
-
-        boundaryObj.on('mousedown', () => {
-          if (!this.settings.boundaries.readonly) {
-            this.dragableBoundaryID = boundary.id;
-          }
-        });
-        boundaryObj.on('mouseenter', () => {
-          if (this.konvaContainer !== undefined) {
-            this.renderer?.setStyle(this.konvaContainer, 'cursor', 'move');
-          }
-        });
-        boundaryObj.on('mouseleave', () => {
-          if (this.konvaContainer !== undefined) {
-            this.renderer?.setStyle(this.konvaContainer, 'cursor', 'auto');
-          }
-        });
-
-        boundaryRoot.add(boundaryObj);
-
-        // Speaker label for the segment starting at this boundary
-        if (this.annotation && this.currentLevel) {
-          const allSegments = this.currentLevel
-            .items as TrattAnnotationSegment[];
-          const boundarySegIndex = allSegments.findIndex(
-            (s) => s.id === boundary.id,
-          );
-          const nextSeg = allSegments[boundarySegIndex + 1];
-          const speakerId = nextSeg?.getLabel('Speaker')?.value;
-
-          const existingLabel = boundaryRoot.findOne(
-            `#speaker_label_${boundary.id}`,
-          );
-          if (existingLabel) existingLabel.destroy();
-
-          if (speakerId) {
-            const allIds = getSpeakerIds(this.annotation);
-            const bgColor = getSpeakerColor(speakerId, allIds);
-            const textColor = getSpeakerTextColor(bgColor);
-
-            const labelGroup = new Group({
-              id: `speaker_label_${boundary.id}`,
-              x: boundary.x + 4,
-              y: boundary.y,
-            });
-
-            const labelText = new Text({
-              text: speakerId,
-              fontSize: 10,
-              fill: textColor,
-              x: 3,
-              y: 3,
-            });
-
-            const textWidth = labelText.width();
-            const textHeight = labelText.height();
-
-            const labelRect = new Rect({
-              width: textWidth + 6,
-              height: textHeight + 6,
-              fill: bgColor,
-              cornerRadius: 2,
-            });
-
-            labelGroup.add(labelRect);
-            labelGroup.add(labelText);
-
-            labelGroup.on('click tap', () => {
-              if (!this.annotation || !this.currentLevel) return;
-              const currentAllSegments = this.currentLevel
-                .items as TrattAnnotationSegment[];
-              const currentBoundarySegIndex = currentAllSegments.findIndex(
-                (s) => s.id === boundary.id,
-              );
-              const currentNextSeg =
-                currentAllSegments[currentBoundarySegIndex + 1];
-              if (!currentNextSeg) return;
-              const currentSpeakerId =
-                currentNextSeg.getLabel('Speaker')?.value ?? '';
-              // no early return on empty — cycleNextSpeaker handles it
-              const currentIds = getSpeakerIds(this.annotation);
-              const nextId = cycleNextSpeaker(currentSpeakerId, currentIds);
-              const clonedSeg =
-                currentNextSeg.clone() as TrattAnnotationSegment;
-              const changed = clonedSeg.changeLabel('Speaker', nextId);
-              if (!changed) {
-                clonedSeg.labels = [
-                  ...clonedSeg.labels,
-                  new OLabel('Speaker', nextId),
-                ];
-              }
-              this.currentLevelChange.emit({
-                type: 'change',
-                items: [{ instance: clonedSeg }],
-              });
-              this.redraw();
-            });
-
-            boundaryRoot.add(labelGroup);
-          }
-        }
-      }
-    }
+    this.canvasRenderer.drawNewBoundaries(
+      boundariesToDraw,
+      this.buildSegmentRenderContext(),
+    );
   }
-
   private createSegmentOnCanvas(
     numOfLines: number,
     segmentData: {
@@ -1684,199 +722,13 @@ export class AudioViewerService {
         overlayGroup: Group;
       }
     | undefined {
-    const { segment, index } = segmentData;
-
-    if (
-      this.innerWidth &&
-      this.audioManager !== undefined &&
-      this.layers !== undefined &&
-      this.layers.overlay !== undefined &&
-      this.currentLevel &&
-      this.currentLevel.items.length > 0 &&
-      this.audioChunk !== undefined
-    ) {
-      if (this.audioTCalculator !== undefined) {
-        if (segment !== undefined && segment?.time !== undefined) {
-          const start = segment.time.sub(this.audioChunk.time.start.clone());
-          const absX = this.audioTCalculator.samplestoAbsX(
-            start,
-            this.audioChunk.time.duration,
-          );
-          let beginTime = this.audioManager.createSampleUnit(0);
-          const previousSegment: TrattAnnotationSegment | undefined =
-            index > segmentInterval.start
-              ? (this.currentLevel.items[index - 1] as TrattAnnotationSegment)
-              : undefined;
-
-          if (previousSegment && previousSegment.time !== undefined) {
-            beginTime = previousSegment.time;
-          }
-          const beginX = this.audioTCalculator.samplestoAbsX(beginTime);
-          const endX = this.audioTCalculator.samplestoAbsX(segment.time);
-          const lineNum1 = this.settings.multiLine
-            ? Math.floor(beginX / this.innerWidth)
-            : 0;
-          const lineNum2 = this.settings.multiLine
-            ? Math.floor(endX / this.innerWidth)
-            : 0;
-
-          const segmentEnd = segment.time.clone();
-          const audioChunkStart = this.audioChunk.time.start.clone();
-          const audioChunkEnd = this.audioChunk.time.end.clone();
-          let overlayGroup: Group | undefined = undefined;
-
-          if (
-            // segment start is in chunk
-            (beginTime.samples >= audioChunkStart.samples &&
-              beginTime.samples <= audioChunkEnd.samples) ||
-            // segment end is in chunk
-            (segmentEnd.samples >= audioChunkStart.samples &&
-              segmentEnd.samples <= audioChunkEnd.samples) ||
-            // segment start and end are out of chunk
-            (beginTime.samples <= audioChunkStart.samples &&
-              segmentEnd.samples >= audioChunkEnd.samples)
-          ) {
-            let lastI: number | undefined = 0;
-            this.removeSegmentFromCanvas(segment.id);
-            const segmentHeight =
-              (lineNum2 - lineNum1 + 1) *
-              (this.settings.lineheight + this.settings.margin.top);
-
-            overlayGroup = new Group({
-              id: `segment_${segment.id}`,
-            });
-
-            const overlaySegment = new Shape({
-              x: this.settings.margin.left,
-              y:
-                lineNum1 *
-                (this.settings.lineheight + this.settings.margin.top),
-              fontFamily: 'Arial',
-              fontSize: 9,
-              width: this.innerWidth,
-              height: segmentHeight,
-              transformsEnabled: 'position',
-              listening: false,
-              sceneFunc: (context, shape) => {
-                this.sceneFuncOverlay(
-                  context,
-                  shape,
-                  segment,
-                  numOfLines,
-                  segmentInterval,
-                  {
-                    start: lineNum1,
-                    end: lineNum2,
-                  },
-                );
-              },
-            });
-
-            overlayGroup.add(overlaySegment);
-
-            if (this.settings.showTranscripts) {
-              const textBackground = new Shape({
-                x: this.settings.margin.left,
-                y: 0,
-                width: this.innerWidth,
-                listening: false,
-                height: segmentHeight,
-                transformsEnabled: 'position',
-                sceneFunc: (context: Context, shape: Shape) => {
-                  this.sceneFuncTranscripts(
-                    context,
-                    shape,
-                    segmentInterval,
-                    segment,
-                    {
-                      from: lineNum1,
-                      to: lineNum2,
-                    },
-                    numOfLines,
-                  );
-                },
-              });
-
-              overlayGroup.add(textBackground);
-              const segmentText = new Shape({
-                fill: 'black',
-                fontFamily: 'Arial',
-                fontSize: 11,
-                listening: false,
-                x: this.settings.margin.left,
-                y: 0,
-                transformsEnabled: 'position',
-                sceneFunc: (context, shape) => {
-                  if (
-                    this.currentLevel &&
-                    this.currentLevel.items.length > 0 &&
-                    this.audioManager
-                  ) {
-                    const segIndex = this.currentLevel.items.findIndex(
-                      (a) => a.id === segment.id,
-                    );
-                    const prevSeg =
-                      segIndex > segmentInterval.start
-                        ? (this.currentLevel.items[
-                            segIndex - 1
-                          ] as TrattAnnotationSegment)
-                        : undefined;
-                    const seg = this.currentLevel.items[
-                      segIndex
-                    ] as TrattAnnotationSegment;
-                    const nextSeg =
-                      segIndex < segmentInterval.end
-                        ? (this.currentLevel.items[
-                            segIndex + 1
-                          ] as TrattAnnotationSegment)
-                        : undefined;
-
-                    if (seg?.type !== 'segment') {
-                      return;
-                    }
-
-                    if (
-                      seg?.getFirstLabelWithoutName('Speaker')?.value !==
-                      undefined
-                    ) {
-                      lastI = this.drawTextLabel(
-                        context,
-                        seg.getFirstLabelWithoutName('Speaker')!.value,
-                        this.innerWidth! < this.AudioPxWidth
-                          ? Math.floor(beginX / this.innerWidth!)
-                          : 0,
-                        this.innerWidth! < this.AudioPxWidth
-                          ? Math.floor(absX / this.innerWidth!)
-                          : 0,
-                        seg.time.clone(),
-                        prevSeg
-                          ? prevSeg.time.clone()
-                          : this.audioManager.createSampleUnit(0),
-                        lastI,
-                        numOfLines,
-                        seg,
-                        segIndex === this.currentLevel.items.length - 1,
-                      );
-                    }
-                  }
-                },
-              });
-              overlayGroup.add(segmentText);
-            }
-          }
-
-          if (overlayGroup) {
-            return {
-              overlayGroup,
-            };
-          }
-        }
-      }
-    }
-
-    return undefined;
+    return this.canvasRenderer.createSegmentOnCanvas(
+      numOfLines,
+      segmentData,
+      segmentInterval,
+      this.currentLevel!,
+    );
   }
-
   private sceneFuncTranscripts = (
     context: Context,
     shape: Shape,
@@ -1891,28 +743,16 @@ export class AudioViewerService {
     },
     numOfLines: number,
   ) => {
-    if (this.currentLevel?.items && this.audioManager && this.innerWidth) {
-      const segIndex = this.currentLevel.items.findIndex(
-        (a) => a.id === segment.id,
-      );
-      const prevSeg =
-        segIndex > segmentInterval.start
-          ? (this.currentLevel.items[segIndex - 1] as TrattAnnotationSegment)
-          : undefined;
-      const seg = this.currentLevel.items[segIndex] as TrattAnnotationSegment;
-
-      this.transcriptBackgroundSceneFunc(
-        lineInterval,
-        seg,
-        segIndex === this.currentLevel.items.length - 1,
-        prevSeg ? prevSeg.time.clone() : this.audioManager.createSampleUnit(0),
-        numOfLines,
-        context,
-        shape,
-      );
-    }
+    this.canvasRenderer.sceneFuncTranscripts(
+      context,
+      shape,
+      segmentInterval,
+      segment,
+      lineInterval,
+      numOfLines,
+      this.currentLevel,
+    );
   };
-
   private sceneFuncOverlay = (
     context: Context,
     shape: Shape,
@@ -1927,40 +767,16 @@ export class AudioViewerService {
       end: number;
     },
   ) => {
-    if (this.currentLevel?.items && this.audioManager && this.innerWidth) {
-      // TODO perhaps there is a problem with segInterval if indices changes
-      const segIndex = this.currentLevel.items.findIndex(
-        (a) => a.id === segment.id,
-      );
-      const seg = this.currentLevel.items[segIndex] as TrattAnnotationSegment;
-      const prevSeg =
-        segIndex > segmentInterval.start
-          ? (this.currentLevel.items[segIndex - 1] as TrattAnnotationSegment)
-          : undefined;
-
-      const nextSeg =
-        segIndex < segmentInterval.end
-          ? (this.currentLevel.items[segIndex + 1] as TrattAnnotationSegment)
-          : undefined;
-
-      this.overlaySceneFunction(
-        {
-          from: lineInterval.start,
-          to: lineInterval.end,
-        },
-        seg,
-        nextSeg === undefined,
-        prevSeg ? prevSeg.time.clone() : this.audioManager.createSampleUnit(0),
-        numOfLines,
-        context,
-        shape,
-      );
-    }
+    this.canvasRenderer.sceneFuncOverlay(
+      context,
+      shape,
+      segment,
+      numOfLines,
+      segmentInterval,
+      lineInterval,
+      this.currentLevel,
+    );
   };
-
-  /**
-   * saves mouse click position
-   */
   public async setMouseClickPosition(
     absX: number,
     lineNum: number,
@@ -2242,19 +1058,40 @@ export class AudioViewerService {
    */
   public destroy() {
     this.subscrManager.destroy();
-    this.stage?.destroy();
+    this.canvasRenderer.stage?.destroy();
 
-    this.konvaContainer?.removeEventListener('keydown', this.onKeyDown);
-    this.konvaContainer?.removeEventListener('keyup', this.onKeyUp);
-    this.konvaContainer?.removeEventListener('mouseleave', this.onMouseLeave);
-    this.konvaContainer?.removeEventListener('mouseenter', this.onMouseEnter);
-    this.konvaContainer?.removeEventListener('mousemove', this.onMouseMove);
-    this.konvaContainer?.removeEventListener('mousedown', this.mouseChange);
-    this.konvaContainer?.removeEventListener('mouseup', this.mouseChange);
+    this.canvasRenderer.konvaContainer?.removeEventListener(
+      'keydown',
+      this.onKeyDown,
+    );
+    this.canvasRenderer.konvaContainer?.removeEventListener(
+      'keyup',
+      this.onKeyUp,
+    );
+    this.canvasRenderer.konvaContainer?.removeEventListener(
+      'mouseleave',
+      this.onMouseLeave,
+    );
+    this.canvasRenderer.konvaContainer?.removeEventListener(
+      'mouseenter',
+      this.onMouseEnter,
+    );
+    this.canvasRenderer.konvaContainer?.removeEventListener(
+      'mousemove',
+      this.onMouseMove,
+    );
+    this.canvasRenderer.konvaContainer?.removeEventListener(
+      'mousedown',
+      this.mouseChange,
+    );
+    this.canvasRenderer.konvaContainer?.removeEventListener(
+      'mouseup',
+      this.mouseChange,
+    );
   }
 
   private onMouseEnter = () => {
-    this.stage?.container().focus();
+    this.canvasRenderer.stage?.container().focus();
     this._focused = true;
   };
 
@@ -2272,7 +1109,7 @@ export class AudioViewerService {
     if (!this.audioChunk) {
       throw new Error('AudioChunk is undefined');
     }
-    if (!this._innerWidth) {
+    if (!this.innerWidth) {
       throw new Error('Inner width is undefined');
     }
 
@@ -2281,9 +1118,9 @@ export class AudioViewerService {
         this.audioManager.resource.info.duration.seconds *
         this._settings.pixelPerSec;
       this.audioPxW =
-        this.audioPxW < this._innerWidth ? this._innerWidth : this.AudioPxWidth;
+        this.audioPxW < this.innerWidth ? this.innerWidth : this.AudioPxWidth;
     } else {
-      this.audioPxW = this._innerWidth;
+      this.audioPxW = this.innerWidth;
     }
     this.audioPxW = Math.round(this.audioPxW);
 
@@ -2301,7 +1138,7 @@ export class AudioViewerService {
     this.PlayCursor = new PlayCursor(
       0,
       new SampleUnit(0, this.audioChunk.sampleRate),
-      this._innerWidth,
+      this.innerWidth,
     );
     this._drawnSelection = this.audioChunk.selection.clone();
     this._drawnSelection.end = this._drawnSelection.start.clone();
@@ -2311,7 +1148,7 @@ export class AudioViewerService {
 
   public async refreshComputedData(): Promise<void> {
     if (this.audioManager !== undefined && this.audioChunk !== undefined) {
-      this._minmaxarray = await this.computeWholeDisplayData(
+      this.minmaxarray = await this.computeWholeDisplayData(
         this.AudioPxWidth / 2,
         this._settings.lineheight,
         this.audioManager.channel!,
@@ -2335,45 +1172,8 @@ export class AudioViewerService {
   }
 
   private isVisibleInView(x: number, y: number, width: number, height: number) {
-    if (this.viewport) {
-      const view = this.viewport;
-      const { topLeft, topRight, bottomLeft, bottomRight } = {
-        topLeft: {
-          x,
-          y,
-        },
-        topRight: {
-          x: x + width,
-          y,
-        },
-        bottomLeft: {
-          x,
-          y: y + height,
-        },
-        bottomRight: {
-          x: x + width,
-          y: y + height,
-        },
-      };
-
-      return Util.haveIntersection(
-        {
-          x,
-          y,
-          width,
-          height,
-        },
-        {
-          x: view.x,
-          y: view.y,
-          height: view.height,
-          width: view.width,
-        },
-      );
-    }
-    return false;
+    return this.canvasRenderer.isVisibleInView(x, y, width, height);
   }
-
   private onKeyDown = (event: KeyboardEvent) => {
     const shortcutInfo = this.shortcutsManager.checkKeyEvent(event, Date.now());
 
@@ -2763,7 +1563,7 @@ export class AudioViewerService {
                   this._focused &&
                   this.currentLevel?.items &&
                   this.currentLevel.items.length > 0 &&
-                  this.stage !== undefined &&
+                  this.canvasRenderer.stage !== undefined &&
                   this.mouseCursor !== undefined
                 ) {
                   event.preventDefault();
@@ -2785,7 +1585,7 @@ export class AudioViewerService {
                     .then(({ posY1, posY2 }) => {
                       this._focused = false;
                       this.drawWholeSelection();
-                      this.stage?.draw();
+                      this.canvasRenderer.stage?.draw();
                       this.segmententer.emit({
                         index: segInde,
                         pos: { Y1: posY1, Y2: posY2 },
@@ -3204,7 +2004,7 @@ export class AudioViewerService {
   } {
     return this.timeUtils.getPlayCursorPositionOfLineByAbsX(
       absX,
-      this._innerWidth,
+      this.innerWidth,
       this.settings,
     );
   }
@@ -3266,7 +2066,7 @@ export class AudioViewerService {
             id: this._dragableBoundaryID,
             status: 'dragging',
           });
-          this.layers?.overlay.batchDraw();
+          this.canvasRenderer.layers?.overlay.batchDraw();
         }
       }
     }
@@ -3401,11 +2201,11 @@ export class AudioViewerService {
       this._settings.justifySignalHeight,
       this._settings.timeline.enabled,
       this._settings.timeline.height,
-      this._zoomX,
-      this._zoomY,
+      this.zoomX,
+      this.zoomY,
     );
-    this._zoomX = result.zoomX;
-    this._zoomY = result.zoomY;
+    this.zoomX = result.zoomX;
+    this.zoomY = result.zoomY;
   }
 
   /**
@@ -3419,7 +2219,7 @@ export class AudioViewerService {
         this.calculateZoom(
           this._settings.lineheight,
           this.AudioPxWidth,
-          this._minmaxarray,
+          this.minmaxarray,
         );
       }
       if (this.audioChunk !== undefined) {
@@ -3435,156 +2235,19 @@ export class AudioViewerService {
   }
 
   private addNewSegmentOnCanvas(id: number) {
-    if (this.innerWidth !== undefined) {
-      const maxLineWidth = this.innerWidth;
-      let numOfLines = Math.ceil(this.AudioPxWidth / maxLineWidth);
-      if (!this.settings.multiLine) {
-        numOfLines = 1;
-      }
-
-      if (
-        this.audioManager !== undefined &&
-        this.layers !== undefined &&
-        this.layers.overlay !== undefined &&
-        this.currentLevel &&
-        this.audioTCalculator &&
-        this.currentLevel.items.length > 0 &&
-        this.audioChunk !== undefined
-      ) {
-        const segments = this.currentLevel.items as TrattAnnotationSegment[];
-        const i = this.currentLevel.items.findIndex((a) => a.id === id);
-        const segment = segments[i];
-        const start = segment.time.sub(this.audioChunk.time.start);
-        const absX = this.audioTCalculator.samplestoAbsX(
-          start,
-          this.audioChunk.time.duration,
-        );
-        const y =
-          (this.innerWidth < this.AudioPxWidth
-            ? Math.floor(absX / this.innerWidth)
-            : 0) *
-          (this.settings.lineheight + this.settings.margin.top);
-        const { startIndex, endIndex } = getSegmentsOfRange(
-          this.currentLevel.items as TrattAnnotationSegment[],
-          this.audioChunk.time.start,
-          this.audioChunk.time.end,
-        );
-        const root: Group | Layer = this.layers.overlay;
-
-        const boundariesToDraw: {
-          x: number;
-          y: number;
-          num: number;
-          id: number;
-        }[] = [];
-
-        const createdShapes = this.createSegmentOnCanvas(
-          numOfLines,
-          {
-            index: i,
-            segment: segment,
-          },
-          { start: startIndex, end: endIndex },
-        );
-
-        if (createdShapes) {
-          root.add(createdShapes.overlayGroup);
-        }
-
-        // draw boundary
-        if (
-          segment.time.samples !==
-            this.audioManager.resource.info.duration.samples &&
-          segment.time.samples <=
-            this.audioManager.resource.info.duration.samples
-        ) {
-          let relX = 0;
-          if (this.settings.multiLine) {
-            relX = (absX % this.innerWidth) + this.settings.margin.left;
-          } else {
-            relX = absX + this.settings.margin.left;
-          }
-
-          boundariesToDraw.push({
-            x: relX,
-            y,
-            num: i,
-            id: segment.id,
-          });
-        }
-
-        if (this.settings.boundaries.enabled) {
-          this.drawNewBoundaries(boundariesToDraw);
-        }
-      }
-    }
+    this.canvasRenderer.addNewSegmentOnCanvas(
+      id,
+      this.buildSegmentRenderContext(),
+    );
   }
-
   private timeLabelSceneFunction = (
     y: number,
     numOfLines: number,
     context: Context,
     shape: Shape,
   ) => {
-    if (
-      this.canvasElements?.lastLine !== undefined &&
-      this.layers !== undefined &&
-      this.stage !== undefined &&
-      this.audioChunk !== undefined &&
-      this.innerWidth !== undefined &&
-      this.innerWidth
-    ) {
-      for (let j = 0; j < numOfLines; j++) {
-        // draw time label
-        y = j * (this.settings.lineheight + this.settings.margin.top);
-
-        let startTime =
-          this.audioChunk.time.start.unix + j * (this.secondsPerLine * 1000);
-        let endTime = 0;
-
-        if (numOfLines > 1) {
-          endTime = Math.min(
-            startTime + this.secondsPerLine * 1000,
-            this.audioChunk.time.duration.unix,
-          );
-          endTime = Math.ceil(endTime / 1000) * 1000;
-          startTime = Math.floor(startTime / 1000) * 1000;
-        } else {
-          endTime =
-            this.audioChunk.time.start.unix +
-            this.audioChunk.time.duration.unix;
-        }
-
-        const pipe = new TimespanPipe();
-        const maxDuration = this.audioChunk.time.duration.unix;
-        const startTimeString = pipe.transform(startTime, {
-          showHour: true,
-          showMilliSeconds: !this.settings.multiLine,
-          maxDuration,
-        });
-        const endTimeString = pipe.transform(endTime, {
-          showHour: true,
-          showMilliSeconds: !this.settings.multiLine,
-          maxDuration,
-        });
-        const length = this.layers.overlay
-          .getContext()
-          .measureText(startTimeString).width;
-        context.fillStyle = 'dimgray';
-        context.fillText(startTimeString, 3, y + 8);
-        context.fillText(
-          endTimeString,
-          (j < numOfLines - 1
-            ? this.innerWidth
-            : this.canvasElements.lastLine.width()) -
-            length -
-            3,
-          y + 8,
-        );
-      }
-    }
+    this.canvasRenderer.timeLabelSceneFunction(y, numOfLines, context, shape);
   };
-
   public removeSegmentByIndex(
     index: number,
     silenceCode: string | undefined,
@@ -3643,73 +2306,16 @@ export class AudioViewerService {
     context: Context,
     shape: Shape,
   ) => {
-    const viewY =
-      lineInterval.from * (this.settings.lineheight + this.settings.margin.top);
-    const viewHeight =
-      (lineInterval.to + 1) *
-        (this.settings.lineheight + this.settings.margin.top) -
-      viewY;
-
-    if (
-      this.layers !== undefined &&
-      this.stage !== undefined &&
-      this.canvasElements?.lastLine !== undefined &&
-      this.innerWidth !== undefined
-    ) {
-      for (let j = lineInterval.from; j <= lineInterval.to; j++) {
-        const localY =
-          j * (this.settings.lineheight + this.settings.margin.top);
-
-        if (segment?.time !== undefined) {
-          const lineWidth =
-            j < numOfLines - 1
-              ? this.innerWidth
-              : this.canvasElements.lastLine.width();
-          const select = this.getRelativeSelectionByLine(
-            j,
-            lineWidth,
-            beginTime,
-            segment?.time,
-            this.innerWidth,
-          );
-
-          let w = 0;
-          let x = select.start;
-
-          if (select.start > -1 && select.end > -1) {
-            w = Math.abs(select.end - select.start);
-          }
-
-          if (select.start < 1 || select.start > lineWidth) {
-            x = 1;
-          }
-          if (select.end < 1) {
-            w = 0;
-          }
-          if (select.end < 1 || select.end > lineWidth) {
-            w = select.end;
-          }
-
-          if (j === numOfLines - 1 && isLastSegment) {
-            w = lineWidth - select.start + 1;
-          }
-
-          const transcript = segment.getFirstLabelWithoutName('Speaker')?.value;
-          const hasTranscription =
-            transcript !== undefined &&
-            transcript.trim().length > 0 &&
-            transcript !== this.silencePlaceholder;
-          context.fillStyle = hasTranscription
-            ? TRATT_COLORS.segmentTranscribed
-            : this.settings.backgroundcolor;
-          context.clearRect(x, localY + this.settings.lineheight - 20, w, 20);
-          context.fillRect(x, localY + this.settings.lineheight - 20, w, 20);
-        }
-      }
-      context.fillStrokeShape(shape);
-    }
+    this.canvasRenderer.transcriptBackgroundSceneFunc(
+      lineInterval,
+      segment,
+      isLastSegment,
+      beginTime,
+      numOfLines,
+      context,
+      shape,
+    );
   };
-
   private overlaySceneFunction = (
     lineInterval: {
       from: number;
@@ -3722,186 +2328,17 @@ export class AudioViewerService {
     context: Context,
     shape: Shape,
   ) => {
-    if (
-      this.currentLevel &&
-      this.innerWidth &&
-      this.currentLevel.items.length > 0 &&
-      this.layers !== undefined &&
-      this.stage !== undefined &&
-      this.audioChunk &&
-      this.canvasElements?.lastLine
-    ) {
-      if (
-        sceneSegment &&
-        this.currentLevel.type === AnnotationLevelType.SEGMENT
-      ) {
-        for (let j = 0; j <= lineInterval.to - lineInterval.from; j++) {
-          let localY =
-            j * (this.settings.lineheight + this.settings.margin.top);
-
-          if (this.innerWidth !== undefined) {
-            const startSecond = j * this.secondsPerLine;
-            let endSecond = 0;
-
-            if (numOfLines > 1) {
-              endSecond = Math.ceil(
-                Math.min(
-                  startSecond + this.secondsPerLine,
-                  this.audioChunk.time.duration.seconds,
-                ),
-              );
-            } else {
-              endSecond = Math.ceil(this.audioChunk.time.duration.seconds);
-            }
-
-            const pipe = new TimespanPipe();
-            const maxDuration = this.audioChunk.time.duration.unix;
-
-            const timeString = pipe.transform(endSecond * 1000, {
-              showHour: true,
-              showMilliSeconds: !this.settings.multiLine,
-              maxDuration,
-            });
-            const timestampWidth = this.layers.overlay
-              .getContext()
-              .measureText(timeString).width;
-
-            const h = this.settings.lineheight;
-            const lineWidth =
-              j < numOfLines - 1
-                ? this.innerWidth
-                : this.canvasElements.lastLine.width();
-            const select = this.getRelativeSelectionByLine(
-              j + lineInterval.from,
-              lineWidth,
-              beginTime,
-              sceneSegment.time,
-              this.innerWidth,
-            );
-            let w = 0;
-            let x = select.start;
-
-            if (select.start > -1 && select.end > -1) {
-              w = Math.abs(select.end - select.start);
-            }
-
-            if (select.start < 1 || select.start > lineWidth) {
-              x = 0;
-            }
-            if (select.end < 1) {
-              w = 0;
-            }
-            if (select.end > lineWidth) {
-              w = select.end;
-            }
-
-            if (j === numOfLines - 1 && isLastSegment) {
-              w = lineWidth - select.start;
-            }
-
-            if (w === 0) {
-              // skip drawing empty rect
-              continue;
-            }
-
-            if (sceneSegment.context?.asr?.isBlockedBy === undefined) {
-              context.clearRect(x, localY, w, h);
-            } else {
-              // something running
-              let progressBarFillColor = '';
-              let progressBarForeColor = '';
-              if (
-                sceneSegment.context?.asr?.isBlockedBy === ASRQueueItemType.ASR
-              ) {
-                // blocked by ASR
-                context.fillStyle = TRATT_COLORS.asrBlockedFill;
-                progressBarFillColor = TRATT_COLORS.asrBlockedProgress;
-                progressBarForeColor = 'black';
-              } else if (
-                sceneSegment.context?.asr?.isBlockedBy ===
-                ASRQueueItemType.ASRMAUS
-              ) {
-                context.fillStyle = TRATT_COLORS.asrMausBlockedFill;
-                progressBarFillColor = TRATT_COLORS.asrMausBlockedProgress;
-                progressBarForeColor = TRATT_COLORS.surfaceBackground;
-              } else if (
-                sceneSegment.context?.asr?.isBlockedBy === ASRQueueItemType.MAUS
-              ) {
-                context.fillStyle = TRATT_COLORS.mausBlockedFill;
-                progressBarFillColor = TRATT_COLORS.mausBlockedProgress;
-                progressBarForeColor = TRATT_COLORS.surfaceBackground;
-              }
-              context.clearRect(x, localY, w, h);
-              context.fillRect(x, localY, w, h);
-
-              if (this.settings.showProgressBars) {
-                let timeStampsWidth = 0;
-
-                if (w === lineWidth) {
-                  // time labels on both sides
-                  timeStampsWidth = timestampWidth * 2;
-                } else {
-                  if (x === 0 || select.start + w === lineWidth) {
-                    // time label on the left or on the right
-                    timeStampsWidth = timestampWidth;
-                  }
-                }
-
-                const progressWidth = w - timeStampsWidth - 20;
-                if (
-                  progressWidth > 10 &&
-                  sceneSegment.context?.asr?.progressInfo !== undefined
-                ) {
-                  const progressStart = x + 10 + (x === 0 ? timestampWidth : 0);
-                  const loadedPixels = Math.round(
-                    progressWidth *
-                      (sceneSegment.context?.asr?.progressInfo.progress / 100),
-                  );
-
-                  this.drawRoundedRect(
-                    context,
-                    progressStart,
-                    localY + 3,
-                    15,
-                    progressWidth,
-                    5,
-                    'transparent',
-                    progressBarFillColor,
-                  );
-                  this.drawRoundedRect(
-                    context,
-                    progressStart,
-                    localY + 3,
-                    15,
-                    loadedPixels,
-                    5,
-                    progressBarFillColor,
-                  );
-
-                  if (progressWidth > 100) {
-                    const progressString = `${sceneSegment.context?.asr?.progressInfo.statusLabel} ${sceneSegment.context?.asr?.progressInfo.progress}%`;
-                    const textLength =
-                      context.measureText(progressString).width;
-                    const textPosition = Math.round(
-                      progressStart + (progressWidth - textLength) / 2,
-                    );
-                    context.fillStyle =
-                      progressStart + loadedPixels > textPosition &&
-                      progressBarForeColor === TRATT_COLORS.surfaceBackground
-                        ? TRATT_COLORS.surfaceBackground
-                        : 'black';
-                    context.fillText(progressString, textPosition, localY + 14);
-                  }
-                }
-              }
-            }
-          }
-        }
-        context.fillStrokeShape(shape);
-      }
-    }
+    this.canvasRenderer.overlaySceneFunction(
+      lineInterval,
+      sceneSegment,
+      isLastSegment,
+      beginTime,
+      numOfLines,
+      context,
+      shape,
+      this.currentLevel,
+    );
   };
-
   private drawRoundedRect(
     context: any,
     x: number,
@@ -3912,218 +2349,37 @@ export class AudioViewerService {
     fillColor: string,
     strokeColor?: string,
   ) {
-    if (height > 0 && width > 0) {
-      context.fillStyle = fillColor;
-      context.beginPath();
-      context.moveTo(x + radius, y);
-      context.lineTo(x + width - radius, y);
-      context.quadraticCurveTo(x + width, y, x + width, y + radius);
-      context.lineTo(x + width, y + height - radius);
-      context.quadraticCurveTo(
-        x + width,
-        y + height,
-        x + width - radius,
-        y + height,
-      );
-      context.lineTo(x + radius, y + height);
-      context.quadraticCurveTo(x, y + height, x, y + height - radius);
-      context.lineTo(x, y + radius);
-      context.quadraticCurveTo(x, y, x + radius, y);
-      context.closePath();
-      context.fill();
-    }
-    if (strokeColor !== undefined) {
-      context.strokeWidth = 1;
-      context.strokeStyle = strokeColor;
-      context.stroke();
-    }
+    this.canvasRenderer.drawRoundedRect(
+      context,
+      x,
+      y,
+      height,
+      width,
+      radius,
+      fillColor,
+      strokeColor,
+    );
   }
-
   private createScrollBar = () => {
-    if (
-      this.canvasElements?.lastLine !== undefined &&
-      this.innerWidth !== undefined &&
-      this.size
-    ) {
-      const group = new Group({
-        id: 'scrollBar',
-        x: this.innerWidth + this.settings.margin.left,
-        y: 0,
-        width: this.settings.scrollbar.width,
-        height: this.size.height,
-      });
-
-      const background = new Rect({
-        stroke: this.settings.scrollbar.background.stroke,
-        strokeWidth: this.settings.scrollbar.background.strokeWidth,
-        fill: this.settings.scrollbar.background.color,
-        width: this.settings.scrollbar.width,
-        height: this.size.height,
-      });
-      group.add(background);
-
-      const rest =
-        this.settings.scrollbar.width - this.settings.scrollbar.selector.width;
-      const selector = new Rect({
-        stroke: this.settings.scrollbar.selector.stroke,
-        strokeWidth: this.settings.scrollbar.selector.strokeWidth,
-        fill: this.settings.scrollbar.selector.color,
-        width: this.settings.scrollbar.selector.width,
-        height:
-          (background.height() /
-            (this.canvasElements.lastLine.y() +
-              this.canvasElements.lastLine.height())) *
-          background.height(),
-        x: rest > 0 ? rest / 2 : 0,
-        draggable: true,
-        dragBoundFunc: (pos) => {
-          if (
-            this.size?.height !== undefined &&
-            this.innerWidth !== undefined
-          ) {
-            pos.x = this.innerWidth - (rest > 0 ? rest / 2 : 0);
-            pos.y = Math.max(
-              Math.min(pos.y, this.size.height - selector.height()),
-              0,
-            );
-            return pos;
-          }
-          return { x: 0, y: 0 };
-        },
-      });
-      group.add(selector);
-      this.canvasElements.scrollbarSelector = selector;
-
-      selector.on('dragmove', this.onScrollbarDragged);
-
-      selector.on('mouseenter', () => {
-        if (this.konvaContainer !== undefined) {
-          this.renderer?.setStyle(this.konvaContainer, 'cursor', 'pointer');
-        }
-      });
-      selector.on('mouseleave', () => {
-        if (this.konvaContainer !== undefined) {
-          this.renderer?.setStyle(this.konvaContainer, 'cursor', 'auto');
-        }
-      });
-
-      return group;
-    }
-
-    return undefined;
+    return this.canvasRenderer.createScrollBar(this.onScrollbarDragged);
   };
-
   private drawSelection = (lineNum: number, lineWidth: number) => {
-    if (
-      this.drawnSelection !== undefined &&
-      this.drawnSelection.length > 0 &&
-      this.stage !== undefined &&
-      this.layers !== undefined &&
-      this.innerWidth !== undefined
-    ) {
-      // draw gray selection
-      const select = this.getRelativeSelectionByLine(
-        lineNum,
-        lineWidth,
-        this.drawnSelection.start,
-        this.drawnSelection.end,
-        this.innerWidth,
-      );
-
-      const selections = this.layers.overlay.find('.selection');
-      if (selections.length > lineNum && selections.length > 0) {
-        if (lineNum > -1 && select) {
-          const left = select.start;
-          const right = select.end;
-          let x = left > right ? right : left;
-
-          let w = 0;
-
-          if (left > -1 && right > -1) {
-            w = Math.abs(right - left);
-          }
-
-          // draw selection rectangle
-          if (left < 1 || left > lineWidth) {
-            x = 1;
-          }
-          if (right < 1) {
-            w = 0;
-          }
-          if (right < 1 || right > lineWidth) {
-            w = right;
-          }
-
-          if (w > 0) {
-            selections[lineNum].width(w);
-            selections[lineNum].x(x);
-          }
-        }
-      }
-    }
+    this.canvasRenderer.drawSelection(lineNum, lineWidth, this.drawnSelection);
   };
-
   private resetSelection() {
-    if (this.layers?.overlay) {
-      this.layers.overlay.find('.selection').forEach((child) => {
-        child.width(0);
-        child.x(0);
-      });
-    }
+    this.canvasRenderer.resetSelection();
   }
-
   private drawWholeSelection() {
-    // draw selection
-    this.resetSelection();
-    if (
-      this.layers !== undefined &&
-      this.audioChunk !== undefined &&
-      this.canvasElements?.lastLine
-    ) {
-      if (
-        this.drawnSelection !== undefined &&
-        !this.drawnSelection.duration.equals(this.audioChunk.time.duration) &&
-        this.drawnSelection.duration.samples !== 0 &&
-        this.audioTCalculator !== undefined &&
-        this.innerWidth
-      ) {
-        this.drawnSelection.checkSelection();
-        const selStart = this.audioTCalculator.samplestoAbsX(
-          this.drawnSelection.start,
-        );
-        const selEnd = this.audioTCalculator.samplestoAbsX(
-          this.drawnSelection.end,
-        );
-        const lineNum1 =
-          this.innerWidth < this.AudioPxWidth && this.settings.multiLine
-            ? Math.floor(selStart / this.innerWidth)
-            : 0;
-        const lineNum2 =
-          this.innerWidth < this.AudioPxWidth && this.settings.multiLine
-            ? Math.floor(selEnd / this.innerWidth)
-            : 0;
-        const numOfLines = this.getNumberOfLines();
-
-        for (let j = lineNum1; j <= lineNum2; j++) {
-          const lineWidth =
-            j < numOfLines - 1
-              ? this.innerWidth
-              : this.canvasElements.lastLine.width();
-          this.drawSelection(j, lineWidth);
-        }
-      }
-      this.layers.overlay.batchDraw();
-    }
+    this.canvasRenderer.drawWholeSelection(this.drawnSelection);
   }
-
   private getNumberOfLines() {
     return this.timeUtils.getNumberOfLines(this.innerWidth, this.AudioPxWidth);
   }
 
   private changeMouseCursorSamples = (newValue: SampleUnit) => {
     if (
-      this.canvasElements?.mouseCaret !== undefined &&
-      this.layers !== undefined &&
+      this.canvasRenderer.canvasElements?.mouseCaret !== undefined &&
+      this.canvasRenderer.layers !== undefined &&
       this.audioTCalculator !== undefined &&
       this.innerWidth !== undefined
     ) {
@@ -4132,11 +2388,11 @@ export class AudioViewerService {
       const x = absX % this.innerWidth;
       const y = lines * (this.settings.lineheight + this.settings.margin.top);
 
-      this.canvasElements.mouseCaret.position({
+      this.canvasRenderer.canvasElements.mouseCaret.position({
         x,
         y,
       });
-      this.layers.playhead.batchDraw();
+      this.canvasRenderer.layers.playhead.batchDraw();
     }
   };
 
@@ -4155,8 +2411,8 @@ export class AudioViewerService {
     }
 
     this.updatePlayCursor();
-    if (this.layers !== undefined) {
-      this.layers.playhead.batchDraw();
+    if (this.canvasRenderer.layers !== undefined) {
+      this.canvasRenderer.layers.playhead.batchDraw();
     }
   };
 
@@ -4164,83 +2420,17 @@ export class AudioViewerService {
     segmentID: number,
     oldAnnotation?: TrattAnnotation<any, any>,
   ) {
-    if (segmentID > -1) {
-      const overlayGroup = this.layers?.overlay.findOne(
-        `#segment_${segmentID}`,
-      );
-      const boundary = this.layers?.boundaries.findOne(
-        `#boundary_${segmentID}`,
-      );
-
-      if (overlayGroup !== undefined) {
-        overlayGroup.remove();
-      }
-      if (boundary !== undefined) {
-        boundary.remove();
-      }
-    }
+    this.canvasRenderer.removeSegmentFromCanvas(segmentID, oldAnnotation);
   }
-
   private redrawSegment(segmentID: number) {
-    if (segmentID > -1) {
-      const overlayGroup = this.layers?.overlay.findOne(
-        `#segment_${segmentID}`,
-      );
-      const boundary = this.layers?.boundaries.findOne(
-        `#boundary_${segmentID}`,
-      );
-
-      if (overlayGroup !== undefined) {
-        overlayGroup.draw();
-      }
-      if (boundary !== undefined) {
-        boundary.draw();
-      }
-    }
+    this.canvasRenderer.redrawSegment(segmentID);
   }
-
   private createLineMouseCaret() {
-    const group = new Group({
-      name: 'mouseCaret',
-      x: this.settings.margin.left,
-      y: 0,
-      width: 3,
-      height: this.settings.lineheight,
-    });
-
-    const caret = new Line({
-      points: [0, 0, 0, this.settings.lineheight],
-      stroke: 'red',
-      strokeWidth: 2,
-      transformsEnabled: 'position',
-    });
-
-    group.add(caret);
-    return group;
+    return this.canvasRenderer.createLineMouseCaret();
   }
-
   public refresh = () => {
-    if (
-      this.audioChunk !== undefined &&
-      this.audioTCalculator !== undefined &&
-      this.currentLevel?.items &&
-      this.currentLevel.items.length > 0 &&
-      this.layers !== undefined
-    ) {
-      if (!this.refreshRunning) {
-        this.refreshRunning = true;
-        this.updateAllSegments();
-        this.layers.overlay.batchDraw();
-        this.layers.boundaries.batchDraw();
-        this.refreshRunning = false;
-      }
-    }
+    this.canvasRenderer.refresh(this.buildSegmentRenderContext());
   };
-
-  /**
-   * use this function in order to update shortcuts.
-   * @param shortcuts
-   */
   public updateShortcuts(shortcuts: ShortcutGroup) {
     this.settings.shortcuts = shortcuts;
     if (this.shortcutsManager.shortcuts.length > 1) {
@@ -4261,302 +2451,82 @@ export class AudioViewerService {
     segment: TrattAnnotationSegment,
     isLastSegment: boolean,
   ): number | undefined {
-    const viewY =
-      lineNum1 * (this.settings.lineheight + this.settings.margin.top);
-    const viewHeight =
-      (lineNum2 + 1) * (this.settings.lineheight + this.settings.margin.top) -
-      viewY;
-
-    if (
-      text !== '' &&
-      this.layers !== undefined &&
-      this.stage !== undefined &&
-      this.canvasElements?.lastLine !== undefined &&
-      this.innerWidth !== undefined &&
-      segment?.time !== undefined &&
-      this.audioTCalculator !== undefined
-    ) {
-      const y =
-        lineNum1 * (this.settings.lineheight + this.settings.margin.top);
-      for (let j = lineNum1; j <= lineNum2; j++) {
-        const localY =
-          (j + 1) * (this.settings.lineheight + this.settings.margin.top);
-
-        const lineWidth =
-          j < numOfLines - 1
-            ? this.innerWidth
-            : this.canvasElements.lastLine.width();
-        const select = this.getRelativeSelectionByLine(
-          j,
-          lineWidth,
-          beginTime,
-          segment.time,
-          this.innerWidth,
-        );
-        let w = 0;
-        let x = select.start;
-
-        if (select.start > -1 && select.end > -1) {
-          w = Math.abs(select.end - select.start);
-        }
-
-        if (select.start < 1 || select.start > lineWidth) {
-          x = 1;
-        }
-        if (select.end < 1) {
-          w = 0;
-        }
-        if (select.end < 1 || select.end > lineWidth) {
-          w = select.end;
-        }
-
-        if (j === numOfLines - 1 && isLastSegment) {
-          w = lineWidth - select.start + 1;
-        }
-
-        if (lineNum1 === lineNum2) {
-          let textLength = context.measureText(text).width;
-          let newText = text;
-          // segment in same line
-          if (textLength > w - 4) {
-            // crop text
-            const overflow = 1 - 1 / (textLength / (w - 35));
-            const charsToRemove = Math.ceil((text.length * overflow) / 2);
-            const start = Math.ceil(text.length / 2 - charsToRemove);
-            const end = start + charsToRemove * 2;
-            newText = text.substring(0, start);
-            newText += '...';
-            newText += text.substring(end);
-            textLength = context.measureText(newText).width;
-          }
-          const localX = (w - 4 - textLength) / 2 + x;
-          context.fillText(
-            newText,
-            localX,
-            localY - 5 - this.settings.margin.top,
-          );
-        } else {
-          const totalWidth = this.audioTCalculator.samplestoAbsX(
-            segmentEnd.sub(beginTime),
-          );
-
-          if (j === lineNum1) {
-            // current line is start line
-            const ratio = w / totalWidth;
-
-            // crop text
-            let newText = text.substring(
-              0,
-              Math.floor(text.length * ratio) - 2,
-            );
-            const textLength = context.measureText(newText).width;
-
-            if (textLength > w) {
-              // crop text
-              const leftHalf = w / textLength;
-              newText = newText.substring(
-                0,
-                Math.floor(newText.length * leftHalf) - 2,
-              );
-            }
-            lastI = newText.length;
-            newText += '...';
-
-            const localX = (w - 4 - textLength) / 2 + x;
-            context.fillText(
-              newText,
-              localX,
-              localY - 5 - this.settings.margin.top,
-            );
-          } else if (j === lineNum2 && lastI !== undefined) {
-            // crop text
-            let newText = text.substring(lastI);
-            const textLength = context.measureText(newText).width;
-
-            if (textLength > w) {
-              // crop text
-              const leftHalf = w / textLength;
-              newText = newText.substring(
-                0,
-                Math.floor(newText.length * leftHalf) - 3,
-              );
-              newText = '...' + newText + '...';
-            } else if (text !== this.silencePlaceholder) {
-              newText = '...' + newText;
-            } else {
-              newText = text;
-            }
-
-            const localX = (w - 4 - textLength) / 2 + x;
-            context.fillText(
-              newText,
-              localX,
-              localY - 5 - this.settings.margin.top,
-            );
-            lastI = 0;
-          } else if (lastI !== undefined) {
-            let w2 = 0;
-
-            if (lineNum1 > -1) {
-              const lastPart = this.getRelativeSelectionByLine(
-                lineNum1,
-                w,
-                beginTime,
-                segmentEnd,
-                this.innerWidth,
-              );
-
-              if (lastPart.start > -1 && lastPart.end > -1) {
-                w2 = Math.abs(lastPart.end - lastPart.start);
-              }
-              if (lastPart.end < 1) {
-                w2 = 0;
-              }
-              if (lastPart.end < 1 || lastPart.end > lineWidth) {
-                w2 = lastPart.end;
-              }
-            }
-
-            const ratio = w / totalWidth;
-            const endIndex = lastI + Math.floor(text.length * ratio);
-
-            // placeholder
-            let newText = text.substring(lastI, endIndex);
-            const textLength = context.measureText(newText).width;
-
-            if (textLength > w) {
-              // crop text
-              const leftHalf = w / textLength;
-              newText = newText.substring(
-                0,
-                Math.floor(newText.length * leftHalf) - 3,
-              );
-            }
-            lastI += newText.length;
-
-            if (text !== this.silencePlaceholder) {
-              newText = '...' + newText + '...';
-            } else {
-              newText = text;
-            }
-
-            const localX = (w - 4 - textLength) / 2 + x;
-            context.fillText(
-              newText,
-              localX,
-              localY - 5 - this.settings.margin.top,
-            );
-          }
-        }
-      }
-      return lastI;
-    }
-
-    return undefined;
+    return this.canvasRenderer.drawTextLabel(
+      context,
+      text,
+      lineNum1,
+      lineNum2,
+      segmentEnd,
+      beginTime,
+      lastI,
+      numOfLines,
+      segment,
+      isLastSegment,
+    );
   }
-
   private initializeStageContainer() {
-    if (this.stage) {
-      const stageContainer = this.stage.container();
-      stageContainer.tabIndex = 1;
-
-      // focus it
-      // also stage will be in focus on its click
-      stageContainer.removeEventListener('keydown', this.onKeyDown);
-      stageContainer.addEventListener('keydown', this.onKeyDown);
-      stageContainer.removeEventListener('keyup', this.onKeyUp);
-      stageContainer.addEventListener('keyup', this.onKeyUp);
-      stageContainer.removeEventListener('mouseleave', this.onMouseLeave);
-      stageContainer.addEventListener('mouseleave', this.onMouseLeave);
-      stageContainer.removeEventListener('mouseenter', this.onMouseEnter);
-      stageContainer.addEventListener('mouseenter', this.onMouseEnter);
-    }
+    this.canvasRenderer.initializeStageContainer(
+      this.buildStageEventHandlers(),
+    );
   }
-
   public redraw() {
-    this.stage?.batchDraw();
+    this.canvasRenderer.redraw();
   }
-
   public redrawOverlay() {
-    this.layers?.overlay.batchDraw();
+    this.canvasRenderer.redrawOverlay();
   }
-
   private updateSize(stageWidth: number, stageHeight: number) {
-    this.size = { width: stageWidth, height: stageHeight };
-    this.styles.height = stageHeight;
+    this.canvasRenderer.updateSize(stageWidth, stageHeight);
   }
-
   private initializeLayers() {
-    if (this.stage) {
-      this.layers = {
-        background: new Layer({
-          id: 'backgroundLayer',
-          listening: false,
-        }),
-        overlay: new Layer({
-          id: 'overlayLayer',
-          listening: false,
-        }),
-        boundaries: new Layer({
-          id: 'boundariesLayer',
-        }),
-        playhead: new Layer({
-          id: 'playheadLayer',
-          listening: false,
-        }),
-        scrollBars: new Layer({
-          id: 'scrollBars',
-        }),
-      };
-
-      this.stage.on('wheel', this.onWheel);
-    }
+    this.canvasRenderer.initializeLayers(this.onWheel);
   }
-
   private onWheel = (event: KonvaEventObject<any>) => {
     if (
-      this.canvasElements?.scrollBar !== undefined &&
-      this.canvasElements?.scrollbarSelector !== undefined &&
-      this.size?.height !== undefined
+      this.canvasRenderer.canvasElements?.scrollBar !== undefined &&
+      this.canvasRenderer.canvasElements?.scrollbarSelector !== undefined &&
+      this.canvasRenderer.size?.height !== undefined
     ) {
       event.evt.preventDefault();
       let newY = Math.max(
         0,
         Math.min(
-          this.canvasElements.scrollBar.height(),
-          this.canvasElements.scrollbarSelector.y() + event.evt.deltaY / 2,
+          this.canvasRenderer.canvasElements.scrollBar.height(),
+          this.canvasRenderer.canvasElements.scrollbarSelector.y() +
+            event.evt.deltaY / 2,
         ),
       );
       newY = Math.max(
         Math.min(
           newY,
-          this.size.height - this.canvasElements.scrollbarSelector.height(),
+          this.canvasRenderer.size.height -
+            this.canvasRenderer.canvasElements.scrollbarSelector.height(),
         ),
         0,
       );
-      this.canvasElements.scrollbarSelector.y(newY);
+      this.canvasRenderer.canvasElements.scrollbarSelector.y(newY);
       this.onScrollbarDragged();
     }
   };
 
   private scrollWithDeltaY(deltaY: number) {
     if (
-      this.layers !== undefined &&
-      this.stage !== undefined &&
-      this.canvasElements !== undefined &&
-      this.canvasElements.lastLine !== undefined
+      this.canvasRenderer.layers !== undefined &&
+      this.canvasRenderer.stage !== undefined &&
+      this.canvasRenderer.canvasElements !== undefined &&
+      this.canvasRenderer.canvasElements.lastLine !== undefined
     ) {
       const newY =
-        (this.canvasElements.lastLine.y() +
-          this.canvasElements.lastLine.height()) *
+        (this.canvasRenderer.canvasElements.lastLine.y() +
+          this.canvasRenderer.canvasElements.lastLine.height()) *
         deltaY;
 
-      if (newY !== this.layers.background.y()) {
+      if (newY !== this.canvasRenderer.layers.background.y()) {
         // move all layers but keep scrollbars fixed
-        this.layers.background.y(newY);
-        this.layers.overlay.y(newY);
-        this.layers.boundaries.y(newY);
-        this.layers.playhead.y(newY);
+        this.canvasRenderer.layers.background.y(newY);
+        this.canvasRenderer.layers.overlay.y(newY);
+        this.canvasRenderer.layers.boundaries.y(newY);
+        this.canvasRenderer.layers.playhead.y(newY);
         this.updateViewPort();
         this.showOnlyLinesInViewport();
         this.updateAllSegments();
@@ -4566,13 +2536,13 @@ export class AudioViewerService {
 
   private onScrollbarDragged = () => {
     if (
-      this.canvasElements.scrollbarSelector !== undefined &&
-      this.canvasElements?.scrollBar
+      this.canvasRenderer.canvasElements.scrollbarSelector !== undefined &&
+      this.canvasRenderer.canvasElements?.scrollBar
     ) {
       // delta in %
       const delta =
-        this.canvasElements.scrollbarSelector.y() /
-        this.canvasElements.scrollBar.height();
+        this.canvasRenderer.canvasElements.scrollbarSelector.y() /
+        this.canvasRenderer.canvasElements.scrollBar.height();
 
       this.scrollWithDeltaY(-delta);
     }
@@ -4593,9 +2563,9 @@ export class AudioViewerService {
         absXPos > 0 &&
         this.settings?.selection.enabled &&
         this.audioChunk &&
-        this.layers !== undefined &&
-        (!this.canvasElements.scrollBar ||
-          event.layerX < this.canvasElements.scrollBar!.x())
+        this.canvasRenderer.layers !== undefined &&
+        (!this.canvasRenderer.canvasElements.scrollBar ||
+          event.layerX < this.canvasRenderer.canvasElements.scrollBar!.x())
       ) {
         if (event.type === 'mousedown') {
           this.audioChunk.selection.start =
@@ -4606,9 +2576,9 @@ export class AudioViewerService {
 
         await this.setMouseClickPosition(absXPos, this.hoveredLine, event);
 
-        if (this.layers !== undefined) {
+        if (this.canvasRenderer.layers !== undefined) {
           this.updatePlayCursor();
-          this.layers.playhead.draw();
+          this.canvasRenderer.layers.playhead.draw();
         }
 
         if (event.type !== 'mousedown') {
@@ -4632,14 +2602,14 @@ export class AudioViewerService {
 
   private onMouseMove = (event: any) => {
     if (
-      this.canvasElements?.mouseCaret &&
-      this.layers &&
-      this.stage &&
+      this.canvasRenderer.canvasElements?.mouseCaret &&
+      this.canvasRenderer.layers &&
+      this.canvasRenderer.stage &&
       this.innerWidth
     ) {
       const tempLine = this.getLineNumber(
         event.layerX,
-        event.layerY + Math.abs(this.layers.background.y()),
+        event.layerY + Math.abs(this.canvasRenderer.layers.background.y()),
       );
       this.hoveredLine = tempLine > -1 ? tempLine : this.hoveredLine;
       const maxLines = Math.ceil(this.AudioPxWidth / this.innerWidth);
@@ -4655,13 +2625,13 @@ export class AudioViewerService {
       );
 
       if (!this.settings.cursor.fixed) {
-        this.canvasElements.mouseCaret.position({
+        this.canvasRenderer.canvasElements.mouseCaret.position({
           x: layerX,
           y:
             this.hoveredLine *
             (this.settings.lineheight + this.settings.margin.top),
         });
-        this.layers.playhead.batchDraw();
+        this.canvasRenderer.layers.playhead.batchDraw();
         if (this.drawnSelection && this.drawnSelection.duration.samples > 0) {
           this.drawWholeSelection();
         }
@@ -4671,7 +2641,7 @@ export class AudioViewerService {
         event,
         time: this.mouseCursor,
       });
-      this.stage.container().focus();
+      this.canvasRenderer.stage.container().focus();
       this._focused = true;
     }
   };
@@ -4683,7 +2653,7 @@ export class AudioViewerService {
   }
 
   focus() {
-    this.stage?.container().focus();
+    this.canvasRenderer.stage?.container().focus();
     this._focused = true;
   }
 }

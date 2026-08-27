@@ -25,8 +25,9 @@ import { SubscriptionManager, wait } from '@tratt/utilities';
 import { AudioChunk } from '@tratt/web-media';
 import Konva from 'konva';
 import { Subject, Subscription, timer } from 'rxjs';
-import { AudioviewerConfig } from './audio-viewer.config';
+import { AudioViewerRendererService } from './audio-viewer-renderer.service';
 import { AudioViewerSegmentsService } from './audio-viewer-segments.service';
+import { AudioviewerConfig } from './audio-viewer.config';
 import { AnnotationChange, AudioViewerService } from './audio-viewer.service';
 import Vector2d = Konva.Vector2d;
 
@@ -47,7 +48,11 @@ export interface CurrentLevelChangeEvent {
   selector: 'tratt-audio-viewer',
   templateUrl: './audio-viewer.component.html',
   styleUrls: ['./audio-viewer.component.css'],
-  providers: [AudioViewerService, AudioViewerSegmentsService],
+  providers: [
+    AudioViewerService,
+    AudioViewerSegmentsService,
+    AudioViewerRendererService,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AudioViewerComponent
