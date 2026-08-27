@@ -47,6 +47,7 @@ import { Position, Size, TRATT_COLORS } from '../../../obj';
 import { PlayCursor } from '../../../obj/play-cursor';
 import { AudioViewerShortcutEvent } from './audio-viewer.component';
 import { AudioviewerConfig } from './audio-viewer.config';
+import { AudioViewerTimeUtils } from './audio-viewer-time-utils';
 import {
   cycleNextSpeaker,
   getSpeakerColor,
@@ -245,6 +246,7 @@ export class AudioViewerService {
   protected audioChunk: AudioChunk | undefined;
   private subscrManager: SubscriptionManager<Subscription> =
     new SubscriptionManager<Subscription>();
+  private timeUtils = new AudioViewerTimeUtils();
 
   private _drawnSelection: AudioSelection | undefined;
 
@@ -539,21 +541,11 @@ export class AudioViewerService {
   }
 
   public getPixelPerSecond(secondsPerLine: number) {
-    if (this.innerWidth !== undefined) {
-      if (secondsPerLine !== undefined) {
-        if (
-          this.audioChunk?.time &&
-          this.audioChunk.time.duration.seconds < secondsPerLine
-        ) {
-          return this.innerWidth / this.audioChunk.time.duration.seconds;
-        }
-        return this.innerWidth / secondsPerLine;
-      } else {
-        console.error(`secondsPerLine is undefined or undefined!`);
-      }
-      return this.innerWidth / 5;
-    }
-    return 0;
+    return this.timeUtils.getPixelPerSecond(
+      secondsPerLine,
+      this.innerWidth,
+      this.audioChunk,
+    );
   }
 
   onResize = async (newWidth?: number, newHeight?: number) => {
@@ -3197,68 +3189,14 @@ export class AudioViewerService {
     cha: Float32Array,
     _interval: { start: number; end: number },
   ): Promise<number[]> {
-    return new Promise<number[]>((resolve, reject) => {
-      const promises = [];
-
-      const numberOfPieces = 8;
-
-      const xZoom = (_interval.end - _interval.start) / width;
-
-      let piece = Math.floor(width / numberOfPieces);
-      const samplePiece = Math.floor(
-        (_interval.end - _interval.start) / numberOfPieces,
-      );
-
-      for (let i = 1; i <= numberOfPieces; i++) {
-        const start = _interval.start + (i - 1) * samplePiece;
-        let end = start + samplePiece;
-        if (i === numberOfPieces) {
-          // make sure to fit whole width
-          piece = Math.round(width - piece * (numberOfPieces - 1));
-          end = Math.ceil(_interval.end);
-        }
-        const tsJob = new TsWorkerJob<
-          [
-            width: number,
-            height: number,
-            channel: Float32Array,
-            interval: {
-              start: number;
-              end: number;
-            },
-            roundValues: boolean,
-            xZoom: number,
-          ],
-          number[]
-        >(
-          this.computeDisplayData,
-          piece,
-          height,
-          cha.slice(start, end),
-          {
-            start,
-            end,
-          },
-          this._settings.roundValues,
-          xZoom,
-        );
-
-        promises.push(this.multiThreadingService.run<number[]>(tsJob));
-      }
-
-      Promise.all(promises)
-        .then((values: number[][]) => {
-          let result: any[] | PromiseLike<number[]> = [];
-          for (const value of values) {
-            result = result.concat(value);
-          }
-
-          resolve(result);
-        })
-        .catch((error) => {
-          reject(error);
-        });
-    });
+    return this.timeUtils.computeWholeDisplayData(
+      width,
+      height,
+      cha,
+      _interval,
+      this._settings.roundValues,
+      this.multiThreadingService,
+    );
   }
 
   /**
@@ -3268,23 +3206,11 @@ export class AudioViewerService {
     x: number;
     y: number;
   } {
-    if (this._innerWidth !== undefined && this._innerWidth > 0) {
-      const lineNum = Math.floor(absX / this._innerWidth);
-      let x =
-        this.settings.margin.left -
-        this.settings.playcursor.width / 2 +
-        absX -
-        lineNum * this._innerWidth;
-      x = isNaN(x) ? 0 : x;
-      let y = lineNum * (this._settings.lineheight + this.settings.margin.top);
-      y = isNaN(y) ? 0 : y;
-
-      return { x, y };
-    }
-    return {
-      x: 0,
-      y: 0,
-    };
+    return this.timeUtils.getPlayCursorPositionOfLineByAbsX(
+      absX,
+      this._innerWidth,
+      this.settings,
+    );
   }
 
   /**
@@ -3297,51 +3223,15 @@ export class AudioViewerService {
     endSamples: SampleUnit,
     innerWidth: number,
   ): { start: number; end: number } {
-    if (this.audioTCalculator !== undefined && this.audioChunk !== undefined) {
-      const absX = lineNum * innerWidth;
-      const absEnd = absX + lineWidth;
-      const selAbsStart = this.audioTCalculator.samplestoAbsX(
-        startSamples.sub(this.audioChunk.time.start),
-      );
-      const selAbsEnd = this.audioTCalculator.samplestoAbsX(
-        endSamples.sub(this.audioChunk.time.start),
-      );
-
-      const result = {
-        start: selAbsStart,
-        end: selAbsEnd,
-      };
-
-      if (selAbsEnd > -1 && selAbsEnd >= absX) {
-        if (selAbsStart > -1) {
-          // check start selection
-          if (selAbsStart >= absX) {
-            result.start = selAbsStart - absX;
-          } else {
-            result.start = 0;
-          }
-        } else {
-          result.start = 0;
-        }
-
-        if (selAbsStart <= absEnd) {
-          // check end selection
-          if (selAbsEnd > absEnd) {
-            result.end = innerWidth;
-          } else if (selAbsEnd <= absEnd) {
-            result.end = selAbsEnd - lineNum * innerWidth;
-          }
-          if (result.start > result.end) {
-            const tmp = result.start;
-            result.start = result.end;
-            result.end = tmp;
-          }
-          return result;
-        }
-      }
-    }
-
-    return { start: -3, end: -1 };
+    return this.timeUtils.getRelativeSelectionByLine(
+      lineNum,
+      lineWidth,
+      startSamples,
+      endSamples,
+      innerWidth,
+      this.audioTCalculator,
+      this.audioChunk,
+    );
   }
 
   /**
@@ -3670,98 +3560,30 @@ export class AudioViewerService {
     roundValues: boolean,
     xZoom: number,
   ) => {
-    return new Promise<number[]>((resolve, reject) => {
-      if (
-        interval.start !== undefined &&
-        interval.end !== undefined &&
-        interval.end >= interval.start
-      ) {
-        const minMaxArray = [];
-        const len = interval.end - interval.start;
-
-        let min = 0;
-        let max = 0;
-        let val = 0;
-        let offset = 0;
-        let maxIndex = 0;
-
-        const yZoom = height / 2;
-
-        for (let i = 0; i < width && offset < channel.length; i++) {
-          offset = Math.round(i * xZoom);
-          let floatValue = channel[offset];
-
-          if (isNaN(floatValue)) {
-            floatValue = 0;
-          }
-
-          min = floatValue;
-          max = floatValue;
-
-          if (offset + xZoom > len) {
-            maxIndex = len;
-          } else {
-            maxIndex = Math.round(offset + xZoom);
-          }
-
-          for (let j = offset; j < maxIndex; j++) {
-            floatValue = channel[j];
-
-            val = floatValue;
-            max = Math.max(max, val);
-            min = Math.min(min, val);
-          }
-
-          if (roundValues) {
-            minMaxArray.push(Math.round(min * yZoom));
-            minMaxArray.push(Math.round(max * yZoom));
-          } else {
-            minMaxArray.push(min * yZoom);
-            minMaxArray.push(max * yZoom);
-          }
-        }
-
-        (channel as any) = undefined;
-        resolve(minMaxArray);
-      } else {
-        reject('interval.end is less than interval.start');
-      }
-    });
+    return this.timeUtils.computeDisplayData(
+      width,
+      height,
+      channel,
+      interval,
+      roundValues,
+      xZoom,
+    );
   };
 
   private calculateZoom(height: number, width: number, minmaxarray: number[]) {
-    if (this._settings.justifySignalHeight) {
-      // justify height to maximum top border
-      let maxZoomX = 0;
-      let maxZoomY = 0;
-      const timeLineHeight = this._settings.timeline.enabled
-        ? this._settings.timeline.height
-        : 0;
-      let maxZoomYMin = height / 2;
-      const xMax = this.AudioPxWidth;
-
-      // get_max_signal_length
-      for (let i = 0; i <= xMax; i++) {
-        maxZoomX = i;
-
-        if (isNaN(minmaxarray[i])) {
-          break;
-        }
-        maxZoomY = Math.max(maxZoomY, minmaxarray[i]);
-        maxZoomYMin = Math.min(maxZoomYMin, minmaxarray[i]);
-      }
-
-      let rest = height - timeLineHeight - (maxZoomY + Math.abs(maxZoomYMin));
-      rest = Math.floor(rest - 2);
-
-      if (rest > 0) {
-        this._zoomY = rest / (maxZoomY + Math.abs(maxZoomYMin)) + 1;
-        this._zoomY = Math.floor(this._zoomY * 10) / 10;
-        this._zoomX = width / maxZoomX;
-      }
-    } else {
-      this._zoomY = 1;
-    }
+    const result = this.timeUtils.calculateZoom(
+      height,
+      width,
+      minmaxarray,
+      this.AudioPxWidth,
+      this._settings.justifySignalHeight,
+      this._settings.timeline.enabled,
+      this._settings.timeline.height,
+      this._zoomX,
+      this._zoomY,
+    );
+    this._zoomX = result.zoomX;
+    this._zoomY = result.zoomY;
   }
 
   /**
@@ -4795,10 +4617,7 @@ export class AudioViewerService {
   }
 
   private getNumberOfLines() {
-    if (this.innerWidth !== undefined) {
-      return Math.ceil(this.AudioPxWidth / this.innerWidth);
-    }
-    return -1;
+    return this.timeUtils.getNumberOfLines(this.innerWidth, this.AudioPxWidth);
   }
 
   private changeMouseCursorSamples = (newValue: SampleUnit) => {
@@ -5302,18 +5121,13 @@ export class AudioViewerService {
   };
 
   public getLineNumber(x: number, y: number) {
-    const numOfLines = this.getNumberOfLines();
-
-    for (let i = 0; i < numOfLines; i++) {
-      const locY = i * (this.settings.lineheight + this.settings.margin.top);
-      const locMaxY = locY + this.settings.lineheight;
-
-      if (y >= locY && y <= locMaxY) {
-        return i;
-      }
-    }
-
-    return -1;
+    return this.timeUtils.getLineNumber(
+      x,
+      y,
+      this.innerWidth,
+      this.AudioPxWidth,
+      this.settings,
+    );
   }
 
   private onMouseMove = (event: any) => {
