@@ -1,4 +1,9 @@
-import { CdkDrag, CdkDropList, moveItemInArray } from '@angular/cdk/drag-drop';
+import {
+  CdkDrag,
+  CdkDragDrop,
+  CdkDropList,
+  moveItemInArray,
+} from '@angular/cdk/drag-drop';
 import { NgStyle } from '@angular/common';
 import { Component, Input, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
@@ -34,6 +39,22 @@ export interface ColumnFormat {
   ) => string;
 }
 
+export interface TableColumnCell {
+  level: number;
+  text: string;
+  samples: number;
+}
+
+export interface TableColumn {
+  title: string;
+  columnDefinition: {
+    type: string;
+    selectedFormat: ColumnFormat;
+    formats: ColumnFormat[];
+    cells: TableColumnCell[];
+  };
+}
+
 @Component({
   selector: 'tratt-table-configurator',
   templateUrl: './table-configurator.component.html',
@@ -52,19 +73,7 @@ export interface ColumnFormat {
   ],
 })
 export class TableConfiguratorComponent implements OnInit {
-  @Input() columns: {
-    title: string;
-    columnDefinition: {
-      type: string;
-      selectedFormat: ColumnFormat;
-      formats: ColumnFormat[];
-      cells: {
-        level: number;
-        text: string;
-        samples: number;
-      }[];
-    };
-  }[] = [];
+  @Input() columns: TableColumn[] = [];
   @Input() annotation!: TrattAnnotation<
     ASRContext,
     TrattAnnotationSegment<ASRContext>
@@ -468,22 +477,19 @@ export class TableConfiguratorComponent implements OnInit {
     }
   }
 
-  convertMilliSecondsIntoLegibleString(milliSecondsIn: number) {
+  convertMilliSecondsIntoLegibleString(milliSecondsIn: number): string {
     const secsIn = milliSecondsIn / 1000;
-    let milliSecs: any = milliSecondsIn % 1000;
+    const milliSecs = milliSecondsIn % 1000;
 
-    let hours: any = Math.floor(secsIn / 3600);
-    const remainder: any = Math.floor(secsIn % 3600);
-    let minutes: any = Math.floor(remainder / 60);
-    let seconds: any = Math.floor(remainder % 60);
+    const hours = Math.floor(secsIn / 3600);
+    const remainder = Math.floor(secsIn % 3600);
+    const minutes = Math.floor(remainder / 60);
+    const seconds = Math.floor(remainder % 60);
 
-    hours = hours < 10 ? '0' + hours : hours;
-    minutes = minutes < 10 ? '0' + minutes : minutes;
-    milliSecs = milliSecs < 100 ? '0' + milliSecs : milliSecs;
-    milliSecs = milliSecs < 10 ? '0' + milliSecs : milliSecs;
-    seconds = seconds < 10 ? '0' + seconds : seconds;
+    const pad = (value: number, length: number): string =>
+      value.toString().padStart(length, '0');
 
-    return hours + ':' + minutes + ':' + seconds + '.' + milliSecs;
+    return `${pad(hours, 2)}:${pad(minutes, 2)}:${pad(seconds, 2)}.${pad(milliSecs, 3)}`;
   }
 
   onFormatClick(format: string) {
@@ -510,7 +516,7 @@ export class TableConfiguratorComponent implements OnInit {
     this.onSomethingDone();
   }
 
-  updateTitle(column: any, newTitle: string) {
+  updateTitle(column: TableColumn, newTitle: string) {
     let oldTitleIsType = false;
     let newTitleIsType = false;
 
@@ -706,7 +712,7 @@ export class TableConfiguratorComponent implements OnInit {
     }
   }
 
-  onDropChange(event: any) {
+  onDropChange(event: CdkDragDrop<TableColumn[]>) {
     moveItemInArray(this.columns, event.previousIndex, event.currentIndex);
     this.updateAllTableCells();
   }
