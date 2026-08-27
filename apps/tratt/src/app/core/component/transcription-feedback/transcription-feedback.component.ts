@@ -78,13 +78,12 @@ export class TranscriptionFeedbackComponent implements OnChanges, OnDestroy {
   }
 
   changeValue(control: string, value: any) {
-    const result = this.annotationStoreService.feedback.setValueForControl(
-      control,
-      value.toString(),
-    );
-    this.annotationStoreService.changeFeedback(
-      this.annotationStoreService.feedback,
-    );
+    const feedback = this.annotationStoreService.feedback;
+    if (!feedback) {
+      return;
+    }
+    const result = feedback.setValueForControl(control, value.toString());
+    this.annotationStoreService.changeFeedback(feedback);
     console.warn(result);
   }
 
@@ -106,7 +105,11 @@ export class TranscriptionFeedbackComponent implements OnChanges, OnDestroy {
   }
 
   public checkBoxChanged(groupName: string, checkb: string) {
-    for (const group of this.annotationStoreService.feedback.groups) {
+    const groups = this.annotationStoreService.feedback?.groups;
+    if (!groups) {
+      return;
+    }
+    for (const group of groups) {
       if (group.name === groupName) {
         for (const control of group.controls) {
           if (control.value === checkb) {

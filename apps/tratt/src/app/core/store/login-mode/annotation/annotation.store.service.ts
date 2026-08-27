@@ -16,6 +16,8 @@ import {
 import { TrattGuidelines } from '@tratt/assets';
 import { getTranscriptFromIO, SubscriptionManager } from '@tratt/utilities';
 import { BehaviorSubject, map, Observable } from 'rxjs';
+import { TrattValidationItem } from '../../../../../types';
+import { FeedBackForm } from '../../../obj/FeedbackForm/FeedBackForm';
 import { OLogging } from '../../../obj/Settings/logging';
 import { StatisticElem } from '../../../obj/statistics/StatisticElement';
 import { AudioService } from '../../../shared/service';
@@ -24,8 +26,8 @@ import { ApplicationStoreService } from '../../application/application-store.ser
 import { ApplicationActions } from '../../application/application.actions';
 import { getModeState, LoginMode, RootState } from '../../index';
 import { LoginModeActions } from '../login-mode.actions';
-import { AnnotationActions } from './annotation.actions';
 import { AnnotationTextProcessingService } from './annotation-text-processing.service';
+import { AnnotationActions } from './annotation.actions';
 import {
   selectAnnotationCurrentLevel,
   selectAnnotationCurrentLevelIndex,
@@ -36,6 +38,7 @@ import {
   selectImportConverter,
   selectImportOptions,
 } from './annotation.selectors';
+import { AnnotationState } from './index';
 
 @Injectable({
   providedIn: 'root',
@@ -101,13 +104,13 @@ export class AnnotationStoreService {
   private _validationArray: {
     level: number;
     segment: number;
-    validation: any[];
+    validation: TrattValidationItem[];
   }[] = [];
   private subscrManager = new SubscriptionManager();
 
   get validationArray(): {
     segment: number;
-    validation: any[];
+    validation: TrattValidationItem[];
     level: number;
   }[] {
     return this._validationArray;
@@ -169,7 +172,7 @@ export class AnnotationStoreService {
   private _transcript?: TrattAnnotation<ASRContext, TrattAnnotationSegment>;
   private _task?: TaskDto;
   private _guidelines?: TrattGuidelines;
-  private _feedback: any;
+  private _feedback: FeedBackForm | undefined;
   private _statistics = { transcribed: 0, empty: 0, pause: 0 };
 
   // Signals
@@ -190,9 +193,9 @@ export class AnnotationStoreService {
   >;
   currentLevelIndex$: Observable<number>;
   task$: Observable<TaskDto | undefined>;
-  guidelines$: Observable<any>;
-  feedback$: Observable<any>;
-  textInput$: Observable<any>;
+  guidelines$: Observable<AnnotationState['guidelines']>;
+  feedback$: Observable<FeedBackForm | undefined>;
+  textInput$: Observable<TaskInputOutputDto | undefined>;
   transcriptString$: Observable<string>;
 
   // Value properties for backward compatibility with components
@@ -224,7 +227,7 @@ export class AnnotationStoreService {
     return this._guidelines;
   }
 
-  get feedback(): any {
+  get feedback(): FeedBackForm | undefined {
     return this._feedback;
   }
 
@@ -266,9 +269,9 @@ export class AnnotationStoreService {
     this.guidelines$ = this.store.select(selectGuidelines);
     this.feedback$ = this.store
       .select(selectCurrentSession)
-      .pipe(map((session: any) => session?.assessment));
+      .pipe(map((session) => session?.assessment as FeedBackForm | undefined));
     this.textInput$ = this.store.select(selectCurrentSession).pipe(
-      map((session: any) => {
+      map((session) => {
         if (!session) return undefined;
         if (
           this.appStoreService.useMode === undefined ||
@@ -283,7 +286,7 @@ export class AnnotationStoreService {
       }),
     );
     this.transcriptString$ = this.store.select(selectAnnotationTranscript).pipe(
-      map((transcript: any) => {
+      map((transcript) => {
         if (transcript) {
           const annotation = transcript.serialize(
             this.audio.audioManager.resource.name,
@@ -461,7 +464,7 @@ export class AnnotationStoreService {
     this.subscrManager.destroy();
   }
 
-  public validate(rawText: string): any[] {
+  public validate(rawText: string): TrattValidationItem[] {
     return this.textProcessing.validate(rawText, this.guidelinesValue);
   }
 
@@ -480,7 +483,7 @@ export class AnnotationStoreService {
     return this.textProcessing.rawToHTML(rawtext, this.guidelinesValue);
   }
 
-  public underlineTextRed(rawtext: string, validation: any[]) {
+  public underlineTextRed(rawtext: string, validation: TrattValidationItem[]) {
     return this.textProcessing.underlineTextRed(
       rawtext,
       validation,
@@ -509,7 +512,7 @@ export class AnnotationStoreService {
 
   public getMarkerPositions(
     rawText: string,
-    guidelines: any,
+    guidelines: TrattGuidelines | undefined,
   ): { start: number; end: number }[] {
     return this.textProcessing.getMarkerPositions(rawText, guidelines);
   }
@@ -523,7 +526,7 @@ export class AnnotationStoreService {
     );
   }
 
-  changeFeedback(feedback: any) {
+  changeFeedback(feedback: unknown) {
     this.store.dispatch(
       AnnotationActions.changeFeedback.do({
         feedback,
@@ -598,7 +601,10 @@ export class AnnotationStoreService {
     );
   }
 
-  combinePhrases(options: any) {
+  combinePhrases(options: {
+    minSilenceLength: number;
+    maxWordsPerSegment: number;
+  }) {
     this.store.dispatch(
       AnnotationActions.combinePhrases.do({
         options,
@@ -608,9 +614,16 @@ export class AnnotationStoreService {
   }
 
   overwriteTidyUpAnnotation() {
-    const tidyUp = (window as any).tidyUpAnnotation;
+    type TidyUpAnnotationFn = (
+      transcript: string,
+      guidelines: TrattGuidelines,
+    ) => string;
+    const globalWindow = window as unknown as {
+      tidyUpAnnotation: TidyUpAnnotationFn;
+    };
+    const tidyUp = globalWindow.tidyUpAnnotation;
 
-    (window as any).tidyUpAnnotation = (transcript: any, guidelines: any) => {
+    globalWindow.tidyUpAnnotation = (transcript, guidelines) => {
       transcript = tidyUp(transcript, guidelines);
 
       // make sure there is only one speaker label for each unit if exists
