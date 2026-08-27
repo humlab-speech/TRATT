@@ -40,7 +40,13 @@ import {
   ShortcutManager,
 } from '@tratt/web-media';
 import { HotkeysEvent } from 'hotkeys-js';
-import { IControlType, IJodit, IToolbarButton } from 'jodit/types/types';
+import {
+  IControlType,
+  IFileBrowser,
+  IJodit,
+  IToolbarButton,
+  IViewBased,
+} from 'jodit/types/types';
 import { JoditConfig, NgxJoditComponent } from 'ngx-jodit';
 import { timer } from 'rxjs';
 import { ShortcutService } from '../../shared/service/shortcut.service';
@@ -51,7 +57,7 @@ import { DefaultComponent } from '../default.component';
 import { TranscrEditorConfig } from './config';
 import { ValidationPopoverComponent } from './validation-popover/validation-popover.component';
 
-declare let document: any;
+type TranscrEditorMarker = TrattGuidelines['markers'][number];
 
 @Component({
   selector: 'tratt-transcr-editor',
@@ -71,7 +77,8 @@ export class TranscrEditorComponent
   implements OnChanges, AfterViewInit, OnInit, OnDestroy
 {
   @Output() loaded: EventEmitter<boolean> = new EventEmitter<boolean>();
-  @Output() onkeyup: EventEmitter<any> = new EventEmitter<any>();
+  @Output() onkeyup: EventEmitter<KeyboardEvent> =
+    new EventEmitter<KeyboardEvent>();
   @Output() markerInsert: EventEmitter<string> = new EventEmitter<string>();
   @Output() markerClick: EventEmitter<string> = new EventEmitter<string>();
   @Output() typing = new EventEmitter<string>();
@@ -93,7 +100,7 @@ export class TranscrEditorComponent
   >();
 
   @Input() visible = true;
-  @Input() markers?: any[] = [];
+  @Input() markers?: TranscrEditorMarker[] = [];
   @Input() easymode?: undefined | null | boolean = true;
   @Input() height = 0;
   @Input() playposition?: SampleUnit;
@@ -299,7 +306,7 @@ export class TranscrEditorComponent
   /**
    * called after key up in editor
    */
-  onKeyUp = ($event: Event) => {
+  onKeyUp = ($event: KeyboardEvent) => {
     this.onkeyup.emit($event);
     this.triggerTyping();
   };
@@ -344,18 +351,19 @@ export class TranscrEditorComponent
       end: -1,
     };
 
-    const replaceFunc = (elem: any) => {
-      const tagName = elem.tagName;
-      const text = tagName ? elem.outerHTML : elem.nodeValue;
+    const replaceFunc = (elem: ChildNode) => {
+      const el = elem as HTMLElement;
+      const tagName = el.tagName;
+      const text = tagName ? el.outerHTML : el.nodeValue;
       if (
-        getAttr(elem, 'data-jodit-selection_marker') === undefined &&
+        getAttr(el, 'data-jodit-selection_marker') === undefined &&
         elem.childNodes.length > 0
       ) {
         elem.childNodes.forEach(replaceFunc);
       } else {
-        let attr = getAttr(elem, 'data-marker-code');
-        if (getAttr(elem, 'data-value') !== undefined) {
-          const value = getAttr(elem, 'data-value');
+        let attr = getAttr(el, 'data-marker-code');
+        if (getAttr(el, 'data-value') !== undefined) {
+          const value = getAttr(el, 'data-value');
           attr += '=' + value;
         }
         if (attr && this.markers) {
@@ -364,7 +372,7 @@ export class TranscrEditorComponent
           for (const marker of this.markers) {
             if (markerCode === marker.code) {
               const parent = elem.parentNode;
-              parent.replaceChild(document.createTextNode(markerCode), elem);
+              parent!.replaceChild(document.createTextNode(markerCode), elem);
               charCounter += markerCode.length;
               break;
             }
@@ -372,34 +380,34 @@ export class TranscrEditorComponent
         } else if (elem.nodeType === 3) {
           // is textNode
           const text = elem.nodeValue;
-          charCounter += text.length;
-          elem.innerText = text;
+          charCounter += text!.length;
+          el.innerText = text!;
         } else if (tagName.toLowerCase() === 'img') {
-          if (getAttr(elem, 'data-samples') !== undefined) {
-            const boundaryText = `{${getAttr(elem, 'data-samples')}}`;
+          if (getAttr(el, 'data-samples') !== undefined) {
+            const boundaryText = `{${getAttr(el, 'data-samples')}}`;
             const textnode = document.createTextNode(boundaryText);
-            elem.parentNode.insertBefore(textnode, elem);
+            elem.parentNode!.insertBefore(textnode, elem);
             elem.remove();
             charCounter += boundaryText.length;
           }
         } else if (
-          getAttr(elem, 'class') === 'val-error' &&
+          getAttr(el, 'class') === 'val-error' &&
           tagName.toLowerCase() !== 'textspan'
         ) {
           elem.remove();
         } else if (tagName.toLowerCase() === 'span') {
-          if (getAttr(elem, 'data-jodit-selection_marker') === 'start') {
+          if (getAttr(el, 'data-jodit-selection_marker') === 'start') {
             // save start selection
             textSelection.start = charCounter;
-          } else if (getAttr(elem, 'data-jodit-selection_marker') === 'end') {
+          } else if (getAttr(el, 'data-jodit-selection_marker') === 'end') {
             // save start selection
             textSelection.end = charCounter;
-          } else if (getAttr(elem, 'class') === 'highlighted') {
+          } else if (getAttr(el, 'class') === 'highlighted') {
             elem.remove();
           } else {
-            const elemText = elem.innerText;
+            const elemText = el.innerText;
             const textnode = document.createTextNode(elemText);
-            elem.parentNode.insertBefore(textnode, elem);
+            elem.parentNode!.insertBefore(textnode, elem);
             elem.remove();
             charCounter += elemText.length;
           }
@@ -466,16 +474,12 @@ export class TranscrEditorComponent
         this.settings.specialMarkers.boundary &&
         this.joditOptions.extraButtons
       ) {
-        this.joditOptions.extraButtons.push(this.createBoundaryButton() as any);
+        this.joditOptions.extraButtons.push(this.createBoundaryButton());
         if (this._settings.highlightingEnabled) {
-          this.joditOptions.extraButtons.push(
-            this.createHighlightingButton() as any,
-          );
+          this.joditOptions.extraButtons.push(this.createHighlightingButton());
         }
       }
-      this.joditOptions.extraButtons!.push(
-        this.createFontSelectionButton() as any,
-      );
+      this.joditOptions.extraButtons!.push(this.createFontSelectionButton());
 
       this.cd.markForCheck();
       this.cd.detectChanges();
@@ -560,7 +564,7 @@ export class TranscrEditorComponent
     if (queue !== undefined && this.audiochunk) {
       const item = queue.items.find(
         (a) =>
-          a.time.sampleStart === (this.audiochunk as any).time.start.samples &&
+          a.time.sampleStart === this.audiochunk!.time.start.samples &&
           a.time.sampleLength === this.audiochunk!.time.duration.samples,
       );
 
@@ -737,7 +741,9 @@ export class TranscrEditorComponent
       obj['segments'].currentValue !== undefined &&
       !obj['segments'].firstChange
     ) {
-      this.setSegments(obj['segments'] as any);
+      this.setSegments(
+        obj['segments'].currentValue as TrattAnnotationSegment[],
+      );
     }
 
     if (renew) {
@@ -761,9 +767,7 @@ export class TranscrEditorComponent
     if (this.markers) {
       for (let i = 0; i < this.markers.length; i++) {
         const marker = this.markers[i];
-        this.joditOptions.extraButtons.push(
-          this.createMarkerButton(marker) as any,
-        );
+        this.joditOptions.extraButtons.push(this.createMarkerButton(marker));
       }
     }
   }
@@ -779,14 +783,20 @@ export class TranscrEditorComponent
       onClick?: (event: MouseEvent, button: HTMLElement) => void;
     },
     hotkeys?: string,
-  ): IControlType<IJodit, IToolbarButton> {
+  ): IControlType<IJodit | IViewBased | IFileBrowser, IToolbarButton> {
     return {
       name,
       data: {
         active: false,
       },
-      getContent: (a: IJodit, b: IToolbarButton) => {
-        const parent: HTMLElement = (b as any).button;
+      getContent: (
+        _editor: IJodit | IViewBased | IFileBrowser,
+        b: IToolbarButton,
+      ) => {
+        // Jodit's UIButton aliases `button` to `container` at runtime
+        // (see node_modules/jodit/esm/core/ui/button/button/button.js),
+        // but only `container` is part of the public IUIElement type.
+        const parent: HTMLElement = b.container;
         const btn = parent.querySelector('.tratt-marker-btn');
         if (!btn) {
           const content = getContent();
@@ -802,7 +812,11 @@ export class TranscrEditorComponent
             'me-2 align-items-center px-1 h-100 tratt-marker-btn btn-description',
           );
           if (typeof content === 'string') {
-            button.innerHTML = getContent();
+            // Reuse the already-computed `content` instead of invoking
+            // getContent() a second time (the previous re-invocation could
+            // return a value inconsistent with what was already narrowed
+            // to a string above).
+            button.innerHTML = content;
             if (events?.onClick) {
               button.addEventListener('click', (event: MouseEvent) => {
                 events!.onClick!(event, button);
@@ -815,7 +829,11 @@ export class TranscrEditorComponent
           button.setAttribute('tratt-initialized', 'true');
           return button;
         } else {
-          return btn;
+          // `btn` was created by this same function as a `<span>`
+          // (document.createElement('span')), so it is genuinely an
+          // HTMLElement at runtime; querySelector only widens the static
+          // type to Element.
+          return btn as HTMLElement;
         }
       },
       tooltip,
@@ -826,17 +844,9 @@ export class TranscrEditorComponent
   /**
    * creates a marker button for the toolbar
    */
-  createMarkerButton(marker: {
-    icon?: string;
-    code: string;
-    button_text: string;
-    shortcut: {
-      mac: string;
-      pc: string;
-    };
-    name: string;
-    description: string;
-  }): IControlType<IJodit, IToolbarButton> {
+  createMarkerButton(
+    marker: TranscrEditorMarker,
+  ): IControlType<IJodit | IViewBased | IFileBrowser, IToolbarButton> {
     return this.createButton(
       marker.name,
       marker.description,
@@ -969,7 +979,10 @@ export class TranscrEditorComponent
     }
   }
 
-  createHighlightingButton(): IControlType<IJodit, IToolbarButton> {
+  createHighlightingButton(): IControlType<
+    IJodit | IViewBased | IFileBrowser,
+    IToolbarButton
+  > {
     const getContent = () => {
       let content = '';
 
@@ -993,12 +1006,15 @@ export class TranscrEditorComponent
           this.startRecurringHighlight();
         }
 
-        (event.target! as any).outerHTML = getContent();
+        (event.target! as HTMLElement).outerHTML = getContent();
       },
     });
   }
 
-  createFontSelectionButton(): IControlType<IJodit, IToolbarButton> {
+  createFontSelectionButton(): IControlType<
+    IJodit | IViewBased | IFileBrowser,
+    IToolbarButton
+  > {
     const getContent = () => {
       const currentFont = this.font
         ? this.font
@@ -1027,7 +1043,7 @@ export class TranscrEditorComponent
       selection.style.fontSize = '0.85rem';
 
       selection.addEventListener('change', (event) => {
-        this.changeFont((event.target as any).value, true);
+        this.changeFont((event.target as HTMLSelectElement).value, true);
       });
       return selection;
     };
@@ -1394,12 +1410,11 @@ export class TranscrEditorComponent
     });
   }
 
-  private isMarker(shortcut: any) {
+  private isMarker(shortcut: string) {
     if (this.markers !== undefined) {
       const platform = BrowserInfo.platform;
       return (
-        this.markers.findIndex((a: any) => a.shortcut[platform] === shortcut) >
-          -1 ||
+        this.markers.findIndex((a) => a.shortcut[platform] === shortcut) > -1 ||
         (shortcut === 'ALT + S' && this.settings.specialMarkers.boundary)
       );
     }
@@ -1407,7 +1422,10 @@ export class TranscrEditorComponent
     return false;
   }
 
-  private createBoundaryButton(): IControlType<IJodit, IToolbarButton> {
+  private createBoundaryButton(): IControlType<
+    IJodit | IViewBased | IFileBrowser,
+    IToolbarButton
+  > {
     const boundaryDescr = this.langService.translate(
       'special_markers.boundary.description',
       { type: '' },
@@ -1527,19 +1545,10 @@ export class TranscrEditorComponent
   }
 
   private onSegmentBoundaryOver = (event: MouseEvent) => {
-    if (
-      !(
-        getAttr(event.target as any, 'data-samples') === undefined ||
-        getAttr(event.target as any, 'data-samples') === undefined
-      )
-    ) {
+    const target = event.target as HTMLElement;
+    if (getAttr(target, 'data-samples') !== undefined) {
       this.onSegmentBoundaryMouseOver(event);
-    } else if (
-      !(
-        getAttr(event.target as any, 'data-errorcode') === undefined ||
-        getAttr(event.target as any, 'data-errorcode') === undefined
-      )
-    ) {
+    } else if (getAttr(target, 'data-errorcode') !== undefined) {
       this.onValidationErrorMouseOver(event);
     }
   };
@@ -1587,7 +1596,7 @@ export class TranscrEditorComponent
   };
 
   private onDataSampleClick = (event: MouseEvent) => {
-    const samples = getAttr(event.target as any, 'data-samples')!;
+    const samples = getAttr(event.target as HTMLElement, 'data-samples')!;
 
     if (isNumber(samples)) {
       this.boundaryclicked.emit(
@@ -1730,12 +1739,19 @@ export class TranscrEditorComponent
     this.triggerTyping();
   }
 
-  async onPaste($event: Event) {
+  async onPaste($event: ClipboardEvent) {
     $event.preventDefault();
-    const bufferText = (
-      (($event as any).originalEvent || $event).clipboardData ||
-      (window as any).clipboardData
-    ).getData('Text');
+    // Jodit's event emitter sets `originalEvent` on every dispatched event
+    // (defaulting to a self-reference), and defines `clipboardData` via a
+    // getter for legacy IE (see event-emitter.js in the jodit package). The
+    // fallback chain below mirrors that behaviour.
+    const joditEvent = $event as ClipboardEvent & {
+      originalEvent?: ClipboardEvent;
+    };
+    const bufferText = (joditEvent.originalEvent?.clipboardData ||
+      joditEvent.clipboardData ||
+      (window as Window & { clipboardData?: DataTransfer })
+        .clipboardData)!.getData('Text');
     let html = bufferText
       .replace(/(<p>)|(<\/p>)/g, '')
       .replace(new RegExp(/\[\|/, 'g'), '{')
@@ -1838,7 +1854,9 @@ export class TranscrEditorComponent
   ) => {
     if (this.markers) {
       for (const marker of this.markers) {
-        for (const key of Object.keys(marker.shortcut)) {
+        for (const key of Object.keys(
+          marker.shortcut,
+        ) as (keyof typeof marker.shortcut)[]) {
           if (
             marker.shortcut[key]?.replace(/\s/g, '') === hotkeyEvent.shortcut
           ) {

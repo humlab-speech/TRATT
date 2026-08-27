@@ -164,9 +164,9 @@ export interface TrattGuidelines {
     icon: string;
     button_text: string;
     description: string;
-    shortcuts: {
+    shortcut: {
       mac: string;
       pc: string;
-    }[];
+    };
   }[];
 }
