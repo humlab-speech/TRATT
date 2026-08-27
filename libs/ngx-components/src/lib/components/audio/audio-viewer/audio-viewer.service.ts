@@ -402,14 +402,22 @@ export class AudioViewerService {
   /**
    * Bundles the segment/annotation-model data and callbacks that
    * AudioViewerRendererService's segment-drawing methods need but
-   * deliberately don't own (see that service's class doc) — built fresh
-   * on each call so it always reflects the current `annotation`/
-   * `currentLevel`.
+   * deliberately don't own (see that service's class doc).
+   *
+   * `annotation`/`currentLevel` are handed over as *accessors*, not
+   * values: Konva `sceneFunc` callbacks and the speaker-label click
+   * handler the renderer builds outlive this call, while the annotation
+   * model is replaced wholesale (`TrattAnnotation.clone()`) on every
+   * `@Input() set annotation` write and `applyChanges` only rebuilds the
+   * shapes immediately around a change. A captured value would freeze a
+   * stale level into every surviving shape. The renderer still has no
+   * dependency on the segment model — it only calls back into what we
+   * passed it.
    */
   private buildSegmentRenderContext(): AudioViewerSegmentRenderContext {
     return {
-      currentLevel: this.currentLevel,
-      annotation: this.annotation,
+      getCurrentLevel: () => this.currentLevel,
+      getAnnotation: () => this.annotation,
       onBoundaryMouseDown: (id: number) => {
         this.dragableBoundaryID = id;
       },
@@ -726,7 +734,7 @@ export class AudioViewerService {
       numOfLines,
       segmentData,
       segmentInterval,
-      this.currentLevel!,
+      () => this.currentLevel,
     );
   }
   private sceneFuncTranscripts = (

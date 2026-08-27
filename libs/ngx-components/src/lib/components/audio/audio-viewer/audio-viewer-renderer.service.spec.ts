@@ -227,4 +227,125 @@ describe('AudioViewerRendererService', () => {
       expect(result.loadedPixels).toBe(0);
     });
   });
+
+  // Regression guard for the "frozen currentLevel" class of bug: the Konva
+  // `sceneFunc` closures these builders create outlive the call that built
+  // them, while `TrattAnnotation.clone()` replaces the level object on every
+  // `@Input() set annotation` write and `applyChanges` only rebuilds the
+  // shapes immediately around a change. If a builder captured the level
+  // *value* instead of the `getCurrentLevel` accessor, surviving shapes
+  // would redraw forever against stale segment data.
+  describe('scene-function closures read the level live', () => {
+    const makeLevel = (marker: string) =>
+      ({ marker, items: [{ id: 1, type: 'segment' }] }) as any;
+
+    it('buildOverlayShape re-reads getCurrentLevel on every redraw', () => {
+      const service = new AudioViewerRendererService();
+      const seen: any[] = [];
+      (service as any).sceneFuncOverlay = (
+        _c: any,
+        _s: any,
+        _seg: any,
+        _n: any,
+        _si: any,
+        _li: any,
+        level: any,
+      ) => seen.push(level);
+
+      let level = makeLevel('first');
+      const shape = (service as any).buildOverlayShape({
+        segment: level.items[0],
+        lineNum1: 0,
+        lineNum2: 0,
+        segmentHeight: 10,
+        numOfLines: 1,
+        segmentInterval: { start: 0, end: 0 },
+        getCurrentLevel: () => level,
+      });
+
+      shape.sceneFunc()({} as any, shape);
+      // the annotation input is rewritten -> whole level replaced by a clone
+      level = makeLevel('second');
+      shape.sceneFunc()({} as any, shape);
+
+      expect(seen.map((l) => l.marker)).toEqual(['first', 'second']);
+    });
+
+    it('buildTranscriptBackgroundShape re-reads getCurrentLevel on every redraw', () => {
+      const service = new AudioViewerRendererService();
+      const seen: any[] = [];
+      (service as any).sceneFuncTranscripts = (
+        _c: any,
+        _s: any,
+        _si: any,
+        _seg: any,
+        _li: any,
+        _n: any,
+        level: any,
+      ) => seen.push(level);
+
+      let level = makeLevel('first');
+      const shape = (service as any).buildTranscriptBackgroundShape({
+        segment: level.items[0],
+        lineNum1: 0,
+        lineNum2: 0,
+        segmentHeight: 10,
+        numOfLines: 1,
+        segmentInterval: { start: 0, end: 0 },
+        getCurrentLevel: () => level,
+      });
+
+      shape.sceneFunc()({} as any, shape);
+      level = makeLevel('second');
+      shape.sceneFunc()({} as any, shape);
+
+      expect(seen.map((l) => l.marker)).toEqual(['first', 'second']);
+    });
+
+    it('buildSegmentTextShape re-reads getCurrentLevel on every redraw', () => {
+      const service = new AudioViewerRendererService();
+      const seenTimes: any[] = [];
+      // `audioManager` is a getter derived from `audioChunk` — stub it on
+      // the instance rather than assigning through the (read-only) getter.
+      Object.defineProperty(service, 'audioManager', {
+        value: { createSampleUnit: () => ({ samples: 0 }) },
+      });
+      (service as any).drawTextLabel = (
+        _ctx: any,
+        text: string,
+      ): number | undefined => {
+        seenTimes.push(text);
+        return 0;
+      };
+
+      const makeTextLevel = (label: string) =>
+        ({
+          items: [
+            {
+              id: 1,
+              type: 'segment',
+              time: { clone: () => ({ samples: 0 }) },
+              getFirstLabelWithoutName: () => ({ value: label }),
+            },
+          ],
+        }) as any;
+
+      let level = makeTextLevel('first');
+      const shape = (service as any).buildSegmentTextShape({
+        segment: level.items[0],
+        segmentInterval: { start: 0, end: 0 },
+        beginX: 0,
+        absX: 0,
+        numOfLines: 1,
+        getCurrentLevel: () => level,
+        lastIRef: { value: 0 },
+      });
+
+      shape.sceneFunc()({} as any, shape);
+      level = makeTextLevel('second');
+      shape.sceneFunc()({} as any, shape);
+
+      expect(seenTimes).toEqual(['first', 'second']);
+    });
+  });
 });

@@ -221,13 +221,34 @@ export function formatTimespan(
  * need the full set (initializeView, updateAllSegments, drawAllBoundaries,
  * drawNewBoundaries, addNewSegmentOnCanvas, refresh, onResize) don't need
  * a long, repeated parameter list; lower-level helpers that only need the
- * bare `currentLevel` value (createSegmentOnCanvas and the Konva scene
- * functions it wires up) take that alone, captured by closure at
- * shape-creation time rather than read live from this context later.
+ * level (createSegmentOnCanvas and the Konva scene functions it wires up)
+ * take the `getCurrentLevel` accessor alone.
+ *
+ * The level/annotation are exposed as zero-arg *accessors*, not plain
+ * values, on purpose: Konva `sceneFunc` callbacks and DOM event handlers
+ * created here outlive the call that created them, and the annotation
+ * model is replaced wholesale (`TrattAnnotation.clone()`) on every
+ * `@Input() set annotation` write while `applyChanges` only rebuilds the
+ * shapes immediately around a change. Capturing a value would freeze a
+ * stale level into every surviving shape — including the speaker-label
+ * click handler, which would then emit a clone of a stale segment back
+ * into the store and silently revert concurrent edits. Calling the
+ * accessor at use time keeps the read live while still keeping this
+ * service free of any dependency on the segment-model services.
  */
+export type GetCurrentLevel = () =>
+  | TrattAnnotationAnyLevel<TrattAnnotationSegment>
+  | undefined;
+
+export type GetAnnotation = () =>
+  | TrattAnnotation<ASRContext, TrattAnnotationSegment>
+  | undefined;
+
 export interface AudioViewerSegmentRenderContext {
-  currentLevel: TrattAnnotationAnyLevel<TrattAnnotationSegment> | undefined;
-  annotation: TrattAnnotation<ASRContext, TrattAnnotationSegment> | undefined;
+  /** Live accessor — call at point of use, never cache in a closure. */
+  getCurrentLevel: GetCurrentLevel;
+  /** Live accessor — call at point of use, never cache in a closure. */
+  getAnnotation: GetAnnotation;
   /** Invoked when a boundary line is mousedown'd (starts boundary dragging). */
   onBoundaryMouseDown: (id: number) => void;
   /** Invoked when a segment's speaker label is cycled by clicking it. */
@@ -555,13 +576,14 @@ export class AudioViewerRendererService {
   ): Promise<boolean> => {
     let completed = false;
     try {
+      const currentLevel = segmentCtx.getCurrentLevel();
       if (
         this.audioChunk !== undefined &&
-        segmentCtx.currentLevel &&
+        currentLevel &&
         this.stage !== undefined &&
         newWidth &&
         newHeight &&
-        segmentCtx.currentLevel.items.length > 0
+        currentLevel.items.length > 0
       ) {
         const playpos = this.audioChunk?.absolutePlayposition.clone();
         const viewport = this.viewport;
@@ -605,7 +627,7 @@ export class AudioViewerRendererService {
     segmentCtx: AudioViewerSegmentRenderContext,
     onScrollbarDragged: () => void,
   ) {
-    const currentLevel = segmentCtx.currentLevel;
+    const currentLevel = segmentCtx.getCurrentLevel();
     if (
       currentLevel &&
       currentLevel.items.length > 0 &&
@@ -779,7 +801,7 @@ export class AudioViewerRendererService {
     segmentCtx: AudioViewerSegmentRenderContext,
     onScrollbarDragged: () => void,
   ): boolean {
-    const currentLevel = segmentCtx.currentLevel;
+    const currentLevel = segmentCtx.getCurrentLevel();
     const willRun = !!(
       currentLevel &&
       currentLevel.items.length > 0 &&
@@ -1274,6 +1296,7 @@ export class AudioViewerRendererService {
     endIndex: number;
     numOfLines: number;
     currentLevel: TrattAnnotationAnyLevel<TrattAnnotationSegment>;
+    getCurrentLevel: GetCurrentLevel;
   }): {
     shape?: Group;
     boundary?: { x: number; y: number; num: number; id: number };
@@ -1285,6 +1308,7 @@ export class AudioViewerRendererService {
       endIndex,
       numOfLines,
       currentLevel,
+      getCurrentLevel,
     } = params;
     const result: {
       shape?: Group;
@@ -1342,7 +1366,7 @@ export class AudioViewerRendererService {
       numOfLines,
       { index: i, segment },
       { start: startIndex, end: endIndex },
-      currentLevel,
+      getCurrentLevel,
     );
 
     if (createdShapes) {
@@ -1372,7 +1396,7 @@ export class AudioViewerRendererService {
     clearAll = false,
     segmentCtx: AudioViewerSegmentRenderContext,
   ) {
-    const currentLevel = segmentCtx.currentLevel;
+    const currentLevel = segmentCtx.getCurrentLevel();
     const y = 0;
     const segCanvasElements = this.layers?.overlay.find('.segments');
     if (clearAll) {
@@ -1459,6 +1483,7 @@ export class AudioViewerRendererService {
               endIndex,
               numOfLines,
               currentLevel,
+              getCurrentLevel: segmentCtx.getCurrentLevel,
             });
             if (shape) {
               newShapes.push(shape);
@@ -1507,7 +1532,7 @@ export class AudioViewerRendererService {
 
   public drawAllBoundaries(segmentCtx: AudioViewerSegmentRenderContext) {
     // draw boundaries after all overlays were drawn
-    const currentLevel = segmentCtx.currentLevel;
+    const currentLevel = segmentCtx.getCurrentLevel();
 
     if (
       this.audioManager !== undefined &&
@@ -1580,11 +1605,13 @@ export class AudioViewerRendererService {
     segmentCtx: AudioViewerSegmentRenderContext,
   ) {
     const {
-      annotation,
-      currentLevel,
+      getAnnotation,
+      getCurrentLevel,
       onBoundaryMouseDown,
       onSpeakerLabelChanged,
     } = segmentCtx;
+    const annotation = getAnnotation();
+    const currentLevel = getCurrentLevel();
     if (this.layers) {
       let boundaryRoot: Group | Layer = this.layers.boundaries;
       if (this.settings.cropping === 'circle') {
@@ -1679,9 +1706,15 @@ export class AudioViewerRendererService {
             labelGroup.add(labelText);
 
             labelGroup.on('click tap', () => {
-              if (!annotation || !currentLevel) return;
+              // Re-read live: this handler outlives the draw that created
+              // it, and the annotation model is replaced (cloned) on every
+              // input write. Emitting a clone of a *stale* segment here
+              // would silently revert concurrent edits to it.
+              const liveAnnotation = getAnnotation();
+              const liveLevel = getCurrentLevel();
+              if (!liveAnnotation || !liveLevel) return;
               const currentAllSegments =
-                currentLevel.items as TrattAnnotationSegment[];
+                liveLevel.items as TrattAnnotationSegment[];
               const currentBoundarySegIndex = currentAllSegments.findIndex(
                 (s) => s.id === boundary.id,
               );
@@ -1691,7 +1724,7 @@ export class AudioViewerRendererService {
               const currentSpeakerId =
                 currentNextSeg.getLabel('Speaker')?.value ?? '';
               // no early return on empty — cycleNextSpeaker handles it
-              const currentIds = getSpeakerIds(annotation);
+              const currentIds = getSpeakerIds(liveAnnotation);
               const nextId = cycleNextSpeaker(currentSpeakerId, currentIds);
               const clonedSeg =
                 currentNextSeg.clone() as TrattAnnotationSegment;
@@ -1722,7 +1755,7 @@ export class AudioViewerRendererService {
     segmentHeight: number;
     numOfLines: number;
     segmentInterval: { start: number; end: number };
-    currentLevel: TrattAnnotationAnyLevel<TrattAnnotationSegment>;
+    getCurrentLevel: GetCurrentLevel;
   }): Shape {
     const {
       segment,
@@ -1731,7 +1764,7 @@ export class AudioViewerRendererService {
       segmentHeight,
       numOfLines,
       segmentInterval,
-      currentLevel,
+      getCurrentLevel,
     } = params;
     return new Shape({
       x: this.settings.margin.left,
@@ -1750,7 +1783,8 @@ export class AudioViewerRendererService {
           numOfLines,
           segmentInterval,
           { start: lineNum1, end: lineNum2 },
-          currentLevel,
+          // live read on every Konva redraw, not a build-time snapshot
+          getCurrentLevel(),
         );
       },
     });
@@ -1763,7 +1797,7 @@ export class AudioViewerRendererService {
     segmentHeight: number;
     numOfLines: number;
     segmentInterval: { start: number; end: number };
-    currentLevel: TrattAnnotationAnyLevel<TrattAnnotationSegment>;
+    getCurrentLevel: GetCurrentLevel;
   }): Shape {
     const {
       segment,
@@ -1772,7 +1806,7 @@ export class AudioViewerRendererService {
       segmentHeight,
       numOfLines,
       segmentInterval,
-      currentLevel,
+      getCurrentLevel,
     } = params;
     return new Shape({
       x: this.settings.margin.left,
@@ -1789,7 +1823,8 @@ export class AudioViewerRendererService {
           segment,
           { from: lineNum1, to: lineNum2 },
           numOfLines,
-          currentLevel,
+          // live read on every Konva redraw, not a build-time snapshot
+          getCurrentLevel(),
         );
       },
     });
@@ -1801,7 +1836,7 @@ export class AudioViewerRendererService {
     beginX: number;
     absX: number;
     numOfLines: number;
-    currentLevel: TrattAnnotationAnyLevel<TrattAnnotationSegment>;
+    getCurrentLevel: GetCurrentLevel;
     lastIRef: { value: number | undefined };
   }): Shape {
     const {
@@ -1810,7 +1845,7 @@ export class AudioViewerRendererService {
       beginX,
       absX,
       numOfLines,
-      currentLevel,
+      getCurrentLevel,
       lastIRef,
     } = params;
     return new Shape({
@@ -1822,6 +1857,8 @@ export class AudioViewerRendererService {
       y: 0,
       transformsEnabled: 'position',
       sceneFunc: (context, shape) => {
+        // live read on every Konva redraw, not a build-time snapshot
+        const currentLevel = getCurrentLevel();
         if (
           currentLevel &&
           currentLevel.items.length > 0 &&
@@ -1880,13 +1917,16 @@ export class AudioViewerRendererService {
       start: number;
       end: number;
     },
-    currentLevel: TrattAnnotationAnyLevel<TrattAnnotationSegment>,
+    getCurrentLevel: GetCurrentLevel,
   ):
     | {
         overlayGroup: Group;
       }
     | undefined {
     const { segment, index } = segmentData;
+    // Resolved once for this build pass's geometry; the shapes built below
+    // get the accessor itself so their sceneFuncs stay live.
+    const currentLevel = getCurrentLevel();
 
     if (
       this.innerWidth &&
@@ -1955,7 +1995,7 @@ export class AudioViewerRendererService {
               segmentHeight,
               numOfLines,
               segmentInterval,
-              currentLevel,
+              getCurrentLevel,
             });
 
             overlayGroup.add(overlaySegment);
@@ -1968,7 +2008,7 @@ export class AudioViewerRendererService {
                 segmentHeight,
                 numOfLines,
                 segmentInterval,
-                currentLevel,
+                getCurrentLevel,
               });
 
               overlayGroup.add(textBackground);
@@ -1978,7 +2018,7 @@ export class AudioViewerRendererService {
                 beginX,
                 absX,
                 numOfLines,
-                currentLevel,
+                getCurrentLevel,
                 lastIRef,
               });
               overlayGroup.add(segmentText);
@@ -2098,7 +2138,7 @@ export class AudioViewerRendererService {
     id: number,
     segmentCtx: AudioViewerSegmentRenderContext,
   ) {
-    const currentLevel = segmentCtx.currentLevel;
+    const currentLevel = segmentCtx.getCurrentLevel();
     if (this.innerWidth !== undefined) {
       const maxLineWidth = this.innerWidth;
       let numOfLines = Math.ceil(this.AudioPxWidth / maxLineWidth);
@@ -2146,7 +2186,7 @@ export class AudioViewerRendererService {
           numOfLines,
           { index: i, segment: segment },
           { start: startIndex, end: endIndex },
-          currentLevel,
+          segmentCtx.getCurrentLevel,
         );
 
         if (createdShapes) {
@@ -2825,7 +2865,7 @@ export class AudioViewerRendererService {
   }
 
   public refresh = (segmentCtx: AudioViewerSegmentRenderContext) => {
-    const currentLevel = segmentCtx.currentLevel;
+    const currentLevel = segmentCtx.getCurrentLevel();
     if (
       this.audioChunk !== undefined &&
       this.audioTCalculator !== undefined &&
