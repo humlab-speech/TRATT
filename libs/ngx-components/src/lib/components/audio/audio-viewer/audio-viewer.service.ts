@@ -4,16 +4,12 @@ import {
   AnnotationLevelType,
   ASRContext,
   ASRQueueItemType,
-  betweenWhichSegment,
   getSegmentBySamplePosition,
   getSegmentsOfRange,
   getStartTimeBySegmentID,
-  OItem,
   OLabel,
   TrattAnnotation,
   TrattAnnotationAnyLevel,
-  TrattAnnotationEvent,
-  TrattAnnotationLink,
   TrattAnnotationSegment,
   TrattAnnotationSegmentLevel,
 } from '@tratt/annotation';
@@ -47,6 +43,10 @@ import { Position, Size, TRATT_COLORS } from '../../../obj';
 import { PlayCursor } from '../../../obj/play-cursor';
 import { AudioViewerShortcutEvent } from './audio-viewer.component';
 import { AudioviewerConfig } from './audio-viewer.config';
+import {
+  AudioViewerSegmentsService,
+  type AnnotationChange,
+} from './audio-viewer-segments.service';
 import { AudioViewerTimeUtils } from './audio-viewer-time-utils';
 import {
   cycleNextSpeaker,
@@ -375,18 +375,14 @@ export class AudioViewerService {
     return this.audioChunk?.audioManager;
   }
 
-  public itemIDCounter = 1;
-  public itemIDCounterChange = new EventEmitter<number>();
-
   public getNextItemID() {
-    this.itemIDCounter++;
-    this.itemIDCounterChange.emit(this.itemIDCounter);
-    return this.itemIDCounter - 1;
+    return this.segments.getNextItemID();
   }
 
   constructor(
     private multiThreadingService: MultiThreadingService,
     private ngZone: NgZone,
+    private segments: AudioViewerSegmentsService,
   ) {
     this.shortcutsManager = new ShortcutManager();
     this._boundaryDragging = new Subject<{
@@ -3287,135 +3283,19 @@ export class AudioViewerService {
         msg: { type: string; text: string };
       }
     | undefined {
-    let i = 0;
-
-    if (
-      this.settings.boundaries.enabled &&
-      !this.settings.boundaries.readonly &&
-      this.audioTCalculator !== undefined &&
-      this.audioChunk !== undefined &&
-      this._mouseCursor !== undefined &&
-      this.annotation?.currentLevel?.items &&
-      this.annotation.currentLevel.items.length > 0
-    ) {
-      this.audioTCalculator.audioPxWidth = this.audioPxW;
-      const absXTime = !this.audioChunk.isPlaying
-        ? this._mouseCursor.samples
-        : this.audioChunk.absolutePlayposition.samples;
-      let bWidthTime = this.audioTCalculator.absXtoSamples2(
-        this.settings.boundaries.width * 2,
-        this.audioChunk,
-      );
-      bWidthTime = Math.round(bWidthTime);
-
-      if (
-        this.annotation.currentLevel.items.length > 0 &&
-        !this.audioChunk.isPlaying
-      ) {
-        for (i = 0; i < this.annotation.currentLevel.items.length; i++) {
-          const segment = this.annotation.currentLevel.items[
-            i
-          ] as TrattAnnotationSegment<ASRContext>;
-          if (
-            segment?.time !== undefined &&
-            this.audioManager !== undefined &&
-            segment.time.samples >= absXTime - bWidthTime &&
-            segment.time.samples <= absXTime + bWidthTime &&
-            segment.time.samples !==
-              this.audioManager.resource.info.duration.samples
-          ) {
-            const segSamples = segment.time.samples;
-            this.removeSegmentByIndex(i, this.silencePlaceholder, true);
-
-            return {
-              type: 'remove',
-              seg_samples: segSamples,
-              seg_ID: segment.id,
-              msg: {
-                type: 'success',
-                text: '',
-              },
-            };
-          }
-        }
-      }
-
-      const selection: number =
-        this._drawnSelection !== undefined ? this._drawnSelection.length : 0;
-
-      if (
-        selection > 0 &&
-        this._drawnSelection !== undefined &&
-        absXTime >= this._drawnSelection.start.samples &&
-        absXTime <= this._drawnSelection.end.samples
-      ) {
-        // some part selected
-        const segm1 = betweenWhichSegment(
-          this.annotation.currentLevel
-            .items as TrattAnnotationSegment<ASRContext>[],
-          this._drawnSelection.start.samples,
-        );
-        const segm2 = betweenWhichSegment(
-          this.annotation.currentLevel
-            .items as TrattAnnotationSegment<ASRContext>[],
-          this._drawnSelection.end.samples,
-        );
-
-        if (
-          this.drawnSelection !== undefined &&
-          ((segm1 === undefined && segm2 === undefined) ||
-            segm1 === segm2 ||
-            (segm1 !== undefined &&
-              segm2 !== undefined &&
-              segm1.getFirstLabelWithoutName('Speaker')?.value === '' &&
-              segm2.getFirstLabelWithoutName('Speaker')?.value === ''))
-        ) {
-          if (this.drawnSelection.start.samples > 0) {
-            // prevent setting boundary if first sample selected
-            this.addSegment(this._drawnSelection.start);
-          }
-
-          this.addSegment(this._drawnSelection.end);
-
-          return {
-            type: 'add',
-            seg_samples: this.drawnSelection.start.samples,
-            seg_ID: -1,
-            msg: {
-              type: 'success',
-              text: '',
-            },
-          };
-        } else {
-          return {
-            type: 'add',
-            seg_samples: -1,
-            seg_ID: -1,
-            msg: {
-              type: 'error',
-              text: 'boundary cannot set',
-            },
-          };
-        }
-      } else {
-        // no selection
-
-        this.addSegment(
-          this.audioManager!.createSampleUnit(Math.round(absXTime)),
-        );
-
-        return {
-          type: 'add',
-          seg_samples: absXTime,
-          seg_ID: -1,
-          msg: {
-            type: 'success',
-            text: '',
-          },
-        };
-      }
-    }
-    return undefined;
+    return this.segments.addOrRemoveSegment({
+      settings: this.settings,
+      audioTCalculator: this.audioTCalculator,
+      audioChunk: this.audioChunk,
+      audioPxW: this.audioPxW,
+      mouseCursor: this._mouseCursor,
+      annotation: this.annotation,
+      audioManager: this.audioManager,
+      silencePlaceholder: this.silencePlaceholder,
+      drawnSelection: this.drawnSelection,
+      currentLevelChange: this.currentLevelChange,
+      annotationChange: this.annotationChange,
+    });
   }
 
   /**
@@ -3425,69 +3305,11 @@ export class AudioViewerService {
   public getSegmentSelection(
     positionSamples: number,
   ): AudioSelection | undefined {
-    // complex decision needed because there are no segments at position 0 and the end of the file
-    let result = undefined;
-    if (
-      this.annotation?.currentLevel?.items &&
-      this.annotation.currentLevel.items.length > 0
-    ) {
-      const segments = this.annotation.currentLevel.items;
-      const length = this.annotation.currentLevel.items.length;
-
-      if (
-        length > 0 &&
-        segments !== undefined &&
-        this.audioManager !== undefined
-      ) {
-        const firstSegment = segments[0] as TrattAnnotationSegment<ASRContext>;
-        const lastSegment = segments[
-          segments.length - 1
-        ] as TrattAnnotationSegment<ASRContext>;
-
-        if (firstSegment.time.samples !== lastSegment.time.samples) {
-          if (positionSamples < firstSegment.time.samples) {
-            // select in first Boundary
-            result = new AudioSelection(
-              this.audioManager.createSampleUnit(0),
-              firstSegment.time,
-            );
-          } else if (positionSamples > lastSegment.time.samples) {
-            // select in first Boundary
-            const seg = lastSegment.time.clone();
-            result = new AudioSelection(
-              seg,
-              this.audioManager.resource.info.duration,
-            );
-          } else {
-            for (let i = 1; i < length; i++) {
-              const currentSegment = segments[
-                i
-              ] as TrattAnnotationSegment<ASRContext>;
-              const previousSegment = segments[
-                i - 1
-              ] as TrattAnnotationSegment<ASRContext>;
-
-              if (
-                previousSegment?.time !== undefined &&
-                currentSegment?.time !== undefined
-              ) {
-                if (
-                  positionSamples > previousSegment.time.samples &&
-                  positionSamples < currentSegment.time.samples
-                ) {
-                  result = new AudioSelection(
-                    previousSegment.time,
-                    currentSegment.time,
-                  );
-                  return result;
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-    return result;
+    return this.segments.getSegmentSelection(
+      positionSamples,
+      this.annotation,
+      this.audioManager,
+    );
   }
 
   /**
@@ -3770,365 +3592,43 @@ export class AudioViewerService {
     triggerChange = true,
     changeTranscript?: (transcript: string) => string,
   ) {
-    if (this.annotation?.currentLevel) {
-      this.annotation?.removeItemByIndex(
-        index,
-        silenceCode,
-        mergeTranscripts,
-        changeTranscript,
-      );
-      if (triggerChange) {
-        this.currentLevelChange.emit({
-          type: 'remove',
-          items: [
-            {
-              index,
-            },
-          ],
-          removeOptions: {
-            silenceCode,
-            mergeTranscripts,
-          },
-        });
-        this.annotationChange.emit(this.annotation);
-      }
-    } else {
-      throw new Error(
-        "Can't remove segment by index: current level is undefined",
-      );
-    }
+    this.segments.removeSegmentByIndex(
+      this.annotation,
+      index,
+      silenceCode,
+      mergeTranscripts,
+      triggerChange,
+      this.currentLevelChange,
+      this.annotationChange,
+      changeTranscript,
+    );
   }
 
   public addSegment(start: SampleUnit, value?: string) {
-    const result = this.annotation!.addItemToCurrentLevel(
+    this.segments.addSegment(
+      this.annotation!,
+      this.currentLevelChange,
+      this.annotationChange,
       start,
-      value ? [new OLabel(this.currentLevel!.name, value)] : undefined,
+      value,
     );
-    this.currentLevelChange.emit({
-      type: 'add',
-      items: [
-        {
-          instance: this.annotation!.createSegment(
-            start,
-            value ? [new OLabel(this.currentLevel!.name, value)] : undefined,
-          ),
-        },
-      ],
-    });
-    this.annotationChange.emit(result);
   }
 
   public changeSegment(start: SampleUnit, segment: TrattAnnotationSegment) {
-    const result = this.annotation!.changeCurrentSegmentBySamplePosition(
+    this.segments.changeSegment(
+      this.annotation!,
+      this.currentLevelChange,
+      this.annotationChange,
       start,
       segment,
     );
-    this.currentLevelChange.emit({
-      type: 'change',
-      items: [
-        {
-          instance: segment,
-        },
-      ],
-    });
-    this.annotationChange.emit(result);
   }
 
   getChanges(
     oldAnnotation: TrattAnnotation<ASRContext, TrattAnnotationSegment>,
     newAnnotation: TrattAnnotation<ASRContext, TrattAnnotationSegment>,
   ): AnnotationChange[] {
-    if (!oldAnnotation || !newAnnotation) {
-      return [];
-    }
-
-    const result: AnnotationChange[] = [];
-    const state: {
-      old: {
-        levelIDs: number[];
-        itemIDs: number[];
-        linkIDs: number[];
-      };
-      new: {
-        levelIDs: number[];
-        itemIDs: number[];
-        linkIDs: number[];
-      };
-    } = {
-      old: {
-        levelIDs: [],
-        itemIDs: [],
-        linkIDs: [],
-      },
-      new: {
-        levelIDs: [],
-        itemIDs: [],
-        linkIDs: [],
-      },
-    };
-
-    // first read all IDs
-    const readIDs: (
-      annotation: TrattAnnotation<ASRContext, TrattAnnotationSegment>,
-    ) => {
-      levelIDs: number[];
-      itemIDs: number[];
-      linkIDs: number[];
-    } = (annotation: TrattAnnotation<ASRContext, TrattAnnotationSegment>) => {
-      const idResult: {
-        levelIDs: number[];
-        itemIDs: number[];
-        linkIDs: number[];
-      } = {
-        levelIDs: [],
-        itemIDs: [],
-        linkIDs: [],
-      };
-
-      // read level ids
-      for (const level of annotation.levels) {
-        idResult.levelIDs.push(level.id);
-        for (const item of level.items) {
-          idResult.itemIDs.push(item.id);
-        }
-      }
-
-      // read link ids
-      for (const link of annotation.links) {
-        idResult.linkIDs.push(link.id);
-      }
-
-      return idResult;
-    };
-
-    state.old = readIDs(oldAnnotation);
-    state.new = readIDs(newAnnotation);
-
-    // iterate old annotation and compare with new annotation
-    for (const oldAnnoLevel of oldAnnotation.levels) {
-      const newLevel = newAnnotation.levels.find(
-        (a) => a.id === oldAnnoLevel.id,
-      );
-
-      if (!newLevel) {
-        // level was removed
-        result.push({
-          type: 'remove',
-          level: {
-            old: oldAnnoLevel,
-            new: undefined,
-          },
-        });
-      } else {
-        for (const item of oldAnnoLevel.items) {
-          const found = newLevel.items.find((a) => a.id === item.id);
-
-          if (found) {
-            // compare changes
-            if (item.type === found.type) {
-              if (item.type === 'segment' && found.type === 'segment') {
-                if (
-                  !(item as TrattAnnotationSegment).isEqualWith(
-                    found as TrattAnnotationSegment,
-                  )
-                ) {
-                  // changed
-                  result.push({
-                    type: 'change',
-                    level: {
-                      old: newLevel,
-                      new: newLevel,
-                    },
-                    item: {
-                      old: item,
-                      new: found,
-                    },
-                  });
-                }
-                state.old.itemIDs = state.old.itemIDs.filter(
-                  (a) => a !== item.id,
-                );
-                state.new.itemIDs = state.new.itemIDs.filter(
-                  (a) => a !== item.id,
-                );
-              } else if (item.type === 'event' && found.type === 'event') {
-                if (
-                  !(item as TrattAnnotationEvent).isEqualWith(
-                    found as TrattAnnotationEvent,
-                  )
-                ) {
-                  // changed
-                  result.push({
-                    type: 'change',
-                    level: {
-                      old: newLevel,
-                      new: newLevel,
-                    },
-                    item: {
-                      old: item,
-                      new: found,
-                    },
-                  });
-                }
-                state.old.itemIDs = state.old.itemIDs.filter(
-                  (a) => a !== item.id,
-                );
-                state.new.itemIDs = state.new.itemIDs.filter(
-                  (a) => a !== item.id,
-                );
-              } else if (item.type === 'item' && found.type === 'item') {
-                if (!(item as OItem).isEqualWith(found as OItem)) {
-                  // changed
-                  result.push({
-                    type: 'change',
-                    level: {
-                      old: newLevel,
-                      new: newLevel,
-                    },
-                    item: {
-                      old: item,
-                      new: found,
-                    },
-                  });
-                }
-                state.old.itemIDs = state.old.itemIDs.filter(
-                  (a) => a !== item.id,
-                );
-                state.new.itemIDs = state.new.itemIDs.filter(
-                  (a) => a !== item.id,
-                );
-              } else {
-                throw new Error("Can't find correct item instance");
-              }
-            } else {
-              // types changed
-              result.push({
-                type: 'change',
-                level: {
-                  old: newLevel,
-                  new: newLevel,
-                },
-                item: {
-                  old: item,
-                  new: found,
-                },
-              });
-              state.old.itemIDs = state.old.itemIDs.filter(
-                (a) => a !== item.id,
-              );
-              state.new.itemIDs = state.new.itemIDs.filter(
-                (a) => a !== item.id,
-              );
-            }
-          } else {
-            // newAnnotation doesn't have this item => was removed
-            result.push({
-              type: 'remove',
-              item: {
-                old: item,
-                new: undefined,
-              },
-            });
-            state.old.itemIDs = state.old.itemIDs.filter((a) => a !== item.id);
-            state.new.itemIDs = state.new.itemIDs.filter((a) => a !== item.id);
-          }
-        }
-        state.old.levelIDs = state.old.levelIDs.filter(
-          (a) => a !== oldAnnoLevel.id,
-        );
-        state.new.levelIDs = state.new.levelIDs.filter(
-          (a) => a !== oldAnnoLevel.id,
-        );
-      }
-    }
-    if (state.new.levelIDs.length > 0) {
-      // new levels added
-      for (const id of state.new.levelIDs) {
-        const level: TrattAnnotationAnyLevel<TrattAnnotationSegment> =
-          newAnnotation.levels.find((a) => a.id === id)!;
-        result.push({
-          type: 'add',
-          level: {
-            old: undefined,
-            new: level,
-          },
-        });
-
-        state.new.itemIDs = state.new.itemIDs.filter(
-          (a) => level.items.find((b) => b.id === a) === undefined,
-        );
-      }
-    }
-
-    if (state.new.itemIDs.length > 0) {
-      // new levels added
-      for (const id of state.new.itemIDs) {
-        let item: AnnotationAnySegment | undefined;
-        const level: TrattAnnotationAnyLevel<TrattAnnotationSegment> =
-          newAnnotation.levels.find((a) => {
-            const found = a.items.find((b) => b.id === id);
-            if (found) {
-              item = found;
-              return true;
-            }
-            return false;
-          })!;
-
-        result.push({
-          type: 'add',
-          item: {
-            old: undefined,
-            new: item,
-          },
-          level: {
-            old: level,
-            new: level,
-          },
-        });
-      }
-    }
-
-    // iterate old links and compare with new annotation
-    for (const link of oldAnnotation.links) {
-      const found = newAnnotation.links.find((a) => a.id === link.id);
-      if (found) {
-        if (
-          link.link.fromID !== found.link.fromID ||
-          link.link.toID !== found.link.toID
-        ) {
-          // changed
-          result.push({
-            type: 'change',
-            link: {
-              old: link,
-              new: found,
-            },
-          });
-          state.old.linkIDs = state.old.linkIDs.filter((a) => a !== link.id);
-          state.new.linkIDs = state.new.linkIDs.filter((a) => a !== link.id);
-        }
-      } else {
-        // removed
-        state.old.linkIDs = state.old.linkIDs.filter((a) => a !== link.id);
-      }
-    }
-
-    if (state.new.linkIDs.length > 0) {
-      for (const id of state.new.linkIDs) {
-        const link: TrattAnnotationLink = newAnnotation.links.find(
-          (a) => a.id === id,
-        )!;
-        result.push({
-          type: 'add',
-          link: {
-            old: undefined,
-            new: link,
-          },
-        });
-      }
-    }
-
-    return result;
+    return this.segments.getChanges(oldAnnotation, newAnnotation);
   }
 
   private transcriptBackgroundSceneFunc = (
@@ -5188,18 +4688,9 @@ export class AudioViewerService {
   }
 }
 
-export interface AnnotationChange {
-  type: 'add' | 'remove' | 'change';
-  level?: {
-    old?: TrattAnnotationAnyLevel<TrattAnnotationSegment>;
-    new?: TrattAnnotationAnyLevel<TrattAnnotationSegment>;
-  };
-  item?: {
-    old?: AnnotationAnySegment;
-    new?: AnnotationAnySegment;
-  };
-  link?: {
-    old?: TrattAnnotationLink;
-    new?: TrattAnnotationLink;
-  };
-}
+// Moved to AudioViewerSegmentsService (task 13, S1 split) along with the
+// getChanges() method that produces it; re-exported here so existing
+// imports (e.g. audio-viewer.component.ts's
+// `import { AnnotationChange } from './audio-viewer.service'`) keep working
+// unchanged.
+export type { AnnotationChange } from './audio-viewer-segments.service';
