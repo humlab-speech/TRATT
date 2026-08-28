@@ -91,15 +91,18 @@ export class ToolConfiguratorComponent
               description: schema['description'],
               ignore: false,
               context: items['enum'],
-              dependsOn: schema['dependsOn'],
-              toggleable: schema['toggleable'],
+              dependsOn,
+              toggleable,
             },
             this.form,
           );
 
           control.itemsType = 'text';
-          control.toggled =
-            json && name !== undefined && Object.keys(json).includes(name);
+          control.toggled = !!(
+            json &&
+            name !== undefined &&
+            Object.keys(json).includes(name)
+          );
           result.push(control);
         } else if (items['type'] === 'number') {
           const control = new ConfigurationArrayControl(
@@ -115,21 +118,24 @@ export class ToolConfiguratorComponent
               description: schema['description'],
               ignore: false,
               context: items['enum'],
-              dependsOn: schema['dependsOn'],
-              toggleable: schema['toggleable'],
+              dependsOn,
+              toggleable,
             },
             this.form,
           );
           control.itemsType = 'number';
-          control.toggled =
-            json && name !== undefined && Object.keys(json).includes(name);
+          control.toggled = !!(
+            json &&
+            name !== undefined &&
+            Object.keys(json).includes(name)
+          );
           result.push(control);
         } else if (items['type'] === 'integer') {
           const control = new ConfigurationArrayControl(
             name!,
             {
               title: schema['title'] ?? name,
-              toggleable: schema['toggleable'],
+              toggleable,
               type: 'integer',
               // Guarded by the items['type'] === 'integer' check above.
               value: (jsonValue ?? defaultValue) as
@@ -137,15 +143,18 @@ export class ToolConfiguratorComponent
                 | undefined,
               defaultValue: defaultValue as (string | number)[] | undefined,
               description: schema['description'],
-              dependsOn: schema['dependsOn'],
+              dependsOn,
               ignore: false,
               context: items['enum'],
             },
             this.form,
           );
           control.itemsType = 'integer';
-          control.toggled =
-            json && name !== undefined && Object.keys(json).includes(name);
+          control.toggled = !!(
+            json &&
+            name !== undefined &&
+            Object.keys(json).includes(name)
+          );
           result.push(control);
         }
       } else {
@@ -197,8 +206,11 @@ export class ToolConfiguratorComponent
           },
           this.form,
         );
-        control.toggled =
-          json && name !== undefined && Object.keys(json).includes(name);
+        control.toggled = !!(
+          json &&
+          name !== undefined &&
+          Object.keys(json).includes(name)
+        );
         result.push(control);
       } else if (schema['type'] === 'number') {
         const control = new ConfigurationNumberControl(
@@ -215,8 +227,11 @@ export class ToolConfiguratorComponent
           },
           this.form,
         );
-        control.toggled =
-          json && name !== undefined && Object.keys(json).includes(name);
+        control.toggled = !!(
+          json &&
+          name !== undefined &&
+          Object.keys(json).includes(name)
+        );
         result.push(control);
       } else if (schema['type'] === 'integer') {
         const control = new ConfigurationNumberControl(
@@ -233,8 +248,11 @@ export class ToolConfiguratorComponent
           },
           this.form,
         );
-        control.toggled =
-          json && name !== undefined && Object.keys(json).includes(name);
+        control.toggled = !!(
+          json &&
+          name !== undefined &&
+          Object.keys(json).includes(name)
+        );
         result.push(control);
       } else if (schema['type'] === 'string') {
         let control: ConfigurationControl = new ConfigurationSelectControl(
@@ -254,8 +272,11 @@ export class ToolConfiguratorComponent
           },
           this.form,
         );
-        control.toggled =
-          json && name !== undefined && Object.keys(json).includes(name);
+        control.toggled = !!(
+          json &&
+          name !== undefined &&
+          Object.keys(json).includes(name)
+        );
 
         if (enumValues) {
           // select
@@ -274,8 +295,11 @@ export class ToolConfiguratorComponent
             },
             this.form,
           );
-          control.toggled =
-            json && name !== undefined && Object.keys(json).includes(name);
+          control.toggled = !!(
+            json &&
+            name !== undefined &&
+            Object.keys(json).includes(name)
+          );
           result.push(control);
         }
       }
