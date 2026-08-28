@@ -1,12 +1,12 @@
 name: documentation
 
-# Publishes both documentation sites to the gh-pages branch:
+# Publishes both documentation sites to GitHub Pages via the native Actions
+# deploy (Settings > Pages > Build and deployment > Source: GitHub Actions):
 #   /        typedoc API documentation for the libraries
 #   /manual  the TRATT user manual, generated from docs/manual
 #
-# Both deploys run in one job, in order, so they cannot race each other for a
-# push to gh-pages. The API deploy keeps the manual/ folder (clean-exclude),
-# otherwise it would delete it on every run.
+# Both outputs are merged into one directory (dist/pages) before a single
+# artifact upload, so there's no risk of one deploy overwriting the other.
 on:
   push:
     branches:
@@ -14,14 +14,16 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
+  pages: write
+  id-token: write
 
 concurrency:
-  group: documentation
+  group: 'pages'
   cancel-in-progress: false
 
 jobs:
-  build_and_deploy:
+  build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout the repository
@@ -46,17 +48,27 @@ jobs:
       - name: Build the API documentation
         run: npx typedoc --out typedocs && node runner.js prepare:docs
 
-      - name: Deploy the API documentation 🚀
-        uses: JamesIves/github-pages-deploy-action@v4
-        with:
-          branch: gh-pages
-          folder: typedocs
-          clean-exclude: |
-            manual
+      - name: Assemble combined Pages site
+        run: |
+          mkdir -p dist/pages/manual
+          cp -r typedocs/. dist/pages/
+          cp -r dist/manual/. dist/pages/manual/
 
-      - name: Deploy the user manual 📖
-        uses: JamesIves/github-pages-deploy-action@v4
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
         with:
-          branch: gh-pages
-          folder: dist/manual
-          target-folder: manual
+          path: dist/pages
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages 🚀
+        id: deployment
+        uses: actions/deploy-pages@v4
