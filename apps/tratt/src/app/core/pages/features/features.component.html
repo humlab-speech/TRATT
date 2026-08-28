@@ -1,20 +1,39 @@
-@if (!loaded) {
-  <div
-    style="
-      text-align: center;
-      margin-top: 40px;
-      position: absolute;
-      width: 100%;
-      font-size: 60px;
-      font-weight: 100;
-    "
-  >
-    <i class="fa fa-spinner fa-spin"></i>
+<div class="container py-4">
+  <h2>{{ 'g.features' | transloco }}</h2>
+
+  <p class="lead">
+    TRATT turns a recording of people talking into editable text, entirely
+    inside your web browser. Nothing you load is uploaded anywhere.
+  </p>
+
+  <div class="row g-3 mt-2">
+    @for (item of items; track item.url) {
+      <div class="col-md-6 col-lg-4">
+        <div class="card h-100">
+          <div class="card-body d-flex flex-column">
+            <h5 class="card-title">{{ item.title }}</h5>
+            <p class="card-text flex-grow-1">{{ item.description }}</p>
+            <a
+              class="btn btn-outline-primary btn-sm align-self-start"
+              [href]="item.url"
+              target="_blank"
+              rel="noopener"
+            >
+              {{ 'g.manual' | transloco }}
+            </a>
+          </div>
+        </div>
+      </div>
+    }
   </div>
-}
-<iframe
-  (load)="onLoad()"
-  [ngStyle]="{ visibility: loaded ? 'visible' : 'hidden' }"
-  src="https://clarin.phonetik.uni-muenchen.de/apps/octra/contents/2.0/features.html"
->
-</iframe>
+
+  <p class="mt-4">
+    <a
+      class="btn btn-raised btn-info"
+      [href]="manualURL"
+      target="_blank"
+      rel="noopener"
+      ><i class="bi bi-book-half me-1"></i>{{ 'g.manual' | transloco }}</a
+    >
+  </p>
+</div>

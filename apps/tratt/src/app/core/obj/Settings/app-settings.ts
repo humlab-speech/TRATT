@@ -9,6 +9,11 @@ export interface AppSettings {
       name: string;
     };
     supportEmail: string;
+    manual?: {
+      url?: string;
+      pageExtension?: string;
+      locales?: string[];
+    };
     login?: {
       enabled: boolean;
     };

@@ -15,9 +15,17 @@
   <div class="modal-body" style="text-align: center">
     <a
       class="btn btn-raised btn-info"
-      href="https://clarin.phonetik.uni-muenchen.de/apps/octra/manuals/octra/"
+      [href]="manualURL"
       target="_blank"
-      >Open Manual</a
+      rel="noopener"
+      ><i class="bi bi-book-half me-1"></i>{{ 'g.manual' | transloco }}</a
+    >
+    <a
+      class="btn btn-raised btn-outline-secondary ms-2"
+      [href]="shortcutsURL"
+      target="_blank"
+      rel="noopener"
+      >{{ 'g.shortcuts' | transloco }}</a
     >
   </div>
   <div class="modal-footer">

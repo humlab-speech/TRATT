@@ -1,12 +1,13 @@
 import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { ActivatedRoute, Router, RouterOutlet } from '@angular/router';
-import { TranslocoPipe } from '@jsverse/transloco';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import {
   TrattComponentsModule,
   VersionCheckerService,
   VersionNotificationComponent,
 } from '@tratt/ngx-components';
 import { environment } from '../environments/environment';
+import { AppInfo } from './app.info';
 import { AlertComponent, NavigationComponent } from './core/component';
 import { DefaultComponent } from './core/component/default.component';
 import { TrattModalComponent } from './core/modals/tratt-modal';
@@ -53,6 +54,7 @@ export class AppComponent
     private appStoreService: ApplicationStoreService,
     private annotationStoreService: AnnotationStoreService,
     protected versionChecker: VersionCheckerService,
+    private transloco: TranslocoService,
     routePrinter: RoutePrinterService,
   ) {
     super();
@@ -65,6 +67,12 @@ export class AppComponent
   }
 
   ngOnInit() {
+    // Link to the manual in the language the interface is showing.
+    AppInfo.setManualLocale(this.transloco.getActiveLang());
+    this.subscribe(this.transloco.langChanges$, {
+      next: (lang: string) => AppInfo.setManualLocale(lang),
+    });
+
     this.subscribe(this.route.fragment, {
       next: (fragment) => {
         switch (fragment) {

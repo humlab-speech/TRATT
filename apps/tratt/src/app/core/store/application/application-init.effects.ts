@@ -101,6 +101,9 @@ export class ApplicationInitEffects {
             );
 
             if (validation.length === 0) {
+              // Point the in-app manual links at wherever this deployment
+              // publishes the manual (defaults to the copy in the repository).
+              AppInfo.applyManualSettings(appconfig?.tratt?.manual);
               return ApplicationActions.loadSettings.success({
                 settings: appconfig,
               });

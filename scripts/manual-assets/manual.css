@@ -1,0 +1,414 @@
+/* TRATT manual — colours taken from apps/tratt/src/styles.scss so the manual
+   reads as the same product as the application. */
+:root {
+  --surface-page: #eef0f4;
+  --surface-card: #ffffff;
+  --surface-sunken: #e6e8ed;
+  --chrome: #2a4765;
+  --chrome-hover: #3c6289;
+  --on-chrome: #ffffff;
+  --cta: #a85832;
+  --text-primary: #1f3044;
+  --text-muted: #667a90;
+  --border: #d4d9e0;
+  --note-surface: #fdf8ee;
+  --note-border: #d7b17c;
+  --code-surface: #eaedf2;
+  --sidebar-width: 17rem;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --surface-page: #141b24;
+    --surface-card: #1b242f;
+    --surface-sunken: #222d3a;
+    --chrome: #16202b;
+    --chrome-hover: #3c6289;
+    --text-primary: #e6ebf1;
+    --text-muted: #9aabbd;
+    --border: #2e3b4a;
+    --cta: #e09a76;
+    --note-surface: #2a2418;
+    --note-border: #7a6338;
+    --code-surface: #222d3a;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--surface-page);
+  color: var(--text-primary);
+  font:
+    16px/1.65 -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    Roboto,
+    'Helvetica Neue',
+    Arial,
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: var(--chrome-hover);
+}
+a:hover {
+  color: var(--cta);
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.skip-link {
+  position: absolute;
+  left: -999px;
+  top: 0;
+  z-index: 20;
+  background: var(--surface-card);
+  padding: 0.5rem 1rem;
+}
+.skip-link:focus {
+  left: 0;
+}
+
+/* --- top bar --------------------------------------------------------------- */
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background: var(--chrome);
+  color: var(--on-chrome);
+  padding: 0.7rem 1.25rem;
+}
+.brand {
+  color: var(--on-chrome);
+  text-decoration: none;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+.brand span {
+  font-weight: 300;
+  opacity: 0.75;
+}
+.topbar .repo {
+  color: var(--on-chrome);
+  opacity: 0.8;
+  margin-left: auto;
+  font-size: 0.9rem;
+}
+.lang-switch {
+  display: flex;
+  gap: 0.15rem;
+  margin-left: auto;
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+.lang-switch a,
+.lang-switch span {
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  text-decoration: none;
+  color: var(--on-chrome);
+  opacity: 0.65;
+}
+.lang-switch a:hover {
+  background: rgba(255, 255, 255, 0.14);
+  color: var(--on-chrome);
+  opacity: 1;
+}
+.lang-switch .active {
+  background: rgba(255, 255, 255, 0.2);
+  opacity: 1;
+}
+
+.untranslated {
+  margin: 0 0 1.5rem;
+  padding: 0.7rem 1rem;
+  background: var(--note-surface);
+  border-left: 4px solid var(--note-border);
+  border-radius: 0 6px 6px 0;
+  font-size: 0.92rem;
+}
+
+.nav-toggle {
+  display: none;
+  margin-left: auto;
+  background: transparent;
+  color: var(--on-chrome);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  border-radius: 4px;
+  padding: 0.3rem 0.7rem;
+  font: inherit;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+/* --- layout ---------------------------------------------------------------- */
+.layout {
+  display: grid;
+  grid-template-columns: var(--sidebar-width) minmax(0, 1fr);
+  align-items: start;
+  max-width: 84rem;
+  margin: 0 auto;
+}
+
+.sidebar {
+  position: sticky;
+  top: 3.4rem;
+  max-height: calc(100vh - 3.4rem);
+  overflow-y: auto;
+  padding: 1.5rem 1rem 3rem;
+}
+.sidebar ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.nav-section {
+  margin-top: 1.4rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.nav-section ul {
+  margin-top: 0.4rem;
+}
+.nav-section a {
+  display: block;
+  padding: 0.3rem 0.6rem;
+  border-radius: 5px;
+  color: var(--text-primary);
+  text-decoration: none;
+  font-size: 0.95rem;
+  font-weight: 400;
+  letter-spacing: 0;
+  text-transform: none;
+}
+.nav-section a:hover {
+  background: var(--surface-sunken);
+}
+.nav-section a.active {
+  background: var(--chrome);
+  color: var(--on-chrome);
+  font-weight: 600;
+}
+.nav-filter input {
+  width: 100%;
+  padding: 0.4rem 0.6rem;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  background: var(--surface-card);
+  color: inherit;
+  font: inherit;
+  font-size: 0.9rem;
+}
+.nav-hidden {
+  display: none !important;
+}
+
+.content {
+  background: var(--surface-card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  margin: 1.5rem 1.25rem 3rem;
+  padding: 2rem 2.5rem 2.5rem;
+  min-width: 0;
+}
+
+/* --- typography ------------------------------------------------------------ */
+article h1 {
+  margin: 0 0 1rem;
+  font-size: 2rem;
+  line-height: 1.2;
+}
+article h2 {
+  margin: 2.4rem 0 0.8rem;
+  padding-top: 0.6rem;
+  border-top: 1px solid var(--border);
+  font-size: 1.35rem;
+}
+article h3 {
+  margin: 1.8rem 0 0.5rem;
+  font-size: 1.08rem;
+}
+article p {
+  margin: 0.8rem 0;
+}
+article ul,
+article ol {
+  padding-left: 1.3rem;
+}
+article li {
+  margin: 0.3rem 0;
+}
+article img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin: 1.2rem 0;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+article code {
+  background: var(--code-surface);
+  border-radius: 4px;
+  padding: 0.1em 0.35em;
+  font-size: 0.9em;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+article pre {
+  background: var(--code-surface);
+  padding: 1rem;
+  border-radius: 6px;
+  overflow-x: auto;
+}
+article pre code {
+  background: none;
+  padding: 0;
+}
+article blockquote {
+  margin: 1.2rem 0;
+  padding: 0.8rem 1rem;
+  background: var(--note-surface);
+  border-left: 4px solid var(--note-border);
+  border-radius: 0 6px 6px 0;
+}
+article blockquote p:first-child {
+  margin-top: 0;
+}
+article blockquote p:last-child {
+  margin-bottom: 0;
+}
+article hr {
+  border: 0;
+  border-top: 1px solid var(--border);
+  margin: 2rem 0;
+}
+
+/* Tables scroll inside their own box rather than pushing the page sideways. */
+.table-scroll {
+  overflow-x: auto;
+  margin: 1.2rem 0;
+}
+article table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 0.95rem;
+}
+article th,
+article td {
+  border: 1px solid var(--border);
+  padding: 0.5rem 0.7rem;
+  text-align: left;
+  vertical-align: top;
+}
+article th {
+  background: var(--surface-sunken);
+}
+
+/* --- on-this-page ---------------------------------------------------------- */
+.toc {
+  float: right;
+  width: 15rem;
+  margin: 0 0 1.5rem 2rem;
+  padding: 0.9rem 1rem;
+  background: var(--surface-sunken);
+  border-radius: 6px;
+  font-size: 0.9rem;
+}
+.toc-title {
+  margin: 0 0 0.4rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.toc ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.toc li {
+  margin: 0.2rem 0;
+}
+.toc a {
+  text-decoration: none;
+}
+.toc a:hover {
+  text-decoration: underline;
+}
+
+.page-footer {
+  margin-top: 3rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+.page-footer a {
+  color: var(--text-muted);
+}
+
+/* --- narrow screens -------------------------------------------------------- */
+@media (max-width: 900px) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .nav-toggle {
+    display: block;
+  }
+  .topbar .repo {
+    display: none;
+  }
+  .sidebar {
+    position: static;
+    max-height: none;
+    display: none;
+    background: var(--surface-card);
+    border-bottom: 1px solid var(--border);
+  }
+  .sidebar.open {
+    display: block;
+  }
+  .content {
+    margin: 1rem 0.75rem 2rem;
+    padding: 1.25rem;
+    border-radius: 6px;
+  }
+  .toc {
+    float: none;
+    width: auto;
+    margin: 0 0 1.5rem;
+  }
+}
+
+@media print {
+  .topbar,
+  .sidebar,
+  .toc,
+  .page-footer {
+    display: none;
+  }
+  .content {
+    border: 0;
+    margin: 0;
+    padding: 0;
+  }
+}

@@ -38,7 +38,36 @@ TRATT supports different editors that you can choose according to your preferenc
 
 # User Manual
 
-TRATT has no manual of its own yet. The manual of the upstream project applies to most of the shared functionality: [OCTRA Manual](https://clarin.phonetik.uni-muenchen.de/apps/octra/manuals/octra/)
+TRATT has its own manual in [`docs/manual/`](docs/manual/index.md).
+
+- **New here?** [Quick start — your first transcription](docs/manual/quick-start.md)
+- **Transcribing every day?** [How transcribing works](docs/manual/transcribing.md) and the [keyboard shortcuts](docs/manual/shortcuts.md)
+- **Handling sensitive recordings?** [What leaves your computer](docs/manual/privacy.md)
+- **Arriving from the upstream docs?** [Coming from the OCTRA manual](docs/manual/coming-from-octra.md)
+
+The manual is published in **English** and **Swedish**, with a language switcher on every page:
+
+- English — <https://humlab-speech.github.io/TRATT/manual/>
+- Svenska — <https://humlab-speech.github.io/TRATT/manual/sv/>
+
+The Markdown sources are the manual: `docs/manual/*.md` is English, `docs/manual/sv/*.md` is
+Swedish. Every push to `main` renders them to a static site and publishes it alongside the
+typedoc API documentation at the root of that site (`.github/workflows/main.yml`). The app links
+to the manual in whichever language its interface is set to.
+
+```bash
+npm run validate:manual   # every link, anchor and in-app deep link resolves
+npm run build:manual      # renders docs/manual to dist/manual
+```
+
+The app links to the published site through `tratt.manual.url` and `tratt.manual.pageExtension`
+in `apps/tratt/src/config/appconfig.json`, so a deployment that hosts the manual elsewhere only
+changes its configuration file. See [`docs/manual/CONTRIBUTING.md`](docs/manual/CONTRIBUTING.md)
+for the conventions and the anchor contract between the app and the manual.
+
+The [OCTRA manual](https://clarin.phonetik.uni-muenchen.de/apps/octra/manuals/octra/) remains
+the better reference for the parts TRATT inherited unchanged — the AnnotJSON data model, and the
+structure of guidelines, validation and project configuration files.
 
 ## Features in detail
 

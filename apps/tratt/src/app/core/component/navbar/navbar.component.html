@@ -85,8 +85,9 @@
             <li class="nav-item">
               <a
                 class="nav-link"
-                href="https://clarin.phonetik.uni-muenchen.de/apps/octra/manuals/octra/"
+                [href]="AppInfo.manualURL"
                 target="_blank"
+                rel="noopener"
                 (click)="isCollapsed = true"
               >
                 {{ 'g.manual' | transloco }}
@@ -95,7 +96,7 @@
             <li class="nav-item">
               <a
                 class="nav-link"
-                href="https://github.com/humlab-speech/octra"
+                href="https://github.com/humlab-speech/TRATT"
                 target="_blank"
                 (click)="isCollapsed = true"
               >

@@ -42,6 +42,29 @@ export const AppConfigSchema: JSONSchema4 = {
           type: 'string',
           description: 'Email address visible if the server is offline.',
         },
+        manual: {
+          properties: {
+            url: {
+              type: 'string',
+              description:
+                'Base URL of the TRATT user manual. Every manual page is expected directly under this URL. Defaults to the manual in the TRATT repository.',
+            },
+            pageExtension: {
+              type: 'string',
+              description:
+                "Extension appended to a manual page name, e.g. '.md' for the Markdown sources on GitHub or '.html' for a generated static site.",
+            },
+            locales: {
+              items: {
+                type: 'string',
+              },
+              type: 'array',
+              description:
+                'Languages the manual is published in, most preferred first. The first entry is the default and lives at the root of the manual site; every other language lives in a subdirectory named after its code. The manual is linked in the interface language when it is available.',
+            },
+          },
+          type: 'object',
+        },
         login: {
           properties: {
             enabled: {

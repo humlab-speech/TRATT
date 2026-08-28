@@ -8,6 +8,11 @@
       "enabled": true
     },
     "supportEmail": "no-email-provided@email.com",
+    "manual": {
+      "url": "https://humlab-speech.github.io/TRATT/manual/",
+      "pageExtension": ".html",
+      "locales": ["en", "sv"]
+    },
     "allowed_browsers": [
       {
         "name": "Chrome",

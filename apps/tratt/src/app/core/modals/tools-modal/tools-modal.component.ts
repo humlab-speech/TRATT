@@ -172,6 +172,19 @@ export class ToolsModalComponent extends TrattModal implements OnDestroy {
     return AppInfo.manualURL;
   }
 
+  /**
+   * Deep links into the manual. The anchors are declared explicitly in
+   * docs/manual/using-tools.md — see docs/manual/CONTRIBUTING.md before
+   * renaming either of them.
+   */
+  public get combineUnitsManualURL(): string {
+    return AppInfo.manualLink('using-tools', 'tratt-combine-units');
+  }
+
+  public get cutAudioManualURL(): string {
+    return AppInfo.manualLink('using-tools', 'cutting-audio-files');
+  }
+
   get isCombinePhrasesSettingsValid(): boolean {
     return (
       Number.isInteger(this.tools.combinePhrases.options.minSilenceLength) &&

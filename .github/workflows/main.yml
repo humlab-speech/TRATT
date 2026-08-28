@@ -1,12 +1,27 @@
-name: document generator
+name: documentation
 
+# Publishes both documentation sites to the gh-pages branch:
+#   /        typedoc API documentation for the libraries
+#   /manual  the TRATT user manual, generated from docs/manual
+#
+# Both deploys run in one job, in order, so they cannot race each other for a
+# push to gh-pages. The API deploy keeps the manual/ folder (clean-exclude),
+# otherwise it would delete it on every run.
 on:
   push:
     branches:
       - main
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: documentation
+  cancel-in-progress: false
 
 jobs:
-  build_and_lint:
+  build_and_deploy:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout the repository
@@ -14,24 +29,34 @@ jobs:
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
-
-      - name: Retrieve the cached "node-modules" directory (if present)
-        uses: actions/cache@v4
-        id: node_cache
         with:
-          path: node_modules
-          key: node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+          node-version: 20
+          cache: 'npm'
 
-      - name: Install dependencies (if the cached directory was not found)
-        if: steps.node-cache.outputs.cache-hit != 'true'
+      - name: Install dependencies
         run: npm ci --legacy-peer-deps
 
-      - name: Create the docs directory locally in CI
+      # Fails the build if a page, anchor or app deep link no longer resolves.
+      - name: Validate user manual links
+        run: npm run validate:manual
+
+      - name: Build the user manual
+        run: npm run build:manual
+
+      - name: Build the API documentation
         run: npx typedoc --out typedocs && node runner.js prepare:docs
 
-      - name: Deploy 🚀
+      - name: Deploy the API documentation 🚀
         uses: JamesIves/github-pages-deploy-action@v4
         with:
           branch: gh-pages
           folder: typedocs
+          clean-exclude: |
+            manual
 
+      - name: Deploy the user manual 📖
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          branch: gh-pages
+          folder: dist/manual
+          target-folder: manual
