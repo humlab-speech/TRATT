@@ -6,5 +6,6 @@
     "types": [],
     "lib": ["es2022", "dom", "dom.iterable"]
   },
+  "exclude": ["src/**/*.spec.ts", "jest.config.ts", "src/**/*.test.ts"],
   "include": ["src/**/*.ts"]
 }

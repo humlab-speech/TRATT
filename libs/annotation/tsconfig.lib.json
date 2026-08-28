@@ -5,5 +5,11 @@
     "declaration": true,
     "types": ["node", "vite/client"]
   },
+  "exclude": [
+    "src/**/*.spec.ts",
+    "jest.config.ts",
+    "src/**/*.test.ts",
+    "src/lib/converters/spec-helpers.ts"
+  ],
   "include": ["src/**/*.ts"]
 }
