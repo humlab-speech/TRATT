@@ -44,7 +44,7 @@
           <h4>Feedback</h4>
           <tratt-transcription-feedback
             #feedback
-            [feedbackData]="annotationStoreService.feedback$ | async"
+            [feedbackData]="(annotationStoreService.feedback$ | async) ?? {}"
             [showCommentFieldOnly]="settingsService.isTheme('shortAudioFiles')"
           >
           </tratt-transcription-feedback>

@@ -1,16 +1,10 @@
 <form #fo="ngForm" class="form-inline">
   <fieldset>
-    @if (
-      (annotationStoreService.feedback$ | async) !== undefined &&
-      feedbackData !== undefined
-    ) {
+    @if ((feedbackForm$ | async); as feedbackForm) {
       @if (!showCommentFieldOnly) {
-        @for (
-          group of (annotationStoreService.feedback$ | async).groups;
-          track group
-        ) {
+        @for (group of feedbackForm.groups; track group) {
           <span>{{ translate(group.title, langService.getActiveLang()) }}</span>
-          @if (group?.controls[0].required) {
+          @if (group.controls[0].required) {
             <span class="required_marker"> *</span>
           }
           <br />

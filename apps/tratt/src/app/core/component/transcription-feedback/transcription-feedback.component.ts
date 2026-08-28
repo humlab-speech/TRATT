@@ -10,10 +10,14 @@ import {
 import { FormsModule, NgForm } from '@angular/forms';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { getProperties } from '@tratt/utilities';
+import { map } from 'rxjs';
 import { FeedBackForm } from '../../obj/FeedbackForm/FeedBackForm';
 import { SettingsService } from '../../shared/service';
 import { AppStorageService } from '../../shared/service/appstorage.service';
-import { AnnotationStoreService } from '../../store/login-mode/annotation/annotation.store.service';
+import {
+  AnnotationStoreService,
+  FeedbackAssessment,
+} from '../../store/login-mode/annotation/annotation.store.service';
 
 @Component({
   selector: 'tratt-transcription-feedback',
@@ -22,7 +26,7 @@ import { AnnotationStoreService } from '../../store/login-mode/annotation/annota
   imports: [FormsModule, AsyncPipe, TranslocoPipe],
 })
 export class TranscriptionFeedbackComponent implements OnChanges, OnDestroy {
-  @Input() feedbackData = {};
+  @Input() feedbackData: FeedbackAssessment = {};
   @Input() showCommentFieldOnly = false;
   @ViewChild('fo', { static: true }) feedbackForm!: NgForm;
 
@@ -36,6 +40,10 @@ export class TranscriptionFeedbackComponent implements OnChanges, OnDestroy {
     name: string;
     value: any;
   }[] = [];
+
+  feedbackForm$ = this.annotationStoreService.feedback$.pipe(
+    map((feedback) => (feedback instanceof FeedBackForm ? feedback : undefined)),
+  );
 
   constructor(
     public annotationStoreService: AnnotationStoreService,

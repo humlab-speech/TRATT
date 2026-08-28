@@ -1,5 +1,5 @@
 <div class="container-fluid p-3">
-  @if (jsonSchema.$gui_support) {
+  @if (jsonSchema?.$gui_support) {
     <form>
       <tratt-toolconfig-group
         [group]="form"
