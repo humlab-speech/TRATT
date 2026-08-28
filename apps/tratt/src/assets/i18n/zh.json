@@ -415,6 +415,9 @@
       }
     }
   },
+  "p": {
+    "language selector label": "本页面显示的语言"
+  },
   "reload-file": {
     "another file selected": "已选中另一个文件。请选择与之前相同的文件，或者开始新的标注。需要：'{{file}}'",
     "file not supported": "文件类型不受支持：'{{type}}' 。",

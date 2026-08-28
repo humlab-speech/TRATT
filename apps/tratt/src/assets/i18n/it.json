@@ -415,6 +415,9 @@
       }
     }
   },
+  "p": {
+    "language selector label": "Lingua in cui questa pagina viene visualizzata"
+  },
   "reload-file": {
     "another file selected": "Un altro file è stato selezionato. Per favore, selezione lo stesso file o inizia una nuova trascrizione. Richiesto: '{{file}}'",
     "file not supported": "Il tipo di file è '{{type}}' non è supportato.",

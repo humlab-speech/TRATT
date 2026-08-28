@@ -415,6 +415,9 @@
       }
     }
   },
+  "p": {
+    "language selector label": "Taal waarin deze pagina wordt weergegeven"
+  },
   "reload-file": {
     "another file selected": "Een ander bestand geselecteerd. Selecteer hetzelfde bestand als voorheen of start een nieuwe transcriptie. Gezocht: '{{file}}'",
     "file not supported": "Bestandstype is '{{type}}' en wordt niet ondersteund.",
