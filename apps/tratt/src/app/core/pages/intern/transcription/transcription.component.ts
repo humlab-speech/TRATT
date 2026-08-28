@@ -23,7 +23,6 @@ import {
   ModalEndAnswer,
   TranscriptionDemoEndModalComponent,
 } from '../../../modals/transcription-demo-end/transcription-demo-end-modal.component';
-import { TranscriptionGuidelinesModalComponent } from '../../../modals/transcription-guidelines-modal/transcription-guidelines-modal.component';
 import { TranscriptionSendingModalComponent } from '../../../modals/transcription-sending-modal/transcription-sending-modal.component';
 import {
   TranscriptionStopModalAnswer,
@@ -93,7 +92,6 @@ export class TranscriptionComponent
   modalShortcutsDialogue?: NgbModalRef;
   modalOverview?: NgbModalRef;
   transcrSendingModal?: NgbModalRef;
-  modalGuidelines?: NgbModalRef;
   inactivityModal?: NgbModalRef;
 
   @ViewChild(LoadeditorDirective, { static: true })
@@ -116,7 +114,6 @@ export class TranscriptionComponent
     permissions: false,
     sending: false,
     demoEnd: false,
-    guidelines: false,
   };
 
   private onAltSend = (
@@ -200,19 +197,6 @@ export class TranscriptionComponent
     }
   };
 
-  private onGuidelinesModal = (
-    keyboardEvent: KeyboardEvent,
-    shortcut: Shortcut,
-    hotKeyEvent: HotkeysEvent,
-  ) => {
-    if (!this.modalVisiblities.guidelines) {
-      this.openGuidelines();
-    } else {
-      this.modalGuidelines?.close();
-      this.modalVisiblities.guidelines = false;
-    }
-  };
-
   private onOverviewModal = (
     keyboardEvent: KeyboardEvent,
     shortcut: Shortcut,
@@ -239,16 +223,6 @@ export class TranscriptionComponent
           pc: 'ALT + 8',
         },
         callback: this.onShortcutsModal,
-      },
-      {
-        name: 'guidelines',
-        title: 'guidelines',
-        focusonly: false,
-        keys: {
-          mac: 'ALT + 9',
-          pc: 'ALT + 9',
-        },
-        callback: this.onGuidelinesModal,
       },
       {
         name: 'overview',
@@ -888,23 +862,6 @@ export class TranscriptionComponent
     }
 
     this.onSendButtonClick();
-  }
-
-  openGuidelines() {
-    this.modalGuidelines = this.modService.openModalRef(
-      TranscriptionGuidelinesModalComponent,
-      TranscriptionGuidelinesModalComponent.options,
-    );
-    this.appStoreService.setShortcutsEnabled(false);
-    this.modalGuidelines.result
-      .then(() => {
-        this.appStoreService.setShortcutsEnabled(true);
-        this.modalVisiblities.guidelines = false;
-      })
-      .catch(() => {
-        this.appStoreService.setShortcutsEnabled(true);
-      });
-    this.modalVisiblities.guidelines = true;
   }
 
   openOverview() {

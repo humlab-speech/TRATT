@@ -45,12 +45,10 @@
     }
   </span>
   <tratt-fastbar
-    (guidelinesbtnclicked)="openGuidelines()"
     (overviewbtnclicked)="openOverview()"
     (shortcutbtnclicked)="openShortcutsModal()"
     [buttonLabels]="{
       shortcuts: 'g.shortcuts' | transloco,
-      guidelines: 'g.guidelines' | transloco,
       overview: 'g.overview' | transloco,
       help: 'g.help' | transloco,
     }"

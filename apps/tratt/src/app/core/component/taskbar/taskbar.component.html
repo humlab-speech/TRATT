@@ -13,21 +13,6 @@
         <span class="d-none d-lg-inline"> [ALT + 8]</span>
       }
     </button>
-    @if (appStorage.useMode !== 'url') {
-      <button
-        type="button"
-        (click)="guidelinesbtnclicked.emit()"
-        class="btn btn-link w-100"
-      >
-        <i class="bi bi-card-list"></i>
-        @if (!appStorage.easyMode) {
-          <span class="d-none d-md-inline"> {{ buttonLabels.guidelines }}</span>
-        }
-        @if (!appStorage.easyMode) {
-          <span class="d-none d-lg-inline"> [ALT + 9]</span>
-        }
-      </button>
-    }
     <button
       type="button"
       (click)="overviewbtnclicked.emit()"

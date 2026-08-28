@@ -12,13 +12,11 @@ import { ApplicationStoreService } from '../../store/application/application-sto
 export class FastbarComponent {
   @Input() buttonLabels: any = {
     shortcuts: 'Shortcuts',
-    guidelines: 'Guidelines',
     overview: 'Overview',
     help: 'Help',
   };
 
   @Output() shortcutbtnclicked: EventEmitter<void> = new EventEmitter<void>();
-  @Output() guidelinesbtnclicked: EventEmitter<void> = new EventEmitter<void>();
   @Output() overviewbtnclicked: EventEmitter<void> = new EventEmitter<void>();
 
   constructor(
