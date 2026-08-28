@@ -13,7 +13,7 @@ A TRATT document has three layers:
 Most work happens on one tier. A second tier might hold a translation, or one
 speaker's turns. See [Tiers and speakers](tiers-and-speakers.md).
 
-**A tier** is a sequence of **transcription units** — consecutive stretches of the
+**A tier** is a sequence of **transcription units**: consecutive stretches of the
 recording, each with its own text. Elsewhere these are called segments or
 utterances. They never overlap and never leave gaps: the whole recording is always
 covered by units, even the silent parts.
@@ -33,7 +33,7 @@ you, most of your time goes to the second.
 In the 2D-Editor (the default), the recording is drawn as a waveform across several
 lines with each unit's text underneath.
 
-1. **Hover** the unit you want and press **Enter** — the transcription window opens
+1. **Hover** the unit you want and press **Enter**: the transcription window opens
    with just that unit's audio and text.
 2. **Tab** plays and pauses. **Esc** stops. **Shift + Backspace** jumps back to
    where playback last started; **Shift + Tab** steps back a couple of seconds so
@@ -52,7 +52,7 @@ still need to do is [export a file](exporting.md) before you finish for the day.
 
 **Undo** is **Ctrl + Z** (**Cmd + Z** on a Mac), **redo** is **Ctrl + Y**
 (**Shift + Cmd + Z**). It works both on text and on boundary changes. Occasionally
-TRATT will tell you *You can't apply undo & redo at the moment* — that happens while
+TRATT will tell you *You can't apply undo & redo at the moment*. That happens while
 another operation is in flight; wait a moment and retry.
 
 ---
@@ -86,7 +86,7 @@ leaving the text field:
 
 1. Play until the point where the split belongs and pause.
 2. Put the text cursor at the matching place in the text.
-3. Press **Alt + S** — the **crop mark** — to insert a boundary there.
+3. Press **Alt + S** (the **crop mark**) to insert a boundary there.
 
 The unit is split at the playback position, and the text is split at your cursor.
 
@@ -101,7 +101,7 @@ A stretch with no speech gets marked as a **break** rather than left empty, so t
 - In the text field: **Alt + P**, or the **Break** button.
 
 Breaks show as `<P>` in the transcript and are counted separately in the
-[Overview](checking-your-work.md) — *Silent transcription units*, as opposed to
+[Overview](checking-your-work.md): *Silent transcription units*, as opposed to
 *Empty transcription units*, which are the ones still waiting for you.
 
 ---
@@ -116,10 +116,10 @@ field and each has a shortcut:
 | Marker | Button | Shortcut | Use for |
 | --- | --- | --- | --- |
 | `[~abc]` | `~abc` | **Alt + 1** | A word cut off at the *start* of the unit |
-| `<nib>` | filled pause | **Alt + 2** | Hesitations — "ehm", "öh", "hm" |
+| `<nib>` | filled pause | **Alt + 2** | Hesitations: "ehm", "öh", "hm" |
 | `[int]` | intermittent noise | **Alt + 3** | A door slam, a bump on the microphone |
-| `[spk]` | speaker noise | **Alt + 4** | Noise made by the speaker — breathing, laughing, coughing |
-| `[sta]` | stationary noise | **Alt + 5** | Continuous background — traffic, music, air conditioning |
+| `[spk]` | speaker noise | **Alt + 4** | Noise made by the speaker: breathing, laughing, coughing |
+| `[sta]` | stationary noise | **Alt + 5** | Continuous background: traffic, music, air conditioning |
 | `**` | ** | **Alt + 6** | The following word is unintelligible, or is in another language |
 | `[abc~]` | `abc~` | **Alt + 7** | A word cut off at the *end* of the unit |
 | `<P>` | Break | **Alt + P** | This unit is silence |
@@ -138,7 +138,7 @@ unit carries a **speaker label**. Labels are shown as coloured badges, and each
 speaker keeps a consistent colour.
 
 With the transcription window open, **Ctrl + S** (**Cmd + S**) cycles that unit's
-label to the next known speaker — the quickest way to fix a mis-assigned turn. You
+label to the next known speaker, the quickest way to fix a mis-assigned turn. You
 can also click the badge.
 
 Adding, renaming and removing speakers, and splitting speakers onto separate tiers,
@@ -153,10 +153,10 @@ Open **Preferences** from the top bar (the gear icon).
 | Setting | What it does | Suggested |
 | --- | --- | --- |
 | **Seconds per line** | How much audio each waveform line shows: 5, 10, 15, 20 or 60 s. Only shown while you are in the 2D-Editor. | 5 or 10 for detailed work; higher to scan |
-| **Play on hover** | Plays audio as you move the mouse over the waveform | On, once you are used to it — it is much faster for finding a spot. Toggle it live with **H**. |
+| **Play on hover** | Plays audio as you move the mouse over the waveform | On, once you are used to it. It is much faster for finding a spot. Toggle it live with **H**. |
 | **Follow playcursor** | Scrolls the view to keep the playback position visible | On |
 | **Show magnifier** | A zoomed strip around the cursor, for placing boundaries precisely | On for detailed boundary work |
-| **Easy Mode** | Hides button labels and keyboard hints — a compact, icon-only interface | Off while you are learning |
+| **Easy Mode** | Hides button labels and keyboard hints (a compact, icon-only interface) | Off while you are learning |
 | **Log user actions** | Records what you did, for method sections and studies. Stays on your machine; exported only if you ask for the meta data. | Your call |
 
 ---

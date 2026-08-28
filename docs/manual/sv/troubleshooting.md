@@ -18,7 +18,7 @@ TRATT parar ihop de två på namn. Byt namn på transkriptet så att dess basnam
 matchar ljudets, t.ex. `intervju3.wav` med `intervju3_annot.json`.
 
 **Transkriptfilen bara ligger där med en snurra**
-Den väntar på ljud. Släpp in mediefilen också — ett transkript ensamt går inte att
+Den väntar på ljud. Släpp in mediefilen också: ett transkript ensamt går inte att
 öppna.
 
 **Att läsa in en video tar lång tid**
@@ -37,10 +37,10 @@ modellnedladdningar och förstör ditt arbete, så TRATT stänger av funktionen 
 Använd Chrome, Edge eller Firefox. Manuell transkribering i Safari påverkas inte.
 
 **Kryssrutan saknas helt**
-Den visas först när ljud har lästs in *och* ingen transkriptfil har lämnats in —
-det finns inget utkast att skriva om du redan tagit med ett transkript.
+Den visas först när ljud har lästs in *och* ingen transkriptfil har lämnats in.
+Det finns inget utkast att skriva om du redan tagit med ett transkript.
 
-**Modellerna Medium och Large är gråmarkerade — "Kräver WebGPU"**
+**Modellerna Medium och Large är gråmarkerade: "Kräver WebGPU"**
 Din webbläsare eller ditt grafikkort erbjuder inte WebGPU. Använd Tiny eller
 Small, eller kör TRATT på en dator med ett separat grafikkort. I Chrome och Edge
 kan du kontrollera på `chrome://gpu`.
@@ -61,13 +61,13 @@ de mindre modellerna återstår.
 **Det tar mycket lång tid**
 Modellstorlek, inspelningens längd och hårdvaran multipliceras med varandra.
 Talarseparation lägger till ännu mer, eftersom den modellen alltid körs på
-processorn. Förloppsfältet visar var i inspelningen den är — rör det sig, arbetar
+processorn. Förloppsfältet visar var i inspelningen den är: rör det sig, arbetar
 den. Behöver du en uppskattning, kör ett femminutersutdrag först.
 
 **Talaretiketterna är fel**
 Talarseparation är en gissning. Ange förväntat antal talare nästa gång, och rätta
-etiketter med **Ctrl/Cmd + S** — se
-[Nivåer och talare](tiers-and-speakers.md#fixing-speaker-labels).
+etiketter med **Ctrl/Cmd + S** (se
+[Nivåer och talare](tiers-and-speakers.md#fixing-speaker-labels)).
 
 ---
 
@@ -146,15 +146,15 @@ enda kopian som finns utanför webbläsaren.
 
 ## Underhållssidan
 
-Inte länkad från gränssnittet: lägg till `/help-tools` i TRATT:s adress — till
+Inte länkad från gränssnittet: lägg till `/help-tools` i TRATT:s adress, till
 exempel `http://localhost:5321/help-tools`.
 
 | Verktyg | Använd när |
 | --- | --- |
-| **Refresh App** | TRATT beter sig konstigt efter en uppdatering — tvingar omladdning och uppdaterar cachen |
+| **Refresh App** | TRATT beter sig konstigt efter en uppdatering, tvingar omladdning och uppdaterar cachen |
 | **Clear all Storage Data** | Du är klar på en delad dator, eller lagringen är trasig. Tar bort transkript, loggar och inställningar permanent. |
 | **Stresstest** | Du vill kontrollera om den här webbläsaren och datorn klarar av det |
-| **Backup local data** | Innan du rensar något, eller före en webbläsaruppdatering — laddar ned en zip med TRATT:s lokala data |
+| **Backup local data** | Innan du rensar något, eller före en webbläsaruppdatering, laddar ned en zip med TRATT:s lokala data |
 | **Restore local backup** | Du vill lägga tillbaka den zip-filen |
 
 **Clear all Storage Data går inte att ångra.** Exportera ditt transkript, eller ta
@@ -165,7 +165,7 @@ en säkerhetskopia, först.
 ## Att rapportera ett problem
 
 TRATT har ett inbyggt återkopplingsformulär (frågetecknet i den övre listen), men
-det visas bara när appen är ansluten till en OCTRA-backend — vilket den lokala
+det visas bara när appen är ansluten till en OCTRA-backend, vilket den lokala
 standardinstallationen av TRATT inte är. Rapportera i så fall problem i projektets
 ärendehanterare: <https://github.com/humlab-speech/TRATT/issues>.
 
@@ -177,6 +177,6 @@ Vilken väg du än använder är en felrapport sällan användbar utan:
 - vad du gjorde, vad du förväntade dig och vad som hände i stället;
 - allt i webbläsarens utvecklarkonsol (F12 → Console).
 
-Är formuläret tillgängligt, markera alternativet att skicka med protokollet —
+Är formuläret tillgängligt, markera alternativet att skicka med protokollet:
 loggen över vad appen gjorde. Det skapas ur din session, så läs det först om
 materialet är känsligt.

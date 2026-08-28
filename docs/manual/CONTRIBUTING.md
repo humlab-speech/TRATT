@@ -82,7 +82,7 @@ not a code change.
 
 Adding a page: create the Markdown file, then add it to the `NAV` array in
 `scripts/build-manual.mjs`. The build fails if a published page is missing from
-`NAV`, or if `NAV` names a page that does not exist — a new page cannot be
+`NAV`, or if `NAV` names a page that does not exist. A new page cannot be
 silently left out of the navigation. `CONTRIBUTING.md` is listed in `UNPUBLISHED`
 and stays in the repository.
 
@@ -95,7 +95,7 @@ English is the default and lives at the root of the site; every other language
 lives in a subdirectory named after its code. Adding one means adding an entry to
 `LOCALES`, `UI` and `NAV_LABELS` in `scripts/build-manual.mjs`, the same entry to
 `LOCALES` in `scripts/check-manual-links.mjs`, and to `tratt.manual.locales` in
-`appconfig.json` — the app then links to it whenever the interface is set to that
+`appconfig.json`. The app then links to it whenever the interface is set to that
 language.
 
 Four rules keep the translations honest:
@@ -105,7 +105,7 @@ Four rules keep the translations honest:
   page, so navigation stays complete and nobody hits a dead link. `npm run
   build:manual` lists every page that fell back.
 - **Explicit anchors must be carried over verbatim.** A translated page has
-  translated headings, so heading-derived anchors change — but every `<a id="…">`
+  translated headings, so heading-derived anchors change, but every `<a id="…">`
   in the English page must exist with the same id in the translation, because the
   app deep-links into the manual *in the interface language*. The link checker
   verifies each `manualLink()` call against every language and fails if an anchor
@@ -114,9 +114,9 @@ Four rules keep the translations honest:
   not a new page.
 - **Quote the interface in the reader's language.** Swedish pages use the Swedish
   strings from `apps/tratt/src/assets/i18n/sv.json`. Where the interface is *not*
-  translated — the marker toolbar (`guidelines_sv.json` is still English), *Add
-  empty level*, *Add translated tier…*, *Speaker separation*, the Finnish and
-  Norwegian model descriptions — the Swedish manual gives the English label and
+  translated (the marker toolbar, since `guidelines_sv.json` is still English; *Add
+  empty level*; *Add translated tier…*; *Speaker separation*; the Finnish and
+  Norwegian model descriptions), the Swedish manual gives the English label and
   says why, rather than inventing a translation the reader will never see on
   screen. When one of those is translated in the app, update the manual with it.
 

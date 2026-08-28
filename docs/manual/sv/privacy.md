@@ -4,7 +4,7 @@
 "vart tog ljudet vägen?" är en fråga du måste kunna besvara.
 
 **Kort svar:** din inspelning och ditt transkript lämnar aldrig webbläsaren. Det
-enda TRATT hämtar åt dig är själva applikationen och — om du slår på det — en
+enda TRATT hämtar åt dig är själva applikationen och, om du slår på det, en
 tal- eller översättningsmodell.
 
 ---
@@ -26,12 +26,12 @@ du in samma fil igen så väntar texten.
 
 **1. Själva applikationen.** När sidan laddas hämtas TRATT:s egna filer från den
 server som är värd för den. TRATT installerar en service worker, så efter första
-lyckade laddningen körs appen från webbläsarens cache — du kan gå helt offline
+lyckade laddningen körs appen från webbläsarens cache: du kan gå helt offline
 och fortsätta transkribera. Webbläsaren hämtar en ny version när en sådan
 publiceras; TRATT visar en avisering om uppdatering i stället för att ladda om
 under fötterna på dig.
 
-**2. Tal- och översättningsmodeller — bara om du ber om dem.** Att markera
+**2. Tal- och översättningsmodeller, bara om du ber om dem.** Att markera
 **Automatisk transkribering med Whisper**, **Speaker separation** eller
 **Översätt transkriptionen lokalt** laddar ned den valda modellen från
 `huggingface.co` (mellan ungefär 100 MB och 3 GB beroende på modell). Modellen
@@ -65,12 +65,12 @@ alternativet och berörs inte.
 Öppna den dolda underhållssidan genom att lägga till `/help-tools` i TRATT:s
 adress (till exempel `http://localhost:5321/help-tools`) och använd **Clear all
 Storage Data**. Den tar bort lagrat transkript, loggar och inställningar från den
-här webbläsaren permanent. Gör det på en delad dator när du är klar — efter att
+här webbläsaren permanent. Gör det på en delad dator när du är klar, efter att
 du har exporterat ditt arbete. Samma sida kan också ta en zip-säkerhetskopia av
 dina lokala TRATT-data och återställa en; se
 [Felsökning](troubleshooting.md#the-maintenance-page).
 
 Webbläsare rensar också IndexedDB när du rensar webbplatsdata, använder ett
 privat fönster som du sedan stänger, eller kör städverktyg. Betrakta kopian i
-webbläsaren som en arbetsbekvämlighet, inte som ditt arkiv —
+webbläsaren som en arbetsbekvämlighet, inte som ditt arkiv:
 [exportera en fil](exporting.md) varje gång du slutar.

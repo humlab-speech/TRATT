@@ -26,7 +26,7 @@ The tier menu sits in the top bar and shows the current tier's name.
 | Switch tier | Open the menu and click the tier's number |
 | Rename a tier | Type in its name field and click away |
 | Add an empty tier | **Add empty level** at the bottom of the menu |
-| Add a translation tier | **Add translated tier…** — see below |
+| Add a translation tier | **Add translated tier…**, see below |
 | Delete a tier | The bin icon on its row. TRATT asks for confirmation; the tier and its text are gone permanently. |
 
 Only tiers of type SEGMENT can be selected for editing; others are shown greyed out.
@@ -43,7 +43,7 @@ Later, **Translate linked tier** fills in any segments that are still empty.
 **Segments you have edited by hand are never overwritten**, so you can re-run it
 after adding material without losing your corrections.
 
-Translation happens on your machine, using models downloaded once and cached — see
+Translation happens on your machine, using models downloaded once and cached; see
 [Automatic draft transcription](automatic-transcription.md#translating-the-transcript).
 
 If the menu says *No eligible source tier found*, the transcript has no standalone
@@ -80,9 +80,9 @@ The speaker menu in the top bar lists every speaker with its colour swatch.
 
 | To | Do |
 | --- | --- |
-| Rename a speaker everywhere | Type a new name in its field and click away — every unit carrying the old label is updated |
+| Rename a speaker everywhere | Type a new name in its field and click away; every unit carrying the old label is updated |
 | Add a speaker | The **+** row at the bottom. It becomes available for cycling even before any unit uses it. |
-| Remove a speaker | The bin icon — **only offered for speakers that no unit is using**. Reassign the units first. |
+| Remove a speaker | The bin icon (**only offered for speakers that no unit is using**). Reassign the units first. |
 
 Rename early. Turning `SPEAKER_00` and `SPEAKER_01` into `Interviewer` and
 `Participant` before you start correcting makes every later pass easier to read, and
@@ -99,17 +99,17 @@ Drop the file with the audio, then click the gear icon on its row.
 
 **WebVTT** offers:
 
-- *Extract speakers from voice tags* — reads `<v Name>` tags, or a `[Name]` prefix
+- *Extract speakers from voice tags*: reads `<v Name>` tags, or a `[Name]` prefix
   in the cue text, into a speaker label.
-- *Move units with speaker label to separate levels* — one tier per speaker.
+- *Move units with speaker label to separate levels*: one tier per speaker.
 
 **SubRip (.srt)** offers:
 
-- *Regular expression for speaker identification* — a pattern with one capture group
+- *Regular expression for speaker identification*: a pattern with one capture group
   matched against the start of each cue line; the captured text becomes the speaker
-  name. Use this when your file writes speakers as `INTERVIEWER:` or `- Anna —`.
+  name. Use this when your file writes speakers as `INTERVIEWER:` or `- Anna -`.
 - *Move units with speaker label to separate levels*.
-- *Combine empty units with max duration (ms) between units of the same speaker* —
+- *Combine empty units with max duration (ms) between units of the same speaker*:
   merges a short gap between two turns by the same person, so a single sentence
   broken across cues comes back together. Leave it blank to switch it off.
 
@@ -118,5 +118,5 @@ Drop the file with the audio, then click the gear icon on its row.
 ## Splitting speakers onto tiers later
 
 If you did not split on import, the SRT and WebVTT **export** converters offer
-*Move units with speaker label to separate annotation levels* — the same operation,
+*Move units with speaker label to separate annotation levels*, the same operation,
 applied on the way out. Units with no speaker stay on the default tier.

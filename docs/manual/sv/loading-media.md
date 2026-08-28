@@ -12,7 +12,7 @@ På startsidan visar fliken **Ladda upp fil** en streckad släppyta:
 
 Du kan släppa **en mediefil**, och valfritt **en transkriptfil** tillsammans med
 den, i vilken ordning som helst. TRATT väntar tills det finns ljud innan något
-kan göras — under tiden visar transkriptfilen en snurra och texten
+kan göras. Under tiden visar transkriptfilen en snurra och texten
 *Waiting for audio file*.
 
 Medan en fil läses ser du ett förloppsfält (för `.wav`) eller ett snurrande
@@ -21,8 +21,8 @@ kugghjul (för allt annat, som först måste avkodas). Sedan:
 | Ikon | Betyder |
 | --- | --- |
 | ✓ | Inläst och användbar |
-| ⚠ | Inläst, men med en reservation — hovra för att läsa varningen |
-| ✗ | Avvisad — hovra för att läsa varför |
+| ⚠ | Inläst, men med en reservation; hovra för att läsa varningen |
+| ✗ | Avvisad; hovra för att läsa varför |
 | ⚙ (kugghjul, klickbart) | Det här transkriptformatet har importalternativ. Klicka för att ställa in dem. |
 
 Vanliga avvisningar: ett filformat som inte stöds, en fil över storleksgränsen,
@@ -30,8 +30,8 @@ eller ett transkript vars namn inte matchar ljudfilens namn.
 
 ### Transkriptfilen
 
-Har du redan ett transkript — från en tidigare TRATT-session, från ett annat
-verktyg eller från en undertextfil — släpper du in det tillsammans med ljudet, så
+Har du redan ett transkript (från en tidigare TRATT-session, från ett annat
+verktyg eller från en undertextfil) släpper du in det tillsammans med ljudet, så
 öppnar TRATT det för redigering i stället för att börja från noll. Formaten som
 kan läsas listas under
 [Exportera → format TRATT kan läsa](exporting.md#formats-tratt-can-read).
@@ -46,16 +46,16 @@ en egen nivå. Se [Nivåer och talare](tiers-and-speakers.md).
 
 ## Spela in i webbläsaren
 
-Fliken **Spela in nu** spelar in direkt i TRATT — ingen separat inspelare, ingen
+Fliken **Spela in nu** spelar in direkt i TRATT: ingen separat inspelare, ingen
 fil att flytta runt.
 
-1. Välj inspelningskälla med de två små ikonknapparna högst upp i panelen —
+1. Välj inspelningskälla med de två små ikonknapparna högst upp i panelen:
    **Endast ljud** (mikrofon) eller **Ljud + video** (kamera). De har ingen text;
    hovra för att se vilken som är vilken.
 2. Öppna **Inmatningsenheter** för att välja en särskild mikrofon eller kamera.
-   Är listan tom eller namnlös, klicka **Begär åtkomst** — webbläsare döljer
+   Är listan tom eller namnlös, klicka **Begär åtkomst**. Webbläsare döljer
    enhetsnamn tills du gett tillstånd en gång.
-3. Klicka **Starta inspelning**. En nivålampa visar rött (*Låg volym — kontrollera
+3. Klicka **Starta inspelning**. En nivålampa visar rött (*Låg volym, kontrollera
    mikrofonen*), orange (*Marginell volym*) eller grönt (*Bra volym*). Håll ögonen
    på den de första sekunderna; en röd lampa genom hela inspelningen går inte att
    rädda.
@@ -72,7 +72,7 @@ starttid, ungefärliga längd och storlek, och möjlighet att fortsätta, ladda 
 det ofullständiga eller kassera.
 
 **Varning när du lämnar.** Har du en inspelning som inte använts eller exporterats
-varnar TRATT innan du navigerar bort. Ta varningen på allvar — en oexporterad
+varnar TRATT innan du navigerar bort. Ta varningen på allvar. En oexporterad
 inspelning är borta när fliken är det.
 
 ---
@@ -93,7 +93,7 @@ listan finns i appen: klicka **Filformat som stöds** ovanför släppytan.
 ### Video
 
 Laddar du en video arbetar TRATT med dess ljud. När formatet är ett som din
-webbläsare kan spela upp direkt — **MP4 är säkrast, WebM fungerar också bra** —
+webbläsare kan spela upp direkt (**MP4 är säkrast, WebM fungerar också bra**)
 visas bilden bredvid vågformen i transkriptionsfönstret, vilket hjälper mycket
 vid överlappande tal och gester. Format som webbläsaren inte kan spela upp
 transkriberas ändå, bara utan bild.
@@ -114,13 +114,13 @@ Knappen under släppytan talar om vilket av de två som är på väg att hända:
 | Knapp | Vad den gör |
 | --- | --- |
 | **Fortsätt transkription** (blå) | Filen du angav matchar den sparade sessionen. Ditt sparade transkript öppnas igen. |
-| **Starta ny transkription** (röd) | Filen matchar inte den sparade sessionen, eller så finns ingen. Klickar du **kastas det sparade transkriptet** och du börjar om — utan ytterligare bekräftelse och utan möjlighet att ångra. |
+| **Starta ny transkription** (röd) | Filen matchar inte den sparade sessionen, eller så finns ingen. Klickar du **kastas det sparade transkriptet** och du börjar om, utan ytterligare bekräftelse och utan möjlighet att ångra. |
 
 TRATT avgör vilken knapp som ska visas genom att jämföra filen du släppte med den
 som finns i den sparade sessionen (på namn och storlek, och på basnamn så att
 samma inspelning i ett annat format ändå räknas som en träff). Förväntade du dig
-*Fortsätt* men fick den röda *Starta ny* har du angett en annan fil — kontrollera
+*Fortsätt* men fick den röda *Starta ny* har du angett en annan fil. Kontrollera
 den innan du klickar.
 
 > Exportera en fil innan du slutar för dagen. Webbläsarlagring är en bekvämlighet,
-> inte ett arkiv — se [Vad lämnar din dator](privacy.md).
+> inte ett arkiv. Se [Vad lämnar din dator](privacy.md).

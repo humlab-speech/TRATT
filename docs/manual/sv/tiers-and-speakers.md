@@ -27,7 +27,7 @@ Nivåmenyn sitter i den övre listen och visar den aktuella nivåns namn.
 | Byta nivå | Öppna menyn och klicka på nivåns nummer |
 | Byta namn på en nivå | Skriv i dess namnfält och klicka utanför |
 | Lägga till en tom nivå | **Add empty level** längst ned i menyn |
-| Lägga till en översättningsnivå | **Add translated tier…** — se nedan |
+| Lägga till en översättningsnivå | **Add translated tier…**: se nedan |
 | Ta bort en nivå | Papperskorgsikonen på dess rad. TRATT frågar först; nivån och dess text försvinner permanent. |
 
 Bara nivåer av typen SEGMENT kan väljas för redigering; övriga visas gråmarkerade.
@@ -46,7 +46,7 @@ Senare fyller **Translate linked tier** i de segment som fortfarande är tomma.
 **Segment du har redigerat för hand skrivs aldrig över**, så du kan köra om den
 efter att ha lagt till material utan att förlora dina rättelser.
 
-Översättningen sker på din dator, med modeller som laddas ned en gång och sparas —
+Översättningen sker på din dator, med modeller som laddas ned en gång och sparas:
 se
 [Automatisk utkasttranskription](automatic-transcription.md#translating-the-transcript).
 
@@ -84,9 +84,9 @@ Talarmenyn i den övre listen listar varje talare med sin färgruta.
 
 | För att | Gör |
 | --- | --- |
-| Byta namn på en talare överallt | Skriv ett nytt namn i fältet och klicka utanför — varje enhet med den gamla etiketten uppdateras |
+| Byta namn på en talare överallt | Skriv ett nytt namn i fältet och klicka utanför. Varje enhet med den gamla etiketten uppdateras |
 | Lägga till en talare | Raden med **+** längst ned. Talaren blir valbar redan innan någon enhet använder den. |
-| Ta bort en talare | Papperskorgsikonen — **erbjuds bara för talare som ingen enhet använder**. Flytta om enheterna först. |
+| Ta bort en talare | Papperskorgsikonen: **erbjuds bara för talare som ingen enhet använder**. Flytta om enheterna först. |
 
 Byt namn tidigt. Att göra `SPEAKER_00` och `SPEAKER_01` till `Intervjuare` och
 `Deltagare` innan du börjar rätta gör varje senare genomgång lättare att läsa, och
@@ -103,17 +103,17 @@ filen tillsammans med ljudet och klicka sedan på kugghjulet på dess rad.
 
 **WebVTT** erbjuder:
 
-- *Extract speakers from voice tags* — läser `<v Namn>`-taggar, eller ett
+- *Extract speakers from voice tags*: läser `<v Namn>`-taggar, eller ett
   `[Namn]`-prefix i texten, till en talaretikett.
-- *Move units with speaker label to separate levels* — en nivå per talare.
+- *Move units with speaker label to separate levels*: en nivå per talare.
 
 **SubRip (.srt)** erbjuder:
 
-- *Regular expression for speaker identification* — ett mönster med en fångstgrupp
+- *Regular expression for speaker identification*: ett mönster med en fångstgrupp
   som matchas mot början av varje textrad; det fångade blir talarnamnet. Använd
   det när din fil skriver talare som `INTERVJUARE:` eller `- Anna —`.
 - *Move units with speaker label to separate levels*.
-- *Combine empty units with max duration (ms) between units of the same speaker* —
+- *Combine empty units with max duration (ms) between units of the same speaker*:
   slår ihop en kort lucka mellan två turer av samma person, så att en mening som
   brutits över flera textblock blir hel igen. Lämna tomt för att stänga av det.
 
@@ -122,5 +122,5 @@ filen tillsammans med ljudet och klicka sedan på kugghjulet på dess rad.
 ## Att dela upp talare på nivåer i efterhand
 
 Delade du inte upp vid import erbjuder **exportfiltren** för SRT och WebVTT
-*Move units with speaker label to separate annotation levels* — samma operation,
+*Move units with speaker label to separate annotation levels*: samma operation,
 tillämpad på vägen ut. Enheter utan talare stannar på standardnivån.

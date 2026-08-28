@@ -4,7 +4,7 @@
 annorlunda ut än hos en kollega.
 
 TRATT erbjuder flera vyer över *samma* transkript. Att byta mellan dem ändrar
-ingenting annat än din vy — du kan flytta mellan dem mitt i en fil, hur ofta du
+ingenting annat än din vy. Du kan flytta mellan dem mitt i en fil, hur ofta du
 vill, med knapparna till vänster i den övre listen.
 
 Standard är **2D Vy**.
@@ -13,8 +13,8 @@ Standard är **2D Vy**.
 
 ## 2D Vy
 
-Arbetshästen. Inspelningen ritas som en vågform uppdelad på rader — som text som
-radbryts — med varje transkriptionsenhet skuggad och sin text tryckt under.
+Arbetshästen. Inspelningen ritas som en vågform uppdelad på rader (som text som
+radbryts), med varje transkriptionsenhet skuggad och sin text tryckt under.
 
 ![2D Vy med transkriptionsfönstret öppet](../../assets/visp_tratt_popup_editor_audio_only.png)
 
@@ -36,7 +36,7 @@ markörraden och ett textfält.
 
 - **Tabb** / **Esc** spelar, pausar och stoppar.
 - **Alt + ←** och **Alt + →** sparar och stegar till föregående eller nästa
-  enhet — snabbaste vägen genom en fil.
+  enhet, snabbaste vägen genom en fil.
 - **Alt + ↓** sparar och stänger.
 - **Ctrl/Cmd + S** växlar talaretiketten.
 - Är din mediefil ett format som webbläsaren kan spela upp direkt (MP4, WebM)
@@ -83,13 +83,13 @@ musen befinner sig över.
 
 <a id="trn-editor--experimental"></a>
 
-## TRN-Editor — experimentell
+## TRN-Editor (experimentell)
 
 En tabellvy över hela transkriptet, med operationer per talare (slå ihop segment
 med samma talaretikett, ersätta permutationer).
 
 **Du kommer inte att se den.** Standardkonfigurationen i TRATT erbjuder bara de
-tre vyerna ovan, och TRN-Editor är ändå inte färdig — dess tangentbordsgenvägar
+tre vyerna ovan, och TRN-Editor är ändå inte färdig. Dess tangentbordsgenvägar
 är inte inkopplade och att öppna ett segment gör ingenting. Den beskrivs här bara
 så att du vet vad namnet syftar på om du möter det i koden eller i
 OCTRA-manualen.

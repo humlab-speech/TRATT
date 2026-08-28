@@ -1,9 +1,9 @@
-# Quick start — your first transcription
+# Quick start: your first transcription
 
 **For:** anyone who has just opened TRATT and has a recording to transcribe.
 **You will end up with:** a corrected transcript saved as a file on your computer.
 **Time:** about ten minutes of your attention. If you use automatic transcription,
-add download and processing time — see step 3.
+add download and processing time; see step 3.
 
 You do not need an account. You do not need to install anything.
 
@@ -16,7 +16,7 @@ You land on a page headed **Transcribe conversations locally in your web browser
 ![The TRATT start page](../assets/visp_tratt_main.png)
 
 Use **Chrome**, **Edge**, **Firefox** or **Opera**. Safari works for manual
-transcription but cannot run automatic transcription — see
+transcription but cannot run automatic transcription; see
 [Troubleshooting](troubleshooting.md#automatic-transcription-is-greyed-out).
 
 ## 2. Load your recording
@@ -46,7 +46,7 @@ Once the file is loaded, a box appears under the drop zone with the checkbox
 - **Tick it** and a speech-recognition model will produce a draft you then correct.
   Pick your **Transcription language**, then pick a model size. Bigger models are
   more accurate and slower, and the first run has to download the model
-  (roughly 100 MB to 3 GB — it is cached for next time).
+  (roughly 100 MB to 3 GB, cached for next time).
 
   Optionally tick **Speaker separation** to have TRATT guess who spoke when. If you
   know how many people are on the recording, type that number; for a two-person
@@ -58,7 +58,7 @@ model itself. Details and model recommendations:
 
 ## 4. Start
 
-Click the button below the box — **Start new transcription**.
+Click the button below the box: **Start new transcription**.
 
 If you asked for a draft, you now see progress: first the model download, then
 *Transcribing audio…* with a time counter, then *Identifying speakers…* if you
@@ -70,7 +70,7 @@ must stay open. When it finishes, the editor opens by itself.
 You arrive in the **2D-Editor**: the recording is drawn as a waveform on several
 lines, one line after another, with the text sitting under each chunk of speech.
 
-TRATT calls each of those chunks a **transcription unit** — one utterance, roughly
+TRATT calls each of those chunks a **transcription unit**: one utterance, roughly
 one line of a subtitle. Other tools call it a segment.
 
 ![Correcting one unit in the transcription window](../assets/visp_tratt_popup_editor_audio_only.png)
@@ -81,10 +81,10 @@ To correct a unit:
    unit's audio and its text.
 2. Press **Tab** to play it, **Tab** again to pause, **Esc** to stop.
 3. Fix the text.
-4. Press **Alt + →** to save and move to the next unit — or **Alt + ↓** to save and
+4. Press **Alt + →** to save and move to the next unit, or **Alt + ↓** to save and
    close the window.
 
-That loop — Enter, Tab, type, Alt + → — is the whole job. Everything else is
+That loop, Enter, Tab, type, Alt + →, is the whole job. Everything else is
 refinement.
 
 If you need to mark something that is not a word (a pause, laughter, background
@@ -103,7 +103,7 @@ there, or click ▶ to hear it.
 
 ## 7. Export
 
-Click **Export** — the download icon in the top bar, and also a button along the
+Click **Export**: the download icon in the top bar, and also a button along the
 bottom of the editor. The dialog is headed *Export transcriptions*. Choose a
 format and click **Download**.
 
@@ -127,7 +127,7 @@ described in [Exporting](exporting.md).
 ## Two things worth knowing before you close the tab
 
 **TRATT remembers your transcript, but never your recording.** When you come back,
-the text is still there — but you must drag the same media file in again to keep
+the text is still there, but you must drag the same media file in again to keep
 working. Export a file whenever you stop for the day.
 
 **Nothing was uploaded.** Your recording stayed on your machine the whole time. See

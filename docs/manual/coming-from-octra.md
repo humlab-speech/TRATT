@@ -1,7 +1,7 @@
 # Coming from the OCTRA manual
 
 **For:** people who found the [OCTRA 2.0 manual](https://clarin.phonetik.uni-muenchen.de/apps/octra/manuals/octra/2.0/)
-— which the app itself still links to — and are trying to map it onto TRATT.
+(which the app itself still links to) and are trying to map it onto TRATT.
 
 TRATT is a fork of OCTRA. The editing machinery is the same, so the OCTRA manual's
 chapters on the GUI and the editors mostly still describe what you see. The
@@ -55,8 +55,8 @@ TRATT's interface.
 | --- | --- |
 | "Segment" | Usually "transcription unit" in the interface, though both words appear |
 | "Level" | Usually "tier", especially in the newer speaker and translation features |
-| Three editors | Still three in the switcher: 2D, Dictaphone, Linear. A fourth, the **TRN-Editor**, exists in the code but is unfinished and not offered — see [The editors](the-editors.md#trn-editor--experimental) |
-| The Tools dialog (combine units, cut audio) | Still present, but **not reachable from any button** in the current interface — see [Tools](using-tools.md) |
+| Three editors | Still three in the switcher: 2D, Dictaphone, Linear. A fourth, the **TRN-Editor**, exists in the code but is unfinished and not offered; see [The editors](the-editors.md#trn-editor--experimental) |
+| The Tools dialog (combine units, cut audio) | Still present, but **not reachable from any button** in the current interface; see [Tools](using-tools.md) |
 | Manual link in the navigation bar | Still points at the OCTRA manual rather than at this one |
 
 ---

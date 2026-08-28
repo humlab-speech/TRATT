@@ -21,7 +21,7 @@ skiljer sig och båda anges.
 ## Ljuduppspelning
 
 Dessa fungerar i alla vyer. I Linjär vy har den nedre visningen (luppen) en egen
-uppsättning — se nedan.
+uppsättning, se nedan.
 
 | Tangenter | Åtgärd |
 | --- | --- |
@@ -49,7 +49,7 @@ har fokus.
 | **Ctrl + Z** / **Cmd + Z** | Ångra |
 | **Ctrl + Y** / **Skift + Cmd + Z** | Gör om |
 
-### Molnbaserad taligenkänning — normalt inaktiv
+### Molnbaserad taligenkänning: normalt inaktiv
 
 | Tangenter | Åtgärd |
 | --- | --- |
@@ -62,7 +62,7 @@ konfigurerad av en administratör plus en autentiserad session.
 Standardinstallationen av TRATT har ingen: tangenterna gör ingenting, panelen
 **ASR Options** saknas i Inställningar, och de här tre genvägarna syns inte ens i
 genvägsfönstret (**Alt + 8**). Ser du dem listade där har din installation
-konfigurerats med en extern leverantör — läs
+konfigurerats med en extern leverantör. Läs
 [Vad lämnar din dator](privacy.md) innan du använder dem. TRATT:s egen, lokala
 taligenkänning ligger [på startsidan](automatic-transcription.md) i stället.
 
@@ -82,31 +82,31 @@ taligenkänning ligger [på startsidan](automatic-transcription.md) i stället.
 
 ## Textfältet
 
-Var du än skriver en transkription — transkriptionsfönstret, Diktafon-vyn eller en
+Var du än skriver en transkription: transkriptionsfönstret, Diktafon-vyn eller en
 rad i Översikt. Markörknapparnas texter visas på engelska även i det svenska
 gränssnittet.
 
 | Tangenter | Åtgärd |
 | --- | --- |
-| **Alt + 1** | `[~abc]` — ord avhugget i början |
-| **Alt + 2** | `<nib>` — tvekljud |
-| **Alt + 3** | `[int]` — tillfälligt ljud |
-| **Alt + 4** | `[spk]` — ljud från talaren |
-| **Alt + 5** | `[sta]` — konstant bakgrundsljud |
-| **Alt + 6** | `**` — oförståeligt eller främmande ord följer |
-| **Alt + 7** | `[abc~]` — ord avhugget i slutet |
-| **Alt + P** | `<P>` — markera enheten som paus |
+| **Alt + 1** | `[~abc]`: ord avhugget i början |
+| **Alt + 2** | `<nib>`: tvekljud |
+| **Alt + 3** | `[int]`: tillfälligt ljud |
+| **Alt + 4** | `[spk]`: ljud från talaren |
+| **Alt + 5** | `[sta]`: konstant bakgrundsljud |
+| **Alt + 6** | `**`: oförståeligt eller främmande ord följer |
+| **Alt + 7** | `[abc~]`: ord avhugget i slutet |
+| **Alt + P** | `<P>`: markera enheten som paus |
 | **Alt + S** | Infoga ett beskärningsmärke: dela enheten vid uppspelningsläget och texten vid markören |
 | **Ctrl + Z** / **Cmd + Z** | Ångra |
 | **Ctrl + Y** / **Skift + Cmd + Z** | Gör om |
 
 Markörerna kommer från projektets riktlinjefil. En annorlunda konfigurerad
-installation kan erbjuda en annan uppsättning — verktygsraden ovanför textfältet
+installation kan erbjuda en annan uppsättning. Verktygsraden ovanför textfältet
 visar alltid sanningen.
 
 ---
 
-## Linjär vy — de två visningarna
+## Linjär vy: de två visningarna
 
 | | Övre (överblick) | Nedre (lupp) |
 | --- | --- | --- |
@@ -117,7 +117,7 @@ visar alltid sanningen.
 
 ---
 
-## TRN-Editor-tabellen — experimentell
+## TRN-Editor-tabellen (experimentell)
 
 Listad för fullständighetens skull. TRN-Editor erbjuds inte i vyväljaren och är
 inte färdig; dess genvägar är inte inkopplade. Se

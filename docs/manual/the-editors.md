@@ -4,7 +4,7 @@
 from a colleague's.
 
 TRATT offers several editors over the *same* transcript. Switching between them
-changes nothing but your view — you can move between them mid-file, as often as you
+changes nothing but your view; you can move between them mid-file, as often as you
 like, using the buttons at the left of the top bar.
 
 The default is the **2D-Editor**.
@@ -13,8 +13,8 @@ The default is the **2D-Editor**.
 
 ## 2D-Editor
 
-The workhorse. The recording is drawn as a waveform broken into lines — like text
-wrapping — with each transcription unit shaded and its text printed underneath.
+The workhorse. The recording is drawn as a waveform broken into lines, like text
+wrapping, with each transcription unit shaded and its text printed underneath.
 
 ![The 2D-Editor with the transcription window open](../assets/visp_tratt_popup_editor_audio_only.png)
 
@@ -34,7 +34,7 @@ The pop-up you get with **Enter**. It shows one unit: its own waveform, a player
 the marker toolbar, and a text field.
 
 - **Tab** / **Esc** play, pause and stop.
-- **Alt + ←** and **Alt + →** save and step to the previous or next unit — this is
+- **Alt + ←** and **Alt + →** save and step to the previous or next unit; this is
   the fastest way through a file.
 - **Alt + ↓** saves and closes.
 - **Ctrl/Cmd + S** cycles the speaker label.
@@ -82,13 +82,13 @@ mouse is over.
 
 <a id="trn-editor--experimental"></a>
 
-## TRN-Editor — experimental
+## TRN-Editor (experimental)
 
 A table view of the whole transcript, with per-speaker operations (merge segments
 with the same speaker label, replace permutations).
 
 **You will not see it.** The standard TRATT configuration offers only the three
-editors above, and the TRN-Editor is not finished anyway — its keyboard shortcuts
+editors above, and the TRN-Editor is not finished anyway: its keyboard shortcuts
 are not wired up and opening a segment does nothing. It is documented here only so
 that you know what the name refers to if you meet it in the code or in the upstream
 OCTRA manual.

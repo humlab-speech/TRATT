@@ -26,7 +26,7 @@ For reading, sharing and publishing. **Only SRT can be loaded back into TRATT.**
 | --- | --- | --- |
 | **DOCX** | `.docx` | Word. The format most people actually want the transcript in. |
 | **ODT** | `.odt` | LibreOffice / OpenOffice. Same options as DOCX. |
-| **SubRip** | `.srt` | Subtitles, video players — and the one format in this group you can re-import |
+| **SubRip** | `.srt` | Subtitles, video players, and the one format in this group you can re-import |
 | **Plain text** | `.txt` | Anything that reads text |
 
 ### Linguistic formats
@@ -35,7 +35,7 @@ All of these can be loaded back into TRATT.
 
 | Format | File | Good for |
 | --- | --- | --- |
-| **AnnotJSON** | `_annot.json` | **TRATT's own format.** Keeps everything — tiers, boundaries, speakers, markers. Export this alongside whatever else you need. |
+| **AnnotJSON** | `_annot.json` | **TRATT's own format.** Keeps everything: tiers, boundaries, speakers, markers. Export this alongside whatever else you need. |
 | **TextGrid** | `.TextGrid` | Praat |
 | **ELAN** | `.eaf` | ELAN. Put the `.eaf` in the same folder as the audio or ELAN will not find the media. |
 | **Praat Table** | `.Table` | Praat's table format |
@@ -46,7 +46,7 @@ All of these can be loaded back into TRATT.
 | --- | --- | --- |
 | **WebVTT** | `.vtt` | Web video subtitles |
 | **BAS Partitur** | `.par` | BAS web services. Export writes ORT and TRN lines from the transcription. |
-| **CTM** | `.ctm` | Speech-recognition scoring tools. Confidence is always written as 1 — TRATT does not track it. |
+| **CTM** | `.ctm` | Speech-recognition scoring tools. Confidence is always written as 1; TRATT does not track it. |
 
 > **Always take an AnnotJSON copy.** DOCX and ODT are one-way: they read well and
 > import badly. If you might need to correct the transcript in six months, the
@@ -72,7 +72,7 @@ All of these can be loaded back into TRATT.
 | **Mark speaker ID at the beginning of sentences** | As above |
 | **Add a line break after each transcription unit** | One unit per line |
 | **Separate transcription units by readable timestamps (HH:MM:SS.s)** | Human-readable times between units |
-| **Separate transcription units by sample points** | Sample positions between units — for lining up against the signal elsewhere |
+| **Separate transcription units by sample points** | Sample positions between units, for lining up against the signal elsewhere |
 | **Collect annotations according to transcription tier in the output** | Shown when more than one tier is selected |
 
 Ticking both time options inserts both.
@@ -99,8 +99,8 @@ This only comes up when your transcript has more than one tier.
 ### Meta data
 
 The dialog also offers the meta data logged while you worked. It is only available
-if **Log user actions** was on in Preferences. It is a research artefact — keystroke
-and playback history — not part of the transcript.
+if **Log user actions** was on in Preferences. It is a research artefact (keystroke
+and playback history), not part of the transcript.
 
 ---
 
@@ -114,7 +114,7 @@ Drop these alongside your audio on the start page to continue existing work.
 | --- | --- |
 | **AnnotJSON** (`_annot.json`) | Complete round trip. Prefer this. |
 | **WhisperJSON** (`.json`) | Output from Whisper / WhisperX run elsewhere. Only timestamps and text are read; everything else is ignored. |
-| **SubRip** (`.srt`) | With speaker-extraction options — see [Tiers and speakers](tiers-and-speakers.md#importing-material-that-already-has-speakers) |
+| **SubRip** (`.srt`) | With speaker-extraction options; see [Tiers and speakers](tiers-and-speakers.md#importing-material-that-already-has-speakers) |
 | **WebVTT** (`.vtt`) | Reads `<v Name>` voice tags. STYLE, REGION and NOTE blocks are ignored; multi-line cues are merged. |
 | **Plain text** (`.txt`) | |
 | **TextGrid** (`.TextGrid`), **Praat Table** (`.Table`) | |
@@ -125,7 +125,7 @@ Drop these alongside your audio on the start page to continue existing work.
 The transcript file's name must match the audio file's name, or TRATT rejects it
 with *Transcript filename does not match the audio filename*.
 
-DOCX and ODT cannot be imported. Neither can Bundle JSON — it appears in the code
+DOCX and ODT cannot be imported. Neither can Bundle JSON: it appears in the code
 but export is disabled.
 
 ---

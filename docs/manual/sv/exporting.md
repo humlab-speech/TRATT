@@ -27,7 +27,7 @@ För att läsa, dela och publicera. **Bara SRT kan läsas tillbaka in i TRATT.**
 | --- | --- | --- |
 | **DOCX** | `.docx` | Word. Det format de flesta faktiskt vill ha transkriptet i. |
 | **ODT** | `.odt` | LibreOffice / OpenOffice. Samma alternativ som DOCX. |
-| **SubRip** | `.srt` | Undertexter, videospelare — och det enda formatet i gruppen som går att importera igen |
+| **SubRip** | `.srt` | Undertexter, videospelare, och det enda formatet i gruppen som går att importera igen |
 | **PlainText** | `.txt` | Allt som läser text |
 
 ### Lingvistiska format
@@ -36,7 +36,7 @@ Alla dessa kan läsas tillbaka in i TRATT.
 
 | Format | Fil | Bra för |
 | --- | --- | --- |
-| **AnnotJSON** | `_annot.json` | **TRATT:s eget format.** Behåller allt — nivåer, gränser, talare, markörer. Exportera det vid sidan av vad du annars behöver. |
+| **AnnotJSON** | `_annot.json` | **TRATT:s eget format.** Behåller allt: nivåer, gränser, talare, markörer. Exportera det vid sidan av vad du annars behöver. |
 | **TextGrid** | `.TextGrid` | Praat |
 | **ELAN** | `.eaf` | ELAN. Lägg `.eaf`-filen i samma mapp som ljudet, annars hittar ELAN inte mediet. |
 | **PraatTextTable** | `.Table` | Praats tabellformat |
@@ -47,7 +47,7 @@ Alla dessa kan läsas tillbaka in i TRATT.
 | --- | --- | --- |
 | **WebVTT** | `.vtt` | Undertexter för webbvideo |
 | **BASPartitur** | `.par` | BAS-webbtjänsterna. Exporten skriver ORT- och TRN-rader ur transkriptionen. |
-| **CTM** | `.ctm` | Verktyg för utvärdering av taligenkänning. Konfidensvärdet skrivs alltid som 1 — TRATT håller inte reda på det. |
+| **CTM** | `.ctm` | Verktyg för utvärdering av taligenkänning. Konfidensvärdet skrivs alltid som 1. TRATT håller inte reda på det. |
 
 > **Ta alltid en AnnotJSON-kopia.** DOCX och ODT är enkelriktade: de läses bra och
 > importeras illa. Kan du behöva rätta transkriptet om ett halvår är det
@@ -73,7 +73,7 @@ Alla dessa kan läsas tillbaka in i TRATT.
 | **Markera talar-ID i början av meningar** | Som ovan |
 | **Lägg till en radbrytning efter varje transkriptionsenhet** | En enhet per rad |
 | **Separera transkriptionsenheter med läsbara tidsstämplar (HH:MM:SS.s)** | Läsbara tider mellan enheter |
-| **Separera transkriptionsenheter med sampelpunkter** | Sampellägen mellan enheter — för att lägga texten mot signalen någon annanstans |
+| **Separera transkriptionsenheter med sampelpunkter** | Sampellägen mellan enheter, för att lägga texten mot signalen någon annanstans |
 | **Collect annotations according to transcription tier in the output** | Visas när fler än en nivå är vald |
 
 Markerar du båda tidsalternativen infogas båda.
@@ -100,7 +100,7 @@ Detta blir aktuellt först när ditt transkript har mer än en nivå.
 
 Dialogen erbjuder också de metadata som loggats medan du arbetade. De finns bara
 om **Logga användaråtgärder** var på i Inställningar. Det är ett
-forskningsmaterial — tangent- och uppspelningshistorik — inte en del av
+forskningsmaterial (tangent- och uppspelningshistorik), inte en del av
 transkriptet.
 
 ---
@@ -116,7 +116,7 @@ befintligt arbete.
 | --- | --- |
 | **AnnotJSON** (`_annot.json`) | Fullständig rundtur. Föredra detta. |
 | **WhisperJSON** (`.json`) | Utdata från Whisper / WhisperX kört någon annanstans. Bara tidsstämplar och text läses; allt annat ignoreras. |
-| **SubRip** (`.srt`) | Med alternativ för talarextraktion — se [Nivåer och talare](tiers-and-speakers.md#importing-material-that-already-has-speakers) |
+| **SubRip** (`.srt`) | Med alternativ för talarextraktion, se [Nivåer och talare](tiers-and-speakers.md#importing-material-that-already-has-speakers) |
 | **WebVTT** (`.vtt`) | Läser `<v Namn>`-taggar. STYLE-, REGION- och NOTE-block ignoreras; flerradiga textblock slås ihop. |
 | **PlainText** (`.txt`) | |
 | **TextGrid** (`.TextGrid`), **PraatTextTable** (`.Table`) | |
@@ -127,7 +127,7 @@ befintligt arbete.
 Transkriptfilens namn måste matcha ljudfilens namn, annars avvisar TRATT den med
 *Transkriptfilens namn matchar inte ljudfilens namn*.
 
-DOCX och ODT kan inte importeras. Inte heller Bundle JSON — det finns i koden men
+DOCX och ODT kan inte importeras. Inte heller Bundle JSON: det finns i koden men
 export är avstängd.
 
 ---

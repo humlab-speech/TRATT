@@ -21,7 +21,7 @@ differ and both are given.
 ## Audio playback
 
 These work in every editor. In the Linear Editor the lower (loupe) display has its
-own set — see below.
+own set; see below.
 
 | Keys | Action |
 | --- | --- |
@@ -49,7 +49,7 @@ no text field focused.
 | **Ctrl + Z** / **Cmd + Z** | Undo |
 | **Ctrl + Y** / **Shift + Cmd + Z** | Redo |
 
-### Cloud speech recognition — usually inactive
+### Cloud speech recognition (usually inactive)
 
 | Keys | Action |
 | --- | --- |
@@ -62,7 +62,7 @@ by an administrator plus an authenticated session. The standard TRATT installati
 has none: the keys do nothing, the **ASR Options** panel is absent from Preferences,
 and these three shortcuts do not even appear in the in-app Shortcuts window
 (**Alt + 8**). If you see them listed there, your installation has been configured
-with an external provider — read [What leaves your computer](privacy.md) before
+with an external provider, read [What leaves your computer](privacy.md) before
 using them. TRATT's own local speech recognition is
 [on the start page](automatic-transcription.md) instead.
 
@@ -82,30 +82,30 @@ using them. TRATT's own local speech recognition is
 
 ## Text field
 
-Wherever you are typing a transcription — the transcription window, the Dictaphone
+Wherever you are typing a transcription: the transcription window, the Dictaphone
 Editor, or an Overview row.
 
 | Keys | Action |
 | --- | --- |
-| **Alt + 1** | `[~abc]` — word cut off at the start |
-| **Alt + 2** | `<nib>` — filled pause |
-| **Alt + 3** | `[int]` — intermittent noise |
-| **Alt + 4** | `[spk]` — speaker noise |
-| **Alt + 5** | `[sta]` — stationary noise |
-| **Alt + 6** | `**` — unintelligible / foreign word follows |
-| **Alt + 7** | `[abc~]` — word cut off at the end |
-| **Alt + P** | `<P>` — mark this unit as a break |
+| **Alt + 1** | `[~abc]`: word cut off at the start |
+| **Alt + 2** | `<nib>`: filled pause |
+| **Alt + 3** | `[int]`: intermittent noise |
+| **Alt + 4** | `[spk]`: speaker noise |
+| **Alt + 5** | `[sta]`: stationary noise |
+| **Alt + 6** | `**`: unintelligible / foreign word follows |
+| **Alt + 7** | `[abc~]`: word cut off at the end |
+| **Alt + P** | `<P>`: mark this unit as a break |
 | **Alt + S** | Insert a crop mark: split the unit at the playback position and the text at the cursor |
 | **Ctrl + Z** / **Cmd + Z** | Undo |
 | **Ctrl + Y** / **Shift + Cmd + Z** | Redo |
 
 Markers come from the project's guidelines file. A differently configured
-installation may offer a different set — the toolbar above the text field always
+installation may offer a different set; the toolbar above the text field always
 shows the truth.
 
 ---
 
-## Linear Editor — the two displays
+## Linear Editor: the two displays
 
 | | Upper (overview) | Lower (loupe) |
 | --- | --- | --- |
@@ -116,7 +116,7 @@ shows the truth.
 
 ---
 
-## TRN-Editor table — experimental
+## TRN-Editor table (experimental)
 
 Listed for completeness only. The TRN-Editor is not offered in the editor switcher
 and is unfinished; its shortcuts are not connected. See

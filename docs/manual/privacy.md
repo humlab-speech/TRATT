@@ -4,8 +4,8 @@
 "where did the audio go?" is a question you have to be able to answer.
 
 **Short answer:** your recording and your transcript never leave the browser.
-The only thing TRATT downloads on your behalf is the app itself and — if you
-switch it on — a speech or translation model.
+The only thing TRATT downloads on your behalf is the app itself and, if you
+switch it on, a speech or translation model.
 
 ---
 
@@ -26,12 +26,12 @@ same file in again and your text is waiting.
 
 **1. The application itself.** Loading the page fetches TRATT's own files from
 whichever server hosts it. TRATT installs a service worker, so after the first
-successful load the app runs from your browser's cache — you can go fully offline
+successful load the app runs from your browser's cache: you can go fully offline
 and keep transcribing. Your browser will pick up a new version of the app when one
 is published; TRATT shows a *New update available* notice rather than reloading
 under you.
 
-**2. Speech-recognition and translation models — only if you ask for them.**
+**2. Speech-recognition and translation models, only if you ask for them.**
 Ticking **Auto-transcribe with Whisper**, **Speaker separation** or
 **Translate transcript locally** downloads the selected model from
 `huggingface.co` (between roughly 100 MB and 3 GB depending on the model). The
@@ -64,11 +64,11 @@ alternative and is unaffected.
 Open the hidden maintenance page by adding `/help-tools` to TRATT's address (for
 example `http://localhost:5321/help-tools`) and use **Clear all Storage Data**. It
 removes the stored transcript, logs and settings from this browser permanently. Do
-this on a shared machine when you are finished — after exporting your work. The
+this on a shared machine when you are finished, after exporting your work. The
 same page can also make a zip backup of your local TRATT data and restore one; see
 [Troubleshooting](troubleshooting.md#the-maintenance-page).
 
 Browsers also clear IndexedDB when you clear site data, use a private window that
 you then close, or run storage-cleanup tooling. Treat the in-browser copy as a
-working convenience, not as your archive — [export a file](exporting.md) whenever
+working convenience, not as your archive; [export a file](exporting.md) whenever
 you stop.

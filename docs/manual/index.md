@@ -5,7 +5,7 @@ web browser. You load a sound or video file, optionally let a speech-recognition
 model write a first draft, correct that draft against the audio, and export the
 result as a document, subtitle file or annotation file.
 
-Nothing you load is uploaded anywhere. The recording never leaves your computer —
+Nothing you load is uploaded anywhere. The recording never leaves your computer;
 see [What leaves your computer](privacy.md) for exactly what does.
 
 ---
@@ -14,7 +14,7 @@ see [What leaves your computer](privacy.md) for exactly what does.
 
 | If you are… | Go to |
 | --- | --- |
-| **New here.** You have a recording and want text out of it, today. | [Quick start — your first transcription](quick-start.md) *(about 5 minutes of reading, plus model download time)* |
+| **New here.** You have a recording and want text out of it, today. | [Quick start: your first transcription](quick-start.md) *(about 5 minutes of reading, plus model download time)* |
 | **Transcribing for real.** You work in TRATT regularly and want to be fast and correct. | [How transcribing works](transcribing.md), then [Keyboard shortcuts](shortcuts.md) |
 | **Looking one thing up.** | The reference list below |
 
@@ -24,28 +24,28 @@ see [What leaves your computer](privacy.md) for exactly what does.
 
 **Getting your material in**
 
-- [Quick start — your first transcription](quick-start.md)
-- [Loading a recording](loading-media.md) — upload, record in the browser, supported formats, resuming a session
-- [Automatic draft transcription](automatic-transcription.md) — speech-recognition models, languages, speaker separation, translation
+- [Quick start: your first transcription](quick-start.md)
+- [Loading a recording](loading-media.md): upload, record in the browser, supported formats, resuming a session
+- [Automatic draft transcription](automatic-transcription.md): speech-recognition models, languages, speaker separation, translation
 - [What leaves your computer](privacy.md)
 
 **Doing the work**
 
-- [How transcribing works](transcribing.md) — transcription units, boundaries, markers, speakers
-- [The editors](the-editors.md) — 2D, Dictaphone, Linear
+- [How transcribing works](transcribing.md): transcription units, boundaries, markers, speakers
+- [The editors](the-editors.md): 2D, Dictaphone, Linear
 - [Tiers and speakers](tiers-and-speakers.md)
-- [Checking your work](checking-your-work.md) — the Overview window, statistics, guidelines
-- [Tools](using-tools.md) — combining units, cutting audio, custom tables
+- [Checking your work](checking-your-work.md): the Overview window, statistics, guidelines
+- [Tools](using-tools.md): combining units, cutting audio, custom tables
 
 **Getting your work out**
 
-- [Exporting](exporting.md) — every format TRATT can write, and what each is good for
+- [Exporting](exporting.md): every format TRATT can write, and what each is good for
 
 **Reference**
 
 - [Keyboard shortcuts](shortcuts.md)
 - [Troubleshooting](troubleshooting.md)
-- [Glossary](glossary.md) — what TRATT calls things
+- [Glossary](glossary.md): what TRATT calls things
 - [Coming from the OCTRA manual](coming-from-octra.md)
 
 ---

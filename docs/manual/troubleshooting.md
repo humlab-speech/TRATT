@@ -9,7 +9,7 @@ The extension is not in TRATT's list. Convert to `.wav` or `.mp3` and try again.
 See [supported formats](loading-media.md#supported-file-formats).
 
 **"File exceeds the maximum allowed size of 3000 MB." or an invalid-size error**
-Two limits apply: a global 3000 MB ceiling, and a per-format one — 1.9 GB for
+Two limits apply: a global 3000 MB ceiling, and a per-format one: 1.9 GB for
 `.wav`, 500 MB for everything else. A long `.wav` is the usual culprit; convert it
 to FLAC or MP3, or split the recording.
 
@@ -18,7 +18,7 @@ TRATT pairs the two by name. Rename the transcript so its base name matches the
 audio's, e.g. `interview3.wav` with `interview3_annot.json`.
 
 **The transcript file sits there with a spinner**
-It is waiting for audio. Drop the media file too — a transcript alone cannot be
+It is waiting for audio. Drop the media file too. A transcript alone cannot be
 opened.
 
 **Loading a video takes a long time**
@@ -37,10 +37,10 @@ downloads, losing your work, so TRATT disables the feature there. Use Chrome, Ed
 or Firefox. Manual transcription in Safari is unaffected.
 
 **The checkbox is missing entirely**
-It only appears once audio has loaded *and* no transcript file has been supplied —
-there is nothing to draft if you already brought a transcript.
+It only appears once audio has loaded *and* no transcript file has been supplied.
+There is nothing to draft if you already brought a transcript.
 
-**Medium and Large models are greyed out — "Requires WebGPU"**
+**Medium and Large models are greyed out, "Requires WebGPU"**
 Your browser or graphics hardware does not expose WebGPU. Use Tiny or Small, or run
 TRATT on a machine with a discrete graphics card. In Chrome and Edge you can check
 at `chrome://gpu`.
@@ -60,12 +60,12 @@ Everything then runs on WASM: slower, and only the smaller models remain availab
 **It is taking a very long time**
 Model size, recording length and hardware all multiply. Speaker separation adds more
 still, because that model always runs on the CPU. The progress bar shows position
-within the recording — if it is moving, it is working. If you need an estimate,
+within the recording. If it is moving, it is working. If you need an estimate,
 run a five-minute excerpt first.
 
 **The speaker labels are wrong**
 Diarization is a guess. Give it the expected number of speakers next time, and fix
-labels with **Ctrl/Cmd + S** — see
+labels with **Ctrl/Cmd + S**, see
 [Tiers and speakers](tiers-and-speakers.md#fixing-speaker-labels).
 
 ---
@@ -108,7 +108,7 @@ check System Settings → Privacy & Security → Microphone for your browser.
 Browsers hide device labels until permission has been granted once. Click
 **Request access**, then **Refresh devices**.
 
-**"Your browser does not support MP4 recording — saving as WebM."**
+**"Your browser does not support MP4 recording, saving as WebM."**
 Firefox. Harmless: TRATT accepts both.
 
 **The volume light stays red**
@@ -143,15 +143,15 @@ copy that lives outside the browser.
 
 ## The maintenance page
 
-Not linked from the interface: add `/help-tools` to TRATT's address — for example
+Not linked from the interface: add `/help-tools` to TRATT's address, for example
 `http://localhost:5321/help-tools`.
 
 | Tool | Use it when |
 | --- | --- |
-| **Refresh App** | TRATT is behaving oddly after an update — forces a reload and refreshes the cache |
+| **Refresh App** | TRATT is behaving oddly after an update: forces a reload and refreshes the cache |
 | **Clear all Storage Data** | You are finished on a shared machine, or storage is corrupt. Removes the transcript, logs and settings permanently. |
 | **Stresstest** | Checking whether this browser and machine can cope |
-| **Backup local data** | Before clearing anything, or before a browser update — downloads a zip of TRATT's local data |
+| **Backup local data** | Before clearing anything, or before a browser update: downloads a zip of TRATT's local data |
 | **Restore local backup** | Putting that zip back |
 
 **Clear all Storage Data cannot be undone.** Export your transcript, or take a
@@ -162,7 +162,7 @@ backup, first.
 ## Reporting a problem
 
 TRATT has a built-in feedback form (the question-mark icon in the top bar), but it
-only appears when the app is connected to an OCTRA backend — which the standard
+only appears when the app is connected to an OCTRA backend, which the standard
 local-only TRATT deployment is not. In that case, report problems on the project's
 issue tracker: <https://github.com/humlab-speech/TRATT/issues>.
 
@@ -174,6 +174,6 @@ Whichever route you use, a bug report is usually not actionable without:
 - what you did, what you expected, and what happened instead;
 - anything in the browser's developer console (F12 → Console).
 
-If the in-app form is available, tick the option to include the protocol — the log
+If the in-app form is available, tick the option to include the protocol: the log
 of what the app was doing. It is generated from your session, so read it first if
 the material is sensitive.

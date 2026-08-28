@@ -14,19 +14,19 @@ lyssnandet.
 
 ## Slå på det
 
-Ladda in mediefilen först — alternativen dyker upp först när TRATT har ljud och
-du **inte** har lämnat in en egen transkriptfil.
+Ladda in mediefilen först. Alternativen dyker upp när TRATT har ljud och du
+**inte** har lämnat in en egen transkriptfil.
 
 Under släppytan markerar du **Automatisk transkribering med Whisper** och ställer
 sedan in:
 
-1. **Transkriptionsspråk** — det språk som faktiskt talas på inspelningen. Ett
+1. **Transkriptionsspråk**: det språk som faktiskt talas på inspelningen. Ett
    hundratal språk erbjuds, listade med sina egna namn (*Svenska (Swedish, sv)*,
    *Suomi (Finnish, fi)*), med svenska först och resten i bokstavsordning. TRATT
    förvaljer det språk gränssnittet är inställt på, så byt om inspelningen är på
    något annat. Detta är inte en översättningsinställning.
-2. **Modell** — se tabellerna nedan.
-3. **Speaker separation** (talarseparation, valfritt) — se
+2. **Modell**: se tabellerna nedan.
+3. **Speaker separation** (talarseparation, valfritt): se
    [Talarseparation](#speaker-separation).
 
 Klicka sedan **Starta ny transkription**. Du ser i tur och ordning:
@@ -67,7 +67,7 @@ bättre än den allmänna modellen för svenska.
 | Medium | 650 MB | Märkt *Vår jämförelsemodell*. Kräver WebGPU. |
 | Large | 1,2 GB | Mest noggrann, ungefär halva hastigheten mot Medium. Kräver WebGPU. |
 
-> Modellnamnen i det svenska gränssnittet är delvis felöversatta — flera visas som
+> Modellnamnen i det svenska gränssnittet är delvis felöversatta: flera visas som
 > "Liten" oavsett storlek. Gå efter storleken i MB, som stämmer.
 
 ### Finska och norska
@@ -85,17 +85,17 @@ Använder OpenAI:s Whisper.
 | --- | --- | --- |
 | Tiny | 95 MB | Snabbast, minst noggrann |
 | Small | 290 MB | **Förvald.** En rimlig kompromiss. |
-| Large v3 Turbo | 700 MB | Märkt *vår valda referensmodell* — snabb och noggrann. Kräver WebGPU. |
+| Large v3 Turbo | 700 MB | Märkt *vår valda referensmodell*, snabb och noggrann. Kräver WebGPU. |
 | Large v3 | 3,1 GB | Långsammare än Turbo, ofta något noggrannare. Kräver WebGPU. |
 
-TRATT förväljer Small här, inte referensmodellen — har din dator WebGPU och
+TRATT förväljer Small här, inte referensmodellen. Har din dator WebGPU och
 inspelningen är viktig, byt till **Large v3 Turbo**.
 
 ### Om nedladdningen
 
 Modellen hämtas från `huggingface.co` första gången du använder den och sparas
 sedan i webbläsaren, så nästa körning startar direkt. Ditt ljud skickas aldrig
-någonstans — se [Vad lämnar din dator](privacy.md).
+någonstans. Se [Vad lämnar din dator](privacy.md).
 
 Avbryts nedladdningen, försök igen; fortsätter den att misslyckas blockerar
 nätverket `huggingface.co` och automatisk transkription är inte tillgänglig på
@@ -114,7 +114,7 @@ inspelningen efter talare och märker varje transkriptionsenhet med ett talar-ID
 - Fyll i om du vet: `2` för en vanlig intervju. Att ange det verkliga antalet ger
   oftast ett renare resultat än automatisk detektering.
 
-Modellen körs på processorn oavsett WebGPU, så den lägger till tid — räkna med
+Modellen körs på processorn oavsett WebGPU, så den lägger till tid. Räkna med
 märkbart längre bearbetning för en lång inspelning.
 
 Resultatet är en utgångspunkt, inte ett fynd. Talare som låter lika, prat i mun på
@@ -129,17 +129,17 @@ varandra och bakgrundsröster förvirrar den. Du kan rätta etiketterna efteråt
 
 TRATT kan också översätta, lokalt, med Opus-MT-modeller.
 
-**På startsidan.** Så snart det finns ett transkript att arbeta med — antingen ett
-du laddat in eller ett som automatisk transkription är på väg att skapa — dyker
+**På startsidan.** Så snart det finns ett transkript att arbeta med (antingen ett
+du laddat in eller ett som automatisk transkription är på väg att skapa) dyker
 rutan **Översätt transkriptionen lokalt** upp. Välj **Från** (ett trettiotal
 språk) och **Till**. Listan **Till** erbjuder bara språk som faktiskt går att nå
 från din källa, och märker vägar som måste gå via engelska med *(två steg)*. TRATT
 talar sedan om vilken väg som används:
 
-- *Direkt opus-mt-modell* — en modell, ett steg.
-- *Pivot via engelska (två opus-mt-modeller)* — ingen direktmodell finns, så det
+- *Direkt opus-mt-modell*: en modell, ett steg.
+- *Pivot via engelska (två opus-mt-modeller)*: ingen direktmodell finns, så det
   går via engelska. Långsammare, och kvaliteten blir något sämre.
-- *Ingen lokal översättningsmodell hittades för detta språkpar* — det paret är
+- *Ingen lokal översättningsmodell hittades för detta språkpar*: det paret är
   inte möjligt.
 
 Översättningen körs på din dator och kan ta flera minuter.

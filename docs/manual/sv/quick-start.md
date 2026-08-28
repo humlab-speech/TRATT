@@ -1,9 +1,9 @@
-# Snabbstart — din första transkription
+# Snabbstart: din första transkription
 
 **För:** dig som just har öppnat TRATT och har en inspelning att transkribera.
 **Du får:** ett rättat transkript sparat som en fil på din dator.
 **Tid:** ungefär tio minuters uppmärksamhet. Använder du automatisk transkription
-tillkommer tid för nedladdning och bearbetning — se steg 3.
+tillkommer tid för nedladdning och bearbetning, se steg 3.
 
 Du behöver inget konto. Du behöver inte installera något.
 
@@ -16,7 +16,7 @@ Du landar på en sida med rubriken **Transkribera samtal lokalt i din webbläsar
 ![TRATT:s startsida](../../assets/visp_tratt_main.png)
 
 Använd **Chrome**, **Edge**, **Firefox** eller **Opera**. Safari fungerar för
-manuell transkribering men kan inte köra automatisk transkription — se
+manuell transkribering men kan inte köra automatisk transkription. Se
 [Felsökning](troubleshooting.md#automatic-transcription-is-greyed-out).
 
 ## 2. Ladda in din inspelning
@@ -47,7 +47,7 @@ När filen är inläst dyker en ruta upp under släppytan med kryssrutan
 - **Markera den** så skriver en taligenkänningsmodell ett utkast som du sedan
   rättar. Välj **Transkriptionsspråk** och därefter en modellstorlek. Större
   modeller är noggrannare och långsammare, och första gången måste modellen
-  laddas ned (ungefär 100 MB till 3 GB — den sparas i webbläsaren till nästa
+  laddas ned (ungefär 100 MB till 3 GB, den sparas i webbläsaren till nästa
   gång).
 
   Markera vid behov **Speaker separation** (talarseparation) så gissar TRATT vem
@@ -60,7 +60,7 @@ modellen. Detaljer och rekommendationer:
 
 ## 4. Starta
 
-Klicka på knappen under rutan — **Starta ny transkription**.
+Klicka på knappen under rutan: **Starta ny transkription**.
 
 Har du bett om ett utkast ser du nu förloppet: först modellnedladdningen, sedan
 *Transkriberar ljud…* med en tidräknare, och därefter *Identifierar talare…* om
@@ -72,7 +72,7 @@ vara kvar öppen. När det är klart öppnas redigeraren av sig själv.
 Du hamnar i **2D Vy**: inspelningen ritas som en vågform på flera rader, en rad
 efter den andra, med texten under varje talstycke.
 
-TRATT kallar varje sådant stycke en **transkriptionsenhet** — ett yttrande,
+TRATT kallar varje sådant stycke en **transkriptionsenhet**: ett yttrande,
 ungefär en undertextrad. Andra verktyg kallar det ett segment.
 
 ![Rätta en enhet i transkriptionsfönstret](../../assets/visp_tratt_popup_editor_audio_only.png)
@@ -84,10 +84,10 @@ Så här rättar du en enhet:
 2. Tryck **Tabb** för att spela upp, **Tabb** igen för att pausa, **Esc** för att
    stoppa.
 3. Rätta texten.
-4. Tryck **Alt + →** för att spara och gå till nästa enhet — eller **Alt + ↓**
+4. Tryck **Alt + →** för att spara och gå till nästa enhet, eller **Alt + ↓**
    för att spara och stänga fönstret.
 
-Den slingan — Enter, Tabb, skriv, Alt + → — är hela arbetet. Allt annat är
+Den slingan (Enter, Tabb, skriv, Alt + →) är hela arbetet. Allt annat är
 finjustering.
 
 Behöver du markera något som inte är ord (en paus, skratt, bakgrundsljud, ett
@@ -106,7 +106,7 @@ rad för att redigera den där, eller på ▶ för att lyssna på den.
 
 ## 7. Exportera
 
-Klicka på **Exportera** — nedladdningsikonen i den övre listen, och även en knapp
+Klicka på **Exportera**: nedladdningsikonen i den övre listen, och även en knapp
 längst ned i redigeraren. Dialogen heter *Exportera transkriptioner*. Välj format
 och klicka på **Ladda ner**.
 
@@ -130,7 +130,7 @@ alternativ beskrivs under [Exportera](exporting.md).
 ## Två saker värda att veta innan du stänger fliken
 
 **TRATT minns ditt transkript, men aldrig din inspelning.** När du kommer
-tillbaka finns texten kvar — men du måste dra in samma mediefil igen för att
+tillbaka finns texten kvar, men du måste dra in samma mediefil igen för att
 kunna arbeta vidare. Exportera en fil varje gång du slutar för dagen.
 
 **Ingenting laddades upp.** Din inspelning stannade på din dator hela tiden. Se
