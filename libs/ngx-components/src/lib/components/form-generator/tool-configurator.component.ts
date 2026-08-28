@@ -9,6 +9,41 @@ import {
 import { SubscriberComponent } from '@tratt/ngx-utilities';
 import { ToolconfigGroupComponent } from './toolconfig-group/toolconfig-group.component';
 
+/**
+ * Any JSON value that may appear as data driven by a {@link ToolConfigJsonSchema}.
+ * The object variant doubles as the shape of `json`/`jsonText` payloads this
+ * component reads and writes.
+ */
+export type JsonSchemaValue =
+  | string
+  | number
+  | boolean
+  | null
+  | JsonSchemaValue[]
+  | ToolConfigJsonValue;
+
+export type ToolConfigJsonValue = { [key: string]: JsonSchemaValue };
+
+/**
+ * Minimal JSON-Schema-like shape this dynamic form generator understands.
+ * Only the subset of keywords actually read by {@link ToolConfiguratorComponent}
+ * and its `parse()` method are modelled here.
+ */
+export interface ToolConfigJsonSchema {
+  type?: 'object' | 'string' | 'number' | 'integer' | 'boolean' | 'array';
+  title?: string;
+  name?: string;
+  description?: string;
+  default?: JsonSchemaValue;
+  enum?: string[];
+  toggleable?: boolean;
+  dependsOn?: string[];
+  properties?: Record<string, ToolConfigJsonSchema>;
+  items?: ToolConfigJsonSchema;
+  /** Gate used by the template to decide whether a GUI form can be rendered at all. */
+  $gui_support?: boolean;
+}
+
 @Component({
   selector: 'tratt-form-configurator',
   templateUrl: './tool-configurator.component.html',
@@ -19,17 +54,17 @@ export class ToolConfiguratorComponent
   extends SubscriberComponent
   implements OnChanges
 {
-  @Input() jsonSchema?: any;
+  @Input() jsonSchema?: ToolConfigJsonSchema;
   @Input() jsonText?: string;
   form?: ConfigurationControlGroup;
-  json?: any;
+  json?: ToolConfigJsonValue;
   private ownChange = false;
 
   @Output() jsonTextChange = new EventEmitter<string>();
 
   private parse(
-    schema: any,
-    json?: any,
+    schema: ToolConfigJsonSchema,
+    json?: ToolConfigJsonValue,
     name?: string,
   ): (ConfigurationControl | ConfigurationControlGroup)[] {
     const result: (ConfigurationControl | ConfigurationControlGroup)[] = [];
@@ -47,8 +82,12 @@ export class ToolConfiguratorComponent
             {
               title: schema['title'] ?? name,
               type: 'text',
-              value: jsonValue ?? defaultValue,
-              defaultValue,
+              // Guarded by the items['type'] === 'string' check above: an
+              // array-of-string schema always carries a string[] value.
+              value: (jsonValue ?? defaultValue) as
+                | (string | number)[]
+                | undefined,
+              defaultValue: defaultValue as (string | number)[] | undefined,
               description: schema['description'],
               ignore: false,
               context: items['enum'],
@@ -58,6 +97,7 @@ export class ToolConfiguratorComponent
             this.form,
           );
 
+          control.itemsType = 'text';
           control.toggled =
             json && name !== undefined && Object.keys(json).includes(name);
           result.push(control);
@@ -67,8 +107,11 @@ export class ToolConfiguratorComponent
             {
               title: schema['title'] ?? name,
               type: 'number',
-              value: jsonValue ?? defaultValue,
-              defaultValue,
+              // Guarded by the items['type'] === 'number' check above.
+              value: (jsonValue ?? defaultValue) as
+                | (string | number)[]
+                | undefined,
+              defaultValue: defaultValue as (string | number)[] | undefined,
               description: schema['description'],
               ignore: false,
               context: items['enum'],
@@ -77,6 +120,7 @@ export class ToolConfiguratorComponent
             },
             this.form,
           );
+          control.itemsType = 'number';
           control.toggled =
             json && name !== undefined && Object.keys(json).includes(name);
           result.push(control);
@@ -87,8 +131,11 @@ export class ToolConfiguratorComponent
               title: schema['title'] ?? name,
               toggleable: schema['toggleable'],
               type: 'integer',
-              value: jsonValue ?? defaultValue,
-              defaultValue,
+              // Guarded by the items['type'] === 'integer' check above.
+              value: (jsonValue ?? defaultValue) as
+                | (string | number)[]
+                | undefined,
+              defaultValue: defaultValue as (string | number)[] | undefined,
               description: schema['description'],
               dependsOn: schema['dependsOn'],
               ignore: false,
@@ -96,6 +143,7 @@ export class ToolConfiguratorComponent
             },
             this.form,
           );
+          control.itemsType = 'integer';
           control.toggled =
             json && name !== undefined && Object.keys(json).includes(name);
           result.push(control);
@@ -116,7 +164,13 @@ export class ToolConfiguratorComponent
             value['title'] ?? key,
             key,
           );
-          group.controls = this.parse(value, json ? json[key] : undefined, key);
+          group.controls = this.parse(
+            value,
+            // A property that itself declares `properties` always holds a
+            // nested object at runtime.
+            json ? (json[key] as ToolConfigJsonValue | undefined) : undefined,
+            key,
+          );
           result.push(group);
         } else {
           result.push(...this.parse(value, json, key));
@@ -124,9 +178,9 @@ export class ToolConfiguratorComponent
       }
     } else if (schema['type'] && name) {
       const defaultValue = schema['default'];
-      const enumValues: string[] = schema['enum'];
-      const title: string = schema['title'];
-      const description: string = schema['description'];
+      const enumValues: string[] | undefined = schema['enum'];
+      const title: string | undefined = schema['title'];
+      const description: string | undefined = schema['description'];
       const ignore = ['version', '$schema'].includes(name);
 
       if (schema['type'] === 'boolean') {
@@ -134,8 +188,8 @@ export class ToolConfiguratorComponent
           name,
           {
             title: title ?? name,
-            value: jsonValue ?? defaultValue,
-            defaultValue,
+            value: (jsonValue ?? defaultValue) as boolean | undefined,
+            defaultValue: defaultValue as boolean | undefined,
             description,
             ignore,
             dependsOn,
@@ -152,8 +206,8 @@ export class ToolConfiguratorComponent
           {
             title: title ?? name,
             type: 'number',
-            value: jsonValue ?? defaultValue,
-            defaultValue,
+            value: (jsonValue ?? defaultValue) as number | undefined,
+            defaultValue: defaultValue as number | undefined,
             description,
             dependsOn,
             toggleable,
@@ -170,8 +224,8 @@ export class ToolConfiguratorComponent
           {
             title: title ?? name,
             type: 'integer',
-            value: jsonValue ?? defaultValue,
-            defaultValue,
+            value: (jsonValue ?? defaultValue) as number | undefined,
+            defaultValue: defaultValue as number | undefined,
             description,
             ignore,
             toggleable,
@@ -187,8 +241,8 @@ export class ToolConfiguratorComponent
           name,
           {
             title: title ?? name,
-            value: jsonValue ?? defaultValue,
-            defaultValue,
+            value: (jsonValue ?? defaultValue) as string | undefined,
+            defaultValue: defaultValue as string | undefined,
             description,
             ignore,
             toggleable,
@@ -211,8 +265,8 @@ export class ToolConfiguratorComponent
             name,
             {
               title: title ?? name,
-              value: jsonValue ?? defaultValue,
-              defaultValue,
+              value: (jsonValue ?? defaultValue) as string | undefined,
+              defaultValue: defaultValue as string | undefined,
               description,
               ignore,
               toggleable,
@@ -334,7 +388,7 @@ export class ConfigurationControl<R = any, S = any> {
     return this._options.description;
   }
 
-  get context(): any {
+  get context(): S | undefined {
     return this._options.context;
   }
 
@@ -358,28 +412,28 @@ export class ConfigurationControl<R = any, S = any> {
     return this._options.ignore;
   }
 
-  get id(): any {
+  get id(): number {
     return this._id;
   }
 
   private static idCounter = 1;
   private _id: number;
-  public itemsType: any = undefined;
+  public itemsType: 'text' | 'number' | 'integer' | undefined = undefined;
   public focused = false;
   public toggled = false;
   protected _options: FixedConfigurationControlOptions<R, S>;
 
   constructor(
     protected _name: string,
-    _options: ConfigurationControlOptions<any>,
+    _options: ConfigurationControlOptions<R, S>,
     protected _root?: ConfigurationControlGroup,
   ) {
     this._id = ConfigurationControl.idCounter++;
     this._options = _options as FixedConfigurationControlOptions<R, S>;
   }
 
-  toObj(): any {
-    const result: any = {};
+  toObj(): Record<string, R | undefined> {
+    const result: Record<string, R | undefined> = {};
     result[this._name] = !this.checkToggleStateOfControl()
       ? undefined
       : this._options.value;
@@ -406,14 +460,14 @@ export class ConfigurationControl<R = any, S = any> {
     path: string,
   ): ConfigurationControl | ConfigurationControlGroup | undefined {
     const splitted = path.split('.').filter((a) => a !== '');
-    let pointer: ConfigurationControlGroup = this._root as any;
+    let pointer: ConfigurationControlGroup | undefined = this._root;
     for (let i = 0; i < splitted.length; i++) {
       const searchPart = splitted[i];
       const index = (pointer?.controls ?? []).findIndex(
         (a) => a.name === searchPart,
       );
 
-      if (index > -1) {
+      if (index > -1 && pointer) {
         if (i === splitted.length - 1) {
           return pointer.controls[index];
         } else {
@@ -447,7 +501,7 @@ export class ConfigurationSelectControl extends ConfigurationControl<
   {
     label: string;
     value: string;
-  }
+  }[]
 > {
   constructor(
     protected override _name: string,
@@ -534,10 +588,13 @@ export class ConfigurationNumberControl extends ConfigurationControl<number> {
   }
 }
 
-export class ConfigurationArrayControl extends ConfigurationControl<any[]> {
+export class ConfigurationArrayControl extends ConfigurationControl<
+  (string | number)[],
+  string[]
+> {
   constructor(
     protected override _name: string,
-    options: ConfigurationControlOptions<any[]>,
+    options: ConfigurationControlOptions<(string | number)[], string[]>,
     protected override _root?: ConfigurationControlGroup,
   ) {
     super(_name, options, _root);
@@ -586,13 +643,15 @@ export class ConfigurationControlGroup {
 
   // ignore
   public value = undefined;
-  public context: any;
+  // Kept for structural parity with ConfigurationControl; never populated for
+  // a group (only leaf controls carry select/array context).
+  public context: unknown;
   public description = '';
   public id = 1;
   public focused = false;
   public toggled = false;
   public ignore = false;
-  public itemsType: any = undefined;
+  public itemsType: 'text' | 'number' | 'integer' | undefined = undefined;
 
   constructor(
     protected _title: string,
@@ -603,8 +662,8 @@ export class ConfigurationControlGroup {
     public readonly root?: ConfigurationControlGroup,
   ) {}
 
-  toObj(): any {
-    let result: any = {};
+  toObj(): Record<string, unknown> {
+    let result: Record<string, unknown> = {};
 
     for (const control of this.controls) {
       result = {
@@ -614,7 +673,7 @@ export class ConfigurationControlGroup {
     }
 
     if (this._name) {
-      const returnValue: any = {};
+      const returnValue: Record<string, unknown> = {};
       returnValue[this._name] = result;
       return returnValue;
     }
@@ -641,14 +700,14 @@ export class ConfigurationControlGroup {
     path: string,
   ): ConfigurationControl | ConfigurationControlGroup | undefined {
     const splitted = path.split('.').filter((a) => a !== '');
-    let pointer: ConfigurationControlGroup = this.root as any;
+    let pointer: ConfigurationControlGroup | undefined = this.root;
     for (let i = 0; i < splitted.length; i++) {
       const searchPart = splitted[i];
       const index = (pointer?.controls ?? []).findIndex(
         (a) => a.name === searchPart,
       );
 
-      if (index > -1) {
+      if (index > -1 && pointer) {
         if (i === splitted.length - 1) {
           return pointer.controls[index];
         } else {
