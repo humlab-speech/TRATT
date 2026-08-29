@@ -1,7 +1,6 @@
 import { EventEmitter, Injectable } from '@angular/core';
 import {
   AnnotationAnySegment,
-  ASRContext,
   betweenWhichSegment,
   OItem,
   OLabel,
@@ -109,7 +108,7 @@ export class AudioViewerSegmentsService {
    */
   public getSegmentSelection(
     positionSamples: number,
-    annotation: TrattAnnotation<ASRContext, TrattAnnotationSegment> | undefined,
+    annotation: TrattAnnotation<TrattAnnotationSegment> | undefined,
     audioManager: AudioManager | undefined,
   ): AudioSelection | undefined {
     // complex decision needed because there are no segments at position 0 and the end of the file
@@ -119,10 +118,10 @@ export class AudioViewerSegmentsService {
       const length = annotation.currentLevel.items.length;
 
       if (length > 0 && segments !== undefined && audioManager !== undefined) {
-        const firstSegment = segments[0] as TrattAnnotationSegment<ASRContext>;
+        const firstSegment = segments[0] as TrattAnnotationSegment;
         const lastSegment = segments[
           segments.length - 1
-        ] as TrattAnnotationSegment<ASRContext>;
+        ] as TrattAnnotationSegment;
 
         if (firstSegment.time.samples !== lastSegment.time.samples) {
           if (positionSamples < firstSegment.time.samples) {
@@ -139,10 +138,10 @@ export class AudioViewerSegmentsService {
             for (let i = 1; i < length; i++) {
               const currentSegment = segments[
                 i
-              ] as TrattAnnotationSegment<ASRContext>;
+              ] as TrattAnnotationSegment;
               const previousSegment = segments[
                 i - 1
-              ] as TrattAnnotationSegment<ASRContext>;
+              ] as TrattAnnotationSegment;
 
               if (
                 previousSegment?.time !== undefined &&
@@ -168,13 +167,13 @@ export class AudioViewerSegmentsService {
   }
 
   public removeSegmentByIndex(
-    annotation: TrattAnnotation<ASRContext, TrattAnnotationSegment> | undefined,
+    annotation: TrattAnnotation<TrattAnnotationSegment> | undefined,
     index: number,
     silenceCode: string | undefined,
     mergeTranscripts: boolean,
     triggerChange: boolean,
     currentLevelChange: EventEmitter<CurrentLevelChangeEvent>,
-    annotationChange: EventEmitter<TrattAnnotation<ASRContext, TrattAnnotationSegment>>,
+    annotationChange: EventEmitter<TrattAnnotation<TrattAnnotationSegment>>,
     changeTranscript?: (transcript: string) => string,
   ): void {
     if (annotation?.currentLevel) {
@@ -207,9 +206,9 @@ export class AudioViewerSegmentsService {
   }
 
   public addSegment(
-    annotation: TrattAnnotation<ASRContext, TrattAnnotationSegment>,
+    annotation: TrattAnnotation<TrattAnnotationSegment>,
     currentLevelChange: EventEmitter<CurrentLevelChangeEvent>,
-    annotationChange: EventEmitter<TrattAnnotation<ASRContext, TrattAnnotationSegment>>,
+    annotationChange: EventEmitter<TrattAnnotation<TrattAnnotationSegment>>,
     start: SampleUnit,
     value?: string,
   ): void {
@@ -232,9 +231,9 @@ export class AudioViewerSegmentsService {
   }
 
   public changeSegment(
-    annotation: TrattAnnotation<ASRContext, TrattAnnotationSegment>,
+    annotation: TrattAnnotation<TrattAnnotationSegment>,
     currentLevelChange: EventEmitter<CurrentLevelChangeEvent>,
-    annotationChange: EventEmitter<TrattAnnotation<ASRContext, TrattAnnotationSegment>>,
+    annotationChange: EventEmitter<TrattAnnotation<TrattAnnotationSegment>>,
     start: SampleUnit,
     segment: TrattAnnotationSegment,
   ): void {
@@ -256,12 +255,12 @@ export class AudioViewerSegmentsService {
     audioChunk: AudioChunk | undefined;
     audioPxW: number;
     mouseCursor: SampleUnit | undefined;
-    annotation: TrattAnnotation<ASRContext, TrattAnnotationSegment> | undefined;
+    annotation: TrattAnnotation<TrattAnnotationSegment> | undefined;
     audioManager: AudioManager | undefined;
     silencePlaceholder: string | undefined;
     drawnSelection: AudioSelection | undefined;
     currentLevelChange: EventEmitter<CurrentLevelChangeEvent>;
-    annotationChange: EventEmitter<TrattAnnotation<ASRContext, TrattAnnotationSegment>>;
+    annotationChange: EventEmitter<TrattAnnotation<TrattAnnotationSegment>>;
   }):
     | {
         type: string;
@@ -308,7 +307,7 @@ export class AudioViewerSegmentsService {
         for (i = 0; i < annotation.currentLevel.items.length; i++) {
           const segment = annotation.currentLevel.items[
             i
-          ] as TrattAnnotationSegment<ASRContext>;
+          ] as TrattAnnotationSegment;
           if (
             segment?.time !== undefined &&
             audioManager !== undefined &&
@@ -351,11 +350,11 @@ export class AudioViewerSegmentsService {
       ) {
         // some part selected
         const segm1 = betweenWhichSegment(
-          annotation.currentLevel.items as TrattAnnotationSegment<ASRContext>[],
+          annotation.currentLevel.items as TrattAnnotationSegment[],
           drawnSelection.start.samples,
         );
         const segm2 = betweenWhichSegment(
-          annotation.currentLevel.items as TrattAnnotationSegment<ASRContext>[],
+          annotation.currentLevel.items as TrattAnnotationSegment[],
           drawnSelection.end.samples,
         );
 
@@ -443,8 +442,8 @@ export class AudioViewerSegmentsService {
    * independent of levels/items, so it stays a single top-level pass.
    */
   public getChanges(
-    oldAnnotation: TrattAnnotation<ASRContext, TrattAnnotationSegment>,
-    newAnnotation: TrattAnnotation<ASRContext, TrattAnnotationSegment>,
+    oldAnnotation: TrattAnnotation<TrattAnnotationSegment>,
+    newAnnotation: TrattAnnotation<TrattAnnotationSegment>,
   ): AnnotationChange[] {
     if (!oldAnnotation || !newAnnotation) {
       return [];
@@ -469,7 +468,7 @@ export class AudioViewerSegmentsService {
    * narrow down as they find matches, leaving only additions behind.
    */
   private collectIds(
-    annotation: TrattAnnotation<ASRContext, TrattAnnotationSegment>,
+    annotation: TrattAnnotation<TrattAnnotationSegment>,
   ): {
     levelIDs: number[];
     itemIDs: number[];
@@ -511,8 +510,8 @@ export class AudioViewerSegmentsService {
    * individually by diffAddedItems).
    */
   private diffLevels(
-    oldAnnotation: TrattAnnotation<ASRContext, TrattAnnotationSegment>,
-    newAnnotation: TrattAnnotation<ASRContext, TrattAnnotationSegment>,
+    oldAnnotation: TrattAnnotation<TrattAnnotationSegment>,
+    newAnnotation: TrattAnnotation<TrattAnnotationSegment>,
     state: DiffIdState,
     result: AnnotationChange[],
   ): void {
@@ -681,7 +680,7 @@ export class AudioViewerSegmentsService {
    * diffLevels).
    */
   private diffAddedItems(
-    newAnnotation: TrattAnnotation<ASRContext, TrattAnnotationSegment>,
+    newAnnotation: TrattAnnotation<TrattAnnotationSegment>,
     state: DiffIdState,
     result: AnnotationChange[],
   ): void {
@@ -720,8 +719,8 @@ export class AudioViewerSegmentsService {
    * newAnnotation. Fully independent of the level/item diffing above.
    */
   private diffLinks(
-    oldAnnotation: TrattAnnotation<ASRContext, TrattAnnotationSegment>,
-    newAnnotation: TrattAnnotation<ASRContext, TrattAnnotationSegment>,
+    oldAnnotation: TrattAnnotation<TrattAnnotationSegment>,
+    newAnnotation: TrattAnnotation<TrattAnnotationSegment>,
     state: DiffIdState,
     result: AnnotationChange[],
   ): void {

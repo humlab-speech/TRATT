@@ -15,7 +15,6 @@ import {
   NgbDropdownToggle,
 } from '@ng-bootstrap/ng-bootstrap';
 import {
-  ASRContext,
   TrattAnnotation,
   TrattAnnotationAnyLevel,
   TrattAnnotationSegment,
@@ -33,7 +32,7 @@ export interface ColumnFormat {
   defaultValue: string;
   formatString: string;
   formatFunction: (
-    level: TrattAnnotationAnyLevel<TrattAnnotationSegment<ASRContext>>,
+    level: TrattAnnotationAnyLevel<TrattAnnotationSegment>,
     segmentNumber: number,
     counter: number,
   ) => string;
@@ -75,8 +74,7 @@ export interface TableColumn {
 export class TableConfiguratorComponent implements OnInit {
   @Input() columns: TableColumn[] = [];
   @Input() annotation!: TrattAnnotation<
-    ASRContext,
-    TrattAnnotationSegment<ASRContext>
+    TrattAnnotationSegment
   >;
   @Input() options = {};
   @Input() currentLevelID!: number;

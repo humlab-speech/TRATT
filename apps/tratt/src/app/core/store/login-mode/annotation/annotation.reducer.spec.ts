@@ -1,7 +1,6 @@
 import { describe, expect, it } from '@jest/globals';
 import { createReducer } from '@ngrx/store';
 import {
-  ASRContext,
   OLabel,
   TrattAnnotation,
   TrattAnnotationSegment,
@@ -14,10 +13,7 @@ import { AnnotationStateReducers, initialState } from './annotation.reducer';
 import { AnnotationState } from './index';
 
 function buildState(): AnnotationState {
-  const transcript = new TrattAnnotation<
-    ASRContext,
-    TrattAnnotationSegment<ASRContext>
-  >();
+  const transcript = new TrattAnnotation<TrattAnnotationSegment>();
   const source = new TrattAnnotationSegmentLevel<TrattAnnotationSegment>(
     transcript.idCounters.level++,
     'OCTRA_1',

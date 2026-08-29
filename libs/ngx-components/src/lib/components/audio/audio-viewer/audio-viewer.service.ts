@@ -1,7 +1,6 @@
 import { EventEmitter, Injectable, NgZone, Renderer2 } from '@angular/core';
 import {
   AnnotationAnySegment,
-  ASRContext,
   getStartTimeBySegmentID,
   TrattAnnotation,
   TrattAnnotationAnyLevel,
@@ -99,7 +98,7 @@ export class AudioViewerService {
   public playcursorchange = new EventEmitter<PlayCursor>();
 
   public annotationChange = new EventEmitter<
-    TrattAnnotation<ASRContext, TrattAnnotationSegment>
+    TrattAnnotation<TrattAnnotationSegment>
   >();
   public currentLevelChange = new EventEmitter<{
     type: 'change' | 'remove' | 'add';
@@ -197,8 +196,8 @@ export class AudioViewerService {
   // (S1 split, task 14/21); reach `this.canvasRenderer.X` directly where
   // needed outside the bucket.
 
-  annotation?: TrattAnnotation<ASRContext, TrattAnnotationSegment>;
-  tempAnnotation?: TrattAnnotation<ASRContext, TrattAnnotationSegment>;
+  annotation?: TrattAnnotation<TrattAnnotationSegment>;
+  tempAnnotation?: TrattAnnotation<TrattAnnotationSegment>;
   public name = '';
 
   // AUDIO
@@ -622,7 +621,7 @@ export class AudioViewerService {
    */
   public applyChanges(
     changes: AnnotationChange[],
-    oldAnnotation: TrattAnnotation<ASRContext, TrattAnnotationSegment>,
+    oldAnnotation: TrattAnnotation<TrattAnnotationSegment>,
   ) {
     const getIndexOfSegmentID = (
       level: TrattAnnotationAnyLevel<TrattAnnotationSegment>,
@@ -1218,8 +1217,8 @@ export class AudioViewerService {
   }
 
   getChanges(
-    oldAnnotation: TrattAnnotation<ASRContext, TrattAnnotationSegment>,
-    newAnnotation: TrattAnnotation<ASRContext, TrattAnnotationSegment>,
+    oldAnnotation: TrattAnnotation<TrattAnnotationSegment>,
+    newAnnotation: TrattAnnotation<TrattAnnotationSegment>,
   ): AnnotationChange[] {
     return this.segments.getChanges(oldAnnotation, newAnnotation);
   }
@@ -1253,7 +1252,7 @@ export class AudioViewerService {
 
   private removeSegmentFromCanvas(
     segmentID: number,
-    oldAnnotation?: TrattAnnotation<any, any>,
+    oldAnnotation?: TrattAnnotation<any>,
   ) {
     this.canvasRenderer.removeSegmentFromCanvas(segmentID, oldAnnotation);
   }

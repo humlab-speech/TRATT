@@ -4,7 +4,6 @@ import { TaskDto, TaskInputOutputDto } from '@octra/api-types';
 import {
   AnnotationAnySegment,
   AnnotationLevelType,
-  ASRContext,
   OEvent,
   OItem,
   TextConverter,
@@ -183,7 +182,7 @@ export class AnnotationStoreService {
 
   private _currentLevel?: TrattAnnotationAnyLevel<TrattAnnotationSegment>;
   private _currentLevelIndex = 0;
-  private _transcript?: TrattAnnotation<ASRContext, TrattAnnotationSegment>;
+  private _transcript?: TrattAnnotation<TrattAnnotationSegment>;
   private _task?: TaskDto;
   private _guidelines?: TrattGuidelines;
   private _feedback: FeedbackAssessment;
@@ -200,7 +199,7 @@ export class AnnotationStoreService {
 
   // Observable compatibility for components using subscribe()
   transcript$: Observable<
-    TrattAnnotation<ASRContext, TrattAnnotationSegment> | undefined
+    TrattAnnotation<TrattAnnotationSegment> | undefined
   >;
   currentLevel$: Observable<
     TrattAnnotationAnyLevel<TrattAnnotationSegment> | undefined
@@ -214,7 +213,7 @@ export class AnnotationStoreService {
 
   // Value properties for backward compatibility with components
   get transcript():
-    | TrattAnnotation<ASRContext, TrattAnnotationSegment>
+    | TrattAnnotation<TrattAnnotationSegment>
     | undefined {
     return this._transcript;
   }
@@ -556,7 +555,7 @@ export class AnnotationStoreService {
   }
 
   overwriteTranscript(
-    transcript: TrattAnnotation<ASRContext, TrattAnnotationSegment>,
+    transcript: TrattAnnotation<TrattAnnotationSegment>,
   ) {
     this.store.dispatch(
       AnnotationActions.overwriteTranscript.do({

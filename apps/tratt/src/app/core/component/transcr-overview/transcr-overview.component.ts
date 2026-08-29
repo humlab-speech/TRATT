@@ -18,7 +18,6 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { sum } from '@octra/api-types';
 import {
-  ASRContext,
   TrattAnnotationAnyLevel,
   TrattAnnotationSegment,
   TrattAnnotationSegmentLevel,
@@ -81,9 +80,9 @@ export class TranscrOverviewComponent implements OnInit, OnDestroy, OnChanges {
   public transcript = '';
 
   @Input() currentLevel?: TrattAnnotationAnyLevel<
-    TrattAnnotationSegment<ASRContext>
+    TrattAnnotationSegment
   >;
-  _internLevel?: TrattAnnotationAnyLevel<TrattAnnotationSegment<ASRContext>>;
+  _internLevel?: TrattAnnotationAnyLevel<TrattAnnotationSegment>;
 
   get hasSpeakerIds(): boolean {
     if (!this._internLevel || this._internLevel.type !== 'SEGMENT')

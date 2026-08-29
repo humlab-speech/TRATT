@@ -1,6 +1,5 @@
 import { Action, ActionReducer, on } from '@ngrx/store';
 import {
-  ASRContext,
   OLabel,
   TrattAnnotation,
   TrattAnnotationSegment,
@@ -202,10 +201,7 @@ export class LoginModeReducers {
           if (this.mode === mode) {
             return {
               ...state,
-              transcript: new TrattAnnotation<
-                ASRContext,
-                TrattAnnotationSegment<ASRContext>
-              >(),
+              transcript: new TrattAnnotation<TrattAnnotationSegment>(),
               currentSession: {},
             };
           }
@@ -230,10 +226,7 @@ export class LoginModeReducers {
                     startReference: undefined,
                     logs: [],
                   },
-                  transcript: new TrattAnnotation<
-                    ASRContext,
-                    TrattAnnotationSegment<ASRContext>
-                  >(),
+                  transcript: new TrattAnnotation<TrattAnnotationSegment>(),
                   currentSession: {},
                   sessionFile,
                 };
@@ -291,7 +284,7 @@ export class LoginModeReducers {
                 if (level instanceof TrattAnnotationSegmentLevel) {
                   for (const item of (
                     level as TrattAnnotationSegmentLevel<
-                      TrattAnnotationSegment<ASRContext>
+                      TrattAnnotationSegment
                     >
                   ).items) {
                     const idx = item.labels.findIndex(

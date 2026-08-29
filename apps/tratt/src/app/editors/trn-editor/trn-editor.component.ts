@@ -14,7 +14,6 @@ import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import {
   AnnotationLevelType,
-  ASRContext,
   TrattAnnotationAnyLevel,
   TrattAnnotationSegment,
 } from '@tratt/annotation';
@@ -79,7 +78,7 @@ export class TrnEditorComponent
   }
 
   private currentLevel!: TrattAnnotationAnyLevel<
-    TrattAnnotationSegment<ASRContext>
+    TrattAnnotationSegment
   >;
   private guidelines!: TrattGuidelines;
   private breakMarkerCode?: string;
@@ -557,7 +556,7 @@ export class TrnEditorComponent
       ? (
           this.currentLevel.items[
             index - 1
-          ] as TrattAnnotationSegment<ASRContext>
+          ] as TrattAnnotationSegment
         ).time.unix
       : 0;
   }
@@ -1481,7 +1480,7 @@ export class TrnEditorComponent
 
   private changeTranscriptOfSegment(index: number, rawTranscript: string) {
     /* TODO implement
-    const segment = (this.currentLevel.items[index] as Segment<ASRContext>).clone();
+    const segment = (this.currentLevel.items[index] as Segment).clone();
     segment.value = rawTranscript;
     this.currentLevel.items[index] = segment;
 

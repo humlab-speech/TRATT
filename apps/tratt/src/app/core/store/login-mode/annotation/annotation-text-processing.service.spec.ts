@@ -1,6 +1,5 @@
 import { afterEach, describe, expect, it, jest } from '@jest/globals';
 import {
-  ASRContext,
   OLabel,
   TrattAnnotation,
   TrattAnnotationSegment,
@@ -201,10 +200,7 @@ describe('AnnotationTextProcessingService', () => {
 
   describe('analyse', () => {
     function buildLevel() {
-      const transcript = new TrattAnnotation<
-        ASRContext,
-        TrattAnnotationSegment<ASRContext>
-      >();
+      const transcript = new TrattAnnotation<TrattAnnotationSegment>();
       return new TrattAnnotationSegmentLevel<TrattAnnotationSegment>(
         transcript.idCounters.level++,
         'OCTRA_1',

@@ -16,7 +16,6 @@ import {
 } from '@angular/core';
 import {
   AnnotationAnySegment,
-  ASRContext,
   TrattAnnotation,
   TrattAnnotationSegment,
 } from '@tratt/annotation';
@@ -65,13 +64,13 @@ export class AudioViewerComponent
    * @param value
    */
   @Input() set annotation(
-    value: TrattAnnotation<ASRContext, TrattAnnotationSegment> | undefined,
+    value: TrattAnnotation<TrattAnnotationSegment> | undefined,
   ) {
     this.av.annotation = value ? value.clone() : undefined;
   }
 
   get annotation():
-    | TrattAnnotation<ASRContext, TrattAnnotationSegment>
+    | TrattAnnotation<TrattAnnotationSegment>
     | undefined {
     return this.av.annotation;
   }
@@ -92,7 +91,7 @@ export class AudioViewerComponent
    * triggered when annotation changes.
    */
   @Output() get annotationChange(): EventEmitter<
-    TrattAnnotation<ASRContext, TrattAnnotationSegment>
+    TrattAnnotation<TrattAnnotationSegment>
   > {
     return this.av.annotationChange;
   }
@@ -412,7 +411,7 @@ export class AudioViewerComponent
 
   private afterLevelUpdated(
     changes: AnnotationChange[],
-    oldAnnotation: TrattAnnotation<ASRContext, TrattAnnotationSegment>,
+    oldAnnotation: TrattAnnotation<TrattAnnotationSegment>,
   ) {
     if (this.av.currentLevel && this.av.currentLevel.items.length > 0) {
       // subscribe to levelChanges for extern changes

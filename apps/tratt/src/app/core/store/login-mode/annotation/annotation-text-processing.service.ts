@@ -1,6 +1,5 @@
 import { Injectable } from '@angular/core';
 import {
-  ASRContext,
   TrattAnnotation,
   TrattAnnotationAnyLevel,
   TrattAnnotationSegment,
@@ -427,7 +426,7 @@ export class AnnotationTextProcessingService {
   }
 
   public validateAll(
-    transcript: TrattAnnotation<ASRContext, TrattAnnotationSegment> | undefined,
+    transcript: TrattAnnotation<TrattAnnotationSegment> | undefined,
     guidelines: TrattGuidelines | undefined,
   ): {
     validationArray: { level: number; segment: number; validation: any[] }[];

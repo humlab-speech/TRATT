@@ -11,7 +11,6 @@ import {
 import { TranscrEditorComponent } from '../../core/component';
 
 import {
-  ASRContext,
   OLabel,
   TrattAnnotationSegment,
   TrattAnnotationSegmentLevel,
@@ -435,7 +434,7 @@ export class DictaphoneEditorComponent
         return a.replace(/(^\s+)|(\s+$)/g, '');
       });
 
-      const items: TrattAnnotationSegment<ASRContext>[] = [];
+      const items: TrattAnnotationSegment[] = [];
 
       for (let i = 0; i < segTexts.length; i++) {
         const time =
