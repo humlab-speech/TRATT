@@ -57,14 +57,6 @@ export class ApplicationSessionEffects {
             : 'en');
         this.transloco.setActiveLang(resolvedLang);
 
-        if (a.settings.tratt.plugins?.asr?.enabled) {
-          this.store.dispatch(
-            ApplicationActions.loadASRSettings.do({
-              settings: a.settings,
-            }),
-          );
-        }
-
         const webToken = this.sessStr.retrieve('webToken');
         const authType = this.sessStr.retrieve('authType');
         const authenticated = this.sessStr.retrieve('loggedIn');

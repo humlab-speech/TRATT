@@ -1,14 +1,12 @@
 import { ActionCreator, on, ReducerTypes } from '@ngrx/store';
 import {
   AnnotationLevelType,
-  ASRContext,
   OLabel,
   TrattAnnotation,
   TrattAnnotationAnyLevel,
   TrattAnnotationSegment,
   TrattAnnotationSegmentLevel,
 } from '@tratt/annotation';
-import { SampleUnit } from '@tratt/media';
 import { getProperties } from '@tratt/utilities';
 import { IIDBModeOptions } from '../../../shared/tratt-database';
 import { AuthenticationActions } from '../../authentication';
@@ -19,10 +17,7 @@ import { AnnotationActions } from './annotation.actions';
 import { AnnotationState } from './index';
 
 export const initialState: AnnotationState = {
-  transcript: new TrattAnnotation<
-    ASRContext,
-    TrattAnnotationSegment<ASRContext>
-  >(),
+  transcript: new TrattAnnotation<TrattAnnotationSegment>(),
   savingNeeded: false,
   isSaving: false,
   additionalSpeakerIds: [],
@@ -80,51 +75,6 @@ export class AnnotationStateReducers {
               },
               transcript,
             };
-          }
-          return state;
-        },
-      ),
-      on(
-        AnnotationActions.addMultipleASRSegments.success,
-        (state, { mode, newSegments, segmentID }) => {
-          if (this.mode === mode) {
-            // 1. unblock current segment
-            let transcript = state.transcript.clone();
-            const currentSegment = transcript
-              .currentLevel!.items.find((a) => a.id === segmentID)!
-              .clone() as TrattAnnotationSegment;
-            currentSegment.context = {
-              ...currentSegment.context,
-              asr: {
-                progressInfo: undefined,
-                isBlockedBy: undefined,
-              },
-            };
-            transcript = transcript.changeCurrentItemById(
-              segmentID,
-              currentSegment,
-            );
-
-            // 2. ignore last segment from results
-            const segments = newSegments.filter(
-              (a, i) => i < newSegments.length - 1,
-            );
-
-            // 3. add new segments
-            for (const segment of segments) {
-              transcript = transcript.addItemToCurrentLevel(
-                segment.time,
-                segment.labels,
-                {
-                  asr: {
-                    progressInfo: undefined,
-                    isBlockedBy: undefined,
-                  },
-                },
-              );
-            }
-
-            state.transcript = transcript;
           }
           return state;
         },
@@ -219,7 +169,7 @@ export class AnnotationStateReducers {
           if (this.mode === mode) {
             const transcript = state.transcript.clone();
             let level:
-              | TrattAnnotationAnyLevel<TrattAnnotationSegment<ASRContext>>
+              | TrattAnnotationAnyLevel<TrattAnnotationSegment>
               | undefined = undefined;
 
             if (levelType === AnnotationLevelType.SEGMENT) {
@@ -291,9 +241,7 @@ export class AnnotationStateReducers {
             return cloned;
           });
 
-          const targetLevel = new TrattAnnotationSegmentLevel<
-            TrattAnnotationSegment<ASRContext>
-          >(
+          const targetLevel = new TrattAnnotationSegmentLevel<TrattAnnotationSegment>(
             transcript.idCounters.level++,
             uniqueName,
             targetItems as any,
@@ -433,7 +381,6 @@ export class AnnotationStateReducers {
                     .addItemToCurrentLevel(
                       (item as any).time,
                       item.labels,
-                      (item as any).context,
                     );
                 }
               }
@@ -453,11 +400,7 @@ export class AnnotationStateReducers {
               for (const item of items) {
                 state.transcript = state.transcript
                   .clone()
-                  .addItemToCurrentLevel(
-                    (item as any).time,
-                    item.labels,
-                    (item as any).context,
-                  );
+                  .addItemToCurrentLevel((item as any).time, item.labels);
               }
             }
           }
@@ -638,10 +581,7 @@ export class AnnotationStateReducers {
           // Reset the transcript to a new empty annotation
           return {
             ...state,
-            transcript: new TrattAnnotation<
-              ASRContext,
-              TrattAnnotationSegment<ASRContext>
-            >(),
+            transcript: new TrattAnnotation<TrattAnnotationSegment>(),
           };
         }
         return state;
@@ -655,63 +595,6 @@ export class AnnotationStateReducers {
           },
         };
       }),
-      on(
-        AnnotationActions.updateASRSegmentInformation.do,
-        (
-          state: AnnotationState,
-          { mode, timeInterval, progress, isBlockedBy, itemType, result },
-        ) => {
-          const currentLevel = state.transcript.currentLevel;
-          if (
-            this.mode === mode &&
-            currentLevel instanceof TrattAnnotationSegmentLevel
-          ) {
-            const segmentBoundary = new SampleUnit(
-              timeInterval.sampleStart + timeInterval.sampleLength / 2,
-              state.audio.sampleRate,
-            );
-            const segmentIndex =
-              state.transcript.getCurrentSegmentIndexBySamplePosition(
-                segmentBoundary,
-              );
-
-            if (segmentIndex > -1) {
-              const segment = (
-                currentLevel as TrattAnnotationSegmentLevel<TrattAnnotationSegment>
-              ).level.items[segmentIndex];
-
-              return {
-                ...state,
-                transcript: state.transcript.clone().changeCurrentItemByIndex(
-                  segmentIndex,
-                  TrattAnnotationSegment.deserialize<ASRContext>({
-                    ...segment.clone(segment.id),
-                    id: segment.id,
-                    labels: result
-                      ? segment.labels.map((a: OLabel) =>
-                          a.name !== 'Speaker' ? new OLabel(a.name, result) : a,
-                        )
-                      : segment.labels,
-                    context: {
-                      asr: {
-                        progressInfo: {
-                          progress,
-                          statusLabel: itemType,
-                        },
-                        isBlockedBy,
-                      },
-                    },
-                  }),
-                ),
-              };
-            } else {
-              console.error(`item not found`);
-            }
-            return state;
-          }
-          return state;
-        },
-      ),
       on(
         IDBActions.loadOptions.success,
         (

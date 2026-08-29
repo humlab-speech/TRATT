@@ -976,7 +976,6 @@ export class AnnotationLoadEffects {
     try {
       let feedback: FeedBackForm | undefined = undefined;
       const levelName = pickInitialLevelName({
-        asrLanguage: rootState.asr.settings?.selectedASRLanguage,
         uiLanguage: this.transloco.getActiveLang(),
       });
       if (

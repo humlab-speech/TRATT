@@ -1,9 +1,5 @@
 import { createActionGroup, emptyProps, props } from '@ngrx/store';
-import {
-  ASRContext,
-  TrattAnnotation,
-  TrattAnnotationSegment,
-} from '@tratt/annotation';
+import { TrattAnnotation, TrattAnnotationSegment } from '@tratt/annotation';
 import { ConsoleEntry } from '../../shared/service/bug-report.service';
 import {
   IIDBApplicationOptions,
@@ -46,10 +42,10 @@ export class IDBActions {
     events: {
       do: emptyProps(),
       success: props<{
-        online: TrattAnnotation<ASRContext, TrattAnnotationSegment<ASRContext>>;
-        demo: TrattAnnotation<ASRContext, TrattAnnotationSegment<ASRContext>>;
-        local: TrattAnnotation<ASRContext, TrattAnnotationSegment<ASRContext>>;
-        url: TrattAnnotation<ASRContext, TrattAnnotationSegment<ASRContext>>;
+        online: TrattAnnotation<TrattAnnotationSegment>;
+        demo: TrattAnnotation<TrattAnnotationSegment>;
+        local: TrattAnnotation<TrattAnnotationSegment>;
+        url: TrattAnnotation<TrattAnnotationSegment>;
       }>(),
       fail: props<{
         error: string;
@@ -294,16 +290,6 @@ export class IDBActions {
 
   static saveLogs = createActionGroup({
     source: `IDB/save logs`,
-    events: {
-      success: emptyProps(),
-      fail: props<{
-        error: string;
-      }>(),
-    },
-  });
-
-  static saveASRSettings = createActionGroup({
-    source: `IDB/save ASRSettings`,
     events: {
       success: emptyProps(),
       fail: props<{

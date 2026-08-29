@@ -1,5 +1,4 @@
 import { ApplicationState } from './application';
-import { ASRState } from './asr';
 import { AuthenticationState } from './authentication';
 import { AnnotationState } from './login-mode/annotation';
 import { UserState } from './user';
@@ -35,7 +34,6 @@ export interface CurrentProject {
 export interface RootState {
   authentication: AuthenticationState;
   application: ApplicationState;
-  asr: ASRState;
   onlineMode: AnnotationState;
   demoMode: AnnotationState;
   localMode: AnnotationState;

@@ -2,7 +2,6 @@ import { Injectable } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { Action, Store } from '@ngrx/store';
 import {
-  ASRContext,
   IAnnotJSON,
   OAnnotJSON,
   TrattAnnotation,
@@ -35,7 +34,6 @@ import {
   IIDBModeOptions,
 } from '../../shared/tratt-database';
 import { ApplicationActions } from '../application/application.actions';
-import { ASRActions } from '../asr/asr.actions';
 import { AuthenticationActions } from '../authentication';
 import { getModeState, LoginMode, RootState } from '../index';
 import { AnnotationState } from '../login-mode/annotation';
@@ -230,31 +228,19 @@ export class IDBEffects {
 
               const oAnnotation =
                 deserialize(onlineAnnotation) ??
-                new TrattAnnotation<
-                  ASRContext,
-                  TrattAnnotationSegment<ASRContext>
-                >();
+                new TrattAnnotation<TrattAnnotationSegment>();
               const lAnnotation =
                 deserialize(localAnnotation) ??
-                new TrattAnnotation<
-                  ASRContext,
-                  TrattAnnotationSegment<ASRContext>
-                >();
+                new TrattAnnotation<TrattAnnotationSegment>();
               const dAnnotation =
                 deserialize(demoAnnotation) ??
-                new TrattAnnotation<
-                  ASRContext,
-                  TrattAnnotationSegment<ASRContext>
-                >();
+                new TrattAnnotation<TrattAnnotationSegment>();
 
               return IDBActions.loadAnnotation.success({
                 online: oAnnotation,
                 local: lAnnotation,
                 demo: dAnnotation,
-                url: new TrattAnnotation<
-                  ASRContext,
-                  TrattAnnotationSegment<ASRContext>
-                >(), // IGNORE
+                url: new TrattAnnotation<TrattAnnotationSegment>(), // IGNORE
               });
             },
           ),
@@ -731,25 +717,6 @@ export class IDBEffects {
     ),
   );
 
-  saveASRSettings$ = createEffect(() =>
-    this.actions$.pipe(
-      ofType(ASRActions.setASRSettings.do),
-      withLatestFrom(this.store),
-      mergeMap(([, state]) =>
-        this.idbService.saveOption('asr', state.asr.settings).pipe(
-          map(() => IDBActions.saveASRSettings.success()),
-          catchError((error: Error) =>
-            of(
-              IDBActions.saveASRSettings.fail({
-                error: error.message,
-              }),
-            ),
-          ),
-        ),
-      ),
-    ),
-  );
-
   saveAudioSettings$ = createEffect(() =>
     this.actions$.pipe(
       ofType(ApplicationActions.setAudioSettings),
@@ -833,7 +800,6 @@ export class IDBEffects {
         AnnotationActions.changeAnnotationLevel.do,
         AnnotationActions.addAnnotationLevel.do,
         AnnotationActions.removeAnnotationLevel.do,
-        AnnotationActions.updateASRSegmentInformation.do,
         AnnotationActions.overwriteTranscript.do,
         AnnotationActions.addCurrentLevelItems.do,
         AnnotationActions.removeCurrentLevelItems.do,
@@ -842,7 +808,6 @@ export class IDBEffects {
         AnnotationActions.changeLevelName.do,
         AnnotationActions.duplicateLevel.do,
         AuthenticationActions.loginLocal.prepare,
-        AnnotationActions.addMultipleASRSegments.success,
         AnnotationActions.initTranscriptionService.success,
       ),
       withLatestFrom(this.store),

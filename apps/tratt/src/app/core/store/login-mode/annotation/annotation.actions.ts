@@ -3,7 +3,6 @@ import { ProjectDto, TaskDto, TaskInputOutputDto } from '@octra/api-types';
 import {
   AnnotationAnySegment,
   AnnotationLevelType,
-  ASRContext,
   OEvent,
   OItem,
   TrattAnnotation,
@@ -15,7 +14,6 @@ import { ProjectSettings } from '../../../obj';
 import { FeedBackForm } from '../../../obj/FeedbackForm/FeedBackForm';
 import { ILog } from '../../../obj/Settings/logging';
 import type { TranslationSegment } from '../../../workers/translation.worker';
-import { ASRQueueItemType, ASRTimeInterval } from '../../asr';
 import { LoginMode } from '../../index';
 import { GuidelinesItem } from './index';
 
@@ -109,7 +107,7 @@ export class AnnotationActions {
     source: `annotation/ overwrite transcript`,
     events: {
       do: props<{
-        transcript: TrattAnnotation<ASRContext, TrattAnnotationSegment>;
+        transcript: TrattAnnotation<TrattAnnotationSegment>;
         mode: LoginMode;
         saveToDB: boolean;
       }>(),
@@ -120,7 +118,7 @@ export class AnnotationActions {
     source: `annotation/ change level`,
     events: {
       do: props<{
-        level: TrattAnnotationAnyLevel<TrattAnnotationSegment<ASRContext>>;
+        level: TrattAnnotationAnyLevel<TrattAnnotationSegment>;
         mode: LoginMode;
       }>(),
     },
@@ -300,10 +298,7 @@ export class AnnotationActions {
       }>(),
       success: props<{
         mode: LoginMode;
-        transcript: TrattAnnotation<
-          ASRContext,
-          TrattAnnotationSegment<ASRContext>
-        >;
+        transcript: TrattAnnotation<TrattAnnotationSegment>;
         feedback?: FeedBackForm;
         saveToDB: boolean;
       }>(),
@@ -390,37 +385,6 @@ export class AnnotationActions {
     },
   });
 
-  static updateASRSegmentInformation = createActionGroup({
-    source: 'annotation/update asr information',
-    events: {
-      do: props<{
-        mode: LoginMode;
-        itemType: ASRQueueItemType;
-        timeInterval: ASRTimeInterval;
-        progress: number;
-        result?: string;
-        isBlockedBy?: ASRQueueItemType;
-      }>(),
-      fail: props<{
-        error: string;
-      }>(),
-    },
-  });
-
-  static addMultipleASRSegments = createActionGroup({
-    source: 'annotation/add multiple segments',
-    events: {
-      success: props<{
-        mode: LoginMode;
-        segmentID: number;
-        newSegments: TrattAnnotationSegment<ASRContext>[];
-      }>(),
-      fail: props<{
-        error: string;
-      }>(),
-    },
-  });
-
   static duplicateLevel = createActionGroup({
     source: 'annotation/duplicate level',
     events: {
@@ -490,7 +454,7 @@ export class AnnotationActions {
     events: {
       do: props<{
         id: number;
-        item: OItem | OEvent | TrattAnnotationSegment<ASRContext>;
+        item: OItem | OEvent | TrattAnnotationSegment;
         mode: LoginMode;
       }>(),
     },
@@ -508,7 +472,7 @@ export class AnnotationActions {
       }>(),
       success: props<{
         mode: LoginMode;
-        transcript: TrattAnnotation<ASRContext, TrattAnnotationSegment>;
+        transcript: TrattAnnotation<TrattAnnotationSegment>;
       }>(),
       fail: props<{
         error: string;

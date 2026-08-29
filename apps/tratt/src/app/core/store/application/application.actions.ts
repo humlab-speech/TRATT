@@ -1,11 +1,10 @@
-import { HttpErrorResponse } from '@angular/common/http';
 import {
   createAction,
   createActionGroup,
   emptyProps,
   props,
 } from '@ngrx/store';
-import { AppSettings, ASRSettings } from '../../obj';
+import { AppSettings } from '../../obj';
 import {
   ConsoleEntry,
   ConsoleGroupEntry,
@@ -33,32 +32,6 @@ export class ApplicationActions {
     events: {
       do: props<{
         mode: LoginMode;
-      }>(),
-    },
-  });
-
-  static loadASRSettings = createActionGroup({
-    source: 'app/load asr settings',
-    events: {
-      do: props<{
-        settings: AppSettings;
-      }>(),
-      success: props<{
-        languageSettings: ASRSettings;
-        asrLanguages: {
-          value: string;
-          providersOnly?: string[];
-          description: string;
-          label: string;
-        }[];
-        mausLanguages: {
-          value: string;
-          description: string;
-          label: string;
-        }[];
-      }>(),
-      fail: props<{
-        error: HttpErrorResponse;
       }>(),
     },
   });
