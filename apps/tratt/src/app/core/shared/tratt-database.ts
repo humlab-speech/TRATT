@@ -5,7 +5,6 @@ import Dexie, { Transaction } from 'dexie';
 import 'dexie-export-import';
 import { firstValueFrom, from, map, Observable, of, Subject } from 'rxjs';
 import { LoginMode } from '../store';
-import { ASRStateSettings } from '../store/asr';
 
 /**
  * Database names used before the rename from OCTRA to TRATT. Deployments that
@@ -195,10 +194,6 @@ export class TrattDatabase extends Dexie {
         },
       },
       {
-        name: 'asr',
-        value: undefined,
-      },
-      {
         name: 'highlightingEnabled',
         value: false,
       },
@@ -281,46 +276,15 @@ export class TrattDatabase extends Dexie {
       }
     }
 
-    const oldASRSettings:
-      | {
-          name: 'asr';
-          value: {
-            selectedLanguage: string;
-            selectedService: string;
-          };
-        }
-      | undefined = options.find((a) => a.name === 'asr');
-    const oldAccessCode:
-      | {
-          name: 'accessCode';
-          value: string;
-        }
-      | undefined = options.find((a) => a.name === 'accessCode');
-    const oldMausSettings:
-      | {
-          name: 'maus';
-          value: {
-            selectedLanguage: string;
-            selectedCode: string;
-          };
-        }
-      | undefined = options.find((a) => a.name === 'maus');
-
-    const newASRSettings: {
-      selectedMausLanguage?: string;
-      selectedASRLanguage?: string;
-      selectedServiceProvider?: string;
-      accessCode?: string;
-    } = {
-      selectedASRLanguage: oldASRSettings?.value?.selectedLanguage,
-      accessCode: oldAccessCode?.value,
-      selectedMausLanguage: oldMausSettings?.value?.selectedCode,
-      selectedServiceProvider: oldASRSettings?.value?.selectedService,
-    };
-    await tr.table('app_options').put({
-      name: 'asr',
-      value: newASRSettings,
-    });
+    // Legacy ASR-related options ('asr', 'accessCode', 'maus') were validated
+    // against ASRStateSettings, a type that no longer exists now that cloud
+    // ASR has been removed. Rather than reconstruct a typed value for them,
+    // drop any of these rows that survived from a pre-upgrade browser.
+    for (const legacyKey of ['asr', 'accessCode', 'maus'] as const) {
+      if (options.some((a) => a.name === legacyKey)) {
+        await tr.table('app_options').delete(legacyKey);
+      }
+    }
 
     // if usemode is local, copy all data to new tables for online mode
     // before v4 only one active mode with data was valid. So we only need to check for local mode
@@ -634,10 +598,6 @@ export class TrattDatabase extends Dexie {
           },
         },
         {
-          name: 'asr',
-          value: undefined,
-        },
-        {
           name: 'highlightingEnabled',
           value: false,
         },
@@ -694,7 +654,6 @@ export interface IIDBModeOptions {
 }
 
 export interface IIDBApplicationOptions {
-  asr?: ASRStateSettings | null;
   audioSettings?: {
     volume: number;
     speed: number;
@@ -719,7 +678,6 @@ export interface IIDBApplicationOptions {
 }
 
 export type IDBApplicationOptionName =
-  | 'asr'
   | 'audioSettings'
   | 'console'
   | 'easyMode'
