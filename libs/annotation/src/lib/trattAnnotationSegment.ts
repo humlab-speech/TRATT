@@ -1,20 +1,11 @@
 import { SampleUnit } from '@tratt/media';
 import { Serializable } from '@tratt/utilities';
 import { ISegment, OItem, OLabel, OSegment } from './annotjson';
-import { ASRQueueItemType } from './asr';
 
-export interface SegmentWithContext<T extends ASRContext> {
+export interface SegmentWithContext {
   id: number;
   labels: OLabel[];
   time: SampleUnit;
-  context?: T;
-}
-
-export interface ASRContext {
-  asr?: {
-    isBlockedBy?: ASRQueueItemType;
-    progressInfo?: { progress: number; statusLabel: string };
-  };
 }
 
 export class TrattAnnotationEvent
@@ -39,9 +30,7 @@ export class TrattAnnotationEvent
     return TrattAnnotationEvent.deserialize(jsonObject);
   }
 
-  static deserialize<T extends ASRContext>(
-    jsonObject: TrattAnnotationEvent,
-  ): TrattAnnotationEvent {
+  static deserialize(jsonObject: TrattAnnotationEvent): TrattAnnotationEvent {
     return jsonObject;
   }
 
@@ -83,10 +72,10 @@ export class TrattAnnotationEvent
   }
 }
 
-export class TrattAnnotationSegment<T extends ASRContext = ASRContext>
+export class TrattAnnotationSegment
   implements
-    SegmentWithContext<T>,
-    Serializable<SegmentWithContext<T>, TrattAnnotationSegment<T>>
+    SegmentWithContext,
+    Serializable<SegmentWithContext, TrattAnnotationSegment>
 {
   public readonly type: 'segment' | 'event' | 'item' = 'segment';
 
@@ -94,25 +83,22 @@ export class TrattAnnotationSegment<T extends ASRContext = ASRContext>
     return this._id;
   }
 
-  public context?: T;
   public time: SampleUnit;
 
   private _id: number;
   public labels: OLabel[];
 
-  constructor(id: number, time: SampleUnit, labels?: OLabel[], context?: T) {
+  constructor(id: number, time: SampleUnit, labels?: OLabel[]) {
     this.time = time;
     this._id = id;
     this.labels = labels ?? [];
-    this.context = context;
   }
 
-  serialize(): SegmentWithContext<T> {
+  serialize(): SegmentWithContext {
     return {
       id: this.id,
       time: this.time,
       labels: this.labels,
-      context: this.context,
     };
   }
 
@@ -125,7 +111,7 @@ export class TrattAnnotationSegment<T extends ASRContext = ASRContext>
     );
   }
 
-  deserialize(jsonObject: SegmentWithContext<T>): TrattAnnotationSegment<T> {
+  deserialize(jsonObject: SegmentWithContext): TrattAnnotationSegment {
     return TrattAnnotationSegment.deserialize(jsonObject);
   }
 
@@ -163,43 +149,33 @@ export class TrattAnnotationSegment<T extends ASRContext = ASRContext>
     return false;
   }
 
-  static deserialize<T extends ASRContext>(
-    jsonObject: SegmentWithContext<T>,
-  ): TrattAnnotationSegment<T> {
-    const result = new TrattAnnotationSegment<T>(
+  static deserialize(jsonObject: SegmentWithContext): TrattAnnotationSegment {
+    const result = new TrattAnnotationSegment(
       jsonObject.id,
       jsonObject.time,
       jsonObject.labels.map((a) => OLabel.deserialize(a)),
-      jsonObject.context,
     );
     return result;
   }
 
-  static deserializeFromOSegment<T extends ASRContext>(
+  static deserializeFromOSegment(
     jsonObject: ISegment,
     sampleRate: number,
-    context?: T,
-  ): TrattAnnotationSegment<T> {
-    return new TrattAnnotationSegment<T>(
+  ): TrattAnnotationSegment {
+    return new TrattAnnotationSegment(
       jsonObject.id,
       new SampleUnit(jsonObject.sampleStart + jsonObject.sampleDur, sampleRate),
       jsonObject.labels.map((a) => OLabel.deserialize(a)),
-      context,
     );
   }
 
-  clone(id?: number): TrattAnnotationSegment<T> {
-    return new TrattAnnotationSegment<T>(
-      id ?? this._id,
-      this.time,
-      [...this.labels],
-      {
-        ...this.context,
-      } as any,
-    );
+  clone(id?: number): TrattAnnotationSegment {
+    return new TrattAnnotationSegment(id ?? this._id, this.time, [
+      ...this.labels,
+    ]);
   }
 
-  isEqualWith(other: TrattAnnotationSegment<T>) {
+  isEqualWith(other: TrattAnnotationSegment) {
     let labelsEqual = true;
 
     if (this.labels.length === other.labels.length) {
@@ -215,16 +191,12 @@ export class TrattAnnotationSegment<T extends ASRContext = ASRContext>
     }
 
     return (
-      this._id === other.id &&
-      this.time.equals(other.time) &&
-      JSON.stringify(this.context ?? {}) ==
-        JSON.stringify(other.context ?? {}) &&
-      labelsEqual
+      this._id === other.id && this.time.equals(other.time) && labelsEqual
     );
   }
 }
 
 export type AnnotationAnySegment =
-  | TrattAnnotationSegment<ASRContext>
+  | TrattAnnotationSegment
   | OItem
   | TrattAnnotationEvent;

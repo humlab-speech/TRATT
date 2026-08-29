@@ -24,13 +24,12 @@ import {
 } from './annotation';
 import { ISegmentLevel, OLabel } from './annotjson';
 import {
-  ASRContext,
   TrattAnnotationEvent,
   TrattAnnotationSegment,
 } from './trattAnnotationSegment';
 
 function makeAnnotation() {
-  return new TrattAnnotation<ASRContext, TrattAnnotationSegment<ASRContext>>();
+  return new TrattAnnotation<TrattAnnotationSegment>();
 }
 
 describe('TrattAnnotation.addItemToCurrentLevel on an EVENT level', () => {
@@ -85,7 +84,7 @@ describe('TrattAnnotation.addItemToCurrentLevel on an EVENT level', () => {
 describe('TrattAnnotation.serialize() padding of the final segment', () => {
   it('appends an ISegment-shaped item (sampleStart/sampleDur) when the last item ends before lastSegmentTime', () => {
     const annotation = makeAnnotation();
-    const segment = new TrattAnnotationSegment<ASRContext>(
+    const segment = new TrattAnnotationSegment(
       1,
       new SampleUnit(1000, 48000),
       [new OLabel('tier', 'hello')],
@@ -112,7 +111,7 @@ describe('TrattAnnotation.serialize() padding of the final segment', () => {
 
   it('does not pad when the last item already reaches lastSegmentTime', () => {
     const annotation = makeAnnotation();
-    const segment = new TrattAnnotationSegment<ASRContext>(
+    const segment = new TrattAnnotationSegment(
       1,
       new SampleUnit(2000, 48000),
       [new OLabel('tier', 'hello')],
@@ -135,7 +134,7 @@ describe('TrattAnnotation.serialize() padding of the final segment', () => {
 describe('TrattAnnotation.changeCurrentItemByIndex on a SEGMENT level', () => {
   it('replaces the item in place', () => {
     const annotation = makeAnnotation();
-    const segment = new TrattAnnotationSegment<ASRContext>(
+    const segment = new TrattAnnotationSegment(
       1,
       new SampleUnit(1000, 48000),
       [new OLabel('tier', 'hello')],
@@ -149,7 +148,7 @@ describe('TrattAnnotation.changeCurrentItemByIndex on a SEGMENT level', () => {
     annotation.changeCurrentItemByIndex(0, updated);
 
     const current = annotation.currentLevel as TrattAnnotationSegmentLevel<
-      TrattAnnotationSegment<ASRContext>
+      TrattAnnotationSegment
     >;
     expect(current.items[0].getLabel('tier')?.value).toBe('world');
   });

@@ -11,7 +11,7 @@ import {
   OSegment,
   OSegmentLevel,
 } from '../annotjson';
-import { ASRContext, TrattAnnotationSegment } from '../trattAnnotationSegment';
+import { TrattAnnotationSegment } from '../trattAnnotationSegment';
 
 function makeAnnot(): OAnnotJSON {
   const sourceLevel = new OSegmentLevel<OSegment>('OCTRA_1', [
@@ -86,10 +86,7 @@ describe('linked levels', () => {
 
   it('source boundary edit mirrors to linked tier; labels preserved', () => {
     const json = makeAnnot().serialize();
-    const transcript = TrattAnnotation.deserialize<
-      ASRContext,
-      TrattAnnotationSegment
-    >(json);
+    const transcript = TrattAnnotation.deserialize<TrattAnnotationSegment>(json);
     const sourceIdx = transcript.levels.findIndex(
       (l: any) =>
         l instanceof TrattAnnotationSegmentLevel &&
@@ -126,10 +123,7 @@ describe('linked levels', () => {
 
   it('source add mirrors to linked tier with paired item count', () => {
     const json = makeAnnot().serialize();
-    const transcript = TrattAnnotation.deserialize<
-      ASRContext,
-      TrattAnnotationSegment
-    >(json);
+    const transcript = TrattAnnotation.deserialize<TrattAnnotationSegment>(json);
     const sourceIdx = transcript.levels.findIndex(
       (l: any) =>
         l instanceof TrattAnnotationSegmentLevel &&
@@ -161,10 +155,7 @@ describe('linked levels', () => {
 
   it('source remove mirrors to linked tier; merge concats translation', () => {
     const json = makeAnnot().serialize();
-    const transcript = TrattAnnotation.deserialize<
-      ASRContext,
-      TrattAnnotationSegment
-    >(json);
+    const transcript = TrattAnnotation.deserialize<TrattAnnotationSegment>(json);
     const sourceIdx = transcript.levels.findIndex(
       (l: any) =>
         l instanceof TrattAnnotationSegmentLevel &&
@@ -194,10 +185,7 @@ describe('linked levels', () => {
 
   it('linked tier boundary drag is blocked', () => {
     const json = makeAnnot().serialize();
-    const transcript = TrattAnnotation.deserialize<
-      ASRContext,
-      TrattAnnotationSegment
-    >(json);
+    const transcript = TrattAnnotation.deserialize<TrattAnnotationSegment>(json);
     const linkedIdx = transcript.levels.findIndex(
       (l: any) =>
         l instanceof TrattAnnotationSegmentLevel &&
@@ -227,10 +215,7 @@ describe('linked levels', () => {
         new OSegment(10, 0, 96000, [new OLabel('NOTES', 'free')]),
       ]) as any,
     ]);
-    const transcript = TrattAnnotation.deserialize<
-      ASRContext,
-      TrattAnnotationSegment
-    >(annot.serialize() as any);
+    const transcript = TrattAnnotation.deserialize<TrattAnnotationSegment>(annot.serialize() as any);
     const srcIdx = transcript.levels.findIndex((l) => l.name === 'SRC');
     const notesIdx = transcript.levels.findIndex((l) => l.name === 'NOTES');
     transcript.changeCurrentLevelIndex(srcIdx);
@@ -248,10 +233,7 @@ describe('linked levels', () => {
 
   it('blocks add/remove on linked level via TrattAnnotation guard', () => {
     const json = makeAnnot().serialize();
-    const transcript = TrattAnnotation.deserialize<
-      ASRContext,
-      TrattAnnotationSegment
-    >(json);
+    const transcript = TrattAnnotation.deserialize<TrattAnnotationSegment>(json);
     expect(transcript).toBeDefined();
     const linkedIdx = transcript.levels.findIndex(
       (l: any) =>

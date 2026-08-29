@@ -16,7 +16,6 @@ import {
 } from './annotjson';
 import {
   AnnotationAnySegment,
-  ASRContext,
   TrattAnnotationEvent,
   TrattAnnotationSegment,
 } from './trattAnnotationSegment';
@@ -40,10 +39,7 @@ export class TrattAnnotationLink {
   }
 }
 
-export class TrattAnnotation<
-  S extends ASRContext,
-  T extends TrattAnnotationSegment<S>,
-> {
+export class TrattAnnotation<T extends TrattAnnotationSegment> {
   get selectedLevelIndex(): number | undefined {
     return this._selectedLevelIndex;
   }
@@ -166,13 +162,8 @@ export class TrattAnnotation<
     return new TrattAnnotationItemLevel(this._idCounters.level++, name, items);
   }
 
-  createSegment(time: SampleUnit, labels?: OLabel[], context?: S) {
-    return new TrattAnnotationSegment<ASRContext>(
-      this._idCounters.item++,
-      time,
-      labels,
-      context,
-    );
+  createSegment(time: SampleUnit, labels?: OLabel[]) {
+    return new TrattAnnotationSegment(this._idCounters.item++, time, labels);
   }
 
   addLevel(level: TrattAnnotationAnyLevel<T>) {
@@ -371,7 +362,7 @@ export class TrattAnnotation<
     throw new Error(`Can't find segment at sample position ${samples.samples}`);
   }
 
-  addItemToCurrentLevel(time?: SampleUnit, labels?: OLabel[], context?: S) {
+  addItemToCurrentLevel(time?: SampleUnit, labels?: OLabel[]) {
     if (this.currentLevel) {
       if (
         this.currentLevel instanceof TrattAnnotationSegmentLevel &&
@@ -384,7 +375,7 @@ export class TrattAnnotation<
       }
       if (this.currentLevel instanceof TrattAnnotationSegmentLevel) {
         const level = this.currentLevel;
-        this.insertSegmentIntoLevel(level, time!, labels, context);
+        this.insertSegmentIntoLevel(level, time!, labels);
         for (const linked of this.getLinkedLevelsOf(level.id)) {
           this.insertSegmentIntoLevel(linked, time!);
         }
@@ -517,7 +508,6 @@ export class TrattAnnotation<
     level: TrattAnnotationSegmentLevel<T>,
     time: SampleUnit,
     labels?: OLabel[],
-    context?: S,
   ) {
     let items: T[] = level.items.map((a) => a.clone() as T);
 
@@ -530,23 +520,17 @@ export class TrattAnnotation<
           index === 0 ? items[index].labels : [new OLabel(level.name, '')];
         items = [
           ...items,
-          new TrattAnnotationSegment<S>(
+          new TrattAnnotationSegment(
             this.idCounters.item++,
             time,
             labels && labels.length > 0 ? labels : oldLabels,
-            context ?? ({} as S),
           ) as T,
         ];
         items.sort(this.sortSegmentsBySampleUnit);
       }
     } else {
       items.push(
-        new TrattAnnotationSegment<S>(
-          this.idCounters.item++,
-          time,
-          labels,
-          context ?? ({} as S),
-        ) as T,
+        new TrattAnnotationSegment(this.idCounters.item++, time, labels) as T,
       );
     }
     level.overwriteItems(items);
@@ -638,25 +622,22 @@ export class TrattAnnotation<
     return 0;
   }
 
-  deserialize(jsonObject: OAnnotJSON): TrattAnnotation<S, T> {
+  deserialize(jsonObject: OAnnotJSON): TrattAnnotation<T> {
     return TrattAnnotation.deserialize(jsonObject);
   }
 
   changeSampleRate(sampleRate: number) {
     const levels = this._levels.map((level, i) => {
       if (level.type === 'SEGMENT') {
-        return new TrattAnnotationSegmentLevel<
-          TrattAnnotationSegment<ASRContext>
-        >(
+        return new TrattAnnotationSegmentLevel<TrattAnnotationSegment>(
           level.id,
           level.name,
-          (level.items as TrattAnnotationSegment<ASRContext>[]).map(
+          (level.items as TrattAnnotationSegment[]).map(
             (a) =>
-              new TrattAnnotationSegment<ASRContext>(
+              new TrattAnnotationSegment(
                 a.id,
                 new SampleUnit(a.time.samples, sampleRate),
                 a.labels,
-                a.context,
               ),
           ),
         );
@@ -731,10 +712,10 @@ export class TrattAnnotation<
     );
   }
 
-  static deserialize<S extends ASRContext, T extends TrattAnnotationSegment<S>>(
+  static deserialize<T extends TrattAnnotationSegment>(
     jsonObject: OAnnotJSON,
-  ): TrattAnnotation<S, T> {
-    const result = new TrattAnnotation<S, T>();
+  ): TrattAnnotation<T> {
+    const result = new TrattAnnotation<T>();
 
     for (const jsonObjectElement of jsonObject.levels) {
       if (jsonObjectElement.type === AnnotationLevelType.SEGMENT) {
@@ -905,7 +886,7 @@ export class TrattAnnotationLevel<T extends OLevel<S>, S extends OItem> {
 }
 
 export class TrattAnnotationSegmentLevel<
-  T extends TrattAnnotationSegment<ASRContext>,
+  T extends TrattAnnotationSegment,
 > extends TrattAnnotationLevel<OLevel<T>, T> {
   /**
    * Id of the source level this level is linked to. When set, this level
@@ -974,11 +955,10 @@ export class TrattAnnotationSegmentLevel<
       `${this.name}_2`,
       this.items.map(
         (a) =>
-          new TrattAnnotationSegment<ASRContext>(
+          new TrattAnnotationSegment(
             itemIDCounter++,
             a.time,
             [...a.labels],
-            { ...a.context },
           ) as T,
       ),
     );
@@ -1097,9 +1077,7 @@ export class TrattAnnotationEventLevel {
   }
 }
 
-export type TrattAnnotationAnyLevel<
-  T extends TrattAnnotationSegment<ASRContext>,
-> =
+export type TrattAnnotationAnyLevel<T extends TrattAnnotationSegment> =
   | TrattAnnotationSegmentLevel<T>
   | TrattAnnotationItemLevel
   | TrattAnnotationEventLevel;

@@ -1,6 +1,5 @@
 import { ProjectDto, TaskDto, TaskInputOutputDto } from '@octra/api-types';
 import {
-  ASRContext,
   OSegment,
   SegmentWithContext,
   TrattAnnotation,
@@ -22,17 +21,14 @@ export interface GuidelinesItem {
   type?: string;
 }
 
-export class AnnotationStateSegment<
-  T extends ASRContext,
-> extends TrattAnnotationSegment<T> {
-  static override deserialize<T extends ASRContext>(
-    jsonObject: SegmentWithContext<T>,
-  ): AnnotationStateSegment<T> {
+export class AnnotationStateSegment extends TrattAnnotationSegment {
+  static override deserialize(
+    jsonObject: SegmentWithContext,
+  ): AnnotationStateSegment {
     return new AnnotationStateSegment(
       jsonObject.id,
       jsonObject.time,
       jsonObject.labels,
-      jsonObject.context!,
     );
   }
 
@@ -75,7 +71,7 @@ export interface AnnotationState extends UndoRedoState {
     validate: (transcript: string, guidelines: any) => any;
     tidyUp: (transcript: string, guidelines: any) => any;
   };
-  transcript: TrattAnnotation<ASRContext, TrattAnnotationSegment<ASRContext>>;
+  transcript: TrattAnnotation<TrattAnnotationSegment>;
   histories: Histories;
   currentSession: AnnotationSessionState;
   previousSession?: {
