@@ -42,17 +42,4 @@ export const TRATT_COLORS = {
   accentGreen: '#2A4765',
   /** @deprecated Use `chromeHover`. */
   accentGreenDark: '#3C6289',
-
-  /** ASR queue item blocked-by-ASR overlay fill (canvas segment progress bar). */
-  asrBlockedFill: 'rgba(255,191,0,0.5)',
-  /** ASR queue item blocked-by-ASR progress bar fill. */
-  asrBlockedProgress: 'rgba(221,167,14,0.8)',
-  /** ASR queue item blocked-by-ASR+MAUS overlay fill. */
-  asrMausBlockedFill: 'rgba(179,10,179,0.5)',
-  /** ASR queue item blocked-by-ASR+MAUS progress bar fill. */
-  asrMausBlockedProgress: 'rgba(179,10,179,0.8)',
-  /** ASR queue item blocked-by-MAUS overlay fill. */
-  mausBlockedFill: 'rgba(26,229,160,0.5)',
-  /** ASR queue item blocked-by-MAUS progress bar fill. */
-  mausBlockedProgress: 'rgba(17,176,122,0.8)',
 } as const;

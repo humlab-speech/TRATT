@@ -2,8 +2,6 @@ import { Injectable, Renderer2 } from '@angular/core';
 import {
   AnnotationAnySegment,
   AnnotationLevelType,
-  ASRContext,
-  ASRQueueItemType,
   getSegmentsOfRange,
   OLabel,
   TrattAnnotation,
@@ -241,7 +239,7 @@ export type GetCurrentLevel = () =>
   | undefined;
 
 export type GetAnnotation = () =>
-  | TrattAnnotation<ASRContext, TrattAnnotationSegment>
+  | TrattAnnotation<TrattAnnotationSegment>
   | undefined;
 
 export interface AudioViewerSegmentRenderContext {
@@ -285,7 +283,7 @@ export interface AudioViewerStageEventHandlers {
  * `secondsPerLine`, `silencePlaceholder`, `settings` and the Angular
  * `Renderer2` used for DOM cursor styling. AudioViewerService keeps
  * pass-through accessors under the original field names so its many
- * non-rendering methods (mouse/keyboard handling, playback, ASR) keep
+ * non-rendering methods (mouse/keyboard handling, playback) keep
  * compiling unchanged.
  *
  * It deliberately does NOT own annotation/segment-tree data (`annotation`,
@@ -2366,7 +2364,7 @@ export class AudioViewerRendererService {
   /**
    * Pure progress-bar geometry calc, extracted from overlaySceneFunction
    * (the design review's flagged ~193-line method) so the width/position
-   * math for the ASR progress bar is separate from the actual
+   * math for the progress bar is separate from the actual
    * drawRoundedRect/fillText drawing calls.
    */
   private computeProgressBarLayout(params: {
@@ -2495,88 +2493,7 @@ export class AudioViewerRendererService {
               continue;
             }
 
-            if (sceneSegment.context?.asr?.isBlockedBy === undefined) {
-              context.clearRect(x, localY, w, h);
-            } else {
-              // something running
-              let progressBarFillColor = '';
-              let progressBarForeColor = '';
-              if (
-                sceneSegment.context?.asr?.isBlockedBy === ASRQueueItemType.ASR
-              ) {
-                // blocked by ASR
-                context.fillStyle = TRATT_COLORS.asrBlockedFill;
-                progressBarFillColor = TRATT_COLORS.asrBlockedProgress;
-                progressBarForeColor = 'black';
-              } else if (
-                sceneSegment.context?.asr?.isBlockedBy ===
-                ASRQueueItemType.ASRMAUS
-              ) {
-                context.fillStyle = TRATT_COLORS.asrMausBlockedFill;
-                progressBarFillColor = TRATT_COLORS.asrMausBlockedProgress;
-                progressBarForeColor = TRATT_COLORS.surfaceBackground;
-              } else if (
-                sceneSegment.context?.asr?.isBlockedBy === ASRQueueItemType.MAUS
-              ) {
-                context.fillStyle = TRATT_COLORS.mausBlockedFill;
-                progressBarFillColor = TRATT_COLORS.mausBlockedProgress;
-                progressBarForeColor = TRATT_COLORS.surfaceBackground;
-              }
-              context.clearRect(x, localY, w, h);
-              context.fillRect(x, localY, w, h);
-
-              if (
-                this.settings.showProgressBars &&
-                sceneSegment.context?.asr?.progressInfo !== undefined
-              ) {
-                const { progressWidth, progressStart, loadedPixels } =
-                  this.computeProgressBarLayout({
-                    x,
-                    w,
-                    lineWidth,
-                    timestampWidth,
-                    selectStart: select.start,
-                    progress: sceneSegment.context.asr.progressInfo.progress,
-                  });
-
-                if (progressWidth > 10) {
-                  this.drawRoundedRect(
-                    context,
-                    progressStart,
-                    localY + 3,
-                    15,
-                    progressWidth,
-                    5,
-                    'transparent',
-                    progressBarFillColor,
-                  );
-                  this.drawRoundedRect(
-                    context,
-                    progressStart,
-                    localY + 3,
-                    15,
-                    loadedPixels,
-                    5,
-                    progressBarFillColor,
-                  );
-
-                  if (progressWidth > 100) {
-                    const progressString = `${sceneSegment.context?.asr?.progressInfo.statusLabel} ${sceneSegment.context?.asr?.progressInfo.progress}%`;
-                    const textLength =
-                      context.measureText(progressString).width;
-                    const textPosition = Math.round(
-                      progressStart + (progressWidth - textLength) / 2,
-                    );
-                    context.fillStyle =
-                      progressStart + loadedPixels > textPosition &&
-                      progressBarForeColor === TRATT_COLORS.surfaceBackground
-                        ? TRATT_COLORS.surfaceBackground
-                        : 'black';
-                    context.fillText(progressString, textPosition, localY + 14);
-                  }
-                }
-              }
-            }
+            context.clearRect(x, localY, w, h);
           }
         }
         context.fillStrokeShape(shape);
@@ -2806,7 +2723,7 @@ export class AudioViewerRendererService {
 
   public removeSegmentFromCanvas(
     segmentID: number,
-    oldAnnotation?: TrattAnnotation<any, any>,
+    oldAnnotation?: TrattAnnotation<any>,
   ) {
     void oldAnnotation;
     if (segmentID > -1) {

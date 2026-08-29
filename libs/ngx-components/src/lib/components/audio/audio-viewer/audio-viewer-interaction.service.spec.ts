@@ -1,6 +1,5 @@
 import { EventEmitter } from '@angular/core';
 import {
-  ASRQueueItemType,
   OLabel,
   TrattAnnotation,
   TrattAnnotationSegment,
@@ -58,7 +57,6 @@ function defaultSettings(): AudioViewerInteractionSettings {
     boundaries: { enabled: true, readonly: false, width: 3 },
     selection: { enabled: true },
     cursor: { fixed: false },
-    asr: { enabled: true },
   };
 }
 
@@ -527,20 +525,6 @@ describe('AudioViewerInteractionService', () => {
       expect(harness.state.drawnSelection).toBe(previous);
     });
 
-    it('refuses to drag a boundary blocked by an ASR job', async () => {
-      const harness = clickHarness();
-      const items = harness.state.annotation!.currentLevel!
-        .items as TrattAnnotationSegment<any>[];
-      items[1].context = { asr: { isBlockedBy: ASRQueueItemType.ASR } } as any;
-      harness.service.dragableBoundaryID = 2;
-
-      await harness.service.setMouseClickPosition(100, 0, {
-        type: 'mousedown',
-      } as Event);
-
-      expect(harness.service.dragableBoundaryID).toBe(-1);
-    });
-
     it('on mouseup finishes the drag and asks for a segment update', async () => {
       const harness = clickHarness();
       harness.state.tempAnnotation = harness.state.annotation;
@@ -913,39 +897,6 @@ describe('AudioViewerInteractionService', () => {
       expect(harness.emitted.segmententer).toEqual([
         { index: 0, pos: { Y1: 5, Y2: 9 } },
       ]);
-    });
-
-    it('do_asr emits do_asr for a free segment and cancel_asr for a blocked one', () => {
-      const harness = makeHarness();
-      harness.service.focused = true;
-      harness.state.annotation = annotationWith([
-        segment(1, 16000),
-        segment(2, 32000),
-      ]);
-      harness.service.setMouseCursor(time(8000));
-
-      pressShortcut(harness, 'do_asr');
-      expect(harness.emitted.shortcut[0].value).toBe('do_asr');
-
-      const items = harness.state.annotation!.currentLevel!
-        .items as TrattAnnotationSegment<any>[];
-      items[0].context = { asr: { isBlockedBy: ASRQueueItemType.ASR } } as any;
-
-      pressShortcut(harness, 'do_asr');
-      expect(harness.emitted.shortcut[1].value).toBe('cancel_asr');
-    });
-
-    it('do_asr requires focus but do_maus does not', () => {
-      const harness = makeHarness();
-      harness.service.focused = false;
-      harness.state.annotation = annotationWith([segment(1, 16000)]);
-      harness.service.setMouseCursor(time(8000));
-
-      pressShortcut(harness, 'do_asr');
-      expect(harness.emitted.shortcut).toHaveLength(0);
-
-      pressShortcut(harness, 'do_maus');
-      expect(harness.emitted.shortcut.map((a) => a.value)).toEqual(['do_maus']);
     });
 
     it('reads the annotation live, so a level swapped in after wiring is used', () => {

@@ -25,7 +25,7 @@ function makeAnnotation(
     if (spk) {
       labels.push(new OLabel('Speaker', spk));
     }
-    return new TrattAnnotationSegment<any>(
+    return new TrattAnnotationSegment(
       i + 1,
       new SampleUnit((i + 1) * 16000, 16000),
       labels,

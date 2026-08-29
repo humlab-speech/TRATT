@@ -1,8 +1,6 @@
 import { EventEmitter, Injectable } from '@angular/core';
 import {
   AnnotationLevelType,
-  ASRContext,
-  ASRQueueItemType,
   getSegmentBySamplePosition,
   getStartTimeBySegmentID,
   OLabel,
@@ -64,9 +62,6 @@ export interface AudioViewerInteractionSettings {
   };
   cursor: {
     fixed: boolean;
-  };
-  asr: {
-    enabled: boolean;
   };
 }
 
@@ -180,17 +175,13 @@ export interface AudioViewerInteractionHost {
 
   // --- live state reads/writes (see class doc: methods, never values) ---
   getSettings(): AudioViewerInteractionSettings;
-  getAnnotation():
-    | TrattAnnotation<ASRContext, TrattAnnotationSegment>
-    | undefined;
+  getAnnotation(): TrattAnnotation<TrattAnnotationSegment> | undefined;
   setAnnotation(
-    value: TrattAnnotation<ASRContext, TrattAnnotationSegment> | undefined,
+    value: TrattAnnotation<TrattAnnotationSegment> | undefined,
   ): void;
-  getTempAnnotation():
-    | TrattAnnotation<ASRContext, TrattAnnotationSegment>
-    | undefined;
+  getTempAnnotation(): TrattAnnotation<TrattAnnotationSegment> | undefined;
   setTempAnnotation(
-    value: TrattAnnotation<ASRContext, TrattAnnotationSegment> | undefined,
+    value: TrattAnnotation<TrattAnnotationSegment> | undefined,
   ): void;
   getCurrentLevel():
     | TrattAnnotationAnyLevel<TrattAnnotationSegment>
@@ -236,7 +227,7 @@ export interface AudioViewerInteractionHost {
   }>;
   readonly currentLevelChange: EventEmitter<CurrentLevelChangeEvent>;
   readonly annotationChange: EventEmitter<
-    TrattAnnotation<ASRContext, TrattAnnotationSegment>
+    TrattAnnotation<TrattAnnotationSegment>
   >;
 }
 
@@ -415,30 +406,6 @@ export class AudioViewerInteractionService {
               );
             }
 
-            if (this._dragableBoundaryID > -1) {
-              const currentLevel = this.host.getCurrentLevel() as
-                | TrattAnnotationSegmentLevel<TrattAnnotationSegment>
-                | undefined;
-              const index = annotation.currentLevel.items.findIndex(
-                (a) => a.id === this._dragableBoundaryID,
-              );
-
-              const segmentBefore = currentLevel!.getLeftSibling(index);
-              const segment = annotation.currentLevel.items[
-                index
-              ] as TrattAnnotationSegment<ASRContext>;
-              const segmentAfter = currentLevel!.getRightSibling(index);
-
-              if (
-                segment?.context?.asr?.isBlockedBy === ASRQueueItemType.ASR ||
-                segmentBefore?.context?.asr?.isBlockedBy ===
-                  ASRQueueItemType.ASR ||
-                segmentAfter?.context?.asr?.isBlockedBy === ASRQueueItemType.ASR
-              ) {
-                // prevent dragging boundary of blocked segment
-                this._dragableBoundaryID = -1;
-              }
-            }
             this._mouseDown = true;
           } else if ($event.type === 'mouseup') {
             this.handleBoundaryDragging(absX, absXInTime, true);
@@ -1034,20 +1001,6 @@ export class AudioViewerInteractionService {
       case 'playonhover':
         this.handlePlayOnHover(shortcutInfo);
         break;
-      case 'do_asr':
-        this.handleAsrShortcut(shortcutInfo, 'do_asr', 'cancel_asr', true);
-        break;
-      case 'do_asr_maus':
-        this.handleAsrShortcut(
-          shortcutInfo,
-          'do_asr_maus',
-          'cancel_asr_maus',
-          false,
-        );
-        break;
-      case 'do_maus':
-        this.handleAsrShortcut(shortcutInfo, 'do_maus', 'cancel_maus', false);
-        break;
     }
   };
 
@@ -1129,12 +1082,8 @@ export class AudioViewerInteractionService {
         if (currentLevel.type === AnnotationLevelType.SEGMENT) {
           const segment = currentLevel.items[
             segmentI
-          ] as TrattAnnotationSegment<ASRContext>;
-          if (
-            segmentI > -1 &&
-            segment.context?.asr?.isBlockedBy === undefined &&
-            silencePlaceholder !== undefined
-          ) {
+          ] as TrattAnnotationSegment;
+          if (segmentI > -1 && silencePlaceholder !== undefined) {
             if (
               segment.getFirstLabelWithoutName('Speaker')?.value !==
               silencePlaceholder
@@ -1191,18 +1140,17 @@ export class AudioViewerInteractionService {
       );
       if (boundarySelect) {
         const segmentI = getSegmentBySamplePosition(
-          currentLevel.items as TrattAnnotationSegment<ASRContext>[],
+          currentLevel.items as TrattAnnotationSegment[],
           xSamples,
         );
         if (segmentI > -1) {
           if (currentLevel.type === AnnotationLevelType.SEGMENT) {
-            const segmentLevel = currentLevel as TrattAnnotationSegmentLevel<
-              TrattAnnotationSegment<ASRContext>
-            >;
+            const segmentLevel =
+              currentLevel as TrattAnnotationSegmentLevel<TrattAnnotationSegment>;
             const segment = segmentLevel.items[segmentI];
 
             const startTime = getStartTimeBySegmentID(
-              segmentLevel.items as TrattAnnotationSegment<ASRContext>[],
+              segmentLevel.items as TrattAnnotationSegment[],
               segment.id,
             );
 
@@ -1229,7 +1177,7 @@ export class AudioViewerInteractionService {
                       .createSegment(audioManager.createSampleUnit(0), [
                         new OLabel(currentLevel.name, ''),
                       ])
-              ) as TrattAnnotationSegment<ASRContext>;
+              ) as TrattAnnotationSegment;
 
               const innerWidth = this.host.getInnerWidth();
               const audioPxWidth = this.host.getAudioPxWidth();
@@ -1344,9 +1292,7 @@ export class AudioViewerInteractionService {
         });
 
         for (let i = 0; i < currentLevel.items.length; i++) {
-          const segment = currentLevel.items[
-            i
-          ] as TrattAnnotationSegment<ASRContext>;
+          const segment = currentLevel.items[i] as TrattAnnotationSegment;
 
           if (segment?.time !== undefined) {
             const drawnSelection = this.host.getDrawnSelection();
@@ -1431,7 +1377,7 @@ export class AudioViewerInteractionService {
       });
 
       const segInde = getSegmentBySamplePosition(
-        currentLevel.items as TrattAnnotationSegment<ASRContext>[],
+        currentLevel.items as TrattAnnotationSegment[],
         this.mouseCursor,
       );
       this.host
@@ -1507,54 +1453,6 @@ export class AudioViewerInteractionService {
         timePosition: this.mouseCursor.clone(),
         timestamp: shortcutInfo.timestamp,
       });
-    }
-  }
-
-  /**
-   * `do_asr`, `do_asr_maus` and `do_maus` shared one body: resolve the
-   * segment under the mouse cursor and emit either the "start" or the
-   * "cancel" variant depending on whether that segment is already blocked
-   * by an ASR job. `do_asr` additionally required focus — the other two
-   * deliberately did not (preserved verbatim via `requiresFocus`).
-   */
-  private handleAsrShortcut(
-    shortcutInfo: ShortcutEvent,
-    startValue: string,
-    cancelValue: string,
-    requiresFocus: boolean,
-  ) {
-    const settings = this.host.getSettings();
-    const currentLevel = this.host.getCurrentLevel();
-
-    if (
-      settings.boundaries.enabled &&
-      (!requiresFocus || this.focused) &&
-      settings.asr.enabled &&
-      currentLevel?.items &&
-      currentLevel.items.length > 0 &&
-      this.mouseCursor !== undefined
-    ) {
-      const segmentI = getSegmentBySamplePosition(
-        currentLevel.items as TrattAnnotationSegment<ASRContext>[],
-        this.mouseCursor,
-      );
-      const segment = currentLevel.items[
-        segmentI
-      ] as TrattAnnotationSegment<ASRContext>;
-
-      if (segmentI > -1) {
-        this.host.shortcut.emit({
-          shortcut: shortcutInfo.shortcut,
-          shortcutName: shortcutInfo.shortcutName,
-          value:
-            segment?.context?.asr?.isBlockedBy === undefined
-              ? startValue
-              : cancelValue,
-          type: 'segment',
-          timePosition: this.mouseCursor.clone(),
-          timestamp: shortcutInfo.timestamp,
-        });
-      }
     }
   }
 }

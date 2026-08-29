@@ -90,10 +90,6 @@ export class AudioviewerConfig {
     color: TRATT_COLORS.border,
   };
 
-  public asr = {
-    enabled: false,
-  };
-
   // SHORTCUTS
   // SHORTCUTS sheme= KeyMapping [+ <char or charCode>]
   public shortcutsEnabled = true;
@@ -190,33 +186,6 @@ export class AudioviewerConfig {
         },
         focusonly: true,
         title: 'delete boundaries',
-      },
-      {
-        name: 'do_asr',
-        keys: {
-          mac: 'R',
-          pc: 'R',
-        },
-        focusonly: true,
-        title: 'do asr',
-      },
-      {
-        name: 'do_asr_maus',
-        keys: {
-          mac: 'M',
-          pc: 'M',
-        },
-        focusonly: true,
-        title: 'do asr maus',
-      },
-      {
-        name: 'do_maus',
-        keys: {
-          mac: 'W',
-          pc: 'W',
-        },
-        focusonly: true,
-        title: 'do maus only',
       },
     ],
   };
