@@ -3,24 +3,8 @@
     "language name": "Nederlands"
   },
   "alerts": {
-    "authentication needed": "Verifieer alstublieft om functies zoals ASR of woorduitlijning te gebruiken. Nadat u op \"Authenticeren\" heeft geklikt, wordt een apart venster geopend. Als er geen venster wordt geopend, zorg er dan voor dat pop-ups zijn ingeschakeld in uw browser.",
+    "error occurred": "Er is een fout opgetreden. Stuur ons een korte feedback om de fout te herstellen.",
     "need playback": "U moet het afspelen minstens één keer starten voordat u het transcript verzendt."
-  },
-  "asr": {
-    "asr running": "ASR is momenteel actief. Als u ASR voor deze transcriptie-eenheid wilt stoppen, klik dan hier.",
-    "click on logo": "Klik op een servicelogo voor meer informatie.",
-    "error": "Er is een fout opgetreden. Stuur ons een korte feedback om de fout te herstellen.",
-    "file too big": "De ASR ondersteunt alleen audiosequenties met max. duur van 10 minuten. Aangetaste transcriptie-eenheden werden overgeslagen.",
-    "maus empty text": "De geselecteerde transcriptie-eenheid bevat geen tekst of minder dan twee woorden.",
-    "no asr selected": "Selecteer ASR-opties voordat u de snelkoppeling gebruikt.",
-    "no auth": "Authenticatie nodig voor verdere transcriptie.",
-    "no quota": "Geen quotum meer. Gebruik een andere ASR-provider.",
-    "start for all next": "Start het voor deze en alle volgende transcriptie-eenheden",
-    "start this segment": "Start het alleen voor deze transcriptie-eenheid",
-    "stop all": "Stop het voor alle transcriptie-eenheden",
-    "stop for all next": "Stop ermee voor deze en alle transcriptie-eenheden komen erna",
-    "stop this segment": "Stop het alleen voor deze transcriptie-eenheid",
-    "without asr": "Geen ASR"
   },
   "authentication": {
     "description": "Sluit dit venster en klik in TRATT op de \"I'm authenticated!\" knop om de authenticatie te bevestigen. Daarna gaat de geautomatiseerde verwerking verder.",
@@ -366,9 +350,6 @@
       "audioplayer": "Sneltoetsen voor audiospeler",
       "close_save": "Venster opslaan en sluiten",
       "delete boundaries": "Verwijder geselecteerde grenzen en voeg transcriptie-eenheden toe",
-      "do asr": "Pas ASR toe op de geselecteerde transcriptie-eenheid",
-      "do asr maus": "Pas ASR en MAUS toe op de geselecteerde transcriptie-eenheid",
-      "do maus only": "Pas woorduitlijning met MAUS toe op de geselecteerde transcriptie-eenheid ",
       "down signaldisplay": "Snelkoppelingen van de signaalweergave onderaan",
       "feedback and send 1": "Verzend transcript met één ster",
       "feedback and send 2": "Verzend transcript met twee sterren",

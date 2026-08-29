@@ -3,32 +3,11 @@
     "language name": "Svenska"
   },
   "alerts": {
-    "authentication needed": "Logga in för att kunna använda funktioner som taligenkänning eller ordjustering. Efter att du klickat på \"Autentisera\" öppnas ett separat fönster. Om inget fönster öppnas, se till att popup-fönster är aktiverade i din webbläsare.",
     "combine segments ignore speakerlabel successful": "Segmenten kombinerades framgångsrikt och ignorerade talaretikett.",
     "combine segments successful": "Segment med samma talaretikett kombinerades framgångsrikt.",
+    "error occurred": "Ett fel uppstod. Vänligen skicka oss en kort återkoppling så vi kan åtgärda felet.",
     "need playback": "Du måste starta uppspelningen minst en gång innan du skriver in en transkriptionen.",
     "undo deactivated": "Du kan inte använda funktionerna Ångra eller Gör om för tillfället."
-  },
-  "asr": {
-    "asr language": "Språk för taligenkänning",
-    "asr provider": "Leverantör av taligenkänning",
-    "asr running": "Taligenkänning körs för närvarande. Om du vill stoppa taligenkänning för denna transkriptionsenhet klickar du här.",
-    "click on logo": "Klicka på en tjänstlogotyp för mer information.",
-    "error": "Ett fel uppstod. Vänligen skicka oss en kort återkoppling så vi kan åtgärda felet.",
-    "file too big": "Taligenkänning stöder endast ljudsekvenser med maximal varaktighet på 10 minuter. Påverkade transkriptionsenheter hoppades över.",
-    "maus empty text": "Den valda transkriptionsenheten innehåller ingen text eller mindre än två ord.",
-    "maus language": "MAUS-språk",
-    "max duration exceeded": "För att kunna bearbeta transkriptionsenheter med {{asrProvider}} måste varje transkriptionsenhet vara mindre än {{maxDuration}} sekunder långa. Vänligen göra enheterna mindre eller välj en annan taligenkänning-leverantör.",
-    "max signal size exceeded": "Filstorleken på den valda transkriptionsenheten är för stor. Vänligen göra enheterna mindre eller välj en annan taligenkänning-leverantör.",
-    "no asr selected": "Vänligen välj taligenkänning-inställningar innan du använder genvägen.",
-    "no auth": "Autentisering krävs för vidare transkription.",
-    "no quota": "Ingen kvot kvar. Vänligen använd en annan taligenkänning-leverantör.",
-    "start for all next": "Starta det för denna och alla efterföljande transkriptionsenheter",
-    "start this segment": "Starta det endast för denna transkriptionsenhet",
-    "stop all": "Stoppa det för alla transkriptionsenheter",
-    "stop for all next": "Stoppa det för denna och alla följande transkriptionsenheter",
-    "stop this segment": "Stoppa det endast för denna transkriptionsenhet",
-    "without asr": "Ingen taligenkänning"
   },
   "authentication": {
     "description": "Stäng detta fönster och klicka i TRATT på knappen \"Jag är inloggad!\" för att bekräfta autentiseringen. Därefter fortsätter den automatiska bearbetningen.",
@@ -201,7 +180,6 @@
     "agreement read": "Jag har läst avtalet och godkänner dess innehåll",
     "application": "Applikation",
     "apply": "Tillämpa",
-    "asr options": "Inställningar för taligenkänning",
     "authenticate": "Logga in",
     "authors": "Författare",
     "back": "Tillbaka",
@@ -492,9 +470,6 @@
       "audioplayer": "Genvägar för ljudspelaren",
       "close_save": "Spara & stäng fönster",
       "delete boundaries": "Ta bort valda gränser och slå samman transkriptionsenheter",
-      "do asr": "Tillämpa taligenkänning på vald transkriptionsenhet",
-      "do asr maus": "Tillämpa taligenkänning & MAUS-segmentering på den valda transkriptionsenheten",
-      "do maus only": "Tillämpa ordjustering på den valda transkriptionsenheten med MAUS",
       "editor specific shortcuts": "Editor",
       "feedback and send 1": "Skicka transkript med en stjärna",
       "feedback and send 2": "Skicka transkript med två stjärnor",
@@ -730,7 +705,7 @@
   "toasts": {
     "new update": {
       "header": "Ny uppdatering tillgänglig",
-      "body": "En ny uppdatering för TRATT är tillgänglig. Se till att inga automatiska processer körs (taligenkänning, ordjustering, beskärning osv.). Ladda sedan om TRATT för att installera den."
+      "body": "En ny uppdatering för TRATT är tillgänglig. Se till att inga automatiska processer körs (beskärning osv.). Ladda sedan om TRATT för att installera den."
     }
   },
   "branding": {

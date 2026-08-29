@@ -3,24 +3,8 @@
     "language name": "Italiano"
   },
   "alerts": {
-    "authentication needed": "Per favore autenticati in modo da usare funzionalità come l'ASR o l'allineamento per parola. Dopo aver cliccato su \"Autenticati\" si aprirà una finestra separata. Se non si apre alcuna finestra, assicurati di avere i popup attivati nel tuo browser.",
+    "error occurred": "Si è verificato un errore. Per favore, inviaci un breve feedback in modo da consentirci di risolverlo.",
     "need playback": "Devi attivare il playback almeno una volta prima di sottoporre la trascrizione."
-  },
-  "asr": {
-    "asr running": "L'ASR è attualmente in atto. Se vuoi fermare l'ASR per questa trascrizione, clicca qui.",
-    "click on logo": "Clicca sul logo di un servizio per ulteriori informazioni.",
-    "error": "Si è verificato un errore. Per favore, inviaci un breve feedback in modo da consentirci di risolverlo.",
-    "file too big": "L'ASR supporta solo sequenze audio con durata massima di 10 minuti. Le unità di trascrizione inferiori saranno tralasciate.",
-    "maus empty text": "L'unità di trascrizione selezionata non contiene testo o contiene meno di due parole.",
-    "no asr selected": "Prego, seleziona le opzioni ASR prima di usare la scorciatoia.",
-    "no auth": "Autenticazione richiesta per continuare la trascrizione.",
-    "no quota": "Nessuna quota rimanente. Per favore, usa un altro provider ASR.",
-    "start for all next": "Inizia per questa e tutte le successive unità di trascrizione.",
-    "start this segment": "Inizia solo per questa unità di trascrizione.",
-    "stop all": "Ferma per tutte le unità di trascrizione",
-    "stop for all next": "Ferma per questa e per tutte le successive unità a seguire",
-    "stop this segment": "Ferma solo per questa unità di trascrizione.",
-    "without asr": "Nessun ASR"
   },
   "authentication": {
     "description": "Chiudi questa finestra e clicca \"Sono autenticato!\" in TRATT per confermare l'autenticazione. Dopo questo, il processo automatico continuerà.",
@@ -366,9 +350,6 @@
       "audioplayer": "Scorciatoie player audio",
       "close_save": "Salva & chiudi finestra",
       "delete boundaries": "Elimina i confini e unisci le unità di trascrizione",
-      "do asr": "Lancia ASR sull'unità di trascrizione selezionata",
-      "do asr maus": "Lancia ASR e segmentazione MAUS sull'unità di trascrizione selezionata",
-      "do maus only": "Applica allineamento per parola sull'unità di trascrizione selezionata usando MAUS",
       "down signaldisplay": "Scorciatoie del display segnale in basso",
       "feedback and send 1": "Invia trascrizione con una stella",
       "feedback and send 2": "Invia trascrizione con due stelle",

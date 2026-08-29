@@ -3,32 +3,11 @@
     "language name": "Deutsch"
   },
   "alerts": {
-    "authentication needed": "Authentifiziere Dich, damit Du Features wie die automatische Spracherkennung Wort-Segmentierung verwenden kannst. Nach einem Klick auf \"Authentifizieren\" erscheint ein separates Fenster. Falls sich kein Fenster öffnet, stelle sicher, dass dein Browser Popups für diese Seite erlaubt.",
     "combine segments ignore speakerlabel successful": "Das Kombinieren von Segmenten unabhängig vom Sprecher-Label war erfolgreich.",
     "combine segments successful": "Das Kombinieren von Segmenten mit gleichen Sprecher-Label war erfolgreich.",
+    "error occurred": "Es ist ein Fehler aufgetreten. Sende uns bitte ein kurzes Feedback zu dem Fehler, damit er behoben werden kann.",
     "need playback": "Du musst die Audiowiedergabe mindestens einmal gestartet haben, bevor Du das Transkript absenden kannst.",
     "undo deactivated": "Du kannst aktuell Aktionen nicht rückgängig machen oder wiederholen."
-  },
-  "asr": {
-    "asr language": "ASR Sprache",
-    "asr provider": "Dienstleister",
-    "asr running": "Die automatische Spracherkennung läuft gerade. Wenn Du sie für diese Transkriptionseinheit abbrechen möchtest, klicke hier.",
-    "click on logo": "Klicke für weitere Informationen auf ein Logo.",
-    "error": "Es ist ein Fehler aufgetreten. Sende uns bitte ein kurzes Feedback zu dem Fehler, damit er behoben werden kann.",
-    "file too big": "Die Spracherkennung unterstützt nur Audiosequenzen mit einer Dauer von max. 10 Minuten. Betroffene Transkiptionseinheiten wurden übersprungen.",
-    "maus empty text": "Die ausgewählte Transkriptionseinheit enthält keinen Text oder der Text enthält weniger als zwei Wörter.",
-    "maus language": "MAUS Sprache",
-    "max duration exceeded": "Um das Segment mit {{asrProvider}} verarbeiten zu lassen, muss es eine Länge von weniger als {{maxDuration}} Sekunden haben. Kürze das Segment oder wähle einen anderen ASR Provider.",
-    "max signal size exceeded": "Die Dateigröße des gewählten Segments ist zu groß. Kürze das Segment oder wähle einen anderen ASR Provider.",
-    "no asr selected": "Bevor Du das Tastenkürzel verwenden kannst, musst Du ASR Einstellungen vornehmen.",
-    "no auth": "Um weiter zu transkribieren ist eine erneute Authentifizierung notwendig. <a href='{{url}}'>Klicke hier um dich</a> zu authentifizieren.",
-    "no quota": "Es ist keine Kontingente mehr verfügbar. Bitte nutze einen anderen ASR Provider.",
-    "start for all next": "Verarbeite alle folgenden Einheiten",
-    "start this segment": "Verarbeite nur diese Transkriptionseinheit",
-    "stop all": "Beende Verarbeitung für alle Einheiten",
-    "stop for all next": "Beende Verarbeitung für dieses und für alle folgenden Einheiten",
-    "stop this segment": "Beende Verarbeitung für diese Einheit",
-    "without asr": "Ohne ASR"
   },
   "authentication": {
     "description": "Schließe dieses Fenster und klicke auf die \"Ich bin authentifiziert!\"- Schaltfläche in TRATT um deine Authentifizierung zu bestätigen. Danach wird die automatische Verarbeitung fortgesetzt.",
@@ -194,7 +173,6 @@
     "agreement read": "Ich habe die {{agreement}} gelesen und akzeptiert",
     "application": "Anwendung",
     "apply": "Übernehmen",
-    "asr options": "ASR Optionen",
     "authenticate": "Authentifizieren",
     "authors": "Autoren",
     "back": "Zurück",
@@ -484,9 +462,6 @@
       "audioplayer": "Tastenkombinationen des Audioplayers",
       "close_save": "Speichern & Fenster schließen",
       "delete boundaries": "Ausgewählte Grenzen entfernen und Transkript zusammenführen",
-      "do asr": "Ausgewählte Transkriptionseinheit von ASR verarbeiten lassen",
-      "do asr maus": "Ausgewähte Transkriptionseinheit von ASR & MAUS segmentieren lassen",
-      "do maus only": "Ausgewählte Transkriptionseinheit mit MAUS verarbeiten (Wort-Segmentierung)",
       "editor specific shortcuts": "Editor",
       "feedback and send 1": "Transkript mit einem Stern senden",
       "feedback and send 2": "Transkript mit zwei Sternen senden",
@@ -722,7 +697,7 @@
   "toasts": {
     "new update": {
       "header": "Neue Aktualisierung verfügbar",
-      "body": "Eine neue Aktualisierung für TRATT ist verfügbar. Stelle sicher, dass keine automatischen Prozesse laufen (ASR, Word Alignment, Schneiden etc.). Lade dann TRATT neu, um diese zu installieren."
+      "body": "Eine neue Aktualisierung für TRATT ist verfügbar. Stelle sicher, dass keine automatischen Prozesse laufen (Schneiden etc.). Lade dann TRATT neu, um diese zu installieren."
     }
   },
   "branding": {

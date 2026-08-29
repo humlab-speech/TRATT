@@ -3,32 +3,11 @@
     "language name": "English"
   },
   "alerts": {
-    "authentication needed": "Please authenticate in order to use features like ASR or word-alignment. After you clicked on \"Authenticate\" a separate window opens. If no window opens, make sure to have popups enabled in your browser.",
     "combine segments ignore speakerlabel successful": "Segments were combined successfully regardless of speaker labels.",
     "combine segments successful": "Segments with the same speaker label were combined successfully.",
+    "error occurred": "An error occurred. Please send us a short feedback for the error to be fixed.",
     "need playback": "You need to start the playback at least once before submitting the transcript.",
     "undo deactivated": "You can't apply undo & redo at the moment."
-  },
-  "asr": {
-    "asr language": "ASR Language",
-    "asr provider": "ASR Provider",
-    "asr running": "ASR is currently running. If you want to stop ASR for this transcription unit, click here.",
-    "click on logo": "Click on a service logo for further information.",
-    "error": "An error occurred. Please send us a short feedback for the error to be fixed.",
-    "file too big": "The ASR only supports audio sequences with max. duration of 10 minutes. Affected transcription units were skipped.",
-    "maus empty text": "The selected transcription unit does not contain any text or less than two words.",
-    "maus language": "MAUS Language",
-    "max duration exceeded": "In order to process transcription units with {{asrProvider}}, the duration of each transcription unit must be less than {{maxDuration}} seconds. Please make units smaller or choose another ASR Provider.",
-    "max signal size exceeded": "The file size of the selected transcription unit is too big. Please make units smaller or choose another ASR Provider.",
-    "no asr selected": "Please select ASR options before using the shortcut.",
-    "no auth": "Authentication needed for further transcription.",
-    "no quota": "No quota left. Please use another ASR provider.",
-    "start for all next": "Start it for this and all subsequent transcription units",
-    "start this segment": "Start it only for this transcription unit",
-    "stop all": "Stop it for all transcription units",
-    "stop for all next": "Stop it for this one and all transcription unit coming next",
-    "stop this segment": "Stop it for this transcription unit only",
-    "without asr": "No ASR"
   },
   "authentication": {
     "description": "Close this window and click in TRATT on the \"I'm authenticated!\" button in order to confirm authentication. After that the automated processing continues.",
@@ -203,7 +182,6 @@
     "agreement read": "I have read the agreement and accept its content",
     "application": "Application",
     "apply": "Apply",
-    "asr options": "ASR Options",
     "authenticate": "Authenticate",
     "authors": "Authors",
     "back": "Back",
@@ -544,9 +522,6 @@
       "audioplayer": "Audioplayer shortcuts",
       "close_save": "Save & close window",
       "delete boundaries": "Delete selected boundaries and join transcription units",
-      "do asr": "Apply ASR on selected transcription unit",
-      "do asr maus": "Apply ASR & MAUS segmentation on the selected transcription unit",
-      "do maus only": "Apply word-alignment on the selected transcription unit using MAUS",
       "editor specific shortcuts": "Editor",
       "feedback and send 1": "Send transcript with one star",
       "feedback and send 2": "Send transcript with two stars",
@@ -782,7 +757,7 @@
   "toasts": {
     "new update": {
       "header": "New update available",
-      "body": "A new update for TRATT is available. Make sure that no automatic processes are running (ASR, Word Alignment, Trimming etc.). Then reload TRATT to install it."
+      "body": "A new update for TRATT is available. Make sure that no automatic processes are running (Trimming etc.). Then reload TRATT to install it."
     }
   },
   "branding": {

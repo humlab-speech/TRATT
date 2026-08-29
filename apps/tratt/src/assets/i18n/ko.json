@@ -3,24 +3,8 @@
     "language name": "영어"
   },
   "alerts": {
-    "authentication needed": "ASR 또는 단어 정렬과 같은 기능을 사용하려면 인증하십시오. 인증을 클릭하면 별도의 창이 열립니다. 창이 열리지 않으면 브라우저에서 팝업이 활성화되었는지 확인합니다.",
+    "error occurred": "오류가 발생했습니다. 수정할 오류에 대한 간단한 피드백을 보내주시기 바랍니다.",
     "need playback": "스크립트를 제출하기 전에 한 번 이상 재생을 시작해야 합니다."
-  },
-  "asr": {
-    "asr running": "ASR이 현재 실행 중입니다. 이 전사 단위에 대한 ASR을 중지하려면 여기를 클릭하십시오.",
-    "click on logo": "자세한 내용을 보려면 서비스 로고를 클릭하십시오.",
-    "error": "오류가 발생했습니다. 수정할 오류에 대한 간단한 피드백을 보내주시기 바랍니다.",
-    "file too big": "ASR은 최대 10분의 오디오 시퀀스만 지원합니다. 영향을 받는 기록 유닛을 건너뛰었습니다.",
-    "maus empty text": "선택한 전사 단위에는 텍스트가 없거나 두 개 미만의 단어가 포함되어 있습니다.",
-    "no asr selected": "바로 가기를 사용하기 전에 ASR 옵션을 선택하십시오.",
-    "no auth": "추가 기록을 위해 인증이 필요합니다.",
-    "no quota": "남은 할당량이 없습니다. 다른 ASR 공급자를 사용하십시오.",
-    "start for all next": "이 기록 유닛과 다음에 오는 모든 유닛들에 대해서 시작",
-    "start this segment": "이 기록 유닛에 대해서만 시작",
-    "stop all": "모든 기록 유닛에 대해 중지",
-    "stop for all next": "이 기록 유닛과 다음에 오는 모든 유닛들에 대해서 중지",
-    "stop this segment": "이 기록 유닛에 대해서만 중지",
-    "without asr": "ASR 없음"
   },
   "authentication": {
     "description": "이 창을 닫고 \"인증되었습니다!\" 버튼에서 TRATT를 클릭하여 인증을 확인합니다. 그 뒤 자동 처리가 계속됩니다.",
@@ -366,9 +350,6 @@
       "audioplayer": "오디오 플레이어 단축키",
       "close_save": "저장 후 창 닫기",
       "delete boundaries": "선택한 경계 삭제 및 기록 단위 결합",
-      "do asr": "선택한 기록 단위에 ASR 적용",
-      "do asr maus": "선택한 기록 단위에 ASR & MAUS 분할 적용",
-      "do maus only": "MAUS를 사용하여 선택한 기록 유닛 단어 정렬 적용",
       "down signaldisplay": "하단에 표시되는 신호의 단축키",
       "feedback and send 1": "별 한 개와 기록 보내기",
       "feedback and send 2": "별 두 개와 기록 보내기",

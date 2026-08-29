@@ -3,24 +3,8 @@
     "language name": "英文"
   },
   "alerts": {
-    "authentication needed": "请认证，以便使用自动语音识别/词对齐功能。在点击“认证”之后，会出现新窗口。如果没有新窗口，请确保浏览器开启了弹窗功能。",
+    "error occurred": "出现错误。请简略告诉我们这个错误的情况，以便我们修复它。",
     "need playback": "在提交标注之前，至少需要播放一次。"
-  },
-  "asr": {
-    "asr running": "自动语音识别ASR正在运行中，如果你想停止这个标注单元的ASR，请点击此处。",
-    "click on logo": "更多信息，请点击服务提供商的图标。",
-    "error": "出现错误。请简略告诉我们这个错误的情况，以便我们修复它。",
-    "file too big": "自动语音识别仅对最长10分钟的音频有效。超过的标注单位已被跳过。",
-    "maus empty text": "被选中的标注单元为空或内容小于两个词。",
-    "no asr selected": "在使用快捷键前，请选择自动语音识别ASR选项。",
-    "no auth": "更多标注需要您进行身份认证。",
-    "no quota": "服务额度不足。请选择另一个ASR提供商。",
-    "start for all next": "对这个以及所有后续标注单元启动",
-    "start this segment": "仅对本标注单元启动",
-    "stop all": "对所有标注单元停止",
-    "stop for all next": "对这个以及所有后续标注单元停止",
-    "stop this segment": "仅对本标注单元停止",
-    "without asr": "无自动语音识别ASR"
   },
   "authentication": {
     "description": "关闭此窗口，点击TRATT中的“认证成功！”按钮来完成认证。之后自动进程会继续。",
@@ -366,9 +350,6 @@
       "audioplayer": "音频播放器快捷键",
       "close_save": "保存并关闭窗口",
       "delete boundaries": "删除已选边界，合并标注单元",
-      "do asr": "在选择的标注单元上应用自动语音识别ASR",
-      "do asr maus": "在选择的标注单元上应用自动语音识别ASR和语音切分工具MAUS",
-      "do maus only": "在选择的标注单元上用语音切分工具MAUS词对齐",
       "down signaldisplay": "信号显示在底部快捷键",
       "feedback and send 1": "发送标注文件（一星）：跳过此部分，稍后再做",
       "feedback and send 2": "发送标注文件（二星）：已完成此部分，一般",
