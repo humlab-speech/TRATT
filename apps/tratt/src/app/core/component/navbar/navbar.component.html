@@ -797,35 +797,6 @@
                     60
                   </button>
                 </div>
-                @if (asrStoreService.asrEnabledSignal()) {
-                  <br /><br />
-                  <hr />
-                  <span style="font-size: 1rem" class="mb-2 d-block">{{
-                    'g.asr options' | transloco
-                  }}</span>
-                  <tratt-asr-options
-                    [options]="asrStoreService.asrOptionsSignal() ?? undefined"
-                    (optionsChange)="asrStoreService.setASRSettings($event)"
-                    [languageSettings]="
-                      asrStoreService.languageSettingsSignal() ?? undefined
-                    "
-                    [manualURL]="api.appProperties?.support?.manual_url ?? ''"
-                    [mausLanguages]="
-                      asrStoreService.mausLanguages() ?? undefined
-                    "
-                    [asrLanguages]="asrStoreService.asrLanguages() ?? undefined"
-                    [showAccessCode]="true"
-                    [i18n]="{
-                      header: 'p.language and provider' | transloco,
-                      asrLanguage: 'asr.asr language' | transloco,
-                      mausLanguage: 'asr.maus language' | transloco,
-                      nothingFound: 'p.nothing found' | transloco,
-                      asrProvider: 'asr.asr provider' | transloco,
-                      accessCode: 'g.access code' | transloco,
-                    }"
-                  ></tratt-asr-options>
-                  <hr />
-                }
               }
             </div>
           </ng-template>

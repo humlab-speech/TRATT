@@ -3,7 +3,6 @@ import { describe, expect, it, jest } from '@jest/globals';
 import { TranslocoService } from '@jsverse/transloco';
 import { TrattAnnotationSegment } from '@tratt/annotation';
 import { ShortcutService } from '../../shared/service/shortcut.service';
-import { AsrStoreService } from '../../store/asr/asr-store-service.service';
 import { AnnotationStoreService } from '../../store/login-mode/annotation/annotation.store.service';
 import { TranscrEditorComponent } from './transcr-editor.component';
 
@@ -15,7 +14,6 @@ describe('TranscrEditorComponent', () => {
       {} as TranslocoService,
       {} as AnnotationStoreService,
       {} as Renderer2,
-      {} as AsrStoreService,
     );
   }
 

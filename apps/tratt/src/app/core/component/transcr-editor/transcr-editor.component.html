@@ -10,20 +10,6 @@
       'margin-top': popoversNew.validation.location.y + 'px',
     }"
   ></tratt-validation-popover>
-  @if (asr.status === 'active') {
-    <div
-      id="asrOverlay"
-      class="asr-running h-100 w-100 d-flex flex-column justify-content-center justify-items-center"
-      (click)="onASROverlayClick()"
-      (keydown.enter)="onASROverlayClick()"
-      (keydown.space)="$event.preventDefault(); onASROverlayClick()"
-      tabindex="0"
-    >
-      <p style="margin-top: 50px; text-align: center">
-        {{ 'asr.asr running' | transloco }}
-      </p>
-    </div>
-  }
   <ngx-jodit
     #jodit
     [options]="joditOptions"

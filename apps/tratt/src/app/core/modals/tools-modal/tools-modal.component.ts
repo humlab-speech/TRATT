@@ -537,19 +537,7 @@ export class ToolsModalComponent extends TrattModal implements OnDestroy {
   }
 
   onCombinePhrasesClick() {
-    if (!this.isSomethingBlocked()) {
-      this.combinePhrases();
-    }
-  }
-
-  isSomethingBlocked(): boolean {
-    return (
-      this.annotationStoreService.currentLevel instanceof
-        TrattAnnotationSegmentLevel &&
-      this.annotationStoreService.currentLevel!.items.find((a) => {
-        return a.context?.asr?.isBlockedBy !== undefined;
-      }) !== undefined
-    );
+    this.combinePhrases();
   }
 
   private getDurationFactorForZipping(): Promise<number> {

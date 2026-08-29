@@ -50,8 +50,6 @@ import {
 import { JoditConfig, NgxJoditComponent } from 'ngx-jodit';
 import { timer } from 'rxjs';
 import { ShortcutService } from '../../shared/service/shortcut.service';
-import { ASRProcessStatus, ASRStateQueue } from '../../store/asr';
-import { AsrStoreService } from '../../store/asr/asr-store-service.service';
 import { AnnotationStoreService } from '../../store/login-mode/annotation/annotation.store.service';
 import { DefaultComponent } from '../default.component';
 import { TranscrEditorConfig } from './config';
@@ -132,11 +130,6 @@ export class TranscrEditorComponent
     statusbar: false,
   };
 
-  public asr = {
-    status: 'inactive',
-    result: '',
-    error: '',
-  };
   size = {
     height: 100,
     width: 100,
@@ -199,7 +192,6 @@ export class TranscrEditorComponent
     private langService: TranslocoService,
     private annotationStoreService: AnnotationStoreService,
     private renderer: Renderer2,
-    private asrStoreService: AsrStoreService,
   ) {
     super();
     this._settings = new TranscrEditorConfig();
@@ -504,10 +496,6 @@ export class TranscrEditorComponent
         this.toolbar,
       );
 
-      this.asr.status = 'inactive';
-      this.asr.error = '';
-      this.asr.result = '';
-
       this.size.height = this.transcrEditor.nativeElement.offsetHeight;
       this.size.width = this.transcrEditor.nativeElement.offsetWidth;
 
@@ -559,36 +547,6 @@ export class TranscrEditorComponent
     }
     return 'Helvetica, Arial, serif';
   }
-
-  onASRQueueChange = (queue?: ASRStateQueue) => {
-    if (queue !== undefined && this.audiochunk) {
-      const item = queue.items.find(
-        (a) =>
-          a.time.sampleStart === this.audiochunk!.time.start.samples &&
-          a.time.sampleLength === this.audiochunk!.time.duration.samples,
-      );
-
-      if (item) {
-        if (item.status === ASRProcessStatus.FINISHED) {
-          this.asr.status = 'finished';
-          this.asr.result = item.result ?? '';
-        } else if (item.status === ASRProcessStatus.FAILED) {
-          this.asr.status = 'failed';
-          this.asr.error = this.asr.result;
-        } else if (item.status === ASRProcessStatus.STARTED) {
-          this.asr.status = 'active';
-          this.asr.error = '';
-          this.asr.result = '';
-        } else if (item.status === ASRProcessStatus.STOPPED) {
-          this.asr.status = 'inactive';
-        } else if (item.status === ASRProcessStatus.NOAUTH) {
-          this.asr.status = 'active';
-        }
-
-        this.cd.markForCheck();
-      }
-    }
-  };
 
   /**
    * inserts a marker to the editors html
@@ -666,13 +624,6 @@ export class TranscrEditorComponent
       this._lastAudioChunkID = this.audiochunk.id;
     }
     this.initialize();
-
-    this.subscribe(this.asrStoreService.queue$, {
-      next: this.onASRQueueChange,
-      error: (error) => {
-        console.error(error);
-      },
-    });
 
     this.subscriptionManager.removeByTag('typing_change');
     this.subscribe(
@@ -1248,17 +1199,6 @@ export class TranscrEditorComponent
     }
   }
 
-  public onASROverlayClick() {
-    if (this.asrStoreService.asrOptions?.selectedASRLanguage !== undefined) {
-      this.asrStoreService.stopItemProcessing({
-        sampleStart: this.audiochunk!.time.start.samples,
-        sampleLength: this.audiochunk!.time.duration.samples,
-      });
-    } else {
-      console.error(`could not stop ASR because segment number was not found.`);
-    }
-  }
-
   public startRecurringHighlight() {
     this.subscriptionManager.removeByTag('highlight');
     this.lockHighlighting = false;
@@ -1488,12 +1428,6 @@ export class TranscrEditorComponent
         },
         'initialization',
       );
-
-      this.asr = {
-        status: 'inactive',
-        result: '',
-        error: '',
-      };
     }
   }
 

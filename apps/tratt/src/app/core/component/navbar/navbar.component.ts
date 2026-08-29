@@ -30,7 +30,6 @@ import {
 } from '@tratt/annotation';
 import { TrattComponentsModule } from '@tratt/ngx-components';
 import { TimespanPipe } from '@tratt/ngx-utilities';
-import { filter, first } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 import { AppInfo } from '../../../app.info';
 import { editorComponents } from '../../../editors/components';
@@ -61,7 +60,6 @@ import {
 import { RecordedFileService } from '../../shared/service/recorded-file.service';
 import { LoginMode } from '../../store';
 import { ApplicationStoreService } from '../../store/application/application-store.service';
-import { AsrStoreService } from '../../store/asr/asr-store-service.service';
 import { AuthenticationStoreService } from '../../store/authentication';
 import { AnnotationStoreService } from '../../store/login-mode/annotation/annotation.store.service';
 import { DefaultComponent } from '../default.component';
@@ -180,7 +178,6 @@ export class NavigationComponent extends DefaultComponent implements OnInit {
     public audio: AudioService,
     public api: OctraAPIService,
     private offcanvasService: NgbOffcanvas,
-    protected asrStoreService: AsrStoreService,
     private router: Router,
     public recordedFileService: RecordedFileService,
     private cdr: ChangeDetectorRef,
@@ -236,37 +233,6 @@ export class NavigationComponent extends DefaultComponent implements OnInit {
   changeLanguage(lang: string) {
     this.langService.setActiveLang(lang);
     this.appStorage.language = lang;
-
-    this.applyASRLanguageForLang(lang);
-  }
-
-  private applyASRLanguageForLang(lang: string): void {
-    const applyIfFound = (langs: Array<{ value: string }>) => {
-      const matched = langs.find((l) =>
-        l.value.toLowerCase().startsWith(lang.toLowerCase()),
-      )?.value;
-      if (matched) {
-        this.asrStoreService.setASRSettings({
-          ...this.asrStoreService.asrOptions,
-          selectedASRLanguage: matched,
-        });
-      }
-    };
-
-    const current = this.asrStoreService.asrLanguages as
-      | Array<{ value: string }>
-      | undefined;
-    if (current?.length) {
-      applyIfFound(current);
-    } else {
-      // Languages not yet loaded — apply once they arrive
-      this.asrStoreService.asrLanguages$
-        .pipe(
-          filter((langs): langs is Array<{ value: string }> => !!langs?.length),
-          first(),
-        )
-        .subscribe(applyIfFound);
-    }
   }
 
   public interfaceActive(name: string) {

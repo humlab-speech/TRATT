@@ -20,7 +20,6 @@ import {
 } from '../../../editors';
 import { TranscrWindowComponent } from '../../../editors/2D-editor/transcr-window';
 import { PermutationsReplaceModalComponent } from '../../../editors/trn-editor/modals/permutations-replace-modal/permutations-replace-modal.component';
-import { AuthenticationNeededComponent } from '../../alerts/authentication-needed/authentication-needed.component';
 import { ErrorOccurredComponent } from '../../alerts/error-occurred/error-occurred.component';
 import { FastbarComponent } from '../../component';
 import { AudioNavigationComponent } from '../../component/audio-navigation';
@@ -44,7 +43,7 @@ import { ReloadFileComponent } from './reload-file';
 import { TranscriptionComponent } from './transcription';
 import { TranscriptionEndComponent } from './transcription-end';
 
-export const ALERTS: any[] = [AuthenticationNeededComponent];
+export const ALERTS: any[] = [];
 
 export const EDITORS: any[] = [
   DictaphoneEditorComponent,

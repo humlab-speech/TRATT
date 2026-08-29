@@ -54,22 +54,6 @@ tratt-transcr-editor .error-card {
   z-index: 200;
 }
 
-tratt-transcr-editor #asrOverlay {
-  width: 100%;
-  opacity: 0.5;
-  position: absolute;
-  z-index: 30;
-  font-weight: bolder;
-}
-
-tratt-transcr-editor .asr-running {
-  background-color: rgba(255, 202, 37, 0.6);
-}
-
-tratt-transcr-editor .asr-error {
-  background-color: rgba(255, 98, 107, 0.6);
-}
-
 tratt-transcr-editor .jodit-container {
   height: 100%;
 }
@@ -103,10 +87,4 @@ tratt-transcr-editor ngx-jodit .jodit-workplace {
 
 .jodit-toolbar__box .jodit-toolbar-content {
   border: 1px solid gray !important;
-}
-
-#asrOverlay {
-  position: absolute;
-  z-index: 10;
-  background-color: rgba(255, 221, 0, 0.28);
 }
