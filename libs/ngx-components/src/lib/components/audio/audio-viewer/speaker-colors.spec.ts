@@ -18,8 +18,8 @@ import {
 
 function makeAnnotation(
   speakerValues: (string | undefined)[],
-): TrattAnnotation<any, TrattAnnotationSegment> {
-  const annotation = new TrattAnnotation<any, TrattAnnotationSegment>();
+): TrattAnnotation<TrattAnnotationSegment> {
+  const annotation = new TrattAnnotation<TrattAnnotationSegment>();
   const items = speakerValues.map((spk, i) => {
     const labels: OLabel[] = [new OLabel('Transcript', 'hello')];
     if (spk) {

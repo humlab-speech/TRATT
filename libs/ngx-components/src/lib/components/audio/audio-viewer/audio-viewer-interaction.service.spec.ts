@@ -34,7 +34,7 @@ function segment(
 }
 
 function annotationWith(items: TrattAnnotationSegment[]) {
-  const annotation = new TrattAnnotation<any, TrattAnnotationSegment>([
+  const annotation = new TrattAnnotation<TrattAnnotationSegment>([
     new TrattAnnotationSegmentLevel<TrattAnnotationSegment>(
       1,
       'OrthoTranscript',
@@ -71,8 +71,8 @@ interface TestHarness {
   host: AudioViewerInteractionHost;
   state: {
     settings: AudioViewerInteractionSettings;
-    annotation?: TrattAnnotation<any, TrattAnnotationSegment>;
-    tempAnnotation?: TrattAnnotation<any, TrattAnnotationSegment>;
+    annotation?: TrattAnnotation<TrattAnnotationSegment>;
+    tempAnnotation?: TrattAnnotation<TrattAnnotationSegment>;
     drawnSelection?: AudioSelection;
     innerWidth: number;
     audioPxWidth: number;
