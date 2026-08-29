@@ -38,7 +38,7 @@ const naturalCompare = (a: string, b: string) =>
   a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' });
 
 export function getSpeakerIds(
-  annotation: TrattAnnotation<any, TrattAnnotationSegment>,
+  annotation: TrattAnnotation<TrattAnnotationSegment>,
 ): string[] {
   const ids = new Set<string>();
   for (const level of annotation.levels) {
@@ -80,12 +80,9 @@ export function cycleNextSpeaker(currentId: string, allIds: string[]): string {
 export function renameSpeakerInAnnotation(
   oldId: string,
   newId: string,
-  annotation: TrattAnnotation<any, TrattAnnotationSegment>,
-): TrattAnnotation<any, TrattAnnotationSegment> {
-  const cloned = annotation.clone() as TrattAnnotation<
-    any,
-    TrattAnnotationSegment
-  >;
+  annotation: TrattAnnotation<TrattAnnotationSegment>,
+): TrattAnnotation<TrattAnnotationSegment> {
+  const cloned = annotation.clone() as TrattAnnotation<TrattAnnotationSegment>;
   for (const level of cloned.levels) {
     if (level.type !== AnnotationLevelType.SEGMENT) continue;
     for (const item of level.items as TrattAnnotationSegment[]) {
