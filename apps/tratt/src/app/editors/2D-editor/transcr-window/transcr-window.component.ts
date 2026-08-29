@@ -55,7 +55,6 @@ import { take } from 'rxjs/operators';
 import { AudioNavigationComponent } from '../../../core/component/audio-navigation';
 import { AudioNavigationComponent as AudioNavigationComponent_1 } from '../../../core/component/audio-navigation/audio-navigation.component';
 import { DefaultComponent } from '../../../core/component/default.component';
-import { NavbarService } from '../../../core/component/navbar/navbar.service';
 import { TranscrEditorComponent as TranscrEditorComponent_1 } from '../../../core/component/transcr-editor/transcr-editor.component';
 import {
   AlertService,
@@ -435,7 +434,6 @@ export class TranscrWindowComponent
     public cd: ChangeDetectorRef,
     private langService: TranslocoService,
     private alertService: AlertService,
-    private navbarService: NavbarService,
     private activeModal: NgbActiveModal,
   ) {
     super();
@@ -1409,10 +1407,6 @@ export class TranscrWindowComponent
 
   onFontChange(fontName: string) {
     this.appStoreService.changeApplicationOption('editorFont', fontName);
-  }
-
-  openSettings() {
-    this.navbarService.openSettings.emit();
   }
 
   private updateOverviewButtonVisibility() {
