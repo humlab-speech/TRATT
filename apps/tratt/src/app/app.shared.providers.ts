@@ -9,10 +9,7 @@ import {
   NgbPopoverModule,
   NgbToast,
 } from '@ng-bootstrap/ng-bootstrap';
-import {
-  AsrOptionsComponent,
-  TrattComponentsModule,
-} from '@tratt/ngx-components';
+import { TrattComponentsModule } from '@tratt/ngx-components';
 import { TrattUtilitiesModule } from '@tratt/ngx-utilities';
 import { NgxJoditComponent } from 'ngx-jodit';
 import {
@@ -60,7 +57,6 @@ export const SHARED_PROVIDERS: Provider[] = [
   TranscrOverviewComponent,
   TranscrEditorComponent,
   ValidationPopoverComponent,
-  AsrOptionsComponent,
 
   // Standalone pipes
   ClipTextPipe,

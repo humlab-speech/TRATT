@@ -6,13 +6,12 @@ import {
 import { NgModule } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { TrattUtilitiesModule } from '@tratt/ngx-utilities';
-import { AsrOptionsComponent } from './components/asr-options';
 import { AudioViewerComponent } from './components/audio/audio-viewer';
 import { AudioplayerComponent } from './components/audio/audioplayer';
 
 @NgModule({
   declarations: [],
-  exports: [AudioplayerComponent, AudioViewerComponent, AsrOptionsComponent],
+  exports: [AudioplayerComponent, AudioViewerComponent],
   imports: [
     CommonModule,
     FormsModule,
@@ -20,7 +19,6 @@ import { AudioplayerComponent } from './components/audio/audioplayer';
     TrattUtilitiesModule,
     AudioplayerComponent,
     AudioViewerComponent,
-    AsrOptionsComponent,
   ],
   providers: [provideHttpClient(withInterceptorsFromDi())],
 })
