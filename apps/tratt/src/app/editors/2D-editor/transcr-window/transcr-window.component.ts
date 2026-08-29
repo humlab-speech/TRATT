@@ -24,9 +24,6 @@ import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import {
   NgbActiveModal,
-  NgbDropdown,
-  NgbDropdownMenu,
-  NgbDropdownToggle,
   NgbModalOptions,
 } from '@ng-bootstrap/ng-bootstrap';
 import {
@@ -75,9 +72,6 @@ import { AnnotationStoreService } from '../../../core/store/login-mode/annotatio
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     NgStyle,
-    NgbDropdown,
-    NgbDropdownToggle,
-    NgbDropdownMenu,
     AudioNavigationComponent_1,
     TrattComponentsModule,
     TranscrEditorComponent_1,

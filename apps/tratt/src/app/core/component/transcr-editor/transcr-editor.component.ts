@@ -16,7 +16,7 @@ import {
   SimpleChanges,
   ViewChild,
 } from '@angular/core';
-import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
+import { TranslocoService } from '@jsverse/transloco';
 import { TrattAnnotationSegment } from '@tratt/annotation';
 import { TrattGuidelines } from '@tratt/assets';
 import { SampleUnit } from '@tratt/media';
@@ -67,7 +67,6 @@ type TranscrEditorMarker = TrattGuidelines['markers'][number];
     ValidationPopoverComponent,
     NgStyle,
     NgxJoditComponent,
-    TranslocoPipe,
   ],
 })
 export class TranscrEditorComponent
