@@ -7,7 +7,7 @@ import { OctraAPIService } from '@octra/ngx-octra-api';
 import { SessionStorageService } from 'ngx-webstorage';
 import { randomUUID } from 'node:crypto';
 import { BroadcastChannel as NodeBroadcastChannel } from 'node:worker_threads';
-import { ReplaySubject } from 'rxjs';
+import { of, ReplaySubject } from 'rxjs';
 import { AlertService } from '../../shared/service';
 import { RoutingService } from '../../shared/service/routing.service';
 import { TrattModalService } from '../../modals/tratt-modal.service';
@@ -45,13 +45,7 @@ describe('AuthenticationEffects', () => {
     application: {
       mode: LoginMode.LOCAL,
       appConfiguration: {
-        tratt: {
-          plugins: {
-            asr: {
-              shibbolethURL: 'https://shibboleth.example.com/auth',
-            },
-          },
-        },
+        tratt: {},
       },
     },
   } as unknown as RootState;
@@ -64,7 +58,16 @@ describe('AuthenticationEffects', () => {
         AuthenticationEffects,
         provideMockActions(() => actions$),
         provideMockStore({ initialState }),
-        { provide: OctraAPIService, useValue: {} },
+        {
+          provide: OctraAPIService,
+          useValue: {
+            // The re-authentication flow (regardless of login mode) goes through
+            // the backend and opens a popup window when the API responds with an
+            // `openURL`; these tests exercise the nonce-matching handshake that
+            // happens once that popup reports back via BroadcastChannel.
+            login: () => of({ openURL: 'https://backend.example.com/auth' }),
+          },
+        },
         { provide: AlertService, useValue: { showAlert: () => undefined } },
         {
           provide: SessionStorageService,

@@ -117,35 +117,6 @@ export class AuthenticationEffects {
           return AuthenticationActions.reauthenticate.wait();
         };
 
-        if (
-          a.type === AuthenticationActions.reauthenticate.do.type &&
-          [LoginMode.DEMO, LoginMode.LOCAL].includes(state.application.mode!)
-        ) {
-          // local re-authentication
-          if (
-            state.application.appConfiguration?.tratt.plugins?.asr
-              ?.shibbolethURL
-          ) {
-            return of(
-              waitForWindowResponse(
-                a.actionAfterSuccess,
-                state.application.appConfiguration?.tratt.plugins.asr
-                  .shibbolethURL,
-                {
-                  nc: true,
-                  cid: Date.now(),
-                },
-              ),
-            );
-          } else {
-            return of(
-              AuthenticationActions.reauthenticate.fail({
-                error: 'Missing Shibboleth URL in application settings.',
-              }),
-            );
-          }
-        }
-
         return this.apiService.login(a.method, a.username, a.password).pipe(
           map((auth) => {
             if (auth.openURL !== undefined) {
