@@ -99,58 +99,6 @@ export const AppConfigSchema: JSONSchema4 = {
           description:
             'If you translated TRATT to other languages, you can define these in this array. For each language there has to be one octra_[lang].json',
         },
-        plugins: {
-          type: 'object',
-          properties: {
-            asr: {
-              type: 'object',
-              required: ['enabled', 'calls', 'services'],
-              properties: {
-                enabled: {
-                  type: 'boolean',
-                },
-                calls: {
-                  type: 'array',
-                  items: {
-                    type: 'string',
-                  },
-                },
-                services: {
-                  type: 'array',
-                  items: {
-                    type: 'object',
-                    properties: {
-                      provider: {
-                        type: 'string',
-                      },
-                      basName: {
-                        type: 'string',
-                      },
-                      type: {
-                        type: 'string',
-                      },
-                      termsURL: {
-                        type: 'string',
-                      },
-                      dataStoragePolicy: {
-                        type: 'string',
-                      },
-                      homepageURL: {
-                        type: 'string',
-                      },
-                      logoURL: {
-                        type: 'string',
-                      },
-                      host: {
-                        type: 'string',
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          },
-        },
         audioExamples: {
           type: 'array',
           items: {

@@ -14,7 +14,6 @@
     "tools": ["combine-phrases", "cut-audio"],
     "sendValidatedTranscriptionOnly": false,
     "showOverviewIfTranscriptNotValid": false,
-    "theme": "shortAudioFiles",
-    "asrEnabled": true
+    "theme": "shortAudioFiles"
   }
 }

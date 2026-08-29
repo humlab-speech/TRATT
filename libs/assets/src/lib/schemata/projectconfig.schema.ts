@@ -57,11 +57,6 @@ export const TrattProjectConfigJSONSchema: JSONSchema4 = {
             enum: ['cut-audio', 'combine-phrases'],
           },
         },
-        asrEnabled: {
-          type: 'boolean',
-          description:
-            'Allow users to use ASR. Only working if ASR is enabled in `appconfig.json`. (ASR and word alignment only supported on the main installation by LMU Munich).',
-        },
         validationEnabled: {
           type: 'boolean',
           description:

@@ -48,10 +48,6 @@
             "enum": ["cut-audio", "combine-phrases"]
           }
         },
-        "asrEnabled": {
-          "type": "boolean",
-          "description": "Allow users to use ASR. Only working if ASR is enabled in `appconfig.json`. (ASR and word alignment only supported on the main installation by LMU Munich)."
-        },
         "validationEnabled": {
           "type": "boolean",
           "description": "If you added a working functions.js you need to enable this in order to have validation enabled for your project."
