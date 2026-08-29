@@ -31,11 +31,8 @@ import {
 } from '@ng-bootstrap/ng-bootstrap';
 import {
   addSegment,
-  ASRContext,
-  ASRQueueItemType,
   getSegmentBySamplePosition,
   TrattAnnotationSegment,
-  TrattAnnotationSegmentLevel,
 } from '@tratt/annotation';
 import { TrattGuidelines } from '@tratt/assets';
 import { AudioSelection, PlayBackStatus, SampleUnit } from '@tratt/media';
@@ -70,8 +67,6 @@ import {
 import { AppStorageService } from '../../../core/shared/service/appstorage.service';
 import { ShortcutService } from '../../../core/shared/service/shortcut.service';
 import { ApplicationStoreService } from '../../../core/store/application/application-store.service';
-import { ASRProcessStatus } from '../../../core/store/asr';
-import { AsrStoreService } from '../../../core/store/asr/asr-store-service.service';
 import { AnnotationStoreService } from '../../../core/store/login-mode/annotation/annotation.store.service';
 
 @Component({
@@ -434,7 +429,6 @@ export class TranscrWindowComponent
     public annotationStoreService: AnnotationStoreService,
     public audio: AudioService,
     public uiService: UserInteractionsService,
-    public asrStoreService: AsrStoreService,
     public settingsService: SettingsService,
     public appStorage: AppStorageService,
     public appStoreService: ApplicationStoreService,
@@ -453,34 +447,6 @@ export class TranscrWindowComponent
       }
     });
 
-    this.subscribe(this.asrStoreService.queue$, {
-      next: (queue) => {
-        const item = this.audiochunk
-          ? queue?.items.find(
-              (a: any) =>
-                a.time.sampleStart === this.audiochunk.time.start.samples &&
-                a.time.sampleLength === this.audiochunk.time.duration.samples,
-            )
-          : undefined;
-
-        if (item) {
-          if (
-            item.status === ASRProcessStatus.FINISHED &&
-            item.result !== undefined
-          ) {
-            this.transcript = item.result;
-          }
-
-          this.magnifier.redraw();
-
-          this.cd.markForCheck();
-          this.cd.detectChanges();
-        }
-      },
-      error: (error) => {
-        console.error(error);
-      },
-    });
   }
 
   public doDirectionAction = async (direction: string) => {
@@ -510,16 +476,9 @@ export class TranscrWindowComponent
         if (direction !== 'down') {
           try {
             await this.goToSegment(direction);
-            const currentLevel = this.annotationStoreService.currentLevel;
-            const segment = currentLevel!.items[
-              this.segmentIndex
-            ] as TrattAnnotationSegment;
-
-            if (!segment?.context?.asr?.isBlockedBy) {
-              this.audiochunk.startPlayback().catch((error) => {
-                console.error(error);
-              });
-            }
+            this.audiochunk.startPlayback().catch((error) => {
+              console.error(error);
+            });
           } catch (e) {
             // ignore
             console.error(e);
@@ -686,15 +645,9 @@ export class TranscrWindowComponent
     );
 
     this.subscribe(timer(500), () => {
-      const segment = this.annotationStoreService.currentLevel!.items[
-        this.segmentIndex
-      ] as TrattAnnotationSegment;
-
-      if (!segment!.context?.asr?.isBlockedBy) {
-        this.audiochunk.startPlayback().catch((error) => {
-          console.error(error);
-        });
-      }
+      this.audiochunk.startPlayback().catch((error) => {
+        console.error(error);
+      });
     });
     this.editor.focus(true, true);
 
@@ -786,7 +739,7 @@ export class TranscrWindowComponent
 
         if (this.currentLevel) {
           if (this.currentLevel.type === 'SEGMENT') {
-            const seg = segment as TrattAnnotationSegment<ASRContext>;
+            const seg = segment as TrattAnnotationSegment;
             seg.changeFirstLabelWithoutName('Speaker', this.editor.rawText);
             this.annotationStoreService.changeCurrentLevelItems([seg]);
           }
@@ -891,12 +844,9 @@ export class TranscrWindowComponent
               (a) => a.type === 'break',
             );
             if (
-              (!breakMarker ||
-                tempSegment!.getFirstLabelWithoutName('Speaker')?.value !==
-                  breakMarker.code) &&
-              tempSegment!.context?.asr?.isBlockedBy !==
-                ASRQueueItemType.ASRMAUS &&
-              tempSegment!.context?.asr?.isBlockedBy !== ASRQueueItemType.MAUS
+              !breakMarker ||
+              tempSegment!.getFirstLabelWithoutName('Speaker')?.value !==
+                breakMarker.code
             ) {
               segment = tempSegment;
               this.segmentIndex = i;
@@ -1435,10 +1385,8 @@ export class TranscrWindowComponent
     ] as TrattAnnotationSegment;
     return (
       segmentIndex === this.currentLevel!.items.length - 2 &&
-      (nextSegment!.getFirstLabelWithoutName('Speaker')?.value ===
-        this.breakMarkerCode ||
-        nextSegment!.context?.asr?.isBlockedBy === ASRQueueItemType.ASRMAUS ||
-        nextSegment!.context?.asr?.isBlockedBy === ASRQueueItemType.MAUS)
+      nextSegment!.getFirstLabelWithoutName('Speaker')?.value ===
+        this.breakMarkerCode
     );
   }
 
@@ -1461,152 +1409,6 @@ export class TranscrWindowComponent
 
   onFontChange(fontName: string) {
     this.appStoreService.changeApplicationOption('editorFont', fontName);
-  }
-
-  startASRForThisSegment() {
-    if (
-      this.asrStoreService.asrOptions?.selectedASRLanguage &&
-      this.asrStoreService.asrOptions?.selectedServiceProvider
-    ) {
-      if (this.audiochunk!.time.duration.seconds > 600) {
-        // trigger alert, too big audio duration
-        this.alertService
-          .showAlert(
-            'danger',
-            this.langService.translate('asr.file too big').toString(),
-          )
-          .catch((error) => {
-            console.error(error);
-          });
-      } else {
-        if (
-          this.annotationStoreService.currentLevel instanceof
-          TrattAnnotationSegmentLevel
-        ) {
-          const time = this.audiochunk!.time.start.add(
-            this.audiochunk!.time.duration,
-          );
-          const segNumber =
-            this.annotationStoreService.transcript!.getCurrentSegmentIndexBySamplePosition(
-              time,
-            );
-
-          if (segNumber > -1) {
-            const segment = this.annotationStoreService.currentLevel!.items[
-              segNumber
-            ] as TrattAnnotationSegment;
-
-            if (segment !== undefined) {
-              this.asrStoreService.addToQueue(
-                {
-                  sampleStart: this.audiochunk!.time.start.samples,
-                  sampleLength: this.audiochunk!.time.duration.samples,
-                },
-                ASRQueueItemType.ASR,
-              );
-              this.asrStoreService.startProcessing();
-            } else {
-              console.error(`could not find segment for doing ASR.`);
-            }
-          } else {
-            console.error(
-              `could not start ASR because segment number was not found.`,
-            );
-          }
-        }
-      }
-    }
-  }
-
-  startASRForAllSegmentsNext() {
-    const segNumber =
-      this.annotationStoreService.transcript!.getCurrentSegmentIndexBySamplePosition(
-        this.audiochunk!.time.start.add(this.audiochunk!.time.duration),
-      );
-
-    if (
-      segNumber > -1 &&
-      this.annotationStoreService.transcript?.currentLevel &&
-      this.annotationStoreService.transcript?.currentLevel instanceof
-        TrattAnnotationSegmentLevel
-    ) {
-      for (
-        let i = segNumber;
-        i < this.annotationStoreService.transcript.currentLevel.items.length;
-        i++
-      ) {
-        const segment =
-          this.annotationStoreService.transcript.currentLevel.items[i];
-
-        if (segment !== undefined) {
-          const sampleStart =
-            i > 0
-              ? this.annotationStoreService.transcript.currentLevel.items[
-                  i - 1
-                ]!.time.samples
-              : 0;
-          const sampleLength = segment.time.samples - sampleStart;
-
-          const sampleRate =
-            this.audiochunk?.audioManager?.resource?.info?.sampleRate ?? 0;
-
-          if (sampleRate > 0 && sampleLength / sampleRate > 600) {
-            this.alertService
-              .showAlert(
-                'danger',
-                this.langService.translate('asr.file too big'),
-              )
-              .catch((error) => {
-                console.error(error);
-              });
-            this.asrStoreService.stopItemProcessing({
-              sampleStart,
-              sampleLength,
-            });
-          } else {
-            if (
-              segment.getFirstLabelWithoutName('Speaker')?.value !==
-                undefined &&
-              segment.getFirstLabelWithoutName('Speaker')!.value.trim() ===
-                '' &&
-              this.annotationStoreService.breakMarker?.code !== undefined &&
-              segment
-                .getFirstLabelWithoutName('Speaker')!
-                .value.indexOf(this.annotationStoreService.breakMarker.code) < 0
-            ) {
-              // segment is empty and contains not a break
-              this.asrStoreService.addToQueue(
-                {
-                  sampleStart,
-                  sampleLength,
-                },
-                ASRQueueItemType.ASR,
-              );
-            }
-          }
-        } else {
-          console.error(
-            `could not find segment in startASRForAllSegmentsNext()`,
-          );
-        }
-      }
-      this.asrStoreService.startProcessing();
-    } else {
-      console.error(
-        `could not start ASR for all next because segment number was not found.`,
-      );
-    }
-  }
-
-  stopASRForAll() {
-    this.asrStoreService.stopProcessing();
-  }
-
-  stopASRForThisSegment() {
-    this.asrStoreService.stopItemProcessing({
-      sampleStart: this.audiochunk!.time.start.samples,
-      sampleLength: this.audiochunk!.time.duration.samples,
-    });
   }
 
   openSettings() {

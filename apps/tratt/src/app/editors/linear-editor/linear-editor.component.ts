@@ -17,7 +17,6 @@ import {
 import { NgClass, NgStyle } from '@angular/common';
 import { TranslocoPipe } from '@jsverse/transloco';
 import {
-  ASRContext,
   TrattAnnotation,
   TrattAnnotationSegment,
   TrattAnnotationSegmentLevel,
@@ -514,7 +513,6 @@ export class LinearEditorComponent
     this._miniMagnifierSettings.shortcutsEnabled = false;
     this._miniMagnifierSettings.selection.enabled = false;
     this._miniMagnifierSettings.boundaries.readonly = true;
-    this._miniMagnifierSettings.asr.enabled = false;
     this._miniMagnifierSettings.cropping = 'circle';
     this._miniMagnifierSettings.cursor.fixed = true;
     this._miniMagnifierSettings.lineheight = 160;
@@ -1103,7 +1101,7 @@ export class LinearEditorComponent
   }
 
   onEntriesChange(
-    annotation: TrattAnnotation<ASRContext, TrattAnnotationSegment>,
+    annotation: TrattAnnotation<TrattAnnotationSegment>,
   ) {
     this.annotationStoreService.overwriteTranscript(annotation);
   }
