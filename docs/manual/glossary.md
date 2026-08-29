@@ -18,14 +18,12 @@ into ordinary language.
 | **Guidelines** | The project's transcription conventions: spelling and punctuation rules, and what each marker means. **Alt + 9**. |
 | **Annotation** | The whole transcript: all tiers, units, text, markers and speakers. What AnnotJSON stores. |
 | **AnnotJSON** | TRATT's own file format. The only export that preserves everything. |
-| **ASR** | Automatic Speech Recognition: a model turning speech into text. |
 | **Diarization** / **Speaker separation** | Working out who spoke when, without knowing who anybody is. |
 | **Whisper** | The family of speech-recognition models TRATT runs locally. **KB-Whisper** is the Swedish-optimised variant from the National Library of Sweden. |
 | **WebGPU** | A browser feature that lets models use your graphics card. Its presence decides which models you can run and how fast they are. |
 | **WASM** | WebAssembly: the fallback that runs models on the CPU. Slower, works everywhere. |
 | **Local mode** | Working on your own files in your own browser, with no server. This is how TRATT is normally used. |
 | **Online mode** | OCTRA's server-backed mode, where a project assigns you files. Not enabled in the standard TRATT deployment. |
-| **MAUS** | A forced-alignment web service from LMU Munich that aligns text to audio at word level. Requires a configured provider and authentication; normally inactive in TRATT. |
 | **Magnifier** | The zoomed strip of waveform around the cursor, for placing boundaries precisely. |
 | **Playcursor** | The line showing where playback has reached. *Follow playcursor* keeps it on screen. |
 | **Easy Mode** | A preference that strips button labels and keyboard hints for a compact interface. |

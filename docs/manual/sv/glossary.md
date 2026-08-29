@@ -19,14 +19,12 @@ engelska texten inom parentes.
 | **Riktlinjer** | Projektets transkriptionskonventioner: stavnings- och skiljeteckensregler, och vad varje markör betyder. **Alt + 9**. |
 | **Annotering** | Hela transkriptet: alla nivåer, enheter, text, markörer och talare. Det AnnotJSON lagrar. |
 | **AnnotJSON** | TRATT:s eget filformat. Den enda exporten som bevarar allt. |
-| **ASR** | *Automatic Speech Recognition*: en modell som gör tal till text. |
 | **Diarisering** / **talarseparation** | Att räkna ut vem som talade när, utan att veta vem någon är. |
 | **Whisper** | Familjen av taligenkänningsmodeller som TRATT kör lokalt. **KB-Whisper** är den svenskoptimerade varianten från Kungliga biblioteket. |
 | **WebGPU** | En webbläsarfunktion som låter modeller använda ditt grafikkort. Om den finns avgör vilka modeller du kan köra och hur snabbt. |
 | **WASM** | WebAssembly, reservvägen som kör modeller på processorn. Långsammare, fungerar överallt. |
 | **Lokalt läge** | Att arbeta med dina egna filer i din egen webbläsare, utan server. Så används TRATT normalt. |
 | **Onlineläge** | OCTRA:s serverstödda läge, där ett projekt tilldelar dig filer. Inte aktiverat i standardinstallationen av TRATT. |
-| **MAUS** | En tvångsanpassningstjänst från LMU München som anpassar text till ljud på ordnivå. Kräver en konfigurerad leverantör och autentisering; normalt inaktiv i TRATT. |
 | **Förstoringsglas** | Den förstorade remsan av vågform runt markören, för att placera gränser exakt. |
 | **Uppspelningspekare** | Linjen som visar var uppspelningen befinner sig. *Följ uppspelningspekare* håller den i bild. |
 | **Enkelt läge** | En inställning som tar bort knapptexter och tangentbordstips för ett kompakt gränssnitt. |

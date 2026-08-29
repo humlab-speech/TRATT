@@ -49,23 +49,6 @@ har fokus.
 | **Ctrl + Z** / **Cmd + Z** | Ångra |
 | **Ctrl + Y** / **Skift + Cmd + Z** | Gör om |
 
-### Molnbaserad taligenkänning: normalt inaktiv
-
-| Tangenter | Åtgärd |
-| --- | --- |
-| **R** | Kör moln-ASR på den valda enheten |
-| **M** | Moln-ASR följt av MAUS-ordanpassning |
-| **W** | Endast MAUS-ordanpassning |
-
-Dessa hör till OCTRA:s serverbaserade taltjänster och kräver en leverantör
-konfigurerad av en administratör plus en autentiserad session.
-Standardinstallationen av TRATT har ingen: tangenterna gör ingenting, panelen
-**ASR Options** saknas i Inställningar, och de här tre genvägarna syns inte ens i
-genvägsfönstret (**Alt + 8**). Ser du dem listade där har din installation
-konfigurerats med en extern leverantör. Läs
-[Vad lämnar din dator](privacy.md) innan du använder dem. TRATT:s egen, lokala
-taligenkänning ligger [på startsidan](automatic-transcription.md) i stället.
-
 ---
 
 ## Transkriptionsfönstret (rutan i 2D Vy)

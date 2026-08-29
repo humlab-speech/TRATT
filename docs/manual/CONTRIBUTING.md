@@ -33,9 +33,8 @@ mixing them in is what makes the OCTRA manual hard for a first-time user.
 - **Reference material is tables.** Shortcuts, formats and options are looked up,
   not read.
 - **Say when something does not work.** This version of TRATT has an unfinished
-  TRN-Editor, an unreachable Tools dialog, and cloud ASR keys that do nothing.
-  Documenting them as working costs more trust than the features are worth. When
-  one is fixed, delete the caveat.
+  TRN-Editor and an unreachable Tools dialog. Documenting them as working costs
+  more trust than the features are worth. When one is fixed, delete the caveat.
 - **Screenshots** live in `docs/assets/` and are referenced as `../assets/…`, so the
   pages render correctly on GitHub as well as in a generated site. Re-shoot them
   when the interface changes; a stale screenshot is worse than none.
@@ -137,4 +136,3 @@ Check these against the source when TRATT is updated:
 | Keyboard shortcuts | `editors/*/*.component.ts`, `libs/ngx-components/.../audio-viewer.config.ts`, `pages/intern/transcription/transcription.component.ts` |
 | Markers | `apps/tratt/src/config/localmode/guidelines/guidelines_*.json` |
 | Which editors and tools are enabled | `apps/tratt/src/config/localmode/projectconfig.json`, `editors/components.ts` |
-| Whether cloud ASR is configured | `tratt.plugins.asr` in `apps/tratt/src/config/appconfig.json` |

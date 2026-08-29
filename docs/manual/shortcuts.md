@@ -49,23 +49,6 @@ no text field focused.
 | **Ctrl + Z** / **Cmd + Z** | Undo |
 | **Ctrl + Y** / **Shift + Cmd + Z** | Redo |
 
-### Cloud speech recognition (usually inactive)
-
-| Keys | Action |
-| --- | --- |
-| **R** | Run cloud ASR on the selected unit |
-| **M** | Cloud ASR followed by MAUS word alignment |
-| **W** | MAUS word alignment only |
-
-These belong to OCTRA's server-based speech services and need a provider configured
-by an administrator plus an authenticated session. The standard TRATT installation
-has none: the keys do nothing, the **ASR Options** panel is absent from Preferences,
-and these three shortcuts do not even appear in the in-app Shortcuts window
-(**Alt + 8**). If you see them listed there, your installation has been configured
-with an external provider, read [What leaves your computer](privacy.md) before
-using them. TRATT's own local speech recognition is
-[on the start page](automatic-transcription.md) instead.
-
 ---
 
 ## Transcription window (the pop-up in the 2D-Editor)

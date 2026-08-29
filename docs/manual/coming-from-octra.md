@@ -32,12 +32,6 @@ transcription-end screen. TRATT ships with the backend disabled: there is no log
 no project, nothing is sent anywhere. If you need that, use
 [upstream OCTRA](https://github.com/IPS-LMU/octra).
 
-**Cloud ASR and MAUS word alignment.** The `R`, `M` and `W` keys and the ASR Options
-panel. They need a provider configured by an administrator and an authenticated
-session; the standard TRATT deployment configures none.
-[Local transcription](automatic-transcription.md) is the replacement, and it does
-not send your audio anywhere.
-
 **URL mode and demo/embedding parameters.** Not part of TRATT's supported workflow.
 
 **Administration, guidelines authoring and validation methods.** The configuration

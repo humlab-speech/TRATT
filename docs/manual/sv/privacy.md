@@ -43,23 +43,6 @@ Ditt ljud skickas **inte** till Hugging Face eller någon annanstans. Trafiken g
 Kan din dator eller ditt nätverk inte nå `huggingface.co` är automatisk
 transkription helt enkelt inte tillgänglig; allt annat i TRATT fungerar ändå.
 
-## Det enda undantaget
-
-TRATT ärver OCTRA:s **molnbaserade taligenkänning och ordanpassning**: tangenterna
-`R`, `M` och `W` i signalvisningen, och panelen **ASR Options** i Inställningar.
-Den funktionen *skickar* ljudet från en transkriptionsenhet till en extern
-taltjänst (BAS-webbtjänsterna vid LMU München), och kräver att du autentiserar
-dig först.
-
-Den fungerar bara om en administratör har konfigurerat en leverantör i
-applikationens konfigurationsfil. **Standardinstallationen av TRATT konfigurerar
-ingen**, så panelen ASR Options saknas helt och tangenterna gör ingenting.
-
-Skulle din installation ändå lista leverantörer där ska du behandla funktionen
-som en uppladdning: använd den inte på känsliga inspelningar. Allt under
-[Automatisk utkasttranskription](automatic-transcription.md) är det lokala
-alternativet och berörs inte.
-
 ## Rensa dina data
 
 Öppna den dolda underhållssidan genom att lägga till `/help-tools` i TRATT:s

@@ -33,12 +33,6 @@ och avslutningsskärmen. TRATT levereras med backenden avstängd: ingen inloggni
 inget projekt, ingenting skickas någonstans. Behöver du det, använd
 [OCTRA i original](https://github.com/IPS-LMU/octra).
 
-**Moln-ASR och MAUS-ordanpassning.** Tangenterna `R`, `M` och `W` och panelen ASR
-Options. De kräver en leverantör konfigurerad av en administratör och en
-autentiserad session; standardinstallationen av TRATT konfigurerar ingen.
-[Lokal transkription](automatic-transcription.md) är ersättningen, och den skickar
-inte ditt ljud någonstans.
-
 **URL-läge och demo-/inbäddningsparametrar.** Ingår inte i TRATT:s arbetsflöde.
 
 **Administration, att skriva riktlinjer och valideringsmetoder.**

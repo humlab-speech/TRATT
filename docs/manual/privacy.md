@@ -43,22 +43,6 @@ way: the model comes down, the recording stays put.
 If your machine or network cannot reach `huggingface.co`, automatic transcription
 simply is not available; everything else in TRATT still works.
 
-## The one exception to be aware of
-
-TRATT inherits OCTRA's **cloud ASR and word-alignment** feature: the `R`, `M` and
-`W` keys in the signal display, and the **ASR Options** panel in Preferences. That
-feature *does* send the audio of a transcription unit to an external speech service
-(the BAS web services at LMU Munich), and it requires you to authenticate first.
-
-It only works if a site administrator has configured a provider in the
-application's configuration file. **The standard TRATT deployment does not
-configure one**, so the ASR Options panel is empty and those keys do nothing.
-
-If your installation *does* list providers there, treat that feature as an upload:
-do not use it on confidential recordings. Everything under
-[Automatic draft transcription](automatic-transcription.md) is the local
-alternative and is unaffected.
-
 ## Clearing your data
 
 Open the hidden maintenance page by adding `/help-tools` to TRATT's address (for
