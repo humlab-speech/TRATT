@@ -58,9 +58,6 @@ import { ApplicationInitEffects } from './app/core/store/application/application
 import { ApplicationSessionEffects } from './app/core/store/application/application-session.effects';
 import { ApplicationUiEffects } from './app/core/store/application/application-ui.effects';
 import * as fromApplication from './app/core/store/application/application.reducer';
-import { AsrProcessingEffects } from './app/core/store/asr/asr-processing.effects';
-import { AsrQueueEffects } from './app/core/store/asr/asr-queue.effects';
-import * as fromASR from './app/core/store/asr/asr.reducer';
 import {
   AuthenticationEffects,
   authenticationReducer,
@@ -112,7 +109,6 @@ bootstrapApplication(AppComponent, {
       StoreModule.forRoot(
         {
           application: fromApplication.reducer,
-          asr: fromASR.reducer,
           authentication: authenticationReducer,
           user: fromUser.reducer,
         },
@@ -143,8 +139,6 @@ bootstrapApplication(AppComponent, {
         ApplicationInitEffects,
         ApplicationSessionEffects,
         ApplicationUiEffects,
-        AsrQueueEffects,
-        AsrProcessingEffects,
         APIEffects,
         AuthenticationEffects,
       ]),

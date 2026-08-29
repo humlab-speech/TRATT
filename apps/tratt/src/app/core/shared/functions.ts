@@ -11,7 +11,6 @@ import {
 import { AppInfo } from '../../app.info';
 import { APIActions } from '../store/api';
 import { ApplicationActions } from '../store/application/application.actions';
-import { ASRActions } from '../store/asr/asr.actions';
 import { IDBActions } from '../store/idb/idb.actions';
 import { LoginModeActions } from '../store/login-mode';
 import { AnnotationActions } from '../store/login-mode/annotation/annotation.actions';
@@ -179,9 +178,6 @@ export function isIgnoredAction(type: string) {
         LoginModeActions.changeComment.do.type,
         AnnotationActions.setSavingNeeded.do.type,
         AnnotationActions.overwriteTranscript.do.type,
-        ASRActions.processQueueItem.do.type,
-        ApplicationActions.loadASRSettings.do.type,
-        ApplicationActions.loadASRSettings.success.type,
         IDBActions.saveUserProfile.success.type,
         UserActions.setUserProfile.type,
       ] as string[]
