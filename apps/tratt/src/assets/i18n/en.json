@@ -391,6 +391,7 @@
       "speaker count label": "Expected number of speakers",
       "speaker count auto": "Auto",
       "speaker count help": "Set to 2 for a typical interview. Leave blank for auto-detection.",
+      "diarization failed": "Speaker separation failed: {{message}}",
       "model cached": "Model will be cached for future sessions.",
       "safari warning": "Automatic transcription is not available for the Safari web browser. The models we need to download to your computer are large and currently trigger a tab reload in Safari, with loss of data as a result. Please try a different browser if you wanted to use the automatic transcription feature.",
       "auto-transcribe label": "Auto-transcribe with Whisper",

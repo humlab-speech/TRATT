@@ -31,7 +31,7 @@ describe('applyOptionalSpeakerSegmentation', () => {
 
     const level = result.annotJson.levels[0] as OSegmentLevel<OSegment>;
     expect(runDiarization).toHaveBeenCalledTimes(1);
-    expect(result.warning).toBeNull();
+    expect(result.errorMessage).toBeNull();
     expect(
       level.items[0].labels.find((label) => label.name === 'Speaker')?.value,
     ).toBe('Speaker 1');
@@ -51,7 +51,7 @@ describe('applyOptionalSpeakerSegmentation', () => {
 
     const level = result.annotJson.levels[0] as OSegmentLevel<OSegment>;
     expect(runDiarization).not.toHaveBeenCalled();
-    expect(result.warning).toBeNull();
+    expect(result.errorMessage).toBeNull();
     expect(
       level.items[0].labels.find((label) => label.name === 'Speaker'),
     ).toBeUndefined();
@@ -69,7 +69,7 @@ describe('applyOptionalSpeakerSegmentation', () => {
     });
 
     const level = result.annotJson.levels[0] as OSegmentLevel<OSegment>;
-    expect(result.warning).toContain('Speaker separation failed');
+    expect(result.errorMessage).toBe('network-ish model failure');
     expect(
       level.items[0].labels.find((label) => label.name === 'Speaker'),
     ).toBeUndefined();
