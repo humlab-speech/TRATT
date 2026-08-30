@@ -692,13 +692,16 @@
     }
   },
   "transcription": {
+    "automatic": "Genomför automatisk behandling",
     "check": "Kontrollera transkription",
     "complete": "Fullständig transkription",
     "finish": "Avsluta transkription",
     "invalid": "Endast giltiga transkript accepteras. Vänligen korrigera din transkript.",
+    "manual": "Manuell transkription",
     "need audio playback": "Du måste starta ljuduppspelning minst en gång innan du skickar transkriptionen.",
     "new": "Starta ny transkription",
     "no prompttext": "Instruktions-texten kan inte visas.",
+    "replace cached annotation": "Ersätt de lagrade annoteringarna",
     "send": "Skicka transkription",
     "start": "Fortsätt transkription",
     "stop": "Stoppa transkription"

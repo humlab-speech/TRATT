@@ -744,13 +744,16 @@
     }
   },
   "transcription": {
+    "automatic": "Run automatic processing",
     "check": "Check transcription",
     "complete": "Complete Transcription",
     "finish": "Finish transcription",
     "invalid": "Only valid transcripts are accepted. Please correct your transcript.",
+    "manual": "Manual transcription",
     "need audio playback": "You have to start audio playback at least once before sending the transcription.",
     "new": "Start new transcription",
     "no prompttext": "The prompt text can not be shown.",
+    "replace cached annotation": "Replace the stored annotations",
     "send": "Send transcription",
     "start": "Continue transcription",
     "stop": "Stop transcription"

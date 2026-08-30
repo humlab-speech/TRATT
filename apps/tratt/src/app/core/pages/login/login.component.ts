@@ -42,6 +42,7 @@ import { RecordedFileService } from '../../shared/service/recorded-file.service'
 import { AuthenticationStoreService } from '../../store/authentication';
 import { BrowserTestComponent } from '../browser-test/browser-test.component';
 import { applyOptionalSpeakerSegmentation } from './local-offline-transcription.helpers';
+import { offlineSubmitLabelKey } from './offline-submit-label.helper';
 import { ComponentCanDeactivate } from './login.deactivateguard';
 import { LoginService } from './login.service';
 
@@ -272,6 +273,14 @@ I just want to let you know, that the OCTRA server is currently offline.
 
     this.proceedWithLogin(removeData);
   };
+
+  offlineSubmitLabelKey(): string {
+    return offlineSubmitLabelKey({
+      hasAnnotation: this.dropzone?.hasAnnotation ?? false,
+      transcribeSelected: !!this.dropzone?.transcribeOptions,
+      translateSelected: !!this.dropzone?.translateOptions,
+    });
+  }
 
   private _startTranscription(opts: TranscriptionOptions): void {
     this.diarizationWarning = null;
