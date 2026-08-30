@@ -424,7 +424,12 @@
       "finnish fine-tuned hint": "För Finska används en modell som optimerats för finskt tal.",
       "norwegian fine-tuned hint": "För Norska används modell som optimersts för norskt tal.",
       "diarizingLabel": "Identifierar talare…",
-      "initializing speaker segmentation": "Talarsegmenteringsmodellen laddas"
+      "initializing speaker segmentation": "Talarsegmenteringsmodellen laddas",
+      "speaker separation label": "Talarseparation",
+      "speaker separation help": "Körs lokalt i din webbläsare och kan öka bearbetningstiden.",
+      "speaker count label": "Förväntat antal talare",
+      "speaker count auto": "Auto",
+      "speaker count help": "Ange 2 för en typisk intervju. Lämna tomt för automatisk detektering."
     },
     "app description": "TRATT är ett fritt tillgängligt webbprogram för transkription av talinspelningar till text (ortografiskt). Det har tre olika redigerare som tillgodoser olika behov vid transkribering, och du kan fritt växla mellan dem under en session.",
     "funding support and development": "Finansiärer och samarbeten",
