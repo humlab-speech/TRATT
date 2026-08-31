@@ -476,17 +476,24 @@ const DEFAULT_KEY_FOR_FAMILY: Record<string, string> = {
                 (ngModelChange)="emitChange()"
               />
               <label class="form-check-label" for="speakerSegmentationCheck">
-                Speaker separation
+                {{
+                  'login.auto-transcription.speaker separation label'
+                    | transloco
+                }}
               </label>
             </div>
             <small class="text-muted d-block mt-1">
-              Runs locally in your browser and may increase processing time.
+              {{
+                'login.auto-transcription.speaker separation help' | transloco
+              }}
             </small>
 
             @if (speakerSegmentationEnabled) {
               <div class="mt-2 ms-3">
                 <label class="form-label small mb-1" for="numSpeakersInput">
-                  Expected number of speakers
+                  {{
+                    'login.auto-transcription.speaker count label' | transloco
+                  }}
                 </label>
                 <div class="d-flex align-items-center gap-2">
                   <input
@@ -496,7 +503,10 @@ const DEFAULT_KEY_FOR_FAMILY: Record<string, string> = {
                     style="width: 80px"
                     min="1"
                     max="10"
-                    [placeholder]="'Auto'"
+                    [placeholder]="
+                      'login.auto-transcription.speaker count auto'
+                        | transloco
+                    "
                     [(ngModel)]="numSpeakersValue"
                     (ngModelChange)="emitChange()"
                   />
@@ -506,12 +516,16 @@ const DEFAULT_KEY_FOR_FAMILY: Record<string, string> = {
                     (click)="clearNumSpeakers()"
                     [disabled]="numSpeakers === null"
                   >
-                    Auto
+                    {{
+                      'login.auto-transcription.speaker count auto'
+                        | transloco
+                    }}
                   </button>
                 </div>
                 <small class="text-muted d-block mt-1">
-                  Set to 2 for a typical interview. Leave blank for
-                  auto-detection.
+                  {{
+                    'login.auto-transcription.speaker count help' | transloco
+                  }}
                 </small>
               </div>
             }

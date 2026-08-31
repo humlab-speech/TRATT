@@ -1,8 +1,8 @@
 import { AsyncPipe, DecimalPipe } from '@angular/common';
-import { Component, ElementRef, ViewChild } from '@angular/core';
+import { Component, ElementRef, inject, ViewChild } from '@angular/core';
 import { NgForm } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
-import { TranslocoPipe } from '@jsverse/transloco';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { NgbNavModule } from '@ng-bootstrap/ng-bootstrap';
 import { AccountLoginMethod } from '@octra/api-types';
 import { OctraAPIService } from '@octra/ngx-octra-api';
@@ -42,6 +42,7 @@ import { RecordedFileService } from '../../shared/service/recorded-file.service'
 import { AuthenticationStoreService } from '../../store/authentication';
 import { BrowserTestComponent } from '../browser-test/browser-test.component';
 import { applyOptionalSpeakerSegmentation } from './local-offline-transcription.helpers';
+import { offlineSubmitLabelKey } from './offline-submit-label.helper';
 import { ComponentCanDeactivate } from './login.deactivateguard';
 import { LoginService } from './login.service';
 
@@ -98,6 +99,8 @@ export class LoginComponent
   @ViewChild('agreement', { static: false }) agreement?: ElementRef;
   @ViewChild('localmode', { static: true }) localmode?: ElementRef;
   @ViewChild('onlinemode', { static: true }) onlinemode?: ElementRef;
+
+  private readonly transloco = inject(TranslocoService);
 
   email_link = '';
   activeTab: 'upload' | 'record' = 'upload';
@@ -258,7 +261,7 @@ I just want to let you know, that the OCTRA server is currently offline.
     const trOpts = this.dropzone?.translateOptions;
     this._pendingRemoveData = removeData;
 
-    if (opts && this.dropzone?.hasAudio && !this.dropzone?.hasAnnotation) {
+    if (opts && this.dropzone?.hasAudio) {
       this._startTranscription(opts);
       return;
     }
@@ -270,6 +273,14 @@ I just want to let you know, that the OCTRA server is currently offline.
 
     this.proceedWithLogin(removeData);
   };
+
+  offlineSubmitLabelKey(): string {
+    return offlineSubmitLabelKey({
+      hasAnnotation: this.dropzone?.hasAnnotation ?? false,
+      transcribeSelected: !!this.dropzone?.transcribeOptions,
+      translateSelected: !!this.dropzone?.translateOptions,
+    });
+  }
 
   private _startTranscription(opts: TranscriptionOptions): void {
     this.diarizationWarning = null;
@@ -377,7 +388,11 @@ I just want to let you know, that the OCTRA server is currently offline.
       },
     });
 
-    this.diarizationWarning = segmented.warning;
+    this.diarizationWarning = segmented.errorMessage
+      ? this.transloco.translate('login.auto-transcription.diarization failed', {
+          message: segmented.errorMessage,
+        })
+      : null;
     if (this.diarizationWarning) {
       console.error('[diarization]', this.diarizationWarning);
     }

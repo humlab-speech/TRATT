@@ -12,7 +12,8 @@ interface ApplyOptionalSpeakerSegmentationArgs {
 
 interface ApplyOptionalSpeakerSegmentationResult {
   annotJson: OAnnotJSON;
-  warning: string | null;
+  /** Raw error message when diarization failed, for the caller to localize. Null on success or when disabled. */
+  errorMessage: string | null;
 }
 
 export async function applyOptionalSpeakerSegmentation(
@@ -21,7 +22,7 @@ export async function applyOptionalSpeakerSegmentation(
   if (!args.diarizationEnabled) {
     return {
       annotJson: args.annotJson,
-      warning: null,
+      errorMessage: null,
     };
   }
 
@@ -29,13 +30,13 @@ export async function applyOptionalSpeakerSegmentation(
     const turns = await args.runDiarization();
     return {
       annotJson: applySpeakerTurnsToAnnotJson(args.annotJson, turns),
-      warning: null,
+      errorMessage: null,
     };
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : String(error);
     return {
       annotJson: args.annotJson,
-      warning: `Speaker separation failed: ${message}`,
+      errorMessage: message,
     };
   }
 }
