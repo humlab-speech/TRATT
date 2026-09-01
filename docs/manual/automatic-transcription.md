@@ -1,14 +1,13 @@
 # Automatic draft transcription
 
-**For:** anyone who would rather correct a draft than type from nothing.
 
 TRATT can run a speech-recognition model **on your own computer, inside the browser
-tab**, and open the result in the editor for you to fix. It can also guess who spoke
-when, and translate the finished transcript.
+tab**, and open the result in the editor for you to revise. It can also make an initial 
+guess on who in a conversation said each utterance, and the interface also allows a
+rough translation of the draft transcription to be made.
 
-A draft is a draft. Expect to correct names, numbers, overlapping speech and
-anything said quietly or off-microphone. What you save is the typing, not the
-listening.
+All three automatic annotation procedures produces draft annotations. The user should 
+be prepared to make revisions to the draft annotation later.
 
 ---
 
