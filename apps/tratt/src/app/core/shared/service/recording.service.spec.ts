@@ -89,3 +89,36 @@ describe('RecordingService does not capture PCM while paused (B7)', () => {
     expect((service as any).pcmPending.length).toBe(2); // resumes capturing
   });
 });
+
+describe('RecordingService PCM index race (N12)', () => {
+  it('assigns distinct indices to two overlapping flushes instead of racing on the same one', async () => {
+    let resolveFirstAppend: () => void;
+    const firstAppendGate = new Promise<void>((resolve) => {
+      resolveFirstAppend = resolve;
+    });
+    const appendedIndices: number[] = [];
+    const appendChunk = jest.fn(async (params: { index: number }) => {
+      appendedIndices.push(params.index);
+      if (appendedIndices.length === 1) {
+        await firstAppendGate; // hold the first append open until the second has started
+      }
+    });
+    const service = createService(appendChunk);
+    (service as any).sessionId = 'test-session';
+
+    (service as any).pcmPending = [new Float32Array(10)];
+    const firstFlush = (service as any).flushPcmPending();
+
+    // Let the first flush's synchronous prefix (including the index read/queue-time increment) run.
+    await Promise.resolve();
+
+    (service as any).pcmPending = [new Float32Array(10)];
+    const secondFlush = (service as any).flushPcmPending();
+
+    resolveFirstAppend!();
+    await Promise.all([firstFlush, secondFlush]);
+
+    expect(appendedIndices.length).toBe(2);
+    expect(appendedIndices[0]).not.toBe(appendedIndices[1]);
+  });
+});

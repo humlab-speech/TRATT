@@ -344,7 +344,7 @@ export class RecordingService {
     const blob = new Blob([merged.buffer], {
       type: 'application/octet-stream',
     });
-    const index = this.pcmIndex;
+    const index = this.pcmIndex++;
     try {
       await this.persistence.appendChunk({
         sessionId: this.sessionId,
@@ -352,7 +352,6 @@ export class RecordingService {
         kind: 'pcm',
         blob,
       });
-      this.pcmIndex++;
       this.bumpChunkStats(blob.size);
     } catch (error) {
       const retryBytes =
