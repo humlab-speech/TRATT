@@ -547,7 +547,11 @@ export class LinearEditorComponent
     this.audioManager.stopPlayback().catch(() => {
       console.error(`could not stop audio on editor switched`);
     });
-    this.shortcutService.destroy();
+    this.shortcutService.unregisterShortcutGroup('signaldisplay_top_audio');
+    this.shortcutService.unregisterShortcutGroup('signaldisplay_top');
+    this.shortcutService.unregisterShortcutGroup('signaldisplay_down_audio');
+    this.shortcutService.unregisterShortcutGroup('signaldisplay_down');
+    this.shortcutService.unregisterShortcutGroup(this.miniMagnifierShortcuts.name);
   }
 
   onButtonClick(event: { type: string; timestamp: number }) {

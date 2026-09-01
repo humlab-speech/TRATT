@@ -240,7 +240,7 @@ export class DictaphoneEditorComponent
     this.audioManager.stopPlayback().catch(() => {
       console.error(`could not stop audio on editor switched`);
     });
-    this.shortcutService.destroy();
+    this.shortcutService.unregisterShortcutGroup(this.shortcuts.name);
   }
 
   onButtonClick(event: { type: string; timestamp: number }) {

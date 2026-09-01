@@ -479,7 +479,10 @@ export class TwoDEditorComponent
       this.scrolltimer.unsubscribe();
     }
 
-    this.shortcutService.destroy();
+    this.shortcutService.unregisterShortcutGroup('2D-Editor viewer');
+    this.shortcutService.unregisterShortcutGroup('2D-Editor audio');
+    this.shortcutService.unregisterShortcutGroup(this.miniMagnifierShortcuts.name);
+    this.shortcutService.unregisterShortcutGroup(this.windowShortcuts.name);
   }
 
   ngAfterViewInit() {
