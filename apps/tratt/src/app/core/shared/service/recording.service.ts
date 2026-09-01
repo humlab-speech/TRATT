@@ -43,6 +43,7 @@ const LOW_VOLUME_WINDOW = 90;
 const LOW_VOLUME_RAISE_DB = -50;
 const LOW_VOLUME_CLEAR_DB = -40;
 const MAX_RECORDING_BYTES = 500 * 1024 * 1024;
+const MAX_PCM_RETRY_BYTES = 10 * 1024 * 1024;
 
 @Injectable({ providedIn: 'root' })
 export class RecordingService {
@@ -350,6 +351,17 @@ export class RecordingService {
       this.pcmIndex++;
       this.bumpChunkStats(blob.size);
     } catch (error) {
+      const retryBytes =
+        pending.reduce((s, a) => s + a.length, 0) * Float32Array.BYTES_PER_ELEMENT +
+        this.pcmPending.reduce((s, a) => s + a.length, 0) * Float32Array.BYTES_PER_ELEMENT;
+      if (retryBytes >= MAX_PCM_RETRY_BYTES) {
+        this.emitError(
+          new Error(
+            'PCM recording data exceeded the retry cap after repeated persistence failures — stopping.',
+          ),
+        );
+        return;
+      }
       console.error(
         '[recording.service] failed to persist PCM chunk, will retry on next flush',
         error,
