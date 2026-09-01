@@ -126,10 +126,11 @@ scoping. **7 included** — genuine bugs with a clean, well-defined fix:
 - **C8** (`audio.service.ts:100-102`) — `missingPermission.complete()`
   called right after the first `.emit()`; confirmed `EventEmitter` extends
   RxJS `Subject`, so `.complete()` permanently silences all future
-  emissions and any late subscriber. **No automated test** — the trigger is
-  deep inside a real `AudioManager.create()`/browser-permission flow;
-  same class of exception as Phase 2's B2 (WebGPU fallback), justified the
-  same way.
+  emissions and any late subscriber. Fixed with a real regression test in
+  `audio.service.spec.ts` (added in Phase 3's final-review fix round) —
+  the plan's original claim that this needed browser permission machinery
+  to test was wrong: the fixed line lives in the public
+  `registerAudioManager` method, trivially mockable.
 - **C10** (`linear-editor.component.ts:1048`) — `selectSegment()`'s Promise
   only calls `resolve()` inside an `if (currentLevel instanceof
   TrattAnnotationSegmentLevel)` branch; confirmed no `else`, so on a
@@ -224,3 +225,28 @@ new `functions.spec.ts` for `libs/annotation` (doesn't exist yet) — Phase 1.
   Task 3 fix means the `duplicateLevel.do` reducer handler now actually
   returns this `undefined` as `state.transcript` (previously masked by the
   same-reference-return bug Task 3 fixed). Guard the out-of-range case.
+
+## Follow-ups surfaced by Phase 3's final review
+
+- `linear-editor.component.ts`'s `onMagnifierSegmentEnter` callback
+  (around line 701-702) still bare-asserts `this.audioChunkDown!` two lines
+  below the exact bug class (C11) Phase 3's Task 7 just fixed in `update()`.
+  Low risk today (the magnifier only shows once a selection has created
+  `audioChunkDown`), but the same guard pattern should be applied here too.
+- N12's fix (Phase 3 Task 1, `recording.service.ts`) closes the race
+  cleanly on the success path, but on the failure path the "spent" index
+  from a failed append is never reused by the retry — if a *later*, newer
+  chunk succeeds before the retried older one does, `loadChunks`' sort by
+  index reorders them. Not a regression (the pre-fix code reordered here
+  too, via a different mechanism) and gap-tolerance was already correctly
+  designed in, but "harmless" undersells this specific failure-path
+  ordering case. Worth a code comment or a small chained-retry redesign.
+- C8's fix (Phase 3 Task 5, `audio.service.ts`) correctly restores
+  multi-emission delivery, but as a result every `NotAllowedError` now
+  reaches `transcription.component.ts:391`'s `modService.openModal` call
+  with no dedupe — a user can't click through a stacked modal (`backdrop:
+  'static'`, `keyboard: false`), but a programmatic replay of permission
+  losses could still stack dialogs behind one another. Not a regression
+  (pre-existing modal-open behavior, now just reachable more than once);
+  a cheap `exhaustMap` or `isOpen` guard at the subscription site would
+  close it.
