@@ -145,7 +145,7 @@ export class AnnotationStateReducers {
         AnnotationActions.combinePhrases.success,
         (state: AnnotationState, { transcript, mode }) => {
           if (this.mode === mode) {
-            state.transcript = transcript;
+            return { ...state, transcript };
           }
 
           return state;
@@ -157,7 +157,7 @@ export class AnnotationStateReducers {
           if (mode === this.mode) {
             const transcript = state.transcript.clone();
             transcript.changeLevelNameByIndex(index, name);
-            state.transcript = transcript;
+            return { ...state, transcript };
           }
 
           return state;
@@ -366,24 +366,23 @@ export class AnnotationStateReducers {
             const currentLevel = state.transcript.currentLevel;
 
             if (currentLevel) {
+              let transcript = state.transcript;
               for (const item of items) {
-                const index = state.transcript.currentLevel?.items.findIndex(
+                const index = transcript.currentLevel?.items.findIndex(
                   (a) => a.id === item.id,
                 );
                 if (index !== undefined && index > -1) {
-                  state.transcript = state.transcript
+                  transcript = transcript
                     .clone()
                     .changeCurrentItemByIndex(index, item);
                 } else {
                   // add item
-                  state.transcript = state.transcript
+                  transcript = transcript
                     .clone()
-                    .addItemToCurrentLevel(
-                      (item as any).time,
-                      item.labels,
-                    );
+                    .addItemToCurrentLevel((item as any).time, item.labels);
                 }
               }
+              return { ...state, transcript };
             }
           }
 
@@ -397,11 +396,13 @@ export class AnnotationStateReducers {
             const currentLevel = state.transcript.currentLevel;
 
             if (currentLevel) {
+              let transcript = state.transcript;
               for (const item of items) {
-                state.transcript = state.transcript
+                transcript = transcript
                   .clone()
                   .addItemToCurrentLevel((item as any).time, item.labels);
               }
+              return { ...state, transcript };
             }
           }
 
@@ -415,37 +416,38 @@ export class AnnotationStateReducers {
             const currentLevel = state.transcript.currentLevel;
 
             if (currentLevel) {
+              let transcript = state.transcript;
               for (const item of items) {
                 if (item.id !== undefined && item.id !== null) {
-                  state.transcript = state.transcript
+                  transcript = transcript
                     .clone()
                     .removeItemById(
                       item.id,
                       removeOptions?.silenceCode,
                       removeOptions?.mergeTranscripts,
-                      (transcript: string) => {
+                      (transcriptText: string) => {
                         if (!state.guidelines?.selected?.json) {
-                          return transcript;
+                          return transcriptText;
                         }
                         return tidyUpAnnotation(
-                          transcript,
+                          transcriptText,
                           state.guidelines.selected.json,
                         );
                       },
                     );
                 } else if (item.index !== undefined && item.index !== null) {
-                  state.transcript = state.transcript
+                  transcript = transcript
                     .clone()
                     .removeItemByIndex(
                       item.index,
                       removeOptions?.silenceCode,
                       removeOptions?.mergeTranscripts,
-                      (transcript: string) => {
+                      (transcriptText: string) => {
                         if (!state.guidelines?.selected?.json) {
-                          return transcript;
+                          return transcriptText;
                         }
                         return tidyUpAnnotation(
-                          transcript,
+                          transcriptText,
                           state.guidelines.selected.json,
                         );
                       },
@@ -456,6 +458,7 @@ export class AnnotationStateReducers {
                   );
                 }
               }
+              return { ...state, transcript };
             }
           }
 
@@ -623,9 +626,12 @@ export class AnnotationStateReducers {
         AnnotationActions.sendOnlineAnnotation.do,
         (state: AnnotationState, { mode }) => {
           if (mode === this.mode) {
-            state.currentSession = {
-              ...state.currentSession,
-              status: 'sending',
+            return {
+              ...state,
+              currentSession: {
+                ...state.currentSession,
+                status: 'sending',
+              },
             };
           }
           return state;
@@ -636,9 +642,12 @@ export class AnnotationStateReducers {
         AnnotationActions.sendOnlineAnnotation.success,
         (state: AnnotationState, { mode }) => {
           if (mode === this.mode) {
-            state.currentSession = {
-              ...state.currentSession,
-              status: 'processing',
+            return {
+              ...state,
+              currentSession: {
+                ...state.currentSession,
+                status: 'processing',
+              },
             };
           }
           return state;
@@ -648,7 +657,10 @@ export class AnnotationStateReducers {
         AnnotationActions.duplicateLevel.do,
         (state: AnnotationState, { mode, index }) => {
           if (mode === this.mode) {
-            state.transcript = state.transcript.clone().duplicateLevel(index);
+            return {
+              ...state,
+              transcript: state.transcript.clone().duplicateLevel(index),
+            };
           }
           return state;
         },

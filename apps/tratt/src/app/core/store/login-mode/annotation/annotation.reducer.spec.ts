@@ -141,3 +141,108 @@ describe('applyTranslationToLinkedLevel reducer', () => {
     expect(next).toBe(state);
   });
 });
+
+describe('reducers return new state objects instead of mutating in place', () => {
+  const reducers = new AnnotationStateReducers(LoginMode.LOCAL).create();
+  const reducer = createReducer(initialState, ...reducers);
+
+  it('combinePhrases.success returns a new state object', () => {
+    const state = buildState();
+    const next = reducer(
+      state,
+      AnnotationActions.combinePhrases.success({
+        mode: LoginMode.LOCAL,
+        transcript: state.transcript.clone(),
+      }),
+    );
+    expect(next).not.toBe(state);
+  });
+
+  it('changeLevelName.do returns a new state object', () => {
+    const state = buildState();
+    const next = reducer(
+      state,
+      AnnotationActions.changeLevelName.do({
+        mode: LoginMode.LOCAL,
+        index: 0,
+        name: 'renamed',
+      }),
+    );
+    expect(next).not.toBe(state);
+  });
+
+  it('changeCurrentLevelItems.do returns a new state object', () => {
+    const state = buildState();
+    state.transcript.changeCurrentLevelIndex(0);
+    const existingItem = state.transcript.currentLevel!.items[0];
+    const next = reducer(
+      state,
+      AnnotationActions.changeCurrentLevelItems.do({
+        mode: LoginMode.LOCAL,
+        items: [existingItem as any],
+      }),
+    );
+    expect(next).not.toBe(state);
+  });
+
+  it('addCurrentLevelItems.do returns a new state object', () => {
+    const state = buildState();
+    state.transcript.changeCurrentLevelIndex(0);
+    const newItem = new TrattAnnotationSegment(
+      99,
+      new SampleUnit(144000, 48000),
+      [new OLabel('OCTRA_1', 'new')],
+    );
+    const next = reducer(
+      state,
+      AnnotationActions.addCurrentLevelItems.do({
+        mode: LoginMode.LOCAL,
+        items: [newItem as any],
+      }),
+    );
+    expect(next).not.toBe(state);
+  });
+
+  it('removeCurrentLevelItems.do returns a new state object', () => {
+    const state = buildState();
+    state.transcript.changeCurrentLevelIndex(0);
+    const next = reducer(
+      state,
+      AnnotationActions.removeCurrentLevelItems.do({
+        mode: LoginMode.LOCAL,
+        items: [{ id: 1 }],
+      }),
+    );
+    expect(next).not.toBe(state);
+  });
+
+  it('sendOnlineAnnotation.do returns a new state object', () => {
+    const state = buildState();
+    const next = reducer(
+      state,
+      AnnotationActions.sendOnlineAnnotation.do({ mode: LoginMode.LOCAL }),
+    );
+    expect(next).not.toBe(state);
+  });
+
+  it('sendOnlineAnnotation.fail returns a new state object', () => {
+    const state = buildState();
+    const next = reducer(
+      state,
+      AnnotationActions.sendOnlineAnnotation.fail({
+        mode: LoginMode.LOCAL,
+        error: 'network error',
+      }),
+    );
+    expect(next).not.toBe(state);
+  });
+
+  it('duplicateLevel.do returns a new state object', () => {
+    const state = buildState();
+    const next = reducer(
+      state,
+      AnnotationActions.duplicateLevel.do({ mode: LoginMode.LOCAL, index: 0 }),
+    );
+    expect(next).not.toBe(state);
+  });
+});
