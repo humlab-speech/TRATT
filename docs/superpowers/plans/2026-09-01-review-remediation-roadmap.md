@@ -82,18 +82,23 @@ review doc's line numbers — I read the actual current implementation for all
 four and derived the fix from it). Ready to execute now via
 `superpowers:subagent-driven-development`.
 
-### Phase 2 — Tier 2, silent loss / broken feature (9 findings): plan not yet written
+### Phase 2 — Tier 2, silent loss / broken feature (9 findings): **plan ready**
 
-N3, B3, B2, B1, C12, C26, B7, C3, C14 — recording data loss, multi-line SRT
-truncation, WebGPU transcription fallback breakage, AudioContext leak,
-undo/redo silently no-oping, a reproducible crash in `validate()`, paused
-time baked into recordings, premature playback end, and shortcuts dying on
-editor switch. These touch five different subsystems (recording,
-audio-plumbing, annotation-store, editors) with less mechanical fixes than
-Phase 1 — several need a design call (B1's context-reuse guard shape, C14's
-per-group unregister). Write this plan once Phase 1 has landed and its
-review is clean, using the same direct-verification-before-planning approach
-as Phase 1, not by transcribing the doc's line numbers uninspected.
+`2026-09-01-review-remediation-phase2-silent-loss-fixes.md` — N3, B3, B2, B1,
+C12, C26, B7, C3, C14 — recording data loss, multi-line SRT truncation,
+WebGPU transcription fallback breakage, AudioContext leak, undo/redo
+silently no-oping, a reproducible crash in `validate()`, paused time baked
+into recordings, premature playback end, and shortcuts dying on editor
+switch. Each fix was independently re-derived from current source (not
+transcribed from the review doc's line numbers uninspected); six of the
+nine were actually reproduced (in Node or Jest) before the plan was written.
+One correction found during verification: C12's review location cites 3
+unguarded sites, but the third (idb-effects.service.ts:828-829) is already
+guarded — only 2 remain, and the plan fixes those. One task (B2, the WebGPU
+buffer-transfer fix) ships without an automated test — its trigger needs a
+real WebGPU-capable browser Worker, unavailable in this environment, matching
+the review document's own runtime-repro caveat. Ready to execute via
+`superpowers:subagent-driven-development`.
 
 ### Phase 3 — Tier 3, wrong output / recoverable edge cases (15 findings): defer
 
