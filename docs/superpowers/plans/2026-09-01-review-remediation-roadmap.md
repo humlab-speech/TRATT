@@ -100,11 +100,88 @@ real WebGPU-capable browser Worker, unavailable in this environment, matching
 the review document's own runtime-repro caveat. Ready to execute via
 `superpowers:subagent-driven-development`.
 
-### Phase 3 — Tier 3, wrong output / recoverable edge cases (15 findings): defer
+### Phase 3 — Tier 3, wrong output / recoverable edge cases (15 findings): **plan ready (scoped to 7)**
 
-N10, N12, N2, N6, N9, B5, B8, B9, C7, C8, C9, C10, C11, C15, C23. Lower
-urgency; batch into one plan once Phase 2 lands. Several are one-line fixes
-(C11's `?.`, B8's separator) that could be swept together cheaply.
+`2026-09-01-review-remediation-phase3-recoverable-edge-cases.md`. All 15
+findings independently re-verified live against current source before
+scoping. **7 included** — genuine bugs with a clean, well-defined fix:
+
+- **N12** (`recording.service.ts:342,350`) — `pcmIndex` read pre-await,
+  incremented post-await; confirmed via the Dexie schema
+  (`tratt-recording-database.ts:40`, `[sessionId+index]` is a non-unique
+  compound index, not the primary key — `++autoId` is) that collided chunks
+  are stored, not lost, but a stable sort on a duplicate index can reorder
+  them. Fix: increment at queue time (single-threaded JS makes this
+  race-free without needing the review's suggested in-flight
+  flag/chained-promise machinery).
+- **B8** (`SRTConverter.ts` same-speaker merge) — `label.value +=
+  nextItem...value` with no separator, confirmed producing `"Helloworld"`.
+- **B9** (`audio-decoder.ts` 8-bit WAV decode) — confirmed the unsigned
+  branch does `entry/2` plus a per-sample alternating `sign` toggle instead
+  of `(entry-128)/128`; silence (byte 128) decodes to an alternating
+  `[-0.5, 0.5, ...]` full-scale square wave.
+- **C7** (`annotation-save.effects.ts:123`) — `transcrSendingModal.timeout
+  = timer(2000).subscribe(...)` reassigns without unsubscribing a prior
+  pending timer first; same class of bug as Phase 2's C3, same fix idiom.
+- **C8** (`audio.service.ts:100-102`) — `missingPermission.complete()`
+  called right after the first `.emit()`; confirmed `EventEmitter` extends
+  RxJS `Subject`, so `.complete()` permanently silences all future
+  emissions and any late subscriber. **No automated test** — the trigger is
+  deep inside a real `AudioManager.create()`/browser-permission flow;
+  same class of exception as Phase 2's B2 (WebGPU fallback), justified the
+  same way.
+- **C10** (`linear-editor.component.ts:1048`) — `selectSegment()`'s Promise
+  only calls `resolve()` inside an `if (currentLevel instanceof
+  TrattAnnotationSegmentLevel)` branch; confirmed no `else`, so on a
+  non-segment level the Promise hangs forever.
+- **C11** (`linear-editor.component.ts:1021`) — `update()` dereferences
+  `this.audioChunkDown!` with no guard; confirmed no null-check anywhere in
+  the method.
+
+**8 deferred** — real findings, but each needs a decision beyond "apply the
+fix" before a plan can specify one:
+- **N2** (`idb-effects.service.ts` — `loadOptions.fail` has no reducer
+  handler) — confirmed live; deferred because the fix is a genuine UX
+  decision (how to surface a config-load failure to the user), not a
+  mechanical code change — no existing generic error-banner mechanism to
+  hook into cheaply.
+- **N6** (`WebVTTConverter.ts` duplicates `srtTimestamp`) — confirmed live;
+  pure code duplication, not a functional bug (both converters work
+  correctly today) — fits Phase 4's "cosmetic, no user-visible impact"
+  framing better than Phase 3's bug-fix scope despite the source doc's
+  placement.
+- **N9** (`idb-effects.service.ts` DB name unvalidated) — confirmed live;
+  defensive hardening only, no live trigger or reported failure mode.
+- **N10** (`tratt-dropzone.service.ts` modal-cancel leaves stale import
+  options) — confirmed live; the fix needs a new store action (no
+  clear/reset action exists today) — a small design decision, not just a
+  missing line.
+- **C9** (`audio.service.ts:43-78` untracked outer `downloadFile`
+  subscribe) — confirmed live; this is the same root object as the Phase
+  1-final-review follow-up already on this list (`AudioService.loadAudio`'s
+  non-cancellable subscription) — better fixed together in one pass than
+  split across two.
+- **C15** (`annotation.store.service.ts:629-641`
+  `overwriteTidyUpAnnotation()` re-wraps `window.tidyUpAnnotation` on every
+  call) — confirmed live, chain provably grows; fix needs an idempotency
+  guard whose exact shape (a marker flag? checking function identity?)
+  is a small design call, not a one-liner.
+- **C23** (`annotation-load.effects.ts:784` URL-mode `http.get` on a
+  user-supplied URL, no host allowlist) — confirmed live and is a real
+  same-origin-credential-leak vector; deferred because the actual fix (a
+  host allowlist) needs a product decision on what hosts are legitimate —
+  same category as E1/E10's "needs a product decision" from Tier 1, not a
+  pure code fix.
+- **B5** (`recording.service.ts:154,270` hardcoded 48kHz,
+  `assembleSessionToFile`) — confirmed the restore path still hardcodes
+  `const sampleRate = 48000;` and `createSession` never persists the real
+  rate (audioCtx doesn't exist yet at that call site) — the fix needs a new
+  `updateSessionSampleRate`-style persistence method plus a call-site
+  reorder, a real 3-file design task, not a one-liner. Deferred to keep
+  Phase 3 to genuinely mechanical fixes; picking this up alongside N10 in a
+  future small-design-fixes batch is reasonable.
+
+Ready to execute the 7-item scope via `superpowers:subagent-driven-development`.
 
 ### Phase 4 — Tier 4, theoretical / dead code / cosmetic (10 findings): defer indefinitely
 
