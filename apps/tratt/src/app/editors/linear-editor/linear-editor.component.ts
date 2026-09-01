@@ -1024,7 +1024,9 @@ export class LinearEditorComponent
   public update() {
     this.segmentselected = false;
     this.audioChunkTop.startpos = this.audioChunkTop.time.start.clone();
-    this.audioChunkDown!.startpos = this.audioChunkDown!.time.start.clone();
+    if (this.audioChunkDown) {
+      this.audioChunkDown.startpos = this.audioChunkDown.time.start.clone();
+    }
     this.cd.markForCheck();
   }
 

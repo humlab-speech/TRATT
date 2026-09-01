@@ -48,3 +48,34 @@ describe('LinearEditorComponent.selectSegment resolves on non-segment levels (C1
     expect(result).toBeUndefined();
   });
 });
+
+describe('LinearEditorComponent.update guards audioChunkDown (C11)', () => {
+  it('does not throw when audioChunkDown is undefined', () => {
+    const component = createComponent({ items: [] });
+    (component as any).audioChunkTop = {
+      startpos: undefined,
+      time: { start: { clone: () => 'top-start' } },
+    };
+    (component as any).audioChunkDown = undefined;
+    (component as any).cd = { markForCheck: () => undefined };
+
+    expect(() => component.update()).not.toThrow();
+  });
+
+  it('still updates audioChunkDown.startpos when it is set', () => {
+    const component = createComponent({ items: [] });
+    (component as any).audioChunkTop = {
+      startpos: undefined,
+      time: { start: { clone: () => 'top-start' } },
+    };
+    (component as any).audioChunkDown = {
+      startpos: undefined,
+      time: { start: { clone: () => 'down-start' } },
+    };
+    (component as any).cd = { markForCheck: () => undefined };
+
+    component.update();
+
+    expect((component as any).audioChunkDown.startpos).toBe('down-start');
+  });
+});
