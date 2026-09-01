@@ -654,12 +654,15 @@ export class LinearEditorComponent
   }
 
   onSegmentEnter($event: any) {
-    this.selectSegment($event.index).then((selection: AudioSelection) => {
-      this.audioChunkDown = new AudioChunk(selection, this.audioManager);
-      this.editor.focus(true, true).catch((error) => {
-        console.error(error);
-      });
-    });
+    this.selectSegment($event.index).then(
+      (selection: AudioSelection | undefined) => {
+        if (!selection) return;
+        this.audioChunkDown = new AudioChunk(selection, this.audioManager);
+        this.editor.focus(true, true).catch((error) => {
+          console.error(error);
+        });
+      },
+    );
 
     if (
       this.appStorage.logging &&
@@ -692,13 +695,16 @@ export class LinearEditorComponent
   }
 
   onMagnifierSegmentEnter($event: any) {
-    this.selectSegment($event.index).then((selection: AudioSelection) => {
-      this.audioChunkDown!.selection = selection.clone();
-      this.audioChunkDown!.absolutePlayposition = selection.start.clone();
-      this.editor.focus(true, true).catch((error) => {
-        console.error(error);
-      });
-    });
+    this.selectSegment($event.index).then(
+      (selection: AudioSelection | undefined) => {
+        if (!selection) return;
+        this.audioChunkDown!.selection = selection.clone();
+        this.audioChunkDown!.absolutePlayposition = selection.start.clone();
+        this.editor.focus(true, true).catch((error) => {
+          console.error(error);
+        });
+      },
+    );
   }
 
   onTranscriptionChanged() {
@@ -1045,8 +1051,8 @@ export class LinearEditorComponent
     }
   }
 
-  private selectSegment(index: number): Promise<AudioSelection> {
-    return new Promise<AudioSelection>((resolve) => {
+  private selectSegment(index: number): Promise<AudioSelection | undefined> {
+    return new Promise<AudioSelection | undefined>((resolve) => {
       if (
         this.annotationStoreService.currentLevel?.items &&
         this.annotationStoreService.currentLevel instanceof
@@ -1063,6 +1069,8 @@ export class LinearEditorComponent
             this.annotationStoreService.currentLevel.items[index - 1]!.time;
         }
         resolve(new AudioSelection(start, segment!.time));
+      } else {
+        resolve(undefined);
       }
     });
   }
