@@ -53,3 +53,21 @@ describe('AudioMechanism.initAudioContext reuses an open context (B1)', () => {
     expect(FakeAudioContext.instances.length).toBe(2);
   });
 });
+
+describe('HtmlAudioMechanism.initPlayback unsubscribes the prior end-checker (C3)', () => {
+  it('closes the first _playbackEndChecker subscription when canplay re-fires', () => {
+    const mechanism = new HtmlAudioMechanism();
+    // Satisfy initPlayback's guards without going through the full play() flow.
+    (mechanism as any)._audio = {};
+    (mechanism as any).audioSelection = { duration: { unix: 10000 } };
+    (mechanism as any)._playbackRate = 1;
+
+    (mechanism as any).initPlayback();
+    const firstChecker = (mechanism as any)._playbackEndChecker;
+    expect(firstChecker.closed).toBe(false);
+
+    (mechanism as any).initPlayback();
+
+    expect(firstChecker.closed).toBe(true);
+  });
+});

@@ -554,6 +554,7 @@ export class HtmlAudioMechanism extends AudioMechanism {
 
     this.changeStatus(PlayBackStatus.PLAYING);
 
+    this._playbackEndChecker?.unsubscribe();
     this._playbackEndChecker = timer(
       Math.round(this.audioSelection.duration.unix / this._playbackRate),
     ).subscribe({
