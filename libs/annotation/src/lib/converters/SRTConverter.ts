@@ -336,8 +336,11 @@ export class SRTConverter extends Converter {
 
                 const label = previousItem.getFirstLabelWithoutName('Speaker');
                 if (label) {
-                  label.value +=
+                  const nextValue =
                     nextItem.getFirstLabelWithoutName('Speaker')?.value ?? '';
+                  label.value = [label.value, nextValue]
+                    .filter((v) => v !== '')
+                    .join(' ');
                 }
               }
             }

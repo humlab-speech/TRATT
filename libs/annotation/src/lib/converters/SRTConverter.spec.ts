@@ -80,3 +80,41 @@ describe('SRTConverter — multi-line cues (B3)', () => {
     expect(texts).toContain('Hello world');
   });
 });
+
+
+describe('SRTConverter — same-speaker merge separator (B8)', () => {
+  it('joins merged same-speaker segment text with a space, not a bare concatenation', () => {
+    const c = new SRTConverter();
+    const audio = audiofile(48000 * 10);
+    const srt = [
+      '1',
+      '00:00:00,000 --> 00:00:01,000',
+      '[Alice]: Hello',
+      '',
+      '2',
+      '00:00:01,000 --> 00:00:01,500',
+      '',
+      '',
+      '3',
+      '00:00:01,500 --> 00:00:02,500',
+      '[Alice]: world',
+      '',
+    ].join('\n');
+
+    const r = c.import(
+      srtFile(srt),
+      audio as any,
+      new (c.defaultImportOptions.constructor as any)({
+        combineSegmentsWithSameSpeakerThreshold: 2000,
+      }),
+    );
+    expect(r.error).toBe('');
+    const items = r.annotjson!.levels[0].items;
+    const merged = items.find((it: any) =>
+      it.labels?.some((l: any) => l.value?.includes('Hello')),
+    );
+    expect(merged.labels.find((l: any) => l.name !== 'Speaker')?.value).toBe(
+      'Hello world',
+    );
+  });
+});
