@@ -99,7 +99,6 @@ export class AudioService {
         this.subscrmanager.add(
           manager.audioMechanism!.missingPermission.subscribe(() => {
             this.missingPermission.emit();
-            this.missingPermission.complete();
           }),
         );
       }
