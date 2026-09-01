@@ -75,3 +75,22 @@ describe('RecordingService stop() surfaces a final-flush failure (N3)', () => {
     expect(errors[0]?.message).toContain('exceeded the retry cap');
   });
 });
+
+describe('RecordingService does not capture PCM while paused (B7)', () => {
+  it('drops worklet samples that arrive while state$ is paused', () => {
+    const service = createService(jest.fn());
+    (service as any).pcmPending = [];
+
+    service.state$.next('recording');
+    (service as any).handleWorkletMessage(new Float32Array([1, 2, 3]));
+    expect((service as any).pcmPending.length).toBe(1);
+
+    service.state$.next('paused');
+    (service as any).handleWorkletMessage(new Float32Array([4, 5, 6]));
+    expect((service as any).pcmPending.length).toBe(1); // unchanged — paused sample dropped
+
+    service.state$.next('recording');
+    (service as any).handleWorkletMessage(new Float32Array([7, 8, 9]));
+    expect((service as any).pcmPending.length).toBe(2); // resumes capturing
+  });
+});

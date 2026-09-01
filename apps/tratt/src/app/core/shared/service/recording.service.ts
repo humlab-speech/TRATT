@@ -314,9 +314,7 @@ export class RecordingService {
     this.workletNode = new AudioWorkletNode(this.audioCtx, 'pcm-recorder');
     this.workletNode.port.onmessage = (ev: MessageEvent) => {
       const { samples } = ev.data as { samples: Float32Array };
-      if (samples && samples.length) {
-        this.pcmPending.push(samples);
-      }
+      this.handleWorkletMessage(samples);
     };
     source.connect(this.workletNode);
 
@@ -324,6 +322,12 @@ export class RecordingService {
       () => void this.flushPcmPending(),
       PCM_FLUSH_INTERVAL_MS,
     );
+  }
+
+  private handleWorkletMessage(samples: Float32Array): void {
+    if (samples && samples.length && this.state$.value !== 'paused') {
+      this.pcmPending.push(samples);
+    }
   }
 
   private async flushPcmPending(): Promise<void> {
