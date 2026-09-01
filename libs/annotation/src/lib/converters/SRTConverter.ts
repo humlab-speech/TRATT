@@ -238,7 +238,7 @@ export class SRTConverter extends Converter {
       const regexStr =
         `([0-9]+)[\\n\\r]*([0-9]{2}:[0-9]{2}:[0-9]{2}(?:,[0-9]{3})?) --> ` +
         `([0-9]{2}:[0-9]{2}:[0-9]{2}(?:,[0-9]{3})?)\\r?\\n\\r?` +
-        `(.*)\\r?\\n\\r?`;
+        `([\\s\\S]*?)(?:\\r?\\n\\r?\\n|\\r?\\n?$)`;
       const speakerRx = options.speakerIdentifierPattern
         ? new RegExp(`^(?:${options.speakerIdentifierPattern})`)
         : undefined;
