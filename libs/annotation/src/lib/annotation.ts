@@ -680,20 +680,22 @@ export class TrattAnnotation<T extends TrattAnnotationSegment> {
         if (a instanceof TrattAnnotationSegmentLevel) {
           const result = a.serialize();
 
-          const lastItem = result.items[result.items.length - 1];
-          if (
-            lastItem.sampleStart + lastItem.sampleDur <
-            lastSegmentTime.samples
-          ) {
-            const paddingStart = lastItem.sampleStart + lastItem.sampleDur;
-            result.items.push(
-              new OSegment(
-                this.idCounters.item++,
-                paddingStart,
-                lastSegmentTime.samples - paddingStart,
-                [new OLabel(a.name, '')],
-              ),
-            );
+          if (result.items.length > 0) {
+            const lastItem = result.items[result.items.length - 1];
+            if (
+              lastItem.sampleStart + lastItem.sampleDur <
+              lastSegmentTime.samples
+            ) {
+              const paddingStart = lastItem.sampleStart + lastItem.sampleDur;
+              result.items.push(
+                new OSegment(
+                  this.idCounters.item++,
+                  paddingStart,
+                  lastSegmentTime.samples - paddingStart,
+                  [new OLabel(a.name, '')],
+                ),
+              );
+            }
           }
           // Resolve linkedToLevelId → linkedToLevelName for round-trip.
           if (a.linkedToLevelId !== undefined) {

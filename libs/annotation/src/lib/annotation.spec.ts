@@ -131,6 +131,27 @@ describe('TrattAnnotation.serialize() padding of the final segment', () => {
   });
 });
 
+describe('TrattAnnotation.serialize() on an empty SEGMENT level', () => {
+  it('does not throw and serializes the level with an empty items array', () => {
+    const annotation = new TrattAnnotation<TrattAnnotationSegment>();
+    const level = annotation.createSegmentLevel('tier', []);
+    annotation.addLevel(level);
+    annotation.updateIDCounters();
+
+    expect(() =>
+      annotation.serialize('audio.wav', 48000, new SampleUnit(2000, 48000)),
+    ).not.toThrow();
+
+    const json = annotation.serialize(
+      'audio.wav',
+      48000,
+      new SampleUnit(2000, 48000),
+    );
+    const segmentLevel = json.levels[0] as ISegmentLevel;
+    expect(segmentLevel.items).toEqual([]);
+  });
+});
+
 describe('TrattAnnotation.changeCurrentItemByIndex on a SEGMENT level', () => {
   it('replaces the item in place', () => {
     const annotation = makeAnnotation();
