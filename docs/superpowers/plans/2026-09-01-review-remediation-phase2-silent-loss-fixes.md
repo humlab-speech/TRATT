@@ -388,7 +388,7 @@ If `AudioInfo`'s actual shape requires more fields than `{ sampleRate, duration:
 
 - [ ] **Step 2: Run tests to verify they fail**
 
-Run: `npx jest libs/web-media/src/lib/audio/html-audio-mechanism.spec.ts libs/web-media/src/lib/audio/audio-decoder.spec.ts`
+Run: `npx nx test web-media -- --run src/lib/audio/html-audio-mechanism.spec.ts src/lib/audio/audio-decoder.spec.ts`
 Expected: the first `html-audio-mechanism` test FAILs (`openInstances.length` is 2, not 1 — no guard yet). The `audio-decoder` test FAILs (`ctorSpy` was called once — the dead context is still constructed).
 
 - [ ] **Step 3: Write minimal implementation**
@@ -430,7 +430,7 @@ In `libs/web-media/src/lib/audio/audio-decoder.ts`, delete the dead `audioContex
 
 - [ ] **Step 4: Run tests to verify they pass**
 
-Run: `npx jest libs/web-media/src/lib/audio/html-audio-mechanism.spec.ts libs/web-media/src/lib/audio/audio-decoder.spec.ts`
+Run: `npx nx test web-media -- --run src/lib/audio/html-audio-mechanism.spec.ts src/lib/audio/audio-decoder.spec.ts`
 Expected: all 3 tests PASS.
 
 - [ ] **Step 5: Commit**
@@ -498,7 +498,7 @@ describe('HtmlAudioMechanism.initPlayback unsubscribes the prior end-checker (C3
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `npx jest libs/web-media/src/lib/audio/html-audio-mechanism.spec.ts`
+Run: `npx nx test web-media -- --run src/lib/audio/html-audio-mechanism.spec.ts`
 Expected: FAIL — `firstChecker.closed` is `false` after the second `initPlayback()` call (the first timer subscription is still live, orphaned but not unsubscribed).
 
 - [ ] **Step 3: Write minimal implementation**
@@ -554,7 +554,7 @@ to (only the added `this._playbackEndChecker?.unsubscribe();` line, right before
 
 - [ ] **Step 4: Run test to verify it passes**
 
-Run: `npx jest libs/web-media/src/lib/audio/html-audio-mechanism.spec.ts`
+Run: `npx nx test web-media -- --run src/lib/audio/html-audio-mechanism.spec.ts`
 Expected: all tests (3 from Task 3, 1 new) PASS.
 
 - [ ] **Step 5: Commit**
