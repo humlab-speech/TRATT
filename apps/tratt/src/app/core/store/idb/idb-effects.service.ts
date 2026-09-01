@@ -264,6 +264,14 @@ export class IDBEffects {
         const modeState = getModeState(appState);
 
         if (modeState) {
+          if (!this.audio.audioManager) {
+            return of(
+              ApplicationActions.undoFailed({
+                error: 'No audio loaded — cannot save undo state.',
+              }),
+            );
+          }
+
           const links = modeState.transcript.links.map((a) => a.link);
 
           return this.idbService
@@ -305,6 +313,14 @@ export class IDBEffects {
         const modeState = getModeState(appState);
 
         if (modeState) {
+          if (!this.audio.audioManager) {
+            return of(
+              ApplicationActions.redoFailed({
+                error: 'No audio loaded — cannot save redo state.',
+              }),
+            );
+          }
+
           return this.idbService
             .saveAnnotation(
               appState.application.mode!,
