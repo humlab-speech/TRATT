@@ -109,6 +109,27 @@ describe('AnnotationTextProcessingService', () => {
       );
       expect(result).toEqual([{ start: 0, length: 2, code: 'E1' }]);
     });
+
+    it('does not crash on a zero-length validation at the junction of two adjacent boundary markers, and does not drop an unrelated result (C26)', () => {
+      const rawText =
+        '✉✉✉sel-start/📩📩📩' + 'a{123}{456}b' + '✉✉✉sel-end/📩📩📩';
+      const junctionStart = rawText.indexOf('{123}{456}') + 5; // the '}' / '{' junction
+      const unrelatedStart = rawText.indexOf('{') - 1; // position of 'a' before first boundary marker
+
+      (global as any).validateAnnotation = jest.fn().mockReturnValue([
+        { start: junctionStart, length: 0, code: 'E1' },
+        { start: unrelatedStart, length: 1, code: 'E2' }, // unrelated, the 'a' before any boundary marker
+      ]);
+      const service = createService();
+
+      let result: any[] = [];
+      expect(() => {
+        result = service.validate(rawText, guidelines);
+      }).not.toThrow();
+
+      expect(result.some((r) => r.code === 'E2')).toBe(true);
+      expect(result.some((r) => r.code === 'E1')).toBe(false);
+    });
   });
 
   describe('underlineTextRed', () => {

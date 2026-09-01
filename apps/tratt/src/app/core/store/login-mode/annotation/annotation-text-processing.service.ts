@@ -74,6 +74,7 @@ export class AnnotationTextProcessingService {
           // remove
           results.splice(i, 1);
           i--;
+          break;
         }
 
         match = segRegex.exec(rawText);
