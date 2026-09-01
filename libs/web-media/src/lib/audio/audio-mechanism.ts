@@ -89,6 +89,12 @@ export abstract class AudioMechanism {
    * @private
    */
   protected initAudioContext() {
+    if (
+      this._audioContext !== undefined &&
+      this._audioContext.state !== 'closed'
+    ) {
+      return;
+    }
     const audioContext =
       window.AudioContext || // Default
       window.webkitAudioContext || // Safari and old versions of Chrome
