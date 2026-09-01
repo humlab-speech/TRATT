@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { provideMockActions } from '@ngrx/effects/testing';
-import { MockStore, provideMockStore } from '@ngrx/store/testing';
+import { provideMockStore } from '@ngrx/store/testing';
 import { describe, expect, it, jest, beforeEach } from '@jest/globals';
 import { HttpClient } from '@angular/common/http';
 import { TranslocoService } from '@jsverse/transloco';
@@ -23,7 +23,6 @@ jest.mock('mime', () => ({ __esModule: true, default: { getType: () => undefined
 
 describe('AnnotationLoadEffects.onAudioLoad$', () => {
   let effects: AnnotationLoadEffects;
-  let store: MockStore<RootState>;
   let actions$: ReplaySubject<unknown>;
   let audioStub: { loadAudio: jest.Mock };
 
@@ -54,7 +53,6 @@ describe('AnnotationLoadEffects.onAudioLoad$', () => {
     });
 
     effects = TestBed.inject(AnnotationLoadEffects);
-    store = TestBed.inject(MockStore);
   });
 
   it('cancels a still-in-flight loadAudio subscription when a new loadAudio.do arrives', () => {
@@ -78,6 +76,8 @@ describe('AnnotationLoadEffects.onAudioLoad$', () => {
     actions$.next(doAction('first.wav'));
     actions$.next(doAction('second.wav'));
 
+    expect(audioStub.loadAudio).toHaveBeenCalledTimes(2);
+    expect(secondLoad$.observed).toBe(true);
     expect(firstLoad$.observed).toBe(false);
 
     subscription.unsubscribe();

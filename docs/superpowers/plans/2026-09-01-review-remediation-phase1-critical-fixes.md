@@ -714,6 +714,18 @@ callbacks can still fire later and dispatch `loadAudio.success` /
 landing a stale success into whatever session is current by the time it
 resolves.
 
+**Residual (out of scope):** this fix unsubscribes from the *effect's*
+view of the load, but `AudioService.loadAudio`
+(`apps/tratt/src/app/core/shared/service/audio.service.ts`) is not itself
+cancellable — it's a hot subscription, so the underlying HTTP download and
+`AudioManager` creation keep running to completion in the background even
+after the effect unsubscribes, and the resulting `AudioManager` still gets
+registered into `_audiomanagers` with nothing to ever clean it up. This is
+a pre-existing resource-leak issue in `AudioService`, not a reopening of
+C2: no stale data reaches the UI or the store, only an unused, unreferenced
+`AudioManager` lingers in memory. Tracked as a follow-up, out of scope for
+this minimal-change plan.
+
 **Fix:** tag the subscription and clear any previous one with the same tag
 before starting a new one — the exact pattern this file already uses at
 line 264-276 for a different subscription.
@@ -900,7 +912,9 @@ already used for the uiService subscription in this file."
 
 After all four tasks:
 
-- [ ] `npx vitest run` from `libs/annotation` — full lib suite green
+- [ ] `npx vitest run` from `libs/annotation` — 44 pass / 8 pre-existing
+  ENOENT converter-fixture failures (unrelated to this plan, present on
+  `main`)
 - [ ] `nx test tratt` (or `npx jest apps/tratt`) — full app suite green,
   modulo the 2 pre-existing unrelated failures already known on `main`
   (`AutoTranscribeOptionsComponent` locale-default test,

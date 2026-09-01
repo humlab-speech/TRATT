@@ -121,3 +121,24 @@ separately: C1 gets its reducer-reference-equality tests in Phase 1. B3+B8
 need a new `SRTConverter.spec.ts` (doesn't exist yet) — Phase 2. B6 needs an
 empty-SEGMENT-level case added to `annotation.spec.ts` — Phase 1. C4 needs a
 new `functions.spec.ts` for `libs/annotation` (doesn't exist yet) — Phase 1.
+
+## Follow-ups surfaced by Phase 1's final review
+
+- `AudioService.loadAudio`
+  (`apps/tratt/src/app/core/shared/service/audio.service.ts:43-88`) returns
+  a hot, non-cancellable `Subject` — the download and `AudioManager`
+  creation it kicks off keep running even after a consumer unsubscribes.
+  Not a correctness bug today (nothing consumes the stale result), but a
+  resource leak. Make it a cold, properly-cancellable observable.
+- `apps/tratt/jest.config.ts`'s `transformIgnorePatterns` doesn't exempt
+  the `mime` package (ESM-only as of a recent version), which is why
+  `annotation-load.effects.spec.ts` needs a local `jest.mock('mime', ...)`
+  workaround. Add `mime` to the pattern (e.g.
+  `node_modules/(?!.*\.mjs$|jodit|ngx-jodit|konva|mime)`) and delete the
+  local mock.
+- `TrattAnnotation.duplicateLevel(index)`
+  (`libs/annotation/src/lib/annotation.ts:174-189`) returns `undefined` for
+  an out-of-range `index` instead of `this` — pre-existing, but Phase 1's
+  Task 3 fix means the `duplicateLevel.do` reducer handler now actually
+  returns this `undefined` as `state.transcript` (previously masked by the
+  same-reference-return bug Task 3 fixed). Guard the out-of-range case.
