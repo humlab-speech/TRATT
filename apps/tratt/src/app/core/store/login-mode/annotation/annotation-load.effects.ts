@@ -329,37 +329,41 @@ export class AnnotationLoadEffects {
                 filename = filename.substring(filename.indexOf('src=') + 4);
               }
 
-              this.audio.loadAudio(src, a.audioFile).subscribe({
-                next: (progress) => {
-                  if (progress < 1) {
+              this.subscrManager.removeByTag('loadAudio');
+              this.subscrManager.add(
+                this.audio.loadAudio(src, a.audioFile).subscribe({
+                  next: (progress) => {
+                    if (progress < 1) {
+                      this.store.dispatch(
+                        AnnotationActions.loadAudio.progress({
+                          value: progress,
+                          mode: state.application.mode!,
+                        }),
+                      );
+                    } else {
+                      this.store.dispatch(
+                        AnnotationActions.loadAudio.success({
+                          mode: state.application.mode!,
+                          task: a.task,
+                          guidelines: a.guidelines,
+                          selectedGuidelines: a.selectedGuidelines,
+                          currentProject: a.currentProject,
+                          audioFile: a.audioFile,
+                        }),
+                      );
+                    }
+                  },
+                  error: (err) => {
                     this.store.dispatch(
-                      AnnotationActions.loadAudio.progress({
-                        value: progress,
-                        mode: state.application.mode!,
+                      AnnotationActions.loadAudio.fail({
+                        error: 'Loading audio file failed',
                       }),
                     );
-                  } else {
-                    this.store.dispatch(
-                      AnnotationActions.loadAudio.success({
-                        mode: state.application.mode!,
-                        task: a.task,
-                        guidelines: a.guidelines,
-                        selectedGuidelines: a.selectedGuidelines,
-                        currentProject: a.currentProject,
-                        audioFile: a.audioFile,
-                      }),
-                    );
-                  }
-                },
-                error: (err) => {
-                  this.store.dispatch(
-                    AnnotationActions.loadAudio.fail({
-                      error: 'Loading audio file failed',
-                    }),
-                  );
-                  console.error(err);
-                },
-              });
+                    console.error(err);
+                  },
+                }),
+                'loadAudio',
+              );
             } else {
               this.store.dispatch(
                 AnnotationActions.loadAudio.fail({
