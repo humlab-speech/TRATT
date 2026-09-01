@@ -123,7 +123,7 @@ export function removeSegmentByIndex(
     ) {
       const nextSegment = entries[index + 1];
       const transcription =
-        entries[index].getFirstLabelWithoutName('Spealer')?.value;
+        entries[index].getFirstLabelWithoutName('Speaker')?.value;
 
       if (
         silenceValue !== undefined &&
