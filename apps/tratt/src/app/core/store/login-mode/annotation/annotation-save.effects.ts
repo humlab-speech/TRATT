@@ -120,6 +120,7 @@ export class AnnotationSaveEffects {
       withLatestFrom(this.store),
       exhaustMap(([a, state]) => {
         if (state.application.mode === LoginMode.ONLINE) {
+          this.transcrSendingModal.timeout?.unsubscribe();
           this.transcrSendingModal.timeout = timer(2000).subscribe({
             next: () => {
               this.transcrSendingModal.ref = this.modalsService.openModalRef(
