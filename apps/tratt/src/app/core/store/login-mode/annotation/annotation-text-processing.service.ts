@@ -74,6 +74,7 @@ export class AnnotationTextProcessingService {
           // remove
           results.splice(i, 1);
           i--;
+          segRegex.lastIndex = 0;
           break;
         }
 

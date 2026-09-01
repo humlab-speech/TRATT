@@ -130,6 +130,17 @@ describe('AnnotationTextProcessingService', () => {
       expect(result.some((r) => r.code === 'E2')).toBe(true);
       expect(result.some((r) => r.code === 'E1')).toBe(false);
     });
+
+    it('removes all results inside the same boundary marker, not just the first (lastIndex regression)', () => {
+      const rawText = 'a{100}b';
+      (global as any).validateAnnotation = jest.fn().mockReturnValue([
+        { start: 1, length: 1, code: 'A' }, // inside {100}
+        { start: 2, length: 1, code: 'B' }, // also inside {100}
+      ]);
+      const service = createService();
+      const result = service.validate(rawText, guidelines);
+      expect(result).toEqual([]);
+    });
   });
 
   describe('underlineTextRed', () => {

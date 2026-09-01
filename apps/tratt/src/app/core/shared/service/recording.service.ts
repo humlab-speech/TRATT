@@ -364,6 +364,15 @@ export class RecordingService {
             'PCM recording data exceeded the retry cap after repeated persistence failures — stopping.',
           ),
         );
+        void this.stop().catch(() => undefined);
+        return;
+      }
+      if (this.state$.value === 'stopping') {
+        this.emitError(
+          new Error(
+            'Failed to persist the final PCM chunk — the recording may be missing its ending.',
+          ),
+        );
         return;
       }
       console.error(

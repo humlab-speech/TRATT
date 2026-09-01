@@ -13,7 +13,9 @@ class FakeWorker {
   onmessage: ((ev: unknown) => void) | null = null;
   postMessage = vi.fn();
   terminate = vi.fn();
-  constructor(_url: string) {}
+  constructor(_url: string) {
+    /* noop */
+  }
 }
 
 (globalThis as any).Worker = FakeWorker;

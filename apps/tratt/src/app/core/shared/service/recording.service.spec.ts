@@ -54,25 +54,20 @@ describe('RecordingService PCM retry buffer capping (N3)', () => {
 });
 
 describe('RecordingService stop() surfaces a final-flush failure (N3)', () => {
-  it('emits an error when the final flush inside stop() fails, instead of silently dropping the chunk', async () => {
+  it('emits an error when a sub-cap final flush fails while stopping, instead of silently dropping the chunk', async () => {
     const appendChunk = jest.fn<(...args: any[]) => Promise<void>>().mockRejectedValue(new Error('IDB unavailable'));
     const service = createService(appendChunk);
     (service as any).sessionId = 'test-session';
-    // Create 11 MB of pending data to exceed 10 MB cap (testing that a final flush
-    // failure also triggers the cap check, not just regular interval flushes)
-    (service as any).pcmPending = [new Float32Array(11 * 1024 * 1024 / 4)];
-    // Minimal state to let flushPcmPending's failure path run without needing
-    // the rest of stop()'s machinery (media recorder, stream, etc.) — this
-    // test calls flushPcmPending directly rather than the full stop(), since
-    // stop() needs real MediaRecorder/AudioContext that jsdom doesn't provide.
+    service.state$.next('stopping'); // simulate being inside stop()'s final flush
+    (service as any).pcmPending = [new Float32Array(10)]; // well under the 10MB cap
 
     const errors: Error[] = [];
     service.error$.subscribe((e) => errors.push(e));
 
     await (service as any).flushPcmPending();
 
-    expect(errors.length).toBeGreaterThan(0);
-    expect(errors[0]?.message).toContain('exceeded the retry cap');
+    expect(errors.length).toBe(1);
+    expect((service as any).pcmPending.length).toBe(0); // dropped, not re-merged — recording is stopping, nothing will retry it
   });
 });
 
