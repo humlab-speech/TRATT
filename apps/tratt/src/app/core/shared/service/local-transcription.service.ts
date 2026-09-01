@@ -213,16 +213,21 @@ export class LocalTranscriptionService implements OnDestroy {
       });
     };
 
+    // Clone before transferring: `mono` may be re-used by a WebGPU→WASM
+    // retry (see the fallback branch above), and a transferred buffer is
+    // detached in this thread once postMessage returns — transferring the
+    // original would leave the retry with a detached buffer.
+    const audioForTransfer = mono.slice();
     const message: WorkerTranscribeMessage = {
       type: 'transcribe',
       modelId: options.modelId,
-      audio: mono,
+      audio: audioForTransfer,
       useWebGPU: options.useWebGPU,
       audioDurationS,
       ...(options.dtype ? { dtype: options.dtype } : {}),
       ...(options.language ? { language: options.language } : {}),
     };
-    worker.postMessage(message, [mono.buffer]);
+    worker.postMessage(message, [audioForTransfer.buffer]);
   }
 
   cancel(): void {
