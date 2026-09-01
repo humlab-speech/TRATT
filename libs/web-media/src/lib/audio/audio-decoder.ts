@@ -311,8 +311,6 @@ export class AudioDecoder {
       const maxNum = Math.pow(2, bitsPerSample) / 2;
       const unsigned = bitsPerSample === 8;
 
-      let sign = unsigned ? -1 : 1;
-
       for (let i = 0; i < duration; i++) {
         let entry = data[i];
 
@@ -321,17 +319,14 @@ export class AudioDecoder {
           break;
         }
         if (unsigned) {
-          entry = entry / 2;
+          entry = entry - maxNum;
         }
 
-        result[i] = (entry / maxNum) * sign;
+        result[i] = entry / maxNum;
         const t = result[i];
         if (result[i] > 1) {
           console.error(`entry greater than 1: ${result[i]} at ${i}`);
           break;
-        }
-        if (unsigned) {
-          sign = sign * -1;
         }
       }
       resolve(result);
