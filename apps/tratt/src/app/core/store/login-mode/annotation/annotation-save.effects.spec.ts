@@ -62,6 +62,7 @@ describe('AnnotationSaveEffects.onAnnotationSend$ timer unsubscribe (C7)', () =>
     expect(secondTimeout).not.toBe(firstTimeout);
     expect(firstTimeout.closed).toBe(true);
 
+    (effects as any).transcrSendingModal.timeout?.unsubscribe();
     subscription.unsubscribe();
   });
 });

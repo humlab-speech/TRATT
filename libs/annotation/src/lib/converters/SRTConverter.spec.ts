@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { SRTConverter } from './SRTConverter';
+import { SRTConverter, SRTConverterImportOptions } from './SRTConverter';
 
 const SR = 48000;
 
@@ -104,7 +104,7 @@ describe('SRTConverter — same-speaker merge separator (B8)', () => {
     const r = c.import(
       srtFile(srt),
       audio as any,
-      new (c.defaultImportOptions.constructor as any)({
+      new SRTConverterImportOptions({
         combineSegmentsWithSameSpeakerThreshold: 2000,
       }),
     );

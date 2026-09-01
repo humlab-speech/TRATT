@@ -323,7 +323,6 @@ export class AudioDecoder {
         }
 
         result[i] = entry / maxNum;
-        const t = result[i];
         if (result[i] > 1) {
           console.error(`entry greater than 1: ${result[i]} at ${i}`);
           break;

@@ -65,4 +65,34 @@ describe('AudioDecoder 8-bit WAV decoding (B9)', () => {
       expect(Math.abs(channelData[i])).toBeLessThan(tolerance);
     }
   });
+
+  it('decodes the full 8-bit range: byte 0 to -1 and byte 255 to ~0.992', async () => {
+    const minData = new Uint8Array(10).fill(0);
+    const maxData = new Uint8Array(10).fill(255);
+
+    const decoder = new AudioDecoder(
+      'wav' as any,
+      { sampleRate: 48000, duration: { samples: 10 } } as any,
+      new ArrayBuffer(8),
+    );
+
+    const minChannelData = await (decoder as any).getChannelData(
+      minData,
+      10,
+      8,
+    );
+    const maxChannelData = await (decoder as any).getChannelData(
+      maxData,
+      10,
+      8,
+    );
+
+    const tolerance = 0.01;
+    for (let i = 0; i < minChannelData.length; i++) {
+      expect(Math.abs(minChannelData[i] - -1)).toBeLessThan(tolerance);
+    }
+    for (let i = 0; i < maxChannelData.length; i++) {
+      expect(Math.abs(maxChannelData[i] - 0.992)).toBeLessThan(tolerance);
+    }
+  });
 });
