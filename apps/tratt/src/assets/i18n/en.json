@@ -418,8 +418,8 @@
           "webgpu": "Medium (~712 MB) — More accurate, fine-tuned for Finnish"
         },
         "fi-large": {
-          "wasm": "Large (~2 GB) — Most accurate, fine-tuned for Finnish",
-          "webgpu": "Large (~2 GB) — Most accurate, fine-tuned for Finnish"
+          "wasm": "Large (~1.2 GB) — Most accurate, fine-tuned for Finnish",
+          "webgpu": "Large (~1.2 GB) — Most accurate, fine-tuned for Finnish"
         },
         "nb-tiny": {
           "wasm": "Tiny (~108 MB) — Least accurate, fine-tuned for Norwegian",
