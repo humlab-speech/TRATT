@@ -1,5 +1,7 @@
 # TRATT — a Visible Speech tool for orthographic transcription
 
+[![OSV-Scanner](https://github.com/humlab-speech/TRATT/actions/workflows/osv-scanner.yml/badge.svg)](https://github.com/humlab-speech/TRATT/actions/workflows/osv-scanner.yml)
+
 TRATT supports the user to perform plain text (orthographic) annotation of the content of an interview,
 monologue, text reading, or any other form of spoken communication act safely and securly in a web browser. Once the app has been opened for the user to interact
 with, no communication to external server is performed by the app, and the user can securly use the app to perform the annotation even of the most sensitive interviews or conversations without risk of  
