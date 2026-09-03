@@ -1,0 +1,783 @@
+# Baseline ignore-list for pre-existing vulnerabilities in transitive/dev dependencies
+# pulled in by Angular 21 / Nx 22 tooling. Fixing these requires a major-version
+# upgrade (Angular 22, Nx 23, @angular/cli 22, etc.) that is out of scope for a
+# routine CI fix — tracked separately as a dependency-upgrade project.
+# Generated 2026-09-03 from the failing OSV-Scanner run (run id 33745693512).
+# Remove entries here as they are actually resolved by dependency upgrades.
+
+[[IgnoredVulns]]
+id = "GHSA-22p9-wv53-3rq4"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-23c5-xmqv-rm74"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-23hp-3jrh-7fpw"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-28wg-ghj8-5hjv"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-2g4f-4pwh-qvx6"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-2p49-hgcm-8545"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-2pr8-phx7-x9h3"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-2qvq-rjwj-gvw9"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-2v35-w6hq-6mfw"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-2v37-7h3g-55p8"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-2w6w-674q-4c4q"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-34x7-hfp2-rc4v"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-356w-63v5-8wf4"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-35jp-ww65-95wh"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-37ch-88jc-xwx2"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-38c4-r59v-3vqw"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-38r7-794h-5758"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-395f-4hp3-45gv"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-39pv-4j6c-2g6v"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-3g43-6gmg-66jw"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-3jxr-9vmj-r5cp"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-3mfm-83xf-c92r"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-3p68-rc4w-qgx5"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-3ppc-4f35-3m26"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-3v7f-55p6-f55p"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-3w6x-2g7m-8v23"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-42h9-826w-cgv3"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-442j-39wm-28r2"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-445q-vr5w-6q77"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-45qg-252v-3f7p"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-48r7-hpm6-gfxm"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-4c8g-83qw-93j6"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-4mjr-xmp4-gh2g"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-4r4m-qw57-chr8"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-4v9v-hfq4-rm2v"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-4w7w-66w2-5vf9"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-4www-5p9h-95mh"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-4x5r-pxfx-6jf8"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-52cp-r559-cp3m"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-52v5-jr5w-gjxr"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-58qx-3vcg-4xpx"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-58w9-8g37-x9v5"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-5957-5c94-3v7w"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-5c6j-r48x-rmvq"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-5c9x-8gcm-mpgx"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-5p2g-fcmc-qvqq"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-5p4m-2wfm-xmqj"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-5v7r-6r5c-r473"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-5xrq-8626-4rwp"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-62hf-57xw-28j9"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-64mm-vxmg-q3vj"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-66ff-xgx4-vchm"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-67mh-4wv8-2f99"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-685m-2w69-288q"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-692r-grfm-v8x7"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-6chq-wfr3-2hj9"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-6g55-p6wh-862q"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-6gmq-8vp8-gcm6"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-6rw7-vpxm-498p"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-6v5v-wf23-fmfq"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-73wf-gq98-2v4g"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-75px-5xx7-5xc7"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-76c9-3jph-rj3q"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-777c-7fjr-54vf"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-79cf-xcqc-c78w"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-7gcc-r8m5-44qm"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-7p8r-x3mc-p8w7"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-7q8q-rj6j-mhjq"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-7r86-cg39-jmmj"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-7rx3-28cr-v5wh"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-83g3-92jg-28cx"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-859w-5945-r5v3"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-898c-q2cr-xwhg"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-8fgc-7cc6-rx7x"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-8qq5-rm4j-mr97"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-8x88-c5mf-7j5w"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-93m4-6634-74q7"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-95qp-cmmw-mgqv"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-96hv-2xvq-fx4p"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-9965-vmph-33xx"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-9crc-q9x8-hgqq"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-9cx6-37pm-9jff"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-9gqv-wp59-fq42"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-9jgg-88mc-972h"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-9ppj-qmqm-q256"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-c2c7-rcm5-vvqj"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-c83g-rgw3-j3cx"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-f23m-r3pf-42rh"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-f38q-mgvj-vph7"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-f3m7-gqxr-g87x"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-f5vj-f2hx-8m93"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-f65p-4m7j-42xc"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-f6ww-3ggp-fr8h"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-f88m-g3jw-g9cj"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-fv7c-fp4j-7gwp"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-fvcv-3m26-pcqx"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-fx2h-pf6j-xcff"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-fx83-v9x8-x52w"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-fxqj-rqcc-2cmp"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-g2r8-wvmj-jf5w"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-g4jq-h2w9-997c"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-gv2q-mqqv-365m"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-gvwx-54wh-qm9j"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-h67p-54hq-rp68"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-hfxv-24rg-xrqf"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-hmw2-7cc7-3qxx"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-j3f2-48v5-ccww"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-j5f8-grm9-p9fc"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-j759-j44w-7fr8"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-j839-gqq4-gf9j"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-jfc7-64v2-mr8c"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-jggg-4jg4-v7c6"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-jgmv-j7ww-jx2x"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-jhpw-976m-542j"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-jj27-h5hq-8x99"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-jqff-g426-hqxp"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-jqfw-vq24-v9c3"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-jqh4-m9w3-8hp9"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-jvwf-75h9-cwgg"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-jxxr-4gwj-5jf2"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-m28w-2pqf-7qgj"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-m7pr-hjqh-92cm"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-mh29-5h37-fv8m"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-mh99-v99m-4gvg"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-mmx7-hfxf-jppx"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-mp7j-qc5w-4988"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-mw96-cpmx-2vgc"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-mwf2-3pr3-8698"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-mwp4-54f8-5fhr"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-mx8g-39q3-5c79"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-p3vc-36g9-x9gr"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-p498-v437-472g"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-p92q-9vqr-4j8v"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-p9ff-h696-f583"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-pf86-5x62-jrwf"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-ph9p-34f9-6g65"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-pmv8-rq9r-6j72"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-pmwg-cvhr-8vh7"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-q3j6-qgpj-74h6"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-q6f4-qqrg-jv6x"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-q6x5-8v7m-xcrf"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-q8mj-m7cp-5q26"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-q8qp-cvcw-x6jj"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-qffp-2rhf-9h96"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-qj8w-gfj5-8c6v"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-qx2v-qp2m-jg93"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-qxh6-94w6-9r5p"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-r28c-9q8g-f849"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-r292-9mhp-454m"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-r4q5-vmmm-2653"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-r5fr-rjxr-66jc"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-r6q2-hw4h-h46w"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-rgjc-h3x7-9mwg"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-rgw5-rvv9-x895"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-rxcw-mc6f-6hr3"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-v245-v573-v5vm"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-v2hh-gcrm-f6hx"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-v2v4-37r5-5v8g"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-v39h-62p7-jpjc"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-v422-hmwv-36x6"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-v56q-mh7h-f735"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-v6c2-xwv6-8xf7"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-v6wh-96g9-6wx3"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-vf2m-468p-8v99"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-vghf-hv5q-vc2g"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-vmf3-w455-68vh"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-vp3h-ghgh-jr7g"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-vpmm-x3fm-qr5c"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-vpq2-c234-7xj6"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-w3rx-r6r6-pgpr"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-w4pp-8pjf-rmxw"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-w5hq-g745-h8pq"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-w7fw-mjwx-w883"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-w7jw-789q-3m8p"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-w8wr-v893-vjvp"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-w9j2-pvgh-6h63"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-w9m9-85wc-3x92"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-wcpc-wj8m-hjx6"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-x2rg-q646-7m2v"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-x574-m823-4x7w"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-x5fp-wj9c-mxmx"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-x6wf-f3px-wcqx"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-x9g3-xrwr-cwfg"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-xcj6-pq6g-qj4x"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-xcpc-8h2w-3j85"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-xhjh-pmcv-23jw"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-xhpv-hc6g-r9c6"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-xjpj-3mr7-gcpf"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-xq3m-2v4x-88gg"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-xv26-6w52-cph6"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-xvcm-6775-5m9r"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-xwg4-73v4-xw9w"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-xx6v-rp6x-q39c"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-xxjr-mmjv-4gpg"
+reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
+
