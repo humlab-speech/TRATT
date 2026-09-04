@@ -2,6 +2,8 @@
 
 [![OSV-Scanner](https://github.com/humlab-speech/TRATT/actions/workflows/osv-scanner.yml/badge.svg)](https://github.com/humlab-speech/TRATT/actions/workflows/osv-scanner.yml)
 [![CodeQL Advanced](https://github.com/humlab-speech/TRATT/actions/workflows/codeql.yml/badge.svg)](https://github.com/humlab-speech/TRATT/actions/workflows/codeql.yml)
+[![Semgrep](https://github.com/humlab-speech/TRATT/actions/workflows/semgrep.yml/badge.svg)](https://github.com/humlab-speech/TRATT/actions/workflows/semgrep.yml)
+[![njsscan sarif](https://github.com/humlab-speech/TRATT/actions/workflows/njsscan.yml/badge.svg)](https://github.com/humlab-speech/TRATT/actions/workflows/njsscan.yml)
 
 TRATT supports the user to perform plain text (orthographic) annotation of the content of an interview,
 monologue, text reading, or any other form of spoken communication act safely and securly in a web browser. Once the app has been opened for the user to interact
