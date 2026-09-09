@@ -529,8 +529,13 @@ export class HtmlAudioMechanism extends AudioMechanism {
       } catch (error: any) {
         this._playbackEndChecker?.unsubscribe();
         if (error.name === 'AbortError') {
-          // play() was cancelled by our own stop()/pause() call (see stop()) —
-          // this is an expected outcome of an intentional stop, not a failure.
+          // play() was cancelled by our own _audio.pause() call — every
+          // internal caller of pause() can trigger this while this play()
+          // promise is still pending: stop()'s PLAYING branch, the separate
+          // pause() method, and endPlayBack(). _state === PLAYING doesn't
+          // guarantee the native play() promise already settled, so any of
+          // these can still abort it. This is an expected outcome of an
+          // intentional stop/pause, not a failure — swallow it.
           return;
         }
         if (!this.playOnHover) {

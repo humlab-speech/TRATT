@@ -49,6 +49,7 @@ describe('AudioChunk', () => {
     return {
       manager,
       startPlayback,
+      stopPlayback,
       statechange,
     };
   }
@@ -77,5 +78,43 @@ describe('AudioChunk', () => {
     await Promise.resolve();
 
     expect(startPlayback).toHaveBeenCalledTimes(1);
+  });
+
+  it('delegates to the manager even when isPlaying is stale/false (pending-play race)', async () => {
+    // isPlaying reflects the mechanism's _state, which lags reality between
+    // a native play() call and its 'canplay' event — a Stop click landing in
+    // that window must still reach the mechanism, not take a no-op branch.
+    const { manager, stopPlayback } = createAudioManagerMock();
+    const chunk = new AudioChunk(
+      new AudioSelection(
+        new SampleUnit(0, sampleRate),
+        new SampleUnit(sampleRate, sampleRate),
+      ),
+      manager,
+    );
+
+    expect(manager.isPlaying).toBe(false);
+    await chunk.stopPlayback();
+
+    expect(stopPlayback).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not reject when the manager has nothing to stop (no audio instance yet)', async () => {
+    // AudioManager.stopPlayback() can reject (e.g. HtmlAudioMechanism has no
+    // audio element prepared yet). Existing callers of
+    // AudioChunk.stopPlayback() don't all .catch() it, so this must not
+    // turn into an unhandled rejection now that the isPlaying guard is gone.
+    const { manager, stopPlayback } = createAudioManagerMock();
+    stopPlayback.mockRejectedValueOnce(new Error('Missing Audio instance.'));
+    const chunk = new AudioChunk(
+      new AudioSelection(
+        new SampleUnit(0, sampleRate),
+        new SampleUnit(sampleRate, sampleRate),
+      ),
+      manager,
+    );
+
+    await expect(chunk.stopPlayback()).resolves.toBeUndefined();
+    expect(stopPlayback).toHaveBeenCalledTimes(1);
   });
 });

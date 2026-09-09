@@ -625,12 +625,21 @@ export class AudioChunk {
    */
   public stopPlayback: () => Promise<void> = async () => {
     this.cancelPendingReplayRestart();
-    if (this._audioManger.isPlaying) {
+    // Always delegate to the mechanism, regardless of isPlaying: isPlaying
+    // reflects the mechanism's _state, which lags reality between a native
+    // play() call and its 'canplay' event (see HtmlAudioMechanism.stop()) —
+    // relying on it here would skip the underlying stop()/pause() call
+    // during exactly that window, which is the real-world "Stop doesn't
+    // stop playback" symptom.
+    try {
       await this._audioManger.stopPlayback();
-      this.afterPlaybackStopped();
-    } else {
-      this.afterPlaybackStopped();
+    } catch (error) {
+      // No audio element to stop (e.g. nothing was ever prepared/played) —
+      // treat as an already-stopped no-op rather than an unhandled
+      // rejection for callers that don't .catch() this.
+      console.error(error);
     }
+    this.afterPlaybackStopped();
   };
 
   public async pausePlayback() {

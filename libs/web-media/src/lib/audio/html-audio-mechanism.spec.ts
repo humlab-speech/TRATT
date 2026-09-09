@@ -146,3 +146,46 @@ describe('HtmlAudioMechanism.play swallows an AbortError caused by a stop()-canc
     expect(statechangeErrorSpy).not.toHaveBeenCalled();
   });
 });
+
+describe('HtmlAudioMechanism.play still surfaces a NotAllowedError (pins the AbortError-only boundary)', () => {
+  it('rejects and reports missingPermission/statechange.error when the native play() promise rejects with NotAllowedError', async () => {
+    const audioEl = document.createElement('audio');
+    vi.spyOn(audioEl, 'play').mockImplementation(() =>
+      Promise.reject(
+        Object.assign(new Error('permission denied'), {
+          name: 'NotAllowedError',
+        }),
+      ),
+    );
+
+    const mechanism = new HtmlAudioMechanism();
+    (mechanism as any)._audio = audioEl;
+    (mechanism as any)._audioContext = {
+      state: 'running',
+      resume: vi.fn(() => Promise.resolve()),
+      createGain: vi.fn(() => ({ gain: { value: 0 }, connect: vi.fn() })),
+      createMediaElementSource: vi.fn(() => ({ connect: vi.fn() })),
+      destination: {},
+    };
+
+    const statechangeErrorSpy = vi.spyOn(mechanism.statechange, 'error');
+    const missingPermissionSpy = vi.spyOn(mechanism.missingPermission, 'next');
+
+    const audioSelection = { start: { clone: () => ({ seconds: 0 }) } } as any;
+
+    await expect(
+      mechanism.play(
+        audioSelection,
+        1,
+        1,
+        false, // playOnHover: false, so the NotAllowedError branch runs
+        () => {},
+        () => {},
+        () => {},
+      ),
+    ).rejects.toThrow();
+
+    expect(missingPermissionSpy).toHaveBeenCalled();
+    expect(statechangeErrorSpy).toHaveBeenCalled();
+  });
+});
