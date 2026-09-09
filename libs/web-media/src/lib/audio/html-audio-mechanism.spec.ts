@@ -10,6 +10,7 @@
 // scoped to this file only, the same way authentication.effects.spec.ts
 // polyfills BroadcastChannel/crypto.randomUUID.
 import { describe, expect, it, vi } from 'vitest';
+import { PlayBackStatus } from '@tratt/media';
 import { HtmlAudioMechanism } from './html-audio-mechanism';
 
 class FakeAudioContext {
@@ -69,5 +70,34 @@ describe('HtmlAudioMechanism.initPlayback unsubscribes the prior end-checker (C3
     (mechanism as any).initPlayback();
 
     expect(firstChecker.closed).toBe(true);
+  });
+});
+
+describe('HtmlAudioMechanism.stop cancels a pending play() before canplay fires', () => {
+  it('pauses the underlying audio element even when stop() is called before canplay fires (pending-play race)', async () => {
+    const audioEl = document.createElement('audio');
+    const pauseSpy = vi.spyOn(audioEl, 'pause').mockImplementation(() => {});
+    // Simulate play() still pending: never resolves canplay, mimic browser
+    // returning a play() promise that stays pending until pause() is called.
+    let rejectPlay: (err: any) => void;
+    const pendingPlay = new Promise((_resolve, reject) => {
+      rejectPlay = reject;
+    });
+    // This test only exercises stop() (mechanism.play() is never called, so
+    // nothing else ever attaches to this promise) — pre-attach a no-op catch
+    // so rejecting it below doesn't surface as an unhandled rejection.
+    pendingPlay.catch(() => {});
+    vi.spyOn(audioEl, 'play').mockReturnValue(pendingPlay);
+
+    const mechanism = new HtmlAudioMechanism();
+    (mechanism as any)._audio = audioEl;
+    (mechanism as any)._state = PlayBackStatus.INITIALIZED;
+
+    // stop() while _state is still INITIALIZED (play() promise unresolved).
+    const stopPromise = mechanism.stop();
+    rejectPlay!(Object.assign(new Error('aborted'), { name: 'AbortError' }));
+
+    await stopPromise;
+    expect(pauseSpy).toHaveBeenCalled();
   });
 });

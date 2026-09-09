@@ -528,6 +528,11 @@ export class HtmlAudioMechanism extends AudioMechanism {
         await playPromise;
       } catch (error: any) {
         this._playbackEndChecker?.unsubscribe();
+        if (error.name === 'AbortError') {
+          // play() was cancelled by our own stop()/pause() call (see stop()) —
+          // this is an expected outcome of an intentional stop, not a failure.
+          return;
+        }
         if (!this.playOnHover) {
           if (error.name && error.name === 'NotAllowedError') {
             // no permission
@@ -654,12 +659,13 @@ export class HtmlAudioMechanism extends AudioMechanism {
         });
         this._audio.pause();
       } else {
-        // PREPARE / INITIALIZED / PAUSED / STOPPED / ENDED:
-        // Audio element is not actively playing.  onPlayBackChanged is only
-        // registered as a listener during play(), so calling _audio.pause() here
-        // would never fire the 'pause' event (HTMLAudioElement.pause() is a no-op
-        // when already paused) and the resolve callback would hang forever.
-        // Nothing to stop — resolve immediately.
+        // PREPARE / INITIALIZED / PAUSED / STOPPED / ENDED per our own _state — but
+        // play() may still be mid-flight: _state only flips to PLAYING once the
+        // 'canplay' event fires (see initPlayback), so a stop() issued between
+        // calling _audio.play() and that event lands here. pause() cancels the
+        // pending native play() (its promise rejects with AbortError, handled in
+        // play()'s catch below) and is a harmless no-op if nothing was pending.
+        this._audio.pause();
         resolve();
       }
     });
