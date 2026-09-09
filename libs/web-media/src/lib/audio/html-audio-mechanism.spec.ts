@@ -101,3 +101,48 @@ describe('HtmlAudioMechanism.stop cancels a pending play() before canplay fires'
     expect(pauseSpy).toHaveBeenCalled();
   });
 });
+
+describe('HtmlAudioMechanism.play swallows an AbortError caused by a stop()-cancelled play()', () => {
+  it('resolves without surfacing an error when the native play() promise rejects with AbortError', async () => {
+    const audioEl = document.createElement('audio');
+    vi.spyOn(audioEl, 'play').mockImplementation(() =>
+      Promise.reject(Object.assign(new Error('aborted'), { name: 'AbortError' })),
+    );
+
+    const mechanism = new HtmlAudioMechanism();
+    (mechanism as any)._audio = audioEl;
+    // Pre-seed a running "audio context" so play()'s super.play() and
+    // afterAudioContextResumed() short-circuit their real AudioContext/
+    // GainNode/MediaElementSource wiring, the same minimal-stub pattern the
+    // initPlayback test above uses for _audio/_playbackRate.
+    (mechanism as any)._audioContext = {
+      state: 'running',
+      resume: vi.fn(() => Promise.resolve()),
+      createGain: vi.fn(() => ({ gain: { value: 0 }, connect: vi.fn() })),
+      createMediaElementSource: vi.fn(() => ({ connect: vi.fn() })),
+      destination: {},
+    };
+
+    const statechangeErrorSpy = vi.spyOn(mechanism.statechange, 'error');
+    const missingPermissionSpy = vi.spyOn(mechanism.missingPermission, 'next');
+
+    const audioSelection = { start: { clone: () => ({ seconds: 0 }) } } as any;
+
+    await expect(
+      mechanism.play(
+        audioSelection,
+        1,
+        1,
+        false,
+        () => {},
+        () => {},
+        () => {},
+      ),
+    ).resolves.toBeUndefined();
+
+    // Contrast with NotAllowedError (permission denial), which SHOULD still
+    // surface via missingPermission/statechange.error — AbortError must not.
+    expect(missingPermissionSpy).not.toHaveBeenCalled();
+    expect(statechangeErrorSpy).not.toHaveBeenCalled();
+  });
+});
