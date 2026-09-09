@@ -121,39 +121,41 @@ Net effect: the already-issued native `_audio.play()` call is never cancelled. T
 ls libs/web-media/src/lib/audio/html-audio-mechanism.spec.ts 2>/dev/null && grep -n "describe\|it(" libs/web-media/src/lib/audio/html-audio-mechanism.spec.ts
 ```
 
-If the file exists, add the new test into its existing `describe('stop'...)` block (or create one) rather than a new file. If it doesn't exist, create it as shown in Step 2 with a minimal harness — mock `HTMLAudioElement` behavior is required since jsdom's `<audio>` doesn't implement real playback timing.
+The file already exists (73 lines, confirmed present) with 3 passing tests. **This lib uses Vitest, not Jest** — `vite.config.ts` configures the test runner, tests import `describe`/`expect`/`it`/`vi` from `'vitest'` (not globals), mocking uses `vi.fn()`/`vi.spyOn()` (not `jest.fn()`/`jest.spyOn()`), and `npm run test`/`nx test web-media` invokes `vitest run` under the hood. The existing file opens with a `// @vitest-environment jsdom` docblock (this lib's suite defaults to the `'node'` environment per `vite.config.ts`; this file overrides it because it touches `window`/DOM APIs) — add the new test into this same file, inside a new `describe` block, so it inherits that environment override. Do not create a second spec file.
 
 - [ ] **Step 2: Write the failing test**
 
-Add to `libs/web-media/src/lib/audio/html-audio-mechanism.spec.ts`:
+Add to `libs/web-media/src/lib/audio/html-audio-mechanism.spec.ts`. First add `PlayBackStatus` to the existing `@tratt/media` import if not already present — check the top of the file; if there's no `@tratt/media` import yet, add `import { PlayBackStatus } from '@tratt/media';` alongside the existing `vitest`/`./html-audio-mechanism` imports. Then add:
 
 ```typescript
-it('pauses the underlying audio element even when stop() is called before canplay fires (pending-play race)', async () => {
-  const audioEl = document.createElement('audio');
-  const pauseSpy = jest.spyOn(audioEl, 'pause').mockImplementation(() => {});
-  // Simulate play() still pending: never resolves canplay, mimic browser
-  // returning a play() promise that stays pending until pause() is called.
-  let rejectPlay: (err: any) => void;
-  jest
-    .spyOn(audioEl, 'play')
-    .mockReturnValue(new Promise((_resolve, reject) => (rejectPlay = reject)));
+describe('HtmlAudioMechanism.stop cancels a pending play() before canplay fires', () => {
+  it('pauses the underlying audio element even when stop() is called before canplay fires (pending-play race)', async () => {
+    const audioEl = document.createElement('audio');
+    const pauseSpy = vi.spyOn(audioEl, 'pause').mockImplementation(() => {});
+    // Simulate play() still pending: never resolves canplay, mimic browser
+    // returning a play() promise that stays pending until pause() is called.
+    let rejectPlay: (err: any) => void;
+    vi.spyOn(audioEl, 'play').mockReturnValue(
+      new Promise((_resolve, reject) => (rejectPlay = reject)),
+    );
 
-  const mechanism = new HtmlAudioMechanism();
-  (mechanism as any)._audio = audioEl;
-  (mechanism as any)._state = PlayBackStatus.INITIALIZED;
+    const mechanism = new HtmlAudioMechanism();
+    (mechanism as any)._audio = audioEl;
+    (mechanism as any)._state = PlayBackStatus.INITIALIZED;
 
-  // stop() while _state is still INITIALIZED (play() promise unresolved).
-  const stopPromise = mechanism.stop();
-  rejectPlay!(Object.assign(new Error('aborted'), { name: 'AbortError' }));
+    // stop() while _state is still INITIALIZED (play() promise unresolved).
+    const stopPromise = mechanism.stop();
+    rejectPlay!(Object.assign(new Error('aborted'), { name: 'AbortError' }));
 
-  await stopPromise;
-  expect(pauseSpy).toHaveBeenCalled();
+    await stopPromise;
+    expect(pauseSpy).toHaveBeenCalled();
+  });
 });
 ```
 
 - [ ] **Step 3: Run test to verify it fails**
 
-Run: `npx jest libs/web-media/src/lib/audio/html-audio-mechanism.spec.ts -t "pending-play race"`
+Run: `npx vitest run libs/web-media/src/lib/audio/html-audio-mechanism.spec.ts -t "pending-play race"`
 Expected: FAIL — `pauseSpy` was not called, because `stop()`'s `else` branch (line 656-663 in the current code) resolves without calling `pause()`.
 
 - [ ] **Step 4: Fix `stop()` to always pause**
@@ -268,13 +270,13 @@ Replace with:
 
 - [ ] **Step 6: Run test to verify it passes**
 
-Run: `npx jest libs/web-media/src/lib/audio/html-audio-mechanism.spec.ts -t "pending-play race"`
+Run: `npx vitest run libs/web-media/src/lib/audio/html-audio-mechanism.spec.ts -t "pending-play race"`
 Expected: PASS
 
-- [ ] **Step 7: Run the full mechanism/audio-chunk test suites to check for regressions**
+- [ ] **Step 7: Run the full web-media test suite to check for regressions**
 
-Run: `npx jest libs/web-media`
-Expected: all PASS. If any existing test asserted the old "resolve without pausing when not PLAYING" behavior, update that assertion to expect `pause()` to have been called — that assertion was pinning the bug.
+Run: `npx nx test web-media`
+Expected: all PASS (baseline before this task: 2 test files, 6 tests, all passing). If any existing test asserted the old "resolve without pausing when not PLAYING" behavior, update that assertion to expect `pause()` to have been called — that assertion was pinning the bug.
 
 - [ ] **Step 8: Manual verification**
 
