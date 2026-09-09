@@ -349,6 +349,7 @@
       "2D-Editor": "全景信号编辑器的快捷键",
       "audioplayer": "音频播放器快捷键",
       "close_save": "保存并关闭窗口",
+      "cycle_speaker": "切换到下一位说话人",
       "delete boundaries": "删除已选边界，合并标注单元",
       "down signaldisplay": "信号显示在底部快捷键",
       "feedback and send 1": "发送标注文件（一星）：跳过此部分，稍后再做",

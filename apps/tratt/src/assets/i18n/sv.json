@@ -474,6 +474,7 @@
       "TRN-Editor texteditor": "Genvägar för textredigeraren",
       "audioplayer": "Genvägar för ljudspelaren",
       "close_save": "Spara & stäng fönster",
+      "cycle_speaker": "Växla till nästa talare",
       "delete boundaries": "Ta bort valda gränser och slå samman transkriptionsenheter",
       "editor specific shortcuts": "Editor",
       "feedback and send 1": "Skicka transkript med en stjärna",

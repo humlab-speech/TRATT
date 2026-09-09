@@ -526,6 +526,7 @@
       "TRN-Editor texteditor": "Shortcuts of the Texteditor",
       "audioplayer": "Audioplayer shortcuts",
       "close_save": "Save & close window",
+      "cycle_speaker": "Cycle to next speaker",
       "delete boundaries": "Delete selected boundaries and join transcription units",
       "editor specific shortcuts": "Editor",
       "feedback and send 1": "Send transcript with one star",
