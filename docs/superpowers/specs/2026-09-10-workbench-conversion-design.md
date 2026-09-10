@@ -73,7 +73,20 @@ safety net), scope creep from the landing page (settle content in phase 1).
 
 ## This session's scope
 
-Full conversion is 9-13 weeks of work. This worktree starts at **Phase 0** (clear the ground) as
-the first concrete, shippable, low-risk slice, then proceeds phase by phase. Each phase is
-independently shippable per the plan; `/local` stays alive and flagged until the workbench has
-carried real transcription work.
+Full conversion is 9-13 weeks of work. Each phase is independently shippable per the plan; `/local`
+stays alive and flagged until the workbench has carried real transcription work.
+
+**Phase 0 status: already done on `main`, verified 2026-09-10.** All five defect items the plan
+called out were fixed in commits `20243079c`, `96c8360d5`, `bbe24e3b8`, `5e8b98cc3`, `c2444659a`
+(2026-08-25 to 2026-08-29), all ancestors of the `5d2d8e6e9` HEAD this worktree branched from:
+stale `core/shared/multi-threading/` copies deleted and re-pointed to `@tratt/utilities` /
+`@tratt/ngx-components`, the lib `run()` no-worker hang fixed in the same commit, the 16kHz
+constant hoisted to one `ML_MODEL_SAMPLE_RATE` export in `libs/web-media/src/lib/audio/audio-resampler.ts`,
+the mono/16kHz downsample block deduped into `prepareMonoAudioForMlModel()` (same file), the unrouted
+`new-editor` stub deleted entirely, and `idb-effects.service.ts`'s `audioManager` reads already
+guarded. The only open item from that phase: no test pins single-session semantics in
+`annotation.reducer.spec.ts`, and no Dexie migration-fixture pattern exists yet in the repo — both
+deferred to phase 2 (2.1 entity state, 2.6 Dexie 0.6) where they're actually exercised, rather than
+built speculatively now against nothing.
+
+This worktree starts implementation at **Phase 1 (the shell)**.
