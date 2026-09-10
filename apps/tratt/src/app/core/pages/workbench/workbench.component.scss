@@ -1,0 +1,13 @@
+.workbench {
+  display: grid;
+  grid-template-columns: 340px 1fr;
+  height: 100%;
+  min-height: 0;
+}
+.workbench__left {
+  overflow-y: auto;
+  border-right: 1px solid #d4d9e0;
+}
+.workbench__right {
+  overflow-y: auto;
+}
