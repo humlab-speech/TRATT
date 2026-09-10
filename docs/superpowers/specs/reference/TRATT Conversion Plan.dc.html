@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+  doc-page:not(:defined) { visibility: hidden; }
+  body { margin: 0; }
+  a { color: #2a4765; }
+  a:hover { color: #3c6289; }
+  code { font-family: 'SF Mono', Menlo, Consolas, monospace; font-size: 0.92em; }
+</style>
+<script src="./doc-page.js"></script>
+</helmet>
+<doc-page margin="0.8in">
+  <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: #1f3044; font-size: 10.5pt; line-height: 1.5;">
+
+    <div style="display: flex; align-items: baseline; gap: 10px; border-bottom: 3px solid #2a4765; padding-bottom: 8px;">
+      <div style="font-size: 19pt; font-weight: 700; letter-spacing: -0.2px;">TRATT conversion plan</div>
+      <div style="flex: 1 1 auto;"></div>
+      <div style="font-size: 9pt; color: #54677d;">Implementation plan · 10 Sept 2026</div>
+    </div>
+
+    <p style="margin: 14px 0 0 0; font-size: 11.5pt; line-height: 1.55;">Converting TRATT from a two-page workflow into a single-page workbench: a bundle collection on the left, the existing editors on the right, one pipeline applied across all loaded media, and a capacity indicator that tells the user what the machine can hold. Angular stays. Six phases, 9–13 weeks, each one shippable.</p>
+
+    <div style="margin: 14px 0 0 0; background: #eef0f4; border-left: 3px solid #d47752; padding: 12px 14px; break-inside: avoid;">
+      <div style="font-weight: 700; font-size: 11pt;">The one finding that shapes everything</div>
+      <p style="margin: 6px 0 0 0;">The pipeline is not a service the UI calls. It is orchestrated inside <code>login.component.ts</code> as imperative component state — <code>this.transcription</code> and <code>this.translation</code> phase objects, RxJS subscriptions, elapsed-time intervals, 30-second download and 60-second initialisation stall timers, and the ASR → diarization → translation sequencing via <code>_startTranscription</code> → <code>handleCompletedTranscription</code> → <code>_startTranslation</code>. All of it lives in the component this conversion deletes.</p>
+      <p style="margin: 7px 0 0 0;">So the queue is not "a loop over existing services". The per-file orchestration must be extracted into a service that owns one run, with identical behaviour, <b>before</b> anything multiplies it. That extraction is phase 3a and it is the highest-value single task in the plan: it converts roughly 300 lines of page-bound behaviour into the thing the queue drives, and it is independently testable in a way the current code is not.</p>
+    </div>
+
+    <h2 style="font-size: 13pt; margin: 22px 0 6px 0;">1. Decisions this plan builds on</h2>
+    <table style="width: 100%; border-collapse: collapse; font-size: 9.5pt; margin-top: 6px;">
+      <tbody>
+        <tr>
+          <td style="padding: 5px 9px 5px 0; border-bottom: 1px solid #d4d9e0; vertical-align: top; width: 30%; font-weight: 600;">Scope</td>
+          <td style="padding: 5px 0; border-bottom: 1px solid #d4d9e0; vertical-align: top;">Local mode only. Server-backed sessions open the editor pane alone — no left rail, no pipeline.</td>
+        </tr>
+        <tr>
+          <td style="padding: 5px 9px 5px 0; border-bottom: 1px solid #d4d9e0; vertical-align: top; font-weight: 600;">Bundle</td>
+          <td style="padding: 5px 0; border-bottom: 1px solid #d4d9e0; vertical-align: top;">One media file plus its annotations. Flat list, no grouping.</td>
+        </tr>
+        <tr>
+          <td style="padding: 5px 9px 5px 0; border-bottom: 1px solid #d4d9e0; vertical-align: top; font-weight: 600;">Pipeline</td>
+          <td style="padding: 5px 0; border-bottom: 1px solid #d4d9e0; vertical-align: top;">One global configuration, run as a queue over all loaded media. One language for the set. Existing stage order preserved.</td>
+        </tr>
+        <tr>
+          <td style="padding: 5px 9px 5px 0; border-bottom: 1px solid #d4d9e0; vertical-align: top; font-weight: 600;">Failure</td>
+          <td style="padding: 5px 0; border-bottom: 1px solid #d4d9e0; vertical-align: top;">A failed item is marked in the list; the queue continues. Retry is per row.</td>
+        </tr>
+        <tr>
+          <td style="padding: 5px 9px 5px 0; border-bottom: 1px solid #d4d9e0; vertical-align: top; font-weight: 600;">Reload</td>
+          <td style="padding: 5px 0; border-bottom: 1px solid #d4d9e0; vertical-align: top;">Bundles whose annotation survived but whose media did not are shown as awaiting media, for the user to re-attach.</td>
+        </tr>
+        <tr>
+          <td style="padding: 5px 9px 5px 0; border-bottom: 1px solid #d4d9e0; vertical-align: top; font-weight: 600;">Landing page</td>
+          <td style="padding: 5px 0; border-bottom: 1px solid #d4d9e0; vertical-align: top;">Dropped from the shell. Intro copy, funder and model-developer logos, and the demo link need a new home — an About modal is the cheapest, and it is a content decision, not an engineering one.</td>
+        </tr>
+        <tr>
+          <td style="padding: 5px 9px 5px 0; border-bottom: 1px solid #d4d9e0; vertical-align: top; font-weight: 600;">Framework</td>
+          <td style="padding: 5px 0; border-bottom: 1px solid #d4d9e0; vertical-align: top;">Angular 19, staying. Section 9 lists the performance work found along the way and where it belongs.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2 style="font-size: 13pt; margin: 20px 0 6px 0;">2. Target architecture</h2>
+
+    <div style="font-weight: 700; margin-top: 8px;">2.1 The bundle record</div>
+    <p style="margin: 4px 0 0 0;">Three independent axes, deliberately not collapsed into one status field. The mockup's list rows read from exactly these.</p>
+    <div style="margin-top: 6px; background: #f7f8fa; border: 1px solid #d4d9e0; padding: 10px 12px; font-family: 'SF Mono', Menlo, Consolas, monospace; font-size: 8.5pt; line-height: 1.5; break-inside: avoid;">
+      <div>interface TrattBundle {</div>
+      <div>&nbsp; id: string;                    <span style="color: #54677d;">// uuid, stable across reload</span></div>
+      <div>&nbsp; createdAt: number;</div>
+      <div>&nbsp; source: 'drop' | 'recording' | 'import';</div>
+      <div>&nbsp; media: { filename; sizeBytes; mimeType; durationSamples;</div>
+      <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;sampleRate; channels; fingerprint };</div>
+      <div>&nbsp; residency: 'resident' | 'evicted' | 'decoding' | 'unresolved' | 'decode-failed';</div>
+      <div>&nbsp; run: { state: 'idle'|'queued'|'running'|'done'|'failed'|'interrupted';</div>
+      <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;stage?: 'decode'|'asr'|'diarization'|'translation';</div>
+      <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;progress: number; error?: PipelineError;</div>
+      <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ranWith?: PipelineConfigSnapshot };</div>
+      <div>&nbsp; annotation: AnnotationSlice;   <span style="color: #54677d;">// today's per-session content, per bundle</span></div>
+      <div>&nbsp; history: WiederHistory;        <span style="color: #54677d;">// per-bundle undo, see 2.3</span></div>
+      <div>&nbsp; ui: { editorId; caretSample?; selectedLevel? };</div>
+      <div>}</div>
+    </div>
+    <p style="margin: 6px 0 0 0;"><code>residency</code> and <code>run.state</code> must stay separate: a bundle can be awaiting media and hold a finished annotation, which is exactly the post-reload case. <code>ranWith</code> carries provenance — model id, language, stages — and is what the export manifest reports. <code>fingerprint</code> is size plus a hash of the first and last 64 kB, cheap on a 400 MB file, and enough to verify a re-attached file is the one the annotation belongs to.</p>
+
+    <div style="font-weight: 700; margin-top: 12px;">2.2 State shape</div>
+    <p style="margin: 4px 0 0 0;">The single <code>currentSession</code> in <code>login-mode.reducer.ts</code> becomes an <code>@ngrx/entity</code> collection. That package is already a dependency, so this adds no new library.</p>
+    <div style="margin-top: 6px; background: #f7f8fa; border: 1px solid #d4d9e0; padding: 10px 12px; font-family: 'SF Mono', Menlo, Consolas, monospace; font-size: 8.5pt; line-height: 1.5; break-inside: avoid;">
+      <div>LoginModeState {</div>
+      <div>&nbsp; bundles: EntityState&lt;TrattBundle&gt;;</div>
+      <div>&nbsp; selectedBundleId?: string;</div>
+      <div>&nbsp; pipeline: { config: PipelineConfig; queue: string[]; activeId?: string;</div>
+      <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; warmModelId?: string; mode: 'idle'|'running'|'pausing' };</div>
+      <div>&nbsp; capacity: { quotaBytes?; usageBytes?; modelBytes; estimatedResidentBytes };</div>
+      <div>&nbsp; <span style="color: #54677d;">// currentSession removed</span></div>
+      <div>}</div>
+    </div>
+    <p style="margin: 6px 0 0 0;">Every existing annotation action gains a <code>bundleId</code> in its payload. <code>annotation.selectors.ts</code> gets a <code>selectSelectedBundle</code> at the top and the existing selectors compose off it, which is what keeps the editors' consumption sites nearly unchanged. <code>annotation.store.service.ts</code> already exposes <code>statistics</code>, <code>textInput</code>, <code>status</code> and <code>transcriptString</code> as <code>computed()</code> signals — those re-point at the selected bundle and the editors need no change at all.</p>
+
+    <div style="font-weight: 700; margin-top: 12px;">2.3 Per-bundle undo</div>
+    <p style="margin: 4px 0 0 0;"><code>ngrx-wieder</code> wraps the reducer once and keeps one linear patch stack, so a shared history would let an undo in one bundle rewrite another. Because wieder keeps its bookkeeping in the state it wraps, the fix is structural rather than clever: apply <code>undoable()</code> to the <i>per-bundle</i> annotation reducer and let each entity carry its own history, with a higher-order bundles reducer routing each action to its entity by <code>bundleId</code>. Undo and redo then become bundle-scoped by construction, and the global keyboard shortcut resolves against the selection.</p>
+    <p style="margin: 6px 0 0 0;">This is the subtlest change in the plan and the one that corrupts data silently if wrong. It needs its own spec, written before the refactor: edit A, edit B, switch, undo, assert A is untouched.</p>
+
+    <div style="font-weight: 700; margin-top: 12px;">2.4 Audio residency — the keystone</div>
+    <p style="margin: 4px 0 0 0;">Holding every bundle decoded is what crashes the tab. Six hour-long interviews at 48 kHz stereo is on the order of several gigabytes resident, since each bundle keeps the source buffer, the native-rate channel data, and the 16 kHz mono copy the models consume.</p>
+    <p style="margin: 6px 0 0 0;">The policy: <b>full PCM for the selected bundle plus the two most recent; source blob retained for the rest; re-decode on selection.</b> What makes that invisible to the user is a second artifact — a downsampled min/max <b>envelope</b> computed once at decode time, a few hundred kilobytes, persisted with the bundle. The list rows and the 2D editor paint from the envelope immediately on selection while full PCM re-decodes in the background. Without it, every bundle switch is a visible multi-second stall; with it, eviction is an implementation detail.</p>
+    <p style="margin: 6px 0 0 0;">This decision must be made before the audio work starts, because it determines whether <code>AudioService</code> holds managers or descriptors. It also makes the capacity indicator honest by construction: resident bytes are bounded by policy, not by how much the user dropped.</p>
+
+    <div style="font-weight: 700; margin-top: 12px;">2.5 New units</div>
+    <table style="width: 100%; border-collapse: collapse; font-size: 9.5pt; margin-top: 6px;">
+      <tbody>
+        <tr><td style="padding: 5px 9px 5px 0; border-bottom: 1px solid #d4d9e0; vertical-align: top; width: 34%;"><code>BundleService</code></td><td style="padding: 5px 0; border-bottom: 1px solid #d4d9e0; vertical-align: top;">Create, select, remove, re-attach. The only writer of bundle identity.</td></tr>
+        <tr><td style="padding: 5px 9px 5px 0; border-bottom: 1px solid #d4d9e0; vertical-align: top;"><code>AudioResidencyService</code></td><td style="padding: 5px 0; border-bottom: 1px solid #d4d9e0; vertical-align: top;">Owns the manager map, eviction policy, envelope cache, re-decode on selection.</td></tr>
+        <tr><td style="padding: 5px 9px 5px 0; border-bottom: 1px solid #d4d9e0; vertical-align: top;"><code>PipelineRunnerService</code></td><td style="padding: 5px 0; border-bottom: 1px solid #d4d9e0; vertical-align: top;">One bundle, all stages. Extracted verbatim from <code>login.component.ts</code>.</td></tr>
+        <tr><td style="padding: 5px 9px 5px 0; border-bottom: 1px solid #d4d9e0; vertical-align: top;"><code>PipelineQueueService</code></td><td style="padding: 5px 0; border-bottom: 1px solid #d4d9e0; vertical-align: top;">FIFO over bundle ids, one in flight, warm-worker lifecycle, failure isolation.</td></tr>
+        <tr><td style="padding: 5px 9px 5px 0; border-bottom: 1px solid #d4d9e0; vertical-align: top;"><code>CapacityService</code></td><td style="padding: 5px 0; border-bottom: 1px solid #d4d9e0; vertical-align: top;">Storage estimate, model catalogue sizes, resident-bytes estimate.</td></tr>
+        <tr><td style="padding: 5px 9px 5px 0; border-bottom: 1px solid #d4d9e0; vertical-align: top;"><code>CatalogueExportService</code></td><td style="padding: 5px 0; border-bottom: 1px solid #d4d9e0; vertical-align: top;">Many bundles, chosen converters, one archive plus manifest.</td></tr>
+        <tr><td style="padding: 5px 9px 5px 0; border-bottom: 1px solid #d4d9e0; vertical-align: top;"><code>WorkbenchComponent</code></td><td style="padding: 5px 0; border-bottom: 1px solid #d4d9e0; vertical-align: top;">The two-pane shell. One component, two configurations (local / server).</td></tr>
+      </tbody>
+    </table>
+
+    <h2 style="font-size: 13pt; margin: 22px 0 6px 0;">3. Phase 0 — clear the ground (1 week)</h2>
+    <p style="margin: 0 0 6px 0;">Every item here is a known defect that the conversion would otherwise inherit and multiply, drawn from the existing review findings. Doing them first is cheaper than doing them inside a refactor.</p>
+    <ul style="margin: 0; padding-left: 20px;">
+      <li style="margin-bottom: 4px;">Delete the stale <code>app/core/shared/multi-threading/</code> copies and import from <code>@tratt/utilities</code> / <code>@tratt/ngx-components</code> (D1). The app copies contain the <code>run()</code> promise that never settles when no worker is found (E2); the lib versions have stall recovery. The queue will lean on this code hard.</li>
+      <li style="margin-bottom: 4px;">Guard the unguarded <code>audiomanagers[0]</code> and non-null config reads in <code>asr-processing.effects.ts</code> and <code>idb-effects.service.ts</code> (E5, E7) — these are the exact call sites the sweep in phase 2 rewrites.</li>
+      <li style="margin-bottom: 4px;">Consolidate the 16 kHz constant declared in four places (D6) and extract the duplicated channel → mono → 16 kHz block shared by transcription and diarization (D7). The runner calls it once per bundle; it should exist once.</li>
+      <li style="margin-bottom: 4px;">Delete the <code>new-editor</code> stub (S9). It is declared but never routed, and the editor registry is about to be touched.</li>
+      <li style="margin-bottom: 4px;">Write characterisation tests for what phase 2 rewrites: <code>annotation.reducer.spec.ts</code> extended to pin current single-session semantics, and a Dexie fixture seeded at version 0.5 for the migration test to run against.</li>
+    </ul>
+
+    <h2 style="font-size: 13pt; margin: 20px 0 6px 0;">4. Phase 1 — the shell (1–2 weeks)</h2>
+    <p style="margin: 0;">Layout only, one bundle, no state change. This is deliberately a boring phase whose purpose is to get the new geometry in front of users while the risky work is still ahead.</p>
+    <ul style="margin: 6px 0 0 0; padding-left: 20px;">
+      <li style="margin-bottom: 4px;"><code>WorkbenchComponent</code> with the two-pane grid, hosting the existing <code>tratt-dropzone</code> and pipeline options components on the left and the existing dynamic editor host on the right. The editor registry in <code>editors/components.ts</code> supplies the tab set; give its <code>editor: any</code> a real type while you are there.</li>
+      <li style="margin-bottom: 4px;">Route it at <code>/workbench</code> alongside the untouched <code>/local</code>, behind a config flag. Both ship; the old path is the rollback.</li>
+      <li style="margin-bottom: 4px;">Server-mode variant: same component, left rail suppressed, pipeline providers not registered. Prove the single-configuration approach now rather than discovering later that the shell needs forking.</li>
+      <li style="margin-bottom: 4px;">Fastbar, comment field and bottom navigation move in from <code>transcription.component</code>; the detail editor stays a modal.</li>
+      <li style="margin-bottom: 4px;">New strings get Transloco keys in both languages; <code>npm run validate:i18n</code> stays green from the first commit.</li>
+    </ul>
+    <p style="margin: 6px 0 0 0; font-size: 9.5pt; color: #54677d;"><b>Done when:</b> a user can drop one file, run the pipeline, edit, and export, entirely at <code>/workbench</code>, with behaviour indistinguishable from <code>/local</code>.</p>
+
+    <h2 style="font-size: 13pt; margin: 20px 0 6px 0;">5. Phase 2 — the collection (3–4 weeks)</h2>
+    <p style="margin: 0;">The real refactor. Sequence within the phase matters, because each step de-risks the next.</p>
+    <table style="width: 100%; border-collapse: collapse; font-size: 9.5pt; margin-top: 8px;">
+      <thead>
+        <tr style="background: #2a4765; color: #fff;">
+          <th style="text-align: left; padding: 7px 9px; width: 6%;">#</th>
+          <th style="text-align: left; padding: 7px 9px; width: 30%;">Step</th>
+          <th style="text-align: left; padding: 7px 9px; width: 64%;">Notes</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr style="break-inside: avoid;">
+          <td style="padding: 7px 9px; border-bottom: 1px solid #d4d9e0; vertical-align: top;">2.1</td>
+          <td style="padding: 7px 9px; border-bottom: 1px solid #d4d9e0; vertical-align: top; font-weight: 600;">Entity state</td>
+          <td style="padding: 7px 9px; border-bottom: 1px solid #d4d9e0; vertical-align: top;">Introduce the collection with exactly one entity and a hardcoded selection. Nothing in the UI changes; every selector and effect is re-pointed through <code>selectSelectedBundle</code>. Large diff, no behaviour change — review it as such.</td>
+        </tr>
+        <tr style="break-inside: avoid;">
+          <td style="padding: 7px 9px; border-bottom: 1px solid #d4d9e0; vertical-align: top;">2.2</td>
+          <td style="padding: 7px 9px; border-bottom: 1px solid #d4d9e0; vertical-align: top; font-weight: 600;">Per-bundle undo</td>
+          <td style="padding: 7px 9px; border-bottom: 1px solid #d4d9e0; vertical-align: top;">Still one entity, so the new history plumbing is provably equivalent to the old before multiplicity can hide a bug. Spec first.</td>
+        </tr>
+        <tr style="break-inside: avoid;">
+          <td style="padding: 7px 9px; border-bottom: 1px solid #d4d9e0; vertical-align: top;">2.3</td>
+          <td style="padding: 7px 9px; border-bottom: 1px solid #d4d9e0; vertical-align: top; font-weight: 600;">Audio registry</td>
+          <td style="padding: 7px 9px; border-bottom: 1px solid #d4d9e0; vertical-align: top;"><code>AudioService</code> gains a <code>Map&lt;bundleId, AudioManager&gt;</code> and a <code>current</code> accessor. The legacy <code>audioManager</code> getter is marked deprecated and made to throw in dev builds when there is no selection, so every stale assumption surfaces loudly instead of returning <code>[0]</code>.</td>
+        </tr>
+        <tr style="break-inside: avoid;">
+          <td style="padding: 7px 9px; border-bottom: 1px solid #d4d9e0; vertical-align: top;">2.4</td>
+          <td style="padding: 7px 9px; border-bottom: 1px solid #d4d9e0; vertical-align: top; font-weight: 600;">The sweep</td>
+          <td style="padding: 7px 9px; border-bottom: 1px solid #d4d9e0; vertical-align: top;">Roughly 200 call sites, in tranches by directory — editors, then modals, then effects, then tools, then lib consumers — one commit each. Most become <code>audio.current</code>; the ones that must not guess (export, bug report, ASR effects) take an explicit <code>bundleId</code>. Low risk per site, high volume, and it touches files with no coverage today.</td>
+        </tr>
+        <tr style="break-inside: avoid;">
+          <td style="padding: 7px 9px; border-bottom: 1px solid #d4d9e0; vertical-align: top;">2.5</td>
+          <td style="padding: 7px 9px; border-bottom: 1px solid #d4d9e0; vertical-align: top; font-weight: 600;">Residency + envelope</td>
+          <td style="padding: 7px 9px; border-bottom: 1px solid #d4d9e0; vertical-align: top;">Eviction policy, envelope computation at decode, envelope-first paint on selection. Test with six long files on a 8 GB machine — this is the step that either holds or does not.</td>
+        </tr>
+        <tr style="break-inside: avoid;">
+          <td style="padding: 7px 9px; border-bottom: 1px solid #d4d9e0; vertical-align: top;">2.6</td>
+          <td style="padding: 7px 9px; border-bottom: 1px solid #d4d9e0; vertical-align: top; font-weight: 600;">Dexie 0.6</td>
+          <td style="padding: 7px 9px; border-bottom: 1px solid #d4d9e0; vertical-align: top;">A bundles table keyed by bundle id, replacing the single key–value record per mode. The upgrade moves an existing <code>local_data</code> session into the first bundle. Must be tested against a real seeded 0.5 database, including the Safari private-browsing quota path the init code already anticipates.</td>
+        </tr>
+        <tr style="break-inside: avoid;">
+          <td style="padding: 7px 9px; border-bottom: 1px solid #d4d9e0; vertical-align: top;">2.7</td>
+          <td style="padding: 7px 9px; border-bottom: 1px solid #d4d9e0; vertical-align: top; font-weight: 600;">Multi-file ingest</td>
+          <td style="padding: 7px 9px; border-bottom: 1px solid #d4d9e0; vertical-align: top;">Remove the dropzone's single-file assumption, including the destroy-previous-manager branch. Decode sequentially, not in parallel — decode is memory-spiky and parallel decode is how you crash on drop. Per-file state in the list. Existing size limits (500 MB, WAV 1.9 GB) enforced per file with a clear per-row rejection.</td>
+        </tr>
+        <tr style="break-inside: avoid;">
+          <td style="padding: 7px 9px; border-bottom: 1px solid #d4d9e0; vertical-align: top;">2.8</td>
+          <td style="padding: 7px 9px; border-bottom: 1px solid #d4d9e0; vertical-align: top; font-weight: 600;">Unresolved bundles</td>
+          <td style="padding: 7px 9px; border-bottom: 1px solid #d4d9e0; vertical-align: top;">Post-reload rows awaiting media, with per-row re-attach. Match on fingerprint; on mismatch, warn and let the user override — never silently bind an annotation to the wrong audio.</td>
+        </tr>
+        <tr style="break-inside: avoid;">
+          <td style="padding: 7px 9px; border-bottom: 1px solid #d4d9e0; vertical-align: top;">2.9</td>
+          <td style="padding: 7px 9px; border-bottom: 1px solid #d4d9e0; vertical-align: top; font-weight: 600;">Recording as a bundle</td>
+          <td style="padding: 7px 9px; border-bottom: 1px solid #d4d9e0; vertical-align: top;">The recording panel is a second ingest path and must create bundles through the same <code>BundleService</code>. The existing recovery banner should offer to restore an interrupted recording into a bundle. Easy to forget; breaks obviously in the field.</td>
+        </tr>
+      </tbody>
+    </table>
+    <p style="margin: 6px 0 0 0; font-size: 9.5pt; color: #54677d;"><b>Done when:</b> several files can be dropped, each selected and edited independently, undo is bundle-scoped, edits survive reload, and unresolved bundles can be re-attached.</p>
+
+    <h2 style="font-size: 13pt; margin: 20px 0 6px 0;">6. Phase 3 — pipeline and capacity (2–3 weeks)</h2>
+
+    <div style="font-weight: 700;">3a. Extract the runner (the critical task)</div>
+    <p style="margin: 4px 0 0 0;">Move the orchestration out of <code>login.component.ts</code> into <code>PipelineRunnerService</code>: one bundle in, stage events out, all existing behaviour preserved — the ASR → diarization → translation sequence, the graceful degradation when diarization fails (already isolated in <code>local-offline-transcription.helpers.ts</code>, a useful seam), the 30-second download and 60-second initialisation stall timers, the elapsed-time reporting, and cancel. Progress events land in the store throttled to roughly 4 Hz; dispatching per-chunk progress into NgRx would flood the reducer and, with zone-based change detection, re-render the whole shell on every event.</p>
+    <p style="margin: 6px 0 0 0;">Ship 3a on its own, still one bundle at a time. The login page's pipeline UI becomes a thin consumer, or is deleted with the page. If phase 3 has to stop early, this is still a strict improvement.</p>
+
+    <div style="font-weight: 700; margin-top: 12px;">3b. The queue</div>
+    <ul style="margin: 4px 0 0 0; padding-left: 20px;">
+      <li style="margin-bottom: 4px;"><b>Strictly one item in flight.</b> WebGPU memory makes concurrency a bad trade, and out-of-memory is already a handled error path in diarization. Two-at-a-time for small CPU-only models is a later tuning knob, gated on measurement.</li>
+      <li style="margin-bottom: 4px;"><b>Warm worker.</b> Today <code>transcribe()</code> calls <code>cancel()</code> as its first statement and terminates the worker on every exit path, which for a six-file queue means re-loading a 1.2 GB model six times. Add acquire/release refcounting, keep the worker and loaded model alive while the configured model is unchanged, and terminate on model change, explicit stop, idle timeout, and page hide. This is the single largest throughput win in the plan.</li>
+      <li style="margin-bottom: 4px;"><b>Failure isolation.</b> Classify errors — decode, model load, GPU out of memory, cancelled, unknown — because the user's next action differs for each. Mark the row, continue the queue, offer per-row retry. Reuse the existing <code>catchError</code> → <code>.fail</code> action convention.</li>
+      <li style="margin-bottom: 4px;"><b>Interruption.</b> Queue position persists; a job running when the tab closes comes back as <code>interrupted</code>, not <code>running</code>. Say plainly in the UI that closing the tab ends the run — a six-file queue is a long unattended job and this will happen.</li>
+      <li style="margin-bottom: 4px;"><b>Skip rules.</b> Unresolved and already-transcribed bundles are excluded by default, which is why the run button counts ready bundles rather than all of them.</li>
+    </ul>
+
+    <div style="font-weight: 700; margin-top: 12px;">3c. Capacity indicator</div>
+    <p style="margin: 4px 0 0 0;">Two bars, because the phrase "how much media can I load" conflates two budgets and only one is measurable. <b>Storage</b> comes from <code>navigator.storage.estimate()</code>, polled on mount, after a model download, and after a save; what lives there is cached models plus annotations, and the model figures are real numbers already declared as <code>sizeMb</code> in the transcription options component rather than guesses. Media is never written to storage, which is a privacy property worth stating in the indicator rather than hiding. <b>Working memory</b> is the actual ceiling and can only be estimated: source bytes plus duration × 16 kHz × 4 plus duration × native rate × 4 × channels, summed over resident bundles, against a conservative fixed budget. Label the estimate as an estimate, and warn — do not block — when a drop would push past roughly 80%.</p>
+
+    <h2 style="font-size: 13pt; margin: 20px 0 6px 0;">7. Phase 4 — catalogue export (1–2 weeks)</h2>
+    <p style="margin: 0;">Self-contained and pleasantly cheap, because the pieces exist: twenty converters in <code>@tratt/annotation</code>, a <code>zip-builder.ts</code>, and <code>fflate</code> already a dependency. <code>CatalogueExportService</code> iterates the selected bundles, runs the chosen converters, and streams one archive — stream it rather than buffering, since fifty bundles of output should not sit in memory at once. Layout <code>bundles/&lt;slug&gt;/&lt;name&gt;.&lt;ext&gt;</code> plus a <code>manifest.json</code> carrying bundle id, source filename, duration, sample rate, model, language, stages run, unit counts and app version from the existing build-info script — and a <code>manifest.csv</code> alongside it, because the people who need the catalogue are often not the people who read JSON. The existing single-transcript export modal becomes the one-bundle case of the same code path. Bulk actions in the list — select all, clear finished, remove — land here too.</p>
+
+    <h2 style="font-size: 13pt; margin: 20px 0 6px 0;">8. Phase 5 — finish (1 week)</h2>
+    <p style="margin: 0;">Keyboard model across the new geometry (bundle list navigation, and undo resolving against the selection); focus management when selection changes mid-edit; empty, single and fifty-bundle states all checked; the funder and model-developer logos and intro copy rehomed; and the manual. The manual documents a two-page workflow with screenshots, and <code>build:manual</code> plus <code>check-manual-links</code> exist to keep it honest — budget the rewrite rather than discovering it at release.</p>
+
+    <h2 style="font-size: 13pt; margin: 20px 0 6px 0;">9. In-framework performance opportunities</h2>
+    <p style="margin: 0 0 6px 0;">Found while assessing the framework question, kept because they are worth doing on their own terms. The framework migration is dropped; these are what it was reaching for.</p>
+    <table style="width: 100%; border-collapse: collapse; font-size: 9.5pt; margin-top: 6px;">
+      <thead>
+        <tr style="background: #eef0f4;">
+          <th style="text-align: left; padding: 6px 9px; border-bottom: 1px solid #d4d9e0; width: 34%;">Opportunity</th>
+          <th style="text-align: left; padding: 6px 9px; border-bottom: 1px solid #d4d9e0; width: 20%;">Where it belongs</th>
+          <th style="text-align: left; padding: 6px 9px; border-bottom: 1px solid #d4d9e0; width: 46%;">Note</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr style="break-inside: avoid;">
+          <td style="padding: 6px 9px; border-bottom: 1px solid #d4d9e0; vertical-align: top;">Throttled progress dispatch</td>
+          <td style="padding: 6px 9px; border-bottom: 1px solid #d4d9e0; vertical-align: top; color: #3d6b5c; font-weight: 600;">Absorb — phase 3a</td>
+          <td style="padding: 6px 9px; border-bottom: 1px solid #d4d9e0; vertical-align: top;">Not optional. Per-chunk progress into NgRx under zone-based change detection re-renders the shell continuously during a run.</td>
+        </tr>
+        <tr style="break-inside: avoid;">
+          <td style="padding: 6px 9px; border-bottom: 1px solid #d4d9e0; vertical-align: top;"><code>OnPush</code> on new components</td>
+          <td style="padding: 6px 9px; border-bottom: 1px solid #d4d9e0; vertical-align: top; color: #3d6b5c; font-weight: 600;">Absorb — phases 1–4</td>
+          <td style="padding: 6px 9px; border-bottom: 1px solid #d4d9e0; vertical-align: top;">17 of ~90 components have it today. Everything new gets it; the list rows especially, since they update on every progress tick.</td>
+        </tr>
+        <tr style="break-inside: avoid;">
+          <td style="padding: 6px 9px; border-bottom: 1px solid #d4d9e0; vertical-align: top;">Signals for new state</td>
+          <td style="padding: 6px 9px; border-bottom: 1px solid #d4d9e0; vertical-align: top; color: #3d6b5c; font-weight: 600;">Absorb — phase 2</td>
+          <td style="padding: 6px 9px; border-bottom: 1px solid #d4d9e0; vertical-align: top;">Four files use signals today, and <code>annotation.store.service.ts</code> already exposes <code>computed()</code> views. New selectors follow that idiom rather than adding more <code>BehaviorSubject</code>.</td>
+        </tr>
+        <tr style="break-inside: avoid;">
+          <td style="padding: 6px 9px; border-bottom: 1px solid #d4d9e0; vertical-align: top;"><code>OnPush</code> for the remaining ~70</td>
+          <td style="padding: 6px 9px; border-bottom: 1px solid #d4d9e0; vertical-align: top; color: #8a6520; font-weight: 600;">Separate track</td>
+          <td style="padding: 6px 9px; border-bottom: 1px solid #d4d9e0; vertical-align: top;">Modals and panels. Mechanical, per-component testable, parallelisable with the conversion.</td>
+        </tr>
+        <tr style="break-inside: avoid;">
+          <td style="padding: 6px 9px; border-bottom: 1px solid #d4d9e0; vertical-align: top;">Bundle audit</td>
+          <td style="padding: 6px 9px; border-bottom: 1px solid #d4d9e0; vertical-align: top; color: #8a6520; font-weight: 600;">Separate track</td>
+          <td style="padding: 6px 9px; border-bottom: 1px solid #d4d9e0; vertical-align: top;"><code>npm run analyze:tratt</code> exists. Jodit, video.js, Konva, <code>animate.css</code>, <code>angular-animations</code>, <code>hammerjs</code> and Modernizr are lazy-load or removal candidates against a 2 MB initial budget.</td>
+        </tr>
+        <tr style="break-inside: avoid;">
+          <td style="padding: 6px 9px; border-bottom: 1px solid #d4d9e0; vertical-align: top;">Zoneless change detection</td>
+          <td style="padding: 6px 9px; border-bottom: 1px solid #d4d9e0; vertical-align: top; color: #d7263d; font-weight: 600;">Defer — after the conversion</td>
+          <td style="padding: 6px 9px; border-bottom: 1px solid #d4d9e0; vertical-align: top;">The largest single win available, and the wrong thing to attempt mid-conversion: it makes every implicit re-render explicit across the whole app. Standalone bootstrap is already in place, so the door is open. Do it against a stable shell, not a moving one.</td>
+        </tr>
+        <tr style="break-inside: avoid;">
+          <td style="padding: 6px 9px; border-bottom: 1px solid #d4d9e0; vertical-align: top;">Profile the viewer redraw</td>
+          <td style="padding: 6px 9px; border-bottom: 1px solid #d4d9e0; vertical-align: top; color: #8a6520; font-weight: 600;">Separate track</td>
+          <td style="padding: 6px 9px; border-bottom: 1px solid #d4d9e0; vertical-align: top;">The ~7,300-line audio-viewer subsystem was recently split into renderer, interaction, segments and time-utils services. Now that the seams exist, measure <code>updateAllSegments</code> and the redraw path — that is where interactive slowness actually lives.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2 style="font-size: 13pt; margin: 20px 0 6px 0;">10. Risk register</h2>
+    <table style="width: 100%; border-collapse: collapse; font-size: 9.5pt; margin-top: 6px;">
+      <thead>
+        <tr style="background: #2a4765; color: #fff;">
+          <th style="text-align: left; padding: 7px 9px; width: 27%;">Risk</th>
+          <th style="text-align: left; padding: 7px 9px; width: 14%;">Phase</th>
+          <th style="text-align: left; padding: 7px 9px; width: 59%;">Mitigation and early-warning signal</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr style="break-inside: avoid;">
+          <td style="padding: 7px 9px; border-bottom: 1px solid #d4d9e0; vertical-align: top; font-weight: 600;">Memory exhaustion</td>
+          <td style="padding: 7px 9px; border-bottom: 1px solid #d4d9e0; vertical-align: top;">2.5</td>
+          <td style="padding: 7px 9px; border-bottom: 1px solid #d4d9e0; vertical-align: top;">Tab crash losing unsaved edits — the worst outcome in the plan. Eviction policy decided before the code, six-long-file test on a modest machine as an acceptance gate, and autosave-before-decode so a crash costs nothing.</td>
+        </tr>
+        <tr style="break-inside: avoid;">
+          <td style="padding: 7px 9px; border-bottom: 1px solid #d4d9e0; vertical-align: top; font-weight: 600;">Undo leaking across bundles</td>
+          <td style="padding: 7px 9px; border-bottom: 1px solid #d4d9e0; vertical-align: top;">2.2</td>
+          <td style="padding: 7px 9px; border-bottom: 1px solid #d4d9e0; vertical-align: top;">Silent corruption, not a crash, so tests must precede the change. Land the plumbing while only one bundle exists.</td>
+        </tr>
+        <tr style="break-inside: avoid;">
+          <td style="padding: 7px 9px; border-bottom: 1px solid #d4d9e0; vertical-align: top; font-weight: 600;">The 200-site sweep</td>
+          <td style="padding: 7px 9px; border-bottom: 1px solid #d4d9e0; vertical-align: top;">2.4</td>
+          <td style="padding: 7px 9px; border-bottom: 1px solid #d4d9e0; vertical-align: top;">Breadth, not depth. The throwing dev-mode accessor converts silent wrong-bundle reads into loud failures; tranche commits keep any single revert small.</td>
+        </tr>
+        <tr style="break-inside: avoid;">
+          <td style="padding: 7px 9px; border-bottom: 1px solid #d4d9e0; vertical-align: top; font-weight: 600;">Runner extraction regresses ASR</td>
+          <td style="padding: 7px 9px; border-bottom: 1px solid #d4d9e0; vertical-align: top;">3a</td>
+          <td style="padding: 7px 9px; border-bottom: 1px solid #d4d9e0; vertical-align: top;">Behaviour buried in a component with no tests. Extract with no behaviour change, ship alone, and compare output on a fixed reference recording before and after.</td>
+        </tr>
+        <tr style="break-inside: avoid;">
+          <td style="padding: 7px 9px; border-bottom: 1px solid #d4d9e0; vertical-align: top; font-weight: 600;">Warm worker holds GPU memory</td>
+          <td style="padding: 7px 9px; border-bottom: 1px solid #d4d9e0; vertical-align: top;">3b</td>
+          <td style="padding: 7px 9px; border-bottom: 1px solid #d4d9e0; vertical-align: top;">Keeping the model resident trades memory for throughput and can turn into out-of-memory on smaller GPUs. Idle timeout, release on model change and page hide, and a fallback to the current terminate-per-run behaviour if the trade proves bad.</td>
+        </tr>
+        <tr style="break-inside: avoid;">
+          <td style="padding: 7px 9px; border-bottom: 1px solid #d4d9e0; vertical-align: top; font-weight: 600;">IndexedDB migration</td>
+          <td style="padding: 7px 9px; border-bottom: 1px solid #d4d9e0; vertical-align: top;">2.6</td>
+          <td style="padding: 7px 9px; border-bottom: 1px solid #d4d9e0; vertical-align: top;">Users have in-flight sessions in <code>local_data</code>. Test against a seeded 0.5 database; export-before-upgrade as a safety net (<code>dexie-export-import</code> is already a dependency).</td>
+        </tr>
+        <tr style="break-inside: avoid;">
+          <td style="padding: 7px 9px; border-bottom: 1px solid #d4d9e0; vertical-align: top; font-weight: 600;">Scope creep from the landing page</td>
+          <td style="padding: 7px 9px; border-bottom: 1px solid #d4d9e0; vertical-align: top;">1, 5</td>
+          <td style="padding: 7px 9px; border-bottom: 1px solid #d4d9e0; vertical-align: top;">Dropping the page raises real content questions (funders, credits, demo entry). Settle them as content decisions in phase 1, not as layout work in phase 5.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2 style="font-size: 13pt; margin: 20px 0 6px 0;">11. Sequencing and estimate</h2>
+    <table style="width: 100%; border-collapse: collapse; font-size: 9.5pt; margin-top: 6px;">
+      <thead>
+        <tr style="background: #eef0f4;">
+          <th style="text-align: left; padding: 6px 9px; border-bottom: 1px solid #d4d9e0;">Phase</th>
+          <th style="text-align: left; padding: 6px 9px; border-bottom: 1px solid #d4d9e0;">Estimate</th>
+          <th style="text-align: left; padding: 6px 9px; border-bottom: 1px solid #d4d9e0;">Shippable alone</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td style="padding: 6px 9px; border-bottom: 1px solid #d4d9e0;">0 · Clear the ground</td><td style="padding: 6px 9px; border-bottom: 1px solid #d4d9e0;">1 wk</td><td style="padding: 6px 9px; border-bottom: 1px solid #d4d9e0;">Yes — pure defect fixes</td></tr>
+        <tr><td style="padding: 6px 9px; border-bottom: 1px solid #d4d9e0;">1 · Shell</td><td style="padding: 6px 9px; border-bottom: 1px solid #d4d9e0;">1–2 wk</td><td style="padding: 6px 9px; border-bottom: 1px solid #d4d9e0;">Yes, behind a flag</td></tr>
+        <tr><td style="padding: 6px 9px; border-bottom: 1px solid #d4d9e0;">2 · Collection</td><td style="padding: 6px 9px; border-bottom: 1px solid #d4d9e0;">3–4 wk</td><td style="padding: 6px 9px; border-bottom: 1px solid #d4d9e0;">Yes</td></tr>
+        <tr><td style="padding: 6px 9px; border-bottom: 1px solid #d4d9e0;">3 · Pipeline &amp; capacity</td><td style="padding: 6px 9px; border-bottom: 1px solid #d4d9e0;">2–3 wk</td><td style="padding: 6px 9px; border-bottom: 1px solid #d4d9e0;">Yes — 3a alone is worth shipping</td></tr>
+        <tr><td style="padding: 6px 9px; border-bottom: 1px solid #d4d9e0;">4 · Catalogue export</td><td style="padding: 6px 9px; border-bottom: 1px solid #d4d9e0;">1–2 wk</td><td style="padding: 6px 9px; border-bottom: 1px solid #d4d9e0;">Yes</td></tr>
+        <tr><td style="padding: 6px 9px; border-bottom: 1px solid #d4d9e0;">5 · Finish</td><td style="padding: 6px 9px; border-bottom: 1px solid #d4d9e0;">1 wk</td><td style="padding: 6px 9px; border-bottom: 1px solid #d4d9e0;">—</td></tr>
+        <tr><td style="padding: 6px 9px; border-bottom: 2px solid #2a4765; font-weight: 700;">Total</td><td style="padding: 6px 9px; border-bottom: 2px solid #2a4765; font-weight: 700;">9–13 wk</td><td style="padding: 6px 9px; border-bottom: 2px solid #2a4765;"></td></tr>
+      </tbody>
+    </table>
+    <p style="margin: 8px 0 0 0;">The earlier estimate of 7–11 weeks covered phases 1–4 only; phase 0 and phase 5 are additions, not overruns. One developer familiar with the codebase, or two on phases 2 and 3 where the sweep parallelises cleanly against the residency work. Excluded: the online and URL modes, and the QA cost of revalidating output against the twenty format converters, which is real and hard to size in advance.</p>
+    <p style="margin: 8px 0 0 0;">Keep <code>/local</code> alive and flagged through phase 2 so there is always a working path to fall back to, and retire it only once the workbench has carried real transcription work. Run the zoneless migration after the conversion settles, never alongside it.</p>
+  </div>
+</doc-page>
+</x-dc>
+</body>
+</html>

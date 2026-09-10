@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<style>
+  html, body { margin: 0; padding: 0; background: #eef0f4; }
+  * { box-sizing: border-box; }
+  a { color: #2a4765; }
+  a:hover { color: #3c6289; }
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-thumb { background: #c3cad4; border-radius: 5px; }
+</style>
+</helmet>
+<div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: #1f3044; background: #eef0f4; height: 100vh; min-height: 460px; display: flex; flex-direction: column; overflow: hidden; font-size: 14px;">
+
+  <div style="flex: 0 0 auto; background: #2a4765; color: #fff; height: 46px; display: flex; align-items: center; padding: 0 14px; gap: 18px;">
+    <div style="display: flex; align-items: center; gap: 8px; font-size: 19px; letter-spacing: 0.2px;">
+      <img src="assets/tratt-mark-light.svg" alt="" width="26" height="21" />
+      <span>TRATT</span>
+      <span style="opacity: 0.65; font-size: 15px;">(local)</span>
+    </div>
+    <div style="display: flex; align-items: center; gap: 16px; font-size: 13px; opacity: 0.9;">
+      <span>Manual</span>
+      <span>Github</span>
+      <span>About</span>
+    </div>
+    <div style="flex: 1 1 auto;"></div>
+    <div style="display: flex; align-items: center; gap: 16px; font-size: 13px; opacity: 0.9;">
+      <span>Svenska</span>
+      <span style="opacity: 0.55;">|</span>
+      <span>Settings</span>
+      <span>Shortcuts</span>
+      <span>EN</span>
+    </div>
+  </div>
+
+  <div style="flex: 1 1 auto; display: flex; min-height: 0;">
+
+    <div style="flex: 0 0 auto; width: 360px; background: #e6e8ed; border-right: 1px solid #d4d9e0; display: flex; flex-direction: column; min-height: 0;">
+
+      <div style="padding: 12px 12px 8px 12px;">
+        <div onDragOver="{{ noop }}" style="border: 2px dashed #d47752; background: #fff; border-radius: 4px; padding: 14px 12px; text-align: center; cursor: pointer;" style-hover="background:#fdf8ee">
+          <div style="font-size: 13px; color: #667a90; line-height: 1.4;">Drag &amp; drop audio or video files here,<br />or click to choose</div>
+          <div style="margin-top: 6px; font-size: 11px; color: #6b7c90;">WAV, MP3, MP4, M4A, FLAC, OGG, WebM · max 500 MB (WAV 1.9 GB)</div>
+        </div>
+      </div>
+
+      <div style="flex: 0 1 auto; min-height: 132px; overflow-y: auto; padding: 0 12px 10px 12px;">
+        <div style="background: #fff; border: 1px solid #d4d9e0; border-radius: 4px;">
+          <div style="padding: 9px 11px; border-bottom: 1px solid #d4d9e0; display: flex; align-items: center; justify-content: space-between;">
+            <div style="font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; color: #1f3044;">Pipeline</div>
+            <div style="font-size: 11px; color: #667a90;">applies to all bundles</div>
+          </div>
+          <div style="padding: 10px 11px; display: flex; flex-direction: column; gap: 9px;">
+
+            <label style="display: flex; align-items: flex-start; gap: 8px; cursor: pointer;">
+              <input type="checkbox" checked="{{ asr }}" onChange="{{ toggleAsr }}" style="margin-top: 2px;" />
+              <span style="flex: 1 1 auto;">
+                <span style="display: block; font-size: 13px; font-weight: 600;">Speech recognition</span>
+                <select value="{{ model }}" onChange="{{ changeModel }}" style="margin-top: 5px; width: 100%; font-size: 12px; padding: 4px 6px; border: 1px solid #d4d9e0; border-radius: 3px; color: #1f3044; background: #fff;">
+                  <option value="tiny">KB-Whisper Tiny — 120 MB</option>
+                  <option value="small">KB-Whisper Small — 400 MB</option>
+                  <option value="medium">KB-Whisper Medium — 1000 MB</option>
+                  <option value="large">KB-Whisper Large — 1200 MB</option>
+                </select>
+                <span style="display: block; margin-top: 4px; font-size: 11px; color: #8b9bad;">Svenska (sv) · WebGPU</span>
+              </span>
+            </label>
+
+            <label style="display: flex; align-items: flex-start; gap: 8px; cursor: pointer;">
+              <input type="checkbox" checked="{{ diar }}" onChange="{{ toggleDiar }}" style="margin-top: 2px;" />
+              <span>
+                <span style="display: block; font-size: 13px; font-weight: 600;">Speaker separation</span>
+                <span style="display: block; font-size: 11px; color: #8b9bad;">pyannote-segmentation-3.0 — 90 MB</span>
+              </span>
+            </label>
+
+            <label style="display: flex; align-items: flex-start; gap: 8px; cursor: pointer;">
+              <input type="checkbox" checked="{{ trans }}" onChange="{{ toggleTrans }}" style="margin-top: 2px;" />
+              <span>
+                <span style="display: block; font-size: 13px; font-weight: 600;">Translation</span>
+                <span style="display: block; font-size: 11px; color: #8b9bad;">opus-mt sv→en — 80 MB per direction</span>
+              </span>
+            </label>
+
+            <button onClick="{{ runAll }}" style="margin-top: 2px; width: 100%; border: none; border-radius: 3px; background: #d47752; color: #fff; font-size: 13px; font-weight: 600; padding: 9px 10px; cursor: pointer;" style-hover="background:#b76545">{{ runLabel }}</button>
+          </div>
+
+        </div>
+      </div>
+
+      <div style="flex: 0 0 auto; padding: 0 12px 10px 12px;">
+        <div style="background: #fff; border: 1px solid #d4d9e0; border-radius: 4px; padding: 9px 11px 10px 11px;">
+          <div style="display: flex; justify-content: space-between; font-size: 11px; color: #667a90;">
+            <span style="font-weight: 700; letter-spacing: 0.4px;">BROWSER STORAGE</span>
+            <span>{{ storageText }}</span>
+          </div>
+          <div style="margin-top: 5px; height: 8px; border-radius: 4px; background: #e6e8ed; overflow: hidden; display: flex;">
+            <div style="height: 100%; background: #2a4765; width: {{ modelsPct }}%;"></div>
+            <div style="height: 100%; background: #3d6b5c; width: {{ annPct }}%;"></div>
+          </div>
+          <div style="margin-top: 4px; font-size: 11px; color: #6b7c90; line-height: 1.4;">{{ storageNote }}</div>
+
+          <div style="margin-top: 9px; display: flex; justify-content: space-between; font-size: 11px; color: #667a90;">
+            <span style="font-weight: 700; letter-spacing: 0.4px;">WORKING MEMORY (EST.)</span>
+            <span>{{ ramText }}</span>
+          </div>
+          <div style="margin-top: 5px; height: 8px; border-radius: 4px; background: #e6e8ed; overflow: hidden;">
+            <div style="height: 100%; background: {{ ramColor }}; width: {{ ramPct }}%;"></div>
+          </div>
+          <div style="margin-top: 4px; font-size: 11px; color: #6b7c90; line-height: 1.4;">{{ ramNote }}</div>
+        </div>
+      </div>
+
+      <div style="padding: 0 12px 6px 12px; display: flex; align-items: center; justify-content: space-between;">
+        <div style="font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; color: #667a90;">Bundles</div>
+        <div style="font-size: 11px; color: #8b9bad;">{{ bundleCount }}</div>
+      </div>
+
+      <div style="flex: 1 1 auto; min-height: 150px; overflow-y: auto; padding: 0 12px 12px 12px;">
+        <sc-for list="{{ bundles }}" as="b" hint-placeholder-count="5">
+          <div onClick="{{ b.select }}" style="background: {{ b.bg }}; border: 1px solid {{ b.borderColor }}; border-left: 3px solid {{ b.accent }}; border-radius: 3px; padding: 8px 9px; margin-bottom: 6px; cursor: pointer;">
+            <div style="display: flex; align-items: baseline; gap: 6px;">
+              <div style="flex: 1 1 auto; font-size: 13px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ b.name }}</div>
+              <div style="flex: 0 0 auto; font-size: 11px; color: #667a90; font-variant-numeric: tabular-nums;">{{ b.duration }}</div>
+            </div>
+            <div style="margin-top: 3px; display: flex; align-items: center; gap: 6px; font-size: 11px; color: #667a90;">
+              <span style="color: {{ b.accent }}; font-weight: 600;">{{ b.status }}</span>
+              <span>·</span>
+              <span>{{ b.meta }}</span>
+            </div>
+            <div style="margin-top: 6px; height: 4px; border-radius: 2px; background: #e6e8ed; overflow: hidden;">
+              <div style="height: 100%; background: {{ b.accent }}; width: {{ b.progress }}%;"></div>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+
+      <div style="flex: 0 0 auto; border-top: 1px solid #d4d9e0; background: #fff; padding: 9px 12px; display: flex; gap: 8px;">
+        <button style="flex: 1 1 auto; border: 1px solid #2a4765; background: #2a4765; color: #fff; border-radius: 3px; font-size: 12px; padding: 8px; cursor: pointer;" style-hover="background:#3c6289;border-color:#3c6289">Export all bundles…</button>
+        <button style="flex: 0 0 auto; border: 1px solid #d4d9e0; background: #fff; color: #667a90; border-radius: 3px; font-size: 12px; padding: 8px 10px; cursor: pointer;" style-hover="color:#1f3044">Clear</button>
+      </div>
+    </div>
+
+    <div style="flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; background: #eef0f4;">
+
+      <div style="flex: 0 0 auto; background: #fff; border-bottom: 1px solid #d4d9e0; padding: 8px 14px; display: flex; align-items: center; gap: 14px; flex-wrap: wrap;">
+        <div style="min-width: 0;">
+          <div style="font-size: 15px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ currentName }}</div>
+          <div style="font-size: 11px; color: #667a90;">{{ currentMeta }}</div>
+        </div>
+        <div style="flex: 1 1 auto;"></div>
+        <div style="display: flex; border: 1px solid #d4d9e0; border-radius: 3px; overflow: hidden;">
+          <sc-for list="{{ tabs }}" as="t" hint-placeholder-count="4">
+            <button onClick="{{ t.select }}" style="border: none; border-right: 1px solid #d4d9e0; background: {{ t.bg }}; color: {{ t.color }}; font-size: 12px; padding: 7px 12px; cursor: pointer;">{{ t.label }}</button>
+          </sc-for>
+        </div>
+      </div>
+
+      <sc-if value="{{ hasSelection }}" hint-placeholder-val="{{ true }}">
+        <div style="flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; padding: 10px 14px 0 14px;">
+
+          <div style="flex: 0 0 auto; background: #2a4765; color: #fff; border-radius: 3px 3px 0 0; display: flex; align-items: center; gap: 26px; padding: 7px 16px; font-size: 13px;">
+            <span style="cursor: pointer;">❙❙</span>
+            <span style="cursor: pointer;">■</span>
+            <span style="cursor: pointer;">◀◀</span>
+            <span style="cursor: pointer;">↰</span>
+            <span style="cursor: pointer;">↻ − 2s</span>
+            <div style="flex: 1 1 auto;"></div>
+            <span style="opacity: 0.85;">volume 100%</span>
+            <span style="opacity: 0.85;">speed 1×</span>
+          </div>
+
+          <sc-if value="{{ showSignal }}" hint-placeholder-val="{{ true }}">
+            <div ref="{{ registerHost }}" style="flex: 1 1 auto; min-height: 0; overflow-y: auto; background: #fff; border: 1px solid #d4d9e0; border-top: none;">
+              <sc-for list="{{ lines }}" as="ln" hint-placeholder-count="6">
+                <div style="position: relative; border-bottom: 1px solid #e6e8ed;">
+                  <canvas ref="{{ registerCanvas }}" data-line="{{ ln.i }}" width="1400" height="96" style="display: block; width: 100%; height: 96px;"></canvas>
+                  <div style="position: absolute; top: 3px; left: 6px; font-size: 10px; color: #667a90; font-variant-numeric: tabular-nums;">{{ ln.start }}</div>
+                  <div style="position: absolute; top: 3px; right: 6px; font-size: 10px; color: #667a90; font-variant-numeric: tabular-nums;">{{ ln.end }}</div>
+                  <div style="position: absolute; bottom: 3px; left: 0; right: 0; text-align: center; font-size: 11px; color: #1f3044;">{{ ln.label }}</div>
+                </div>
+              </sc-for>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ showTable }}" hint-placeholder-val="{{ false }}">
+            <div style="flex: 1 1 auto; min-height: 0; overflow-y: auto; background: #fff; border: 1px solid #d4d9e0; border-top: none;">
+              <div style="display: flex; gap: 1px; background: #d4d9e0; border-bottom: 1px solid #d4d9e0;">
+                <div style="flex: 1 1 0; background: #fff; padding: 8px 10px; text-align: center;">
+                  <div style="font-size: 11px; color: #667a90;">Total units</div>
+                  <div style="font-size: 17px; font-weight: 700;">864</div>
+                </div>
+                <div style="flex: 1 1 0; background: #fff; padding: 8px 10px; text-align: center;">
+                  <div style="font-size: 11px; color: #667a90;">Transcribed</div>
+                  <div style="font-size: 17px; font-weight: 700;">754</div>
+                </div>
+                <div style="flex: 1 1 0; background: #fff; padding: 8px 10px; text-align: center;">
+                  <div style="font-size: 11px; color: #667a90;">Silent</div>
+                  <div style="font-size: 17px; font-weight: 700;">110</div>
+                </div>
+                <div style="flex: 1 1 0; background: #fff; padding: 8px 10px; text-align: center;">
+                  <div style="font-size: 11px; color: #667a90;">Empty</div>
+                  <div style="font-size: 17px; font-weight: 700;">0</div>
+                </div>
+              </div>
+              <sc-for list="{{ utterances }}" as="u" hint-placeholder-count="8">
+                <div style="display: flex; align-items: flex-start; gap: 10px; padding: 7px 12px; border-bottom: 1px solid #eef0f4; background: {{ u.bg }};">
+                  <div style="flex: 0 0 62px; font-size: 12px; color: #3c6289; font-variant-numeric: tabular-nums;">{{ u.id }}</div>
+                  <div style="flex: 0 0 76px; font-size: 11px; color: #667a90; font-variant-numeric: tabular-nums;">{{ u.time }}</div>
+                  <div style="flex: 0 0 84px; font-size: 11px; color: #3d6b5c; font-weight: 600;">{{ u.speaker }}</div>
+                  <div style="flex: 1 1 auto; font-size: 13px; line-height: 1.45;">{{ u.text }}</div>
+                  <div style="flex: 0 0 auto; font-size: 12px; color: #667a90;">▶</div>
+                </div>
+              </sc-for>
+            </div>
+          </sc-if>
+
+          <div style="flex: 0 0 auto; background: #fff; border: 1px solid #d4d9e0; border-top: none; border-radius: 0 0 3px 3px; padding: 8px 12px; display: flex; align-items: center; gap: 10px;">
+            <button style="border: 1px solid #d4d9e0; background: #fff; color: #1f3044; border-radius: 3px; font-size: 12px; padding: 7px 12px; cursor: pointer;" style-hover="border-color:#3c6289">Overview</button>
+            <button style="border: 1px solid #d4d9e0; background: #fff; color: #1f3044; border-radius: 3px; font-size: 12px; padding: 7px 12px; cursor: pointer;" style-hover="border-color:#3c6289">Shortcuts</button>
+            <button style="border: 1px solid #d4d9e0; background: #fff; color: #1f3044; border-radius: 3px; font-size: 12px; padding: 7px 12px; cursor: pointer;" style-hover="border-color:#3c6289">Guidelines</button>
+            <div style="flex: 1 1 auto;"></div>
+            <span style="font-size: 11px; color: #667a90;">{{ saveState }}</span>
+            <button style="border: none; background: #2a4765; color: #fff; border-radius: 3px; font-size: 12px; padding: 7px 14px; cursor: pointer;" style-hover="background:#3c6289">Export this bundle</button>
+          </div>
+          <div style="flex: 0 0 auto; height: 12px;"></div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ noSelection }}" hint-placeholder-val="{{ false }}">
+        <div style="flex: 1 1 auto; display: flex; align-items: center; justify-content: center; padding: 40px;">
+          <div style="max-width: 420px; text-align: center; color: #667a90;">
+            <div style="font-size: 16px; font-weight: 600; color: #1f3044;">No bundle selected</div>
+            <div style="margin-top: 6px; font-size: 13px; line-height: 1.5;">Drop media into the panel on the left, choose a pipeline, then pick a bundle to edit its annotation here.</div>
+          </div>
+        </div>
+      </sc-if>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;storageQuotaGb&quot;:{&quot;editor&quot;:&quot;float&quot;,&quot;default&quot;:8.4,&quot;tsType&quot;:&quot;number&quot;,&quot;min&quot;:1,&quot;max&quot;:60,&quot;step&quot;:0.1,&quot;unit&quot;:&quot;GB&quot;,&quot;section&quot;:&quot;Capacity model&quot;},&quot;ramBudgetGb&quot;:{&quot;editor&quot;:&quot;float&quot;,&quot;default&quot;:8,&quot;tsType&quot;:&quot;number&quot;,&quot;min&quot;:1,&quot;max&quot;:16,&quot;step&quot;:0.5,&quot;unit&quot;:&quot;GB&quot;,&quot;section&quot;:&quot;Capacity model&quot;}}">
+const BUNDLES = [
+  { name: 'Intervju med Stig Bergling.wav', duration: '44:51', secs: 2691, sizeMb: 86, state: 'done', units: 864 },
+  { name: 'Intervju_02_Eugen_Sandberg.mp4', duration: '1:12:20', secs: 4340, sizeMb: 412, state: 'running', pct: 41 },
+  { name: 'Faltinspelning_Umea_01.flac', duration: '18:04', secs: 1084, sizeMb: 96, state: 'queued' },
+  { name: 'Panelsamtal_SweClarin.m4a', duration: '52:11', secs: 3131, sizeMb: 48, state: 'queued' },
+  { name: 'Telefonintervju_1987.mp3', duration: '09:37', secs: 577, sizeMb: 9, state: 'done', units: 132 },
+  { name: 'Seminarium_ljud.ogg', duration: '1:03:52', secs: 3832, sizeMb: 55, state: 'error' },
+  { name: 'Intervju_Karlsson_1994.wav', duration: '31:08', secs: 1868, sizeMb: 0, state: 'unresolved', units: 402 },
+];
+
+const MODEL_MB = { tiny: 120, small: 400, medium: 1000, large: 1200 };
+
+const UTTERANCES = [
+  ['# 0001', '00:00.8', 'Speaker 1', 'Det här är Fånge 94/446 Eugen Sandberg, född 1937, uppvuxen på Östermalm, föräldrarna högersympatier.'],
+  ['# 0002', '00:07.2', 'Speaker 1', 'Carlssons privatskola, samma som kungabarnen, sen Östra Real, men avbrutna studier.'],
+  ['# 0003', '00:13.0', 'Speaker 1', 'Jobb som polis, senare Sjökrigsskolan, FN-tjänst utomlands och tjänst vid Säpo 1969'],
+  ['# 0004', '00:19.4', 'Speaker 1', 'och vid Försvarsstabens säkerhetsavdelning 1971.'],
+  ['# 0005', '00:24.1', 'Speaker 2', 'Det var där Stig Bergling la beslag på 80 sidor topphemligt militärt material'],
+  ['# 0006', '00:31.6', 'Speaker 2', 'som avslöjade Sveriges befästningar.'],
+  ['# 0007', '00:36.0', '—', '<P>'],
+  ['# 0008', '00:44.3', 'Speaker 1', 'Vad känner du när du hör'],
+  ['# 0009', '00:47.9', '—', '<P>'],
+  ['# 0010', '00:52.0', 'Speaker 1', 'Vad känner du när du hör svenska nationalsången? Ja, jag tycker det känns fint numera igen.'],
+  ['# 0011', '00:58.4', '—', '<P>'],
+  ['# 0012', '01:01.2', 'Speaker 2', 'Får du inte skuldkänslor?'],
+  ['# 0013', '01:04.7', 'Speaker 1', 'Nej, i och med att jag hjälper myndigheterna på så mycket som jag gör nu så känner jag inga skuldkänslor längre.'],
+  ['# 0014', '01:12.9', 'Speaker 2', 'Det började med att du jobbade vid försvarsstabens säkerhetsavdelning och där kopierade du ett 80-sidigt topphemligt dokument.'],
+  ['# 0015', '01:21.5', 'Speaker 2', 'Den så kallade Fo-koden med Sveriges befästningar.'],
+  ['# 0016', '01:26.0', 'Speaker 2', 'Och det fick du kopiera för att du arbetade med det.'],
+];
+
+const LINE_LABELS = [
+  '…änst vid Säpo 1969',
+  '…lning 1971.',
+  '…hemligt militärt material',
+  '<P>',
+  'Vad känner du när du hör',
+  'Vad känner du när du hör svenska nationalsången? Ja,…',
+  '… jag tycker det känns fint numera igen.',
+  'Får du inte skuldkänslor?',
+];
+
+function fmt(n) {
+  return n >= 1000 ? (n / 1000).toFixed(2) + ' GB' : Math.round(n) + ' MB';
+}
+
+class Component extends DCLogic {
+  state = {
+    selected: 0,
+    tab: '2d',
+    asr: true,
+    diar: true,
+    trans: false,
+    model: 'large',
+    running: false,
+  };
+
+  signalHost = null;
+
+  componentDidMount() {
+    this.drawAll();
+    requestAnimationFrame(() => this.drawAll());
+  }
+
+  componentDidUpdate() {
+    this.drawAll();
+  }
+
+  registerHost = (el) => {
+    this.signalHost = el;
+    if (el) requestAnimationFrame(() => this.drawAll());
+  };
+
+  draw(el, i) {
+    const ctx = el.getContext('2d');
+    const w = el.width;
+    const h = el.height;
+    ctx.clearRect(0, 0, w, h);
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, w, h);
+
+    // segment shading + boundaries, deterministic per line
+    let seed = (i + 7) * 9301;
+    const rnd = () => {
+      seed = (seed * 9301 + 49297) % 233280;
+      return seed / 233280;
+    };
+    const cuts = [0.22 + rnd() * 0.1, 0.55 + rnd() * 0.12, 0.82 + rnd() * 0.08];
+    ctx.fillStyle = 'rgba(60, 98, 137, 0.15)';
+    ctx.fillRect(cuts[0] * w, 0, (cuts[1] - cuts[0]) * w, h - 16);
+
+    ctx.strokeStyle = 'rgba(42, 71, 101, 0.8)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    const mid = (h - 16) / 2;
+    for (let x = 0; x < w; x += 2) {
+      const env = 0.25 + 0.75 * Math.abs(Math.sin((x / w) * Math.PI * (2 + i * 0.7)));
+      const a = (rnd() * 2 - 1) * env * (mid - 6);
+      ctx.moveTo(x, mid - Math.abs(a));
+      ctx.lineTo(x, mid + Math.abs(a));
+    }
+    ctx.stroke();
+
+    ctx.strokeStyle = '#b08a4a';
+    ctx.lineWidth = 2;
+    cuts.forEach((c) => {
+      ctx.beginPath();
+      ctx.moveTo(c * w, 0);
+      ctx.lineTo(c * w, h - 14);
+      ctx.stroke();
+    });
+
+    if (i === 5) {
+      ctx.strokeStyle = '#d7263d';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(0.38 * w, 0);
+      ctx.lineTo(0.38 * w, h - 14);
+      ctx.stroke();
+    }
+  }
+
+  drawAll() {
+    const root = this.signalHost || document;
+    root.querySelectorAll('canvas[data-line]').forEach((el) => {
+      this.draw(el, Number(el.getAttribute('data-line')));
+    });
+  }
+
+  renderVals() {
+    const s = this.state;
+    const quotaMb = (this.props.storageQuotaGb ?? 8.4) * 1000;
+    const modelsMb =
+      (s.asr ? MODEL_MB[s.model] : 0) + (s.diar ? 90 : 0) + (s.trans ? 160 : 0);
+    const annMb = 3.2;
+    const ramBudget = (this.props.ramBudgetGb ?? 8) * 1000;
+
+    const bundles = BUNDLES.map((b, i) => {
+      const sel = i === s.selected;
+      const running = s.running && b.state === 'queued' ? 'running' : b.state;
+      const accent =
+        running === 'done'
+          ? '#3d6b5c'
+          : running === 'running'
+            ? '#3c6289'
+            : running === 'error'
+              ? '#d7263d'
+              : running === 'unresolved'
+                ? '#d7b17c'
+                : '#8b9bad';
+      const status =
+        running === 'done'
+          ? 'Transcribed'
+          : running === 'running'
+            ? 'Transcribing ' + (b.pct ?? 8) + '%'
+            : running === 'error'
+              ? 'Failed — skipped'
+              : running === 'unresolved'
+                ? 'Awaiting media'
+                : 'Queued';
+      const meta =
+        running === 'done'
+          ? (b.units ?? 0) + ' units · ' + b.sizeMb + ' MB'
+          : running === 'error'
+            ? 'Decode failed · retry'
+            : running === 'unresolved'
+              ? (b.units ?? 0) + ' units restored · drop the file to continue'
+              : b.sizeMb + ' MB';
+      return {
+        name: b.name,
+        duration: b.duration,
+        status,
+        meta,
+        accent,
+        bg: sel ? '#ffffff' : '#eef0f4',
+        borderColor: sel ? '#3c6289' : '#d4d9e0',
+        progress: running === 'done' ? 100 : running === 'running' ? (b.pct ?? 8) : 0,
+        select: () => this.setState({ selected: i }),
+      };
+    });
+
+    const ramMb = BUNDLES.filter((b) => b.state !== 'unresolved').reduce(
+      (acc, b) => acc + b.sizeMb + (b.secs * 16000 * 4) / 1e6 + (b.secs * 48000 * 4) / 1e6,
+      0,
+    );
+
+    const tabDefs = [
+      ['2d', '2D-Editor'],
+      ['linear', 'Linear'],
+      ['dictaphone', 'Dictaphone'],
+      ['table', 'Overview'],
+    ];
+
+    const cur = BUNDLES[s.selected];
+
+    return {
+      noop: (e) => e.preventDefault(),
+      asr: s.asr,
+      diar: s.diar,
+      trans: s.trans,
+      model: s.model,
+      toggleAsr: () => this.setState({ asr: !s.asr }),
+      toggleDiar: () => this.setState({ diar: !s.diar }),
+      toggleTrans: () => this.setState({ trans: !s.trans }),
+      changeModel: (e) => this.setState({ model: e.target.value }),
+      runAll: () => this.setState({ running: !s.running }),
+      runLabel: s.running
+        ? 'Pause queue (2 done · 1 failed)'
+        : 'Run pipeline on 5 ready bundles',
+
+      storageText: fmt(modelsMb + annMb) + ' of ' + fmt(quotaMb),
+      modelsPct: (modelsMb / quotaMb) * 100,
+      annPct: (annMb / quotaMb) * 100,
+      storageNote:
+        'Models ' + fmt(modelsMb) + ' cached + annotations ' + annMb.toFixed(1) + ' MB. Media is never written to storage.',
+
+      ramText: fmt(ramMb) + ' of ~' + fmt(ramBudget),
+      ramPct: Math.min(100, (ramMb / ramBudget) * 100),
+      ramColor: ramMb / ramBudget > 0.8 ? '#d7263d' : ramMb / ramBudget > 0.55 ? '#d7b17c' : '#3d6b5c',
+      ramNote:
+        'Decoded audio for 6 resident bundles. This, not storage, is what limits how much media you can hold at once.',
+
+      bundleCount: BUNDLES.length + ' · 1 awaiting media',
+      bundles,
+
+      tabs: tabDefs.map(([k, label]) => ({
+        label,
+        bg: s.tab === k ? '#2a4765' : '#ffffff',
+        color: s.tab === k ? '#ffffff' : '#1f3044',
+        select: () => this.setState({ tab: k }),
+      })),
+
+      hasSelection: true,
+      noSelection: false,
+      showSignal: s.tab !== 'table',
+      showTable: s.tab === 'table',
+
+      currentName: cur.name,
+      currentMeta:
+        cur.duration + ' · 48 kHz stereo · ' + cur.sizeMb + ' MB · sv · KB-Whisper ' + s.model,
+      saveState: 'Saved locally · 12:04',
+
+      lines: LINE_LABELS.map((label, i) => ({
+        i,
+        label,
+        start: '00:' + String(24 + i * 5).padStart(2, '0'),
+        end: '00:' + String(29 + i * 5).padStart(2, '0'),
+      })),
+
+      utterances: UTTERANCES.map(([id, time, speaker, text], i) => ({
+        id,
+        time,
+        speaker,
+        text,
+        bg: i % 2 === 0 ? '#ffffff' : '#f7f8fa',
+      })),
+    };
+  }
+}
+</script>
+</body>
+</html>
