@@ -199,6 +199,30 @@ no envelope-based fallback rendering — step 2.7 must land re-decode-on-reselec
 actual envelope consumption together with whatever UI first makes bundle re-selection
 reachable past the eviction cap.
 
+## Finding (2026-09-11, during 2.6 planning): IndexedDB open failures are silently swallowed
+
+Investigating step 2.6 ("Dexie 0.6" — migrating `local_data` from a flat, single-session
+shape into a bundle-keyed table) surfaced a second pre-existing defect, this one directly
+relevant to the migration's own safety. `TrattDatabase.init()` (`tratt-database.ts:100-109`)
+catches a failed `this.open()` (the exact "Safari private-browsing quota" case the original
+conversion plan cites as "already anticipated") and calls `this.onReady.error(...)` — but
+**nothing anywhere in the codebase subscribes to `onReady`**. Because `init()` is `async` and
+`return`s normally after the catch (never `throw`s), the promise it returns resolves
+successfully regardless. `IDBService.initialize()` (`idb.service.ts:33-43`) then
+unconditionally sets `this._isOpened = true`. Net effect: **a failed IndexedDB open is
+completely invisible today** — the app proceeds as though persistence is working.
+
+This matters for 2.6 specifically because the plan's own risk register calls for
+"export-before-upgrade as a safety net" — but a safety net whose own failure path is
+silently swallowed isn't one. If the export (or the open itself) fails during a real user's
+migration, today's code would give no signal at all, which is a materially worse outcome
+than "the migration didn't run" — it looks identical to success. Minimal fix scope: make
+`init()`/`initialize()` actually propagate the failure (reject the returned promise /
+observable, or at minimum not set `_isOpened = true` on the caught-error path) so calling
+code has something to react to. This is small, contained, and load-bearing for 2.6's own
+safety net to mean anything — not a tangential quality issue the way the audio-playback
+finding was for step 2.5.
+
 ## Phases (plan §3–§8, full estimates and step-by-step notes there)
 
 0. **Clear the ground** (1wk) — delete stale `multi-threading` copies (use lib versions), guard
