@@ -210,14 +210,14 @@ export class TranscrOverviewComponent implements OnInit, OnDestroy, OnChanges {
   ngOnDestroy() {
     this.subscrmanager.destroy();
     this.playAllState.state = 'stopped';
-    this.audio.current!.stopPlayback().catch((err) => {
+    this.audio.current?.stopPlayback().catch((err) => {
       console.error(err);
     });
   }
 
   ngOnInit() {
     this.subscrmanager.add(
-      this.audio.current!.statechange.subscribe({
+      this.audio.current?.statechange.subscribe({
         next: (state) => {
           // make sure that events from playonhover are not logged
           if (

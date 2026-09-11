@@ -401,10 +401,11 @@ export class AnnotationLoadEffects {
                   }),
                 );
               } else if (state.application.audioAlreadyLoaded) {
-                // Audio was registered in proceedWithLogin but is no longer in audiomanagers —
-                // this is unexpected and indicates a bug (e.g. premature destroy() call).
+                // Audio was registered in proceedWithLogin but no manager is registered
+                // for the selected bundle — this is unexpected and indicates a bug
+                // (e.g. premature destroy() call).
                 console.error(
-                  '[onAudioLoad$ LOCAL] BUG: audioAlreadyLoaded=true but audiomanagers is empty — audio manager was lost after registration',
+                  '[onAudioLoad$ LOCAL] BUG: audioAlreadyLoaded=true but no manager is registered for the selected bundle — audio manager was lost after registration',
                 );
                 this.store.dispatch(
                   AnnotationActions.loadAudio.fail({

@@ -962,7 +962,7 @@ export class TrnEditorComponent
          */
       } else {
         // stop playback
-        this.audio.audiomanagers[0]
+        this.audioManager
           .stopPlayback()
           .then(() => {
             this.playStateSegments[segmentNumber].state = 'stopped';
@@ -1023,8 +1023,8 @@ export class TrnEditorComponent
     this.cd.markForCheck();
     this.cd.detectChanges();
 
-    const playpos = (this.audio.audiomanagers[0].playPosition =
-      this.audio.audiomanagers[0].createSampleUnit(0));
+    const playpos = (this.audioManager.playPosition =
+      this.audioManager.createSampleUnit(0));
 
     if (this.playAllState.icon === 'stop') {
       // start
@@ -1102,7 +1102,7 @@ export class TrnEditorComponent
               value: 'play_segment',
             },
             Date.now(),
-            this.audio.audiomanagers[0].playPosition,
+            this.audioManager.playPosition,
             undefined,
             undefined,
             {
@@ -1137,7 +1137,7 @@ export class TrnEditorComponent
           value: 'stop_segment',
         },
         Date.now(),
-        this.audio.audiomanagers[0].playPosition,
+        this.audioManager.playPosition,
         undefined,
         undefined,
         {
@@ -1223,7 +1223,7 @@ export class TrnEditorComponent
         this.cd.markForCheck();
         this.cd.detectChanges();
       }
-      this.audio.audiomanagers[0]
+      this.audioManager
         .stopPlayback()
         .then(() => {
           resolve();
