@@ -100,6 +100,23 @@ the correct entity, which is exactly what "the global keyboard shortcut resolves
 selection" (§2.3) requires — it falls out of the existing routing for free. Full multi-file
 ingest UX stays scoped to step 2.7.
 
+## Notes carried forward into step 2.4 ("the sweep")
+
+Step 2.3's final review found three **defensive** `AudioService.audioManager` consumers
+(`bug-report.service.ts:179`, `navbar.service.ts:19`, `navbar.component.html:454`) that now
+throw in dev builds instead of silently returning `undefined`, with a real, traced reachable
+path (`AnnotationStoreService.endTranscription()` empties the registry without dispatching
+`endTranscription.do`, so `navbar`'s guard throws on the next change-detection pass in dev).
+This is provably absent in production (`isDevMode()` constant-folds to `false`) and is the
+intended "surface stale assumptions loudly" behaviour — not a step-2.3 defect — but these three
+should be converted to `.current` **first**, before 2.4's bulk `audiomanagers[0]` sweep of the
+remaining ~7 files. Also: `selectSelectedBundleId` is hard-wired to `selectLocalMode` even
+though `ONLINE`/`DEMO`/`URL` sessions register through the same service — harmless while the
+key is constant, but worth a comment (or mode-aware resolution) before step 2.7 makes
+`selectedBundleId` variable. And: `nx lint tratt` has been red since step 2.2 on a pre-existing
+selector-naming violation (`workbench-spec-fake-editor` in `workbench.component.spec.ts:58` —
+needs a `tratt-` prefix) — cheap to fix, worth doing so the lint gate is meaningful again.
+
 ## Phases (plan §3–§8, full estimates and step-by-step notes there)
 
 0. **Clear the ground** (1wk) — delete stale `multi-threading` copies (use lib versions), guard
