@@ -1,5 +1,6 @@
 import {
   ChangeDetectionStrategy,
+  ChangeDetectorRef,
   Component,
   OnInit,
   Type,
@@ -98,6 +99,7 @@ export class WorkbenchComponent extends DefaultComponent implements OnInit {
     private modService: TrattModalService,
     private appStoreService: ApplicationStoreService,
     private uiService: UserInteractionsService,
+    private cd: ChangeDetectorRef,
   ) {
     super();
   }
@@ -113,6 +115,7 @@ export class WorkbenchComponent extends DefaultComponent implements OnInit {
 
     this.subscribe(this.appStoreService.loading$, (loading: any) => {
       this.sessionReady = loading?.status === LoadingStatus.FINISHED;
+      this.cd.markForCheck();
     });
   }
 
