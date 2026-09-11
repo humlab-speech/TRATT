@@ -117,6 +117,12 @@ export class WorkbenchComponent extends DefaultComponent implements OnInit {
       const wasReady = this.sessionReady;
       this.sessionReady = loading?.status === LoadingStatus.FINISHED;
       if (!wasReady && this.sessionReady) {
+        // The right pane (and its `trattLoadeditor` ViewChild) only exists in
+        // the DOM once `sessionReady` is true, and that's gated behind
+        // `@if (sessionReady)` in the template. `markForCheck()` alone only
+        // schedules a future check, so force a synchronous render here to
+        // resolve `showEditor` before `mountDefaultEditor()` tries to use it.
+        this.cd.detectChanges();
         this.mountDefaultEditor();
       }
       this.cd.markForCheck();
