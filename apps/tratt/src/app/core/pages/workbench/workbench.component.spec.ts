@@ -158,4 +158,25 @@ describe('WorkbenchComponent', () => {
     loading$.next({ status: LoadingStatus.FINISHED });
     expect(component.sessionReady).toBe(true);
   });
+
+  it('auto-mounts an editor once the session becomes ready', () => {
+    // Let @ViewChild queries resolve first, then stub showEditor so the
+    // ViewChild resolution doesn't clobber our spy on the next detectChanges.
+    fixture.detectChanges();
+
+    const createComponentSpy = jest.fn();
+    component.showEditor = {
+      viewContainerRef: { clear: jest.fn(), createComponent: createComponentSpy },
+    } as any;
+    component.appStorage = { interface: undefined } as any;
+    (component as any).settingsService = {
+      projectsettings: { interfaces: ['Dictaphone Editor', 'Linear Editor'] },
+      isTheme: jest.fn().mockReturnValue(false),
+    };
+
+    loading$.next({ status: LoadingStatus.FINISHED });
+
+    expect(component.sessionReady).toBe(true);
+    expect(createComponentSpy).toHaveBeenCalled();
+  });
 });

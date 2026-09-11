@@ -114,9 +114,25 @@ export class WorkbenchComponent extends DefaultComponent implements OnInit {
       (this._useMode === 'online' || this._useMode === 'demo');
 
     this.subscribe(this.appStoreService.loading$, (loading: any) => {
+      const wasReady = this.sessionReady;
       this.sessionReady = loading?.status === LoadingStatus.FINISHED;
+      if (!wasReady && this.sessionReady) {
+        this.mountDefaultEditor();
+      }
       this.cd.markForCheck();
     });
+  }
+
+  private mountDefaultEditor(): void {
+    const interfaces = this.settingsService.projectsettings?.interfaces ?? [];
+    const current = this.appStorage.interface;
+    const valid = interfaces.find((x) => x === current);
+    if (valid === undefined && interfaces.length > 0) {
+      this.appStorage.interface = interfaces[0];
+    }
+    if (this.appStorage.interface) {
+      this.changeEditor(this.appStorage.interface);
+    }
   }
 
   startSession(removeData: boolean): void {
