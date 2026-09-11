@@ -1,7 +1,10 @@
-import { describe, it, expect } from '@jest/globals';
-import { selectActiveAnnotation } from './annotation.selectors';
+import { describe, expect, it } from '@jest/globals';
 import { LoginMode } from '../../index';
-import { localBundleAdapter, DEFAULT_BUNDLE_ID } from './local-bundle-collection';
+import { selectActiveAnnotation } from './annotation.selectors';
+import {
+  DEFAULT_BUNDLE_ID,
+  localBundleAdapter,
+} from './local-bundle-collection';
 
 describe('selectActiveAnnotation', () => {
   it('LOCAL mode: resolves through the bundle collection to the flat AnnotationState', () => {
@@ -37,12 +40,12 @@ describe('selectActiveAnnotation', () => {
       selectActiveAnnotation.projector(
         LoginMode.ONLINE,
         fakeOnline,
-        {},
+        {} as any,
         {
           bundles: localBundleAdapter.getInitialState(),
           selectedBundleId: DEFAULT_BUNDLE_ID,
         },
-        {},
+        {} as any,
       ),
     ).toBe(fakeOnline);
   });
