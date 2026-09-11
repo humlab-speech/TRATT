@@ -49,6 +49,13 @@ export class AppStorageService {
   }
 
   get sessionfile(): SessionFile {
+    // Non-null assertion relies on resolveLocalBundleState() always finding an
+    // entity at DEFAULT_BUNDLE_ID, which wrapAsLocalBundleCollectionReducer
+    // currently guarantees by construction (single hardcoded entity). Revisit
+    // once real multi-bundle support lands (phase-2 step 2.2): a stale or
+    // missing selectedBundleId could then make this throw instead of the
+    // `| undefined`-propagating pattern used elsewhere (getModeState(),
+    // IDBEffectsService.getModeStateFromString()).
     return resolveLocalBundleState(this._snapshot.localMode)!.sessionFile!;
   }
 
