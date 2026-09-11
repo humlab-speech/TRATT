@@ -175,6 +175,10 @@ switches within a session, not page reload) can be built without touching Indexe
 surviving reload would need a new object store, which is more naturally step 2.6's
 concern (Dexie 0.6 migration) than 2.5's.
 
+**Decision (2026-09-11, user):** log the non-WAV playback degradation as a separate tracked
+issue, do not fix it as part of this conversion. Step 2.5 proceeds with residency/eviction
+policy designed around the current single-PCM-copy reality documented above.
+
 ## Phases (plan §3–§8, full estimates and step-by-step notes there)
 
 0. **Clear the ground** (1wk) — delete stale `multi-threading` copies (use lib versions), guard
