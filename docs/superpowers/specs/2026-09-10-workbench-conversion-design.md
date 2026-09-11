@@ -193,7 +193,11 @@ envelope is ~32KB, so this is not a near-term memory concern, but it should be r
 step 2.6+ if the number of bundles a session accumulates envelopes for grows large. This is
 pure infrastructure — eviction is exercised today only by directly-constructed
 multi-manager tests, since nothing in the UI yet selects between multiple bundles; wiring
-real bundle selection to trigger it is step 2.7's concern.
+real bundle selection to trigger it is step 2.7's concern. Re-selecting an evicted
+bundle today leaves `AudioService.current` as `undefined` with no re-decode triggered and
+no envelope-based fallback rendering — step 2.7 must land re-decode-on-reselection and
+actual envelope consumption together with whatever UI first makes bundle re-selection
+reachable past the eviction cap.
 
 ## Phases (plan §3–§8, full estimates and step-by-step notes there)
 
