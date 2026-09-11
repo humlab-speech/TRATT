@@ -1,4 +1,14 @@
 <div class="workbench">
-  <div class="workbench__left"></div>
+  <div class="workbench__left">
+    <tratt-dropzone height="180px" [showAutoTranscribe]="true"></tratt-dropzone>
+    <button
+      type="button"
+      class="btn btn-primary workbench__start"
+      [disabled]="sessionStarting"
+      (click)="startSession(false)"
+    >
+      {{ 'workbench.start session' | transloco }}
+    </button>
+  </div>
   <div class="workbench__right"></div>
 </div>

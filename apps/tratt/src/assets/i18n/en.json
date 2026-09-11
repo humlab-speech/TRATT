@@ -772,5 +772,8 @@
   },
   "branding": {
     "tagline": "transcribe audio to text"
+  },
+  "workbench": {
+    "start session": "Start session"
   }
 }

@@ -720,5 +720,8 @@
   },
   "branding": {
     "tagline": "transkription av tal till text"
+  },
+  "workbench": {
+    "start session": "Starta session"
   }
 }
