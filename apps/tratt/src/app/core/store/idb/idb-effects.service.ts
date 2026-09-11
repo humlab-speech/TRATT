@@ -37,6 +37,7 @@ import { ApplicationActions } from '../application/application.actions';
 import { AuthenticationActions } from '../authentication';
 import { getModeState, LoginMode, RootState } from '../index';
 import { AnnotationState } from '../login-mode/annotation';
+import { resolveLocalBundleState } from '../login-mode/annotation/local-bundle-collection';
 import { AnnotationActions } from '../login-mode/annotation/annotation.actions';
 import { LoginModeActions } from '../login-mode/login-mode.actions';
 import { UserActions } from '../user/user.actions';
@@ -1020,7 +1021,7 @@ export class IDBEffects {
     if (mode === 'online') {
       modeState = appState.onlineMode;
     } else if (mode === 'local') {
-      modeState = appState.localMode;
+      modeState = resolveLocalBundleState(appState.localMode);
     } else if (mode === 'demo') {
       modeState = appState.demoMode;
     } else if (mode === 'url') {

@@ -1,7 +1,10 @@
 import { ApplicationState } from './application';
 import { AuthenticationState } from './authentication';
 import { AnnotationState } from './login-mode/annotation';
-import { LocalBundleCollectionState } from './login-mode/annotation/local-bundle-collection';
+import {
+  LocalBundleCollectionState,
+  resolveLocalBundleState,
+} from './login-mode/annotation/local-bundle-collection';
 import { UserState } from './user';
 
 export enum LoginMode {
@@ -42,12 +45,14 @@ export interface RootState {
   user: UserState;
 }
 
-export function getModeState(appState: RootState) {
+export function getModeState(
+  appState: RootState,
+): AnnotationState | undefined {
   switch (appState.application.mode) {
     case LoginMode.DEMO:
       return appState.demoMode;
     case LoginMode.LOCAL:
-      return appState.localMode;
+      return resolveLocalBundleState(appState.localMode);
     case LoginMode.URL:
       return appState.urlMode;
     case LoginMode.ONLINE:
