@@ -1,11 +1,32 @@
 import { describe, expect, it } from '@jest/globals';
+import { randomUUID } from 'node:crypto';
+import { AnnotationLevelType } from '@tratt/annotation';
+import { SampleUnit } from '@tratt/media';
 import { LoginMode } from '../index';
 import {
   DEFAULT_BUNDLE_ID,
+  generateBundleId,
+  localBundleAdapter,
   LocalBundleCollectionState,
 } from './annotation/local-bundle-collection';
+import { AnnotationActions } from './annotation/annotation.actions';
 import { LoginModeActions } from './login-mode.actions';
 import { LoginModeReducers } from './login-mode.reducer';
+
+// The jsdom version bundled with jest-environment-jsdom implements
+// window.crypto.getRandomValues but not crypto.randomUUID (unlike real
+// browsers, which have supported it since 2022). Polyfill it with Node's
+// implementation so generateBundleId can call it as it would in production.
+// (Same polyfill as local-bundle-collection.spec.ts, needed here too since
+// this spec now calls generateBundleId directly.)
+if (
+  typeof (globalThis.crypto as { randomUUID?: unknown })?.randomUUID !==
+  'function'
+) {
+  (
+    globalThis.crypto as unknown as { randomUUID: typeof randomUUID }
+  ).randomUUID = randomUUID;
+}
 
 describe('LoginModeReducers — local mode entity wrapping', () => {
   it('LOCAL mode reducer produces a LocalBundleCollectionState with one entity at DEFAULT_BUNDLE_ID', () => {
@@ -43,5 +64,130 @@ describe('LoginModeReducers — local mode entity wrapping', () => {
 
     expect((state as any).bundles).toBeUndefined();
     expect((state as any).currentSession).toBeDefined();
+  });
+});
+
+describe('LoginModeReducers — per-bundle undo isolation', () => {
+  // Deviation from the task brief's literal test sketch: `changeComment.do` is
+  // NOT in login-mode.reducer.ts's `undoRedo({ allowedActionTypes: [...] })`
+  // list (only the AnnotationActions.* level/item-editing actions are), so an
+  // UNDO after a changeComment is a no-op — asserting on undone comments would
+  // be vacuous. `addAnnotationLevel.do` IS in `allowedActionTypes`, so it's
+  // used here as the actual undo-tracked edit. `changeComment.do` is kept
+  // alongside it purely as an independent isolation marker (untouched by
+  // undo either way) to also prove ordinary per-bundle field isolation, as
+  // the two earlier tests in this file already do for a single entity.
+  const audioDuration = new SampleUnit(48000, 48000);
+  const addLevel = (mode: LoginMode) =>
+    AnnotationActions.addAnnotationLevel.do({
+      levelType: AnnotationLevelType.SEGMENT,
+      audioDuration,
+      mode,
+    });
+
+  it('editing bundle A, editing bundle B, then undoing while B is selected does not affect A', () => {
+    const reducer = new LoginModeReducers(LoginMode.LOCAL).create();
+
+    // Bootstrap bundle A as the initial entity (step 2.1/2.2 Task 1 behavior).
+    let state = reducer(undefined, {
+      type: '@@INIT',
+    } as any) as unknown as LocalBundleCollectionState;
+    const bundleAId = state.selectedBundleId; // DEFAULT_BUNDLE_ID today
+
+    // Edit A: an undo-tracked structural edit (adds a transcript level) plus
+    // a comment change as an independent isolation marker.
+    state = reducer(
+      state as any,
+      addLevel(LoginMode.LOCAL),
+    ) as unknown as LocalBundleCollectionState;
+    state = reducer(
+      state as any,
+      LoginModeActions.changeComment.do({
+        comment: 'comment on A',
+        mode: LoginMode.LOCAL,
+      }),
+    ) as unknown as LocalBundleCollectionState;
+    expect(state.bundles.entities[bundleAId]?.transcript.levels.length).toBe(
+      1,
+    );
+    expect(
+      state.bundles.entities[bundleAId]?.currentSession?.comment,
+    ).toBe('comment on A');
+
+    // Manually introduce a second bundle B by cloning a fresh initial inner
+    // AnnotationState (complete with its own empty ngrx-wieder `histories`)
+    // under a new id, and switch selection to it — there is no "create bundle"
+    // action yet (that's step 2.7); this directly exercises the
+    // reducer/adapter machinery Task 1 built.
+    //
+    // Note: LoginModeReducers(LOCAL).create() returns the *wrapped*
+    // LocalBundleCollectionState reducer (per Task 1), not a bare
+    // AnnotationState reducer — so the fresh inner entity has to be pulled
+    // back out of that collection's single bootstrap entity, not used as-is.
+    const bundleBId = generateBundleId();
+    const freshCollectionState = new LoginModeReducers(
+      LoginMode.LOCAL,
+    ).create()(undefined, {
+      type: '@@INIT',
+    } as any) as unknown as LocalBundleCollectionState;
+    const freshInner =
+      freshCollectionState.bundles.entities[
+        freshCollectionState.selectedBundleId
+      ];
+    state = {
+      bundles: localBundleAdapter.setOne(
+        { ...(freshInner as any), bundleId: bundleBId },
+        state.bundles,
+      ),
+      selectedBundleId: bundleBId,
+    };
+
+    // Edit B: same kind of undo-tracked structural edit plus its own comment.
+    state = reducer(
+      state as any,
+      addLevel(LoginMode.LOCAL),
+    ) as unknown as LocalBundleCollectionState;
+    state = reducer(
+      state as any,
+      LoginModeActions.changeComment.do({
+        comment: 'comment on B',
+        mode: LoginMode.LOCAL,
+      }),
+    ) as unknown as LocalBundleCollectionState;
+    expect(state.bundles.entities[bundleBId]?.transcript.levels.length).toBe(
+      1,
+    );
+    expect(
+      state.bundles.entities[bundleBId]?.currentSession?.comment,
+    ).toBe('comment on B');
+    // A must be completely untouched by B's edits.
+    expect(state.bundles.entities[bundleAId]?.transcript.levels.length).toBe(
+      1,
+    );
+    expect(
+      state.bundles.entities[bundleAId]?.currentSession?.comment,
+    ).toBe('comment on A');
+
+    // Undo while B is selected. ngrx-wieder's undoRedo() defaults
+    // `undoActionType` to the literal string 'UNDO' (see
+    // node_modules/ngrx-wieder/fesm2022/ngrx-wieder.mjs's defaultConfig),
+    // and login-mode.reducer.ts's undoRedo({...}) call does not override it,
+    // so dispatching { type: 'UNDO' } is the correct trigger.
+    state = reducer(state as any, {
+      type: 'UNDO',
+    } as any) as unknown as LocalBundleCollectionState;
+
+    // B's structural edit is undone (its added level is gone).
+    expect(state.bundles.entities[bundleBId]?.transcript.levels.length).toBe(
+      0,
+    );
+    // A is STILL untouched — this is the critical assertion the plan's risk
+    // register demanded: undoing B's history must not reach into A's state.
+    expect(state.bundles.entities[bundleAId]?.transcript.levels.length).toBe(
+      1,
+    );
+    expect(
+      state.bundles.entities[bundleAId]?.currentSession?.comment,
+    ).toBe('comment on A');
   });
 });
