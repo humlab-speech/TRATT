@@ -28,6 +28,7 @@ jest.mock('../../component/tratt-dropzone/tratt-dropzone.component', () => {
 // `'../../component/navbar/navbar.service'` import is a different, unaffected module.
 jest.mock('../../component/navbar', () => ({}));
 
+import { Component } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { TranslocoService } from '@jsverse/transloco';
 import { BehaviorSubject, of } from 'rxjs';
@@ -43,6 +44,18 @@ import { SettingsService, UserInteractionsService } from '../../shared/service';
 import { TrattModalService } from '../../modals/tratt-modal.service';
 import { ApplicationStoreService } from '../../store/application/application-store.service';
 import { LoadingStatus } from '../../store';
+import { editorComponents } from '../../../editors/components';
+
+// Lightweight stand-in mounted in place of a real editor (e.g.
+// DictaphoneEditorComponent) for the "real ViewChild/createComponent path"
+// regression test below. A real editor's ngOnInit/ngOnDestroy needs live
+// audio infrastructure (AudioService.audiomanagers, AudioManager.stopPlayback,
+// etc.) that this bare TestBed doesn't provide, and blows up on automatic
+// fixture teardown otherwise. This fake has none of that, so it mounts and
+// tears down cleanly while still exercising the real
+// ViewContainerRef.createComponent() call.
+@Component({ selector: 'workbench-spec-fake-editor', template: '' })
+class FakeEditorComponent {}
 
 describe('WorkbenchComponent', () => {
   let fixture: ComponentFixture<WorkbenchComponent>;
@@ -183,5 +196,34 @@ describe('WorkbenchComponent', () => {
 
     expect(component.sessionReady).toBe(true);
     expect(changeEditorSpy).toHaveBeenCalledWith('Dictaphone Editor');
+  });
+
+  it('resolves the real showEditor ViewChild and mounts a component into its viewContainerRef when the session becomes ready', () => {
+    fixture.detectChanges();
+
+    // Swap the default editor for the lightweight fake so this test exercises
+    // the real ViewChild resolution / ViewContainerRef.createComponent() path
+    // (the thing the missing detectChanges() fix actually protects) without
+    // pulling in a real editor's heavyweight audio dependencies.
+    const realEditor = editorComponents[0].editor;
+    (editorComponents[0] as { editor: unknown }).editor = FakeEditorComponent;
+    component.appStorage = { interface: undefined } as any;
+    (component as any).settingsService = {
+      projectsettings: { interfaces: [editorComponents[0].name] },
+      isTheme: jest.fn().mockReturnValue(false),
+    };
+
+    try {
+      loading$.next({ status: LoadingStatus.FINISHED });
+
+      expect(component.sessionReady).toBe(true);
+      expect(component.showEditor).toBeDefined();
+      expect(component.showEditor!.viewContainerRef.length).toBe(1);
+    } finally {
+      editorComponents[0].editor = realEditor;
+      // Clear the mounted fake ourselves rather than relying on Angular's
+      // automatic fixture teardown to destroy it.
+      component.showEditor?.viewContainerRef.clear();
+    }
   });
 });
