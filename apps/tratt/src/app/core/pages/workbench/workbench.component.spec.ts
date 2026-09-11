@@ -160,14 +160,19 @@ describe('WorkbenchComponent', () => {
   });
 
   it('auto-mounts an editor once the session becomes ready', () => {
-    // Let @ViewChild queries resolve first, then stub showEditor so the
-    // ViewChild resolution doesn't clobber our spy on the next detectChanges.
     fixture.detectChanges();
 
-    const createComponentSpy = jest.fn();
-    component.showEditor = {
-      viewContainerRef: { clear: jest.fn(), createComponent: createComponentSpy },
-    } as any;
+    // changeEditor() itself (component creation via the real ViewChild) is
+    // already covered by the "creates the selected editor component" test
+    // above. This test only needs to verify mountDefaultEditor()'s wiring —
+    // that it picks a valid interface and calls changeEditor with it — so
+    // spy-and-stub changeEditor rather than letting a real editor component
+    // mount: a real DictaphoneEditorComponent needs live audio infra this
+    // bare TestBed doesn't provide, and throws on ngOnDestroy during fixture
+    // cleanup otherwise.
+    const changeEditorSpy = jest
+      .spyOn(component, 'changeEditor')
+      .mockImplementation(() => undefined);
     component.appStorage = { interface: undefined } as any;
     (component as any).settingsService = {
       projectsettings: { interfaces: ['Dictaphone Editor', 'Linear Editor'] },
@@ -177,6 +182,6 @@ describe('WorkbenchComponent', () => {
     loading$.next({ status: LoadingStatus.FINISHED });
 
     expect(component.sessionReady).toBe(true);
-    expect(createComponentSpy).toHaveBeenCalled();
+    expect(changeEditorSpy).toHaveBeenCalledWith('Dictaphone Editor');
   });
 });
