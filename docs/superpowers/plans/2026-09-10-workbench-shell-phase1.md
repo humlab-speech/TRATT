@@ -623,6 +623,91 @@ git commit -m "feat(workbench): reveal editor pane in place instead of navigatin
 
 ---
 
+---
+
+### Task 5: Auto-mount an editor when the session becomes ready
+
+**Why this task exists:** Task 4's review found that after `sessionReady` flips `true`, the right pane's editor host renders empty — nothing calls `changeEditor(...)`. `TranscriptionComponent.ngOnInit` avoids this by calling `checkCurrentEditor()` (defaults `appStorage.interface` to `projectsettings.interfaces[0]` if the stored value isn't a valid interface for this project) then `this.changeEditor(this.interface)`. Without the equivalent here, the plan's own "Done when" ("edit... entirely at `/workbench`") is not met — this closes that gap. Ruled load-bearing in the SDD ledger (`Task 4: Ruling`).
+
+**Files:**
+- Modify: `apps/tratt/src/app/core/pages/workbench/workbench.component.ts`
+- Modify: `apps/tratt/src/app/core/pages/workbench/workbench.component.spec.ts`
+
+**Interfaces:**
+- Consumes: `WorkbenchComponent.changeEditor(name: string): void` (Task 3), `WorkbenchComponent.sessionReady` now store-driven (Task 4), `this.settingsService.projectsettings` getter (already present, Task 3), `this.appStorage` (already injected, Task 3) — `AppStorageService.interface: string | undefined` is the same field `TranscriptionComponent` reads/writes at `transcription.component.ts:476,582,598`.
+- Produces: no new public members — this task adds a private helper and one call site inside the existing `loading$` subscription callback.
+
+- [ ] **Step 1: Read the exact current behaviour to mirror**
+
+Read `apps/tratt/src/app/core/pages/intern/transcription/transcription.component.ts:465-485` (the `checkCurrentEditor()` call + `this.interface = this.appStorage.interface` + conditional `changeEditor` call) and `:575-583` (`checkCurrentEditor()`'s body: finds `appStorage.interface` in `projectsettings.interfaces`, defaults to `projectsettings.interfaces[0]` if not found). Confirm these still match this description — if the real code differs, follow what you read, not this paraphrase.
+
+- [ ] **Step 2: Write the failing test**
+
+Add to `workbench.component.spec.ts` (extend the existing `describe('WorkbenchComponent', ...)` block, following the same `@jest/globals` import convention and mock-extension pattern Task 4 already established for `settingsService`/`appStoreService`):
+
+```ts
+it('auto-mounts an editor once the session becomes ready', () => {
+  const createComponentSpy = jest.fn();
+  component.showEditor = {
+    viewContainerRef: { clear: jest.fn(), createComponent: createComponentSpy },
+  } as any;
+  (component as any).appStorage = { interface: undefined };
+  (component as any).settingsService = {
+    projectsettings: { interfaces: ['Dictaphone Editor', 'Linear Editor'] },
+    isTheme: jest.fn().mockReturnValue(false),
+  };
+
+  loadingSubject.next({ status: LoadingStatus.FINISHED } as any);
+  fixture.detectChanges();
+
+  expect(component.sessionReady).toBe(true);
+  expect(createComponentSpy).toHaveBeenCalled();
+});
+```
+
+Adapt the exact mock shape (`loadingSubject`, `LoadingStatus` import, how `settingsService`/`appStorage` are currently provided in this spec file's `beforeEach`) to match what Task 4 actually left in place — read the current file first rather than assuming this snippet's variable names are exact.
+
+- [ ] **Step 3: Run it, confirm it fails**
+
+Run: `npx nx test tratt --testPathPattern=workbench.component.spec.ts`
+Expected: FAIL — `createComponentSpy` never called, since nothing invokes `changeEditor` yet.
+
+- [ ] **Step 4: Implement the auto-mount**
+
+In the `loading$` subscription callback added in Task 4 (inside `ngOnInit`), after setting `sessionReady = true` and calling `markForCheck()`, add a call to a small private helper mirroring `TranscriptionComponent.checkCurrentEditor()` + the `changeEditor` call:
+
+```ts
+private mountDefaultEditor(): void {
+  const interfaces = this.settingsService.projectsettings?.interfaces ?? [];
+  const current = this.appStorage.interface;
+  const valid = interfaces.find((x) => x === current);
+  if (valid === undefined && interfaces.length > 0) {
+    this.appStorage.interface = interfaces[0];
+  }
+  if (this.appStorage.interface) {
+    this.changeEditor(this.appStorage.interface);
+  }
+}
+```
+
+Call `this.mountDefaultEditor()` once, only on the transition into `sessionReady === true` (not on every emission if `loading$` re-emits FINISHED repeatedly — guard with the existing `sessionReady` field: only call it when `sessionReady` was `false` and the new status is `FINISHED`, mirroring how the callback already has both the previous field value and the new incoming status available).
+
+- [ ] **Step 5: Run the test, confirm it passes**
+
+Run: `npx nx test tratt --testPathPattern=workbench.component.spec.ts`
+Expected: all PASS (previous 6 + this new one).
+
+- [ ] **Step 6: Manual smoke check**
+
+`npm start`, `/workbench`, drop a file, click "Start session". Expected: right pane reveals AND an editor tab (e.g. Dictaphone) is visibly mounted with content, matching `/local`'s post-navigation editor view.
+
+- [ ] **Step 7: Commit**
+
+```bash
+git add apps/tratt/src/app/core/pages/workbench/
+git commit -m "feat(workbench): auto-mount default editor when session becomes ready"
+```
+
 ## Done when (phase 1 acceptance, from the spec)
 
 A user can drop one file, run the pipeline (existing `AutoTranscribeOptionsComponent`/`AutoTranslateOptionsComponent`, unchanged), edit, and export, entirely at `/workbench`, with behaviour indistinguishable from `/local` — verified manually in Task 4 Step 9, since this is a full-stack UI flow with no existing E2E harness in this repo to automate it against.
