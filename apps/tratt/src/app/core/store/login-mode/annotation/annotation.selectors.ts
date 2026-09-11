@@ -2,6 +2,10 @@ import { createFeatureSelector, createSelector } from '@ngrx/store';
 import { selectMode } from '../../application/application.selectors';
 import { LoginMode } from '../../index';
 import { AnnotationState } from './index';
+import {
+  LocalBundleCollectionState,
+  resolveLocalBundleState,
+} from './local-bundle-collection';
 
 // Per-mode feature selectors
 export const selectOnlineMode =
@@ -9,7 +13,7 @@ export const selectOnlineMode =
 export const selectDemoMode =
   createFeatureSelector<AnnotationState>('demoMode');
 export const selectLocalMode =
-  createFeatureSelector<AnnotationState>('localMode');
+  createFeatureSelector<LocalBundleCollectionState>('localMode');
 export const selectUrlMode = createFeatureSelector<AnnotationState>('urlMode');
 
 /** Returns the active mode's AnnotationState based on application.mode. */
@@ -26,7 +30,7 @@ export const selectActiveAnnotation = createSelector(
       case LoginMode.DEMO:
         return demo;
       case LoginMode.LOCAL:
-        return local;
+        return resolveLocalBundleState(local);
       case LoginMode.URL:
         return url;
       default:
