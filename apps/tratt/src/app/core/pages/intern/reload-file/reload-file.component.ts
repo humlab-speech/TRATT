@@ -12,6 +12,7 @@ import { AudioService } from '../../../shared/service';
 import { AppStorageService } from '../../../shared/service/appstorage.service';
 import { AuthenticationStoreService } from '../../../store/authentication';
 import { AnnotationStoreService } from '../../../store/login-mode/annotation/annotation.store.service';
+import { DEFAULT_BUNDLE_ID } from '../../../store/login-mode/annotation/local-bundle-collection';
 
 @Component({
   selector: 'tratt-reload-file',
@@ -43,7 +44,10 @@ export class ReloadFileComponent {
   };
 
   newTranscription = () => {
-    this.audioService.registerAudioManager(this.dropzone.audioManager!);
+    this.audioService.registerAudioManager(
+      DEFAULT_BUNDLE_ID,
+      this.dropzone.audioManager!,
+    );
     this.authStoreService.loginLocal(
       this.dropzone.files.map((a) => a.file.file!),
       this.dropzone.oannotation,
@@ -52,7 +56,10 @@ export class ReloadFileComponent {
   };
 
   onOfflineSubmit = () => {
-    this.audioService.registerAudioManager(this.dropzone.audioManager!);
+    this.audioService.registerAudioManager(
+      DEFAULT_BUNDLE_ID,
+      this.dropzone.audioManager!,
+    );
     this.authStoreService.loginLocal(
       this.dropzone.files.map((a) => a.file.file!),
       this.dropzone.oannotation,

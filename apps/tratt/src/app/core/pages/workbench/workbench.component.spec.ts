@@ -45,6 +45,7 @@ import { TrattModalService } from '../../modals/tratt-modal.service';
 import { ApplicationStoreService } from '../../store/application/application-store.service';
 import { LoadingStatus } from '../../store';
 import { editorComponents } from '../../../editors/components';
+import { DEFAULT_BUNDLE_ID } from '../../store/login-mode/annotation/local-bundle-collection';
 
 // Lightweight stand-in mounted in place of a real editor (e.g.
 // DictaphoneEditorComponent) for the "real ViewChild/createComponent path"
@@ -116,7 +117,10 @@ describe('WorkbenchComponent', () => {
 
     component.startSession(false);
 
-    expect(audioService.registerAudioManager).toHaveBeenCalledWith(manager);
+    expect(audioService.registerAudioManager).toHaveBeenCalledWith(
+      DEFAULT_BUNDLE_ID,
+      manager,
+    );
     expect(component.dropzone!.releaseAudioManager).toHaveBeenCalled();
     expect(authStoreService.loginLocal).toHaveBeenCalledWith(
       [nativeFile],

@@ -34,6 +34,7 @@ import { ProjectSettings } from '../../obj/Settings';
 import { LoadeditorDirective } from '../../shared/directive/loadeditor.directive';
 import { AppStorageService } from '../../shared/service/appstorage.service';
 import { AudioService } from '../../shared/service/audio.service';
+import { DEFAULT_BUNDLE_ID } from '../../store/login-mode/annotation/local-bundle-collection';
 import { RecordedFileService } from '../../shared/service/recorded-file.service';
 import { RoutingService } from '../../shared/service/routing.service';
 import { SettingsService, UserInteractionsService } from '../../shared/service';
@@ -183,7 +184,7 @@ export class WorkbenchComponent extends DefaultComponent implements OnInit {
     const annotation = this.dropzone!.hasAnnotation
       ? this.dropzone!.oannotation
       : undefined;
-    this.audioService.registerAudioManager(manager);
+    this.audioService.registerAudioManager(DEFAULT_BUNDLE_ID, manager);
     this.dropzone!.releaseAudioManager();
     this.authStoreService.loginLocal(files, annotation, removeData);
   }

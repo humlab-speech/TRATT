@@ -22,6 +22,7 @@ import { AppSettings } from '../../obj';
 import { SessionFile } from '../../obj/SessionFile';
 import { AudioService, SettingsService } from '../../shared/service';
 import { AppStorageService } from '../../shared/service/appstorage.service';
+import { DEFAULT_BUNDLE_ID } from '../../store/login-mode/annotation/local-bundle-collection';
 import { CompatibilityService } from '../../shared/service/compatibility.service';
 import {
   DIARIZATION_DEFAULT_MODEL_ID,
@@ -571,7 +572,7 @@ I just want to let you know, that the OCTRA server is currently offline.
     ) {
       this.recordedFileService.clear();
     }
-    this.audioService.registerAudioManager(manager);
+    this.audioService.registerAudioManager(DEFAULT_BUNDLE_ID, manager);
     this.dropzone!.releaseAudioManager();
     this.authStoreService.loginLocal(
       files,
