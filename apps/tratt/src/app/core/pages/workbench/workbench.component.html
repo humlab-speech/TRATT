@@ -12,7 +12,15 @@
   </div>
   @if (sessionReady) {
     <div class="workbench__right">
-      <tratt-fastbar></tratt-fastbar>
+      <tratt-fastbar
+        (overviewbtnclicked)="openOverview()"
+        (shortcutbtnclicked)="openShortcutsModal()"
+        [buttonLabels]="{
+          shortcuts: 'g.shortcuts' | transloco,
+          overview: 'g.overview' | transloco,
+          help: 'g.help' | transloco,
+        }"
+      ></tratt-fastbar>
 
       <div class="flex">
         <ng-container trattLoadeditor #showEditor></ng-container>
