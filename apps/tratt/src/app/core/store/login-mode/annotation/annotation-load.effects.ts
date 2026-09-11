@@ -55,8 +55,8 @@ import { ApplicationActions } from '../../application/application.actions';
 import { checkAndThrowError } from '../../error.handlers';
 import { getModeState, LoginMode, RootState } from '../../index';
 import { LoginModeActions } from '../login-mode.actions';
-import { AnnotationActions } from './annotation.actions';
 import { AnnotationMaintenanceService } from './annotation-maintenance.service';
+import { AnnotationActions } from './annotation.actions';
 import { AnnotationState, GuidelinesItem } from './index';
 import { resolveLocalBundleState } from './local-bundle-collection';
 
@@ -692,17 +692,16 @@ export class AnnotationLoadEffects {
                   }),
                 );
               } else if (a.mode === LoginMode.LOCAL) {
+                const localSessionFile = resolveLocalBundleState(
+                  state.localMode,
+                )?.sessionFile;
                 observables.push(
                   of({
                     inputs: [
                       {
                         id: Date.now().toString(),
-                        filename:
-                          resolveLocalBundleState(state.localMode)
-                            ?.sessionFile?.name ?? '',
-                        fileType:
-                          resolveLocalBundleState(state.localMode)
-                            ?.sessionFile?.type ?? '',
+                        filename: localSessionFile?.name ?? '',
+                        fileType: localSessionFile?.type ?? '',
                         chain_position: 0,
                         type: 'input',
                         creator_type: TaskInputOutputCreatorType.user,
