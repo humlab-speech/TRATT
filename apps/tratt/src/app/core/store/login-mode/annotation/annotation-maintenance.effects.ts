@@ -111,7 +111,7 @@ export class AnnotationMaintenanceEffects {
             'level',
             { value: 'changed' },
             Date.now(),
-            this.audio.audioManager.createSampleUnit(0),
+            this.audio.current!.createSampleUnit(0),
             undefined,
             undefined,
             undefined,

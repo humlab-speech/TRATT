@@ -52,7 +52,7 @@ export class TranscriptionBackupEndModalComponent
 
   ngOnInit() {
     if (this.annotationStore.transcript) {
-      const audioInfo = this.audioService.audioManager.resource.info;
+      const audioInfo = this.audioService.current!.resource.info;
       const annotation = this.annotationStore.transcript.serialize(
         audioInfo.fullname,
         audioInfo.sampleRate,

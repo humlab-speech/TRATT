@@ -232,6 +232,7 @@ export class ToolsModalComponent extends TrattModal implements OnDestroy {
   }
 
   public splitAudioClient() {
+    const manager = this.audio.current!;
     const cutList: any[] = [];
     let startSample = 0;
     this.tools.audioCutting.progress = 0;
@@ -255,14 +256,9 @@ export class ToolsModalComponent extends TrattModal implements OnDestroy {
 
         let sampleDur = segment.time.samples - startSample;
 
-        if (
-          startSample + sampleDur >
-          this.audio.audiomanagers[0].resource.info.duration.samples
-        ) {
+        if (startSample + sampleDur > manager.resource.info.duration.samples) {
           console.error(`invalid sampleDur!!`);
-          sampleDur =
-            this.audio.audiomanagers[0].resource.info.duration.samples -
-            startSample;
+          sampleDur = manager.resource.info.duration.samples - startSample;
         }
 
         cutList.push({
@@ -288,9 +284,7 @@ export class ToolsModalComponent extends TrattModal implements OnDestroy {
     }
 
     // start cutting
-    this.tools.audioCutting.cutter = new AudioCutter(
-      this.audio.audioManager.resource.info,
-    );
+    this.tools.audioCutting.cutter = new AudioCutter(manager.resource.info);
 
     let totalSize = 0;
     let cuttingStarted = 0;
@@ -318,17 +312,14 @@ export class ToolsModalComponent extends TrattModal implements OnDestroy {
             this.tools.audioCutting.cuttingSpeed =
               (now - cuttingStarted) / 1000 / status.intArray.length;
 
-            const rest =
-              this.audio.audioManager.resource.arraybuffer!.byteLength -
-              totalSize;
+            const rest = manager.resource.arraybuffer!.byteLength - totalSize;
             this.tools.audioCutting.cuttingTimeLeft =
               this.tools.audioCutting.cuttingSpeed * rest;
 
             const zippingSpeed = this.tools.audioCutting.zippingSpeed;
             this.tools.audioCutting.timeLeft = Math.ceil(
               (this.tools.audioCutting.cuttingTimeLeft +
-                this.audio.audioManager.resource.arraybuffer!.byteLength *
-                  zippingSpeed +
+                manager.resource.arraybuffer!.byteLength * zippingSpeed +
                 10) *
                 1000,
             );
@@ -351,13 +342,13 @@ export class ToolsModalComponent extends TrattModal implements OnDestroy {
               const converter = new TextTableConverter();
               const content = converter.exportList(
                 cutList,
-                this.audio.audioManager.resource.info,
-                this.audio.audioManager.resource.info.fullname,
+                manager.resource.info,
+                manager.resource.info.fullname,
                 this.namingConvention.namingConvention,
               );
 
               this.tools.audioCutting.archiveStructure[
-                this.audio.audioManager.resource.info.name + '_meta.txt'
+                manager.resource.info.name + '_meta.txt'
               ] = strToU8(content);
               finished++;
             }
@@ -367,13 +358,13 @@ export class ToolsModalComponent extends TrattModal implements OnDestroy {
               const converter = new JSONConverter();
               const content = converter.exportList(
                 cutList,
-                this.audio.audioManager.resource.info,
-                this.audio.audioManager.resource.info.fullname,
+                manager.resource.info,
+                manager.resource.info.fullname,
                 this.namingConvention.namingConvention,
               );
 
               this.tools.audioCutting.archiveStructure[
-                this.audio.audioManager.resource.info.name + '_meta.json'
+                manager.resource.info.name + '_meta.json'
               ] = strToU8(JSON.stringify(content, undefined, 2));
               finished++;
             }
@@ -431,14 +422,11 @@ export class ToolsModalComponent extends TrattModal implements OnDestroy {
                     this.tools.audioCutting.result.url =
                       this.sanitizer.bypassSecurityTrustResourceUrl(
                         URL.createObjectURL(
-                          new File(
-                            [data],
-                            this.audio.audioManager.resource.info.name + '.zip',
-                          ),
+                          new File([data], manager.resource.info.name + '.zip'),
                         ),
                       );
                     this.tools.audioCutting.result.filename =
-                      this.audio.audioManager.resource.info.name + '.zip';
+                      manager.resource.info.name + '.zip';
                   } catch (e) {
                     this.modalsService.openModal(
                       ErrorModalComponent,
@@ -501,7 +489,7 @@ export class ToolsModalComponent extends TrattModal implements OnDestroy {
         cuttingStarted = Date.now();
         this.tools.audioCutting.cutter!.cutChannelDataSequentially(
           this.namingConvention.namingConvention,
-          this.audio.audioManager.channel!,
+          manager.channel!,
           cutList,
         );
       })
