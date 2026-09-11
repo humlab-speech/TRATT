@@ -63,6 +63,15 @@ import { FileInfo } from '@tratt/web-media';
 import mime from 'mime';
 import { FeedBackForm } from '../../../obj/FeedbackForm/FeedBackForm';
 
+/**
+ * True when `url` is the `/workbench` route or a sub-path/query/hash of it.
+ * Deliberately anchored (not a plain `startsWith('/workbench')` check) so it
+ * doesn't also match a hypothetical future route like `/workbench-v2`.
+ */
+export function isWorkbenchRoute(url: string): boolean {
+  return /^\/workbench(\/|\?|#|$)/.test(url);
+}
+
 @Injectable()
 export class AnnotationLoadEffects {
   subscrManager = new SubscriptionManager();
@@ -430,7 +439,7 @@ export class AnnotationLoadEffects {
         withLatestFrom(this.store),
         tap(([a, state]) => {
           if (state.application.mode === LoginMode.LOCAL) {
-            if (!this.router.url.startsWith('/workbench')) {
+            if (!isWorkbenchRoute(this.router.url)) {
               this.routingService
                 .navigate(
                   'reload audio local',
@@ -467,7 +476,7 @@ export class AnnotationLoadEffects {
         ofType(AnnotationActions.initTranscriptionService.success),
         withLatestFrom(this.store),
         tap(([action, state]) => {
-          if (!this.router.url.startsWith('/workbench')) {
+          if (!isWorkbenchRoute(this.router.url)) {
             this.routingService.navigate(
               'transcription initialized',
               ['/intern/transcr'],
@@ -927,7 +936,7 @@ export class AnnotationLoadEffects {
       this.actions$.pipe(
         ofType(AnnotationActions.redirectToTranscription.do),
         tap((a) => {
-          if (!this.router.url.startsWith('/workbench')) {
+          if (!isWorkbenchRoute(this.router.url)) {
             this.routingService.navigate(
               'redirect to transcription loadOnlineInformationAfterIDBLoaded',
               ['/intern/transcr'],

@@ -13,7 +13,7 @@ import { RoutingService } from '../../../shared/service/routing.service';
 import { TrattModalService } from '../../../modals/tratt-modal.service';
 import { LoginMode, RootState } from '../../index';
 import { AnnotationActions } from './annotation.actions';
-import { AnnotationLoadEffects } from './annotation-load.effects';
+import { AnnotationLoadEffects, isWorkbenchRoute } from './annotation-load.effects';
 import { AnnotationMaintenanceService } from './annotation-maintenance.service';
 import { AppInfo } from '../../../../app.info';
 
@@ -151,5 +151,51 @@ describe('AnnotationLoadEffects.loadSegmentsSuccess$', () => {
       expect(routingService.navigate).not.toHaveBeenCalled();
       done();
     });
+  });
+
+  it('does not navigate to /intern/transcr when the current URL is /workbench with a query string', (done) => {
+    router.url = '/workbench?foo=bar';
+    actions$.next(successPayloadFixture);
+
+    effects.loadSegmentsSuccess$.subscribe(() => {
+      expect(routingService.navigate).not.toHaveBeenCalled();
+      done();
+    });
+  });
+
+  it('DOES navigate to /intern/transcr when the current URL is a lookalike route like /workbench-v2 (regression guard for the fragile startsWith check)', (done) => {
+    router.url = '/workbench-v2';
+    actions$.next(successPayloadFixture);
+
+    effects.loadSegmentsSuccess$.subscribe(() => {
+      expect(routingService.navigate).toHaveBeenCalledWith(
+        'transcription initialized',
+        ['/intern/transcr'],
+        AppInfo.queryParamsHandling,
+      );
+      done();
+    });
+  });
+});
+
+describe('isWorkbenchRoute', () => {
+  it('matches the bare /workbench route', () => {
+    expect(isWorkbenchRoute('/workbench')).toBe(true);
+  });
+
+  it('matches /workbench sub-paths, query strings and hashes', () => {
+    expect(isWorkbenchRoute('/workbench/session')).toBe(true);
+    expect(isWorkbenchRoute('/workbench?foo=bar')).toBe(true);
+    expect(isWorkbenchRoute('/workbench#section')).toBe(true);
+  });
+
+  it('does NOT match lookalike routes that merely start with /workbench', () => {
+    expect(isWorkbenchRoute('/workbench-v2')).toBe(false);
+    expect(isWorkbenchRoute('/workbenches')).toBe(false);
+  });
+
+  it('does not match unrelated routes', () => {
+    expect(isWorkbenchRoute('/local')).toBe(false);
+    expect(isWorkbenchRoute('/intern/transcr')).toBe(false);
   });
 });
