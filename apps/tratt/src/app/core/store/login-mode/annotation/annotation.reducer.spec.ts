@@ -1,6 +1,7 @@
 import { describe, expect, it } from '@jest/globals';
-import { createReducer } from '@ngrx/store';
+import { Action, createReducer } from '@ngrx/store';
 import {
+  AnnotationLevelType,
   OLabel,
   TrattAnnotation,
   TrattAnnotationSegment,
@@ -8,9 +9,15 @@ import {
 } from '@tratt/annotation';
 import { SampleUnit } from '@tratt/media';
 import { LoginMode } from '../../index';
+import { LoginModeActions } from '../login-mode.actions';
+import { LoginModeReducers } from '../login-mode.reducer';
 import { AnnotationActions } from './annotation.actions';
 import { AnnotationStateReducers, initialState } from './annotation.reducer';
 import { AnnotationState } from './index';
+import {
+  LocalBundleCollectionState,
+  resolveLocalBundleState,
+} from './local-bundle-collection';
 
 function buildState(): AnnotationState {
   const transcript = new TrattAnnotation<TrattAnnotationSegment>();
@@ -244,5 +251,139 @@ describe('reducers return new state objects instead of mutating in place', () =>
       AnnotationActions.duplicateLevel.do({ mode: LoginMode.LOCAL, index: 0 }),
     );
     expect(next).not.toBe(state);
+  });
+});
+
+// Phase-0 leftover: before the entity-collection refactor (Tasks 1-4), LOCAL mode's
+// NgRx slice was reduced by the exact same `LoginModeReducers` instance as
+// ONLINE/DEMO/URL mode -- just a flat `AnnotationState`. Task 2 wrapped the LOCAL
+// instance's output in a one-entity `@ngrx/entity` collection (`LocalBundleCollectionState`);
+// every chokepoint that reads it (`getModeState`, `IDBEffectsService`, `selectActiveAnnotation`,
+// and this task's 3 scattered raw reads) was updated to unwrap it via
+// `resolveLocalBundleState()`. This suite pins the actual invariant the whole refactor must
+// preserve: dispatching an identical action sequence through the LOCAL (entity-wrapped)
+// reducer and through a plain, never-wrapped reducer (ONLINE mode's instance, confirmed
+// untouched by `login-mode.reducer.spec.ts`) and reading the LOCAL side back out via
+// `resolveLocalBundleState()` must produce byte-identical session data at every step.
+describe('LOCAL-mode characterization: entity-wrapped output matches a plain AnnotationState reducer', () => {
+  const audioDuration = new SampleUnit(48000, 48000);
+
+  interface CharacterizationStep {
+    label: string;
+    action: (mode: LoginMode) => Action;
+    // Concrete before/after value this step must produce, asserted against both sides.
+    assertExpected: (state: AnnotationState) => void;
+  }
+
+  const steps: CharacterizationStep[] = [
+    {
+      label: 'comment change',
+      action: (mode) =>
+        LoginModeActions.changeComment.do({
+          comment: 'characterization test comment',
+          mode,
+        }),
+      assertExpected: (state) => {
+        expect(state.currentSession.comment).toBe(
+          'characterization test comment',
+        );
+      },
+    },
+    {
+      label: 'level add',
+      action: (mode) =>
+        AnnotationActions.addAnnotationLevel.do({
+          levelType: AnnotationLevelType.SEGMENT,
+          audioDuration,
+          mode,
+        }),
+      assertExpected: (state) => {
+        expect(state.transcript.levels.length).toBe(1);
+        expect(state.transcript.levels[0].name).toBe('OCTRA_2');
+        expect(
+          (state.transcript.levels[0] as TrattAnnotationSegmentLevel<TrattAnnotationSegment>)
+            .items.length,
+        ).toBe(1);
+      },
+    },
+    {
+      label: 'transcript update',
+      action: (mode) => {
+        const replacement = new TrattAnnotation<TrattAnnotationSegment>();
+        const replacementLevel = replacement.createSegmentLevel('Replaced', [
+          replacement.createSegment(audioDuration.clone(), [
+            new OLabel('Replaced', 'new transcript content'),
+          ]),
+        ]);
+        replacement.addLevel(replacementLevel);
+        return AnnotationActions.overwriteTranscript.do({
+          transcript: replacement,
+          mode,
+          saveToDB: false,
+        });
+      },
+      assertExpected: (state) => {
+        expect(state.transcript.levels.length).toBe(1);
+        expect(state.transcript.levels[0].name).toBe('Replaced');
+        expect(
+          (
+            state.transcript
+              .levels[0] as TrattAnnotationSegmentLevel<TrattAnnotationSegment>
+          ).items[0].labels.find((l) => l.name === 'Replaced')?.value,
+        ).toBe('new transcript content');
+      },
+    },
+  ];
+
+  it('produces byte-identical currentSession/transcript output for LOCAL (entity-wrapped) vs a plain (never-wrapped) reducer, action by action', () => {
+    const localReducer = new LoginModeReducers(LoginMode.LOCAL).create();
+    const plainReducer = new LoginModeReducers(LoginMode.ONLINE).create();
+
+    let localCollectionState = localReducer(undefined, {
+      type: '@@INIT',
+    } as Action) as unknown as LocalBundleCollectionState;
+    let plainState = plainReducer(undefined, {
+      type: '@@INIT',
+    } as Action) as AnnotationState;
+
+    // sanity check: LOCAL really is entity-wrapped, ONLINE really is flat, before we
+    // start comparing their unwrapped output.
+    expect(localCollectionState.bundles).toBeDefined();
+    expect((plainState as any).bundles).toBeUndefined();
+
+    for (const step of steps) {
+      localCollectionState = localReducer(
+        localCollectionState as any,
+        step.action(LoginMode.LOCAL),
+      ) as unknown as LocalBundleCollectionState;
+      plainState = plainReducer(
+        plainState as any,
+        step.action(LoginMode.ONLINE),
+      ) as AnnotationState;
+
+      const localState = resolveLocalBundleState(localCollectionState);
+      expect(localState).toBeDefined();
+
+      // the pinned, concrete before/after value for this step, on both sides
+      step.assertExpected(localState!);
+      step.assertExpected(plainState);
+
+      // the invariant: entity-wrapping changed nothing observable about the session
+      expect(localState!.currentSession.comment).toEqual(
+        plainState.currentSession.comment,
+      );
+      expect(localState!.transcript.levels.map((l) => l.name)).toEqual(
+        plainState.transcript.levels.map((l) => l.name),
+      );
+      expect(
+        localState!.transcript.levels.map((l) =>
+          l instanceof TrattAnnotationSegmentLevel ? l.items.length : 0,
+        ),
+      ).toEqual(
+        plainState.transcript.levels.map((l) =>
+          l instanceof TrattAnnotationSegmentLevel ? l.items.length : 0,
+        ),
+      );
+    }
   });
 });

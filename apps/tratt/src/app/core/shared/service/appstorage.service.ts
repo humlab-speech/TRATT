@@ -49,7 +49,7 @@ export class AppStorageService {
   }
 
   get sessionfile(): SessionFile {
-    return resolveLocalBundleState(this._snapshot.localMode)?.sessionFile!;
+    return resolveLocalBundleState(this._snapshot.localMode)!.sessionFile!;
   }
 
   get playOnHover(): boolean | undefined | null {
