@@ -67,6 +67,39 @@ today, and leave the ~24 call sites in `application/`, `authentication/`, `idb/`
 access, bypassing selectors) for the later 2.4 sweep — they're smaller and more concentrated
 than "200 sites" suggests, but they don't get fixed by re-pointing selectors alone.
 
+## Correction (found 2026-09-11, during 2.2 planning): per-bundle undo is already structurally correct
+
+The conversion plan's §2.3 frames per-bundle undo as "the subtlest change in the plan and the one
+that corrupts data silently if wrong," requiring `undoable()` applied per-bundle with a
+higher-order routing reducer. **Step 2.1 already built exactly that higher-order router**
+(`wrapAsLocalBundleCollectionReducer`), and it turns out to already give correct, fully-isolated
+per-bundle undo — verified by reading `ngrx-wieder@14.0.0`'s actual source
+(`node_modules/ngrx-wieder/fesm2022/ngrx-wieder.mjs`): the wrapped reducer is **100%
+state-object-pure**. Every piece of undo/redo bookkeeping (`Step[]` patches, `undone` stack,
+`mergeBroken`) lives in `state.histories[key]` — part of `AnnotationState` itself, per-bundle by
+construction — never in a closure-captured or module-level variable inside the library. Calling
+the same wrapped reducer with two different `AnnotationState` objects (two different bundles) is
+therefore automatically, correctly isolated: no cross-contamination is possible, because there is
+nothing external to contaminate with.
+
+**What's actually still missing** is not undo-isolation logic — it's that
+`localBundleAdapter`'s `selectId: () => DEFAULT_BUNDLE_ID` (step 2.1's deliberate one-entity seam)
+makes it *structurally impossible* to store more than one entity today: every `setOne(...)`
+overwrites the same slot regardless of what's passed in. So "prove per-bundle undo" cannot be
+tested without first giving bundles real, distinct ids — a small prerequisite, not the full
+multi-file ingest UX (dropzone changes, per-file list state, sequential decode) the plan's §2.7
+separately scopes.
+
+**Revised step 2.2 scope**: (a) give bundles real generated ids (replacing the constant closure)
+and an internal (not yet UI-exposed) way to add a second entity to the collection, (b) write the
+regression test the plan's risk register demanded — edit bundle A, edit bundle B, switch
+selection, undo, assert A untouched — now genuinely exercisable against two real entities, (c)
+no production routing/wrapping logic changes needed beyond (a), since 2.1's wrapper already routes
+every action (including `ngrx-wieder`'s own UNDO/REDO action types) through `selectedBundleId` to
+the correct entity, which is exactly what "the global keyboard shortcut resolves against the
+selection" (§2.3) requires — it falls out of the existing routing for free. Full multi-file
+ingest UX stays scoped to step 2.7.
+
 ## Phases (plan §3–§8, full estimates and step-by-step notes there)
 
 0. **Clear the ground** (1wk) — delete stale `multi-threading` copies (use lib versions), guard
