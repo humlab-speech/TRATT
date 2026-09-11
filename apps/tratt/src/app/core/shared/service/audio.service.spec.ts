@@ -96,6 +96,94 @@ describe('AudioService — registry', () => {
   });
 });
 
+describe('AudioService — eviction and envelope', () => {
+  let service: AudioService;
+  let store: MockStore<RootState>;
+
+  const stateWithSelected = (selectedBundleId: string) =>
+    ({
+      application: { mode: LoginMode.LOCAL },
+      localMode: {
+        bundles: localBundleAdapter.getInitialState(),
+        selectedBundleId,
+      },
+    }) as unknown as RootState;
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      providers: [
+        AudioService,
+        { provide: HttpClient, useValue: {} },
+        provideMockStore({ initialState: stateWithSelected('bundle-1') }),
+      ],
+    });
+    service = TestBed.inject(AudioService);
+    store = TestBed.inject(MockStore);
+  });
+
+  const fakeManager = (name: string) =>
+    ({
+      resource: { name },
+      audioMechanism: { missingPermission: { subscribe: jest.fn() } },
+      channel: new Float32Array(1000).fill(0.1),
+      destroy: jest.fn(async () => undefined),
+    }) as any;
+
+  // Registers a manager for `id` and drives the store's selectedBundleId to
+  // `id`, flushing the service's constructor effect() so trackSelection runs
+  // synchronously before the next assertion/registration.
+  const selectBundle = (id: string) => {
+    store.setState(stateWithSelected(id));
+    TestBed.flushEffects();
+  };
+
+  it('evicts the least-recently-selected bundle once more than 3 distinct bundles have been selected', () => {
+    const managers: Record<string, any> = {
+      b1: fakeManager('b1'),
+      b2: fakeManager('b2'),
+      b3: fakeManager('b3'),
+      b4: fakeManager('b4'),
+    };
+
+    for (const id of ['b1', 'b2', 'b3', 'b4']) {
+      service.registerAudioManager(id, managers[id]);
+      selectBundle(id);
+    }
+
+    expect(service.current).toBe(managers['b4']);
+    expect(managers['b1'].destroy).toHaveBeenCalled();
+    expect(service.audiomanagers).not.toContain(managers['b1']);
+    expect(service.audiomanagers).toContain(managers['b2']);
+    expect(service.audiomanagers).toContain(managers['b3']);
+    expect(service.audiomanagers).toContain(managers['b4']);
+  });
+
+  it("preserves the evicted bundle's envelope after eviction", async () => {
+    const managers: Record<string, any> = {
+      b1: fakeManager('b1'),
+      b2: fakeManager('b2'),
+      b3: fakeManager('b3'),
+      b4: fakeManager('b4'),
+    };
+
+    for (const id of ['b1', 'b2', 'b3', 'b4']) {
+      service.registerAudioManager(id, managers[id]);
+      selectBundle(id);
+    }
+
+    // envelope computation is async (computeAudioEnvelope resolves a Promise)
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(managers['b1'].destroy).toHaveBeenCalled();
+    expect(service.getEnvelope('b1')).toBeDefined();
+  });
+
+  it('evict(bundleId) is a safe no-op when no manager is registered for that id', () => {
+    expect(() => service.evict('never-registered')).not.toThrow();
+  });
+});
+
 describe('AudioService missingPermission notifier (C8)', () => {
   let service: AudioService;
 

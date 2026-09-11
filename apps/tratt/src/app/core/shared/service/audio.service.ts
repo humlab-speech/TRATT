@@ -1,5 +1,5 @@
 import { HttpClient } from '@angular/common/http';
-import { EventEmitter, Injectable, isDevMode } from '@angular/core';
+import { effect, EventEmitter, Injectable, isDevMode } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { TaskInputOutputDto } from '@octra/api-types';
 import { downloadFile } from '@tratt/ngx-utilities';
@@ -8,6 +8,15 @@ import { AudioManager } from '@tratt/web-media';
 import { Subject, Subscription } from 'rxjs';
 import { selectSelectedBundleId } from '../../store/login-mode/annotation/annotation.selectors';
 import { DEFAULT_BUNDLE_ID } from '../../store/login-mode/annotation/local-bundle-collection';
+import { AudioEnvelope, computeAudioEnvelope } from './audio-envelope';
+
+/**
+ * Max number of bundles whose `AudioManager` (PCM/blob memory) is kept
+ * resident at once. Selecting a 4th distinct bundle evicts the
+ * least-recently-selected one; its computed envelope is kept cached so a
+ * re-selected bundle can paint instantly while its audio re-decodes.
+ */
+export const MAX_RESIDENT_BUNDLES = 3;
 
 @Injectable()
 export class AudioService {
@@ -17,6 +26,8 @@ export class AudioService {
   private afterloaded: EventEmitter<any> = new EventEmitter<any>();
 
   private _audiomanagers = new Map<string, AudioManager>();
+  private _envelopes = new Map<string, AudioEnvelope>();
+  private recentBundleIds: string[] = [];
   private selectedBundleId = this.store.selectSignal(selectSelectedBundleId);
 
   get audiomanagers(): AudioManager[] {
@@ -54,7 +65,33 @@ export class AudioService {
   constructor(
     private http: HttpClient,
     private store: Store,
-  ) {}
+  ) {
+    effect(() => {
+      const id = this.selectedBundleId();
+      if (id) {
+        this.trackSelection(id);
+      }
+    });
+  }
+
+  /**
+   * Marks `bundleId` as the most-recently-selected bundle and evicts the
+   * least-recently-selected bundle(s) once more than `MAX_RESIDENT_BUNDLES`
+   * distinct bundles have been selected.
+   */
+  private trackSelection(bundleId: string): void {
+    const idx = this.recentBundleIds.indexOf(bundleId);
+    if (idx !== -1) {
+      this.recentBundleIds.splice(idx, 1);
+    }
+    this.recentBundleIds.push(bundleId);
+    while (this.recentBundleIds.length > MAX_RESIDENT_BUNDLES) {
+      const oldest = this.recentBundleIds.shift();
+      if (oldest !== undefined) {
+        this.evict(oldest);
+      }
+    }
+  }
 
   /**
    * loadAudio(url) loads the audio data referred to via the URL in an AJAX call.
@@ -123,8 +160,37 @@ export class AudioService {
             this.missingPermission.emit();
           }),
         );
+
+        if (manager.channel) {
+          computeAudioEnvelope(manager.channel).then((envelope) => {
+            this._envelopes.set(bundleId, envelope);
+          });
+        }
       }
     }
+  }
+
+  /**
+   * Evicts `bundleId`'s resident `AudioManager` — destroys it (freeing
+   * PCM/blob memory) and removes it from the registry. Its cached envelope
+   * (if computed) is deliberately left intact, so a re-selected bundle can
+   * paint instantly from it while its audio re-decodes. No-op if no manager
+   * is registered for `bundleId`.
+   */
+  public evict(bundleId: string): void {
+    const manager = this._audiomanagers.get(bundleId);
+    if (manager) {
+      manager.destroy();
+      this._audiomanagers.delete(bundleId);
+    }
+  }
+
+  /**
+   * Returns the cached envelope for `bundleId`, if one has been computed —
+   * survives eviction of that bundle's `AudioManager`.
+   */
+  public getEnvelope(bundleId: string): AudioEnvelope | undefined {
+    return this._envelopes.get(bundleId);
   }
 
   public async destroy(disconnect = true) {
