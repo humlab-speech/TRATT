@@ -8,7 +8,10 @@ import {
 
 describe('selectActiveAnnotation', () => {
   it('LOCAL mode: resolves through the bundle collection to the flat AnnotationState', () => {
-    const fakeAnnotation = { savingNeeded: true } as any;
+    const fakeAnnotation = {
+      savingNeeded: true,
+      bundleId: DEFAULT_BUNDLE_ID,
+    } as any;
     const state = {
       application: { mode: LoginMode.LOCAL },
       localMode: {

@@ -7,7 +7,10 @@ import {
 
 describe('getModeState', () => {
   it('LOCAL mode: resolves the flat AnnotationState from the entity collection', () => {
-    const fakeAnnotation = { savingNeeded: true } as any;
+    const fakeAnnotation = {
+      savingNeeded: true,
+      bundleId: DEFAULT_BUNDLE_ID,
+    } as any;
     const state = {
       application: { mode: LoginMode.LOCAL },
       localMode: {

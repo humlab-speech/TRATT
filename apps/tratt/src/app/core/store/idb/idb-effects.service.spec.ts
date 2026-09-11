@@ -35,6 +35,7 @@ describe('IDBEffects undo/redo guards missing audio (C12)', () => {
   // transcript.links/.serialize are the only members either effect's
   // guarded code path touches.
   const fakeLocalAnnotation = {
+    bundleId: DEFAULT_BUNDLE_ID,
     transcript: {
       links: [],
       serialize: jest.fn(),
@@ -131,7 +132,10 @@ describe('IDBEffects.getModeStateFromString', () => {
   });
 
   it('local mode: resolves the flat AnnotationState from the entity collection', () => {
-    const fakeAnnotation = { savingNeeded: true } as any;
+    const fakeAnnotation = {
+      savingNeeded: true,
+      bundleId: DEFAULT_BUNDLE_ID,
+    } as any;
     const appState = {
       application: { mode: LoginMode.LOCAL },
       localMode: {

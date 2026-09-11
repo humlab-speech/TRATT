@@ -47,7 +47,7 @@ function wrapAsLocalBundleCollectionReducer(
   } as Action);
   const initialCollectionState: LocalBundleCollectionState = {
     bundles: localBundleAdapter.setOne(
-      initialInner,
+      { ...initialInner, bundleId: DEFAULT_BUNDLE_ID },
       localBundleAdapter.getInitialState(),
     ),
     selectedBundleId: DEFAULT_BUNDLE_ID,
@@ -64,7 +64,10 @@ function wrapAsLocalBundleCollectionReducer(
     }
     return {
       ...state,
-      bundles: localBundleAdapter.setOne(nextInner, state.bundles),
+      bundles: localBundleAdapter.setOne(
+        { ...nextInner, bundleId: state.selectedBundleId },
+        state.bundles,
+      ),
     };
   };
 }
