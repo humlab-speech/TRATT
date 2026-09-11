@@ -10,5 +10,154 @@
       {{ 'workbench.start session' | transloco }}
     </button>
   </div>
-  <div class="workbench__right"></div>
+  @if (sessionReady) {
+    <div class="workbench__right">
+      <tratt-fastbar></tratt-fastbar>
+
+      <div class="flex">
+        <ng-container trattLoadeditor #showEditor></ng-container>
+      </div>
+
+      @if (showCommentSection) {
+        <div class="row">
+          <textarea
+            [ngModel]="annotationStoreService.comment"
+            (ngModelChange)="annotationStoreService.changeComment($event)"
+            class="w-100 d-flex"
+            name="comment"
+            placeholder="{{ 'g.insert comment' | transloco }}"
+            style="
+              resize: none;
+              background-color: var(--tratt-note-surface);
+              height: 40px;
+            "
+          ></textarea>
+        </div>
+      }
+      <div class="row" id="bottom-navigation" role="group">
+        <div class="btn-group w-100">
+          @if (
+            selectedTheme === 'shortAudioFiles' &&
+            (useMode === 'online' || useMode === 'demo')
+          ) {
+            <button
+              (click)="abortTranscription()"
+              class="col-md-3 btn btn-secondary"
+              type="button"
+            >
+              <i class="bi bi-x-circle"></i>
+              <span>
+                {{ 'g.quit' | transloco }}
+              </span>
+            </button>
+            <button
+              (click)="sendTranscriptionForShortAudioFiles('bad')"
+              class="col-md-3 btn btn-danger"
+              type="button"
+            >
+              <i class="bi bi-star-fill"></i>
+            </button>
+            <button
+              (click)="sendTranscriptionForShortAudioFiles('middle')"
+              class="btn btn-raised btn-warning col-md-3 btn btn-warning"
+              type="button"
+              style="background-color: var(--tratt-accent-warning)"
+            >
+              <i class="bi bi-star-fill"></i>
+              <i class="bi bi-star-fill"></i>
+            </button>
+            <button
+              (click)="sendTranscriptionForShortAudioFiles('good')"
+              class="col-md-3 btn btn-primary"
+              type="button"
+            >
+              <i class="bi bi-star-fill"></i>
+              <i class="bi bi-star-fill"></i>
+              <i class="bi bi-star-fill"></i>
+            </button>
+          } @else {
+            @if (useMode !== 'url' || routingService.staticQueryParams.bottomNav) {
+              <button
+                (click)="abortTranscription()"
+                type="button"
+                class="col-md-6 btn btn-secondary"
+              >
+                <i class="bi bi-x-circle"></i>
+                @if (!appStorage.easyMode) {
+                  <span class="d-none d-md-inline">
+                    {{ 'g.quit' | transloco }}
+                  </span>
+                }
+              </button>
+            }
+            @if (
+              useMode === 'local' ||
+              (useMode === 'url' && routingService.staticQueryParams.bottomNav)
+            ) {
+              <button
+                (click)="navbarServ.doclick('export')"
+                class="col-md-6 btn btn-primary"
+                type="button"
+              >
+                <i class="bi bi-download"></i>
+                @if (!appStorage.easyMode) {
+                  <span class="d-none d-md-inline">
+                    {{ 'g.export data' | transloco }}</span
+                  >
+                }
+              </button>
+            }
+            @if (
+              (useMode === 'local' ||
+                (useMode === 'url' &&
+                  routingService.staticQueryParams.bottomNav)) &&
+              recordedFileService.recordedFile
+            ) {
+              <button
+                (click)="recordedFileService.triggerExport()"
+                class="col-md-6 btn btn-secondary"
+                type="button"
+              >
+                <i class="bi bi-mic-fill"></i>
+                @if (!appStorage.easyMode) {
+                  <span class="d-none d-md-inline">
+                    {{ 'g.export recording' | transloco }}</span
+                  >
+                }
+              </button>
+            }
+            @if (useMode === 'online' || useMode === 'demo') {
+              <button
+                (click)="onSendButtonClick()"
+                class="col-md-6 btn btn-primary"
+                type="button"
+              >
+                @if (!appStorage.easyMode) {
+                  <span class="d-none d-md-inline">
+                    {{ 'transcription.send' | transloco }}
+                  </span>
+                }
+                <i class="bi bi-send-fill"></i>
+              </button>
+            }
+            @if (useMode === 'url') {
+              @if (
+                !routingService.staticQueryParams.readonly &&
+                routingService.staticQueryParams.embedded
+              ) {
+                <button
+                  (click)="onSaveTranscriptionButtonClicked()"
+                  class="btn btn-primary"
+                  type="button"
+                >
+                  <i class="bi bi-floppy-fill"></i>
+                  <span> {{ 'g.save' | transloco }} </span>
+                </button>
+              }
+            }
+          }
+        </div>
+      </div>
+    </div>
+  }
 </div>

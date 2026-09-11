@@ -1,24 +1,117 @@
-import { ChangeDetectionStrategy, Component, ViewChild } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  OnInit,
+  Type,
+  ViewChild,
+} from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { TranslocoPipe } from '@jsverse/transloco';
+import { NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
+import { AnnotJSONConverter, Converter } from '@tratt/annotation';
+import { timer } from 'rxjs';
+import { AppInfo } from '../../../app.info';
+import { editorComponents } from '../../../editors/components';
+import { TRATTEditor } from '../../../editors/tratt-editor';
+import { DefaultComponent } from '../../component/default.component';
+import { NavbarService } from '../../component/navbar/navbar.service';
+import { FastbarComponent } from '../../component/taskbar/taskbar.component';
 import { TrattDropzoneComponent } from '../../component/tratt-dropzone/tratt-dropzone.component';
+import {
+  ModalEndAnswer,
+  TranscriptionDemoEndModalComponent,
+} from '../../modals/transcription-demo-end/transcription-demo-end-modal.component';
+import { OverviewModalComponent } from '../../modals/overview-modal/overview-modal.component';
+import { TranscriptionSendingModalComponent } from '../../modals/transcription-sending-modal/transcription-sending-modal.component';
+import {
+  TranscriptionStopModalAnswer,
+  TranscriptionStopModalComponent,
+} from '../../modals/transcription-stop-modal/transcription-stop-modal.component';
+import { TrattModalService } from '../../modals/tratt-modal.service';
+import { ProjectSettings } from '../../obj/Settings';
+import { LoadeditorDirective } from '../../shared/directive/loadeditor.directive';
+import { AppStorageService } from '../../shared/service/appstorage.service';
 import { AudioService } from '../../shared/service/audio.service';
+import { RecordedFileService } from '../../shared/service/recorded-file.service';
+import { RoutingService } from '../../shared/service/routing.service';
+import { SettingsService, UserInteractionsService } from '../../shared/service';
+import { LoginMode } from '../../store';
+import { ApplicationStoreService } from '../../store/application/application-store.service';
 import { AuthenticationStoreService } from '../../store/authentication/authentication-store.service';
+import { AnnotationStoreService } from '../../store/login-mode/annotation/annotation.store.service';
 
 @Component({
   selector: 'tratt-workbench',
   templateUrl: './workbench.component.html',
   styleUrls: ['./workbench.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [TrattDropzoneComponent, TranslocoPipe],
+  imports: [
+    TrattDropzoneComponent,
+    TranslocoPipe,
+    FastbarComponent,
+    LoadeditorDirective,
+    FormsModule,
+  ],
 })
-export class WorkbenchComponent {
+export class WorkbenchComponent extends DefaultComponent implements OnInit {
   @ViewChild(TrattDropzoneComponent) dropzone?: TrattDropzoneComponent;
+  @ViewChild(LoadeditorDirective) showEditor?: LoadeditorDirective;
+
   sessionStarting = false;
+  // Task 4 drives this from the store instead of leaving it always false.
+  sessionReady = false;
+
+  showCommentSection = false;
+  modalOverview?: NgbModalRef;
+  transcrSendingModal?: NgbModalRef;
+  modalVisiblities = {
+    overview: false,
+  };
+
+  private _useMode = '';
+  private _selectedTheme = '';
+
+  get useMode(): string {
+    return this._useMode;
+  }
+
+  get selectedTheme(): string {
+    return this._selectedTheme;
+  }
+
+  get projectsettings(): ProjectSettings {
+    return this.settingsService.projectsettings!;
+  }
+
+  get comment(): string {
+    return this.annotationStoreService.comment;
+  }
 
   constructor(
     private audioService: AudioService,
     private authStoreService: AuthenticationStoreService,
-  ) {}
+    public appStorage: AppStorageService,
+    public routingService: RoutingService,
+    public navbarServ: NavbarService,
+    public recordedFileService: RecordedFileService,
+    public annotationStoreService: AnnotationStoreService,
+    private settingsService: SettingsService,
+    private modService: TrattModalService,
+    private appStoreService: ApplicationStoreService,
+    private uiService: UserInteractionsService,
+  ) {
+    super();
+  }
+
+  ngOnInit(): void {
+    this._useMode = this.appStorage.useMode;
+    this._selectedTheme = !this.projectsettings?.tratt?.theme
+      ? 'default'
+      : this.projectsettings?.tratt.theme;
+    this.showCommentSection =
+      this.settingsService.isTheme('shortAudioFiles') &&
+      (this._useMode === 'online' || this._useMode === 'demo');
+  }
 
   startSession(removeData: boolean): void {
     const manager = this.dropzone?.audioManager;
@@ -38,5 +131,230 @@ export class WorkbenchComponent {
     this.audioService.registerAudioManager(manager);
     this.dropzone!.releaseAudioManager();
     this.authStoreService.loginLocal(files, annotation, removeData);
+  }
+
+  changeEditor(name: string): void {
+    let comp: Type<TRATTEditor> | undefined;
+
+    if (name === undefined || name === '') {
+      // fallback to last editor
+      name = editorComponents[editorComponents.length - 1].name;
+    }
+    for (const editorComponent of editorComponents) {
+      if (name === editorComponent.name) {
+        comp = editorComponent.editor;
+        break;
+      }
+    }
+
+    if (comp === undefined) {
+      console.error('ERROR editor component is undefined');
+      return;
+    }
+
+    if (this.showEditor === undefined) {
+      console.error('ERROR showEditor is undefined');
+      return;
+    }
+
+    const viewContainerRef = this.showEditor.viewContainerRef;
+    viewContainerRef.clear();
+    viewContainerRef.createComponent<TRATTEditor>(comp);
+  }
+
+  abortTranscription = async () => {
+    if (!(await this.recordedFileService.checkUnsaved(this.modService))) return;
+    if ([LoginMode.ONLINE, LoginMode.URL].includes(this.appStorage.useMode)) {
+      this.modService
+        .openModal(
+          TranscriptionStopModalComponent,
+          TranscriptionStopModalComponent.options,
+        )
+        .then((answer: any) => {
+          if (answer === TranscriptionStopModalAnswer.QUIT) {
+            this.annotationStoreService.quit(false, false, false);
+          } else if (answer === TranscriptionStopModalAnswer.QUITRELEASE) {
+            this.annotationStoreService.quit(true, true, false);
+          }
+          // else do nothing
+        })
+        .catch((error) => {
+          console.error(error);
+        });
+    } else {
+      this.annotationStoreService.quit(false, false, false);
+    }
+  };
+
+  public onSendNowClick() {
+    if (this._useMode === LoginMode.ONLINE) {
+      if (this._useMode === LoginMode.ONLINE) {
+        this.annotationStoreService.sendOnlineAnnotation();
+      }
+    } else if (this._useMode === LoginMode.DEMO) {
+      // only if opened
+      if (this.modalVisiblities.overview) {
+        this.modalOverview!.close();
+      }
+
+      this.modService
+        .openModal(
+          TranscriptionDemoEndModalComponent,
+          TranscriptionDemoEndModalComponent.options,
+        )
+        .then((action: any) => {
+          this.appStorage.savingNeeded = false;
+
+          switch (action) {
+            case ModalEndAnswer.CANCEL:
+              break;
+            case ModalEndAnswer.QUIT:
+              this.abortTranscription();
+              break;
+            case ModalEndAnswer.CONTINUE:
+              this.transcrSendingModal = this.modService.openModalRef(
+                TranscriptionSendingModalComponent,
+                TranscriptionSendingModalComponent.options,
+              );
+              this.subscribe(timer(1000), () => {
+                // simulate nextTranscription
+                this.transcrSendingModal!.close();
+                this.reloadDemo();
+              });
+              break;
+          }
+        })
+        .catch((error) => {
+          console.error(error);
+        });
+    }
+  }
+
+  onSendButtonClick() {
+    const showOverview =
+      this.projectsettings.tratt?.showOverviewIfTranscriptNotValid === undefined
+        ? true
+        : this.projectsettings.tratt?.sendValidatedTranscriptionOnly;
+    const validTranscriptOnly =
+      this.projectsettings.tratt?.sendValidatedTranscriptionOnly === undefined
+        ? false
+        : this.projectsettings.tratt?.sendValidatedTranscriptionOnly;
+
+    this.annotationStoreService.validateAll();
+    const validTranscript = this.annotationStoreService.transcriptValid;
+
+    if (
+      (!validTranscript && showOverview) ||
+      (validTranscriptOnly && !validTranscript)
+    ) {
+      this.modalOverview = this.modService.openModalRef(
+        OverviewModalComponent,
+        OverviewModalComponent.options,
+      );
+      this.subscriptionManager.removeByTag('overview modal transcr send');
+      this.subscribe(
+        this.modalOverview.componentInstance.transcriptionSend,
+        () => {
+          this.appStoreService.setShortcutsEnabled(true);
+          this.modalOverview?.close();
+          this.modalVisiblities.overview = false;
+          timer(1000).subscribe({
+            next: () => {
+              this.onSendNowClick();
+            },
+          });
+        },
+        'overview modal transcr send',
+      );
+    } else {
+      this.onSendNowClick();
+    }
+  }
+
+  reloadDemo() {
+    this.annotationStoreService.endTranscription(true);
+    this.clearDataPermanently();
+    this.authStoreService.loginDemo();
+  }
+
+  clearDataPermanently() {
+    // replace with store method
+    this.appStorage.clearAnnotationPermanently(); // ok
+    this.appStorage.feedback = {}; // ok
+    this.annotationStoreService.changeComment(''); // ok
+    this.appStorage.clearLoggingDataPermanently(); // ok
+    this.uiService.elements = [];
+  }
+
+  public onSaveTranscriptionButtonClicked() {
+    const aType = this.routingService.staticQueryParams.annotationExportType;
+    let converter: Converter | undefined = undefined;
+
+    if (!aType || aType === 'AnnotJSON') {
+      converter = new AnnotJSONConverter();
+    } else {
+      converter = AppInfo.converters.find((a) => a.name === aType);
+
+      if (!converter) {
+        window.parent.postMessage(
+          {
+            error: `Export Type ${aType} is not supported.`,
+            status: 'error',
+          },
+          '*',
+        );
+        return;
+      }
+    }
+
+    const oannotjson = this.annotationStoreService.transcript!.serialize(
+      this.audioService.audioManager.resource.info.fullname,
+      this.audioService.audioManager.resource.info.sampleRate,
+      this.audioService.audioManager.resource.info.duration,
+    );
+    const result = converter.export(
+      oannotjson,
+      this.audioService.audioManager.resource.getOAudioFile(),
+      0,
+    );
+
+    if (!result.error && result.file) {
+      // send result to iframe owner
+      window.parent.postMessage(
+        {
+          data: {
+            annotation: result.file,
+          },
+          status: 'success',
+        },
+        '*',
+      );
+    } else {
+      console.error(`Annotation conversion failed: ${result.error}`);
+      window.parent.postMessage(
+        {
+          error: `Annotation conversion failed: ${result.error}`,
+          status: 'error',
+        },
+        '*',
+      );
+    }
+  }
+
+  public sendTranscriptionForShortAudioFiles(type: 'bad' | 'middle' | 'good') {
+    switch (type) {
+      case 'bad':
+        this.appStorage.feedback = 'SEVERE';
+        break;
+      case 'middle':
+        this.appStorage.feedback = 'SLIGHT';
+        break;
+      case 'good':
+        this.appStorage.feedback = 'OK';
+        break;
+      default:
+    }
+
+    this.onSendButtonClick();
   }
 }

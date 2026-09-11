@@ -15,12 +15,31 @@ jest.mock('../../component/tratt-dropzone/tratt-dropzone.component', () => {
   return { TrattDropzoneComponent };
 });
 
+// WorkbenchComponent imports editorComponents (for changeEditor), which pulls in
+// 2D-editor/dictaphone-editor/linear-editor. Those import TranscrEditorComponent from
+// the core/component barrel, which re-exports navbar.component.ts ->
+// translate-linked-level-modal.component.ts -> local-translation.service.ts, which uses
+// `import.meta.url` and fails to compile under this project's CommonJS ts-jest config
+// (same pre-existing issue worked around in linear-editor.component.spec.ts and
+// editors/components.spec.ts). This test never touches navbar behavior, so the whole
+// navbar submodule is mocked out; WorkbenchComponent's own direct
+// `'../../component/navbar/navbar.service'` import is a different, unaffected module.
+jest.mock('../../component/navbar', () => ({}));
+
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { TranslocoService } from '@jsverse/transloco';
 import { of } from 'rxjs';
 import { WorkbenchComponent } from './workbench.component';
 import { AudioService } from '../../shared/service/audio.service';
 import { AuthenticationStoreService } from '../../store/authentication/authentication-store.service';
+import { AppStorageService } from '../../shared/service/appstorage.service';
+import { RoutingService } from '../../shared/service/routing.service';
+import { NavbarService } from '../../component/navbar/navbar.service';
+import { RecordedFileService } from '../../shared/service/recorded-file.service';
+import { AnnotationStoreService } from '../../store/login-mode/annotation/annotation.store.service';
+import { SettingsService, UserInteractionsService } from '../../shared/service';
+import { TrattModalService } from '../../modals/tratt-modal.service';
+import { ApplicationStoreService } from '../../store/application/application-store.service';
 
 describe('WorkbenchComponent', () => {
   let fixture: ComponentFixture<WorkbenchComponent>;
@@ -37,6 +56,15 @@ describe('WorkbenchComponent', () => {
       providers: [
         { provide: AudioService, useValue: audioService },
         { provide: AuthenticationStoreService, useValue: authStoreService },
+        { provide: AppStorageService, useValue: {} },
+        { provide: RoutingService, useValue: { staticQueryParams: {} } },
+        { provide: NavbarService, useValue: {} },
+        { provide: RecordedFileService, useValue: {} },
+        { provide: AnnotationStoreService, useValue: {} },
+        { provide: SettingsService, useValue: {} },
+        { provide: TrattModalService, useValue: {} },
+        { provide: ApplicationStoreService, useValue: {} },
+        { provide: UserInteractionsService, useValue: {} },
         {
           provide: TranslocoService,
           useValue: {
@@ -98,5 +126,17 @@ describe('WorkbenchComponent', () => {
 
     expect(audioService.registerAudioManager).not.toHaveBeenCalled();
     expect(authStoreService.loginLocal).not.toHaveBeenCalled();
+  });
+
+  it('creates the selected editor component inside the loadeditor viewContainerRef', () => {
+    const createComponentSpy = jest.fn();
+    component.showEditor = {
+      viewContainerRef: { clear: jest.fn(), createComponent: createComponentSpy },
+    } as any;
+
+    component.changeEditor('Dictaphone Editor');
+
+    expect(component.showEditor!.viewContainerRef.clear).toHaveBeenCalled();
+    expect(createComponentSpy).toHaveBeenCalled();
   });
 });
