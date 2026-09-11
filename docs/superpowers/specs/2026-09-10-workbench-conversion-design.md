@@ -41,6 +41,32 @@ machine can hold.
   worker), `CapacityService`, `CatalogueExportService`; `WorkbenchComponent` shell (local/server
   configs of one component).
 
+## Correction (found 2026-09-11, during 2.1 planning): store shape
+
+The conversion plan's §2.2 describes state migration as "the single `currentSession` in
+`login-mode.reducer.ts` becomes an `@ngrx/entity` collection" and implies one
+`LoginModeState`. **This doesn't match the codebase.** There is no `LoginModeState` type.
+Instead there are **four parallel `AnnotationState` feature slices** — `onlineMode`,
+`demoMode`, `localMode`, `urlMode` — each built by `new LoginModeReducers(mode).create()`
+and registered separately (`apps/tratt/src/app/core/store/index.ts`,
+`apps/tratt/src/app/core/pages/intern/intern.module.ts`). Each carries its own
+`currentSession: AnnotationSessionState` field inside `AnnotationState`
+(`login-mode/annotation/index.ts`). `@ngrx/entity` (`~19.0.0`) is an installed dependency
+but has zero existing usage anywhere in this codebase (`createEntityAdapter`/`EntityState`:
+0 hits) — 2.1 is the first usage, not a pattern to copy.
+
+**This actually simplifies 2.1**, given the plan's own §1 scope decision ("Local mode
+only. Server-backed sessions open the editor pane alone — no left rail, no pipeline."):
+bundles only ever need to exist for the `localMode` slice. `onlineMode`/`demoMode`/`urlMode`
+stay exactly as they are today — single `AnnotationState`, no entity collection, untouched.
+2.1's real deliverable: turn `localMode`'s `AnnotationState` into an entity collection of
+`TrattBundle` (starting with exactly one hardcoded entity), re-point the ~36 selector/
+reducer/service call sites inside `login-mode/annotation/*` that touch `currentSession`
+today, and leave the ~24 call sites in `application/`, `authentication/`, `idb/`,
+`shared/service/`, `component/`, `modals/` (which read `currentSession` via raw state-shape
+access, bypassing selectors) for the later 2.4 sweep — they're smaller and more concentrated
+than "200 sites" suggests, but they don't get fixed by re-pointing selectors alone.
+
 ## Phases (plan §3–§8, full estimates and step-by-step notes there)
 
 0. **Clear the ground** (1wk) — delete stale `multi-threading` copies (use lib versions), guard
