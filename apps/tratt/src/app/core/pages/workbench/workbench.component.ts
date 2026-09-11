@@ -23,6 +23,7 @@ import {
   TranscriptionDemoEndModalComponent,
 } from '../../modals/transcription-demo-end/transcription-demo-end-modal.component';
 import { OverviewModalComponent } from '../../modals/overview-modal/overview-modal.component';
+import { ShortcutsModalComponent } from '../../modals/shortcuts-modal/shortcuts-modal.component';
 import { TranscriptionSendingModalComponent } from '../../modals/transcription-sending-modal/transcription-sending-modal.component';
 import {
   TranscriptionStopModalAnswer,
@@ -37,6 +38,7 @@ import { RecordedFileService } from '../../shared/service/recorded-file.service'
 import { RoutingService } from '../../shared/service/routing.service';
 import { SettingsService, UserInteractionsService } from '../../shared/service';
 import { LoadingStatus, LoginMode } from '../../store';
+import { ApplicationState } from '../../store/application';
 import { ApplicationStoreService } from '../../store/application/application-store.service';
 import { AuthenticationStoreService } from '../../store/authentication/authentication-store.service';
 import { AnnotationStoreService } from '../../store/login-mode/annotation/annotation.store.service';
@@ -63,9 +65,11 @@ export class WorkbenchComponent extends DefaultComponent implements OnInit {
 
   showCommentSection = false;
   modalOverview?: NgbModalRef;
+  modalShortcutsDialogue?: NgbModalRef;
   transcrSendingModal?: NgbModalRef;
   modalVisiblities = {
     overview: false,
+    shortcuts: false,
   };
 
   private _useMode = '';
@@ -105,28 +109,51 @@ export class WorkbenchComponent extends DefaultComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this._useMode = this.appStorage.useMode;
-    this._selectedTheme = !this.projectsettings?.tratt?.theme
-      ? 'default'
-      : this.projectsettings?.tratt.theme;
-    this.showCommentSection =
-      this.settingsService.isTheme('shortAudioFiles') &&
-      (this._useMode === 'online' || this._useMode === 'demo');
+    this.subscribe(
+      this.appStoreService.loading$,
+      (loading: ApplicationState['loading']) => {
+        const wasReady = this.sessionReady;
+        this.sessionReady = loading?.status === LoadingStatus.FINISHED;
+        // Reset the Start button's disabled state whenever a session attempt
+        // has actually concluded (successfully or not) — startSession() sets
+        // sessionStarting = true but nothing else ever clears it, so a failed
+        // or still-in-progress load must not leave the button permanently
+        // disabled.
+        if (
+          loading?.status === LoadingStatus.FINISHED ||
+          loading?.status === LoadingStatus.FAILED
+        ) {
+          this.sessionStarting = false;
+        }
+        if (!wasReady && this.sessionReady) {
+          // `_useMode`/`_selectedTheme`/`showCommentSection` must reflect the
+          // real session state, not whatever appStorage.useMode happened to
+          // be at route activation (it's still undefined on a clean/logged-out
+          // profile at that point — see ngOnInit in
+          // pages/intern/transcription/transcription.component.ts for the
+          // mirrored logic this is copied from). Compute them here, once a
+          // session genuinely exists.
+          this._useMode = this.appStorage.useMode;
+          this._selectedTheme = !this.projectsettings?.tratt?.theme
+            ? 'default'
+            : this.projectsettings?.tratt.theme;
+          this.showCommentSection =
+            this.settingsService.isTheme('shortAudioFiles') &&
+            (this._useMode === 'online' || this._useMode === 'demo');
+          this.navbarServ.showExport =
+            this.settingsService.projectsettings?.navigation?.export === true;
 
-    this.subscribe(this.appStoreService.loading$, (loading: any) => {
-      const wasReady = this.sessionReady;
-      this.sessionReady = loading?.status === LoadingStatus.FINISHED;
-      if (!wasReady && this.sessionReady) {
-        // The right pane (and its `trattLoadeditor` ViewChild) only exists in
-        // the DOM once `sessionReady` is true, and that's gated behind
-        // `@if (sessionReady)` in the template. `markForCheck()` alone only
-        // schedules a future check, so force a synchronous render here to
-        // resolve `showEditor` before `mountDefaultEditor()` tries to use it.
-        this.cd.detectChanges();
-        this.mountDefaultEditor();
-      }
-      this.cd.markForCheck();
-    });
+          // The right pane (and its `trattLoadeditor` ViewChild) only exists in
+          // the DOM once `sessionReady` is true, and that's gated behind
+          // `@if (sessionReady)` in the template. `markForCheck()` alone only
+          // schedules a future check, so force a synchronous render here to
+          // resolve `showEditor` before `mountDefaultEditor()` tries to use it.
+          this.cd.detectChanges();
+          this.mountDefaultEditor();
+        }
+        this.cd.markForCheck();
+      },
+    );
   }
 
   private mountDefaultEditor(): void {
@@ -161,6 +188,12 @@ export class WorkbenchComponent extends DefaultComponent implements OnInit {
     this.authStoreService.loginLocal(files, annotation, removeData);
   }
 
+  // Unlike TranscriptionComponent.changeEditor(), this does NOT write
+  // `appStorage.interface` / `this.interface` — it's currently safe only
+  // because `mountDefaultEditor()` is the sole caller and already writes
+  // `appStorage.interface` before invoking this. If an editor-switcher UI
+  // ever calls `changeEditor()` directly, editor selection will silently
+  // stop persisting; that bookkeeping needs restoring first.
   changeEditor(name: string): void {
     let comp: Type<TRATTEditor> | undefined;
 
@@ -188,6 +221,59 @@ export class WorkbenchComponent extends DefaultComponent implements OnInit {
     const viewContainerRef = this.showEditor.viewContainerRef;
     viewContainerRef.clear();
     viewContainerRef.createComponent<TRATTEditor>(comp);
+  }
+
+  openOverview() {
+    this.annotationStoreService.analyse();
+    this.modalOverview = this.modService.openModalRef(
+      OverviewModalComponent,
+      OverviewModalComponent.options,
+    );
+
+    this.appStoreService.setShortcutsEnabled(false);
+    this.subscriptionManager.removeByTag('overview modal transcr send');
+    this.subscribe(
+      this.modalOverview.componentInstance.transcriptionSend,
+      () => {
+        this.appStoreService.setShortcutsEnabled(true);
+        this.modalOverview?.close();
+        this.modalVisiblities.overview = false;
+        timer(1000).subscribe({
+          next: () => {
+            this.onSendNowClick();
+          },
+        });
+      },
+      'overview modal transcr send',
+    );
+
+    this.modalOverview.result
+      .then(() => {
+        this.appStoreService.setShortcutsEnabled(true);
+        this.modalVisiblities.overview = false;
+      })
+      .catch(() => {
+        this.appStoreService.setShortcutsEnabled(true);
+        this.modalVisiblities.overview = false;
+      });
+    this.modalVisiblities.overview = true;
+  }
+
+  openShortcutsModal() {
+    this.modalShortcutsDialogue = this.modService.openModalRef(
+      ShortcutsModalComponent,
+      ShortcutsModalComponent.options,
+    );
+    this.appStoreService.setShortcutsEnabled(false);
+    this.modalShortcutsDialogue.result
+      .then(() => {
+        this.appStoreService.setShortcutsEnabled(true);
+        this.modalVisiblities.shortcuts = false;
+      })
+      .catch(() => {
+        this.appStoreService.setShortcutsEnabled(true);
+      });
+    this.modalVisiblities.shortcuts = true;
   }
 
   abortTranscription = async () => {

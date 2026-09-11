@@ -226,4 +226,89 @@ describe('WorkbenchComponent', () => {
       component.showEditor?.viewContainerRef.clear();
     }
   });
+
+  // Finding 1: `useMode`/`selectedTheme`/`showCommentSection` used to be
+  // snapshotted once in ngOnInit, before startSession() had ever run — on a
+  // clean/logged-out profile appStorage.useMode is still undefined at that
+  // point, so `useMode === 'local'` was permanently false and the Export
+  // button never rendered. They must instead be computed live once the
+  // session actually becomes ready.
+  it('computes useMode/selectedTheme/showCommentSection from live appStorage/settingsService once the session becomes ready, not from a stale ngOnInit snapshot', () => {
+    fixture.detectChanges();
+
+    // Simulate: appStorage.useMode was undefined (or anything else) at
+    // ngOnInit time, and only became 'local' once loginLocal() actually
+    // completed and the loading status flips to FINISHED.
+    component.appStorage = {
+      useMode: 'local',
+      interface: 'Dictaphone Editor',
+    } as any;
+    (component as any).settingsService = {
+      projectsettings: {
+        interfaces: ['Dictaphone Editor'],
+        tratt: { theme: 'someTheme' },
+        navigation: { export: true },
+      },
+      isTheme: jest.fn().mockReturnValue(false),
+    };
+    jest.spyOn(component, 'changeEditor').mockImplementation(() => undefined);
+
+    loading$.next({ status: LoadingStatus.FINISHED });
+
+    expect(component.useMode).toBe('local');
+    expect(component.selectedTheme).toBe('someTheme');
+    expect((component as any).navbarServ.showExport).toBe(true);
+  });
+
+  it('sets navbarServ.showExport based on projectsettings.navigation.export, mirroring TranscriptionComponent.ngOnInit', () => {
+    fixture.detectChanges();
+
+    component.appStorage = { useMode: 'local', interface: undefined } as any;
+    (component as any).settingsService = {
+      projectsettings: { interfaces: [], navigation: { export: false } },
+      isTheme: jest.fn().mockReturnValue(false),
+    };
+    (component as any).navbarServ = {};
+
+    loading$.next({ status: LoadingStatus.FINISHED });
+
+    expect((component as any).navbarServ.showExport).toBe(false);
+  });
+
+  // Finding 3: startSession() sets sessionStarting = true but nothing ever
+  // reset it back to false, permanently disabling the Start button after one
+  // click (including after a failed login).
+  describe('sessionStarting reset', () => {
+    it('resets sessionStarting to false once loading.status becomes FINISHED', () => {
+      fixture.detectChanges();
+      component.appStorage = { useMode: 'local', interface: undefined } as any;
+      (component as any).settingsService = {
+        projectsettings: { interfaces: [] },
+        isTheme: jest.fn().mockReturnValue(false),
+      };
+      component.sessionStarting = true;
+
+      loading$.next({ status: LoadingStatus.FINISHED });
+
+      expect(component.sessionStarting).toBe(false);
+    });
+
+    it('resets sessionStarting to false when loading.status becomes FAILED', () => {
+      fixture.detectChanges();
+      component.sessionStarting = true;
+
+      loading$.next({ status: LoadingStatus.FAILED } as any);
+
+      expect(component.sessionStarting).toBe(false);
+    });
+
+    it('leaves sessionStarting untouched while loading.status is still in-progress (LOADING)', () => {
+      fixture.detectChanges();
+      component.sessionStarting = true;
+
+      loading$.next({ status: LoadingStatus.LOADING } as any);
+
+      expect(component.sessionStarting).toBe(true);
+    });
+  });
 });
