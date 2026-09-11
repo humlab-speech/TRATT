@@ -451,139 +451,135 @@
           @if (
             appStorage.loggedIn &&
             appStorage.audioLoaded &&
-            audio.audioManager !== undefined &&
-            audio.audioManager.resource !== undefined
+            audio.current !== undefined &&
+            audio.current.resource !== undefined
           ) {
-            <li
-              class="nav-item dropdown"
-              ngbDropdown
-              [container]="'body'"
-              display="dynamic"
-              placement="bottom-end"
-            >
-              <a ngbDropdownToggle type="button" class="nav-link">
-                <i class="bi bi-info-circle-fill navbar-icon"></i>
-                <span class="d-inline d-md-none">
-                  {{ 'g.information' | transloco }}
-                </span>
-              </a>
-              <div
-                ngbDropdownMenu
-                class="dropdown-menu dropdown dropdown-primary dropdown-menu-right"
-                role="menu"
+            @if (audio.current; as manager) {
+              <li
+                class="nav-item dropdown"
+                ngbDropdown
+                [container]="'body'"
+                display="dynamic"
+                placement="bottom-end"
               >
-                <table class="table table-sm table-striped info-menu">
-                  @if (
-                    appStorage.useMode === 'online' ||
-                    appStorage.useMode === 'demo'
-                  ) {
+                <a ngbDropdownToggle type="button" class="nav-link">
+                  <i class="bi bi-info-circle-fill navbar-icon"></i>
+                  <span class="d-inline d-md-none">
+                    {{ 'g.information' | transloco }}
+                  </span>
+                </a>
+                <div
+                  ngbDropdownMenu
+                  class="dropdown-menu dropdown dropdown-primary dropdown-menu-right"
+                  role="menu"
+                >
+                  <table class="table table-sm table-striped info-menu">
+                    @if (
+                      appStorage.useMode === 'online' ||
+                      appStorage.useMode === 'demo'
+                    ) {
+                      <tr>
+                        <td>
+                          <span>{{ 'g.project' | transloco }}:</span>
+                        </td>
+                        <td>
+                          <span>{{
+                            appStorage.onlineSession?.currentProject?.name
+                          }}</span>
+                        </td>
+                      </tr>
+                    }
+                    @if (
+                      appStorage.useMode === 'online' ||
+                      appStorage.useMode === 'demo'
+                    ) {
+                      <tr>
+                        <td>
+                          <span>{{ 'g.free jobs' | transloco }}:</span>
+                        </td>
+                        <td>
+                          <span>{{
+                            getFreeAnnotationTasks(
+                              appStorage.onlineSession?.currentProject
+                            )
+                          }}</span>
+                        </td>
+                      </tr>
+                    }
                     <tr>
                       <td>
-                        <span>{{ 'g.project' | transloco }}:</span>
+                        <span>{{ 'g.name' | transloco }}:</span>
                       </td>
                       <td>
-                        <span>{{
-                          appStorage.onlineSession?.currentProject?.name
-                        }}</span>
+                        <span>{{ manager.resource.info.fullname }}</span>
                       </td>
                     </tr>
-                  }
-                  @if (
-                    appStorage.useMode === 'online' ||
-                    appStorage.useMode === 'demo'
-                  ) {
                     <tr>
                       <td>
-                        <span>{{ 'g.free jobs' | transloco }}:</span>
+                        <span>{{ 'g.duration' | transloco }}:</span>
                       </td>
                       <td>
-                        <span>{{
-                          getFreeAnnotationTasks(
-                            appStorage.onlineSession?.currentProject
-                          )
-                        }}</span>
+                        @if (manager.resource.info !== undefined) {
+                          <span
+                            >{{
+                              manager.resource.info!.duration.unix
+                                | timespan
+                                  : {
+                                      showHour: true,
+                                    }
+                            }}
+                            (H:m:s)</span
+                          >
+                        }
                       </td>
                     </tr>
-                  }
-                  <tr>
-                    <td>
-                      <span>{{ 'g.name' | transloco }}:</span>
-                    </td>
-                    <td>
-                      <span>{{
-                        audio.audioManager!.resource.info.fullname
-                      }}</span>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td>
-                      <span>{{ 'g.duration' | transloco }}:</span>
-                    </td>
-                    <td>
-                      @if (audio.audioManager!.resource.info !== undefined) {
+                    <tr>
+                      <td>
+                        <span>{{ 'g.sampleRate' | transloco }}:</span>
+                      </td>
+                      <td>
+                        <span>{{ manager.resource!.info.sampleRate }}</span>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <span>{{ 'g.bitspersecond' | transloco }}:</span>
+                      </td>
+                      <td>
                         <span
-                          >{{
-                            audio.audioManager!.resource.info!.duration.unix
-                              | timespan
-                                : {
-                                    showHour: true,
-                                  }
-                          }}
-                          (H:m:s)</span
+                          >{{ manager.resource!.info.bitrate }}
+                          Bit/s</span
                         >
-                      }
-                    </td>
-                  </tr>
-                  <tr>
-                    <td>
-                      <span>{{ 'g.sampleRate' | transloco }}:</span>
-                    </td>
-                    <td>
-                      <span>{{
-                        audio.audioManager!.resource!.info.sampleRate
-                      }}</span>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td>
-                      <span>{{ 'g.bitspersecond' | transloco }}:</span>
-                    </td>
-                    <td>
-                      <span
-                        >{{
-                          audio.audioManager!.resource!.info.bitrate
-                        }}
-                        Bit/s</span
-                      >
-                    </td>
-                  </tr>
-                  <tr>
-                    <td>
-                      <span>{{ 'g.filesize' | transloco }}:</span>
-                    </td>
-                    <td>
-                      <span
-                        >{{ navbarServ.fileSize?.size }}
-                        {{ navbarServ.fileSize?.label }}</span
-                      >
-                    </td>
-                  </tr>
-                  @if (
-                    appStorage.useMode === 'online' ||
-                    appStorage.useMode === 'demo'
-                  ) {
-                    <tr>
-                      <td>
-                        <span>{{ 'g.id' | transloco }}:</span>
-                      </td>
-                      <td>
-                        <span>{{ appStorage.currentTask?.id }}</span>
                       </td>
                     </tr>
-                  }
-                </table>
-              </div>
-            </li>
+                    <tr>
+                      <td>
+                        <span>{{ 'g.filesize' | transloco }}:</span>
+                      </td>
+                      <td>
+                        <span
+                          >{{ navbarServ.fileSize?.size }}
+                          {{ navbarServ.fileSize?.label }}</span
+                        >
+                      </td>
+                    </tr>
+                    @if (
+                      appStorage.useMode === 'online' ||
+                      appStorage.useMode === 'demo'
+                    ) {
+                      <tr>
+                        <td>
+                          <span>{{ 'g.id' | transloco }}:</span>
+                        </td>
+                        <td>
+                          <span>{{ appStorage.currentTask?.id }}</span>
+                        </td>
+                      </tr>
+                    }
+                  </table>
+                </div>
+              </li>
+            }
           }
 
           @if (

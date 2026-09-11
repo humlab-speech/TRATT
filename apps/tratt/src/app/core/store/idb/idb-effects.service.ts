@@ -266,7 +266,7 @@ export class IDBEffects {
         const modeState = getModeState(appState);
 
         if (modeState) {
-          if (!this.audio.audioManager) {
+          if (!this.audio.current) {
             return of(
               ApplicationActions.undoFailed({
                 error: 'No audio loaded — cannot save undo state.',
@@ -280,9 +280,9 @@ export class IDBEffects {
             .saveAnnotation(
               appState.application.mode!,
               modeState.transcript.serialize(
-                this.audio.audioManager.resource.info.fullname,
-                this.audio.audioManager.resource.info.sampleRate,
-                this.audio.audioManager.resource.info.duration,
+                this.audio.current.resource.info.fullname,
+                this.audio.current.resource.info.sampleRate,
+                this.audio.current.resource.info.duration,
               ),
             )
             .pipe(
@@ -315,7 +315,7 @@ export class IDBEffects {
         const modeState = getModeState(appState);
 
         if (modeState) {
-          if (!this.audio.audioManager) {
+          if (!this.audio.current) {
             return of(
               ApplicationActions.redoFailed({
                 error: 'No audio loaded — cannot save redo state.',
@@ -327,9 +327,9 @@ export class IDBEffects {
             .saveAnnotation(
               appState.application.mode!,
               modeState.transcript.serialize(
-                this.audio.audioManager.resource.info.fullname,
-                this.audio.audioManager.resource.info.sampleRate,
-                this.audio.audioManager.resource.info.duration,
+                this.audio.current.resource.info.fullname,
+                this.audio.current.resource.info.sampleRate,
+                this.audio.current.resource.info.duration,
               ),
             )
             .pipe(
@@ -833,7 +833,7 @@ export class IDBEffects {
         const modeState = this.getModeStateFromString(appState, action.mode);
 
         if (modeState) {
-          if (!this.audio.audioManager) {
+          if (!this.audio.current) {
             // Audio not yet loaded (e.g. loginLocal.prepare fires before audio is registered).
             // Skip annotation save — it will be saved once audio loads successfully.
             return of(IDBActions.saveAnnotation.success());
@@ -843,8 +843,8 @@ export class IDBEffects {
               action.mode,
               modeState.transcript.serialize(
                 modeState.audio.fileName,
-                this.audio.audioManager.resource.info.sampleRate,
-                this.audio.audioManager.resource.info.duration,
+                this.audio.current.resource.info.sampleRate,
+                this.audio.current.resource.info.duration,
               ),
             )
             .pipe(

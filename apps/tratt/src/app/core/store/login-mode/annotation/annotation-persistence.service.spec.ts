@@ -6,7 +6,7 @@ describe('AnnotationPersistenceService', () => {
   function createService(saveTask = jest.fn()) {
     const apiService = { saveTask } as never;
     const audio = {
-      audioManager: {
+      current: {
         resource: {
           info: {
             fullname: 'audio.wav',
@@ -46,8 +46,8 @@ describe('AnnotationPersistenceService', () => {
 
   it('returns undefined without calling the API when there is no audio resource', (done) => {
     const { service, saveTask } = createService();
-    (service as unknown as { audio: { audioManager: undefined } }).audio = {
-      audioManager: undefined,
+    (service as unknown as { audio: { current: undefined } }).audio = {
+      current: undefined,
     } as never;
 
     service

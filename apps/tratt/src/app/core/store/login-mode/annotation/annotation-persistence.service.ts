@@ -17,7 +17,8 @@ export class AnnotationPersistenceService {
     state: RootState,
     status: TaskStatus,
   ): Observable<TaskDto | undefined> {
-    if (!this.audio.audioManager?.resource) {
+    const manager = this.audio.current;
+    if (!manager?.resource) {
       return of(undefined);
     }
 
@@ -25,9 +26,9 @@ export class AnnotationPersistenceService {
       state.onlineMode.transcript
         .clone()
         .serialize(
-          this.audio.audioManager.resource.info.fullname,
-          this.audio.audioManager.resource.info.sampleRate,
-          this.audio.audioManager.resource.info.duration.clone(),
+          manager.resource.info.fullname,
+          manager.resource.info.sampleRate,
+          manager.resource.info.duration.clone(),
         ),
     )?.file?.content;
 
