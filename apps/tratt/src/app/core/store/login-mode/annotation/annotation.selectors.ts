@@ -16,6 +16,11 @@ export const selectLocalMode =
   createFeatureSelector<LocalBundleCollectionState>('localMode');
 export const selectUrlMode = createFeatureSelector<AnnotationState>('urlMode');
 
+export const selectSelectedBundleId = createSelector(
+  selectLocalMode,
+  (local): string => local.selectedBundleId,
+);
+
 /** Returns the active mode's AnnotationState based on application.mode. */
 export const selectActiveAnnotation = createSelector(
   selectMode,

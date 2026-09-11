@@ -1,6 +1,9 @@
 import { describe, expect, it } from '@jest/globals';
 import { LoginMode } from '../../index';
-import { selectActiveAnnotation } from './annotation.selectors';
+import {
+  selectActiveAnnotation,
+  selectSelectedBundleId,
+} from './annotation.selectors';
 import {
   DEFAULT_BUNDLE_ID,
   localBundleAdapter,
@@ -51,5 +54,24 @@ describe('selectActiveAnnotation', () => {
         {} as any,
       ),
     ).toBe(fakeOnline);
+  });
+});
+
+describe('selectSelectedBundleId', () => {
+  it("reads local mode's selectedBundleId", () => {
+    const state = {
+      application: { mode: LoginMode.LOCAL },
+      localMode: {
+        bundles: localBundleAdapter.getInitialState(),
+        selectedBundleId: 'some-bundle-id',
+      },
+      onlineMode: {},
+      demoMode: {},
+      urlMode: {},
+    } as any;
+
+    expect(selectSelectedBundleId.projector(state.localMode)).toBe(
+      'some-bundle-id',
+    );
   });
 });
