@@ -781,3 +781,17 @@ reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-ve
 id = "GHSA-xxjr-mmjv-4gpg"
 reason = "Transitive dev dependency of Angular/Nx tooling; fix requires major-version upgrade, tracked separately."
 
+# Added 2026-09-11: advisories with no fix on the currently installed major.
+# Remove once the corresponding dependency upgrade lands.
+[[IgnoredVulns]]
+id = "GHSA-p297-fm68-3q8c"
+reason = "@angular/common 19.x has no fix: patched only in Angular 20.3.28+, 21.2.20+ or 22.1.1+; requires the Angular major upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-hh8m-fm6v-7cvg"
+reason = "@angular/core and @angular/compiler 19.x have no fix: patched only in Angular 20.3.28+, 21.2.20+ or 22.1.0+; requires the Angular major upgrade, tracked separately."
+
+[[IgnoredVulns]]
+id = "GHSA-vwc7-r8mq-g2x9"
+reason = "adm-zip has no patched release (last affected 0.6.0); dev-only transitive of @module-federation/dts-plugin in Nx tooling, no untrusted archives are extracted."
+
