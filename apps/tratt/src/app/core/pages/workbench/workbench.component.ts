@@ -422,14 +422,15 @@ export class WorkbenchComponent extends DefaultComponent implements OnInit {
       }
     }
 
+    const manager = this.audioService.current!;
     const oannotjson = this.annotationStoreService.transcript!.serialize(
-      this.audioService.audioManager.resource.info.fullname,
-      this.audioService.audioManager.resource.info.sampleRate,
-      this.audioService.audioManager.resource.info.duration,
+      manager.resource.info.fullname,
+      manager.resource.info.sampleRate,
+      manager.resource.info.duration,
     );
     const result = converter.export(
       oannotjson,
-      this.audioService.audioManager.resource.getOAudioFile(),
+      manager.resource.getOAudioFile(),
       0,
     );
 

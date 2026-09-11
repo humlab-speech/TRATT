@@ -210,14 +210,14 @@ export class TranscrOverviewComponent implements OnInit, OnDestroy, OnChanges {
   ngOnDestroy() {
     this.subscrmanager.destroy();
     this.playAllState.state = 'stopped';
-    this.audio.audioManager.stopPlayback().catch((err) => {
+    this.audio.current!.stopPlayback().catch((err) => {
       console.error(err);
     });
   }
 
   ngOnInit() {
     this.subscrmanager.add(
-      this.audio.audiomanagers[0].statechange.subscribe({
+      this.audio.current!.statechange.subscribe({
         next: (state) => {
           // make sure that events from playonhover are not logged
           if (
@@ -229,7 +229,7 @@ export class TranscrOverviewComponent implements OnInit, OnDestroy, OnChanges {
               'audio',
               { value: state.toLowerCase() },
               Date.now(),
-              this.audio.audioManager.playPosition,
+              this.audio.current!.playPosition,
               undefined,
               undefined,
               undefined,
@@ -319,17 +319,18 @@ export class TranscrOverviewComponent implements OnInit, OnDestroy, OnChanges {
         this.textEditor.state = 'active';
         this.textEditor.selectedSegment = i;
 
+        const manager = this.audio.current!;
         const segment = this.currentLevel?.items[i] as TrattAnnotationSegment;
         const nextSegmentTime: SampleUnit =
           i < this.currentLevel?.items.length - 1
             ? (this.currentLevel?.items[i + 1] as TrattAnnotationSegment).time
-            : this.audio.audioManager.resource.info.duration;
+            : manager.resource.info.duration;
         const audiochunk = new AudioChunk(
           new AudioSelection(segment.time, nextSegmentTime),
-          this.audio.audiomanagers[0],
+          manager,
         );
 
-        this.audio.audiomanagers[0].addChunk(audiochunk);
+        manager.addChunk(audiochunk);
         this.textEditor.audioChunk = audiochunk;
 
         this.transcript =
@@ -366,7 +367,7 @@ export class TranscrOverviewComponent implements OnInit, OnDestroy, OnChanges {
     const chunk = this.textEditor.audioChunk;
     this.textEditor.audioChunk = undefined;
     if (chunk) {
-      this.audio.audiomanagers[0].removeChunk(chunk);
+      this.audio.current!.removeChunk(chunk);
     }
     this.cd.markForCheck(); // Editor disappears immediately
 
@@ -676,7 +677,7 @@ export class TranscrOverviewComponent implements OnInit, OnDestroy, OnChanges {
         : 'bi bi-play-fill';
     this.cd.markForCheck();
 
-    const playpos = this.audio.audioManager.createSampleUnit(0);
+    const playpos = this.audio.current!.createSampleUnit(0);
 
     if (this.playAllState.icon === 'bi bi-stop-fill') {
       // start
@@ -742,6 +743,7 @@ export class TranscrOverviewComponent implements OnInit, OnDestroy, OnChanges {
       }
       const level = this
         ._internLevel as TrattAnnotationSegmentLevel<TrattAnnotationSegment>;
+      const manager = this.audio.current!;
 
       if (this.playStateSegments[segmentNumber].state === 'stopped') {
         const segment: TrattAnnotationSegment = level.items[segmentNumber];
@@ -756,12 +758,11 @@ export class TranscrOverviewComponent implements OnInit, OnDestroy, OnChanges {
         this.playAllState.currentSegment = segmentNumber;
 
         this.cd.markForCheck();
-        this.audio.audiomanagers[0].playPosition =
-          this.audio.audiomanagers[0].createSampleUnit(startSample);
-        this.audio.audiomanagers[0]
+        manager.playPosition = manager.createSampleUnit(startSample);
+        manager
           .startPlayback(
             new AudioSelection(
-              this.audio.audiomanagers[0].createSampleUnit(startSample),
+              manager.createSampleUnit(startSample),
               segment.time.clone(),
             ),
             1,
@@ -788,7 +789,7 @@ export class TranscrOverviewComponent implements OnInit, OnDestroy, OnChanges {
           });
       } else {
         // stop playback
-        this.audio.audiomanagers[0]
+        manager
           .stopPlayback()
           .then(() => {
             this.playStateSegments[segmentNumber].state = 'stopped';
@@ -831,7 +832,7 @@ export class TranscrOverviewComponent implements OnInit, OnDestroy, OnChanges {
               value: 'play_segment',
             },
             Date.now(),
-            this.audio.audiomanagers[0].playPosition,
+            this.audio.current!.playPosition,
             undefined,
             undefined,
             {
@@ -872,7 +873,7 @@ export class TranscrOverviewComponent implements OnInit, OnDestroy, OnChanges {
           value: 'stop_segment',
         },
         Date.now(),
-        this.audio.audiomanagers[0].playPosition,
+        this.audio.current!.playPosition,
         undefined,
         undefined,
         {
@@ -920,7 +921,7 @@ export class TranscrOverviewComponent implements OnInit, OnDestroy, OnChanges {
     const chunk = this.textEditor.audioChunk;
     this.textEditor.audioChunk = undefined;
     if (chunk) {
-      this.audio.audiomanagers[0].removeChunk(chunk);
+      this.audio.current!.removeChunk(chunk);
     }
     this.cd.markForCheck();
   }
@@ -934,7 +935,7 @@ export class TranscrOverviewComponent implements OnInit, OnDestroy, OnChanges {
           'bi bi-play-fill';
         this.cd.markForCheck();
       }
-      this.audio.audiomanagers[0].stopPlayback().then(resolve).catch(reject);
+      this.audio.current!.stopPlayback().then(resolve).catch(reject);
     });
   }
 
