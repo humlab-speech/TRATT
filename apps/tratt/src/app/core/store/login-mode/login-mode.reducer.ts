@@ -21,12 +21,53 @@ import { AnnotationState } from './annotation';
 import { AnnotationActions } from './annotation/annotation.actions';
 import * as fromAnnotation from './annotation/annotation.reducer';
 import { AnnotationStateReducers } from './annotation/annotation.reducer';
+import {
+  DEFAULT_BUNDLE_ID,
+  LocalBundleCollectionState,
+  localBundleAdapter,
+  resolveLocalBundleState,
+} from './annotation/local-bundle-collection';
 import { LoginModeActions } from './login-mode.actions';
 
 export const initialState: AnnotationState = {
   ...fromAnnotation.initialState,
   currentSession: {},
 };
+
+/**
+ * Wraps an `AnnotationState` reducer so its output is stored as the single
+ * entity of a `LocalBundleCollectionState`, keyed by `DEFAULT_BUNDLE_ID`.
+ * Used only for LOCAL mode; ONLINE/DEMO/URL keep the flat `AnnotationState`.
+ */
+function wrapAsLocalBundleCollectionReducer(
+  innerReducer: ActionReducer<AnnotationState, Action>,
+): ActionReducer<LocalBundleCollectionState, Action> {
+  const initialInner = innerReducer(undefined, {
+    type: '@ngrx/store/init',
+  } as Action);
+  const initialCollectionState: LocalBundleCollectionState = {
+    bundles: localBundleAdapter.setOne(
+      initialInner,
+      localBundleAdapter.getInitialState(),
+    ),
+    selectedBundleId: DEFAULT_BUNDLE_ID,
+  };
+
+  return (
+    state: LocalBundleCollectionState = initialCollectionState,
+    action: Action,
+  ): LocalBundleCollectionState => {
+    const currentInner = resolveLocalBundleState(state) ?? initialInner;
+    const nextInner = innerReducer(currentInner, action);
+    if (nextInner === currentInner) {
+      return state;
+    }
+    return {
+      ...state,
+      bundles: localBundleAdapter.setOne(nextInner, state.bundles),
+    };
+  };
+}
 
 // initialize ngrx-wieder with custom config
 const { createUndoRedoReducer } = undoRedo({
@@ -45,8 +86,10 @@ const { createUndoRedoReducer } = undoRedo({
 export class LoginModeReducers {
   constructor(private mode: LoginMode) {}
 
-  public create(): ActionReducer<AnnotationState, Action> {
-    return createUndoRedoReducer(
+  public create():
+    | ActionReducer<AnnotationState, Action>
+    | ActionReducer<LocalBundleCollectionState, Action> {
+    const inner: ActionReducer<AnnotationState, Action> = createUndoRedoReducer(
       initialState,
       ...(new AnnotationStateReducers(this.mode).create() as any),
       on(
@@ -283,9 +326,7 @@ export class LoginModeReducers {
               for (const level of transcript.levels) {
                 if (level instanceof TrattAnnotationSegmentLevel) {
                   for (const item of (
-                    level as TrattAnnotationSegmentLevel<
-                      TrattAnnotationSegment
-                    >
+                    level as TrattAnnotationSegmentLevel<TrattAnnotationSegment>
                   ).items) {
                     const idx = item.labels.findIndex(
                       (l) => l.name !== 'Speaker',
@@ -413,6 +454,10 @@ export class LoginModeReducers {
         },
       ),
     );
+
+    return this.mode === LoginMode.LOCAL
+      ? wrapAsLocalBundleCollectionReducer(inner)
+      : inner;
   }
 
   writeOptionToStore(

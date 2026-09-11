@@ -1,6 +1,7 @@
 import { ApplicationState } from './application';
 import { AuthenticationState } from './authentication';
 import { AnnotationState } from './login-mode/annotation';
+import { LocalBundleCollectionState } from './login-mode/annotation/local-bundle-collection';
 import { UserState } from './user';
 
 export enum LoginMode {
@@ -36,7 +37,7 @@ export interface RootState {
   application: ApplicationState;
   onlineMode: AnnotationState;
   demoMode: AnnotationState;
-  localMode: AnnotationState;
+  localMode: LocalBundleCollectionState;
   urlMode: AnnotationState;
   user: UserState;
 }
