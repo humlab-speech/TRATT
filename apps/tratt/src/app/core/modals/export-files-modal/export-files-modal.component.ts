@@ -294,7 +294,7 @@ export class ExportFilesModalComponent extends TrattModal implements OnInit {
              */
         }
 
-        const oAudioFile = manager.resource.getOAudioFile();
+        const oAudioFile = this.audio.current!.resource.getOAudioFile();
         const result: ExportResult = converter.export(
           oannotjson,
           oAudioFile,
