@@ -128,6 +128,53 @@ conversion effort and in files it has never touched — `apps/tratt/src/app/core
 (`click-events-have-key-events`, `interactive-supports-focus`). These are tracked separately
 and are not this project's responsibility to fix.
 
+## Finding (2026-09-11, during 2.5 planning): non-WAV playback is already permanently degraded to 16kHz mono
+
+Investigating step 2.5 ("audio residency — the keystone") surfaced a pre-existing product
+defect, unrelated to this conversion but directly relevant to residency policy design.
+The plan's memory model assumes each `AudioManager` holds "the source buffer, the
+native-rate channel data, and the 16kHz mono copy" simultaneously. **This is only true for
+WAV files.** For every other format (mp3/ogg/m4a/etc, `html-audio-mechanism.ts`'s
+`decodeAudioWithWebAPIDecoder`/`decodeAudioWithLibavDecoder` paths), `normalizeAudio()`
+(`html-audio-mechanism.ts:343-387`) **overwrites `_resource.arraybuffer` with a freshly
+re-encoded 16kHz mono WAV** (line 368) and discards the original file bytes entirely —
+`_channel` becomes that same 16kHz mono array. Since playback (`prepare()`,
+`html-audio-mechanism.ts:80-86`) builds its blob URL from `_resource.arraybuffer` *after*
+this overwrite, **playback for non-WAV files is already, today, from the degraded 16kHz
+mono re-encode — never the original file.** This has nothing to do with bundles or
+multi-file support; it happens on every single non-WAV file this app has ever decoded.
+
+Two consequences for planning:
+
+1. **This is a real, standalone product defect** (audible quality loss on the common case —
+   most user-supplied audio is not WAV) that predates and is independent of this conversion.
+   Fixing it (retaining native-rate data and original bytes for non-WAV formats, matching
+   the WAV decoder's behaviour) is a substantial piece of work in its own right — touching
+   the web-audio/libav decode paths, not the bundle/store work this conversion is scoped to.
+   **Not fixed as part of this conversion** — flagged here for a separate, dedicated fix,
+   not silently absorbed or silently ignored.
+2. **Step 2.5's residency/eviction design must not assume the plan's "native-rate + 16kHz
+   copy, simultaneously" memory model**, since it doesn't hold today. In practice: at most
+   ONE PCM array (`AudioManager.channel`) is ever resident per manager, at whatever rate the
+   active decode path produced (16kHz mono for non-WAV, a rendering-decimated near-native
+   rate for WAV, per `calculateChannelDataFactor` — see `audio-decoder.ts:54-56`). Eviction
+   for 2.5 means freeing whatever's actually resident (`AudioManager.destroy()`, which nulls
+   `_channel` and revokes the blob URL) and re-decoding on reselection — not managing two
+   separate PCM copies per bundle. `prepareMonoAudioForMlModel()` already makes a fresh,
+   uncached 16kHz-mono copy per pipeline run regardless (`audio-resampler.ts:34-53`), so ML
+   consumption is unaffected either way.
+
+Also confirmed while investigating: no persisted min/max envelope artifact exists anywhere
+today. The rendering algorithm to adapt exists (`audio-viewer-time-utils.ts`'s
+`computeDisplayData`, ~60-207), but it currently always computes live, per-viewport, from
+whatever full-resolution `channel` happens to be resident — never a whole-file summary
+computed once at decode time and persisted. Building that is genuinely new work, not
+wiring. Audio is confirmed never written to IndexedDB today (`tratt-database.ts`'s schema
+has no binary/blob object store) — an envelope persisted only in-memory (surviving bundle
+switches within a session, not page reload) can be built without touching IndexedDB;
+surviving reload would need a new object store, which is more naturally step 2.6's
+concern (Dexie 0.6 migration) than 2.5's.
+
 ## Phases (plan §3–§8, full estimates and step-by-step notes there)
 
 0. **Clear the ground** (1wk) — delete stale `multi-threading` copies (use lib versions), guard
