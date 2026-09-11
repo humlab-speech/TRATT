@@ -154,6 +154,10 @@ export class AudioService {
       const existing = this._audiomanagers.get(bundleId);
       if (existing !== manager) {
         this._audiomanagers.set(bundleId, manager);
+        // Drop the old manager's envelope synchronously so there's no window
+        // where getEnvelope(bundleId) returns stale data for the file that's
+        // already been replaced, while the new envelope computes async below.
+        this._envelopes.delete(bundleId);
 
         this.subscrmanager.add(
           manager.audioMechanism!.missingPermission.subscribe(() => {
@@ -162,9 +166,13 @@ export class AudioService {
         );
 
         if (manager.channel) {
-          computeAudioEnvelope(manager.channel).then((envelope) => {
-            this._envelopes.set(bundleId, envelope);
-          });
+          computeAudioEnvelope(manager.channel)
+            .then((envelope) => {
+              this._envelopes.set(bundleId, envelope);
+            })
+            .catch(() => {
+              // envelope computation failed, list/editor fall back to no-envelope rendering
+            });
         }
       }
     }
@@ -180,7 +188,10 @@ export class AudioService {
   public evict(bundleId: string): void {
     const manager = this._audiomanagers.get(bundleId);
     if (manager) {
-      manager.destroy();
+      manager.destroy().catch(() => {
+        // best-effort cleanup — destroy() failing shouldn't surface as an
+        // unhandled promise rejection
+      });
       this._audiomanagers.delete(bundleId);
     }
   }
@@ -198,6 +209,8 @@ export class AudioService {
       await audioManager.destroy(disconnect);
     }
     this._audiomanagers.clear();
+    this._envelopes.clear();
+    this.recentBundleIds = [];
     this.subscrmanager.destroy();
   }
 }

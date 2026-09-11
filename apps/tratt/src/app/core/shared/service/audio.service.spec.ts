@@ -182,6 +182,56 @@ describe('AudioService — eviction and envelope', () => {
   it('evict(bundleId) is a safe no-op when no manager is registered for that id', () => {
     expect(() => service.evict('never-registered')).not.toThrow();
   });
+
+  it('re-selecting the current bundle causes no eviction churn', () => {
+    const managers: Record<string, any> = {
+      b1: fakeManager('b1'),
+      b2: fakeManager('b2'),
+    };
+
+    service.registerAudioManager('b1', managers['b1']);
+    selectBundle('b1');
+    service.registerAudioManager('b2', managers['b2']);
+    selectBundle('b2');
+
+    // Re-select b1 (already tracked), then b2 again — neither is a new
+    // distinct bundle, so recentBundleIds should never exceed the 2 already
+    // tracked and nothing should be evicted.
+    selectBundle('b1');
+    selectBundle('b2');
+    selectBundle('b2');
+
+    expect(managers['b1'].destroy).not.toHaveBeenCalled();
+    expect(managers['b2'].destroy).not.toHaveBeenCalled();
+    expect(service.audiomanagers).toContain(managers['b1']);
+    expect(service.audiomanagers).toContain(managers['b2']);
+  });
+
+  it('AudioService.current is undefined for an evicted-then-reselected bundle, but its envelope survives', async () => {
+    const managers: Record<string, any> = {
+      b1: fakeManager('b1'),
+      b2: fakeManager('b2'),
+      b3: fakeManager('b3'),
+      b4: fakeManager('b4'),
+    };
+
+    for (const id of ['b1', 'b2', 'b3', 'b4']) {
+      service.registerAudioManager(id, managers[id]);
+      selectBundle(id);
+    }
+
+    // envelope computation is async (computeAudioEnvelope resolves a Promise)
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(managers['b1'].destroy).toHaveBeenCalled();
+
+    // Re-select the evicted bundle — nothing re-registers a manager for it.
+    selectBundle('b1');
+
+    expect(service.current).toBeUndefined();
+    expect(service.getEnvelope('b1')).toBeDefined();
+  });
 });
 
 describe('AudioService missingPermission notifier (C8)', () => {
