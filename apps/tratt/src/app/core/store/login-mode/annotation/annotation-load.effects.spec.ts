@@ -1,4 +1,5 @@
 import { TestBed } from '@angular/core/testing';
+import { Router } from '@angular/router';
 import { provideMockActions } from '@ngrx/effects/testing';
 import { provideMockStore } from '@ngrx/store/testing';
 import { describe, expect, it, jest, beforeEach } from '@jest/globals';
@@ -14,6 +15,7 @@ import { LoginMode, RootState } from '../../index';
 import { AnnotationActions } from './annotation.actions';
 import { AnnotationLoadEffects } from './annotation-load.effects';
 import { AnnotationMaintenanceService } from './annotation-maintenance.service';
+import { AppInfo } from '../../../../app.info';
 
 // jest can't parse the ESM build of 'mime' shipped in node_modules (it's not
 // matched by this app's jest transformIgnorePatterns). AnnotationLoadEffects
@@ -81,5 +83,73 @@ describe('AnnotationLoadEffects.onAudioLoad$', () => {
     expect(firstLoad$.observed).toBe(false);
 
     subscription.unsubscribe();
+  });
+});
+
+describe('AnnotationLoadEffects.loadSegmentsSuccess$', () => {
+  let effects: AnnotationLoadEffects;
+  let actions$: ReplaySubject<unknown>;
+  let routingService: { navigate: jest.Mock };
+  let router: { url: string };
+
+  const initialState = {
+    application: { mode: LoginMode.LOCAL },
+  } as unknown as RootState;
+
+  const successPayloadFixture = AnnotationActions.initTranscriptionService.success({
+    mode: LoginMode.LOCAL,
+    transcript: {} as any,
+    saveToDB: true,
+  });
+
+  beforeEach(() => {
+    actions$ = new ReplaySubject(1);
+    routingService = { navigate: jest.fn() };
+    router = { url: '/local' };
+
+    TestBed.configureTestingModule({
+      providers: [
+        AnnotationLoadEffects,
+        provideMockActions(() => actions$),
+        provideMockStore({ initialState }),
+        { provide: OctraAPIService, useValue: {} },
+        { provide: HttpClient, useValue: {} },
+        { provide: AlertService, useValue: { showAlert: () => undefined } },
+        { provide: RoutingService, useValue: routingService },
+        { provide: TrattModalService, useValue: { openModal: () => undefined } },
+        { provide: AudioService, useValue: { loadAudio: jest.fn() } },
+        { provide: UserInteractionsService, useValue: { afteradd: new Subject() } },
+        { provide: AppStorageService, useValue: {} },
+        { provide: TranslocoService, useValue: {} },
+        { provide: AnnotationMaintenanceService, useValue: {} },
+        { provide: Router, useValue: router },
+      ],
+    });
+
+    effects = TestBed.inject(AnnotationLoadEffects);
+  });
+
+  it('navigates to /intern/transcr when the current URL is /local', (done) => {
+    router.url = '/local';
+    actions$.next(successPayloadFixture);
+
+    effects.loadSegmentsSuccess$.subscribe(() => {
+      expect(routingService.navigate).toHaveBeenCalledWith(
+        'transcription initialized',
+        ['/intern/transcr'],
+        AppInfo.queryParamsHandling,
+      );
+      done();
+    });
+  });
+
+  it('does not navigate to /intern/transcr when the current URL is /workbench', (done) => {
+    router.url = '/workbench';
+    actions$.next(successPayloadFixture);
+
+    effects.loadSegmentsSuccess$.subscribe(() => {
+      expect(routingService.navigate).not.toHaveBeenCalled();
+      done();
+    });
   });
 });

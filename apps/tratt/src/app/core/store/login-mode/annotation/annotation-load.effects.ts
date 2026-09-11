@@ -1,5 +1,6 @@
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
+import { Router } from '@angular/router';
 import { TranslocoService } from '@jsverse/transloco';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { Store } from '@ngrx/store';
@@ -429,15 +430,17 @@ export class AnnotationLoadEffects {
         withLatestFrom(this.store),
         tap(([a, state]) => {
           if (state.application.mode === LoginMode.LOCAL) {
-            this.routingService
-              .navigate(
-                'reload audio local',
-                ['/intern/transcr/reload-file'],
-                AppInfo.queryParamsHandling,
-              )
-              .catch((error) => {
-                console.error(error);
-              });
+            if (!this.router.url.startsWith('/workbench')) {
+              this.routingService
+                .navigate(
+                  'reload audio local',
+                  ['/intern/transcr/reload-file'],
+                  AppInfo.queryParamsHandling,
+                )
+                .catch((error) => {
+                  console.error(error);
+                });
+            }
           } else {
             // it's an error
             this.modalsService.openErrorModal(a.error);
@@ -464,11 +467,13 @@ export class AnnotationLoadEffects {
         ofType(AnnotationActions.initTranscriptionService.success),
         withLatestFrom(this.store),
         tap(([action, state]) => {
-          this.routingService.navigate(
-            'transcription initialized',
-            ['/intern/transcr'],
-            AppInfo.queryParamsHandling,
-          );
+          if (!this.router.url.startsWith('/workbench')) {
+            this.routingService.navigate(
+              'transcription initialized',
+              ['/intern/transcr'],
+              AppInfo.queryParamsHandling,
+            );
+          }
         }),
       ),
     { dispatch: false },
@@ -922,11 +927,13 @@ export class AnnotationLoadEffects {
       this.actions$.pipe(
         ofType(AnnotationActions.redirectToTranscription.do),
         tap((a) => {
-          this.routingService.navigate(
-            'redirect to transcription loadOnlineInformationAfterIDBLoaded',
-            ['/intern/transcr'],
-            AppInfo.queryParamsHandling,
-          );
+          if (!this.router.url.startsWith('/workbench')) {
+            this.routingService.navigate(
+              'redirect to transcription loadOnlineInformationAfterIDBLoaded',
+              ['/intern/transcr'],
+              AppInfo.queryParamsHandling,
+            );
+          }
         }),
       ),
     { dispatch: false },
@@ -1182,6 +1189,7 @@ export class AnnotationLoadEffects {
     private appStorage: AppStorageService,
     private transloco: TranslocoService,
     private maintenance: AnnotationMaintenanceService,
+    private router: Router,
   ) {}
 }
 
