@@ -301,8 +301,10 @@ describe('LOCAL-mode characterization: entity-wrapped output matches a plain Ann
         expect(state.transcript.levels.length).toBe(1);
         expect(state.transcript.levels[0].name).toBe('OCTRA_2');
         expect(
-          (state.transcript.levels[0] as TrattAnnotationSegmentLevel<TrattAnnotationSegment>)
-            .items.length,
+          (
+            state.transcript
+              .levels[0] as TrattAnnotationSegmentLevel<TrattAnnotationSegment>
+          ).items.length,
         ).toBe(1);
       },
     },
@@ -385,5 +387,38 @@ describe('LOCAL-mode characterization: entity-wrapped output matches a plain Ann
         ),
       );
     }
+  });
+
+  it('no-ops (returns the exact same collection state reference) when a mode-mismatched action reaches the LOCAL reducer', () => {
+    const localReducer = new LoginModeReducers(LoginMode.LOCAL).create();
+
+    let localCollectionState = localReducer(undefined, {
+      type: '@@INIT',
+    } as Action) as unknown as LocalBundleCollectionState;
+
+    // advance past initial state with one real LOCAL-mode action, so the no-op check
+    // below isn't trivially exercising the untouched initial state.
+    localCollectionState = localReducer(
+      localCollectionState as any,
+      LoginModeActions.changeComment.do({
+        comment: 'before mismatch check',
+        mode: LoginMode.LOCAL,
+      }),
+    ) as unknown as LocalBundleCollectionState;
+
+    // a mode-MISMATCHED action dispatched at the LOCAL reducer instance: the inner
+    // `on(...)` handler guards on `this.mode === mode` and returns its input state
+    // untouched, so `wrapAsLocalBundleCollectionReducer`'s `nextInner === currentInner`
+    // check must hit its no-op branch and return the *same* outer collection state
+    // reference -- not a deep-equal copy. This is what NgRx memoization relies on.
+    const next = localReducer(
+      localCollectionState as any,
+      LoginModeActions.changeComment.do({
+        comment: 'should be ignored',
+        mode: LoginMode.ONLINE,
+      }),
+    );
+
+    expect(next).toBe(localCollectionState);
   });
 });
