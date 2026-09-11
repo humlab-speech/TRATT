@@ -58,6 +58,7 @@ import { LoginModeActions } from '../login-mode.actions';
 import { AnnotationActions } from './annotation.actions';
 import { AnnotationMaintenanceService } from './annotation-maintenance.service';
 import { AnnotationState, GuidelinesItem } from './index';
+import { resolveLocalBundleState } from './local-bundle-collection';
 
 import { FileInfo } from '@tratt/web-media';
 import mime from 'mime';
@@ -384,7 +385,10 @@ export class AnnotationLoadEffects {
             }
           } else if (state.application.mode === LoginMode.LOCAL) {
             // local mode
-            if (state.localMode.sessionFile !== undefined) {
+            if (
+              resolveLocalBundleState(state.localMode)?.sessionFile !==
+              undefined
+            ) {
               if (this.audio.audiomanagers.length > 0) {
                 this.store.dispatch(
                   AnnotationActions.loadAudio.success({
@@ -693,8 +697,12 @@ export class AnnotationLoadEffects {
                     inputs: [
                       {
                         id: Date.now().toString(),
-                        filename: state.localMode.sessionFile?.name ?? '',
-                        fileType: state.localMode.sessionFile?.type ?? '',
+                        filename:
+                          resolveLocalBundleState(state.localMode)
+                            ?.sessionFile?.name ?? '',
+                        fileType:
+                          resolveLocalBundleState(state.localMode)
+                            ?.sessionFile?.type ?? '',
                         chain_position: 0,
                         type: 'input',
                         creator_type: TaskInputOutputCreatorType.user,

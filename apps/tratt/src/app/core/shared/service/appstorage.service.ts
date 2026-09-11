@@ -33,6 +33,7 @@ import {
   AnnotationState,
 } from '../../store/login-mode/annotation';
 import { AnnotationActions } from '../../store/login-mode/annotation/annotation.actions';
+import { resolveLocalBundleState } from '../../store/login-mode/annotation/local-bundle-collection';
 import { ConsoleEntry, ConsoleGroupEntry } from './bug-report.service';
 
 @Injectable({
@@ -48,7 +49,7 @@ export class AppStorageService {
   }
 
   get sessionfile(): SessionFile {
-    return this._snapshot.localMode.sessionFile!;
+    return resolveLocalBundleState(this._snapshot.localMode)?.sessionFile!;
   }
 
   get playOnHover(): boolean | undefined | null {
