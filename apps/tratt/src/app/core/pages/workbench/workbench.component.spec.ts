@@ -55,7 +55,7 @@ import { DEFAULT_BUNDLE_ID } from '../../store/login-mode/annotation/local-bundl
 // fixture teardown otherwise. This fake has none of that, so it mounts and
 // tears down cleanly while still exercising the real
 // ViewContainerRef.createComponent() call.
-@Component({ selector: 'workbench-spec-fake-editor', template: '' })
+@Component({ selector: 'tratt-spec-fake-editor', template: '' })
 class FakeEditorComponent {}
 
 describe('WorkbenchComponent', () => {

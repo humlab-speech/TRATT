@@ -16,6 +16,9 @@ export const selectLocalMode =
   createFeatureSelector<LocalBundleCollectionState>('localMode');
 export const selectUrlMode = createFeatureSelector<AnnotationState>('urlMode');
 
+// Hard-wired to selectLocalMode; harmless today since AudioService (used by ONLINE/DEMO/URL
+// sessions too) always resolves through the same constant key, but revisit once step 2.7 makes
+// selectedBundleId genuinely variable — non-LOCAL sessions would then read LOCAL's selection state.
 export const selectSelectedBundleId = createSelector(
   selectLocalMode,
   (local): string => local.selectedBundleId,
