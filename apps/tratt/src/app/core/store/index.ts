@@ -45,9 +45,7 @@ export interface RootState {
   user: UserState;
 }
 
-export function getModeState(
-  appState: RootState,
-): AnnotationState | undefined {
+export function getModeState(appState: RootState): AnnotationState | undefined {
   switch (appState.application.mode) {
     case LoginMode.DEMO:
       return appState.demoMode;

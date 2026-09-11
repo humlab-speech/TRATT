@@ -1,8 +1,8 @@
-import { describe, it, expect } from '@jest/globals';
+import { describe, expect, it } from '@jest/globals';
 import { getModeState, LoginMode, RootState } from './index';
 import {
-  localBundleAdapter,
   DEFAULT_BUNDLE_ID,
+  localBundleAdapter,
 } from './login-mode/annotation/local-bundle-collection';
 
 describe('getModeState', () => {

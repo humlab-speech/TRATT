@@ -37,8 +37,8 @@ import { ApplicationActions } from '../application/application.actions';
 import { AuthenticationActions } from '../authentication';
 import { getModeState, LoginMode, RootState } from '../index';
 import { AnnotationState } from '../login-mode/annotation';
-import { resolveLocalBundleState } from '../login-mode/annotation/local-bundle-collection';
 import { AnnotationActions } from '../login-mode/annotation/annotation.actions';
+import { resolveLocalBundleState } from '../login-mode/annotation/local-bundle-collection';
 import { LoginModeActions } from '../login-mode/login-mode.actions';
 import { UserActions } from '../user/user.actions';
 import { IDBActions } from './idb.actions';
@@ -52,7 +52,8 @@ export class IDBEffects {
       ofType(ApplicationActions.initApplication.setSessionStorageOptions),
       withLatestFrom(this.store),
       exhaustMap(([action, state]) => {
-        const databaseName = state.application.appConfiguration?.tratt.database.name;
+        const databaseName =
+          state.application.appConfiguration?.tratt.database.name;
 
         if (!databaseName) {
           return of(
