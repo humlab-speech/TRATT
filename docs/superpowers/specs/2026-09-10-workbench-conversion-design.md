@@ -117,6 +117,17 @@ key is constant, but worth a comment (or mode-aware resolution) before step 2.7 
 selector-naming violation (`workbench-spec-fake-editor` in `workbench.component.spec.ts:58` —
 needs a `tratt-` prefix) — cheap to fix, worth doing so the lint gate is meaningful again.
 
+**Update (final whole-branch review, post-2.4):** step 2.4's Task 6 fixed the
+`component-selector` violation above — confirmed gone via a severity-anchored check of the
+lint output, not a naive `grep -c "error"` (which is noisy: it also matches unrelated filename
+and warning-text substrings). However, fixing that one violation does **not** make `nx lint
+tratt` exit zero: 3 other pre-existing lint errors remain, unrelated to anything in this whole
+conversion effort and in files it has never touched — `apps/tratt/src/app/core/shared/tratt-database.ts:374`
+(`@typescript-eslint/no-empty-function`) and two in
+`apps/tratt/src/app/editors/2D-editor/transcr-window/transcr-window.component.html:74`
+(`click-events-have-key-events`, `interactive-supports-focus`). These are tracked separately
+and are not this project's responsibility to fix.
+
 ## Phases (plan §3–§8, full estimates and step-by-step notes there)
 
 0. **Clear the ground** (1wk) — delete stale `multi-threading` copies (use lib versions), guard
