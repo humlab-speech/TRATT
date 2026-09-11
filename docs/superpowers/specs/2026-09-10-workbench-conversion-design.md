@@ -179,6 +179,22 @@ concern (Dexie 0.6 migration) than 2.5's.
 issue, do not fix it as part of this conversion. Step 2.5 proceeds with residency/eviction
 policy designed around the current single-PCM-copy reality documented above.
 
+**Step 2.5 implementation outcome (2026-09-11):** `AudioService` now caps PCM residency at
+`MAX_RESIDENT_BUNDLES = 3` — the selected bundle plus the 2 most-recently-selected others,
+tracked via the existing `selectedBundleId` store signal (no new UI/store plumbing).
+Selecting a 4th distinct bundle evicts the least-recently-selected one (LRU by *selection*
+order, not by registration/decode order) by calling `AudioManager.destroy()`, which frees
+its PCM and revokes its blob URL. The per-bundle envelope computed at decode time
+(`computeAudioEnvelope`, Task 1) is cached separately from the `AudioManager` and is never
+itself evicted by this policy — it survives eviction of its owning bundle so the signal
+display can keep rendering a summary view after the full-resolution PCM is gone. There is
+currently no cap on the envelope cache's own size; at Task 1's default 4000 columns each
+envelope is ~32KB, so this is not a near-term memory concern, but it should be revisited in
+step 2.6+ if the number of bundles a session accumulates envelopes for grows large. This is
+pure infrastructure — eviction is exercised today only by directly-constructed
+multi-manager tests, since nothing in the UI yet selects between multiple bundles; wiring
+real bundle selection to trigger it is step 2.7's concern.
+
 ## Phases (plan §3–§8, full estimates and step-by-step notes there)
 
 0. **Clear the ground** (1wk) — delete stale `multi-threading` copies (use lib versions), guard
