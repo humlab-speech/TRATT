@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { Router } from '@angular/router';
 import { provideMockActions } from '@ngrx/effects/testing';
-import { provideMockStore } from '@ngrx/store/testing';
+import { MockStore, provideMockStore } from '@ngrx/store/testing';
 import { describe, expect, it, jest, beforeEach } from '@jest/globals';
 import { HttpClient } from '@angular/common/http';
 import { TranslocoService } from '@jsverse/transloco';
@@ -81,6 +81,92 @@ describe('AnnotationLoadEffects.onAudioLoad$', () => {
     expect(audioStub.loadAudio).toHaveBeenCalledTimes(2);
     expect(secondLoad$.observed).toBe(true);
     expect(firstLoad$.observed).toBe(false);
+
+    subscription.unsubscribe();
+  });
+});
+
+describe('AnnotationLoadEffects.onAudioLoad$ LOCAL mode — multi-bundle readiness (bug pin)', () => {
+  let effects: AnnotationLoadEffects;
+  let actions$: ReplaySubject<unknown>;
+  let store: MockStore;
+  let audioStub: { audiomanagers: unknown[]; current: unknown };
+
+  // Two distinct bundle ids: `selectedBundleId` is what's currently selected
+  // (and has a sessionFile entry in localMode); `otherBundleId` is a
+  // different, unrelated bundle that happens to have a manager registered.
+  const selectedBundleId = 'bundle-selected';
+  const otherBundleId = 'bundle-other';
+
+  const initialState = {
+    application: { mode: LoginMode.LOCAL },
+    localMode: {
+      selectedBundleId,
+      bundles: {
+        ids: [selectedBundleId],
+        entities: {
+          [selectedBundleId]: { sessionFile: { name: 'session.json' } } as any,
+        },
+      },
+    },
+  } as unknown as RootState;
+
+  beforeEach(() => {
+    actions$ = new ReplaySubject(1);
+
+    // Simulates the multi-bundle regression scenario: a manager IS registered,
+    // but for `otherBundleId`, NOT the currently selected `selectedBundleId`.
+    // `audiomanagers.length > 0` is (wrongly) true, while `current` — which is
+    // keyed by the selected bundle id — correctly reports "not ready".
+    audioStub = {
+      audiomanagers: [{ bundleId: otherBundleId } as any],
+      current: undefined,
+    };
+
+    TestBed.configureTestingModule({
+      providers: [
+        AnnotationLoadEffects,
+        provideMockActions(() => actions$),
+        provideMockStore({ initialState }),
+        { provide: OctraAPIService, useValue: {} },
+        { provide: HttpClient, useValue: {} },
+        { provide: AlertService, useValue: { showAlert: () => undefined } },
+        { provide: RoutingService, useValue: { navigate: () => undefined } },
+        { provide: TrattModalService, useValue: { openModal: () => undefined } },
+        { provide: AudioService, useValue: audioStub },
+        { provide: UserInteractionsService, useValue: { afteradd: new Subject() } },
+        { provide: AppStorageService, useValue: {} },
+        { provide: TranslocoService, useValue: {} },
+        { provide: AnnotationMaintenanceService, useValue: {} },
+      ],
+    });
+
+    effects = TestBed.inject(AnnotationLoadEffects);
+    store = TestBed.inject(MockStore);
+    jest.spyOn(store, 'dispatch');
+  });
+
+  it('dispatches loadAudio.fail (reload needed), NOT loadAudio.success, when a manager is only registered for a different bundle than the one selected', () => {
+    const subscription = effects.onAudioLoad$.subscribe();
+
+    actions$.next(
+      AnnotationActions.loadAudio.do({
+        mode: LoginMode.LOCAL,
+        audioFile: { filename: 'a.wav' } as any,
+        task: {} as any,
+        currentProject: {} as any,
+        guidelines: [],
+      }),
+    );
+
+    expect(store.dispatch).toHaveBeenCalledWith(
+      AnnotationActions.loadAudio.fail({
+        error: 'audio from sessionfile not loaded. Reload needed.',
+      }),
+    );
+    expect(store.dispatch).not.toHaveBeenCalledWith(
+      expect.objectContaining({ type: AnnotationActions.loadAudio.success.type }),
+    );
 
     subscription.unsubscribe();
   });

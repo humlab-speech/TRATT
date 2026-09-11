@@ -389,7 +389,7 @@ export class AnnotationLoadEffects {
               resolveLocalBundleState(state.localMode)?.sessionFile !==
               undefined
             ) {
-              if (this.audio.audiomanagers.length > 0) {
+              if (this.audio.current !== undefined) {
                 this.store.dispatch(
                   AnnotationActions.loadAudio.success({
                     mode: LoginMode.LOCAL,
@@ -421,8 +421,8 @@ export class AnnotationLoadEffects {
               }
             } else {
               console.error(
-                '[onAudioLoad$ LOCAL] FAIL: sessionFile is undefined — audiomanagers.length=',
-                this.audio.audiomanagers.length,
+                '[onAudioLoad$ LOCAL] FAIL: sessionFile is undefined — audio.current defined=',
+                this.audio.current !== undefined,
               );
               this.store.dispatch(
                 AnnotationActions.loadAudio.fail({
@@ -1040,7 +1040,7 @@ export class AnnotationLoadEffects {
               >(task, 'transcript', (io: TaskInputOutputDto) => {
                 return isValidAnnotation(
                   io,
-                  this.audio.audioManager.resource.getOAudioFile(),
+                  this.audio.current!.resource.getOAudioFile(),
                 );
               })
             : undefined;
@@ -1062,7 +1062,7 @@ export class AnnotationLoadEffects {
             const level = newAnnotation.createSegmentLevel(levelName);
             level.items.push(
               newAnnotation.createSegment(
-                this.audio.audioManager.resource.info.duration,
+                this.audio.current!.resource.info.duration,
                 [
                   new OLabel(levelName, ''), // empty transcript
                 ],
@@ -1090,7 +1090,7 @@ export class AnnotationLoadEffects {
           const level = newAnnotation.createSegmentLevel(levelName);
           level.items.push(
             newAnnotation.createSegment(
-              this.audio.audioManager.resource.info.duration,
+              this.audio.current!.resource.info.duration,
               [
                 new OLabel(levelName, ''), // empty transcript
               ],
@@ -1154,7 +1154,7 @@ export class AnnotationLoadEffects {
       }
 
       const transcript = modeState.transcript.changeSampleRate(
-        this.audio.audioManager.resource.info.sampleRate,
+        this.audio.current!.resource.info.sampleRate,
       );
 
       const currentLevelIndex =
