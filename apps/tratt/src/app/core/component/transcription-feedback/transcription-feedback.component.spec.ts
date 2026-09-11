@@ -1,10 +1,12 @@
 import { describe, expect, it, jest } from '@jest/globals';
+import { of } from 'rxjs';
 import { TranscriptionFeedbackComponent } from './transcription-feedback.component';
 
 function createComponent(overrides: { feedback?: any } = {}) {
   const changeFeedback = jest.fn();
   const annotationStoreService = {
     feedback: overrides.feedback,
+    feedback$: of(overrides.feedback),
     changeFeedback,
   } as never;
   const langService = {} as never;
