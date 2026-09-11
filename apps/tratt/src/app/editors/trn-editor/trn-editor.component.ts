@@ -392,7 +392,7 @@ export class TrnEditorComponent
     this.audioViewerSettings.multiLine = false;
     this.audioViewerSettings.lineheight = 200;
     // this.audioViewerSettings.av.drawnSelection = undefined;
-    this.audioManager = this.audio.audiomanagers[0];
+    this.audioManager = this.audio.current!;
     this.audioChunk = this.audioManager.mainchunk.clone();
 
     // TODO this.transcrService.validateAll();

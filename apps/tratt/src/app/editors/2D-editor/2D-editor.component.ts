@@ -360,7 +360,7 @@ export class TwoDEditorComponent
   }
 
   ngOnInit() {
-    this.audioManager = this.audio.audiomanagers[0];
+    this.audioManager = this.audio.current!;
     this.audioChunkLines = this.audioManager.mainchunk.clone();
     this.audioChunkWindow = this.audioManager.mainchunk.clone();
 

@@ -218,7 +218,7 @@ export class DictaphoneEditorComponent
   }
 
   ngOnInit() {
-    this.audioManager = this.audio.audiomanagers[0];
+    this.audioManager = this.audio.current!;
     this.audiochunk = this.audioManager.mainchunk.clone();
     this.editor.settings.markers =
       this.annotationStoreService.guidelines?.markers ?? [];

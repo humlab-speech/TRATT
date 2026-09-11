@@ -464,7 +464,7 @@ export class LinearEditorComponent
   };
 
   ngOnInit() {
-    this.audioManager = this.audio.audiomanagers[0];
+    this.audioManager = this.audio.current!;
     this.audioChunkTop = this.audioManager.mainchunk.clone();
     this.audioChunkMagnifier = this.audioManager.mainchunk.clone();
     this.selectedAudioChunk = this.audioChunkTop;
