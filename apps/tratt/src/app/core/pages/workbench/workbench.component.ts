@@ -35,7 +35,7 @@ import { AudioService } from '../../shared/service/audio.service';
 import { RecordedFileService } from '../../shared/service/recorded-file.service';
 import { RoutingService } from '../../shared/service/routing.service';
 import { SettingsService, UserInteractionsService } from '../../shared/service';
-import { LoginMode } from '../../store';
+import { LoadingStatus, LoginMode } from '../../store';
 import { ApplicationStoreService } from '../../store/application/application-store.service';
 import { AuthenticationStoreService } from '../../store/authentication/authentication-store.service';
 import { AnnotationStoreService } from '../../store/login-mode/annotation/annotation.store.service';
@@ -58,7 +58,6 @@ export class WorkbenchComponent extends DefaultComponent implements OnInit {
   @ViewChild(LoadeditorDirective) showEditor?: LoadeditorDirective;
 
   sessionStarting = false;
-  // Task 4 drives this from the store instead of leaving it always false.
   sessionReady = false;
 
   showCommentSection = false;
@@ -111,6 +110,10 @@ export class WorkbenchComponent extends DefaultComponent implements OnInit {
     this.showCommentSection =
       this.settingsService.isTheme('shortAudioFiles') &&
       (this._useMode === 'online' || this._useMode === 'demo');
+
+    this.subscribe(this.appStoreService.loading$, (loading: any) => {
+      this.sessionReady = loading?.status === LoadingStatus.FINISHED;
+    });
   }
 
   startSession(removeData: boolean): void {

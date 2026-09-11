@@ -9,9 +9,11 @@ import { describe, it, expect, jest, beforeEach } from '@jest/globals';
 // stubs `component.dropzone` directly — so a minimal standalone stand-in with the
 // right selector is enough to satisfy WorkbenchComponent's `@ViewChild` and template.
 jest.mock('../../component/tratt-dropzone/tratt-dropzone.component', () => {
-  const { Component } = require('@angular/core');
+  const { Component, Input } = require('@angular/core');
   @Component({ selector: 'tratt-dropzone', template: '' })
-  class TrattDropzoneComponent {}
+  class TrattDropzoneComponent {
+    @Input() showAutoTranscribe = false;
+  }
   return { TrattDropzoneComponent };
 });
 
@@ -28,7 +30,7 @@ jest.mock('../../component/navbar', () => ({}));
 
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { TranslocoService } from '@jsverse/transloco';
-import { of } from 'rxjs';
+import { BehaviorSubject, of } from 'rxjs';
 import { WorkbenchComponent } from './workbench.component';
 import { AudioService } from '../../shared/service/audio.service';
 import { AuthenticationStoreService } from '../../store/authentication/authentication-store.service';
@@ -40,16 +42,21 @@ import { AnnotationStoreService } from '../../store/login-mode/annotation/annota
 import { SettingsService, UserInteractionsService } from '../../shared/service';
 import { TrattModalService } from '../../modals/tratt-modal.service';
 import { ApplicationStoreService } from '../../store/application/application-store.service';
+import { LoadingStatus } from '../../store';
 
 describe('WorkbenchComponent', () => {
   let fixture: ComponentFixture<WorkbenchComponent>;
   let component: WorkbenchComponent;
   let audioService: { registerAudioManager: jest.Mock };
   let authStoreService: { loginLocal: jest.Mock };
+  let loading$: BehaviorSubject<{ status: LoadingStatus }>;
 
   beforeEach(async () => {
     audioService = { registerAudioManager: jest.fn() };
     authStoreService = { loginLocal: jest.fn() };
+    loading$ = new BehaviorSubject<{ status: LoadingStatus }>({
+      status: LoadingStatus.INITIALIZE,
+    });
 
     await TestBed.configureTestingModule({
       imports: [WorkbenchComponent],
@@ -61,9 +68,9 @@ describe('WorkbenchComponent', () => {
         { provide: NavbarService, useValue: {} },
         { provide: RecordedFileService, useValue: {} },
         { provide: AnnotationStoreService, useValue: {} },
-        { provide: SettingsService, useValue: {} },
+        { provide: SettingsService, useValue: { isTheme: () => false } },
         { provide: TrattModalService, useValue: {} },
-        { provide: ApplicationStoreService, useValue: {} },
+        { provide: ApplicationStoreService, useValue: { loading$ } },
         { provide: UserInteractionsService, useValue: {} },
         {
           provide: TranslocoService,
@@ -72,6 +79,7 @@ describe('WorkbenchComponent', () => {
             langChanges$: of('en'),
             translate: (key: string) => key,
             selectTranslate: () => of(''),
+            config: { reRenderOnLangChange: false },
           },
         },
       ],
@@ -138,5 +146,16 @@ describe('WorkbenchComponent', () => {
 
     expect(component.showEditor!.viewContainerRef.clear).toHaveBeenCalled();
     expect(createComponentSpy).toHaveBeenCalled();
+  });
+
+  it('keeps the right pane hidden while application.loading.status is not FINISHED', () => {
+    fixture.detectChanges();
+    expect(component.sessionReady).toBe(false);
+  });
+
+  it('reveals the right pane once application.loading.status is FINISHED', () => {
+    fixture.detectChanges();
+    loading$.next({ status: LoadingStatus.FINISHED });
+    expect(component.sessionReady).toBe(true);
   });
 });
