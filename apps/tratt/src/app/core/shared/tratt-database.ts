@@ -136,6 +136,7 @@ export class TrattDatabase extends Dexie {
       this.onReady.complete();
     } catch (e) {
       this.onReady.error(e);
+      throw e;
     }
   }
 
