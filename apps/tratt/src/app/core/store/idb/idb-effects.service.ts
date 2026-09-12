@@ -301,9 +301,7 @@ export class IDBEffects {
                 this.audio.current.resource.info.sampleRate,
                 this.audio.current.resource.info.duration,
               ),
-              appState.application.mode === LoginMode.LOCAL
-                ? DEFAULT_BUNDLE_ID
-                : undefined,
+              this.resolveLocalBundleId(appState.application.mode!, appState),
             )
             .pipe(
               map(() => ApplicationActions.undoSuccess()),
@@ -351,9 +349,7 @@ export class IDBEffects {
                 this.audio.current.resource.info.sampleRate,
                 this.audio.current.resource.info.duration,
               ),
-              appState.application.mode === LoginMode.LOCAL
-                ? DEFAULT_BUNDLE_ID
-                : undefined,
+              this.resolveLocalBundleId(appState.application.mode!, appState),
             )
             .pipe(
               map(() => ApplicationActions.redoSuccess()),
@@ -546,9 +542,7 @@ export class IDBEffects {
                     }
                   : undefined,
               },
-              (action as any).mode === LoginMode.LOCAL
-                ? DEFAULT_BUNDLE_ID
-                : undefined,
+              this.resolveLocalBundleId((action as any).mode, appState),
             )
             .pipe(
               map(() => {
@@ -821,9 +815,7 @@ export class IDBEffects {
             .saveLogs(
               (action as any).mode,
               modeState.logging.logs,
-              (action as any).mode === LoginMode.LOCAL
-                ? DEFAULT_BUNDLE_ID
-                : undefined,
+              this.resolveLocalBundleId((action as any).mode, appState),
             )
             .pipe(
               map(() => IDBActions.saveLogs.success()),
@@ -881,7 +873,7 @@ export class IDBEffects {
                 this.audio.current.resource.info.sampleRate,
                 this.audio.current.resource.info.duration,
               ),
-              action.mode === LoginMode.LOCAL ? DEFAULT_BUNDLE_ID : undefined,
+              this.resolveLocalBundleId(action.mode, appState),
             )
             .pipe(
               map(() => IDBActions.saveAnnotation.success()),
@@ -1000,12 +992,13 @@ export class IDBEffects {
     this.actions$.pipe(
       ofType(LoginModeActions.changeImportOptions.do),
       filter((action) => action.importOptions != null),
-      exhaustMap((action) =>
+      withLatestFrom(this.store),
+      exhaustMap(([action, appState]) =>
         this.idbService
           .saveImportOptions(
             action.mode,
             action.importOptions!,
-            action.mode === LoginMode.LOCAL ? DEFAULT_BUNDLE_ID : undefined,
+            this.resolveLocalBundleId(action.mode, appState),
           )
           .pipe(
             map(() => IDBActions.saveImportOptions.success()),
@@ -1060,6 +1053,15 @@ export class IDBEffects {
         console.error(`${action.type}: ${errorMessage}`);
       }
     });
+  }
+
+  private resolveLocalBundleId(
+    mode: LoginMode,
+    appState: RootState,
+  ): string | undefined {
+    return mode === LoginMode.LOCAL
+      ? appState.localMode.selectedBundleId
+      : undefined;
   }
 
   getModeStateFromString(appState: RootState, mode: LoginMode) {

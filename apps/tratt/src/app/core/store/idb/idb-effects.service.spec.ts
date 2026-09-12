@@ -4,16 +4,18 @@ import { provideMockActions } from '@ngrx/effects/testing';
 import { provideMockStore } from '@ngrx/store/testing';
 import { Store } from '@ngrx/store';
 import { SessionStorageService } from 'ngx-webstorage';
-import { ReplaySubject, throwError } from 'rxjs';
+import { of, ReplaySubject, throwError } from 'rxjs';
 import { AudioService } from '../../shared/service';
 import { IDBService } from '../../shared/service/idb.service';
 import { RoutingService } from '../../shared/service/routing.service';
 import { ApplicationActions } from '../application/application.actions';
 import { LoginMode, RootState } from '../index';
+import { AnnotationActions } from '../login-mode/annotation/annotation.actions';
 import {
   DEFAULT_BUNDLE_ID,
   localBundleAdapter,
 } from '../login-mode/annotation/local-bundle-collection';
+import { LoginModeActions } from '../login-mode/login-mode.actions';
 import { IDBActions } from './idb.actions';
 import { IDBEffects } from './idb-effects.service';
 
@@ -227,5 +229,172 @@ describe('IDBEffects.getModeStateFromString', () => {
     expect(effects.getModeStateFromString(appState, LoginMode.ONLINE)).toBe(
       fakeOnline,
     );
+  });
+});
+
+// Task 3: save-side effects must persist under the REAL selected bundle id,
+// not a hardcoded DEFAULT_BUNDLE_ID. Task 2 made selectedBundleId able to
+// genuinely vary (e.g. 'bundle-2'); before this fix these effects always
+// wrote to 'bundle-1' regardless, corrupting cross-bundle data.
+describe('IDBEffects — persists to the real selected bundle (Task 3)', () => {
+  let effects: IDBEffects;
+  let actions$: ReplaySubject<unknown>;
+  let idbService: {
+    saveModeOptions: jest.Mock;
+    saveAnnotation: jest.Mock;
+  };
+
+  const buildState = (selectedBundleId: string): RootState => {
+    const fakeAnnotation = {
+      bundleId: selectedBundleId,
+      sessionFile: undefined,
+      importConverter: undefined,
+      currentEditor: undefined,
+      transcript: {
+        selectedLevelIndex: 0,
+        serialize: jest.fn().mockReturnValue({ fake: 'annotation-json' }),
+      },
+      logging: { enabled: false, logs: [] },
+      currentSession: undefined,
+      additionalSpeakerIds: undefined,
+      audio: { fileName: 'fake.wav' },
+    } as any;
+
+    return {
+      application: { mode: LoginMode.LOCAL },
+      authentication: { me: undefined },
+      localMode: {
+        bundles: localBundleAdapter.setOne(
+          fakeAnnotation,
+          localBundleAdapter.getInitialState(),
+        ),
+        selectedBundleId,
+      },
+    } as unknown as RootState;
+  };
+
+  const setup = (initialState: RootState) => {
+    actions$ = new ReplaySubject(1);
+    idbService = {
+      saveModeOptions: jest.fn().mockReturnValue(of(undefined)),
+      saveAnnotation: jest.fn().mockReturnValue(of(undefined)),
+    };
+
+    TestBed.configureTestingModule({
+      providers: [
+        IDBEffects,
+        provideMockActions(() => actions$),
+        provideMockStore({ initialState }),
+        { provide: IDBService, useValue: idbService },
+        { provide: SessionStorageService, useValue: {} },
+        { provide: RoutingService, useValue: {} },
+        {
+          provide: AudioService,
+          useValue: {
+            current: {
+              resource: {
+                info: {
+                  fullname: 'fake.wav',
+                  sampleRate: 16000,
+                  duration: { samples: 1000 },
+                },
+              },
+            },
+          },
+        },
+      ],
+    });
+
+    effects = TestBed.inject(IDBEffects);
+  };
+
+  describe('savemodeOptions$', () => {
+    it('passes the non-default selected bundle id to IDBService.saveModeOptions', (done) => {
+      setup(buildState('bundle-2'));
+
+      const subscription = effects.savemodeOptions$.subscribe(() => {
+        expect(idbService.saveModeOptions).toHaveBeenCalledWith(
+          LoginMode.LOCAL,
+          expect.anything(),
+          'bundle-2',
+        );
+        subscription.unsubscribe();
+        done();
+      });
+
+      actions$.next(
+        LoginModeActions.changeComment.do({
+          mode: LoginMode.LOCAL,
+          comment: 'hello',
+        }),
+      );
+    });
+
+    it('regression: still passes DEFAULT_BUNDLE_ID when that is the selected bundle', (done) => {
+      setup(buildState(DEFAULT_BUNDLE_ID));
+
+      const subscription = effects.savemodeOptions$.subscribe(() => {
+        expect(idbService.saveModeOptions).toHaveBeenCalledWith(
+          LoginMode.LOCAL,
+          expect.anything(),
+          DEFAULT_BUNDLE_ID,
+        );
+        subscription.unsubscribe();
+        done();
+      });
+
+      actions$.next(
+        LoginModeActions.changeComment.do({
+          mode: LoginMode.LOCAL,
+          comment: 'hello',
+        }),
+      );
+    });
+  });
+
+  describe('saveAnnotation', () => {
+    it('passes the non-default selected bundle id to IDBService.saveAnnotation', (done) => {
+      setup(buildState('bundle-2'));
+
+      const subscription = effects.saveAnnotation.subscribe(() => {
+        expect(idbService.saveAnnotation).toHaveBeenCalledWith(
+          LoginMode.LOCAL,
+          expect.anything(),
+          'bundle-2',
+        );
+        subscription.unsubscribe();
+        done();
+      });
+
+      actions$.next(
+        AnnotationActions.overwriteTranscript.do({
+          transcript: {} as any,
+          mode: LoginMode.LOCAL,
+          saveToDB: true,
+        }),
+      );
+    });
+
+    it('regression: still passes DEFAULT_BUNDLE_ID when that is the selected bundle', (done) => {
+      setup(buildState(DEFAULT_BUNDLE_ID));
+
+      const subscription = effects.saveAnnotation.subscribe(() => {
+        expect(idbService.saveAnnotation).toHaveBeenCalledWith(
+          LoginMode.LOCAL,
+          expect.anything(),
+          DEFAULT_BUNDLE_ID,
+        );
+        subscription.unsubscribe();
+        done();
+      });
+
+      actions$.next(
+        AnnotationActions.overwriteTranscript.do({
+          transcript: {} as any,
+          mode: LoginMode.LOCAL,
+          saveToDB: true,
+        }),
+      );
+    });
   });
 });
