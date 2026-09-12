@@ -2,8 +2,9 @@ import { TestBed } from '@angular/core/testing';
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { provideMockActions } from '@ngrx/effects/testing';
 import { provideMockStore } from '@ngrx/store/testing';
+import { Store } from '@ngrx/store';
 import { SessionStorageService } from 'ngx-webstorage';
-import { ReplaySubject } from 'rxjs';
+import { ReplaySubject, throwError } from 'rxjs';
 import { AudioService } from '../../shared/service';
 import { IDBService } from '../../shared/service/idb.service';
 import { RoutingService } from '../../shared/service/routing.service';
@@ -13,6 +14,7 @@ import {
   DEFAULT_BUNDLE_ID,
   localBundleAdapter,
 } from '../login-mode/annotation/local-bundle-collection';
+import { IDBActions } from './idb.actions';
 import { IDBEffects } from './idb-effects.service';
 
 // createEffect() returns the raw effect observable (see @ngrx/effects
@@ -106,6 +108,69 @@ describe('IDBEffects undo/redo guards missing audio (C12)', () => {
       subscription.unsubscribe();
       done();
     }, 0);
+  });
+});
+
+describe('IDBEffects.loadOptions$ (IDB open failure)', () => {
+  let effects: IDBEffects;
+  let actions$: ReplaySubject<unknown>;
+  let idbService: { initialize: jest.Mock };
+  let store: Store<RootState>;
+
+  const initialState = {
+    application: {
+      appConfiguration: {
+        tratt: {
+          database: {
+            name: 'test-db',
+          },
+        },
+      },
+    },
+  } as unknown as RootState;
+
+  beforeEach(() => {
+    actions$ = new ReplaySubject(1);
+    idbService = { initialize: jest.fn() };
+
+    TestBed.configureTestingModule({
+      providers: [
+        IDBEffects,
+        provideMockActions(() => actions$),
+        provideMockStore({ initialState }),
+        { provide: IDBService, useValue: idbService },
+        { provide: SessionStorageService, useValue: {} },
+        { provide: RoutingService, useValue: {} },
+        { provide: AudioService, useValue: { audioManager: undefined } },
+      ],
+    });
+
+    effects = TestBed.inject(IDBEffects);
+    store = TestBed.inject(Store);
+  });
+
+  it('dispatches ApplicationActions.addError (not just the dead-end loadOptions.fail) when IDB init fails', (done) => {
+    const simulatedError = 'simulated IDB open failure';
+    const dispatchSpy = jest.spyOn(store, 'dispatch');
+    idbService.initialize.mockReturnValue(throwError(() => simulatedError));
+
+    const subscription = effects.loadOptions$.subscribe((action) => {
+      expect(action).toEqual(
+        IDBActions.loadOptions.fail({ error: simulatedError }),
+      );
+      expect(dispatchSpy).toHaveBeenCalledWith(
+        ApplicationActions.addError({ error: simulatedError }),
+      );
+      subscription.unsubscribe();
+      done();
+    });
+
+    actions$.next(
+      ApplicationActions.initApplication.setSessionStorageOptions({
+        loggedIn: false,
+        reloaded: false,
+      }),
+    );
   });
 });
 

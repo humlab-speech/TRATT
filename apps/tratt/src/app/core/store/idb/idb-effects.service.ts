@@ -140,6 +140,17 @@ export class IDBEffects {
             catchError((err: string) => {
               console.error(err);
 
+              // loadOptions.fail has no reducer/effect listening for it —
+              // also dispatch addError so the user actually sees the
+              // pre-built LoadingComponent failure UI instead of hanging
+              // silently at /load forever. Matches this effect's existing
+              // side-channel dispatch pattern above (loadImportOptions.do).
+              this.store.dispatch(
+                ApplicationActions.addError({
+                  error: err,
+                }),
+              );
+
               return of(
                 IDBActions.loadOptions.fail({
                   error: err,

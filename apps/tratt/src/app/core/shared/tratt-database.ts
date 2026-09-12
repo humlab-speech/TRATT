@@ -105,7 +105,7 @@ export class TrattDatabase extends Dexie {
           `Failed to open IndexedDB database. This may happen in private browsing mode. Original error: ${e}`,
         ),
       );
-      return;
+      throw e; // propagate — nothing downstream can react to onReady.error alone
     }
     try {
       await this.checkAndFillPopulation();
