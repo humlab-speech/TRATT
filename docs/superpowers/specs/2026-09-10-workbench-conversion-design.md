@@ -252,15 +252,18 @@ start. It now checks `bundles.get([DEFAULT_BUNDLE_ID, 'options'])` instead. Seco
 the `clearDataOfMode`/`clearAnnotationData`/`clearLogs`/`clearAllOptions` family
 (`tratt-database.ts:590-609`, `idb.service.ts`) still resolves LOCAL mode's table
 via `getTableFromString()`, which still points at `local_data` — these were not
-repointed at `bundles`. Per Task 3's review this is currently inert: no UI
-dispatches a LOCAL-mode clear today (the reachable call sites are
-`clearAnnotationPermanently()` from `workbench.component.ts`/
-`transcription.component.ts`, both non-LOCAL-mode-only surfaces gated the same way
-today as before this migration). It's tracked here as a real gap to close before
-any LOCAL-mode "clear" UI is wired up, or before whatever admin-role gate currently
-keeps these paths from being LOCAL-reachable is loosened — at that point a LOCAL
-"clear" would wipe the now-unused `local_data` row and leave the actual `bundles`
-data untouched.
+repointed at `bundles`. This is currently inert, but for two different reasons of
+different fragility: `clearAnnotation$` (`idb-effects.service.ts:427-462`) gates on
+a `clearSession` property that `AnnotationActions.clearAnnotation.do`'s payload
+doesn't have, so it's dead by construction, for reasons unrelated to LOCAL-mode
+gating. `clearLogs$` (`idb-effects.service.ts:379-391`) has no LOCAL-specific guard
+at all — its inertness rests entirely on today's dispatchers of
+`AnnotationActions.clearLogs.do` happening to be DEMO-only or admin-gated, making it
+one new dispatcher away from being live in LOCAL mode. It's tracked here as a real
+gap to close before any LOCAL-mode "clear" UI is wired up, or before whatever gate
+currently keeps `clearLogs$`'s dispatchers from being LOCAL-reachable is loosened —
+at that point a LOCAL "clear" would wipe the now-unused `local_data` row and leave
+the actual `bundles` data untouched.
 
 Finally, this migration is the first real beneficiary of Task 1's IndexedDB
 open-failure fix: because `init()` now propagates a failed `this.open()` (rejecting
