@@ -14,16 +14,17 @@ import { timer } from 'rxjs';
 import { AppInfo } from '../../../app.info';
 import { editorComponents } from '../../../editors/components';
 import { TRATTEditor } from '../../../editors/tratt-editor';
+import { BundleListComponent } from '../../component/bundle-list/bundle-list.component';
 import { DefaultComponent } from '../../component/default.component';
 import { NavbarService } from '../../component/navbar/navbar.service';
 import { FastbarComponent } from '../../component/taskbar/taskbar.component';
 import { TrattDropzoneComponent } from '../../component/tratt-dropzone/tratt-dropzone.component';
+import { OverviewModalComponent } from '../../modals/overview-modal/overview-modal.component';
+import { ShortcutsModalComponent } from '../../modals/shortcuts-modal/shortcuts-modal.component';
 import {
   ModalEndAnswer,
   TranscriptionDemoEndModalComponent,
 } from '../../modals/transcription-demo-end/transcription-demo-end-modal.component';
-import { OverviewModalComponent } from '../../modals/overview-modal/overview-modal.component';
-import { ShortcutsModalComponent } from '../../modals/shortcuts-modal/shortcuts-modal.component';
 import { TranscriptionSendingModalComponent } from '../../modals/transcription-sending-modal/transcription-sending-modal.component';
 import {
   TranscriptionStopModalAnswer,
@@ -32,17 +33,17 @@ import {
 import { TrattModalService } from '../../modals/tratt-modal.service';
 import { ProjectSettings } from '../../obj/Settings';
 import { LoadeditorDirective } from '../../shared/directive/loadeditor.directive';
+import { SettingsService, UserInteractionsService } from '../../shared/service';
 import { AppStorageService } from '../../shared/service/appstorage.service';
 import { AudioService } from '../../shared/service/audio.service';
-import { generateBundleId } from '../../store/login-mode/annotation/local-bundle-collection';
 import { RecordedFileService } from '../../shared/service/recorded-file.service';
 import { RoutingService } from '../../shared/service/routing.service';
-import { SettingsService, UserInteractionsService } from '../../shared/service';
 import { LoadingStatus, LoginMode } from '../../store';
 import { ApplicationState } from '../../store/application';
 import { ApplicationStoreService } from '../../store/application/application-store.service';
 import { AuthenticationStoreService } from '../../store/authentication/authentication-store.service';
 import { AnnotationStoreService } from '../../store/login-mode/annotation/annotation.store.service';
+import { generateBundleId } from '../../store/login-mode/annotation/local-bundle-collection';
 
 @Component({
   selector: 'tratt-workbench',
@@ -51,6 +52,7 @@ import { AnnotationStoreService } from '../../store/login-mode/annotation/annota
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     TrattDropzoneComponent,
+    BundleListComponent,
     TranslocoPipe,
     FastbarComponent,
     LoadeditorDirective,

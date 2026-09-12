@@ -1,0 +1,26 @@
+.bundle-list__title {
+  margin-top: 0.5rem;
+  font-size: 0.85rem;
+}
+
+.bundle-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.bundle-list__item {
+  cursor: pointer;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+
+  &.active {
+    background-color: var(--tratt-surface-background);
+    font-weight: 600;
+  }
+
+  &:hover:not(.active) {
+    background-color: var(--tratt-surface-background);
+    opacity: 0.7;
+  }
+}

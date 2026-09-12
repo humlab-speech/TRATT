@@ -774,6 +774,9 @@
     "tagline": "transcribe audio to text"
   },
   "workbench": {
-    "start session": "Start session"
+    "start session": "Start session",
+    "bundle_list": {
+      "title": "Files"
+    }
   }
 }

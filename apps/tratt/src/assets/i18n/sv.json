@@ -722,6 +722,9 @@
     "tagline": "transkription av tal till text"
   },
   "workbench": {
-    "start session": "Starta session"
+    "start session": "Starta session",
+    "bundle_list": {
+      "title": "Filer"
+    }
   }
 }

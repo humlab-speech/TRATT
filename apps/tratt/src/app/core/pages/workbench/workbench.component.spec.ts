@@ -1,4 +1,4 @@
-import { describe, it, expect, jest, beforeEach } from '@jest/globals';
+import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 
 // tratt-dropzone.component.ts transitively imports AutoTranscribeOptionsComponent and
 // AutoTranslateOptionsComponent, which import local-transcription.service.ts /
@@ -17,6 +17,18 @@ jest.mock('../../component/tratt-dropzone/tratt-dropzone.component', () => {
   return { TrattDropzoneComponent };
 });
 
+// BundleListComponent injects Store<RootState> directly, which this bare TestBed
+// doesn't provide (WorkbenchComponent itself has no store dependency). Its own
+// behavior is fully covered by bundle-list.component.spec.ts, so stub it out here
+// with a minimal standalone stand-in, same rationale/pattern as the tratt-dropzone
+// mock above.
+jest.mock('../../component/bundle-list/bundle-list.component', () => {
+  const { Component } = require('@angular/core');
+  @Component({ selector: 'tratt-bundle-list', template: '' })
+  class BundleListComponent {}
+  return { BundleListComponent };
+});
+
 // WorkbenchComponent imports editorComponents (for changeEditor), which pulls in
 // 2D-editor/dictaphone-editor/linear-editor. Those import TranscrEditorComponent from
 // the core/component barrel, which re-exports navbar.component.ts ->
@@ -33,19 +45,19 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { TranslocoService } from '@jsverse/transloco';
 import { randomUUID } from 'node:crypto';
 import { BehaviorSubject, of } from 'rxjs';
-import { WorkbenchComponent } from './workbench.component';
-import { AudioService } from '../../shared/service/audio.service';
-import { AuthenticationStoreService } from '../../store/authentication/authentication-store.service';
-import { AppStorageService } from '../../shared/service/appstorage.service';
-import { RoutingService } from '../../shared/service/routing.service';
-import { NavbarService } from '../../component/navbar/navbar.service';
-import { RecordedFileService } from '../../shared/service/recorded-file.service';
-import { AnnotationStoreService } from '../../store/login-mode/annotation/annotation.store.service';
-import { SettingsService, UserInteractionsService } from '../../shared/service';
-import { TrattModalService } from '../../modals/tratt-modal.service';
-import { ApplicationStoreService } from '../../store/application/application-store.service';
-import { LoadingStatus } from '../../store';
 import { editorComponents } from '../../../editors/components';
+import { NavbarService } from '../../component/navbar/navbar.service';
+import { TrattModalService } from '../../modals/tratt-modal.service';
+import { SettingsService, UserInteractionsService } from '../../shared/service';
+import { AppStorageService } from '../../shared/service/appstorage.service';
+import { AudioService } from '../../shared/service/audio.service';
+import { RecordedFileService } from '../../shared/service/recorded-file.service';
+import { RoutingService } from '../../shared/service/routing.service';
+import { LoadingStatus } from '../../store';
+import { ApplicationStoreService } from '../../store/application/application-store.service';
+import { AuthenticationStoreService } from '../../store/authentication/authentication-store.service';
+import { AnnotationStoreService } from '../../store/login-mode/annotation/annotation.store.service';
+import { WorkbenchComponent } from './workbench.component';
 
 // Lightweight stand-in mounted in place of a real editor (e.g.
 // DictaphoneEditorComponent) for the "real ViewChild/createComponent path"
@@ -63,7 +75,10 @@ class FakeEditorComponent {}
 // browsers, which have supported it since 2022). Polyfill it with Node's
 // implementation so startSession()'s generateBundleId() calls work as they
 // would in production. (Same polyfill as authentication.effects.spec.ts.)
-if (typeof (globalThis.crypto as { randomUUID?: unknown })?.randomUUID !== 'function') {
+if (
+  typeof (globalThis.crypto as { randomUUID?: unknown })?.randomUUID !==
+  'function'
+) {
   (
     globalThis.crypto as unknown as { randomUUID: typeof randomUUID }
   ).randomUUID = randomUUID;
@@ -209,7 +224,10 @@ describe('WorkbenchComponent', () => {
   it('creates the selected editor component inside the loadeditor viewContainerRef', () => {
     const createComponentSpy = jest.fn();
     component.showEditor = {
-      viewContainerRef: { clear: jest.fn(), createComponent: createComponentSpy },
+      viewContainerRef: {
+        clear: jest.fn(),
+        createComponent: createComponentSpy,
+      },
     } as any;
 
     component.changeEditor('Dictaphone Editor');

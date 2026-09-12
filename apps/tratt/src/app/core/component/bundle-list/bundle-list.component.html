@@ -1,0 +1,25 @@
+<!--
+  Switches between bundles created by the single startSession() call at
+  session start. Does NOT support dropping more files into an
+  already-active session — see BundleListComponent's doc comment.
+-->
+@if (bundles().length > 0) {
+  <h6 class="bundle-list__title">
+    {{ 'workbench.bundle_list.title' | transloco }}
+  </h6>
+}
+<ul class="bundle-list">
+  @for (bundle of bundles(); track bundle.bundleId) {
+    <li
+      class="bundle-list__item"
+      [class.active]="bundle.selected"
+      (click)="selectBundle(bundle.bundleId)"
+    >
+      <!-- `bundle.name` comes from `sessionFile?.name`; sessionFile is a
+           required prop on the createBundle action, so this is always
+           populated in practice for LOCAL bundles — no placeholder fallback
+           needed. -->
+      {{ bundle.name }}
+    </li>
+  }
+</ul>

@@ -1,6 +1,13 @@
 <div class="workbench">
   <div class="workbench__left">
     <tratt-dropzone height="180px" [showAutoTranscribe]="true"></tratt-dropzone>
+    @if (sessionReady) {
+      <!-- Lets the user switch between bundles already created by the one
+           startSession() call at session start. Does NOT extend
+           startSession() to accept files dropped mid-session — that
+           remains a single-shot ingest; see BundleListComponent. -->
+      <tratt-bundle-list></tratt-bundle-list>
+    }
     <button
       type="button"
       class="btn btn-primary workbench__start"
@@ -84,7 +91,9 @@
               <i class="bi bi-star-fill"></i>
             </button>
           } @else {
-            @if (useMode !== 'url' || routingService.staticQueryParams.bottomNav) {
+            @if (
+              useMode !== 'url' || routingService.staticQueryParams.bottomNav
+            ) {
               <button
                 (click)="abortTranscription()"
                 type="button"
