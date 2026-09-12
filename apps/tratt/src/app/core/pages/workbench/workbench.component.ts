@@ -34,7 +34,7 @@ import { ProjectSettings } from '../../obj/Settings';
 import { LoadeditorDirective } from '../../shared/directive/loadeditor.directive';
 import { AppStorageService } from '../../shared/service/appstorage.service';
 import { AudioService } from '../../shared/service/audio.service';
-import { DEFAULT_BUNDLE_ID } from '../../store/login-mode/annotation/local-bundle-collection';
+import { generateBundleId } from '../../store/login-mode/annotation/local-bundle-collection';
 import { RecordedFileService } from '../../shared/service/recorded-file.service';
 import { RoutingService } from '../../shared/service/routing.service';
 import { SettingsService, UserInteractionsService } from '../../shared/service';
@@ -170,23 +170,31 @@ export class WorkbenchComponent extends DefaultComponent implements OnInit {
   }
 
   startSession(removeData: boolean): void {
-    const manager = this.dropzone?.audioManager;
-    if (!manager) {
-      return;
-    }
-    const files = this.dropzone!.files
-      .map((a) => a.file.file!)
-      .filter(Boolean) as File[];
-    if (files.length === 0) {
+    const entries = this.dropzone?.validAudioEntries ?? [];
+    if (entries.length === 0) {
       return;
     }
     this.sessionStarting = true;
     const annotation = this.dropzone!.hasAnnotation
       ? this.dropzone!.oannotation
       : undefined;
-    this.audioService.registerAudioManager(DEFAULT_BUNDLE_ID, manager);
-    this.dropzone!.releaseAudioManager();
-    this.authStoreService.loginLocal(files, annotation, removeData);
+
+    const audioBundleIdsByFilename: Record<string, string> = {};
+    const files: File[] = [];
+    for (const entry of entries) {
+      const bundleId = generateBundleId();
+      this.audioService.registerAudioManager(bundleId, entry.audioManager);
+      const nativeFile = entry.fileProgress.file.file!;
+      audioBundleIdsByFilename[nativeFile.name] = bundleId;
+      files.push(nativeFile);
+    }
+
+    this.authStoreService.loginLocal(
+      files,
+      annotation,
+      removeData,
+      audioBundleIdsByFilename,
+    );
   }
 
   // Unlike TranscriptionComponent.changeEditor(), this does NOT write

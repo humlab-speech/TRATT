@@ -31,6 +31,7 @@ jest.mock('../../component/navbar', () => ({}));
 import { Component } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { TranslocoService } from '@jsverse/transloco';
+import { randomUUID } from 'node:crypto';
 import { BehaviorSubject, of } from 'rxjs';
 import { WorkbenchComponent } from './workbench.component';
 import { AudioService } from '../../shared/service/audio.service';
@@ -45,7 +46,6 @@ import { TrattModalService } from '../../modals/tratt-modal.service';
 import { ApplicationStoreService } from '../../store/application/application-store.service';
 import { LoadingStatus } from '../../store';
 import { editorComponents } from '../../../editors/components';
-import { DEFAULT_BUNDLE_ID } from '../../store/login-mode/annotation/local-bundle-collection';
 
 // Lightweight stand-in mounted in place of a real editor (e.g.
 // DictaphoneEditorComponent) for the "real ViewChild/createComponent path"
@@ -57,6 +57,17 @@ import { DEFAULT_BUNDLE_ID } from '../../store/login-mode/annotation/local-bundl
 // ViewContainerRef.createComponent() call.
 @Component({ selector: 'tratt-spec-fake-editor', template: '' })
 class FakeEditorComponent {}
+
+// The jsdom version bundled with jest-environment-jsdom implements
+// window.crypto.getRandomValues but not crypto.randomUUID (unlike real
+// browsers, which have supported it since 2022). Polyfill it with Node's
+// implementation so startSession()'s generateBundleId() calls work as they
+// would in production. (Same polyfill as authentication.effects.spec.ts.)
+if (typeof (globalThis.crypto as { randomUUID?: unknown })?.randomUUID !== 'function') {
+  (
+    globalThis.crypto as unknown as { randomUUID: typeof randomUUID }
+  ).randomUUID = randomUUID;
+}
 
 describe('WorkbenchComponent', () => {
   let fixture: ComponentFixture<WorkbenchComponent>;
@@ -107,50 +118,92 @@ describe('WorkbenchComponent', () => {
     const manager = { id: 'fake-manager' } as any;
     const nativeFile = new File(['content'], 'a.wav');
     component.dropzone = {
-      audioManager: manager,
-      files: [{ file: { file: nativeFile } }],
-      hasAudio: true,
+      validAudioEntries: [
+        {
+          fileProgress: { file: { file: nativeFile } },
+          audioManager: manager,
+          oaudiofile: {} as any,
+        },
+      ],
       hasAnnotation: false,
       oannotation: undefined,
-      releaseAudioManager: jest.fn(),
     } as any;
 
     component.startSession(false);
 
     expect(audioService.registerAudioManager).toHaveBeenCalledWith(
-      DEFAULT_BUNDLE_ID,
+      expect.any(String),
       manager,
     );
-    expect(component.dropzone!.releaseAudioManager).toHaveBeenCalled();
+    const [bundleId] = audioService.registerAudioManager.mock.calls[0];
     expect(authStoreService.loginLocal).toHaveBeenCalledWith(
       [nativeFile],
       undefined,
       false,
+      { [nativeFile.name]: bundleId },
     );
   });
 
-  it('does nothing when the dropzone has no audio manager yet', () => {
-    component.dropzone = { audioManager: undefined } as any;
+  // Task 5: under the new validAudioEntries contract there is exactly one way to have
+  // zero valid entries (an empty array) — the old "audioManager present but file.file
+  // undefined" case from before Task 1 no longer applies, since validAudioEntries is
+  // constructed only from fully-decoded, valid entries. This test and the "no audio
+  // manager yet" case are therefore now identical; keeping just this one.
+  it('does nothing when the dropzone has no valid audio entries', () => {
+    component.dropzone = { validAudioEntries: [] } as any;
     component.startSession(false);
     expect(audioService.registerAudioManager).not.toHaveBeenCalled();
     expect(authStoreService.loginLocal).not.toHaveBeenCalled();
   });
 
-  it('does nothing when the dropzone has no valid File objects', () => {
-    const manager = { id: 'fake-manager' } as any;
+  it('registers a distinct bundle id per dropped audio file and passes them all to loginLocal', () => {
+    const managers = [
+      { id: 'manager-1' } as any,
+      { id: 'manager-2' } as any,
+      { id: 'manager-3' } as any,
+    ];
+    const nativeFiles = [
+      new File(['a'], 'a.wav'),
+      new File(['b'], 'b.wav'),
+      new File(['c'], 'c.wav'),
+    ];
     component.dropzone = {
-      audioManager: manager,
-      files: [{ file: { file: undefined } }],
-      hasAudio: false,
+      validAudioEntries: managers.map((audioManager, i) => ({
+        fileProgress: { file: { file: nativeFiles[i] } },
+        audioManager,
+        oaudiofile: {} as any,
+      })),
       hasAnnotation: false,
       oannotation: undefined,
-      releaseAudioManager: jest.fn(),
     } as any;
 
     component.startSession(false);
 
-    expect(audioService.registerAudioManager).not.toHaveBeenCalled();
-    expect(authStoreService.loginLocal).not.toHaveBeenCalled();
+    expect(audioService.registerAudioManager).toHaveBeenCalledTimes(3);
+    const registeredIds = audioService.registerAudioManager.mock.calls.map(
+      (call: any[]) => call[0],
+    );
+    const registeredManagers = audioService.registerAudioManager.mock.calls.map(
+      (call: any[]) => call[1],
+    );
+    expect(new Set(registeredIds).size).toBe(3);
+    expect(registeredManagers).toEqual(managers);
+
+    expect(authStoreService.loginLocal).toHaveBeenCalledTimes(1);
+    const [files, annotation, removeData, audioBundleIdsByFilename] =
+      authStoreService.loginLocal.mock.calls[0] as [
+        File[],
+        undefined,
+        boolean,
+        Record<string, string>,
+      ];
+    expect(files).toEqual(nativeFiles);
+    expect(annotation).toBeUndefined();
+    expect(removeData).toBe(false);
+    expect(Object.keys(audioBundleIdsByFilename).length).toBe(3);
+    nativeFiles.forEach((file, i) => {
+      expect(audioBundleIdsByFilename[file.name]).toBe(registeredIds[i]);
+    });
   });
 
   it('creates the selected editor component inside the loadeditor viewContainerRef', () => {

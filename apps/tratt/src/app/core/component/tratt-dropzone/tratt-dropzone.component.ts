@@ -117,6 +117,17 @@ export class TrattDropzoneComponent
     this.trattDropzoneService.releaseAudioManager();
   }
 
+  /** Delegates to `TrattDropzoneService.validAudioEntries` — see there for details.
+   * Consumed by `WorkbenchComponent.startSession()` (Task 5) to register one bundle
+   * per successfully-decoded dropped audio file. */
+  get validAudioEntries(): {
+    fileProgress: FileProgress;
+    audioManager: AudioManager;
+    oaudiofile: OAudiofile;
+  }[] {
+    return this.trattDropzoneService.validAudioEntries;
+  }
+
   public get statistics(): DropzoneStatistics {
     return this.trattDropzoneService.statistics;
   }
