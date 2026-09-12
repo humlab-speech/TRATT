@@ -3,9 +3,12 @@ import { selectMode } from '../../application/application.selectors';
 import { LoginMode } from '../../index';
 import { AnnotationState } from './index';
 import {
+  localBundleAdapter,
   LocalBundleCollectionState,
   resolveLocalBundleState,
 } from './local-bundle-collection';
+
+const { selectAll: selectAllBundleEntities } = localBundleAdapter.getSelectors();
 
 // Per-mode feature selectors
 export const selectOnlineMode =
@@ -22,6 +25,16 @@ export const selectUrlMode = createFeatureSelector<AnnotationState>('urlMode');
 export const selectSelectedBundleId = createSelector(
   selectLocalMode,
   (local): string => local.selectedBundleId,
+);
+
+export const selectAllBundleSummaries = createSelector(
+  selectLocalMode,
+  (local) =>
+    selectAllBundleEntities(local.bundles).map((b) => ({
+      bundleId: b.bundleId,
+      name: b.sessionFile?.name,
+      selected: b.bundleId === local.selectedBundleId,
+    })),
 );
 
 /** Returns the active mode's AnnotationState based on application.mode. */

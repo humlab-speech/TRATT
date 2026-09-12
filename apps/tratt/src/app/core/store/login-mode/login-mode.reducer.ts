@@ -57,6 +57,28 @@ function wrapAsLocalBundleCollectionReducer(
     state: LocalBundleCollectionState = initialCollectionState,
     action: Action,
   ): LocalBundleCollectionState => {
+    if (action.type === LoginModeActions.createBundle.type) {
+      const { bundleId, sessionFile } = action as ReturnType<
+        typeof LoginModeActions.createBundle
+      >;
+      return {
+        ...state,
+        bundles: localBundleAdapter.addOne(
+          { ...initialInner, bundleId, sessionFile },
+          state.bundles,
+        ),
+        selectedBundleId: bundleId,
+      };
+    }
+    if (action.type === LoginModeActions.selectBundle.type) {
+      const { bundleId } = action as ReturnType<
+        typeof LoginModeActions.selectBundle
+      >;
+      if (!state.bundles.entities[bundleId]) {
+        return state;
+      }
+      return { ...state, selectedBundleId: bundleId };
+    }
     const currentInner = resolveLocalBundleState(state) ?? initialInner;
     const nextInner = innerReducer(currentInner, action);
     if (nextInner === currentInner) {

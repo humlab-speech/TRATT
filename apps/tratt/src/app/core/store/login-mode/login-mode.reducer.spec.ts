@@ -12,6 +12,7 @@ import {
 import { AnnotationActions } from './annotation/annotation.actions';
 import { LoginModeActions } from './login-mode.actions';
 import { LoginModeReducers } from './login-mode.reducer';
+import { SessionFile } from '../../obj/SessionFile';
 
 // The jsdom version bundled with jest-environment-jsdom implements
 // window.crypto.getRandomValues but not crypto.randomUUID (unlike real
@@ -189,5 +190,108 @@ describe('LoginModeReducers — per-bundle undo isolation', () => {
     expect(
       state.bundles.entities[bundleAId]?.currentSession?.comment,
     ).toBe('comment on A');
+  });
+});
+
+describe('LoginModeReducers — createBundle / selectBundle', () => {
+  const sessionFile = new SessionFile('b2.wav', 123, new Date(), 'audio/wav');
+
+  it('createBundle adds a new entity, leaves the existing one untouched, and selects the new one', () => {
+    const reducer = new LoginModeReducers(LoginMode.LOCAL).create();
+    const initial = reducer(undefined, {
+      type: '@@INIT',
+    } as any) as unknown as LocalBundleCollectionState;
+
+    const next = reducer(
+      initial as any,
+      LoginModeActions.createBundle({
+        mode: LoginMode.LOCAL,
+        bundleId: 'b2',
+        sessionFile,
+      }),
+    ) as unknown as LocalBundleCollectionState;
+
+    expect(next.bundles.entities['b2']?.sessionFile).toBe(sessionFile);
+    expect(next.bundles.entities[DEFAULT_BUNDLE_ID]).toBe(
+      initial.bundles.entities[DEFAULT_BUNDLE_ID],
+    );
+    expect(next.selectedBundleId).toBe('b2');
+  });
+
+  it('selectBundle switches selectedBundleId back to an existing entity without altering either entity', () => {
+    const reducer = new LoginModeReducers(LoginMode.LOCAL).create();
+    const initial = reducer(undefined, {
+      type: '@@INIT',
+    } as any) as unknown as LocalBundleCollectionState;
+    const withB2 = reducer(
+      initial as any,
+      LoginModeActions.createBundle({
+        mode: LoginMode.LOCAL,
+        bundleId: 'b2',
+        sessionFile,
+      }),
+    ) as unknown as LocalBundleCollectionState;
+
+    const next = reducer(
+      withB2 as any,
+      LoginModeActions.selectBundle({
+        mode: LoginMode.LOCAL,
+        bundleId: DEFAULT_BUNDLE_ID,
+      }),
+    ) as unknown as LocalBundleCollectionState;
+
+    expect(next.selectedBundleId).toBe(DEFAULT_BUNDLE_ID);
+    expect(next.bundles.entities[DEFAULT_BUNDLE_ID]).toBe(
+      withB2.bundles.entities[DEFAULT_BUNDLE_ID],
+    );
+    expect(next.bundles.entities['b2']).toBe(withB2.bundles.entities['b2']);
+  });
+
+  it('selectBundle is a no-op when the target bundle does not exist', () => {
+    const reducer = new LoginModeReducers(LoginMode.LOCAL).create();
+    const initial = reducer(undefined, {
+      type: '@@INIT',
+    } as any) as unknown as LocalBundleCollectionState;
+
+    const next = reducer(
+      initial as any,
+      LoginModeActions.selectBundle({
+        mode: LoginMode.LOCAL,
+        bundleId: 'does-not-exist',
+      }),
+    ) as unknown as LocalBundleCollectionState;
+
+    expect(next.selectedBundleId).toBe(initial.selectedBundleId);
+    expect(next).toBe(initial);
+  });
+
+  it('an unrelated action still writes through to whichever bundle is currently selected', () => {
+    const reducer = new LoginModeReducers(LoginMode.LOCAL).create();
+    const initial = reducer(undefined, {
+      type: '@@INIT',
+    } as any) as unknown as LocalBundleCollectionState;
+    const withB2 = reducer(
+      initial as any,
+      LoginModeActions.createBundle({
+        mode: LoginMode.LOCAL,
+        bundleId: 'b2',
+        sessionFile,
+      }),
+    ) as unknown as LocalBundleCollectionState;
+
+    const next = reducer(
+      withB2 as any,
+      LoginModeActions.changeComment.do({
+        comment: 'hello b2',
+        mode: LoginMode.LOCAL,
+      }),
+    ) as unknown as LocalBundleCollectionState;
+
+    expect(next.bundles.entities['b2']?.currentSession?.comment).toBe(
+      'hello b2',
+    );
+    expect(next.bundles.entities[DEFAULT_BUNDLE_ID]).toBe(
+      withB2.bundles.entities[DEFAULT_BUNDLE_ID],
+    );
   });
 });

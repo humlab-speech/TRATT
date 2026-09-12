@@ -8,6 +8,7 @@ import {
 } from '@ngrx/store';
 import { CurrentAccountDto, ProjectDto, TaskDto } from '@octra/api-types';
 import { LoginMode } from '../index';
+import { SessionFile } from '../../obj/SessionFile';
 import { AnnotationActions } from './annotation/annotation.actions';
 
 export class LoginModeActions extends AnnotationActions {
@@ -17,6 +18,16 @@ export class LoginModeActions extends AnnotationActions {
       feedback: any;
       mode: LoginMode;
     }>(),
+  );
+
+  static createBundle = createAction(
+    'annotation Create bundle',
+    props<{ mode: LoginMode; bundleId: string; sessionFile: SessionFile }>(),
+  );
+
+  static selectBundle = createAction(
+    'annotation Select bundle',
+    props<{ mode: LoginMode; bundleId: string }>(),
   );
 
   static changeComment = createActionGroup({
