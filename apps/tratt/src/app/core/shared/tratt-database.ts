@@ -20,6 +20,7 @@ export class TrattDatabase extends Dexie {
   public urlData!: Dexie.Table<IIDBEntry, string>;
   public localData!: Dexie.Table<IIDBEntry, string>;
   public app_options!: Dexie.Table<IIDBEntry, string>;
+  public bundles!: Dexie.Table<IBundleEntry, [string, string]>;
   public onReady: Subject<void>;
 
   //...other tables goes here...
@@ -108,6 +109,7 @@ export class TrattDatabase extends Dexie {
     this.urlData = this.table('url_data');
 
     this.app_options = this.table('app_options');
+    this.bundles = this.table('bundles');
 
     try {
       await this.open();
@@ -448,10 +450,20 @@ export class TrattDatabase extends Dexie {
     if (optionsLength === 0) {
       await firstValueFrom(this.populateModeOptions(LoginMode.ONLINE));
     }
+    // LOCAL mode's 'options' entry now lives in the bundles table (keyed by
+    // [bundleId, name]), not local_data — saveModeData()/loadDataOfMode()
+    // route LOCAL-mode reads/writes there. Checking local_data here would
+    // never see writes made after this change and would keep re-populating
+    // (overwriting) bundle-1's saved options on every init.
     optionsLength =
-      (await this.localData.get('options'))?.value === undefined ? 0 : 1;
+      (await this.bundles.get([DEFAULT_BUNDLE_ID, 'options']))?.value ===
+      undefined
+        ? 0
+        : 1;
     if (optionsLength === 0) {
-      await firstValueFrom(this.populateModeOptions(LoginMode.LOCAL));
+      await firstValueFrom(
+        this.populateModeOptions(LoginMode.LOCAL, DEFAULT_BUNDLE_ID),
+      );
     }
     optionsLength =
       (await this.urlData.get('options'))?.value === undefined ? 0 : 1;
@@ -477,13 +489,13 @@ export class TrattDatabase extends Dexie {
     );
   }
 
-  private populateModeOptions(mode: LoginMode) {
+  private populateModeOptions(mode: LoginMode, bundleId?: string) {
     const modeOptions: IIDBModeOptions = {
       currentEditor: '2D-Editor',
       logging: true,
     };
 
-    return this.saveModeData(mode, 'options', modeOptions, true);
+    return this.saveModeData(mode, 'options', modeOptions, true, bundleId);
   }
 
   public saveModeData(
@@ -491,7 +503,52 @@ export class TrattDatabase extends Dexie {
     name: string,
     value: any,
     overwrite = false,
+    bundleId?: string,
   ) {
+    let prepared =
+      typeof value === 'object' && value !== undefined && value !== null
+        ? JSON.parse(JSON.stringify(value))
+        : value;
+    prepared = removeEmptyProperties(prepared, {
+      removeNull: false,
+      removeEmptyStrings: false,
+      removeUndefined: true,
+    });
+
+    if (mode === LoginMode.LOCAL) {
+      if (!bundleId) {
+        console.error('saveModeData: bundleId is required for LOCAL mode');
+        return of();
+      }
+      // write undefined or null
+      if (overwrite) {
+        return from(
+          this.bundles.put(
+            {
+              bundleId,
+              name,
+              value: prepared,
+            },
+            [bundleId, name],
+          ),
+        ).pipe(
+          map(() => {
+            return;
+          }),
+        );
+      } else {
+        return from(
+          this.bundles.update([bundleId, name], {
+            value: prepared,
+          }),
+        ).pipe(
+          map(() => {
+            return;
+          }),
+        );
+      }
+    }
+
     const table = this.getTableFromString(mode);
 
     if (!table) {
@@ -499,15 +556,6 @@ export class TrattDatabase extends Dexie {
     }
 
     if (table) {
-      let prepared =
-        typeof value === 'object' && value !== undefined && value !== null
-          ? JSON.parse(JSON.stringify(value))
-          : value;
-      prepared = removeEmptyProperties(prepared, {
-        removeNull: false,
-        removeEmptyStrings: false,
-        removeUndefined: true,
-      });
       // write undefined or null
       if (overwrite) {
         return from(
@@ -564,7 +612,28 @@ export class TrattDatabase extends Dexie {
     return this;
   }
 
-  public loadDataOfMode<T>(mode: LoginMode, name: string, emptyValue: T) {
+  public loadDataOfMode<T>(
+    mode: LoginMode,
+    name: string,
+    emptyValue: T,
+    bundleId?: string,
+  ) {
+    if (mode === LoginMode.LOCAL) {
+      if (!bundleId) {
+        console.error('loadDataOfMode: bundleId is required for LOCAL mode');
+        return of(emptyValue);
+      }
+      return from(this.bundles.get([bundleId, name])).pipe(
+        map((result) => {
+          if (result && result.value) {
+            return result.value as T;
+          } else {
+            return emptyValue;
+          }
+        }),
+      );
+    }
+
     const table = this.getTableFromString(mode);
     if (table) {
       return from(table.get(name)).pipe(
@@ -654,6 +723,10 @@ export interface IAnnotation extends IIDBEntry {
 export interface IIDBEntry {
   name: string;
   value: any;
+}
+
+export interface IBundleEntry extends IIDBEntry {
+  bundleId: string;
 }
 
 export interface IIDBLogs extends IIDBEntry {

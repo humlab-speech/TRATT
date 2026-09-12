@@ -38,7 +38,10 @@ import { AuthenticationActions } from '../authentication';
 import { getModeState, LoginMode, RootState } from '../index';
 import { AnnotationState } from '../login-mode/annotation';
 import { AnnotationActions } from '../login-mode/annotation/annotation.actions';
-import { resolveLocalBundleState } from '../login-mode/annotation/local-bundle-collection';
+import {
+  DEFAULT_BUNDLE_ID,
+  resolveLocalBundleState,
+} from '../login-mode/annotation/local-bundle-collection';
 import { LoginModeActions } from '../login-mode/login-mode.actions';
 import { UserActions } from '../user/user.actions';
 import { IDBActions } from './idb.actions';
@@ -111,7 +114,10 @@ export class IDBEffects {
                   'showFeedbackNotice',
                   'userProfile',
                 ]),
-                this.idbService.loadModeOptions(LoginMode.LOCAL),
+                this.idbService.loadModeOptions(
+                  LoginMode.LOCAL,
+                  DEFAULT_BUNDLE_ID,
+                ),
                 this.idbService.loadModeOptions(LoginMode.DEMO),
                 this.idbService.loadModeOptions(LoginMode.ONLINE),
                 this.idbService.loadModeOptions(LoginMode.URL),
@@ -169,7 +175,7 @@ export class IDBEffects {
       exhaustMap(([action, state]) => {
         return forkJoin([
           this.idbService.loadLogs(LoginMode.ONLINE),
-          this.idbService.loadLogs(LoginMode.LOCAL),
+          this.idbService.loadLogs(LoginMode.LOCAL, DEFAULT_BUNDLE_ID),
           this.idbService.loadLogs(LoginMode.DEMO),
           this.idbService.loadLogs(LoginMode.URL),
         ]).pipe(
@@ -222,7 +228,7 @@ export class IDBEffects {
       exhaustMap((action) => {
         return forkJoin([
           this.idbService.loadAnnotation(LoginMode.ONLINE),
-          this.idbService.loadAnnotation(LoginMode.LOCAL),
+          this.idbService.loadAnnotation(LoginMode.LOCAL, DEFAULT_BUNDLE_ID),
           this.idbService.loadAnnotation(LoginMode.DEMO),
         ]).pipe(
           withLatestFrom(this.store),
@@ -295,6 +301,9 @@ export class IDBEffects {
                 this.audio.current.resource.info.sampleRate,
                 this.audio.current.resource.info.duration,
               ),
+              appState.application.mode === LoginMode.LOCAL
+                ? DEFAULT_BUNDLE_ID
+                : undefined,
             )
             .pipe(
               map(() => ApplicationActions.undoSuccess()),
@@ -342,6 +351,9 @@ export class IDBEffects {
                 this.audio.current.resource.info.sampleRate,
                 this.audio.current.resource.info.duration,
               ),
+              appState.application.mode === LoginMode.LOCAL
+                ? DEFAULT_BUNDLE_ID
+                : undefined,
             )
             .pipe(
               map(() => ApplicationActions.redoSuccess()),
@@ -503,35 +515,41 @@ export class IDBEffects {
 
         if (modeState) {
           return this.idbService
-            .saveModeOptions((action as any).mode, {
-              sessionfile:
-                modeState?.sessionFile &&
-                Object.keys(modeState.sessionFile).length > 0
-                  ? modeState.sessionFile.toAny()
+            .saveModeOptions(
+              (action as any).mode,
+              {
+                sessionfile:
+                  modeState?.sessionFile &&
+                  Object.keys(modeState.sessionFile).length > 0
+                    ? modeState.sessionFile.toAny()
+                    : null,
+                importConverter: modeState.importConverter,
+                currentEditor: modeState.currentEditor ?? null,
+                currentLevel: modeState.transcript?.selectedLevelIndex ?? null,
+                logging: modeState.logging.enabled ?? null,
+                project: modeState.currentSession?.loadFromServer
+                  ? (modeState.currentSession?.currentProject ?? null)
+                  : undefined,
+                transcriptID: modeState.currentSession?.loadFromServer
+                  ? (modeState.currentSession?.task?.id ?? null)
+                  : undefined,
+                feedback: modeState.currentSession?.assessment ?? null,
+                comment: modeState.currentSession?.comment ?? null,
+                additionalSpeakerIds: modeState.additionalSpeakerIds?.length
+                  ? modeState.additionalSpeakerIds
                   : null,
-              importConverter: modeState.importConverter,
-              currentEditor: modeState.currentEditor ?? null,
-              currentLevel: modeState.transcript?.selectedLevelIndex ?? null,
-              logging: modeState.logging.enabled ?? null,
-              project: modeState.currentSession?.loadFromServer
-                ? (modeState.currentSession?.currentProject ?? null)
+                user: appState.authentication.me
+                  ? {
+                      id: appState.authentication.me.id,
+                      name: appState.authentication.me.username,
+                      email: appState.authentication.me.email,
+                    }
+                  : undefined,
+              },
+              (action as any).mode === LoginMode.LOCAL
+                ? DEFAULT_BUNDLE_ID
                 : undefined,
-              transcriptID: modeState.currentSession?.loadFromServer
-                ? (modeState.currentSession?.task?.id ?? null)
-                : undefined,
-              feedback: modeState.currentSession?.assessment ?? null,
-              comment: modeState.currentSession?.comment ?? null,
-              additionalSpeakerIds: modeState.additionalSpeakerIds?.length
-                ? modeState.additionalSpeakerIds
-                : null,
-              user: appState.authentication.me
-                ? {
-                    id: appState.authentication.me.id,
-                    name: appState.authentication.me.username,
-                    email: appState.authentication.me.email,
-                  }
-                : undefined,
-            })
+            )
             .pipe(
               map(() => {
                 return IDBActions.saveModeOptions.success({
@@ -800,7 +818,13 @@ export class IDBEffects {
 
         if (modeState) {
           return this.idbService
-            .saveLogs((action as any).mode, modeState.logging.logs)
+            .saveLogs(
+              (action as any).mode,
+              modeState.logging.logs,
+              (action as any).mode === LoginMode.LOCAL
+                ? DEFAULT_BUNDLE_ID
+                : undefined,
+            )
             .pipe(
               map(() => IDBActions.saveLogs.success()),
               catchError((error) => {
@@ -857,6 +881,7 @@ export class IDBEffects {
                 this.audio.current.resource.info.sampleRate,
                 this.audio.current.resource.info.duration,
               ),
+              action.mode === LoginMode.LOCAL ? DEFAULT_BUNDLE_ID : undefined,
             )
             .pipe(
               map(() => IDBActions.saveAnnotation.success()),
@@ -922,7 +947,12 @@ export class IDBEffects {
     this.actions$.pipe(
       ofType(IDBActions.loadImportOptions.do),
       mergeMap((action) => {
-        return from(this.idbService.loadImportOptions(action.mode)).pipe(
+        return from(
+          this.idbService.loadImportOptions(
+            action.mode,
+            action.mode === LoginMode.LOCAL ? DEFAULT_BUNDLE_ID : undefined,
+          ),
+        ).pipe(
           map((importOptions) =>
             IDBActions.loadImportOptions.success({
               mode: action.mode,
@@ -972,7 +1002,11 @@ export class IDBEffects {
       filter((action) => action.importOptions != null),
       exhaustMap((action) =>
         this.idbService
-          .saveImportOptions(action.mode, action.importOptions!)
+          .saveImportOptions(
+            action.mode,
+            action.importOptions!,
+            action.mode === LoginMode.LOCAL ? DEFAULT_BUNDLE_ID : undefined,
+          )
           .pipe(
             map(() => IDBActions.saveImportOptions.success()),
             catchError((error: Error) =>
