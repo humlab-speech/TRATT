@@ -223,6 +223,53 @@ code has something to react to. This is small, contained, and load-bearing for 2
 safety net to mean anything — not a tangential quality issue the way the audio-playback
 finding was for step 2.5.
 
+## Step 2.6 shipped shape (2026-09-12)
+
+`TrattDatabase` version 0.6 adds a `bundles` table keyed by the compound index
+`[bundleId+name]` (`tratt-database.ts`), not a synthetic auto-incrementing id. This
+is deliberate: LOCAL mode's existing granular save/load functions
+(`saveModeData`/`loadDataOfMode`/`clearDataOfMode` et al.) already address entries
+by `name` (`'options'`, `'annotation'`, `'logs'`, ...) against a `&name` table; giving
+`bundles` a `[bundleId, name]` compound key lets every one of those call sites keep
+its existing `name`-keyed shape and simply gain a `bundleId` parameter, rather than
+requiring a schema (and call-site) redesign around a single-row-per-bundle document.
+`upgradeToDatabaseV6()` copies (not moves) every existing `local_data` row into
+`bundles` under `DEFAULT_BUNDLE_ID` — the original `local_data` rows are left in
+place as an extra safety margin on top of the pre-upgrade export backup, even though
+LOCAL-mode reads/writes now route through `bundles` going forward. The pre-upgrade
+`backupCurrentDatabase()` export safety net (`init()`, `tratt-database.ts:44-46`)
+already covered `currentVersion < 0.4`; its condition now also matches
+`currentVersion === 0.5`, so the 0.5→0.6 transition itself gets an export backup
+before the upgrade runs, not just earlier version jumps.
+
+Two things fell out of this work worth flagging separately. First, wiring LOCAL
+mode's `options` reads onto `bundles` surfaced a latent bug in
+`checkAndFillPopulation()` (`tratt-database.ts:436-473`, fixed as part of Task 3):
+it originally re-checked `local_data` for LOCAL's `'options'` entry on every
+`init()`, which — once writes moved to `bundles` — would never see them there and
+would re-populate (silently overwriting) `bundle-1`'s saved options on every app
+start. It now checks `bundles.get([DEFAULT_BUNDLE_ID, 'options'])` instead. Second,
+the `clearDataOfMode`/`clearAnnotationData`/`clearLogs`/`clearAllOptions` family
+(`tratt-database.ts:590-609`, `idb.service.ts`) still resolves LOCAL mode's table
+via `getTableFromString()`, which still points at `local_data` — these were not
+repointed at `bundles`. Per Task 3's review this is currently inert: no UI
+dispatches a LOCAL-mode clear today (the reachable call sites are
+`clearAnnotationPermanently()` from `workbench.component.ts`/
+`transcription.component.ts`, both non-LOCAL-mode-only surfaces gated the same way
+today as before this migration). It's tracked here as a real gap to close before
+any LOCAL-mode "clear" UI is wired up, or before whatever admin-role gate currently
+keeps these paths from being LOCAL-reachable is loosened — at that point a LOCAL
+"clear" would wipe the now-unused `local_data` row and leave the actual `bundles`
+data untouched.
+
+Finally, this migration is the first real beneficiary of Task 1's IndexedDB
+open-failure fix: because `init()` now propagates a failed `this.open()` (rejecting
+instead of silently resolving), a real Safari private-browsing failure hit during
+this 0.5→0.6 upgrade — or during the pre-upgrade backup export itself — now surfaces
+to the user through the existing `ApplicationActions.addError` → `LoadingComponent`
+Retry/Back UI, instead of the app silently hanging (or worse, silently proceeding as
+if persistence were working) as it would have before Task 1.
+
 ## Phases (plan §3–§8, full estimates and step-by-step notes there)
 
 0. **Clear the ground** (1wk) — delete stale `multi-threading` copies (use lib versions), guard
