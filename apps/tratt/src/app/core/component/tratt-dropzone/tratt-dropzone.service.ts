@@ -14,7 +14,17 @@ import {
 import { OAudiofile } from '@tratt/media';
 import { escapeRegex, SubscriptionManager } from '@tratt/utilities';
 import { AudioManager, FileInfo, readFile } from '@tratt/web-media';
-import { exhaustMap, forkJoin, map, Observable, throwError } from 'rxjs';
+import {
+  catchError,
+  concatMap,
+  EMPTY,
+  exhaustMap,
+  forkJoin,
+  map,
+  Observable,
+  Subject,
+  throwError,
+} from 'rxjs';
 import { AppInfo } from '../../../app.info';
 import { ImportOptionsModalComponent } from '../../modals/import-options-modal/import-options-modal.component';
 import { TrattModalService } from '../../modals/tratt-modal.service';
@@ -99,6 +109,35 @@ export class TrattDropzoneService {
     return this._files;
   }
 
+  /**
+   * Every dropped audio file that finished decoding successfully, paired with the
+   * `AudioManager`/`OAudiofile` decoded for it. Consumed by Task 5 to create one editable
+   * bundle per dropped file, replacing the old singular `.audioManager`/`.oaudiofile` getters.
+   */
+  get validAudioEntries(): {
+    fileProgress: FileProgress;
+    audioManager: AudioManager;
+    oaudiofile: OAudiofile;
+  }[] {
+    return this._files
+      .filter(
+        (
+          f,
+        ): f is FileProgress & {
+          audioManager: AudioManager;
+          oaudiofile: OAudiofile;
+        } =>
+          f.status === 'valid' &&
+          f.audioManager !== undefined &&
+          f.oaudiofile !== undefined,
+      )
+      .map((f) => ({
+        fileProgress: f,
+        audioManager: f.audioManager,
+        oaudiofile: f.oaudiofile,
+      }));
+  }
+
   private _oldFiles: {
     name: string;
     type: string;
@@ -125,11 +164,39 @@ export class TrattDropzoneService {
 
   private _audioManager?: AudioManager;
 
+  /**
+   * Decode is memory-spiky, so dropped files are decoded one at a time rather than
+   * concurrently. `add()` pushes onto this queue instead of subscribing to `readFile()`
+   * directly; `concatMap` guarantees the next file's decode doesn't start until the
+   * previous one's observable completes (or errors, handled per-item below).
+   */
+  private _decodeQueue = new Subject<FileProgress>();
+
   constructor(
     private modService: TrattModalService,
     private store: Store<RootState>,
     private translocoService: TranslocoService,
-  ) {}
+  ) {
+    this._subscrManager.add(
+      this._decodeQueue
+        .pipe(
+          concatMap((fileProgress) =>
+            this.readFile(fileProgress).pipe(
+              catchError((error: unknown) => {
+                fileProgress.status = 'invalid';
+                fileProgress.error =
+                  typeof error === 'string'
+                    ? error
+                    : ((error as Error)?.message ?? String(error));
+                this.updateStatistics();
+                return EMPTY;
+              }),
+            ),
+          ),
+        )
+        .subscribe(),
+    );
+  }
 
   add(file: File) {
     const progressFile: FileProgress = {
@@ -146,24 +213,16 @@ export class TrattDropzoneService {
     );
 
     if (isValidaAudioFile || !this.isImageOrVideoFile(progressFile.file.type)) {
-      const typeToDrop = isValidaAudioFile ? 'audio' : 'transcript';
-      this.dropFiles(typeToDrop);
+      if (!isValidaAudioFile) {
+        // A new transcript file replacing a previous one is still a singular concern —
+        // unlike audio, only one transcript can be paired at a time (see
+        // docs/superpowers/specs/2026-09-10-workbench-conversion-design.md).
+        this.dropFiles('transcript');
+      }
       this._files.push(progressFile);
       this.updateStatistics();
 
-      this._subscrManager.add(
-        this.readFile(progressFile).subscribe({
-          error: (error: unknown) => {
-            progressFile.status = 'invalid';
-            progressFile.error =
-              typeof error === 'string'
-                ? error
-                : ((error as Error)?.message ?? String(error));
-            this.updateStatistics();
-          },
-        }),
-        `fileProgress${progressFile.id}`,
-      );
+      this._decodeQueue.next(progressFile);
     } else {
       progressFile.status = 'invalid';
       progressFile.error = this.translocoService.translate(
@@ -287,12 +346,6 @@ export class TrattDropzoneService {
           ]).pipe(
             map(([result]) => {
               if (result.audioManager && result.progress === 1) {
-                // Destroy previous audio manager if the user replaced the file
-                if (this._audioManager !== undefined) {
-                  this._audioManager.destroy();
-                  this._audioManager = undefined;
-                }
-
                 this._audioManager = result.audioManager;
                 this._oaudiofile = new OAudiofile();
                 this._oaudiofile.name = fileProgress.file.fullname;
@@ -301,6 +354,12 @@ export class TrattDropzoneService {
                   this._audioManager.resource.info.duration.samples;
                 this._oaudiofile.sampleRate = this._audioManager.sampleRate;
                 this._oaudiofile.arraybuffer = reading.result;
+
+                // Retain this file's own manager/oaudiofile on the FileProgress itself
+                // (multi-file case) instead of destroying the previous singular manager —
+                // every dropped audio file keeps its decoded AudioManager independently.
+                fileProgress.audioManager = result.audioManager;
+                fileProgress.oaudiofile = this._oaudiofile;
 
                 fileProgress.status = 'valid';
                 this.checkForValidFiles();
@@ -354,6 +413,15 @@ export class TrattDropzoneService {
     ) {
       this._oaudiofile = undefined;
       this._audioManager?.stopDecoding();
+      // Also clean up the manager owned by this specific FileProgress (multi-file case) —
+      // it may not be the same instance as the singular `_audioManager` above.
+      if (
+        fileProgress.audioManager &&
+        fileProgress.audioManager !== this._audioManager
+      ) {
+        fileProgress.audioManager.stopDecoding();
+        fileProgress.audioManager.destroy();
+      }
     } else {
       this._oannotation = undefined;
     }

@@ -1,5 +1,6 @@
 import { Converter } from '@tratt/annotation';
-import { FileInfo } from '@tratt/web-media';
+import { OAudiofile } from '@tratt/media';
+import { AudioManager, FileInfo } from '@tratt/web-media';
 
 export interface FileProgress {
   id: number;
@@ -13,4 +14,6 @@ export interface FileProgress {
   progress: number;
   error?: string;
   warning?: string;
+  audioManager?: AudioManager;
+  oaudiofile?: OAudiofile;
 }

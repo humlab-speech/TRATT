@@ -273,6 +273,42 @@ to the user through the existing `ApplicationActions.addError` → `LoadingCompo
 Retry/Back UI, instead of the app silently hanging (or worse, silently proceeding as
 if persistence were working) as it would have before Task 1.
 
+## Finding (2026-09-12, during 2.7 Task 1): transcript pairing stays singular, deliberately
+
+Step 2.7's Task 1 made `TrattDropzoneService` retain every dropped audio file's decoded
+`AudioManager`/`OAudiofile` independently (on the `FileProgress` itself, via the new
+`validAudioEntries` getter), decode them sequentially rather than concurrently, and stop
+`dropFiles('audio')` from wiping out previously-dropped audio rows. Transcript-file-to-audio
+pairing was deliberately **not** generalized to the multi-file case in this step: the
+`_oaudiofile`/`_oannotation` singular fields and the `checkForValidFiles()`/`setAnnotation()`
+pairing logic they drive are untouched, and still only ever look at "whichever audio file
+decoded most recently." A transcript file dropped alongside multiple audio files will pair
+with the last-decoded audio file only, exactly as before this task — there is no per-audio-file
+transcript association yet. This is a real, tracked gap, not something silently absorbed by
+Task 1: whenever multi-file transcript import needs to associate a specific transcript with a
+specific audio file (rather than "whatever decoded last"), `checkForValidFiles()`/
+`setAnnotation()` need their own multi-file redesign, generalizing from `_oaudiofile`/
+`_oannotation` to per-`FileProgress` pairing the same way audio decoding just was.
+
+## Finding (2026-09-12, during 2.7 Task 1): `TrattDropzoneService.audioManager`/`.oaudiofile` have more production consumers than expected
+
+Task 1's brief expected the singular `TrattDropzoneService.audioManager`/`.oaudiofile` getters
+to have exactly one production consumer — `WorkbenchComponent.startSession()` — to be rewritten
+against `validAudioEntries` in Task 5, with the getters removed in Task 1. A repo-wide grep
+before removing them found several more production call sites, all reached through
+`TrattDropzoneComponent`'s own pass-through `audioManager`/`oaudiofile` getters
+(`tratt-dropzone.component.ts:108-113`), which themselves delegate to the two service getters:
+`WorkbenchComponent.proceedWithLogin()` (`workbench.component.ts:173`, a second call site inside
+`WorkbenchComponent` beyond `startSession()`), `ReloadFileComponent.newTranscription()`/
+`.onOfflineSubmit()` (`reload-file.component.ts:49,61`), and three call sites in
+`LoginComponent` (`login.component.ts:305,370,553`, covering transcription, diarization, and
+`proceedWithLogin()`). Per the brief's explicit instruction to stop rather than guess when this
+happened, Task 1 left both getters in place (not removed) and did not touch any of these five
+call sites — they are out of scope for Task 1 and not addressed by this step. Whoever picks up
+Task 5 (or a follow-up task) needs to either migrate all of these onto `validAudioEntries`-based
+access before removing the two getters, or explicitly decide some of them should keep reading a
+"most recently decoded" singular manager even after multi-file ingest ships.
+
 ## Phases (plan §3–§8, full estimates and step-by-step notes there)
 
 0. **Clear the ground** (1wk) — delete stale `multi-threading` copies (use lib versions), guard
