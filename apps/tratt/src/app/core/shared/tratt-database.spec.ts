@@ -81,6 +81,56 @@ describe('TrattDatabase — LOCAL mode routes save/load through the bundles tabl
     db.close();
   });
 
+  it('saveModeData(LOCAL, ..., overwrite=false) updates an existing bundles row', async () => {
+    const db = new TrattDatabase(DB_NAME);
+    await db.init();
+
+    await db.bundles.put({
+      bundleId: 'bundle-1',
+      name: 'options',
+      value: { currentEditor: 'old' },
+    });
+
+    await new Promise<void>((resolve, reject) => {
+      db.saveModeData(
+        LoginMode.LOCAL,
+        'options',
+        { currentEditor: 'new' },
+        false,
+        'bundle-1',
+      ).subscribe({ next: () => resolve(), error: reject });
+    });
+
+    const bundleRow = await db.bundles.get(['bundle-1', 'options']);
+    expect(bundleRow!.value).toEqual({ currentEditor: 'new' });
+
+    db.close();
+  });
+
+  it('saveModeData(LOCAL, ..., overwrite=false) against a missing row is a silent no-op', async () => {
+    const db = new TrattDatabase(DB_NAME);
+    await db.init();
+    // init()'s checkAndFillPopulation() auto-populates bundle-1's 'options'
+    // row (see DEFAULT_BUNDLE_ID); delete it so this test starts from a
+    // genuinely missing row, matching the scenario Fix 3 guards against.
+    await db.bundles.delete(['bundle-1', 'options']);
+
+    await new Promise<void>((resolve, reject) => {
+      db.saveModeData(
+        LoginMode.LOCAL,
+        'options',
+        { currentEditor: 'new' },
+        false,
+        'bundle-1',
+      ).subscribe({ next: () => resolve(), error: reject });
+    });
+
+    const bundleRow = await db.bundles.get(['bundle-1', 'options']);
+    expect(bundleRow).toBeUndefined();
+
+    db.close();
+  });
+
   it('saveModeData(ONLINE, ...) is unaffected — still writes to online_data, not bundles', async () => {
     const db = new TrattDatabase(DB_NAME);
     await db.init();
