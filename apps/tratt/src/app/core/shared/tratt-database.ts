@@ -42,7 +42,16 @@ export class TrattDatabase extends Dexie {
     }
 
     if (currentVersion > 0 && currentVersion < 0.6) {
-      await this.backupCurrentDatabase();
+      try {
+        await this.backupCurrentDatabase();
+      } catch (e) {
+        this.onReady.error(
+          new Error(
+            `Failed to back up existing database before upgrading it. This can happen if storage quota is exceeded (a backup roughly doubles storage use). Your existing data has not been modified. Original error: ${e}`,
+          ),
+        );
+        throw e;
+      }
     }
 
     this.version(0.2)
