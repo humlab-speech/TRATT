@@ -494,6 +494,7 @@ export class IDBEffects {
         AuthenticationActions.loginURL.success,
         AuthenticationActions.loginLocal.prepare,
         AuthenticationActions.loginLocal.success,
+        LoginModeActions.createBundle,
         LoginModeActions.startAnnotation.success,
         ApplicationActions.changeApplicationOption.do,
         LoginModeActions.endTranscription.do,

@@ -1,17 +1,21 @@
 import { TestBed } from '@angular/core/testing';
 import { provideMockActions } from '@ngrx/effects/testing';
 import { MockStore, provideMockStore } from '@ngrx/store/testing';
-import { beforeEach, describe, expect, it, jest } from '@jest/globals';
+import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { TranslocoService } from '@jsverse/transloco';
 import { OctraAPIService } from '@octra/ngx-octra-api';
 import { SessionStorageService } from 'ngx-webstorage';
 import { randomUUID } from 'node:crypto';
 import { BroadcastChannel as NodeBroadcastChannel } from 'node:worker_threads';
 import { of, ReplaySubject } from 'rxjs';
+import { AudioManager } from '@tratt/web-media';
 import { AlertService } from '../../shared/service';
 import { RoutingService } from '../../shared/service/routing.service';
 import { TrattModalService } from '../../modals/tratt-modal.service';
 import { LoginMode, RootState } from '../index';
+import { DEFAULT_BUNDLE_ID } from '../login-mode/annotation/local-bundle-collection';
+import { LoginModeActions } from '../login-mode/login-mode.actions';
+import { IDBActions } from '../idb/idb.actions';
 import { AuthenticationActions } from './authentication.actions';
 import { AuthenticationEffects } from './authentication.effects';
 
@@ -155,5 +159,153 @@ describe('AuthenticationEffects', () => {
         done();
       }, 50);
     }, 0);
+  });
+
+  describe('onLoginLocal$', () => {
+    const makeFile = (name: string) =>
+      new File(['x'], name, { type: 'audio/wav' });
+
+    afterEach(() => {
+      jest.restoreAllMocks();
+    });
+
+    it('creates a bundle for every extra valid audio file and selects the first', (done) => {
+      jest.spyOn(AudioManager, 'isValidAudioFileName').mockReturnValue(true);
+
+      const dispatchSpy = jest.spyOn(store, 'dispatch');
+      const subscription = effects.onLoginLocal$.subscribe();
+
+      const files = [
+        makeFile('one.wav'),
+        makeFile('two.wav'),
+        makeFile('three.wav'),
+      ];
+      const audioBundleIdsByFilename = {
+        'one.wav': 'bundle-one',
+        'two.wav': 'bundle-two',
+        'three.wav': 'bundle-three',
+      };
+
+      actions$.next(
+        AuthenticationActions.loginLocal.do({
+          files,
+          removeData: false,
+          mode: LoginMode.LOCAL,
+          audioBundleIdsByFilename,
+        }),
+      );
+
+      setTimeout(() => {
+        const createBundleCalls = dispatchSpy.mock.calls
+          .map(([a]) => a as unknown as { type: string; bundleId?: string })
+          .filter((a) => a.type === LoginModeActions.createBundle.type);
+        const selectBundleCalls = dispatchSpy.mock.calls
+          .map(([a]) => a as unknown as { type: string; bundleId?: string })
+          .filter((a) => a.type === LoginModeActions.selectBundle.type);
+
+        expect(createBundleCalls.map((c) => c.bundleId)).toEqual([
+          'bundle-two',
+          'bundle-three',
+        ]);
+        expect(selectBundleCalls.map((c) => c.bundleId)).toEqual([
+          'bundle-one',
+        ]);
+
+        subscription.unsubscribe();
+        done();
+      }, 0);
+    });
+
+    it('dispatches no createBundle/selectBundle actions for a single legacy file without the id map', (done) => {
+      jest.spyOn(AudioManager, 'isValidAudioFileName').mockReturnValue(true);
+
+      const dispatchSpy = jest.spyOn(store, 'dispatch');
+      const subscription = effects.onLoginLocal$.subscribe();
+
+      const files = [makeFile('only.wav')];
+
+      actions$.next(
+        AuthenticationActions.loginLocal.do({
+          files,
+          removeData: false,
+          mode: LoginMode.LOCAL,
+        }),
+      );
+
+      setTimeout(() => {
+        const relevantCalls = dispatchSpy.mock.calls
+          .map(([a]) => a as unknown as { type: string })
+          .filter(
+            (a) =>
+              a.type === LoginModeActions.createBundle.type ||
+              a.type === LoginModeActions.selectBundle.type,
+          );
+        expect(relevantCalls).toEqual([]);
+
+        const prepareCall = dispatchSpy.mock.calls
+          .map(([a]) => a as unknown as { type: string; sessionFile?: any })
+          .find((a) => a.type === AuthenticationActions.loginLocal.prepare.type);
+        expect(prepareCall).toBeDefined();
+        expect(prepareCall!.sessionFile.name).toEqual('only.wav');
+
+        subscription.unsubscribe();
+        done();
+      }, 0);
+    });
+
+    it('falls back to DEFAULT_BUNDLE_ID for bundle #1 (legacy behavior preserved)', (done) => {
+      jest.spyOn(AudioManager, 'isValidAudioFileName').mockReturnValue(true);
+
+      const dispatchSpy = jest.spyOn(store, 'dispatch');
+      const subscription = effects.onLoginLocal$.subscribe();
+
+      const files = [makeFile('one.wav'), makeFile('two.wav')];
+      const audioBundleIdsByFilename = {
+        'two.wav': 'bundle-two',
+      };
+
+      actions$.next(
+        AuthenticationActions.loginLocal.do({
+          files,
+          removeData: false,
+          mode: LoginMode.LOCAL,
+          audioBundleIdsByFilename,
+        }),
+      );
+
+      setTimeout(() => {
+        const selectBundleCalls = dispatchSpy.mock.calls
+          .map(([a]) => a as unknown as { type: string; bundleId?: string })
+          .filter((a) => a.type === LoginModeActions.selectBundle.type);
+        expect(selectBundleCalls.map((c) => c.bundleId)).toEqual([
+          DEFAULT_BUNDLE_ID,
+        ]);
+
+        subscription.unsubscribe();
+        done();
+      }, 0);
+    });
+
+    it('fails with "file not supported" when no dropped file is a valid audio file', (done) => {
+      jest.spyOn(AudioManager, 'isValidAudioFileName').mockReturnValue(false);
+
+      // Error.prototype.message is non-enumerable, so it doesn't survive the
+      // action creator's payload spread — only `.type` is reliably present
+      // on the dispatched action, matching this effect's pre-existing
+      // fail(new Error(...)) behavior.
+      const subscription = effects.onLoginLocal$.subscribe((action) => {
+        expect(action.type).toEqual(AuthenticationActions.loginLocal.fail.type);
+        subscription.unsubscribe();
+        done();
+      });
+
+      actions$.next(
+        AuthenticationActions.loginLocal.do({
+          files: [makeFile('not-audio.txt')],
+          removeData: false,
+          mode: LoginMode.LOCAL,
+        }),
+      );
+    });
   });
 });

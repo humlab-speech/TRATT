@@ -59,6 +59,11 @@ export class AuthenticationActions {
         annotation?: OAnnotJSON;
         removeData: boolean;
         mode: LoginMode.LOCAL;
+        /** Maps `File.name` to the bundle id `WorkbenchComponent` already
+         *  registered that file's decoded audio under with `AudioService`.
+         *  Absent for legacy callers (reload-file, login), which never drop
+         *  more than one audio file. */
+        audioBundleIdsByFilename?: Record<string, string>;
       }>(),
       prepare: props<{
         mode: LoginMode;
