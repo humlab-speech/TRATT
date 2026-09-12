@@ -5,6 +5,7 @@ import Dexie, { Transaction } from 'dexie';
 import 'dexie-export-import';
 import { firstValueFrom, from, map, Observable, of, Subject } from 'rxjs';
 import { LoginMode } from '../store';
+import { DEFAULT_BUNDLE_ID } from '../store/login-mode/annotation/local-bundle-collection';
 
 /**
  * Database names used before the rename from OCTRA to TRATT. Deployments that
@@ -39,7 +40,7 @@ export class TrattDatabase extends Dexie {
       // ignore
     }
 
-    if (currentVersion > 0 && currentVersion < 0.4) {
+    if ((currentVersion > 0 && currentVersion < 0.4) || currentVersion === 0.5) {
       await this.backupCurrentDatabase();
     }
 
@@ -89,6 +90,17 @@ export class TrattDatabase extends Dexie {
         app_options: '&name, value',
       })
       .upgrade(this.upgradeToDatabaseV5);
+
+    this.version(0.6)
+      .stores({
+        demo_data: '&name, value',
+        online_data: '&name, value',
+        local_data: '&name, value',
+        url_data: '&name, value',
+        app_options: '&name, value',
+        bundles: '[bundleId+name]',
+      })
+      .upgrade(this.upgradeToDatabaseV6);
 
     this.demoData = this.table('demo_data');
     this.onlineData = this.table('online_data');
@@ -372,6 +384,19 @@ export class TrattDatabase extends Dexie {
   }
 
   private async upgradeToDatabaseV5(transaction: Transaction) {
+  }
+
+  private async upgradeToDatabaseV6(tr: Transaction) {
+    const localDataTable = tr.table('local_data');
+    const bundlesTable = tr.table('bundles');
+    const rows = await localDataTable.toArray();
+    for (const row of rows) {
+      await bundlesTable.put({
+        bundleId: DEFAULT_BUNDLE_ID,
+        name: row.name,
+        value: row.value,
+      });
+    }
   }
 
   private async backupCurrentDatabase() {
