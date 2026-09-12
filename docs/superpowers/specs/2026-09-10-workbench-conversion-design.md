@@ -295,14 +295,16 @@ specific audio file (rather than "whatever decoded last"), `checkForValidFiles()
 Task 1's brief expected the singular `TrattDropzoneService.audioManager`/`.oaudiofile` getters
 to have exactly one production consumer — `WorkbenchComponent.startSession()` — to be rewritten
 against `validAudioEntries` in Task 5, with the getters removed in Task 1. A repo-wide grep
-before removing them found several more production call sites, all reached through
-`TrattDropzoneComponent`'s own pass-through `audioManager`/`oaudiofile` getters
+before removing them found more production call sites *outside* `WorkbenchComponent`, all reached
+through `TrattDropzoneComponent`'s own pass-through `audioManager`/`oaudiofile` getters
 (`tratt-dropzone.component.ts:108-113`), which themselves delegate to the two service getters:
-`WorkbenchComponent.proceedWithLogin()` (`workbench.component.ts:173`, a second call site inside
-`WorkbenchComponent` beyond `startSession()`), `ReloadFileComponent.newTranscription()`/
-`.onOfflineSubmit()` (`reload-file.component.ts:49,61`), and three call sites in
-`LoginComponent` (`login.component.ts:305,370,553`, covering transcription, diarization, and
-`proceedWithLogin()`). Per the brief's explicit instruction to stop rather than guess when this
+`ReloadFileComponent.newTranscription()`/`.onOfflineSubmit()` (`reload-file.component.ts:49,61`),
+and three call sites in `LoginComponent` (`login.component.ts:305,370,553`, covering
+transcription, diarization, and `LoginComponent`'s own `proceedWithLogin()`). (Task 1's own report
+initially mislabeled the already-expected `startSession()` line as a second, separate
+`WorkbenchComponent.proceedWithLogin()` consumer — corrected here during task review:
+`workbench.component.ts` has exactly one `.audioManager` use, inside `startSession()`, which is
+not a new finding.) Per the brief's explicit instruction to stop rather than guess when this
 happened, Task 1 left both getters in place (not removed) and did not touch any of these five
 call sites — they are out of scope for Task 1 and not addressed by this step. Whoever picks up
 Task 5 (or a follow-up task) needs to either migrate all of these onto `validAudioEntries`-based
