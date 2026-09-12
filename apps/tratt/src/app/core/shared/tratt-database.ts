@@ -41,7 +41,7 @@ export class TrattDatabase extends Dexie {
       // ignore
     }
 
-    if ((currentVersion > 0 && currentVersion < 0.4) || currentVersion === 0.5) {
+    if (currentVersion > 0 && currentVersion < 0.6) {
       await this.backupCurrentDatabase();
     }
 
