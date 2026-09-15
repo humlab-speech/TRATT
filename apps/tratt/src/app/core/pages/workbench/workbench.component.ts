@@ -2,6 +2,7 @@ import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
+  computed,
   OnInit,
   Type,
   ViewChild,
@@ -90,9 +91,21 @@ export class WorkbenchComponent extends DefaultComponent implements OnInit {
   // sessionReady true on its own.
   private bundleSummaries = this.store.selectSignal(selectAllBundleSummaries);
 
-  hasAnyBundles(): boolean {
-    return this.bundleSummaries().length > 0;
-  }
+  // NOT `bundleSummaries().length > 0`: the store's LOCAL bundle collection
+  // ALWAYS has exactly one entity — the permanent DEFAULT_BUNDLE_ID
+  // ('bundle-1') sentinel seeded by login-mode.reducer.ts's
+  // initialCollectionState — from app boot, before any session starts and
+  // before ANY file has ever been dropped, for every user including
+  // first-timers. So a plain length check is always true and this gate would
+  // never actually hide the list. `name` (sessionFile?.name) is undefined
+  // for that empty default and defined for any bundle — including bundle-1
+  // itself, once a returning user's bundle-1 gets restored via the
+  // pre-existing loadOptions$/loadAnnotation$ boot effects — that has really
+  // had a file attached, so require at least one summary with a defined
+  // `name` instead of just counting entities.
+  hasAnyBundles = computed(() =>
+    this.bundleSummaries().some((b) => b.name !== undefined),
+  );
 
   get useMode(): string {
     return this._useMode;

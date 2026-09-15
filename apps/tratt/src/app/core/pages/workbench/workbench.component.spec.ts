@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, jest } from '@jest/globals';
+import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
 
 // tratt-dropzone.component.ts transitively imports AutoTranscribeOptionsComponent and
 // AutoTranslateOptionsComponent, which import local-transcription.service.ts /
@@ -46,6 +46,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { TranslocoService } from '@jsverse/transloco';
 import { Store } from '@ngrx/store';
+import { provideMockStore } from '@ngrx/store/testing';
 import { randomUUID } from 'node:crypto';
 import { BehaviorSubject, of } from 'rxjs';
 import { editorComponents } from '../../../editors/components';
@@ -59,8 +60,12 @@ import { RoutingService } from '../../shared/service/routing.service';
 import { LoadingStatus } from '../../store';
 import { ApplicationStoreService } from '../../store/application/application-store.service';
 import { AuthenticationStoreService } from '../../store/authentication/authentication-store.service';
+import { initialState as annotationInitialState } from '../../store/login-mode/annotation/annotation.reducer';
 import { AnnotationStoreService } from '../../store/login-mode/annotation/annotation.store.service';
-import { DEFAULT_BUNDLE_ID } from '../../store/login-mode/annotation/local-bundle-collection';
+import {
+  DEFAULT_BUNDLE_ID,
+  localBundleAdapter,
+} from '../../store/login-mode/annotation/local-bundle-collection';
 import { WorkbenchComponent } from './workbench.component';
 
 // Lightweight stand-in mounted in place of a real editor (e.g.
@@ -302,6 +307,30 @@ describe('WorkbenchComponent', () => {
       expect(component.hasAnyBundles()).toBe(true);
     });
 
+    // Bug found in review of the original Task 4 commit: the LOCAL bundle
+    // collection ALWAYS contains one entity, the permanent DEFAULT_BUNDLE_ID
+    // ('bundle-1') sentinel seeded by login-mode.reducer.ts's
+    // initialCollectionState, present from app boot for every user —
+    // including first-timers who have never dropped a file. A plain
+    // `.length > 0` check on bundleSummaries() is therefore always true. Its
+    // `name` field, however, is undefined until a real sessionFile has been
+    // attached (whether via startSession() or the pre-existing boot restore
+    // of bundle-1 itself), so hasAnyBundles() must require at least one
+    // summary with a defined `name`.
+    it('hasAnyBundles() is false for the permanent empty default bundle-1 sentinel (no name yet)', () => {
+      bundleSummaries = [
+        {
+          bundleId: DEFAULT_BUNDLE_ID,
+          name: undefined,
+          selected: true,
+          awaitingMedia: true,
+        },
+      ];
+      fixture.detectChanges();
+
+      expect(component.hasAnyBundles()).toBe(false);
+    });
+
     it('mounts tratt-bundle-list once bundles exist, even before sessionReady', () => {
       bundleSummaries = [
         { bundleId: 'bundle-a', name: 'a.wav', selected: true, awaitingMedia: true },
@@ -464,5 +493,105 @@ describe('WorkbenchComponent', () => {
 
       expect(component.sessionStarting).toBe(true);
     });
+  });
+});
+
+// The outer suite stubs Store.selectSignal directly with a hand-rolled
+// bundleSummaries array, which can never reproduce the shape the real store
+// starts every user with — the LOCAL bundle collection's actual
+// initialCollectionState (login-mode.reducer.ts) always seeds exactly one
+// entity, keyed DEFAULT_BUNDLE_ID, with no sessionFile and audio.loaded:
+// false. That's the exact case that caught a real bug (hasAnyBundles()
+// counting that permanent empty sentinel as "a bundle exists"), so this
+// suite drives selectAllBundleSummaries through provideMockStore against a
+// localMode slice built the same way the reducer really builds it, instead
+// of a synthetic already-filtered array.
+describe('WorkbenchComponent with real default LOCAL store state', () => {
+  function bundlesState(
+    entities: { bundleId: string; sessionFile?: unknown }[],
+  ) {
+    return localBundleAdapter.setAll(
+      entities.map((e) => ({
+        ...annotationInitialState,
+        bundleId: e.bundleId,
+        sessionFile: e.sessionFile,
+      })) as any,
+      localBundleAdapter.getInitialState(),
+    );
+  }
+
+  async function createWithLocalMode(localMode: unknown) {
+    await TestBed.configureTestingModule({
+      imports: [WorkbenchComponent],
+      providers: [
+        { provide: AudioService, useValue: {} },
+        { provide: AuthenticationStoreService, useValue: {} },
+        { provide: AppStorageService, useValue: {} },
+        { provide: RoutingService, useValue: { staticQueryParams: {} } },
+        { provide: NavbarService, useValue: {} },
+        { provide: RecordedFileService, useValue: {} },
+        { provide: AnnotationStoreService, useValue: {} },
+        { provide: SettingsService, useValue: { isTheme: () => false } },
+        { provide: TrattModalService, useValue: {} },
+        {
+          provide: ApplicationStoreService,
+          useValue: {
+            loading$: of({ status: LoadingStatus.INITIALIZE }),
+          },
+        },
+        { provide: UserInteractionsService, useValue: {} },
+        provideMockStore({ initialState: { localMode } as any }),
+        {
+          provide: TranslocoService,
+          useValue: {
+            getActiveLang: () => 'en',
+            langChanges$: of('en'),
+            translate: (key: string) => key,
+            selectTranslate: () => of(''),
+            config: { reRenderOnLangChange: false },
+          },
+        },
+      ],
+    }).compileComponents();
+
+    const fx = TestBed.createComponent(WorkbenchComponent);
+    fx.detectChanges();
+    return fx;
+  }
+
+  afterEach(() => {
+    TestBed.resetTestingModule();
+  });
+
+  it('hides the bundle list for a first-time user: the real default state has only the empty bundle-1 sentinel', async () => {
+    const localMode = {
+      bundles: bundlesState([
+        { bundleId: DEFAULT_BUNDLE_ID, sessionFile: undefined },
+      ]),
+      selectedBundleId: DEFAULT_BUNDLE_ID,
+    };
+
+    const fx = await createWithLocalMode(localMode);
+    const component = fx.componentInstance;
+
+    expect(component.sessionReady).toBe(false);
+    expect(component.hasAnyBundles()).toBe(false);
+    expect(fx.debugElement.query(By.css('tratt-bundle-list'))).toBeFalsy();
+  });
+
+  it('reveals the bundle list for a returning user whose bundle-1 was restored with a real sessionFile', async () => {
+    const localMode = {
+      bundles: bundlesState([
+        { bundleId: DEFAULT_BUNDLE_ID, sessionFile: { name: 'restored.wav' } },
+      ]),
+      selectedBundleId: DEFAULT_BUNDLE_ID,
+    };
+
+    const fx = await createWithLocalMode(localMode);
+    const component = fx.componentInstance;
+
+    expect(component.sessionReady).toBe(false);
+    expect(component.hasAnyBundles()).toBe(true);
+    expect(fx.debugElement.query(By.css('tratt-bundle-list'))).toBeTruthy();
   });
 });
