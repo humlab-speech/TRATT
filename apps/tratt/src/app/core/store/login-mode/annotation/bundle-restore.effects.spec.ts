@@ -15,7 +15,7 @@ import { provideMockActions } from '@ngrx/effects/testing';
 import { Store } from '@ngrx/store';
 import { provideMockStore } from '@ngrx/store/testing';
 import Dexie from 'dexie';
-import { from, ReplaySubject } from 'rxjs';
+import { from, ReplaySubject, throwError } from 'rxjs';
 import { IDBService } from '../../../shared/service/idb.service';
 import { TrattDatabase } from '../../../shared/tratt-database';
 import { LoginMode, RootState } from '../../index';
@@ -31,6 +31,10 @@ describe('BundleRestoreEffects', () => {
   let actions$: ReplaySubject<unknown>;
   let db: TrattDatabase;
   let dispatchSpy: jest.Mock;
+  // Set by a test before dispatching, to make loadBundle() error for one
+  // specific bundleId — exercises the per-bundle catchError branch without
+  // aborting the whole restore (Minor 3).
+  let failBundleId: string | undefined;
 
   const initialState = {
     application: { mode: LoginMode.LOCAL },
@@ -97,13 +101,21 @@ describe('BundleRestoreEffects', () => {
 
     actions$ = new ReplaySubject(1);
     dispatchSpy = jest.fn();
+    failBundleId = undefined;
 
     const fakeIdbService = {
       listLocalBundleIds: () => from(db.listLocalBundleIds()),
       loadModeOptions: (mode: LoginMode, bundleId?: string) =>
-        db.loadDataOfMode(mode, 'options', {}, bundleId),
+        bundleId === failBundleId
+          ? throwError(() => new Error(`simulated load failure for ${bundleId}`))
+          : db.loadDataOfMode(mode, 'options', {}, bundleId),
       loadAnnotation: (mode: LoginMode, bundleId?: string) =>
         db.loadDataOfMode(mode, 'annotation', undefined, bundleId),
+      saveModeOptions: (
+        mode: LoginMode,
+        options: Record<string, unknown>,
+        bundleId?: string,
+      ) => db.saveModeData(mode, 'options', options, false, bundleId),
     };
 
     TestBed.configureTestingModule({
@@ -183,5 +195,165 @@ describe('BundleRestoreEffects', () => {
         urlOptions: {} as any,
       }),
     );
+  });
+
+  it('Minor 3: zero-bundles-found case still dispatches selectBundle(bundle-1)', (done) => {
+    // Only bundle-1's rows exist — no "other" bundle beyond DEFAULT_BUNDLE_ID.
+    db.bundles
+      .where('bundleId')
+      .notEqual(DEFAULT_BUNDLE_ID)
+      .delete()
+      .then(() => {
+        effects.restoreBundles$.subscribe({
+          next: () => {
+            const createBundleCalls = dispatchSpy.mock.calls
+              .map((call) => call[0])
+              .filter(
+                (action: any) => action.type === LoginModeActions.createBundle.type,
+              );
+            expect(createBundleCalls).toHaveLength(0);
+
+            const lastCall =
+              dispatchSpy.mock.calls[dispatchSpy.mock.calls.length - 1][0];
+            expect(lastCall).toEqual(
+              LoginModeActions.selectBundle({
+                mode: LoginMode.LOCAL,
+                bundleId: DEFAULT_BUNDLE_ID,
+              }),
+            );
+            done();
+          },
+          error: done,
+        });
+
+        actions$.next(
+          IDBActions.loadOptions.success({
+            applicationOptions: {} as any,
+            localOptions: {} as any,
+            onlineOptions: {} as any,
+            demoOptions: {} as any,
+            urlOptions: {} as any,
+          }),
+        );
+      });
+  });
+
+  it('Minor 3: a per-bundle load failure (catchError) skips that bundle without aborting the rest', (done) => {
+    failBundleId = 'bundle-2';
+
+    effects.restoreBundles$.subscribe({
+      next: () => {
+        const createBundleCalls = dispatchSpy.mock.calls
+          .map((call) => call[0])
+          .filter((action: any) => action.type === LoginModeActions.createBundle.type);
+
+        const byId = Object.fromEntries(
+          createBundleCalls.map((a: any) => [a.bundleId, a]),
+        );
+
+        // The failing bundle never got a createBundle dispatch...
+        expect(byId['bundle-2']).toBeUndefined();
+        // ...but the other real bundle still restored normally.
+        expect(byId['bundle-3']).toMatchObject({
+          mode: LoginMode.LOCAL,
+          bundleId: 'bundle-3',
+          restoredOptions: { currentEditor: 'Dictaphone-Editor' },
+        });
+
+        const lastCall =
+          dispatchSpy.mock.calls[dispatchSpy.mock.calls.length - 1][0];
+        expect(lastCall).toEqual(
+          LoginModeActions.selectBundle({
+            mode: LoginMode.LOCAL,
+            bundleId: DEFAULT_BUNDLE_ID,
+          }),
+        );
+        done();
+      },
+      error: done,
+    });
+
+    actions$.next(
+      IDBActions.loadOptions.success({
+        applicationOptions: {} as any,
+        localOptions: {} as any,
+        onlineOptions: {} as any,
+        demoOptions: {} as any,
+        urlOptions: {} as any,
+      }),
+    );
+  });
+
+  it('Minor 3: restores a bundle whose options row was created through the REAL saveModeOptions/IDBService write path, not just a hand-seeded Dexie row', (done) => {
+    // Clear the hand-seeded fixture bundles entirely, then drive persistence
+    // through the exact same call the real app makes on a fresh bundle save
+    // (IDBService.saveModeOptions -> TrattDatabase.saveModeData(..., overwrite=false, ...))
+    // — this is the path Fix 1 fixed; exercising it here (rather than a
+    // bulkPut fixture shortcut) is what let Fix 1's bug go undetected
+    // through this task's own original review.
+    db.bundles
+      .where('bundleId')
+      .notEqual(DEFAULT_BUNDLE_ID)
+      .delete()
+      .then(async () => {
+        await new Promise<void>((resolve, reject) => {
+          db.saveModeData(
+            LoginMode.LOCAL,
+            'options',
+            {
+              sessionfile: { name: 'real-write.wav', size: 55, type: 'audio/wav' },
+              currentEditor: '2D-Editor',
+            },
+            false,
+            'bundle-real',
+          ).subscribe({ next: () => resolve(), error: reject });
+        });
+        await new Promise<void>((resolve, reject) => {
+          db.saveModeData(
+            LoginMode.LOCAL,
+            'annotation',
+            { name: 'real-write', sampleRate: 16000, levels: [], links: [] },
+            true,
+            'bundle-real',
+          ).subscribe({ next: () => resolve(), error: reject });
+        });
+
+        effects.restoreBundles$.subscribe({
+          next: () => {
+            const createBundleCalls = dispatchSpy.mock.calls
+              .map((call) => call[0])
+              .filter(
+                (action: any) => action.type === LoginModeActions.createBundle.type,
+              );
+            const byId = Object.fromEntries(
+              createBundleCalls.map((a: any) => [a.bundleId, a]),
+            );
+
+            expect(byId['bundle-real']).toMatchObject({
+              mode: LoginMode.LOCAL,
+              bundleId: 'bundle-real',
+              restoredOptions: { currentEditor: '2D-Editor' },
+              restoredAnnotation: { name: 'real-write' },
+            });
+            expect(byId['bundle-real'].sessionFile).toMatchObject({
+              name: 'real-write.wav',
+              size: 55,
+              type: 'audio/wav',
+            });
+            done();
+          },
+          error: done,
+        });
+
+        actions$.next(
+          IDBActions.loadOptions.success({
+            applicationOptions: {} as any,
+            localOptions: {} as any,
+            onlineOptions: {} as any,
+            demoOptions: {} as any,
+            urlOptions: {} as any,
+          }),
+        );
+      });
   });
 });
