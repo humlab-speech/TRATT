@@ -1,7 +1,7 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed } from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { Store } from '@ngrx/store';
-import { AudioManager } from '@tratt/web-media';
+import { AudioManager, normalizeMimeType } from '@tratt/web-media';
 import { filter, firstValueFrom } from 'rxjs';
 import {
   BundleReattachMismatchAnswer,
@@ -42,7 +42,23 @@ import { LoginModeActions } from '../../store/login-mode/login-mode.actions';
   imports: [TranslocoPipe],
 })
 export class BundleListComponent {
-  bundles = this.store.selectSignal(selectAllBundleSummaries);
+  private bundleSummaries = this.store.selectSignal(selectAllBundleSummaries);
+
+  // `selectAllBundleSummaries`'s `awaitingMedia` only reflects the store's
+  // `audio.loaded` flag, which the reducer only ever sets for whichever
+  // bundle happens to be currently selected (see AnnotationActions.loadAudio.success).
+  // A bundle created via a live multi-file drop (step 2.7) has a REAL
+  // resident AudioManager from the moment it's registered, even before it's
+  // ever been selected — combine the selector with that live signal so
+  // switching to an unselected-but-already-resident bundle doesn't show the
+  // re-attach control.
+  bundles = computed(() =>
+    this.bundleSummaries().map((b) => ({
+      ...b,
+      awaitingMedia:
+        b.awaitingMedia && !this.audioService.hasResident(b.bundleId),
+    })),
+  );
 
   // Only consulted from onReattachFileSelected() (not template-bound) to look
   // up a bundle's persisted SessionFile for the fingerprint comparison —
@@ -86,24 +102,34 @@ export class BundleListComponent {
       return;
     }
 
-    const answer = await this.modService.openModal<
-      typeof BundleReattachMismatchModalComponent,
-      BundleReattachMismatchAnswer
-    >(
-      BundleReattachMismatchModalComponent,
-      BundleReattachMismatchModalComponent.options,
-      {
-        expectedName: sessionFile?.name,
-        expectedSize: sessionFile?.size,
-        actualName: file.name,
-        actualSize: file.size,
-      },
-    );
+    // Any path out of this block that doesn't call completeReattach() — the
+    // explicit "cancel" answer, or the modal promise rejecting (e.g. a
+    // backdrop dismissal) — must still release the AudioManager created
+    // above; otherwise it leaks as an un-registered resident.
+    let completed = false;
+    try {
+      const answer = await this.modService.openModal<
+        typeof BundleReattachMismatchModalComponent,
+        BundleReattachMismatchAnswer
+      >(
+        BundleReattachMismatchModalComponent,
+        BundleReattachMismatchModalComponent.options,
+        {
+          expectedName: sessionFile?.name,
+          expectedSize: sessionFile?.size,
+          actualName: file.name,
+          actualSize: file.size,
+        },
+      );
 
-    if (answer === BundleReattachMismatchAnswer.USE_ANYWAY) {
-      this.completeReattach(bundleId, manager, file);
-    } else {
-      manager.destroy();
+      if (answer === BundleReattachMismatchAnswer.USE_ANYWAY) {
+        this.completeReattach(bundleId, manager, file);
+        completed = true;
+      }
+    } finally {
+      if (!completed) {
+        manager.destroy();
+      }
     }
   }
 
@@ -124,7 +150,7 @@ export class BundleListComponent {
     if (
       sessionFile.name !== file.name ||
       sessionFile.size !== file.size ||
-      sessionFile.type !== file.type
+      sessionFile.type !== normalizeMimeType(file.type)
     ) {
       return false;
     }

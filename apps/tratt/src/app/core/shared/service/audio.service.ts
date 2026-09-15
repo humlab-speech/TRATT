@@ -46,6 +46,17 @@ export class AudioService {
   }
 
   /**
+   * Whether `bundleId` currently has a resident AudioManager — a stronger,
+   * live signal than the store's `audio.loaded` flag, which only the
+   * currently-selected bundle ever has set (see AnnotationActions.loadAudio.success's
+   * reducer case). Used to distinguish "genuinely needs re-attach" from
+   * "has real audio this session but hasn't been the selected bundle yet."
+   */
+  public hasResident(bundleId: string): boolean {
+    return this._audiomanagers.has(bundleId);
+  }
+
+  /**
    * @deprecated Use `current` instead. This throws in dev builds when there
    * is no resolvable manager for the current selection, instead of silently
    * returning undefined/wrong data (the old array-index-0 behavior).

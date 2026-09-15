@@ -28,7 +28,10 @@ import { BundleListComponent } from './bundle-list.component';
 describe('BundleListComponent', () => {
   let fixture: ComponentFixture<BundleListComponent>;
   let store: MockStore<RootState>;
-  let audioService: { registerAudioManager: jest.Mock };
+  let audioService: {
+    registerAudioManager: jest.Mock;
+    hasResident: jest.Mock;
+  };
   let modalService: { openModal: jest.Mock<any> };
 
   const matchingSessionFile = new SessionFile(
@@ -84,7 +87,10 @@ describe('BundleListComponent', () => {
     }) as unknown as File;
 
   beforeEach(async () => {
-    audioService = { registerAudioManager: jest.fn() };
+    audioService = {
+      registerAudioManager: jest.fn(),
+      hasResident: jest.fn().mockReturnValue(false),
+    };
     modalService = { openModal: jest.fn() };
 
     await TestBed.configureTestingModule({
@@ -183,7 +189,7 @@ describe('BundleListComponent', () => {
         'a.wav',
         4,
         'audio/wav',
-        matchingSessionFile.timestamp.getTime(),
+        matchingSessionFile.timestamp!.getTime(),
       );
       const event = { target: { files: [file], value: '' } } as unknown as Event;
 
@@ -221,7 +227,7 @@ describe('BundleListComponent', () => {
         'a.wav',
         999,
         'audio/wav',
-        matchingSessionFile.timestamp.getTime(),
+        matchingSessionFile.timestamp!.getTime(),
       );
       const event = { target: { files: [file], value: '' } } as unknown as Event;
 
@@ -265,7 +271,7 @@ describe('BundleListComponent', () => {
         'a.wav',
         999,
         'audio/wav',
-        matchingSessionFile.timestamp.getTime(),
+        matchingSessionFile.timestamp!.getTime(),
       );
       const event = { target: { files: [file], value: '' } } as unknown as Event;
 
@@ -283,6 +289,115 @@ describe('BundleListComponent', () => {
           bundleId: 'bundle-a',
         }),
       );
+    });
+
+    it('still destroys the decoded manager (Minor 4) when the mismatch modal promise rejects (e.g. backdrop dismissal)', async () => {
+      const manager = fakeManager();
+      jest
+        .spyOn(AudioManager, 'create')
+        .mockReturnValue(of({ audioManager: manager, progress: 1 }) as any);
+
+      const file = fakeFile(
+        'a.wav',
+        999,
+        'audio/wav',
+        matchingSessionFile.timestamp!.getTime(),
+      );
+      const event = { target: { files: [file], value: '' } } as unknown as Event;
+
+      modalService.openModal.mockRejectedValue(new Error('backdrop dismissed'));
+
+      await expect(
+        fixture.componentInstance.onReattachFileSelected('bundle-a', event),
+      ).rejects.toThrow('backdrop dismissed');
+
+      expect(manager.destroy).toHaveBeenCalled();
+      expect(audioService.registerAudioManager).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('Fix 5: awaitingMedia combined with AudioService residency', () => {
+    it('renders the normal click-to-select button (not a re-attach input) when awaitingMedia is true from the selector but the bundle already has a resident AudioManager', () => {
+      audioService.hasResident.mockImplementation(
+        (bundleId) => bundleId === 'bundle-a',
+      );
+      fixture = TestBed.createComponent(BundleListComponent);
+      fixture.detectChanges();
+
+      const rows = fixture.debugElement.queryAll(By.css('.bundle-list__item'));
+      const rowA = rows.find((r) => r.nativeElement.textContent.includes('a.wav'));
+      expect(rowA!.query(By.css('input[type="file"]'))).toBeFalsy();
+      expect(rowA!.query(By.css('button.bundle-list__item-btn'))).toBeTruthy();
+    });
+
+    it('still renders the re-attach control when awaitingMedia is true and hasResident is false (genuine restored-and-unresolved case)', () => {
+      audioService.hasResident.mockReturnValue(false);
+      fixture = TestBed.createComponent(BundleListComponent);
+      fixture.detectChanges();
+
+      const rows = fixture.debugElement.queryAll(By.css('.bundle-list__item'));
+      const rowA = rows.find((r) => r.nativeElement.textContent.includes('a.wav'));
+      expect(rowA!.query(By.css('input[type="file"]'))).toBeTruthy();
+    });
+
+    it('is unaffected for a bundle with awaitingMedia false, regardless of hasResident', () => {
+      audioService.hasResident.mockReturnValue(true);
+      fixture = TestBed.createComponent(BundleListComponent);
+      fixture.detectChanges();
+
+      const rows = fixture.debugElement.queryAll(By.css('.bundle-list__item'));
+      const rowB = rows.find((r) => r.nativeElement.textContent.includes('b.wav'));
+      expect(rowB!.query(By.css('input[type="file"]'))).toBeFalsy();
+      expect(rowB!.query(By.css('button.bundle-list__item-btn'))).toBeTruthy();
+    });
+  });
+
+  describe('Minor 1: fingerprint type-normalization', () => {
+    it('matches a video/ogg candidate file against a persisted normalized sessionFile.type', async () => {
+      const dispatchSpy = jest.spyOn(store, 'dispatch');
+      const manager = fakeManager();
+      jest
+        .spyOn(AudioManager, 'create')
+        .mockReturnValue(of({ audioManager: manager, progress: 1 }) as any);
+
+      // normalizeMimeType rewrites 'video/ogg' -> 'audio/ogg'; the persisted
+      // sessionFile reflects the normalized form (see authentication.effects.ts's
+      // getSessionFile()), so the raw candidate file.type must be normalized
+      // the same way before comparing, or this falsely mismatches.
+      const oggSessionFile = new SessionFile(
+        'c.ogg',
+        10,
+        new Date(2024, 0, 1),
+        'audio/ogg',
+      );
+      const bundleC = {
+        bundleId: 'bundle-c',
+        sessionFile: oggSessionFile,
+        audio: { loaded: false },
+      } as any;
+      store.setState({
+        application: { mode: LoginMode.LOCAL },
+        localMode: {
+          bundles: localBundleAdapter.setAll(
+            [bundleA, bundleB, bundleC],
+            localBundleAdapter.getInitialState(),
+          ),
+          selectedBundleId: 'bundle-b',
+        },
+      } as unknown as RootState);
+
+      const file = fakeFile('c.ogg', 10, 'video/ogg', oggSessionFile.timestamp!.getTime());
+      const event = { target: { files: [file], value: '' } } as unknown as Event;
+
+      await fixture.componentInstance.onReattachFileSelected('bundle-c', event);
+
+      expect(dispatchSpy).toHaveBeenCalledWith(
+        LoginModeActions.selectBundle({
+          mode: LoginMode.LOCAL,
+          bundleId: 'bundle-c',
+        }),
+      );
+      expect(modalService.openModal).not.toHaveBeenCalled();
     });
   });
 });
