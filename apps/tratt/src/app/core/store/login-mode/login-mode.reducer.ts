@@ -1,5 +1,6 @@
 import { Action, ActionReducer, on } from '@ngrx/store';
 import {
+  OAnnotJSON,
   OLabel,
   TrattAnnotation,
   TrattAnnotationSegment,
@@ -23,6 +24,7 @@ import * as fromAnnotation from './annotation/annotation.reducer';
 import { AnnotationStateReducers } from './annotation/annotation.reducer';
 import {
   DEFAULT_BUNDLE_ID,
+  IdentifiedAnnotationState,
   LocalBundleCollectionState,
   localBundleAdapter,
   resolveLocalBundleState,
@@ -33,6 +35,64 @@ export const initialState: AnnotationState = {
   ...fromAnnotation.initialState,
   currentSession: {},
 };
+
+/**
+ * Pure field-mapping helper: writes a single IDB-persisted option (keyed by
+ * `attribute`) into the corresponding `AnnotationState` field. Hoisted out of
+ * `LoginModeReducers` (it never referenced `this`) so it's callable both from
+ * `create()`'s `loadOptions.success` handler and from the plain
+ * `wrapAsLocalBundleCollectionReducer` function's `createBundle` case.
+ */
+function writeOptionToStore(
+  state: AnnotationState,
+  attribute: string,
+  value: any,
+): AnnotationState {
+  switch (attribute) {
+    case 'comment':
+      state.currentSession = {
+        ...state.currentSession,
+        comment: value,
+      };
+      break;
+    case 'project':
+      state = {
+        ...state,
+        previousSession: {
+          ...state.previousSession,
+          project: {
+            id: value?.id as string,
+          },
+        } as any,
+      };
+      break;
+    case 'transcriptID':
+      state = {
+        ...state,
+        previousSession: {
+          ...state.previousSession,
+          task: {
+            id: value,
+          },
+        } as any,
+      };
+      break;
+    case 'sessionfile':
+      state = {
+        ...state,
+        sessionFile: SessionFile.fromAny(value),
+      };
+      break;
+    case 'importConverter':
+      state = {
+        ...state,
+        importConverter: value,
+      };
+      break;
+  }
+
+  return state;
+}
 
 /**
  * Wraps an `AnnotationState` reducer so its output is stored as the single
@@ -58,15 +118,35 @@ function wrapAsLocalBundleCollectionReducer(
     action: Action,
   ): LocalBundleCollectionState => {
     if (action.type === LoginModeActions.createBundle.type) {
-      const { bundleId, sessionFile } = action as ReturnType<
-        typeof LoginModeActions.createBundle
-      >;
+      const { bundleId, sessionFile, restoredOptions, restoredAnnotation } =
+        action as ReturnType<typeof LoginModeActions.createBundle>;
+      let entity: IdentifiedAnnotationState = {
+        ...initialInner,
+        bundleId,
+        sessionFile,
+      };
+      if (restoredOptions) {
+        for (const [name, value] of getProperties(restoredOptions)) {
+          entity = {
+            ...writeOptionToStore(entity, name, value),
+            bundleId,
+            sessionFile,
+          };
+        }
+      }
+      if (restoredAnnotation) {
+        const deserializedAnnotation =
+          OAnnotJSON.deserialize(restoredAnnotation);
+        if (deserializedAnnotation) {
+          entity = {
+            ...entity,
+            transcript: TrattAnnotation.deserialize(deserializedAnnotation),
+          };
+        }
+      }
       return {
         ...state,
-        bundles: localBundleAdapter.addOne(
-          { ...initialInner, bundleId, sessionFile },
-          state.bundles,
-        ),
+        bundles: localBundleAdapter.addOne(entity, state.bundles),
         selectedBundleId: bundleId,
       };
     }
@@ -217,7 +297,7 @@ export class LoginModeReducers {
           }
 
           for (const [name, value] of getProperties(options)) {
-            result = this.writeOptionToStore(result, name, value);
+            result = writeOptionToStore(result, name, value);
           }
 
           return result;
@@ -483,56 +563,5 @@ export class LoginModeReducers {
     return this.mode === LoginMode.LOCAL
       ? wrapAsLocalBundleCollectionReducer(inner)
       : inner;
-  }
-
-  writeOptionToStore(
-    state: AnnotationState,
-    attribute: string,
-    value: any,
-  ): AnnotationState {
-    switch (attribute) {
-      case 'comment':
-        state.currentSession = {
-          ...state.currentSession,
-          comment: value,
-        };
-        break;
-      case 'project':
-        state = {
-          ...state,
-          previousSession: {
-            ...state.previousSession,
-            project: {
-              id: value?.id as string,
-            },
-          } as any,
-        };
-        break;
-      case 'transcriptID':
-        state = {
-          ...state,
-          previousSession: {
-            ...state.previousSession,
-            task: {
-              id: value,
-            },
-          } as any,
-        };
-        break;
-      case 'sessionfile':
-        state = {
-          ...state,
-          sessionFile: SessionFile.fromAny(value),
-        };
-        break;
-      case 'importConverter':
-        state = {
-          ...state,
-          importConverter: value,
-        };
-        break;
-    }
-
-    return state;
   }
 }

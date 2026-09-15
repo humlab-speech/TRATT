@@ -7,8 +7,10 @@ import {
   props,
 } from '@ngrx/store';
 import { CurrentAccountDto, ProjectDto, TaskDto } from '@octra/api-types';
-import { LoginMode } from '../index';
+import { IAnnotJSON } from '@tratt/annotation';
 import { SessionFile } from '../../obj/SessionFile';
+import { IIDBModeOptions } from '../../shared/tratt-database';
+import { LoginMode } from '../index';
 import { AnnotationActions } from './annotation/annotation.actions';
 
 export class LoginModeActions extends AnnotationActions {
@@ -22,7 +24,13 @@ export class LoginModeActions extends AnnotationActions {
 
   static createBundle = createAction(
     'annotation Create bundle',
-    props<{ mode: LoginMode; bundleId: string; sessionFile: SessionFile }>(),
+    props<{
+      mode: LoginMode;
+      bundleId: string;
+      sessionFile: SessionFile;
+      restoredOptions?: IIDBModeOptions;
+      restoredAnnotation?: IAnnotJSON;
+    }>(),
   );
 
   static selectBundle = createAction(

@@ -1,18 +1,23 @@
 import { describe, expect, it } from '@jest/globals';
-import { randomUUID } from 'node:crypto';
-import { AnnotationLevelType } from '@tratt/annotation';
+import {
+  AnnotationLevelType,
+  IAnnotJSON,
+  TrattAnnotation,
+} from '@tratt/annotation';
 import { SampleUnit } from '@tratt/media';
+import { randomUUID } from 'node:crypto';
+import { SessionFile } from '../../obj/SessionFile';
+import { IIDBModeOptions } from '../../shared/tratt-database';
 import { LoginMode } from '../index';
+import { AnnotationActions } from './annotation/annotation.actions';
 import {
   DEFAULT_BUNDLE_ID,
   generateBundleId,
   localBundleAdapter,
   LocalBundleCollectionState,
 } from './annotation/local-bundle-collection';
-import { AnnotationActions } from './annotation/annotation.actions';
 import { LoginModeActions } from './login-mode.actions';
 import { LoginModeReducers } from './login-mode.reducer';
-import { SessionFile } from '../../obj/SessionFile';
 
 // The jsdom version bundled with jest-environment-jsdom implements
 // window.crypto.getRandomValues but not crypto.randomUUID (unlike real
@@ -108,12 +113,10 @@ describe('LoginModeReducers — per-bundle undo isolation', () => {
         mode: LoginMode.LOCAL,
       }),
     ) as unknown as LocalBundleCollectionState;
-    expect(state.bundles.entities[bundleAId]?.transcript.levels.length).toBe(
-      1,
+    expect(state.bundles.entities[bundleAId]?.transcript.levels.length).toBe(1);
+    expect(state.bundles.entities[bundleAId]?.currentSession?.comment).toBe(
+      'comment on A',
     );
-    expect(
-      state.bundles.entities[bundleAId]?.currentSession?.comment,
-    ).toBe('comment on A');
 
     // Manually introduce a second bundle B by cloning a fresh initial inner
     // AnnotationState (complete with its own empty ngrx-wieder `histories`)
@@ -155,41 +158,36 @@ describe('LoginModeReducers — per-bundle undo isolation', () => {
         mode: LoginMode.LOCAL,
       }),
     ) as unknown as LocalBundleCollectionState;
-    expect(state.bundles.entities[bundleBId]?.transcript.levels.length).toBe(
-      1,
+    expect(state.bundles.entities[bundleBId]?.transcript.levels.length).toBe(1);
+    expect(state.bundles.entities[bundleBId]?.currentSession?.comment).toBe(
+      'comment on B',
     );
-    expect(
-      state.bundles.entities[bundleBId]?.currentSession?.comment,
-    ).toBe('comment on B');
     // A must be completely untouched by B's edits.
-    expect(state.bundles.entities[bundleAId]?.transcript.levels.length).toBe(
-      1,
+    expect(state.bundles.entities[bundleAId]?.transcript.levels.length).toBe(1);
+    expect(state.bundles.entities[bundleAId]?.currentSession?.comment).toBe(
+      'comment on A',
     );
-    expect(
-      state.bundles.entities[bundleAId]?.currentSession?.comment,
-    ).toBe('comment on A');
 
     // Undo while B is selected. ngrx-wieder's undoRedo() defaults
     // `undoActionType` to the literal string 'UNDO' (see
     // node_modules/ngrx-wieder/fesm2022/ngrx-wieder.mjs's defaultConfig),
     // and login-mode.reducer.ts's undoRedo({...}) call does not override it,
     // so dispatching { type: 'UNDO' } is the correct trigger.
-    state = reducer(state as any, {
-      type: 'UNDO',
-    } as any) as unknown as LocalBundleCollectionState;
+    state = reducer(
+      state as any,
+      {
+        type: 'UNDO',
+      } as any,
+    ) as unknown as LocalBundleCollectionState;
 
     // B's structural edit is undone (its added level is gone).
-    expect(state.bundles.entities[bundleBId]?.transcript.levels.length).toBe(
-      0,
-    );
+    expect(state.bundles.entities[bundleBId]?.transcript.levels.length).toBe(0);
     // A is STILL untouched — this is the critical assertion the plan's risk
     // register demanded: undoing B's history must not reach into A's state.
-    expect(state.bundles.entities[bundleAId]?.transcript.levels.length).toBe(
-      1,
+    expect(state.bundles.entities[bundleAId]?.transcript.levels.length).toBe(1);
+    expect(state.bundles.entities[bundleAId]?.currentSession?.comment).toBe(
+      'comment on A',
     );
-    expect(
-      state.bundles.entities[bundleAId]?.currentSession?.comment,
-    ).toBe('comment on A');
   });
 });
 
@@ -293,5 +291,97 @@ describe('LoginModeReducers — createBundle / selectBundle', () => {
     expect(next.bundles.entities[DEFAULT_BUNDLE_ID]).toBe(
       withB2.bundles.entities[DEFAULT_BUNDLE_ID],
     );
+  });
+});
+
+describe('LoginModeReducers — createBundle with restored content (step 2.8)', () => {
+  const sessionFile = new SessionFile('b2.wav', 123, new Date(), 'audio/wav');
+
+  it("createBundle with restoredOptions routes the value through writeOptionToStore's field mapping, leaving everything else at initialInner", () => {
+    const reducer = new LoginModeReducers(LoginMode.LOCAL).create();
+    const initial = reducer(undefined, {
+      type: '@@INIT',
+    } as any) as unknown as LocalBundleCollectionState;
+
+    const restoredOptions: IIDBModeOptions = { comment: 'hello' };
+
+    const next = reducer(
+      initial as any,
+      LoginModeActions.createBundle({
+        mode: LoginMode.LOCAL,
+        bundleId: 'b2',
+        sessionFile,
+        restoredOptions,
+      }),
+    ) as unknown as LocalBundleCollectionState;
+
+    const entity = next.bundles.entities['b2'];
+    const initialInner = initial.bundles.entities[DEFAULT_BUNDLE_ID];
+
+    // The mapped field landed exactly where writeOptionToStore's 'comment'
+    // case puts it.
+    expect(entity?.currentSession?.comment).toBe('hello');
+    // Everything else still matches the fresh initialInner entity — no
+    // reimplementation/shortcut bypassing writeOptionToStore's mapping.
+    expect(entity?.transcript).toEqual(initialInner?.transcript);
+    expect(entity?.importOptions).toEqual(initialInner?.importOptions);
+    expect(entity?.importConverter).toEqual(initialInner?.importConverter);
+    expect(entity?.previousSession).toEqual(initialInner?.previousSession);
+    // Explicit params still win over anything restoredOptions could imply.
+    expect(entity?.bundleId).toBe('b2');
+    expect(entity?.sessionFile).toBe(sessionFile);
+  });
+
+  it('createBundle with restoredAnnotation produces a real deserialized TrattAnnotation, not the raw JSON', () => {
+    const reducer = new LoginModeReducers(LoginMode.LOCAL).create();
+    const initial = reducer(undefined, {
+      type: '@@INIT',
+    } as any) as unknown as LocalBundleCollectionState;
+
+    const restoredAnnotation: IAnnotJSON = {
+      name: 'restored',
+      annotates: 'b2.wav',
+      sampleRate: 16000,
+      levels: [],
+      links: [],
+    };
+
+    const next = reducer(
+      initial as any,
+      LoginModeActions.createBundle({
+        mode: LoginMode.LOCAL,
+        bundleId: 'b2',
+        sessionFile,
+        restoredAnnotation,
+      }),
+    ) as unknown as LocalBundleCollectionState;
+
+    const entity = next.bundles.entities['b2'];
+
+    expect(entity?.transcript).toBeInstanceOf(TrattAnnotation);
+    expect(entity?.transcript).not.toBe(restoredAnnotation);
+    expect(entity?.transcript?.levels).toEqual([]);
+  });
+
+  it('createBundle with neither restoredOptions nor restoredAnnotation (step 2.7 usage) still produces exactly the same result as before this task', () => {
+    const reducer = new LoginModeReducers(LoginMode.LOCAL).create();
+    const initial = reducer(undefined, {
+      type: '@@INIT',
+    } as any) as unknown as LocalBundleCollectionState;
+
+    const next = reducer(
+      initial as any,
+      LoginModeActions.createBundle({
+        mode: LoginMode.LOCAL,
+        bundleId: 'b2',
+        sessionFile,
+      }),
+    ) as unknown as LocalBundleCollectionState;
+
+    expect(next.bundles.entities['b2']?.sessionFile).toBe(sessionFile);
+    expect(next.bundles.entities[DEFAULT_BUNDLE_ID]).toBe(
+      initial.bundles.entities[DEFAULT_BUNDLE_ID],
+    );
+    expect(next.selectedBundleId).toBe('b2');
   });
 });
