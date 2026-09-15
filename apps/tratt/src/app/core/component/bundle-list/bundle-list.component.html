@@ -10,16 +10,18 @@
 }
 <ul class="bundle-list">
   @for (bundle of bundles(); track bundle.bundleId) {
-    <li
-      class="bundle-list__item"
-      [class.active]="bundle.selected"
-      (click)="selectBundle(bundle.bundleId)"
-    >
-      <!-- `bundle.name` comes from `sessionFile?.name`; sessionFile is a
-           required prop on the createBundle action, so this is always
-           populated in practice for LOCAL bundles — no placeholder fallback
-           needed. -->
-      {{ bundle.name }}
+    <li class="bundle-list__item" [class.active]="bundle.selected">
+      <button
+        type="button"
+        class="bundle-list__item-btn"
+        (click)="selectBundle(bundle.bundleId)"
+      >
+        <!-- `bundle.name` comes from `sessionFile?.name`; sessionFile is a
+             required prop on the createBundle action, so this is always
+             populated in practice for LOCAL bundles — no placeholder
+             fallback needed. -->
+        {{ bundle.name }}
+      </button>
     </li>
   }
 </ul>

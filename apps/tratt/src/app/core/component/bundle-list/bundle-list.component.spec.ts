@@ -67,9 +67,11 @@ describe('BundleListComponent', () => {
 
   it('dispatches selectBundle with the clicked row bundleId when a non-selected row is clicked', () => {
     const dispatchSpy = jest.spyOn(store, 'dispatch');
-    const rows = fixture.debugElement.queryAll(By.css('.bundle-list__item'));
+    const buttons = fixture.debugElement.queryAll(
+      By.css('.bundle-list__item-btn'),
+    );
     // bundle-a is the non-selected row (selectedBundleId is bundle-b)
-    rows[0].triggerEventHandler('click', null);
+    buttons[0].triggerEventHandler('click', null);
 
     expect(dispatchSpy).toHaveBeenCalledWith(
       LoginModeActions.selectBundle({
@@ -77,6 +79,17 @@ describe('BundleListComponent', () => {
         bundleId: 'bundle-a',
       }),
     );
+  });
+
+  it('renders each row as a focusable, keyboard-activatable button', () => {
+    const buttons = fixture.debugElement.queryAll(
+      By.css('.bundle-list__item-btn'),
+    );
+    expect(buttons.length).toBe(2);
+    buttons.forEach((btn) => {
+      expect(btn.nativeElement.tagName).toBe('BUTTON');
+      expect(btn.nativeElement.type).toBe('button');
+    });
   });
 
   it('marks the currently-selected bundle row as active', () => {
