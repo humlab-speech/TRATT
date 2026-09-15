@@ -3,7 +3,15 @@ import { IAnnotJSON, ILevel, ILink, OAnnotJSON } from '@tratt/annotation';
 import { removeEmptyProperties } from '@tratt/utilities';
 import Dexie, { Transaction } from 'dexie';
 import 'dexie-export-import';
-import { firstValueFrom, from, map, Observable, of, Subject } from 'rxjs';
+import {
+  firstValueFrom,
+  from,
+  map,
+  mergeMap,
+  Observable,
+  of,
+  Subject,
+} from 'rxjs';
 import { LoginMode } from '../store';
 import { DEFAULT_BUNDLE_ID } from '../store/login-mode/annotation/local-bundle-collection';
 
@@ -564,6 +572,22 @@ export class TrattDatabase extends Dexie {
             value: prepared,
           }),
         ).pipe(
+          mergeMap((updatedCount) => {
+            if (updatedCount === 0) {
+              // update() silently no-ops on a missing key instead of creating
+              // one — the row for any bundle beyond DEFAULT_BUNDLE_ID/URL mode
+              // (never pre-seeded by checkAndFillPopulation()) doesn't exist
+              // yet on its first save. Fall back to put() so the first save
+              // for a new bundle actually persists instead of vanishing.
+              return from(
+                this.bundles.put(
+                  { bundleId, name, value: prepared },
+                  [bundleId, name],
+                ),
+              );
+            }
+            return of(updatedCount);
+          }),
           map(() => {
             return;
           }),

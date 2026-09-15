@@ -107,13 +107,15 @@ describe('TrattDatabase — LOCAL mode routes save/load through the bundles tabl
     db.close();
   });
 
-  it('saveModeData(LOCAL, ..., overwrite=false) against a missing row is a silent no-op', async () => {
+  it('saveModeData(LOCAL, ..., overwrite=false) against a missing row falls back to put() and creates it (Fix 1)', async () => {
     const db = new TrattDatabase(DB_NAME);
     await db.init();
-    // init()'s checkAndFillPopulation() auto-populates bundle-1's 'options'
-    // row (see DEFAULT_BUNDLE_ID); delete it so this test starts from a
-    // genuinely missing row, matching the scenario Fix 3 guards against.
-    await db.bundles.delete(['bundle-1', 'options']);
+    // Dexie's Table.update() silently no-ops on a missing key instead of
+    // creating one — a bundle beyond DEFAULT_BUNDLE_ID/URL mode (never
+    // pre-seeded by checkAndFillPopulation()) has no row yet on its first
+    // save. saveModeData() must fall back to put() so the save actually
+    // persists instead of vanishing.
+    await db.bundles.delete(['new-bundle-id', 'options']);
 
     await new Promise<void>((resolve, reject) => {
       db.saveModeData(
@@ -121,13 +123,76 @@ describe('TrattDatabase — LOCAL mode routes save/load through the bundles tabl
         'options',
         { currentEditor: 'new' },
         false,
-        'bundle-1',
+        'new-bundle-id',
       ).subscribe({ next: () => resolve(), error: reject });
     });
 
-    const bundleRow = await db.bundles.get(['bundle-1', 'options']);
-    expect(bundleRow).toBeUndefined();
+    const bundleRow = await db.bundles.get(['new-bundle-id', 'options']);
+    expect(bundleRow?.value).toEqual({ currentEditor: 'new' });
 
+    db.close();
+  });
+
+  it('saveModeData(LOCAL, ..., overwrite=false) called twice for a new bundle updates in place, not duplicating rows', async () => {
+    const db = new TrattDatabase(DB_NAME);
+    await db.init();
+    await db.bundles.delete(['new-bundle-id', 'options']);
+
+    await new Promise<void>((resolve, reject) => {
+      db.saveModeData(
+        LoginMode.LOCAL,
+        'options',
+        { currentEditor: 'first' },
+        false,
+        'new-bundle-id',
+      ).subscribe({ next: () => resolve(), error: reject });
+    });
+    await new Promise<void>((resolve, reject) => {
+      db.saveModeData(
+        LoginMode.LOCAL,
+        'options',
+        { currentEditor: 'second' },
+        false,
+        'new-bundle-id',
+      ).subscribe({ next: () => resolve(), error: reject });
+    });
+
+    const allRows = await db.bundles
+      .where('bundleId')
+      .equals('new-bundle-id')
+      .toArray();
+    expect(allRows).toHaveLength(1);
+    expect(allRows[0].value).toEqual({ currentEditor: 'second' });
+
+    db.close();
+  });
+
+  it('saveModeData(LOCAL, ..., overwrite=false) against an EXISTING row updates via update(), never falls through to put() (regression)', async () => {
+    const db = new TrattDatabase(DB_NAME);
+    await db.init();
+    // checkAndFillPopulation() auto-populates DEFAULT_BUNDLE_ID's 'options'
+    // row during init() — assert the pre-existing-row path still uses
+    // update() and doesn't always fall through to put().
+    const existing = await db.bundles.get([DEFAULT_BUNDLE_ID, 'options']);
+    expect(existing).toBeDefined();
+
+    const putSpy = jest.spyOn(db.bundles, 'put');
+
+    await new Promise<void>((resolve, reject) => {
+      db.saveModeData(
+        LoginMode.LOCAL,
+        'options',
+        { currentEditor: 'updated-via-update' },
+        false,
+        DEFAULT_BUNDLE_ID,
+      ).subscribe({ next: () => resolve(), error: reject });
+    });
+
+    expect(putSpy).not.toHaveBeenCalled();
+    const bundleRow = await db.bundles.get([DEFAULT_BUNDLE_ID, 'options']);
+    expect(bundleRow?.value).toEqual({ currentEditor: 'updated-via-update' });
+
+    putSpy.mockRestore();
     db.close();
   });
 
