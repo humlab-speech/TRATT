@@ -311,6 +311,68 @@ Task 5 (or a follow-up task) needs to either migrate all of these onto `validAud
 access before removing the two getters, or explicitly decide some of them should keep reading a
 "most recently decoded" singular manager even after multi-file ingest ships.
 
+## Finding (2026-09-15, during 2.8 planning): almost none of step 2.8's assumed infrastructure exists yet
+
+Investigating step 2.8 ("unresolved bundles") surfaced that its one-line spec — "post-reload rows
+awaiting media, with per-row re-attach, match on fingerprint" — assumes several things that turned
+out not to exist, continuing this project's established pattern of the original conversion-plan
+prose being wrong about premises at every step so far:
+
+1. **Boot only ever restores `bundle-1`.** The four LOCAL-mode load effects in
+   `idb-effects.service.ts` (`loadOptions$`, `afterOptionsSuccess$`, `loadAnnotation$`,
+   `loadImportOptions$`) all still use the literal `DEFAULT_BUNDLE_ID`, exactly as step 2.6/2.7 left
+   them (deliberately deferred here, per those steps' own Global Constraints). No boot-time code
+   enumerates or restores any bundle 2.7's multi-file ingest created in a prior session.
+2. **The `bundles` Dexie table cannot list distinct bundle ids today.** Its only index is the
+   compound `[bundleId+name]` primary key — no secondary index on `bundleId` alone, so
+   `.where('bundleId')` isn't usable. Enumeration needs a new full-table-scan helper
+   (`toCollection().primaryKeys()` + client-side dedupe) — cheap at expected row counts, but nothing
+   like it exists yet.
+3. **No fingerprint mechanism exists.** `SessionFile.toAny()` serializes only `{name, type, size}` —
+   `timestamp`/`lastModified` is silently dropped on persist despite `SessionFile`'s constructor
+   accepting it, so a restored `SessionFile` never round-trips it. `FileInfo`/`DataInfo` (`libs/web-media`)
+   carry a dormant `hash?: string` field that nothing ever computes or sets. There is no hash/checksum
+   utility anywhere in this codebase.
+4. **The "recovery banner" referenced by step 2.9's own plan text is unrelated and not reusable.**
+   `recording-recovery-banner.component.ts` resumes interrupted *microphone recordings* (a completely
+   different, chunked-storage feature) — no file-picker/re-attach UX exists anywhere in this codebase
+   to model step 2.8's UI on.
+5. **The workbench has no "ready with metadata but no audio" state at all.** `sessionReady` is
+   strictly gated behind `LoadingStatus.FINISHED`, which for LOCAL mode only ever gets set via
+   `AnnotationActions.loadAudio.success` — itself only reachable through the drop-then-`startSession()`
+   flow. A reload with no fresh drop today never reaches a rendered workbench state, regardless of
+   what's sitting in IndexedDB.
+
+**Decision:** proceed with the same plan → SDD → review rigor as every prior step, no schema changes
+needed (the existing `bundles` table shape from 2.6 already carries everything required), so this
+doesn't carry 2.6's production-migration risk category — it's new application logic on an existing,
+already-correct schema. Design, recorded here for the implementation plan to argue from:
+
+- **Boot-time restore**: a new `TrattDatabase.listLocalBundleIds()` helper enumerates every distinct
+  bundle id via the full-table-scan primaryKeys() query above. A new boot effect loads each bundle's
+  `options`+`annotation` rows directly (bypassing the existing "write into whichever bundle is
+  selected" write-through machinery entirely) and dispatches one `LoginModeActions.createBundle` per
+  restored bundle, with `createBundle`'s payload extended to optionally carry the restored
+  `transcript`/`importOptions`/`currentEditor` fields (merged onto `initialInner` when creating the
+  entity) — so each dispatch fully seeds its bundle in one shot, no dependency on bundle-selection
+  ordering. Every restored bundle's `audio.loaded` stays `false` (`AnnotationState.audio.loaded`,
+  already an existing field) — this is the exact, already-present signal for "awaiting media," no new
+  status enum needed.
+- **Fingerprint**: extend `SessionFile.toAny()`/`fromAny()` to round-trip `lastModified` (a one-line
+  gap fix, prerequisite for this step). Fingerprint comparison is `{name, size, type, lastModified}`
+  against a candidate re-attached `File`'s own same fields — a well-precedented "did you pick the
+  same file" heuristic, not a cryptographic hash. Computing a real content hash (e.g.
+  `crypto.subtle.digest` over up to a 1.9GB file) is explicitly out of scope — disproportionate cost
+  for a mismatch-warning UX that already has a working, cheap alternative and an explicit user
+  override per the original spec's own words ("warn and let the user override").
+- **UI**: extend the existing bundle-list (step 2.7's `BundleListComponent`) rather than building a
+  parallel surface — an unresolved row (bundle with `audio.loaded === false`) renders a per-row
+  `<input type="file">` re-attach affordance instead of the normal click-to-select row content.
+  Selecting a file decodes it (reusing the existing `AudioManager.create` completion-detection
+  pattern already established in `tratt-dropzone.service.ts`/`audio.service.ts`), compares its
+  fingerprint against the bundle's persisted `sessionFile`, and either registers it with
+  `AudioService`/marks the bundle resolved (match) or shows a warning-with-override modal (mismatch).
+
 ## Phases (plan §3–§8, full estimates and step-by-step notes there)
 
 0. **Clear the ground** (1wk) — delete stale `multi-threading` copies (use lib versions), guard
