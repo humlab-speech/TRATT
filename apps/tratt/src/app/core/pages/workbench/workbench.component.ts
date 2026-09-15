@@ -185,8 +185,12 @@ export class WorkbenchComponent extends DefaultComponent implements OnInit {
     const files: File[] = [];
     for (const entry of entries) {
       const bundleId = generateBundleId();
-      this.audioService.registerAudioManager(bundleId, entry.audioManager);
       const nativeFile = entry.fileProgress.file.file!;
+      this.audioService.registerAudioManager(
+        bundleId,
+        entry.audioManager,
+        nativeFile,
+      );
       audioBundleIdsByFilename[nativeFile.name] = bundleId;
       files.push(nativeFile);
     }

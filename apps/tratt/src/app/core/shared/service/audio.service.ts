@@ -5,7 +5,7 @@ import { TaskInputOutputDto } from '@octra/api-types';
 import { downloadFile } from '@tratt/ngx-utilities';
 import { SubscriptionManager } from '@tratt/utilities';
 import { AudioManager } from '@tratt/web-media';
-import { Subject, Subscription } from 'rxjs';
+import { filter, firstValueFrom, Subject, Subscription } from 'rxjs';
 import { selectSelectedBundleId } from '../../store/login-mode/annotation/annotation.selectors';
 import { DEFAULT_BUNDLE_ID } from '../../store/login-mode/annotation/local-bundle-collection';
 import { AudioEnvelope, computeAudioEnvelope } from './audio-envelope';
@@ -27,6 +27,7 @@ export class AudioService {
 
   private _audiomanagers = new Map<string, AudioManager>();
   private _envelopes = new Map<string, AudioEnvelope>();
+  private _sourceFiles = new Map<string, File>();
   private recentBundleIds: string[] = [];
   private selectedBundleId = this.store.selectSignal(selectSelectedBundleId);
 
@@ -70,6 +71,7 @@ export class AudioService {
       const id = this.selectedBundleId();
       if (id) {
         this.trackSelection(id);
+        void this.ensureResident(id);
       }
     });
   }
@@ -149,7 +151,14 @@ export class AudioService {
     return subj;
   };
 
-  public registerAudioManager(bundleId: string, manager: AudioManager) {
+  public registerAudioManager(
+    bundleId: string,
+    manager: AudioManager,
+    sourceFile?: File,
+  ) {
+    if (sourceFile) {
+      this._sourceFiles.set(bundleId, sourceFile);
+    }
     if (manager !== undefined) {
       const existing = this._audiomanagers.get(bundleId);
       if (existing !== manager) {
@@ -204,12 +213,41 @@ export class AudioService {
     return this._envelopes.get(bundleId);
   }
 
+  /**
+   * Re-decodes `bundleId`'s audio from its retained source `File` and
+   * re-registers the resulting `AudioManager`, if `bundleId` currently has
+   * no resident manager (e.g. it was LRU-evicted by `trackSelection()`) but
+   * does have a source `File` on record (registered via
+   * `registerAudioManager(..., sourceFile)`). No-op if a manager is already
+   * resident, or if no source file was ever retained for `bundleId` (e.g. an
+   * ONLINE-mode registration via `loadAudio()`).
+   */
+  private async ensureResident(bundleId: string): Promise<void> {
+    if (this._audiomanagers.has(bundleId)) {
+      return;
+    }
+    const sourceFile = this._sourceFiles.get(bundleId);
+    if (!sourceFile) {
+      return;
+    }
+    const buffer = await sourceFile.arrayBuffer();
+    const result = await firstValueFrom(
+      AudioManager.create(sourceFile.name, sourceFile.type, buffer).pipe(
+        filter((r) => r.progress === 1 && !!r.audioManager),
+      ),
+    );
+    if (result.audioManager) {
+      this.registerAudioManager(bundleId, result.audioManager);
+    }
+  }
+
   public async destroy(disconnect = true) {
     for (const audioManager of this._audiomanagers.values()) {
       await audioManager.destroy(disconnect);
     }
     this._audiomanagers.clear();
     this._envelopes.clear();
+    this._sourceFiles.clear();
     this.recentBundleIds = [];
     this.subscrmanager.destroy();
   }

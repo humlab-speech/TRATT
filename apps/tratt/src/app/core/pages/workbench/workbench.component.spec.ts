@@ -149,6 +149,7 @@ describe('WorkbenchComponent', () => {
     expect(audioService.registerAudioManager).toHaveBeenCalledWith(
       expect.any(String),
       manager,
+      nativeFile,
     );
     const [bundleId] = audioService.registerAudioManager.mock.calls[0];
     expect(authStoreService.loginLocal).toHaveBeenCalledWith(

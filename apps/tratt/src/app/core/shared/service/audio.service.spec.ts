@@ -1,11 +1,12 @@
 import { TestBed } from '@angular/core/testing';
 import { HttpClient } from '@angular/common/http';
-import { beforeEach, describe, expect, it, jest } from '@jest/globals';
+import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { provideMockStore, MockStore } from '@ngrx/store/testing';
-import { Subject } from 'rxjs';
+import { Subject, of } from 'rxjs';
 import { LoginMode, RootState } from '../../store/index';
 import { localBundleAdapter } from '../../store/login-mode/annotation/local-bundle-collection';
 import { AudioService } from './audio.service';
+import { AudioManager } from '@tratt/web-media';
 
 // Convention: mock Store via @ngrx/store/testing's provideMockStore, as
 // established by idb-effects.service.spec.ts, rather than a hand-rolled
@@ -231,6 +232,143 @@ describe('AudioService — eviction and envelope', () => {
 
     expect(service.current).toBeUndefined();
     expect(service.getEnvelope('b1')).toBeDefined();
+  });
+});
+
+describe('AudioService — re-decode on reselection of an evicted bundle', () => {
+  let service: AudioService;
+  let store: MockStore<RootState>;
+
+  const stateWithSelected = (selectedBundleId: string) =>
+    ({
+      application: { mode: LoginMode.LOCAL },
+      localMode: {
+        bundles: localBundleAdapter.getInitialState(),
+        selectedBundleId,
+      },
+    }) as unknown as RootState;
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      providers: [
+        AudioService,
+        { provide: HttpClient, useValue: {} },
+        provideMockStore({ initialState: stateWithSelected('bundle-1') }),
+      ],
+    });
+    service = TestBed.inject(AudioService);
+    store = TestBed.inject(MockStore);
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  const fakeManager = (name: string) =>
+    ({
+      resource: { name },
+      audioMechanism: { missingPermission: { subscribe: jest.fn() } },
+      channel: new Float32Array(1000).fill(0.1),
+      destroy: jest.fn(async () => undefined),
+    }) as any;
+
+  const fakeFile = (name: string) =>
+    ({
+      name,
+      type: 'audio/wav',
+      arrayBuffer: jest.fn(async () => new ArrayBuffer(8)),
+    }) as unknown as File;
+
+  const selectBundle = (id: string) => {
+    store.setState(stateWithSelected(id));
+    TestBed.flushEffects();
+  };
+
+  // ensureResident() is fired-and-forgotten (`void`) from the constructor
+  // effect, so tests await the microtask queue rather than the effect call
+  // itself, matching the eviction describe block's async-flush convention
+  // above (`await Promise.resolve()` for computeAudioEnvelope's Promise).
+  const flushMicrotasks = async () => {
+    await new Promise((resolve) => setTimeout(resolve, 0));
+  };
+
+  it('re-decodes and installs a new AudioManager when reselecting an evicted bundle', async () => {
+    const originalB1 = fakeManager('b1-original');
+    const managers: Record<string, any> = {
+      b1: originalB1,
+      b2: fakeManager('b2'),
+      b3: fakeManager('b3'),
+      b4: fakeManager('b4'),
+    };
+    const files: Record<string, File> = {
+      b1: fakeFile('b1.wav'),
+      b2: fakeFile('b2.wav'),
+      b3: fakeFile('b3.wav'),
+      b4: fakeFile('b4.wav'),
+    };
+
+    for (const id of ['b1', 'b2', 'b3', 'b4']) {
+      service.registerAudioManager(id, managers[id], files[id]);
+      selectBundle(id);
+    }
+
+    // b1 was evicted when b4 was selected.
+    expect(originalB1.destroy).toHaveBeenCalled();
+    expect(service.audiomanagers).not.toContain(originalB1);
+
+    const redecodedB1 = fakeManager('b1-redecoded');
+    const createSpy = jest
+      .spyOn(AudioManager, 'create')
+      .mockReturnValue(
+        of({ audioManager: redecodedB1, progress: 1 }) as any,
+      );
+
+    // Re-select the evicted bundle.
+    selectBundle('b1');
+    await flushMicrotasks();
+
+    expect(createSpy).toHaveBeenCalledWith('b1.wav', 'audio/wav', expect.anything());
+    expect(service.current).toBe(redecodedB1);
+    expect(service.current).not.toBe(originalB1);
+  });
+
+  it('does not re-decode a bundle that still has a resident manager', async () => {
+    const managerB1 = fakeManager('b1');
+    const fileB1 = fakeFile('b1.wav');
+    service.registerAudioManager('b1', managerB1, fileB1);
+    selectBundle('b1');
+
+    const managerB2 = fakeManager('b2');
+    service.registerAudioManager('b2', managerB2, fakeFile('b2.wav'));
+    selectBundle('b2');
+
+    const createSpy = jest.spyOn(AudioManager, 'create');
+
+    // Re-select b1 — still resident (never evicted), so no re-decode.
+    selectBundle('b1');
+    await flushMicrotasks();
+
+    expect(createSpy).not.toHaveBeenCalled();
+    expect(service.current).toBe(managerB1);
+  });
+
+  it('is a safe no-op reselecting a bundle with no retained source file and no resident manager', async () => {
+    // Registered via loadAudio()-style call with no sourceFile (ONLINE mode).
+    const managerB1 = fakeManager('b1');
+    service.registerAudioManager('b1', managerB1);
+    selectBundle('b1');
+
+    // Evict it manually (simulating LRU eviction) without ever having a
+    // source file on record for it.
+    service.evict('b1');
+
+    const createSpy = jest.spyOn(AudioManager, 'create');
+
+    expect(() => selectBundle('b1')).not.toThrow();
+    await flushMicrotasks();
+
+    expect(createSpy).not.toHaveBeenCalled();
+    expect(service.current).toBeUndefined();
   });
 });
 

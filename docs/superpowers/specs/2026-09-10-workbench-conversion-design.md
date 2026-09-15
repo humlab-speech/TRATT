@@ -360,3 +360,9 @@ deferred to phase 2 (2.1 entity state, 2.6 Dexie 0.6) where they're actually exe
 built speculatively now against nothing.
 
 This worktree starts implementation at **Phase 1 (the shell)**.
+
+## Finding (2026-09-15, during 2.7 Task 7): re-decode-on-reselection lands correctness, not the instant-envelope UX
+
+Task 6 made bundle selection genuinely reachable through the UI for the first time, so `AudioService`'s existing LRU eviction (`MAX_RESIDENT_BUNDLES = 3`) now fires for real: selecting a 4th distinct bundle in a session evicts the 1st bundle's `AudioManager`. Task 7 closes the resulting gap — `registerAudioManager()` now optionally retains the source `File` alongside the `AudioManager`, and the selection effect calls a new `ensureResident()` that re-decodes from that retained `File` (via `AudioManager.create()`, same "wait for `progress === 1 && audioManager` truthy" pattern as `TrattDropzoneService.decodeArrayBuffer()`) and re-registers the result whenever the newly-selected bundle has no resident manager. Re-selecting an evicted bundle is therefore correctness-safe and fully automatic: no user-visible error, no stuck "no audio" state, no data loss — `AudioManager.destroy()` on eviction only frees decoded PCM/blob memory, never the original file bytes.
+
+**Deliberately not built in this task**: `.current` still briefly reads `undefined` for the ~1-2s the re-decode takes before it resolves, and during that window the signal display shows its normal no-audio/loading state rather than instantly painting from `getEnvelope(bundleId)` (already cached, unaffected by eviction, per step 2.5). Wiring the signal-viewer components in `libs/ngx-components/` to consume the cached envelope as a placeholder during this window is a separate, sizeable piece of work (tracing every consumer of `AudioService.current` across the 2D/Linear/Dictaphone editors) — tracked as a follow-up UX polish item, not a defect blocking this step.
