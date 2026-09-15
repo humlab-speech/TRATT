@@ -34,6 +34,7 @@ export const selectAllBundleSummaries = createSelector(
       bundleId: b.bundleId,
       name: b.sessionFile?.name,
       selected: b.bundleId === local.selectedBundleId,
+      awaitingMedia: !b.audio.loaded,
     })),
 );
 

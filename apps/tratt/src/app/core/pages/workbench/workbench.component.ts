@@ -9,6 +9,7 @@ import {
 import { FormsModule } from '@angular/forms';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
+import { Store } from '@ngrx/store';
 import { AnnotJSONConverter, Converter } from '@tratt/annotation';
 import { timer } from 'rxjs';
 import { AppInfo } from '../../../app.info';
@@ -38,10 +39,11 @@ import { AppStorageService } from '../../shared/service/appstorage.service';
 import { AudioService } from '../../shared/service/audio.service';
 import { RecordedFileService } from '../../shared/service/recorded-file.service';
 import { RoutingService } from '../../shared/service/routing.service';
-import { LoadingStatus, LoginMode } from '../../store';
+import { LoadingStatus, LoginMode, RootState } from '../../store';
 import { ApplicationState } from '../../store/application';
 import { ApplicationStoreService } from '../../store/application/application-store.service';
 import { AuthenticationStoreService } from '../../store/authentication/authentication-store.service';
+import { selectAllBundleSummaries } from '../../store/login-mode/annotation/annotation.selectors';
 import { AnnotationStoreService } from '../../store/login-mode/annotation/annotation.store.service';
 import {
   DEFAULT_BUNDLE_ID,
@@ -81,6 +83,17 @@ export class WorkbenchComponent extends DefaultComponent implements OnInit {
   private _useMode = '';
   private _selectedTheme = '';
 
+  // Signal-based store read (same selectSignal convention as AudioService /
+  // BundleListComponent) so the template can reveal the bundle list once any
+  // bundle exists — including one restored from IndexedDB at boot (step 2.8,
+  // Task 3), which never has decoded audio this session and so never makes
+  // sessionReady true on its own.
+  private bundleSummaries = this.store.selectSignal(selectAllBundleSummaries);
+
+  hasAnyBundles(): boolean {
+    return this.bundleSummaries().length > 0;
+  }
+
   get useMode(): string {
     return this._useMode;
   }
@@ -110,6 +123,7 @@ export class WorkbenchComponent extends DefaultComponent implements OnInit {
     private appStoreService: ApplicationStoreService,
     private uiService: UserInteractionsService,
     private cd: ChangeDetectorRef,
+    private store: Store<RootState>,
   ) {
     super();
   }

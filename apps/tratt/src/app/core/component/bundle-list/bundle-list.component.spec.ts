@@ -21,10 +21,12 @@ describe('BundleListComponent', () => {
   const bundleA = {
     bundleId: 'bundle-a',
     sessionFile: new SessionFile('a.wav', 1, new Date(), 'audio/wav'),
+    audio: { loaded: true },
   } as any;
   const bundleB = {
     bundleId: 'bundle-b',
     sessionFile: new SessionFile('b.wav', 2, new Date(), 'audio/wav'),
+    audio: { loaded: true },
   } as any;
 
   const initialState = {

@@ -43,7 +43,9 @@ jest.mock('../../component/navbar', () => ({}));
 
 import { Component } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
 import { TranslocoService } from '@jsverse/transloco';
+import { Store } from '@ngrx/store';
 import { randomUUID } from 'node:crypto';
 import { BehaviorSubject, of } from 'rxjs';
 import { editorComponents } from '../../../editors/components';
@@ -92,6 +94,7 @@ describe('WorkbenchComponent', () => {
   let audioService: { registerAudioManager: jest.Mock };
   let authStoreService: { loginLocal: jest.Mock };
   let loading$: BehaviorSubject<{ status: LoadingStatus }>;
+  let bundleSummaries: any[];
 
   beforeEach(async () => {
     audioService = { registerAudioManager: jest.fn() };
@@ -99,6 +102,9 @@ describe('WorkbenchComponent', () => {
     loading$ = new BehaviorSubject<{ status: LoadingStatus }>({
       status: LoadingStatus.INITIALIZE,
     });
+    // No bundles by default: matches a clean/logged-out profile where
+    // nothing has been restored from IndexedDB and no session has started.
+    bundleSummaries = [];
 
     await TestBed.configureTestingModule({
       imports: [WorkbenchComponent],
@@ -114,6 +120,16 @@ describe('WorkbenchComponent', () => {
         { provide: TrattModalService, useValue: {} },
         { provide: ApplicationStoreService, useValue: { loading$ } },
         { provide: UserInteractionsService, useValue: {} },
+        {
+          // WorkbenchComponent reads selectAllBundleSummaries directly (same
+          // selectSignal convention as AudioService/BundleListComponent) to
+          // decide whether restored-but-unresolved bundles should reveal the
+          // bundle-list before sessionReady. Stub selectSignal generically so
+          // it works regardless of which selector is passed, matching the
+          // bundleSummaries fixture set per-test below.
+          provide: Store,
+          useValue: { selectSignal: () => () => bundleSummaries },
+        },
         {
           provide: TranslocoService,
           useValue: {
@@ -261,6 +277,53 @@ describe('WorkbenchComponent', () => {
     fixture.detectChanges();
     loading$.next({ status: LoadingStatus.FINISHED });
     expect(component.sessionReady).toBe(true);
+  });
+
+  // Task 4 (step 2.8): boot-time restore (Task 3) can populate bundles in the
+  // store before any startSession() call this session, so sessionReady alone
+  // (which requires actually-decoded audio) is too strict a gate for
+  // *showing the bundle list* — the user needs to see restored-but-unresolved
+  // bundles so a later task can let them pick one to resolve.
+  describe('hasAnyBundles / bundle-list visibility gate', () => {
+    it('hasAnyBundles() is false when no bundles exist in the store', () => {
+      bundleSummaries = [];
+      fixture.detectChanges();
+
+      expect(component.hasAnyBundles()).toBe(false);
+    });
+
+    it('hasAnyBundles() is true when the store has bundles even though sessionReady is still false', () => {
+      bundleSummaries = [
+        { bundleId: 'bundle-a', name: 'a.wav', selected: true, awaitingMedia: true },
+      ];
+      fixture.detectChanges();
+
+      expect(component.sessionReady).toBe(false);
+      expect(component.hasAnyBundles()).toBe(true);
+    });
+
+    it('mounts tratt-bundle-list once bundles exist, even before sessionReady', () => {
+      bundleSummaries = [
+        { bundleId: 'bundle-a', name: 'a.wav', selected: true, awaitingMedia: true },
+      ];
+      fixture.detectChanges();
+
+      expect(component.sessionReady).toBe(false);
+      const bundleList = fixture.debugElement.query(
+        By.css('tratt-bundle-list'),
+      );
+      expect(bundleList).toBeTruthy();
+    });
+
+    it('does not mount tratt-bundle-list when there are no bundles and sessionReady is false', () => {
+      bundleSummaries = [];
+      fixture.detectChanges();
+
+      const bundleList = fixture.debugElement.query(
+        By.css('tratt-bundle-list'),
+      );
+      expect(bundleList).toBeFalsy();
+    });
   });
 
   it('auto-mounts an editor once the session becomes ready', () => {

@@ -5,11 +5,16 @@
       [showAutoTranscribe]="true"
       [allowMultipleAudio]="true"
     ></tratt-dropzone>
-    @if (sessionReady) {
-      <!-- Lets the user switch between bundles already created by the one
-           startSession() call at session start. Does NOT extend
-           startSession() to accept files dropped mid-session — that
-           remains a single-shot ingest; see BundleListComponent. -->
+    @if (sessionReady || hasAnyBundles()) {
+      <!-- Lets the user switch between bundles that already exist: either
+           created by the one startSession() call at session start, or
+           restored from IndexedDB at boot (step 2.8) and still awaiting
+           media before they can be resolved. Shown as soon as any bundle
+           exists, even before sessionReady — a restored bundle never has
+           audio decoded this session, so sessionReady alone would hide it
+           indefinitely. Does NOT extend startSession() to accept files
+           dropped mid-session — that remains a single-shot ingest; see
+           BundleListComponent. -->
       <tratt-bundle-list></tratt-bundle-list>
     }
     <button
