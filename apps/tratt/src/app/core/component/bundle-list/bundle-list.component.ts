@@ -1,8 +1,20 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { Store } from '@ngrx/store';
+import { AudioManager } from '@tratt/web-media';
+import { filter, firstValueFrom } from 'rxjs';
+import {
+  BundleReattachMismatchAnswer,
+  BundleReattachMismatchModalComponent,
+} from '../../modals/bundle-reattach-mismatch-modal/bundle-reattach-mismatch-modal.component';
+import { TrattModalService } from '../../modals/tratt-modal.service';
+import { SessionFile } from '../../obj/SessionFile';
+import { AudioService } from '../../shared/service/audio.service';
 import { LoginMode, RootState } from '../../store/index';
-import { selectAllBundleSummaries } from '../../store/login-mode/annotation/annotation.selectors';
+import {
+  selectAllBundleSummaries,
+  selectLocalMode,
+} from '../../store/login-mode/annotation/annotation.selectors';
 import { LoginModeActions } from '../../store/login-mode/login-mode.actions';
 
 /**
@@ -15,6 +27,12 @@ import { LoginModeActions } from '../../store/login-mode/login-mode.actions';
  * invoked exactly once at session start. This list only switches between
  * bundles that already exist from that one call; "drop more mid-session" is
  * out of scope for this component.
+ *
+ * Step 2.8, Task 5 adds one exception to that boundary: a bundle restored
+ * from IndexedDB with no audio resident this session (`awaitingMedia`,
+ * step 2.8 Task 4) renders a re-attach file input instead of a
+ * click-to-select button, letting the user re-supply that bundle's audio
+ * without starting a brand new session.
  */
 @Component({
   selector: 'tratt-bundle-list',
@@ -26,11 +44,127 @@ import { LoginModeActions } from '../../store/login-mode/login-mode.actions';
 export class BundleListComponent {
   bundles = this.store.selectSignal(selectAllBundleSummaries);
 
-  constructor(private store: Store<RootState>) {}
+  // Only consulted from onReattachFileSelected() (not template-bound) to look
+  // up a bundle's persisted SessionFile for the fingerprint comparison —
+  // selectAllBundleSummaries only exposes `name`, not the full SessionFile.
+  private localMode = this.store.selectSignal(selectLocalMode);
+
+  constructor(
+    private store: Store<RootState>,
+    private audioService: AudioService,
+    private modService: TrattModalService,
+  ) {}
 
   selectBundle(bundleId: string): void {
     this.store.dispatch(
       LoginModeActions.selectBundle({ mode: LoginMode.LOCAL, bundleId }),
+    );
+  }
+
+  async onReattachFileSelected(bundleId: string, event: Event): Promise<void> {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    // Reset so picking the exact same file again still fires a 'change'.
+    input.value = '';
+    if (!file) {
+      return;
+    }
+
+    // Same "wait for progress === 1 && audioManager truthy" completion
+    // pattern as AudioService.ensureResident() / TrattDropzoneService.
+    const buffer = await file.arrayBuffer();
+    const result = await firstValueFrom(
+      AudioManager.create(file.name, file.type, buffer).pipe(
+        filter((r) => r.progress === 1 && !!r.audioManager),
+      ),
+    );
+    const manager = result.audioManager!;
+
+    const sessionFile = this.localMode().bundles.entities[bundleId]?.sessionFile;
+    if (this.fingerprintMatches(sessionFile, file)) {
+      this.completeReattach(bundleId, manager, file);
+      return;
+    }
+
+    const answer = await this.modService.openModal<
+      typeof BundleReattachMismatchModalComponent,
+      BundleReattachMismatchAnswer
+    >(
+      BundleReattachMismatchModalComponent,
+      BundleReattachMismatchModalComponent.options,
+      {
+        expectedName: sessionFile?.name,
+        expectedSize: sessionFile?.size,
+        actualName: file.name,
+        actualSize: file.size,
+      },
+    );
+
+    if (answer === BundleReattachMismatchAnswer.USE_ANYWAY) {
+      this.completeReattach(bundleId, manager, file);
+    } else {
+      manager.destroy();
+    }
+  }
+
+  /**
+   * name+size+type must always match. `timestamp`/`lastModified` only
+   * contributes to the decision when both sides actually have a value —
+   * bundles persisted before step 2.8 Task 1's SessionFile.timestamp
+   * round-trip fix have no timestamp, and that alone must not force a
+   * mismatch.
+   */
+  private fingerprintMatches(
+    sessionFile: SessionFile | undefined,
+    file: File,
+  ): boolean {
+    if (!sessionFile) {
+      return false;
+    }
+    if (
+      sessionFile.name !== file.name ||
+      sessionFile.size !== file.size ||
+      sessionFile.type !== file.type
+    ) {
+      return false;
+    }
+    const expected = sessionFile.timestamp?.getTime();
+    if (expected !== undefined && file.lastModified !== undefined) {
+      return expected === file.lastModified;
+    }
+    return true;
+  }
+
+  /**
+   * Completes the "this bundle now has real audio" transition. Mirrors the
+   * fresh-drop-session and reload-file flows (register the AudioManager,
+   * then dispatch the mode's login/task-info chain) rather than the
+   * annotation-load.effects.ts LOCAL branch's dead-end fail path — see
+   * task-5-report.md's step-1 findings: `selectBundle` alone never re-enters
+   * that chain, so `loadProjectAndTaskInformation.do` (the same action
+   * `authentication.effects.ts`'s `loginSuccess$` dispatches for a fresh
+   * LOCAL login) is what's needed to make `afterInitApplication$` dispatch
+   * `prepareTaskDataForAnnotation.do`, which eventually reaches
+   * `onAudioLoad$`'s already-working `this.audio.current !== undefined`
+   * branch (since we just registered a manager for this bundle) and sets
+   * `loading.status = FINISHED` — the flag `WorkbenchComponent.sessionReady`
+   * is actually derived from.
+   */
+  private completeReattach(
+    bundleId: string,
+    manager: AudioManager,
+    file: File,
+  ): void {
+    this.audioService.registerAudioManager(bundleId, manager, file);
+    this.store.dispatch(
+      LoginModeActions.selectBundle({ mode: LoginMode.LOCAL, bundleId }),
+    );
+    this.store.dispatch(
+      LoginModeActions.loadProjectAndTaskInformation.do({
+        projectID: '7234892',
+        taskID: '73482',
+        mode: LoginMode.LOCAL,
+      }),
     );
   }
 }

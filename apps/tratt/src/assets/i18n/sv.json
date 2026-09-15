@@ -434,6 +434,13 @@
       "button": "Ladda ned säkerhetskopia",
       "header": "Meddelande om säkerhetskopia"
     },
+    "bundle reattach mismatch": {
+      "actual": "Du valde:",
+      "expected": "Förväntad:",
+      "header": "Det här verkar inte vara samma fil",
+      "text": "Filen du valde matchar inte det som ursprungligen spelades in för det här paketet. Vill du använda den ändå?",
+      "use anyway": "Använd ändå"
+    },
     "feedback-notice": {
       "body": "För att ytterligare förbättra TRATT eller åtgärda buggar behöver vi din återkoppling. Du kan enkelt och snabbt skicka oss din återkoppling genom att använda återkopplingsfunktionen. Du kan enkelt och snabbt berätta din åsikt genom att klicka på frågetecknet i det övre högra hörnet och fylla i formuläret. <b>Om det är ett tekniskt problem är det mycket viktigt att skicka återkopplingen tillsammans med protokollet till oss så snart som möjligt.</b> Protokollet hjälper oss att snabbt diagnostisera och felsöka problem på ett lämpligt sätt.<br/><br/>Tack.<br/><br/><i>TRATT-teamet</i>",
       "header": "Återkoppling behövs"
@@ -724,7 +731,8 @@
   "workbench": {
     "start session": "Starta session",
     "bundle_list": {
-      "title": "Filer"
+      "title": "Filer",
+      "reattach": "Bifoga fil…"
     }
   }
 }

@@ -486,6 +486,13 @@
       "button": "Download backup",
       "header": "Backup Notice"
     },
+    "bundle reattach mismatch": {
+      "actual": "You picked:",
+      "expected": "Expected:",
+      "header": "This doesn't look like the same file",
+      "text": "The file you picked doesn't match what was originally recorded for this bundle. Use it anyway?",
+      "use anyway": "Use anyway"
+    },
     "feedback-notice": {
       "body": "To further improve TRATT or fix bugs, we need your feedback. You can send us your feedback easy and fast using the feedback feature. You can easily and quickly tell us your opinion by clicking on the question mark in the upper right corner and filling in the form. <b>If there is a technical problem, it is very important to send the feedback including the protocol to us as soon as possible.</b> The protocol helps us to quickly diagnose and troubleshoot problems in a timely manner.<br/><br/>Thank you.<br/><br/><i>The TRATT team</i>",
       "header": "Feedback needed"
@@ -776,7 +783,8 @@
   "workbench": {
     "start session": "Start session",
     "bundle_list": {
-      "title": "Files"
+      "title": "Files",
+      "reattach": "Attach file…"
     }
   }
 }
