@@ -508,3 +508,40 @@ fingerprint is a well-precedented but non-guaranteeing name/size/type/lastModifi
 the spec's own explicit "warn and let the user override" design); logs and import-converter state are
 not restored for bundles beyond `bundle-1` (only `sessionfile`+`transcript` are — a small, additive gap
 to close later if it turns out to matter, not required for "see your bundles and re-attach media").
+
+**Update (final whole-branch review): the feature above shipped as an end-to-end no-op until a
+foundational, pre-existing bug was found and fixed.** `TrattDatabase.saveModeData()`'s LOCAL
+`overwrite=false` branch — used by `saveModeOptions`, the highest-traffic LOCAL write path — has used
+Dexie's `Table.update()` since step 2.6, which silently no-ops instead of creating a row when the key
+doesn't already exist. Only `checkAndFillPopulation()` ever `put()`s an options row, and only for
+`DEFAULT_BUNDLE_ID`/URL mode — so **no bundle beyond `bundle-1` has ever actually persisted an options
+row**, since step 2.6 shipped. This went undetected through step 2.6's own review, step 2.7's, and five
+of this step's six task reviews (55+ passing tests) because every one of them either seeded Dexie
+directly or mocked `IDBService` rather than driving a real save through the actual persistence code —
+the final review caught it only by writing throwaway `fake-indexeddb` probes against the real
+`TrattDatabase` class, then proved the fix mattered with a counterfactual re-run against the pre-fix
+commit that reproduced the exact failure. Fixed with a fallback to `put()` when `update()` reports zero
+rows changed (`saveModeData()`, one added `mergeMap`). Two more real bugs shipped alongside it and were
+fixed in the same pass: `SessionFile.timestamp` silently became a string instead of a `Date` after a
+real IndexedDB round-trip (the JSON serialization step in `saveModeData()` stringifies it;
+`SessionFile.fromAny()` didn't rehydrate it back), making the re-attach fingerprint check throw instead
+of comparing; and the re-attach flow's `loadProjectAndTaskInformation.do` redispatch tripped
+`ApplicationSessionEffects.afterInitApplication$`'s `loggedIn` check (built for ONLINE-mode
+authentication, which LOCAL mode has no equivalent of), redirecting the user away from `/workbench`
+instead of letting the editor mount — fixed with a scoped bypass (LOCAL mode + a resident `AudioManager`
+for the selected bundle counts as "effectively logged in" for this one check only; the user was
+consulted on this approach over two broader alternatives before it was implemented). All three,
+plus two smaller knock-on findings, were independently re-verified via real `fake-indexeddb`
+probes and mutation testing (revert each fix, confirm the tests that are supposed to catch it actually
+fail) rather than trusted from the diff alone.
+
+Two residuals were found and deliberately left unfixed, both consistent with this step's own scope
+cuts: a restored bundle's `currentEditor`/`logging`/`feedback`/`additionalSpeakerIds` fields (which
+`writeOptionToStore` has no mapping case for) get nulled on the *first* post-restore edit of that
+bundle, not on boot itself — a narrower version of the already-accepted "logs and import-options aren't
+restored" gap, not a new one; and `BundleListComponent`'s `awaitingMedia` computation reads
+`AudioService`'s manager registry (a plain `Map`, not a signal) inside an Angular `computed()`, which is
+safe today only because both real call sites (`startSession()`, `completeReattach()`) happen to change
+store state immediately after changing residency — a future code path that changes audio residency
+without a subsequent store write would render stale until something else the `computed()` actually
+depends on changes. Worth revisiting if that assumption is ever violated.
