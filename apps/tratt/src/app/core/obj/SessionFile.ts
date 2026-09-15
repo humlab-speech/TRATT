@@ -25,18 +25,18 @@ export class SessionFile {
     this._size = value;
   }
 
-  get timestamp(): Date {
+  get timestamp(): Date | undefined {
     return this._timestamp;
   }
 
-  set timestamp(value: Date) {
+  set timestamp(value: Date | undefined) {
     this._timestamp = value;
   }
 
   constructor(
     private _name: string,
     private _size: number,
-    private _timestamp: Date,
+    private _timestamp: Date | undefined,
     private _type: string,
   ) {}
 
@@ -53,7 +53,7 @@ export class SessionFile {
       return new SessionFile(
         element.name,
         element.size,
-        element.timestamp,
+        element.timestamp ? new Date(element.timestamp) : undefined,
         element.type,
       );
     } else {
