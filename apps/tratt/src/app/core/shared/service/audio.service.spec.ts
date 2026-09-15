@@ -2,7 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { HttpClient } from '@angular/common/http';
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { provideMockStore, MockStore } from '@ngrx/store/testing';
-import { Subject, of } from 'rxjs';
+import { Subject, of, throwError } from 'rxjs';
 import { LoginMode, RootState } from '../../store/index';
 import { localBundleAdapter } from '../../store/login-mode/annotation/local-bundle-collection';
 import { AudioService } from './audio.service';
@@ -369,6 +369,93 @@ describe('AudioService — re-decode on reselection of an evicted bundle', () =>
 
     expect(createSpy).not.toHaveBeenCalled();
     expect(service.current).toBeUndefined();
+  });
+
+  // Fix 6 (fixwave-1): ensureResident() must not let a re-decode failure
+  // surface as an unhandled rejection — matches evict()'s existing
+  // best-effort destroy().catch() pattern.
+  it('swallows a rejected re-decode and leaves current undefined, without throwing', async () => {
+    const originalB1 = fakeManager('b1-original');
+    const managers: Record<string, any> = {
+      b1: originalB1,
+      b2: fakeManager('b2'),
+      b3: fakeManager('b3'),
+      b4: fakeManager('b4'),
+    };
+    const files: Record<string, File> = {
+      b1: fakeFile('b1.wav'),
+      b2: fakeFile('b2.wav'),
+      b3: fakeFile('b3.wav'),
+      b4: fakeFile('b4.wav'),
+    };
+
+    for (const id of ['b1', 'b2', 'b3', 'b4']) {
+      service.registerAudioManager(id, managers[id], files[id]);
+      selectBundle(id);
+    }
+    // b1 was evicted when b4 was selected.
+    expect(service.audiomanagers).not.toContain(originalB1);
+
+    const unhandledRejections: unknown[] = [];
+    const onUnhandledRejection = (reason: unknown) =>
+      unhandledRejections.push(reason);
+    process.on('unhandledRejection', onUnhandledRejection);
+
+    jest
+      .spyOn(AudioManager, 'create')
+      .mockReturnValue(
+        throwError(() => new Error('decode failed')) as any,
+      );
+
+    expect(() => selectBundle('b1')).not.toThrow();
+    await flushMicrotasks();
+
+    process.off('unhandledRejection', onUnhandledRejection);
+
+    expect(unhandledRejections).toEqual([]);
+    expect(service.current).toBeUndefined();
+  });
+
+  // Fix 6 (fixwave-1): a rapid A->B->A reselection must not start two
+  // concurrent decodes for the same bundle — the in-flight guard
+  // (`_pendingResidency`) prevents the second call from re-entering while
+  // the first is still awaiting.
+  it('does not start a second concurrent re-decode for the same bundle on rapid reselection', async () => {
+    const originalB1 = fakeManager('b1-original');
+    const managers: Record<string, any> = {
+      b1: originalB1,
+      b2: fakeManager('b2'),
+      b3: fakeManager('b3'),
+      b4: fakeManager('b4'),
+    };
+    const files: Record<string, File> = {
+      b1: fakeFile('b1.wav'),
+      b2: fakeFile('b2.wav'),
+      b3: fakeFile('b3.wav'),
+      b4: fakeFile('b4.wav'),
+    };
+
+    for (const id of ['b1', 'b2', 'b3', 'b4']) {
+      service.registerAudioManager(id, managers[id], files[id]);
+      selectBundle(id);
+    }
+    expect(service.audiomanagers).not.toContain(originalB1);
+
+    const redecodedB1 = fakeManager('b1-redecoded');
+    const createSpy = jest
+      .spyOn(AudioManager, 'create')
+      .mockReturnValue(
+        of({ audioManager: redecodedB1, progress: 1 }) as any,
+      );
+
+    // Fire two rapid reselections back to the evicted bundle before the
+    // first re-decode's microtasks have a chance to resolve.
+    selectBundle('b1');
+    selectBundle('b1');
+    await flushMicrotasks();
+
+    expect(createSpy).toHaveBeenCalledTimes(1);
+    expect(service.current).toBe(redecodedB1);
   });
 });
 

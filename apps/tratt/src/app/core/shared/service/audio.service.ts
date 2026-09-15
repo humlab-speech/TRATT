@@ -222,22 +222,38 @@ export class AudioService {
    * resident, or if no source file was ever retained for `bundleId` (e.g. an
    * ONLINE-mode registration via `loadAudio()`).
    */
+  private _pendingResidency = new Set<string>();
+
   private async ensureResident(bundleId: string): Promise<void> {
-    if (this._audiomanagers.has(bundleId)) {
+    if (
+      this._audiomanagers.has(bundleId) ||
+      this._pendingResidency.has(bundleId)
+    ) {
       return;
     }
     const sourceFile = this._sourceFiles.get(bundleId);
     if (!sourceFile) {
       return;
     }
-    const buffer = await sourceFile.arrayBuffer();
-    const result = await firstValueFrom(
-      AudioManager.create(sourceFile.name, sourceFile.type, buffer).pipe(
-        filter((r) => r.progress === 1 && !!r.audioManager),
-      ),
-    );
-    if (result.audioManager) {
-      this.registerAudioManager(bundleId, result.audioManager);
+    this._pendingResidency.add(bundleId);
+    try {
+      const buffer = await sourceFile.arrayBuffer();
+      const result = await firstValueFrom(
+        AudioManager.create(sourceFile.name, sourceFile.type, buffer).pipe(
+          filter((r) => r.progress === 1 && !!r.audioManager),
+        ),
+      );
+      if (result.audioManager) {
+        this.registerAudioManager(bundleId, result.audioManager);
+      }
+    } catch (e) {
+      // Re-decode failed (corrupted/stale retained File, or the create()
+      // stream completed without ever reaching progress===1) — best-effort,
+      // matching evict()'s pattern above: leave the bundle unresident rather
+      // than surfacing an unhandled rejection. The user sees a no-audio
+      // state for that bundle and can retry by reselecting it again.
+    } finally {
+      this._pendingResidency.delete(bundleId);
     }
   }
 
@@ -249,6 +265,7 @@ export class AudioService {
     this._envelopes.clear();
     this._sourceFiles.clear();
     this.recentBundleIds = [];
+    this._pendingResidency.clear();
     this.subscrmanager.destroy();
   }
 }
