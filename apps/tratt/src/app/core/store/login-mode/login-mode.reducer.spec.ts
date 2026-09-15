@@ -363,6 +363,44 @@ describe('LoginModeReducers — createBundle with restored content (step 2.8)', 
     expect(entity?.transcript?.levels).toEqual([]);
   });
 
+  it('Minor 2: createBundle with BOTH restoredOptions and restoredAnnotation set (BundleRestoreEffects\' actual shape) applies both independently', () => {
+    const reducer = new LoginModeReducers(LoginMode.LOCAL).create();
+    const initial = reducer(undefined, {
+      type: '@@INIT',
+    } as any) as unknown as LocalBundleCollectionState;
+
+    const restoredOptions: IIDBModeOptions = { comment: 'hello' };
+    const restoredAnnotation: IAnnotJSON = {
+      name: 'restored',
+      annotates: 'b2.wav',
+      sampleRate: 16000,
+      levels: [],
+      links: [],
+    };
+
+    const next = reducer(
+      initial as any,
+      LoginModeActions.createBundle({
+        mode: LoginMode.LOCAL,
+        bundleId: 'b2',
+        sessionFile,
+        restoredOptions,
+        restoredAnnotation,
+      }),
+    ) as unknown as LocalBundleCollectionState;
+
+    const entity = next.bundles.entities['b2'];
+
+    // writeOptionToStore's mapping still applied...
+    expect(entity?.currentSession?.comment).toBe('hello');
+    // ...and the annotation-deserialize block still applied — the two code
+    // paths are structurally independent (writeOptionToStore never touches
+    // .transcript; the annotation-deserialize block touches nothing else).
+    expect(entity?.transcript).toBeInstanceOf(TrattAnnotation);
+    expect(entity?.transcript).not.toBe(restoredAnnotation);
+    expect(entity?.transcript?.levels).toEqual([]);
+  });
+
   it('createBundle with neither restoredOptions nor restoredAnnotation (step 2.7 usage) still produces exactly the same result as before this task', () => {
     const reducer = new LoginModeReducers(LoginMode.LOCAL).create();
     const initial = reducer(undefined, {
