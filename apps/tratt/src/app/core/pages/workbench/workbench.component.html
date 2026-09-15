@@ -1,6 +1,10 @@
 <div class="workbench">
   <div class="workbench__left">
-    <tratt-dropzone height="180px" [showAutoTranscribe]="true"></tratt-dropzone>
+    <tratt-dropzone
+      height="180px"
+      [showAutoTranscribe]="true"
+      [allowMultipleAudio]="true"
+    ></tratt-dropzone>
     @if (sessionReady) {
       <!-- Lets the user switch between bundles already created by the one
            startSession() call at session start. Does NOT extend

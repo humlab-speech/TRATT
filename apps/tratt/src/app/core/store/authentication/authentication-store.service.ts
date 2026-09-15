@@ -84,7 +84,7 @@ export class AuthenticationStoreService {
     files: File[],
     annotation?: OAnnotJSON,
     removeData = false,
-    audioBundleIdsByFilename?: Record<string, string>,
+    audioBundleIds?: string[],
   ) {
     this.store.dispatch(
       AuthenticationActions.loginLocal.do({
@@ -92,7 +92,7 @@ export class AuthenticationStoreService {
         annotation,
         removeData,
         mode: LoginMode.LOCAL,
-        audioBundleIdsByFilename,
+        audioBundleIds,
       }),
     );
   }

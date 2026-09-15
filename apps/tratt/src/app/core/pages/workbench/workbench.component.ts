@@ -43,7 +43,10 @@ import { ApplicationState } from '../../store/application';
 import { ApplicationStoreService } from '../../store/application/application-store.service';
 import { AuthenticationStoreService } from '../../store/authentication/authentication-store.service';
 import { AnnotationStoreService } from '../../store/login-mode/annotation/annotation.store.service';
-import { generateBundleId } from '../../store/login-mode/annotation/local-bundle-collection';
+import {
+  DEFAULT_BUNDLE_ID,
+  generateBundleId,
+} from '../../store/login-mode/annotation/local-bundle-collection';
 
 @Component({
   selector: 'tratt-workbench',
@@ -181,26 +184,22 @@ export class WorkbenchComponent extends DefaultComponent implements OnInit {
       ? this.dropzone!.oannotation
       : undefined;
 
-    const audioBundleIdsByFilename: Record<string, string> = {};
+    const audioBundleIds: string[] = [];
     const files: File[] = [];
-    for (const entry of entries) {
-      const bundleId = generateBundleId();
+    entries.forEach((entry, i) => {
+      const bundleId = i === 0 ? DEFAULT_BUNDLE_ID : generateBundleId();
       const nativeFile = entry.fileProgress.file.file!;
       this.audioService.registerAudioManager(
         bundleId,
         entry.audioManager,
         nativeFile,
       );
-      audioBundleIdsByFilename[nativeFile.name] = bundleId;
+      audioBundleIds.push(bundleId);
       files.push(nativeFile);
-    }
+    });
 
-    this.authStoreService.loginLocal(
-      files,
-      annotation,
-      removeData,
-      audioBundleIdsByFilename,
-    );
+    this.authStoreService.loginLocal(files, annotation, removeData, audioBundleIds);
+    this.dropzone!.reset();
   }
 
   // Unlike TranscriptionComponent.changeEditor(), this does NOT write

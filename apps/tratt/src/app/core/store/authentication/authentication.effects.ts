@@ -262,36 +262,19 @@ export class AuthenticationEffects {
             }
 
             const audiofile = validAudioFiles[0];
-            const firstBundleId =
-              a.audioBundleIdsByFilename?.[audiofile.name] ??
-              DEFAULT_BUNDLE_ID;
+            const firstBundleId = a.audioBundleIds?.[0] ?? DEFAULT_BUNDLE_ID;
 
-            // Every additional valid audio file becomes its own new bundle.
-            // This only ever runs for the new multi-file workbench flow
-            // (legacy callers never drop more than one audio file);
-            // `generateBundleId()` is a safe fallback if a caller ever did
-            // without providing the map.
-            for (const extraFile of validAudioFiles.slice(1)) {
-              const bundleId =
-                a.audioBundleIdsByFilename?.[extraFile.name] ??
-                generateBundleId();
-              this.store.dispatch(
-                LoginModeActions.createBundle({
-                  mode: a.mode,
-                  bundleId,
-                  sessionFile: this.getSessionFile(extraFile),
-                }),
-              );
-            }
-            if (validAudioFiles.length > 1) {
-              this.store.dispatch(
-                LoginModeActions.selectBundle({
-                  mode: a.mode,
-                  bundleId: firstBundleId,
-                }),
-              );
-            }
-
+            // Defensive: make sure we're writing bundle #1's session into
+            // bundle #1, regardless of whatever bundle happened to be
+            // selected before this login attempt (normally already true —
+            // selectBundle no-ops if firstBundleId is already selected or
+            // already bundle-1's default).
+            this.store.dispatch(
+              LoginModeActions.selectBundle({
+                mode: a.mode,
+                bundleId: firstBundleId,
+              }),
+            );
             this.store.dispatch(
               AuthenticationActions.loginLocal.prepare({
                 ...a,
@@ -316,6 +299,22 @@ export class AuthenticationEffects {
             ).pipe(
               take(1),
               exhaustMap(() => {
+                // Only now, after bundle #1's own save-gate has resolved
+                // (success or fail), create the remaining bundles — so their
+                // saves can never be mistaken for bundle #1's by the race
+                // above, which has already unsubscribed via take(1).
+                for (const extraFile of validAudioFiles.slice(1)) {
+                  const idx = validAudioFiles.indexOf(extraFile);
+                  const bundleId =
+                    a.audioBundleIds?.[idx] ?? generateBundleId();
+                  this.store.dispatch(
+                    LoginModeActions.createBundle({
+                      mode: a.mode,
+                      bundleId,
+                      sessionFile: this.getSessionFile(extraFile),
+                    }),
+                  );
+                }
                 return of(
                   AuthenticationActions.loginLocal.success({
                     ...a,

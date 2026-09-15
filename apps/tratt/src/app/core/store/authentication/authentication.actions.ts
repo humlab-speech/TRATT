@@ -59,11 +59,13 @@ export class AuthenticationActions {
         annotation?: OAnnotJSON;
         removeData: boolean;
         mode: LoginMode.LOCAL;
-        /** Maps `File.name` to the bundle id `WorkbenchComponent` already
-         *  registered that file's decoded audio under with `AudioService`.
-         *  Absent for legacy callers (reload-file, login), which never drop
-         *  more than one audio file. */
-        audioBundleIdsByFilename?: Record<string, string>;
+        /** Positional array: `audioBundleIds[i]` is the bundle id
+         *  `WorkbenchComponent` already registered `files[i]`'s decoded
+         *  audio under with `AudioService` (indices line up 1:1, since both
+         *  arrays are built from the same `entries` iteration). Absent for
+         *  legacy callers (reload-file, login), which never drop more than
+         *  one audio file. */
+        audioBundleIds?: string[];
       }>(),
       prepare: props<{
         mode: LoginMode;

@@ -13,6 +13,7 @@ jest.mock('../../component/tratt-dropzone/tratt-dropzone.component', () => {
   @Component({ selector: 'tratt-dropzone', template: '' })
   class TrattDropzoneComponent {
     @Input() showAutoTranscribe = false;
+    @Input() allowMultipleAudio = false;
   }
   return { TrattDropzoneComponent };
 });
@@ -57,6 +58,7 @@ import { LoadingStatus } from '../../store';
 import { ApplicationStoreService } from '../../store/application/application-store.service';
 import { AuthenticationStoreService } from '../../store/authentication/authentication-store.service';
 import { AnnotationStoreService } from '../../store/login-mode/annotation/annotation.store.service';
+import { DEFAULT_BUNDLE_ID } from '../../store/login-mode/annotation/local-bundle-collection';
 import { WorkbenchComponent } from './workbench.component';
 
 // Lightweight stand-in mounted in place of a real editor (e.g.
@@ -132,6 +134,7 @@ describe('WorkbenchComponent', () => {
   it('registers the dropzone audio manager and calls loginLocal on startSession', () => {
     const manager = { id: 'fake-manager' } as any;
     const nativeFile = new File(['content'], 'a.wav');
+    const reset = jest.fn();
     component.dropzone = {
       validAudioEntries: [
         {
@@ -142,12 +145,13 @@ describe('WorkbenchComponent', () => {
       ],
       hasAnnotation: false,
       oannotation: undefined,
+      reset,
     } as any;
 
     component.startSession(false);
 
     expect(audioService.registerAudioManager).toHaveBeenCalledWith(
-      expect.any(String),
+      DEFAULT_BUNDLE_ID,
       manager,
       nativeFile,
     );
@@ -156,8 +160,12 @@ describe('WorkbenchComponent', () => {
       [nativeFile],
       undefined,
       false,
-      { [nativeFile.name]: bundleId },
+      [bundleId],
     );
+    // Fix 5 (fixwave-1): a successful start clears the dropzone's pending
+    // list so it can't be re-ingested by a second Start click, and its rows
+    // stop rendering stale delete buttons for already-handed-off files.
+    expect(reset).toHaveBeenCalled();
   });
 
   // Task 5: under the new validAudioEntries contract there is exactly one way to have
@@ -183,6 +191,7 @@ describe('WorkbenchComponent', () => {
       new File(['b'], 'b.wav'),
       new File(['c'], 'c.wav'),
     ];
+    const reset = jest.fn();
     component.dropzone = {
       validAudioEntries: managers.map((audioManager, i) => ({
         fileProgress: { file: { file: nativeFiles[i] } },
@@ -191,6 +200,7 @@ describe('WorkbenchComponent', () => {
       })),
       hasAnnotation: false,
       oannotation: undefined,
+      reset,
     } as any;
 
     component.startSession(false);
@@ -206,20 +216,25 @@ describe('WorkbenchComponent', () => {
     expect(registeredManagers).toEqual(managers);
 
     expect(authStoreService.loginLocal).toHaveBeenCalledTimes(1);
-    const [files, annotation, removeData, audioBundleIdsByFilename] =
+    const [files, annotation, removeData, audioBundleIds] =
       authStoreService.loginLocal.mock.calls[0] as [
         File[],
         undefined,
         boolean,
-        Record<string, string>,
+        string[],
       ];
     expect(files).toEqual(nativeFiles);
     expect(annotation).toBeUndefined();
     expect(removeData).toBe(false);
-    expect(Object.keys(audioBundleIdsByFilename).length).toBe(3);
-    nativeFiles.forEach((file, i) => {
-      expect(audioBundleIdsByFilename[file.name]).toBe(registeredIds[i]);
+    expect(audioBundleIds.length).toBe(3);
+    nativeFiles.forEach((_file, i) => {
+      expect(audioBundleIds[i]).toBe(registeredIds[i]);
     });
+    // Fix 1 (fixwave-1): entry 0 must reuse DEFAULT_BUNDLE_ID — the store's
+    // default bundle entity always exists there, so AudioService.current
+    // resolves correctly for the ordinary (N=1) case too.
+    expect(audioBundleIds[0]).toBe(DEFAULT_BUNDLE_ID);
+    expect(reset).toHaveBeenCalled();
   });
 
   it('creates the selected editor component inside the loadeditor viewContainerRef', () => {

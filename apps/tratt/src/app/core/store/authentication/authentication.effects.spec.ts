@@ -169,7 +169,7 @@ describe('AuthenticationEffects', () => {
       jest.restoreAllMocks();
     });
 
-    it('creates a bundle for every extra valid audio file and selects the first', (done) => {
+    it('creates a bundle for every extra valid audio file (after bundle #1\'s save-gate resolves) and selects the first up front', (done) => {
       jest.spyOn(AudioManager, 'isValidAudioFileName').mockReturnValue(true);
 
       const dispatchSpy = jest.spyOn(store, 'dispatch');
@@ -180,43 +180,58 @@ describe('AuthenticationEffects', () => {
         makeFile('two.wav'),
         makeFile('three.wav'),
       ];
-      const audioBundleIdsByFilename = {
-        'one.wav': 'bundle-one',
-        'two.wav': 'bundle-two',
-        'three.wav': 'bundle-three',
-      };
+      const audioBundleIds = ['bundle-one', 'bundle-two', 'bundle-three'];
 
       actions$.next(
         AuthenticationActions.loginLocal.do({
           files,
           removeData: false,
           mode: LoginMode.LOCAL,
-          audioBundleIdsByFilename,
+          audioBundleIds,
         }),
       );
 
       setTimeout(() => {
-        const createBundleCalls = dispatchSpy.mock.calls
-          .map(([a]) => a as unknown as { type: string; bundleId?: string })
-          .filter((a) => a.type === LoginModeActions.createBundle.type);
-        const selectBundleCalls = dispatchSpy.mock.calls
+        // Fix 2 (fixwave-1): bundle #1 is selected up front, but extra
+        // bundles aren't created yet — they wait for bundle #1's own
+        // save-gate (IDBActions.saveModeOptions) to resolve first, so no
+        // other bundle's save can be mistaken for bundle #1's by the race.
+        const selectBundleCallsBefore = dispatchSpy.mock.calls
           .map(([a]) => a as unknown as { type: string; bundleId?: string })
           .filter((a) => a.type === LoginModeActions.selectBundle.type);
-
-        expect(createBundleCalls.map((c) => c.bundleId)).toEqual([
-          'bundle-two',
-          'bundle-three',
-        ]);
-        expect(selectBundleCalls.map((c) => c.bundleId)).toEqual([
+        expect(selectBundleCallsBefore.map((c) => c.bundleId)).toEqual([
           'bundle-one',
         ]);
+        expect(
+          dispatchSpy.mock.calls.some(
+            ([a]) =>
+              (a as unknown as { type: string }).type ===
+              LoginModeActions.createBundle.type,
+          ),
+        ).toBe(false);
 
-        subscription.unsubscribe();
-        done();
+        // Resolve bundle #1's own save-gate.
+        actions$.next(
+          IDBActions.saveModeOptions.success({ mode: LoginMode.LOCAL }),
+        );
+
+        setTimeout(() => {
+          const createBundleCalls = dispatchSpy.mock.calls
+            .map(([a]) => a as unknown as { type: string; bundleId?: string })
+            .filter((a) => a.type === LoginModeActions.createBundle.type);
+
+          expect(createBundleCalls.map((c) => c.bundleId)).toEqual([
+            'bundle-two',
+            'bundle-three',
+          ]);
+
+          subscription.unsubscribe();
+          done();
+        }, 0);
       }, 0);
     });
 
-    it('dispatches no createBundle/selectBundle actions for a single legacy file without the id map', (done) => {
+    it('dispatches no createBundle actions, but does reselect DEFAULT_BUNDLE_ID, for a single legacy file without the id array', (done) => {
       jest.spyOn(AudioManager, 'isValidAudioFileName').mockReturnValue(true);
 
       const dispatchSpy = jest.spyOn(store, 'dispatch');
@@ -233,14 +248,21 @@ describe('AuthenticationEffects', () => {
       );
 
       setTimeout(() => {
-        const relevantCalls = dispatchSpy.mock.calls
+        const createBundleCalls = dispatchSpy.mock.calls
           .map(([a]) => a as unknown as { type: string })
-          .filter(
-            (a) =>
-              a.type === LoginModeActions.createBundle.type ||
-              a.type === LoginModeActions.selectBundle.type,
-          );
-        expect(relevantCalls).toEqual([]);
+          .filter((a) => a.type === LoginModeActions.createBundle.type);
+        expect(createBundleCalls).toEqual([]);
+
+        // Fix 2 (fixwave-1): with Fix 1 in place, firstBundleId is always a
+        // real, already-existing bundle id, so selectBundle is dispatched
+        // unconditionally now (no more `validAudioFiles.length > 1` guard) —
+        // cheap/no-op in the common N=1 case, since it's already selected.
+        const selectBundleCalls = dispatchSpy.mock.calls
+          .map(([a]) => a as unknown as { type: string; bundleId?: string })
+          .filter((a) => a.type === LoginModeActions.selectBundle.type);
+        expect(selectBundleCalls.map((c) => c.bundleId)).toEqual([
+          DEFAULT_BUNDLE_ID,
+        ]);
 
         const prepareCall = dispatchSpy.mock.calls
           .map(([a]) => a as unknown as { type: string; sessionFile?: any })
@@ -260,16 +282,14 @@ describe('AuthenticationEffects', () => {
       const subscription = effects.onLoginLocal$.subscribe();
 
       const files = [makeFile('one.wav'), makeFile('two.wav')];
-      const audioBundleIdsByFilename = {
-        'two.wav': 'bundle-two',
-      };
+      const audioBundleIds: string[] = [];
 
       actions$.next(
         AuthenticationActions.loginLocal.do({
           files,
           removeData: false,
           mode: LoginMode.LOCAL,
-          audioBundleIdsByFilename,
+          audioBundleIds,
         }),
       );
 
