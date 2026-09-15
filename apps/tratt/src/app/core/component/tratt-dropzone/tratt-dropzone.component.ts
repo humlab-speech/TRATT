@@ -95,6 +95,10 @@ export class TrattDropzoneComponent
   ) {
     this.trattDropzoneService.oldFiles = value;
   }
+
+  @Input() set allowMultipleAudio(value: boolean) {
+    this.trattDropzoneService.allowMultipleAudio = value;
+  }
   @Output() filesAdded = this.trattDropzoneService.filesChange;
 
   get AppInfo(): AppInfo {
@@ -115,6 +119,10 @@ export class TrattDropzoneComponent
 
   public releaseAudioManager(): void {
     this.trattDropzoneService.releaseAudioManager();
+  }
+
+  public reset(): void {
+    this.trattDropzoneService.reset();
   }
 
   /** Delegates to `TrattDropzoneService.validAudioEntries` — see there for details.

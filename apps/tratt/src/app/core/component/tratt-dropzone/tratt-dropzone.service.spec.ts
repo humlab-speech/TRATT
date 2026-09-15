@@ -128,6 +128,7 @@ describe('TrattDropzoneService multi-file audio ingest', () => {
       );
 
     const service = newService();
+    service.allowMultipleAudio = true;
     service.add(makeFile('file1.wav'));
     service.add(makeFile('file2.wav'));
 
@@ -163,6 +164,7 @@ describe('TrattDropzoneService multi-file audio ingest', () => {
       );
 
     const service = newService();
+    service.allowMultipleAudio = true;
     service.add(makeFile('file1.wav'));
     service.add(makeFile('file2.wav'));
 
@@ -183,7 +185,7 @@ describe('TrattDropzoneService multi-file audio ingest', () => {
     expect(service.validAudioEntries.length).toBe(2);
   });
 
-  it('does not remove the first audio file when a second audio file is dropped', async () => {
+  it('does not remove the first audio file when a second audio file is dropped and allowMultipleAudio is true', async () => {
     createSpy = jest
       .spyOn(AudioManager, 'create')
       .mockReturnValue(
@@ -191,6 +193,7 @@ describe('TrattDropzoneService multi-file audio ingest', () => {
       );
 
     const service = newService();
+    service.allowMultipleAudio = true;
     service.add(makeFile('file1.wav'));
 
     await Promise.resolve();
@@ -207,5 +210,77 @@ describe('TrattDropzoneService multi-file audio ingest', () => {
     expect(service.files.some((f) => f.file.fullname === 'file2.wav')).toBe(
       true,
     );
+  });
+
+  // Fix 4 (fixwave-1): allowMultipleAudio defaults to false, so every
+  // consumer that doesn't opt in (reload-file, login) keeps the original
+  // single-audio-file eviction behavior — this is the direct regression
+  // test protecting those legacy pages.
+  it('evicts the first audio file when a second audio file is dropped and allowMultipleAudio is left at its default (false)', async () => {
+    createSpy = jest
+      .spyOn(AudioManager, 'create')
+      .mockReturnValue(
+        of({ audioManager: makeAudioManager(1), progress: 1 }) as never,
+      );
+
+    const service = newService();
+    expect(service.allowMultipleAudio).toBe(false);
+    service.add(makeFile('file1.wav'));
+
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(service.files.length).toBe(1);
+
+    service.add(makeFile('file2.wav'));
+
+    expect(service.files.length).toBe(1);
+    expect(service.files.some((f) => f.file.fullname === 'file1.wav')).toBe(
+      false,
+    );
+    expect(service.files.some((f) => f.file.fullname === 'file2.wav')).toBe(
+      true,
+    );
+  });
+});
+
+describe('TrattDropzoneService reset()', () => {
+  const newService = () =>
+    new TrattDropzoneService(
+      {} as never,
+      { dispatch: jest.fn() } as never,
+      { translate: (key: string) => key } as never,
+    );
+
+  const makeAudioManager = () =>
+    ({
+      id: 1,
+      destroy: jest.fn(),
+      stopDecoding: jest.fn(),
+      resource: { info: { duration: { samples: 1000 } } },
+      sampleRate: 16000,
+    }) as unknown as AudioManager;
+
+  // Fix 5 (fixwave-1): reset() must clear the pending-file list WITHOUT
+  // destroying any AudioManager — ownership has already transferred to
+  // AudioService by the time WorkbenchComponent.startSession() calls this.
+  it('clears the file list without destroying any retained AudioManager', () => {
+    const manager = makeAudioManager();
+    const service = newService();
+    (service as any)._files = [
+      {
+        id: 1,
+        status: 'valid',
+        progress: 1,
+        checked_converters: 0,
+        file: new FileInfo('a.wav', 'audio/wav', 100),
+        audioManager: manager,
+      },
+    ];
+
+    service.reset();
+
+    expect(service.files.length).toBe(0);
+    expect((manager as any).destroy).not.toHaveBeenCalled();
   });
 });

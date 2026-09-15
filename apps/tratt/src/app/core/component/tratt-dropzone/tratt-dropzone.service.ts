@@ -105,6 +105,26 @@ export class TrattDropzoneService {
     this._audioManager = undefined;
   }
 
+  /**
+   * Clears the dropzone's pending-file list after a successful session start.
+   * Does NOT destroy any AudioManager — every valid entry's manager has
+   * already been handed off to AudioService by this point (see
+   * WorkbenchComponent.startSession()), so destroying them here would kill
+   * audio the app now depends on. This also prevents a second Start click
+   * from re-ingesting the same files under a fresh set of generated bundle
+   * ids, and removes the now-stale delete buttons for already-handed-off
+   * rows.
+   */
+  reset(): void {
+    for (const fileProgress of this._files) {
+      this._subscrManager.removeByTag(`fileProgress${fileProgress.id}`);
+    }
+    this._files = [];
+    this._oaudiofile = undefined;
+    this._oannotation = undefined;
+    this.updateStatistics();
+  }
+
   get files(): FileProgress[] {
     return this._files;
   }
@@ -162,6 +182,15 @@ export class TrattDropzoneService {
     addedFiles: FileProgress[];
   }>();
 
+  /**
+   * Opt-in flag: when `true`, a newly dropped audio file no longer evicts
+   * previously dropped audio files (workbench multi-file ingest). Defaults
+   * to `false` so every other consumer of this shared service
+   * (`reload-file.component.ts`, `login.component.ts`) keeps the original
+   * single-audio-file behavior.
+   */
+  public allowMultipleAudio = false;
+
   private _audioManager?: AudioManager;
 
   /**
@@ -218,6 +247,11 @@ export class TrattDropzoneService {
         // unlike audio, only one transcript can be paired at a time (see
         // docs/superpowers/specs/2026-09-10-workbench-conversion-design.md).
         this.dropFiles('transcript');
+      } else if (!this.allowMultipleAudio) {
+        // Legacy consumers (reload-file, login) never opt into multi-audio
+        // ingest, so a new audio file still evicts any previous one — this
+        // is the pre-Task-1 default, restored as opt-out here.
+        this.dropFiles('audio');
       }
       this._files.push(progressFile);
       this.updateStatistics();
