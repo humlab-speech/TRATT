@@ -63,6 +63,7 @@ import {
   authenticationReducer,
 } from './app/core/store/authentication';
 import { IDBEffects } from './app/core/store/idb/idb-effects.service';
+import { BundleRestoreEffects } from './app/core/store/login-mode/annotation/bundle-restore.effects';
 import * as fromUser from './app/core/store/user/user.reducer';
 import { environment } from './environments/environment';
 
@@ -136,6 +137,7 @@ bootstrapApplication(AppComponent, {
     importProvidersFrom(
       EffectsModule.forRoot([
         IDBEffects,
+        BundleRestoreEffects,
         ApplicationInitEffects,
         ApplicationSessionEffects,
         ApplicationUiEffects,

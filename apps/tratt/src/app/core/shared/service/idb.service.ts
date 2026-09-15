@@ -129,6 +129,14 @@ export class IDBService {
   }
 
   /**
+   * every distinct LOCAL-mode bundle id currently persisted in IDB
+   * (see TrattDatabase.listLocalBundleIds()).
+   */
+  public listLocalBundleIds(): Observable<string[]> {
+    return from(this.database.listLocalBundleIds());
+  }
+
+  /**
    * load annotation
    */
   public loadAnnotation(mode: LoginMode, bundleId?: string) {
