@@ -350,6 +350,66 @@ describe('IDBEffects — persists to the real selected bundle (Task 3)', () => {
         }),
       );
     });
+
+    it('Fix 4: does NOT re-persist for a createBundle dispatch carrying restoredOptions', async () => {
+      setup(buildState(DEFAULT_BUNDLE_ID));
+
+      const subscription = effects.savemodeOptions$.subscribe();
+
+      actions$.next(
+        LoginModeActions.createBundle({
+          mode: LoginMode.LOCAL,
+          bundleId: 'bundle-2',
+          sessionFile: {} as any,
+          restoredOptions: { currentEditor: '2D-Editor', logging: true } as any,
+        }),
+      );
+
+      // Let the pipe's filter()/withLatestFrom() settle without relying on
+      // an emission that (by design) never comes.
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      expect(idbService.saveModeOptions).not.toHaveBeenCalled();
+      subscription.unsubscribe();
+    });
+
+    it('Fix 4: does NOT re-persist for a createBundle dispatch carrying restoredAnnotation', async () => {
+      setup(buildState(DEFAULT_BUNDLE_ID));
+
+      const subscription = effects.savemodeOptions$.subscribe();
+
+      actions$.next(
+        LoginModeActions.createBundle({
+          mode: LoginMode.LOCAL,
+          bundleId: 'bundle-2',
+          sessionFile: {} as any,
+          restoredAnnotation: { levels: [] } as any,
+        }),
+      );
+
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      expect(idbService.saveModeOptions).not.toHaveBeenCalled();
+      subscription.unsubscribe();
+    });
+
+    it('Fix 4 regression: still persists for a fresh createBundle without restoredOptions/restoredAnnotation (step 2.7 shape)', (done) => {
+      setup(buildState(DEFAULT_BUNDLE_ID));
+
+      const subscription = effects.savemodeOptions$.subscribe(() => {
+        expect(idbService.saveModeOptions).toHaveBeenCalled();
+        subscription.unsubscribe();
+        done();
+      });
+
+      actions$.next(
+        LoginModeActions.createBundle({
+          mode: LoginMode.LOCAL,
+          bundleId: 'bundle-2',
+          sessionFile: {} as any,
+        }),
+      );
+    });
   });
 
   describe('saveAnnotation', () => {

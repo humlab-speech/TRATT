@@ -503,6 +503,11 @@ export class IDBEffects {
         AnnotationActions.addSpeakerId.do,
         AnnotationActions.removeSpeakerId.do,
       ),
+      filter(
+        (action) =>
+          action.type !== LoginModeActions.createBundle.type ||
+          !((action as any).restoredOptions || (action as any).restoredAnnotation),
+      ),
       withLatestFrom(this.store),
       mergeMap(([action, appState]) => {
         const modeState = this.getModeStateFromString(
