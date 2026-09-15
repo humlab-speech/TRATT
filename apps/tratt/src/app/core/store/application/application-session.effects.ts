@@ -7,6 +7,7 @@ import { exhaustMap, of, Subject, tap, withLatestFrom } from 'rxjs';
 import { AppInfo } from '../../../app.info';
 import { AppSettings } from '../../obj';
 import { AppStorageService } from '../../shared/service/appstorage.service';
+import { AudioService } from '../../shared/service/audio.service';
 import { BugReportService } from '../../shared/service/bug-report.service';
 import { RoutingService } from '../../shared/service/routing.service';
 import { APIActions } from '../api';
@@ -152,14 +153,22 @@ export class ApplicationSessionEffects {
             const modeState = getModeState(state)!;
 
             if (!this.routerService.staticQueryParams.audio_url) {
-              if (!state.application.loggedIn) {
+              const effectivelyLoggedIn =
+                state.application.loggedIn ||
+                (state.application.mode === LoginMode.LOCAL &&
+                  this.audio.current !== undefined);
+
+              if (!effectivelyLoggedIn) {
                 this.store.dispatch(
                   ApplicationActions.redirectToLastPage.do({
                     mode: state.application.mode!,
                   }),
                 );
               } else {
-                // logged in
+                // logged in (or LOCAL mode with a resident manager for the
+                // currently-selected bundle — see step 2.8's bundle-reattach
+                // flow, which resolves a restored bundle without a real
+                // "login" event)
                 if (
                   modeState.currentSession.currentProject &&
                   modeState.currentSession.task
@@ -403,6 +412,7 @@ export class ApplicationSessionEffects {
     private appStorage: AppStorageService,
     private bugService: BugReportService,
     private routerService: RoutingService,
+    private audio: AudioService,
   ) {}
 
   private appendTrackingCode(type: string, settings: AppSettings) {
