@@ -25,6 +25,14 @@ export class SessionFile {
     this._size = value;
   }
 
+  get timestamp(): Date {
+    return this._timestamp;
+  }
+
+  set timestamp(value: Date) {
+    this._timestamp = value;
+  }
+
   constructor(
     private _name: string,
     private _size: number,
@@ -61,6 +69,7 @@ export class SessionFile {
       name: this._name,
       type: this._type,
       size: this._size,
+      timestamp: this._timestamp,
     };
   }
 }

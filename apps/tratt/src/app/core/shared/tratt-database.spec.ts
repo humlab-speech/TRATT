@@ -150,3 +150,30 @@ describe('TrattDatabase — LOCAL mode routes save/load through the bundles tabl
     db.close();
   });
 });
+
+describe('TrattDatabase.listLocalBundleIds()', () => {
+  const DB_NAME = 'tratt-database-list-local-bundle-ids-test';
+
+  afterEach(async () => {
+    await Dexie.delete(DB_NAME);
+  });
+
+  it('returns every distinct bundleId present in the bundles table', async () => {
+    const db = new TrattDatabase(DB_NAME);
+    await db.init();
+
+    await db.bundles.bulkPut([
+      { bundleId: 'bundle-1', name: 'options', value: { currentEditor: '2D-Editor' } },
+      { bundleId: 'bundle-1', name: 'annotation', value: { foo: 'bar' } },
+      { bundleId: 'bundle-2', name: 'options', value: { currentEditor: '2D-Editor' } },
+      { bundleId: 'bundle-2', name: 'annotation', value: { foo: 'baz' } },
+      { bundleId: 'bundle-3', name: 'options', value: { currentEditor: '2D-Editor' } },
+    ]);
+
+    const ids = await db.listLocalBundleIds();
+
+    expect([...ids].sort()).toEqual(['bundle-1', 'bundle-2', 'bundle-3'].sort());
+
+    db.close();
+  });
+});

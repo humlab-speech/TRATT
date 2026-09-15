@@ -411,6 +411,18 @@ export class TrattDatabase extends Dexie {
     }
   }
 
+  /**
+   * Returns every distinct bundleId present in the `bundles` table. The
+   * table's only index is the compound `[bundleId+name]` primary key — no
+   * secondary index on bundleId alone — so this is a full-table-scan of
+   * primary keys, not an indexed query. Fine at expected row counts (a
+   * handful of rows per bundle).
+   */
+  public async listLocalBundleIds(): Promise<string[]> {
+    const keys = await this.bundles.toCollection().primaryKeys();
+    return Array.from(new Set(keys.map((k) => k[0])));
+  }
+
   private async backupCurrentDatabase() {
     await this.open();
     const backup = await this.export({ prettyJson: true });
