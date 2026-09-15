@@ -428,3 +428,83 @@ This worktree starts implementation at **Phase 1 (the shell)**.
 Task 6 made bundle selection genuinely reachable through the UI for the first time, so `AudioService`'s existing LRU eviction (`MAX_RESIDENT_BUNDLES = 3`) now fires for real: selecting a 4th distinct bundle in a session evicts the 1st bundle's `AudioManager`. Task 7 closes the resulting gap — `registerAudioManager()` now optionally retains the source `File` alongside the `AudioManager`, and the selection effect calls a new `ensureResident()` that re-decodes from that retained `File` (via `AudioManager.create()`, same "wait for `progress === 1 && audioManager` truthy" pattern as `TrattDropzoneService.decodeArrayBuffer()`) and re-registers the result whenever the newly-selected bundle has no resident manager. Re-selecting an evicted bundle is therefore correctness-safe and fully automatic: no user-visible error, no stuck "no audio" state, no data loss — `AudioManager.destroy()` on eviction only frees decoded PCM/blob memory, never the original file bytes.
 
 **Deliberately not built in this task**: `.current` still briefly reads `undefined` for the ~1-2s the re-decode takes before it resolves, and during that window the signal display shows its normal no-audio/loading state rather than instantly painting from `getEnvelope(bundleId)` (already cached, unaffected by eviction, per step 2.5). Wiring the signal-viewer components in `libs/ngx-components/` to consume the cached envelope as a placeholder during this window is a separate, sizeable piece of work (tracing every consumer of `AudioService.current` across the 2D/Linear/Dictaphone editors) — tracked as a follow-up UX polish item, not a defect blocking this step.
+
+## Step 2.8 shipped shape (2026-09-15)
+
+Restoring every bundle beyond `bundle-1` after a page reload, and letting the user re-attach media to
+one, turned out to need almost no new infrastructure beyond what steps 2.6-2.7 already built — see the
+"Finding (2026-09-15, during 2.8 planning)" section above for the corrected premises this step actually
+shipped against. Five pieces, each landed as its own task:
+
+**Enumeration and the fingerprint gap.** `TrattDatabase.listLocalBundleIds()` does a full-table-scan of
+the `bundles` table's `[bundleId+name]` primary keys (`toCollection().primaryKeys()`, deduped by the
+first tuple element) — the table's only index is that compound key, so nothing indexed on `bundleId`
+alone was available. `SessionFile.toAny()` was silently dropping `timestamp` on every persist despite
+`fromAny()` already reading it back; fixed to round-trip it (backward compatible — `fromAny()`'s
+validity guard was deliberately left NOT requiring `timestamp`, so bundles persisted before this fix
+still restore, just without a usable timestamp for their fingerprint).
+
+**Boot-time restore reuses `createBundle`, not a new action.** `LoginModeActions.createBundle` (from
+step 2.7) gained two optional fields, `restoredOptions`/`restoredAnnotation`, merged onto a fresh entity
+via the SAME `writeOptionToStore` field-mapping the pre-existing `loadOptions.success` handler already
+used (hoisted from a `LoginModeReducers` method to a module-level pure function so the reducer's
+free-standing `wrapAsLocalBundleCollectionReducer` could call it too — it never referenced `this`). A
+new `BundleRestoreEffects` (`bundle-restore.effects.ts`) fires once at boot, sequenced strictly *after*
+`IDBActions.loadOptions.success` rather than on the same trigger in parallel — not a style choice: that
+action is what `IDBService.initialize()` completing actually gates, and firing earlier would race the
+private `database` field not being set yet. It deliberately skips `DEFAULT_BUNDLE_ID` (the pre-existing,
+unmodified `loadOptions$`/`loadAnnotation$` boot effects already restore that one — restoring it twice
+would conflict) and any bundle whose persisted `sessionfile` is null (the ever-present empty default
+seed every fresh install gets via `checkAndFillPopulation()`, never a real bundle to show as "awaiting
+media"). Fires unconditionally, with no active-mode check — verified inert for non-LOCAL sessions since
+`wrapAsLocalBundleCollectionReducer` (the only consumer of `createBundle`/`selectBundle`) is installed
+for LOCAL mode only; the same "always load all four modes' data regardless of active mode" pattern the
+pre-existing `loadOptions$`/`afterOptionsSuccess$` effects already use.
+
+**The permanent-sentinel trap.** `LocalBundleCollectionState`'s default reducer state always seeds one
+entity at `DEFAULT_BUNDLE_ID` — for every user, including one who has never dropped a file, before any
+restore or session-start logic runs. A first attempt at gating the bundle-list's visibility on "does any
+bundle exist" (`bundleSummaries().length > 0`) was unconditionally true because of this sentinel, and
+would have rendered a blank list row for every first-time user on every load — caught by task review,
+not by the task's own tests (which stubbed the store directly with an already-empty array, a state the
+real reducer's default never actually produces). Fixed by gating on "does any bundle have a defined
+name" (`b.sessionFile?.name`, already `undefined` for the untouched sentinel) instead of raw entity
+count — which correctly also reveals a genuinely-restored `bundle-1` for a returning single-bundle user,
+since that bundle's `sessionFile` **is** restored via the pre-existing boot effects (not this step's new
+ones) and does carry a real name.
+
+**Re-attach and the fingerprint check.** `BundleListComponent` renders a file-input re-attach control
+only for rows with `awaitingMedia: true` (`!bundle.audio.loaded`, added to `selectAllBundleSummaries`).
+Comparison is `{name, size, type}` always required to match, `lastModified` compared only when both the
+persisted `sessionFile.timestamp` and the candidate `File.lastModified` are present (a bundle restored
+from data written before the timestamp fix above has no basis for that one check — treated as
+inconclusive for that field alone, not an automatic pass, since name/size/type still gate). No path
+registers the decoded manager with `AudioService` without going through this comparison first: a match
+resolves immediately, a mismatch opens `BundleReattachMismatchModalComponent` (the only two exits are an
+explicit "use anyway" override or cancel-and-destroy-the-decoded-manager) — matching the original
+spec's own words, "never silently bind an annotation to the wrong audio." One logged, not-yet-fixed gap:
+the mismatch modal's dismissal promise has no `.catch()` (every other modal call site in this codebase
+does), so a backdrop-click dismissal leaks the decoded manager instead of destroying it — a cleanup
+issue, not a wrong-binding risk, since no bypass of the fingerprint check exists on any path.
+
+**How a resolved bundle actually reaches the editor.** This took real investigation beyond what 2.8's
+own planning had traced. `annotation-load.effects.ts`'s `onAudioLoad$` already had a LOCAL-mode branch
+that dispatches `AnnotationActions.loadAudio.success` whenever `AudioService.current` is defined for the
+selected bundle — genuinely already correct, not a dead end needing a fix, contrary to what planning
+assumed from an adjacent sibling branch's "Normal page-refresh restore path... user must re-upload"
+comment (that sibling branch, reached only when `audio.current` is still `undefined`, is correctly
+untouched — real page-refreshes with no re-attach yet still need it). What was actually missing:
+nothing re-enters that effect chain for a bundle resolved *mid-session* (after boot), since
+`selectBundle` alone has no listening effect. Fixed by dispatching the same
+`LoginModeActions.loadProjectAndTaskInformation.do` the normal fresh-login flow already uses to kick off
+this chain — independently confirmed LOCAL-mode-safe (no server calls; builds a synthetic `TaskDto` from
+local config + the bundle's own `sessionFile`) and safe to re-fire for an already-restored bundle (every
+write it triggers is scoped to `state.selectedBundleId` only, and its transcript-seeding logic only
+fabricates a fresh empty transcript when none already exists, so a restored bundle's real transcript is
+reused, not clobbered).
+
+**Deliberately out of scope, per this plan's Global Constraints**: no cryptographic content hashing (the
+fingerprint is a well-precedented but non-guaranteeing name/size/type/lastModified heuristic, backed by
+the spec's own explicit "warn and let the user override" design); logs and import-converter state are
+not restored for bundles beyond `bundle-1` (only `sessionfile`+`transcript` are — a small, additive gap
+to close later if it turns out to matter, not required for "see your bundles and re-attach media").
