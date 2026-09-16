@@ -626,7 +626,8 @@ step began — what this step actually extracted was the *orchestration* (sequen
 counters, cancel) still living as plain component fields and methods, not the worker plumbing itself.
 
 **Task 1 — characterization first, and it found two real pre-existing bugs.** `login.component.spec.ts`
-did not exist before this step; 20 tests now pin the exact pre-extraction behavior, including two bugs
+did not exist before this step; 21 tests now pin the exact pre-extraction behavior (one added by Task
+4's fix round 2, for the reordering-bug regression), including two bugs
 deliberately preserved (not fixed, per this step's own zero-behavior-change mandate, though either would
 be a reasonable, separately-scoped fix later): `onOfflineSubmit(removeData)`'s argument is discarded —
 every finalization path hardcodes `false`; and dismissing an error while a stage is still active routes
@@ -644,9 +645,20 @@ load-bearing (the service builds a fresh Worker on every `diarize()` call regard
 scope, so no cross-invocation state exists to leak). Now `providedIn: 'root'`, token provided at the app
 root. **Fix round 1** (of this task): the extraction initially delayed delivering the
 `diarizationWarning` to the component until the pipeline's terminal event — on the chained
-transcribe→diarization-fails→translate path, this meant the warning banner, previously visible for the
-entire translation phase that followed (potentially minutes), now appeared for an instant right before
-the page navigated away, effectively invisible. Fixed by carrying it on an earlier event instead.
+transcribe→diarization-fails→translate path, this moved the *store-write timing* for the warning to
+land an instant before the page navigated away instead of matching the pre-extraction code's timing
+(right when transcription finalizes, before translation starts). Fixed by carrying it on an earlier
+event instead, restoring the original write timing. This is a genuinely correct, behavior-preserving
+fix: the write timing is observable state independent of whether the warning currently renders, and
+some future template change could make the banner reachable again. A later whole-branch review checked
+the actual template gate and found the warning banner (`@if (diarizationWarning())` in
+`login.component.html`) is nested inside the transcription-progress panel, whose own visibility
+condition (`(transcription().active || transcription().error || transcription().phase === 'finalizing')
+&& !translation().active && !translation().error`) is already `false` by the time this write happens —
+so on this exact chained path, the banner was never actually renderable in *either* the pre-extraction
+or the final code. That's a real, pre-existing UI bug (the warning has nowhere to render once
+translation starts), separate from and not fixed by this fix round; left as a separately-scoped fix for
+later.
 `PipelineRunnerService.cancel()` also became one state-derived, symmetric method (replacing the old
 `cancelTranscription()`/`cancelTranslation()` two-method asymmetry, which cancelled different numbers of
 underlying services depending on which was called) — `login.component.ts` still exposes two named
