@@ -134,7 +134,11 @@ export class PipelineRunnerService {
         this._runTranscriptionStage(input, input.transcribeOptions, subscriber);
       } else if (input.translateOptions && input.annotJson) {
         this._activeStage = 'translation';
-        this._runTranslationStage(input.annotJson, input.translateOptions, subscriber);
+        this._runTranslationStage(
+          input.annotJson,
+          input.translateOptions,
+          subscriber,
+        );
       } else {
         this._subscriber = null;
         subscriber.complete();
@@ -260,9 +264,12 @@ export class PipelineRunnerService {
     }
 
     const diarizationWarning = segmented.errorMessage
-      ? this.transloco.translate('login.auto-transcription.diarization failed', {
-          message: segmented.errorMessage,
-        })
+      ? this.transloco.translate(
+          'login.auto-transcription.diarization failed',
+          {
+            message: segmented.errorMessage,
+          },
+        )
       : null;
     if (diarizationWarning) {
       console.error('[diarization]', diarizationWarning);
@@ -278,7 +285,11 @@ export class PipelineRunnerService {
 
     if (input.translateOptions) {
       this._activeStage = 'translation';
-      this._runTranslationStage(segmented.annotJson, input.translateOptions, subscriber);
+      this._runTranslationStage(
+        segmented.annotJson,
+        input.translateOptions,
+        subscriber,
+      );
     } else {
       this._activeStage = null;
       this._subscriber = null;
@@ -301,40 +312,42 @@ export class PipelineRunnerService {
     this._translationPhase = 'downloading';
     this._armStallTimer(subscriber);
 
-    this._stageSub = this.localTranslationService.translate(annotJson, trOpts).subscribe({
-      next: (event: TranslationEvent) => {
-        subscriber.next({ stage: 'translation', event });
+    this._stageSub = this.localTranslationService
+      .translate(annotJson, trOpts)
+      .subscribe({
+        next: (event: TranslationEvent) => {
+          subscriber.next({ stage: 'translation', event });
 
-        if (event.type === 'result') {
+          if (event.type === 'result') {
+            this._clearStallTimer();
+            this._activeStage = null;
+            this._subscriber = null;
+            subscriber.next({
+              stage: 'pipeline',
+              type: 'result',
+              annotJson: event.annotJson,
+              diarizationWarning: this._diarizationWarning,
+            });
+            subscriber.complete();
+            return;
+          }
+
+          if (event.type === 'download-progress') {
+            this._translationPhase = 'downloading';
+          } else if (event.type === 'model-init') {
+            this._translationPhase = 'initializing';
+          } else if (event.type === 'translate-start') {
+            this._translationPhase = 'translating';
+          }
+          this._armStallTimer(subscriber);
+        },
+        error: (err) => {
           this._clearStallTimer();
           this._activeStage = null;
           this._subscriber = null;
-          subscriber.next({
-            stage: 'pipeline',
-            type: 'result',
-            annotJson: event.annotJson,
-            diarizationWarning: this._diarizationWarning,
-          });
-          subscriber.complete();
-          return;
-        }
-
-        if (event.type === 'download-progress') {
-          this._translationPhase = 'downloading';
-        } else if (event.type === 'model-init') {
-          this._translationPhase = 'initializing';
-        } else if (event.type === 'translate-start') {
-          this._translationPhase = 'translating';
-        }
-        this._armStallTimer(subscriber);
-      },
-      error: (err) => {
-        this._clearStallTimer();
-        this._activeStage = null;
-        this._subscriber = null;
-        subscriber.error(err);
-      },
-    });
+          subscriber.error(err);
+        },
+      });
   }
 
   private _armStallTimer(subscriber: Subscriber<PipelineEvent>): void {

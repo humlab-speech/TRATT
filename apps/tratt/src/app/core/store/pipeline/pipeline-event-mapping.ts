@@ -95,18 +95,21 @@ export function pipelineThrottle<T>(): MonoTypeOperatorFunction<T> {
  */
 export function isThrottleSafeProgressAction(action: Action): boolean {
   if (action.type === PipelineActions.transcriptionEvent.type) {
-    const inner = (action as ReturnType<typeof PipelineActions.transcriptionEvent>)
-      .event.type;
+    const inner = (
+      action as ReturnType<typeof PipelineActions.transcriptionEvent>
+    ).event.type;
     return inner === 'download-progress' || inner === 'segment-progress';
   }
   if (action.type === PipelineActions.diarizationEvent.type) {
-    const inner = (action as ReturnType<typeof PipelineActions.diarizationEvent>)
-      .event.type;
+    const inner = (
+      action as ReturnType<typeof PipelineActions.diarizationEvent>
+    ).event.type;
     return inner === 'download-progress';
   }
   if (action.type === PipelineActions.translationEvent.type) {
-    const inner = (action as ReturnType<typeof PipelineActions.translationEvent>)
-      .event.type;
+    const inner = (
+      action as ReturnType<typeof PipelineActions.translationEvent>
+    ).event.type;
     return inner === 'download-progress' || inner === 'segment-progress';
   }
   return false;

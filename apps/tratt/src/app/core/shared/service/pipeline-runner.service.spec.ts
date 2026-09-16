@@ -1,4 +1,11 @@
-import { describe, expect, it, jest, beforeEach, afterEach } from '@jest/globals';
+import {
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  jest,
+} from '@jest/globals';
 
 // local-transcription.service.ts and local-translation.service.ts both
 // construct their Worker via `new URL('...worker', import.meta.url)`
@@ -23,8 +30,14 @@ import type {
   TranscriptionEvent,
   TranscriptionOptions,
 } from './local-transcription.service';
-import type { TranslationEvent, TranslationOptions } from './local-translation.service';
-import { PipelineEvent, PipelineRunnerService } from './pipeline-runner.service';
+import type {
+  TranslationEvent,
+  TranslationOptions,
+} from './local-translation.service';
+import {
+  PipelineEvent,
+  PipelineRunnerService,
+} from './pipeline-runner.service';
 
 const TRANSLATION_DOWNLOAD_STALL_MS = 30_000;
 const TRANSLATION_INIT_STALL_MS = 60_000;
@@ -51,9 +64,18 @@ function makeTranscriptionOptions(
 }
 
 describe('PipelineRunnerService', () => {
-  let transcriptionServiceMock: { transcribe: jest.Mock<any>; cancel: jest.Mock<any> };
-  let diarizationServiceMock: { diarize: jest.Mock<any>; cancel: jest.Mock<any> };
-  let translationServiceMock: { translate: jest.Mock<any>; cancel: jest.Mock<any> };
+  let transcriptionServiceMock: {
+    transcribe: jest.Mock<any>;
+    cancel: jest.Mock<any>;
+  };
+  let diarizationServiceMock: {
+    diarize: jest.Mock<any>;
+    cancel: jest.Mock<any>;
+  };
+  let translationServiceMock: {
+    translate: jest.Mock<any>;
+    cancel: jest.Mock<any>;
+  };
   let translocoTranslate: jest.Mock<any>;
   let service: PipelineRunnerService;
   let consoleErrorSpy: jest.SpiedFunction<typeof console.error>;
@@ -63,7 +85,9 @@ describe('PipelineRunnerService', () => {
 
   beforeEach(() => {
     jest.useFakeTimers();
-    consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
+    consoleErrorSpy = jest
+      .spyOn(console, 'error')
+      .mockImplementation(() => undefined);
     transcriptionServiceMock = { transcribe: jest.fn(), cancel: jest.fn() };
     diarizationServiceMock = { diarize: jest.fn(), cancel: jest.fn() };
     translationServiceMock = { translate: jest.fn(), cancel: jest.fn() };
@@ -129,7 +153,12 @@ describe('PipelineRunnerService', () => {
 
       expect(events).toContainEqual({
         stage: 'transcription',
-        event: { type: 'download-progress', loaded: 10, total: 100, file: 'model.bin' },
+        event: {
+          type: 'download-progress',
+          loaded: 10,
+          total: 100,
+          file: 'model.bin',
+        },
       });
       expect(events).toContainEqual({
         stage: 'transcription',
@@ -186,7 +215,10 @@ describe('PipelineRunnerService', () => {
       let completed = false;
       service
         .run({ audioManager, oaudiofile, transcribeOptions: opts })
-        .subscribe({ next: (e) => events.push(e), complete: () => (completed = true) });
+        .subscribe({
+          next: (e) => events.push(e),
+          complete: () => (completed = true),
+        });
 
       const annotJson = makeAnnotJsonWithSegments();
       transcriptionSubject.next({ type: 'result', annotJson });
@@ -215,9 +247,9 @@ describe('PipelineRunnerService', () => {
       ) as Extract<PipelineEvent, { stage: 'pipeline'; type: 'result' }>;
       expect(resultEvent.diarizationWarning).toBeNull();
       const level = resultEvent.annotJson.levels[0] as OSegmentLevel<OSegment>;
-      expect(level.items[0].labels.find((l) => l.name === 'Speaker')?.value).toBe(
-        'Speaker 1',
-      );
+      expect(
+        level.items[0].labels.find((l) => l.name === 'Speaker')?.value,
+      ).toBe('Speaker 1');
     });
   });
 
@@ -258,7 +290,9 @@ describe('PipelineRunnerService', () => {
         (e) => e.stage === 'pipeline' && e.type === 'result',
       ) as Extract<PipelineEvent, { stage: 'pipeline'; type: 'result' }>;
       expect(resultEvent.annotJson).toBe(annotJson);
-      expect(resultEvent.diarizationWarning).toBe(translocoTranslate.mock.results[0].value);
+      expect(resultEvent.diarizationWarning).toBe(
+        translocoTranslate.mock.results[0].value,
+      );
     });
 
     it('carries diarizationWarning on the "finalized" event, BEFORE the translation stage starts, when chaining into translation', async () => {
@@ -297,7 +331,8 @@ describe('PipelineRunnerService', () => {
       await Promise.resolve();
 
       const finalizedIndex = events.findIndex(
-        (e) => e.stage === 'transcription' && 'type' in e && e.type === 'finalized',
+        (e) =>
+          e.stage === 'transcription' && 'type' in e && e.type === 'finalized',
       );
       const translationStartIndex = events.findIndex(
         (e) => e.stage === 'translation' && 'type' in e && e.type === 'start',
@@ -337,7 +372,10 @@ describe('PipelineRunnerService', () => {
           transcribeOptions: transcribeOpts,
           translateOptions: translateOpts,
         })
-        .subscribe({ next: (e) => events.push(e), complete: () => (completed = true) });
+        .subscribe({
+          next: (e) => events.push(e),
+          complete: () => (completed = true),
+        });
 
       const annotJson = makeAnnotJsonWithSegments();
       transcriptionSubject.next({ type: 'result', annotJson });
@@ -367,7 +405,12 @@ describe('PipelineRunnerService', () => {
 
       const events: PipelineEvent[] = [];
       service
-        .run({ audioManager, oaudiofile, translateOptions: translateOpts, annotJson })
+        .run({
+          audioManager,
+          oaudiofile,
+          translateOptions: translateOpts,
+          annotJson,
+        })
         .subscribe({ next: (e) => events.push(e) });
 
       expect(translationServiceMock.translate).toHaveBeenCalledWith(
@@ -401,7 +444,9 @@ describe('PipelineRunnerService', () => {
       const events = startTranslationOnly(subject);
 
       jest.advanceTimersByTime(TRANSLATION_DOWNLOAD_STALL_MS - 1);
-      expect(events.find((e) => e.stage === 'pipeline' && e.type === 'stalled')).toBeUndefined();
+      expect(
+        events.find((e) => e.stage === 'pipeline' && e.type === 'stalled'),
+      ).toBeUndefined();
 
       jest.advanceTimersByTime(1);
       const stalled = events.find(
@@ -423,13 +468,17 @@ describe('PipelineRunnerService', () => {
       subject.next({ type: 'model-init' });
 
       jest.advanceTimersByTime(TRANSLATION_INIT_STALL_MS - 1);
-      expect(events.find((e) => e.stage === 'pipeline' && e.type === 'stalled')).toBeUndefined();
+      expect(
+        events.find((e) => e.stage === 'pipeline' && e.type === 'stalled'),
+      ).toBeUndefined();
 
       jest.advanceTimersByTime(1);
       const stalled = events.find(
         (e) => e.stage === 'pipeline' && e.type === 'stalled',
       ) as Extract<PipelineEvent, { stage: 'pipeline'; type: 'stalled' }>;
-      expect(stalled.message).toBe('Model load stalled. Try refreshing the page.');
+      expect(stalled.message).toBe(
+        'Model load stalled. Try refreshing the page.',
+      );
     });
 
     it('re-arms the stall timer on every non-result event', () => {
@@ -437,13 +486,22 @@ describe('PipelineRunnerService', () => {
       const events = startTranslationOnly(subject);
 
       jest.advanceTimersByTime(TRANSLATION_DOWNLOAD_STALL_MS - 1);
-      subject.next({ type: 'download-progress', loaded: 1, total: 2, file: 'x' });
+      subject.next({
+        type: 'download-progress',
+        loaded: 1,
+        total: 2,
+        file: 'x',
+      });
 
       jest.advanceTimersByTime(TRANSLATION_DOWNLOAD_STALL_MS - 1);
-      expect(events.find((e) => e.stage === 'pipeline' && e.type === 'stalled')).toBeUndefined();
+      expect(
+        events.find((e) => e.stage === 'pipeline' && e.type === 'stalled'),
+      ).toBeUndefined();
 
       jest.advanceTimersByTime(1);
-      expect(events.find((e) => e.stage === 'pipeline' && e.type === 'stalled')).toBeDefined();
+      expect(
+        events.find((e) => e.stage === 'pipeline' && e.type === 'stalled'),
+      ).toBeDefined();
     });
 
     it('uses the translating-phase stall message once translate-start has fired', () => {
@@ -468,9 +526,13 @@ describe('PipelineRunnerService', () => {
       const annotJson = makeAnnotJsonWithSegments();
 
       subject.next({ type: 'result', annotJson });
-      jest.advanceTimersByTime(TRANSLATION_INIT_STALL_MS + TRANSLATION_DOWNLOAD_STALL_MS);
+      jest.advanceTimersByTime(
+        TRANSLATION_INIT_STALL_MS + TRANSLATION_DOWNLOAD_STALL_MS,
+      );
 
-      expect(events.find((e) => e.stage === 'pipeline' && e.type === 'stalled')).toBeUndefined();
+      expect(
+        events.find((e) => e.stage === 'pipeline' && e.type === 'stalled'),
+      ).toBeUndefined();
     });
   });
 
@@ -491,7 +553,9 @@ describe('PipelineRunnerService', () => {
       subject.error(new Error('translation worker crashed'));
       expect((errored as Error)?.message).toBe('translation worker crashed');
 
-      jest.advanceTimersByTime(TRANSLATION_INIT_STALL_MS + TRANSLATION_DOWNLOAD_STALL_MS);
+      jest.advanceTimersByTime(
+        TRANSLATION_INIT_STALL_MS + TRANSLATION_DOWNLOAD_STALL_MS,
+      );
       // no throw / no stray timer firing after error — nothing to assert on
       // directly here beyond "it didn't blow up", covered by not throwing.
     });
@@ -520,7 +584,10 @@ describe('PipelineRunnerService', () => {
           transcribeOptions: opts,
           translateOptions: translateOpts,
         })
-        .subscribe({ next: (e) => events.push(e), complete: () => (completed = true) });
+        .subscribe({
+          next: (e) => events.push(e),
+          complete: () => (completed = true),
+        });
 
       const annotJson = makeAnnotJsonWithSegments();
       transcriptionSubject.next({ type: 'result', annotJson });
@@ -586,7 +653,11 @@ describe('PipelineRunnerService', () => {
       const subject = new Subject<TranscriptionEvent>();
       transcriptionServiceMock.transcribe.mockReturnValue(subject);
       service
-        .run({ audioManager, oaudiofile, transcribeOptions: makeTranscriptionOptions() })
+        .run({
+          audioManager,
+          oaudiofile,
+          transcribeOptions: makeTranscriptionOptions(),
+        })
         .subscribe();
 
       service.cancel();
@@ -630,8 +701,15 @@ describe('PipelineRunnerService', () => {
       const events: PipelineEvent[] = [];
       let completed = false;
       service
-        .run({ audioManager, oaudiofile, transcribeOptions: makeTranscriptionOptions() })
-        .subscribe({ next: (e) => events.push(e), complete: () => (completed = true) });
+        .run({
+          audioManager,
+          oaudiofile,
+          transcribeOptions: makeTranscriptionOptions(),
+        })
+        .subscribe({
+          next: (e) => events.push(e),
+          complete: () => (completed = true),
+        });
 
       service.cancel();
 

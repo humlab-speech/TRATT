@@ -323,14 +323,20 @@ describe('isThrottleSafeProgressAction', () => {
         event: { type: 'translate-start', total: 1 },
       }),
     ],
-    ['transcriptionFinalized', PipelineActions.transcriptionFinalized({
-      diarizationWarning: null,
-      willTranslate: true,
-    })],
+    [
+      'transcriptionFinalized',
+      PipelineActions.transcriptionFinalized({
+        diarizationWarning: null,
+        willTranslate: true,
+      }),
+    ],
     ['diarizationStarted', PipelineActions.diarizationStarted()],
     ['diarizationSkipped', PipelineActions.diarizationSkipped()],
     ['translationStart', PipelineActions.translationStart()],
-    ['stalled', PipelineActions.stalled({ phase: 'downloading', message: 'x' })],
+    [
+      'stalled',
+      PipelineActions.stalled({ phase: 'downloading', message: 'x' }),
+    ],
     ['result', PipelineActions.result({ diarizationWarning: null })],
     ['cancelled', PipelineActions.cancelled()],
   ])('classifies %s as NOT throttle-safe (must bypass)', (_label, action) => {
@@ -356,9 +362,9 @@ describe('dispatchPipelineActions — the actual fix for the dropped-transcripti
   it('dispatches transcriptionFinalized immediately even when translationStart follows it synchronously in the same tick', () => {
     const source = new Subject<PipelineEvent>();
     const dispatched: Action[] = [];
-    dispatchPipelineActions(source.pipe(map(mapPipelineEventToAction))).subscribe(
-      (action) => dispatched.push(action),
-    );
+    dispatchPipelineActions(
+      source.pipe(map(mapPipelineEventToAction)),
+    ).subscribe((action) => dispatched.push(action));
 
     source.next({ stage: 'diarization', type: 'skipped' });
     source.next({
@@ -385,9 +391,9 @@ describe('dispatchPipelineActions — the actual fix for the dropped-transcripti
   it('still throttles a genuine download-progress burst to leading+trailing, unaffected by the split', () => {
     const source = new Subject<PipelineEvent>();
     const dispatched: Action[] = [];
-    dispatchPipelineActions(source.pipe(map(mapPipelineEventToAction))).subscribe(
-      (action) => dispatched.push(action),
-    );
+    dispatchPipelineActions(
+      source.pipe(map(mapPipelineEventToAction)),
+    ).subscribe((action) => dispatched.push(action));
 
     for (let i = 1; i <= 10; i++) {
       source.next({
@@ -420,9 +426,9 @@ describe('dispatchPipelineActions — the actual fix for the dropped-transcripti
   it('flushes a pending progress tick BEFORE a bypass action that arrives right after it, never after (transcription slice)', () => {
     const source = new Subject<PipelineEvent>();
     const dispatched: Action[] = [];
-    dispatchPipelineActions(source.pipe(map(mapPipelineEventToAction))).subscribe(
-      (action) => dispatched.push(action),
-    );
+    dispatchPipelineActions(
+      source.pipe(map(mapPipelineEventToAction)),
+    ).subscribe((action) => dispatched.push(action));
 
     // Ordinary production timing: a download-progress burst immediately
     // (same tick, zero time elapsed) followed by transcribe-start once the
@@ -460,9 +466,9 @@ describe('dispatchPipelineActions — the actual fix for the dropped-transcripti
   it('flushes a pending progress tick BEFORE a bypass action that arrives right after it, never after (translation slice)', () => {
     const source = new Subject<PipelineEvent>();
     const dispatched: Action[] = [];
-    dispatchPipelineActions(source.pipe(map(mapPipelineEventToAction))).subscribe(
-      (action) => dispatched.push(action),
-    );
+    dispatchPipelineActions(
+      source.pipe(map(mapPipelineEventToAction)),
+    ).subscribe((action) => dispatched.push(action));
 
     source.next({ stage: 'translation', type: 'start' });
     for (let i = 1; i <= 5; i++) {

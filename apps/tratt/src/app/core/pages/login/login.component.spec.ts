@@ -70,11 +70,11 @@ import type {
 } from '../../shared/service/local-transcription.service';
 import type { TranslationEvent } from '../../shared/service/local-translation.service';
 import { PipelineRunnerService } from '../../shared/service/pipeline-runner.service';
+import { RootState } from '../../store';
+import { PipelineState } from '../../store/pipeline';
 import { PIPELINE_THROTTLE_MS } from '../../store/pipeline/pipeline-event-mapping';
 import { PipelineActions } from '../../store/pipeline/pipeline.actions';
 import { reducer as pipelineReducer } from '../../store/pipeline/pipeline.reducer';
-import { PipelineState } from '../../store/pipeline';
-import { RootState } from '../../store';
 import { LoginComponent } from './login.component';
 
 // Exact ms budgets from login.component.ts — not exported, so hardcoded here

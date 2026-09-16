@@ -4,10 +4,10 @@ import { NgForm } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { NgbNavModule } from '@ng-bootstrap/ng-bootstrap';
+import { Store } from '@ngrx/store';
 import { AccountLoginMethod } from '@octra/api-types';
 import { OctraAPIService } from '@octra/ngx-octra-api';
-import { Store } from '@ngrx/store';
-import { FileSize, getFileSize, formatMinutesSeconds } from '@tratt/utilities';
+import { FileSize, formatMinutesSeconds, getFileSize } from '@tratt/utilities';
 import { map, Observable, Subscription, tap } from 'rxjs';
 import { AuthenticationComponent } from '../../component/authentication-component/authentication-component.component';
 import { DefaultComponent } from '../../component/default.component';
@@ -22,7 +22,6 @@ import { AppSettings } from '../../obj';
 import { SessionFile } from '../../obj/SessionFile';
 import { AudioService, SettingsService } from '../../shared/service';
 import { AppStorageService } from '../../shared/service/appstorage.service';
-import { DEFAULT_BUNDLE_ID } from '../../store/login-mode/annotation/local-bundle-collection';
 import { CompatibilityService } from '../../shared/service/compatibility.service';
 import {
   TranscriptionEvent,
@@ -37,6 +36,7 @@ import {
 import { RecordedFileService } from '../../shared/service/recorded-file.service';
 import { RootState } from '../../store';
 import { AuthenticationStoreService } from '../../store/authentication';
+import { DEFAULT_BUNDLE_ID } from '../../store/login-mode/annotation/local-bundle-collection';
 import {
   dispatchPipelineActions,
   mapPipelineEventToAction,
@@ -48,9 +48,9 @@ import {
   selectTranslation,
 } from '../../store/pipeline/pipeline.selectors';
 import { BrowserTestComponent } from '../browser-test/browser-test.component';
-import { offlineSubmitLabelKey } from './offline-submit-label.helper';
 import { ComponentCanDeactivate } from './login.deactivateguard';
 import { LoginService } from './login.service';
+import { offlineSubmitLabelKey } from './offline-submit-label.helper';
 
 function formatDuration(seconds: number): string {
   return formatMinutesSeconds(seconds);
