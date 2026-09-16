@@ -84,8 +84,17 @@ export type PipelineEvent =
   | { stage: 'pipeline'; type: 'cancelled' };
 
 export interface PipelineInput {
-  audioManager: AudioManager;
-  oaudiofile: OAudiofile;
+  /**
+   * Required when `transcribeOptions` is set (transcription, and the
+   * optional diarization chained after it, both need the live audio).
+   * Ignored on a translation-only run (`translateOptions` without
+   * `transcribeOptions`) — callers on that path don't need to eagerly read
+   * a dropzone's `audioManager`, which throws before any audio has ever
+   * been dropped.
+   */
+  audioManager?: AudioManager;
+  /** Same optionality as `audioManager`, for the same reason. */
+  oaudiofile?: OAudiofile;
   transcribeOptions?: TranscriptionOptions;
   translateOptions?: TranslationOptions;
   /**
@@ -190,8 +199,11 @@ export class PipelineRunnerService {
     opts: TranscriptionOptions,
     subscriber: Subscriber<PipelineEvent>,
   ): void {
+    // Non-null: only called from run() when input.transcribeOptions is set,
+    // the one case PipelineInput's own doc comment guarantees audioManager/
+    // oaudiofile are provided.
     this._stageSub = this.localTranscriptionService
-      .transcribe(input.audioManager, input.oaudiofile, opts)
+      .transcribe(input.audioManager!, input.oaudiofile!, opts)
       .subscribe({
         next: (event: TranscriptionEvent) => {
           subscriber.next({ stage: 'transcription', event });
@@ -236,7 +248,10 @@ export class PipelineRunnerService {
 
         const result = await firstValueFrom(
           this.localDiarizationRuntimeService
-            .diarize(input.audioManager, diarizationOptions)
+            // Non-null: reached only via _handleTranscriptionResult, itself
+            // only reachable from the transcription stage — see the
+            // non-null comment on _runTranscriptionStage above.
+            .diarize(input.audioManager!, diarizationOptions)
             .pipe(
               tap((event: DiarizationEvent) => {
                 subscriber.next({ stage: 'diarization', event });

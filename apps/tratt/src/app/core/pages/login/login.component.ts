@@ -214,9 +214,11 @@ I just want to let you know, that the OCTRA server is currently offline.
     }
 
     if (trOpts && this.dropzone?.hasAnnotation && this.dropzone?.oannotation) {
+      // Translation-only submit: no transcribeOptions, so PipelineRunnerService
+      // never needs audioManager/oaudiofile here — omitted so a session with
+      // no audio ever dropped doesn't eagerly throw from
+      // TrattDropzoneService's audioManager getter inside this click handler.
       this._runPipeline({
-        audioManager: this.dropzone.audioManager,
-        oaudiofile: this.dropzone.oaudiofile,
         translateOptions: trOpts,
         annotJson: this.dropzone.oannotation,
       });
