@@ -23,6 +23,13 @@ export type TranslationPipelinePhase =
   | 'translating'
   | 'finalizing';
 
+// NOTE: no `elapsedMs` field here — Task 4 kept elapsed-time ticking
+// entirely local to login.component.ts (a plain, unthrottled component
+// field driven by its own setInterval), per the master plan's Global
+// Constraint that a once-a-second UI tick must never write into NgRx. Task 3
+// speculatively added `elapsedMs`/`*ElapsedTick` actions "in case Task 4
+// needed them"; Task 4 didn't, so they were removed as dead exported
+// surface rather than shipped unused.
 export interface TranscriptionPipelineState {
   active: boolean;
   phase: TranscriptionPipelinePhase;
@@ -30,7 +37,6 @@ export interface TranscriptionPipelineState {
   downloadTotal: number;
   downloadExpectedBytes: number;
   downloadFile: string;
-  elapsedMs: number;
   audioDurationS: number;
   segmentEndS: number;
   error: string | null;
@@ -43,7 +49,6 @@ export interface TranslationPipelineState {
   downloadLoaded: number;
   downloadTotal: number;
   downloadFile: string;
-  elapsedMs: number;
   segmentIndex: number;
   segmentTotal: number;
   error: string | null;

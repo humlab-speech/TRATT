@@ -10,7 +10,6 @@ export const initialState: PipelineState = {
     downloadTotal: 0,
     downloadExpectedBytes: 0,
     downloadFile: '',
-    elapsedMs: 0,
     audioDurationS: 0,
     segmentEndS: 0,
     error: null,
@@ -22,7 +21,6 @@ export const initialState: PipelineState = {
     downloadLoaded: 0,
     downloadTotal: 0,
     downloadFile: '',
-    elapsedMs: 0,
     segmentIndex: 0,
     segmentTotal: 0,
     error: null,
@@ -47,7 +45,6 @@ export const reducer = createReducer(
         downloadTotal: 0,
         downloadExpectedBytes,
         downloadFile: '',
-        elapsedMs: 0,
         audioDurationS: 0,
         segmentEndS: 0,
         error: null,
@@ -80,7 +77,6 @@ export const reducer = createReducer(
             ...state.transcription,
             phase: 'transcribing',
             audioDurationS: event.audioDurationS,
-            elapsedMs: 0,
             segmentEndS: 0,
           },
         };
@@ -147,14 +143,6 @@ export const reducer = createReducer(
   ),
 
   on(
-    PipelineActions.transcriptionElapsedTick,
-    (state, { elapsedMs }): PipelineState => ({
-      ...state,
-      transcription: { ...state.transcription, elapsedMs },
-    }),
-  ),
-
-  on(
     PipelineActions.diarizationStarted,
     (state): PipelineState => ({
       ...state,
@@ -194,7 +182,6 @@ export const reducer = createReducer(
         downloadLoaded: 0,
         downloadTotal: 0,
         downloadFile: '',
-        elapsedMs: 0,
         segmentIndex: 0,
         segmentTotal: 0,
         error: null,
@@ -228,7 +215,6 @@ export const reducer = createReducer(
             phase: 'translating',
             segmentTotal: event.total,
             segmentIndex: 0,
-            elapsedMs: 0,
           },
         };
       case 'segment-progress':
@@ -269,14 +255,6 @@ export const reducer = createReducer(
     (state): PipelineState => ({
       ...state,
       translation: { ...state.translation, error: null },
-    }),
-  ),
-
-  on(
-    PipelineActions.translationElapsedTick,
-    (state, { elapsedMs }): PipelineState => ({
-      ...state,
-      translation: { ...state.translation, elapsedMs },
     }),
   ),
 

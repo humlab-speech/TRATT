@@ -50,7 +50,6 @@ describe('pipeline.reducer', () => {
         downloadTotal: 0,
         downloadExpectedBytes: 12345,
         downloadFile: '',
-        elapsedMs: 0,
         audioDurationS: 0,
         segmentEndS: 0,
         error: null,
@@ -78,12 +77,11 @@ describe('pipeline.reducer', () => {
       expect(state.transcription.downloadFile).toBe('model.bin');
     });
 
-    it('transcribe-start sets phase transcribing, audioDurationS, and resets elapsed/segment counters', () => {
+    it('transcribe-start sets phase transcribing, audioDurationS, and resets the segment counter', () => {
       const seeded: PipelineState = {
         ...freshTranscriptionActive(),
         transcription: {
           ...freshTranscriptionActive().transcription,
-          elapsedMs: 999,
           segmentEndS: 5,
         },
       };
@@ -95,7 +93,6 @@ describe('pipeline.reducer', () => {
       );
       expect(state.transcription.phase).toBe('transcribing');
       expect(state.transcription.audioDurationS).toBe(60);
-      expect(state.transcription.elapsedMs).toBe(0);
       expect(state.transcription.segmentEndS).toBe(0);
     });
 
@@ -197,16 +194,6 @@ describe('pipeline.reducer', () => {
     });
   });
 
-  describe('transcriptionElapsedTick', () => {
-    it('writes elapsedMs', () => {
-      const state = reducer(
-        freshTranscriptionActive(),
-        PipelineActions.transcriptionElapsedTick({ elapsedMs: 3000 }),
-      );
-      expect(state.transcription.elapsedMs).toBe(3000);
-    });
-  });
-
   describe('diarizationStarted / diarizationSkipped', () => {
     it('diarizationStarted sets phase to diarizing', () => {
       const state = reducer(
@@ -262,7 +249,6 @@ describe('pipeline.reducer', () => {
         downloadLoaded: 0,
         downloadTotal: 0,
         downloadFile: '',
-        elapsedMs: 0,
         segmentIndex: 0,
         segmentTotal: 0,
         error: null,
@@ -306,7 +292,6 @@ describe('pipeline.reducer', () => {
       expect(state.translation.phase).toBe('translating');
       expect(state.translation.segmentTotal).toBe(10);
       expect(state.translation.segmentIndex).toBe(0);
-      expect(state.translation.elapsedMs).toBe(0);
     });
 
     it('segment-progress writes index/total', () => {
@@ -365,16 +350,6 @@ describe('pipeline.reducer', () => {
         PipelineActions.translationErrorDismissed(),
       );
       expect(state.translation.error).toBeNull();
-    });
-  });
-
-  describe('translationElapsedTick', () => {
-    it('writes elapsedMs', () => {
-      const state = reducer(
-        freshTranslationActive(),
-        PipelineActions.translationElapsedTick({ elapsedMs: 4000 }),
-      );
-      expect(state.translation.elapsedMs).toBe(4000);
     });
   });
 

@@ -119,6 +119,19 @@ async function flushMicrotasks(times = 6): Promise<void> {
 // common, in this pipeline's synchronous multi-event cascades) case where
 // the NEXT event dispatched must not be silently superseded before it's
 // ever delivered.
+//
+// UPDATE (post-review fix): login.component.ts/pipeline-event-mapping.ts no
+// longer throttle the WHOLE mapped-action stream — only pure progress ticks
+// (download-progress/segment-progress) go through pipelineThrottle() at
+// all; every discrete state-transition/terminal action now dispatches
+// immediately (see dispatchPipelineActions()/isThrottleSafeProgressAction()
+// and the "regression: transcriptionFinalized must survive..." test below
+// for why). Most of the flush calls below, inserted for THOSE discrete
+// actions before that fix, are consequently no longer strictly necessary —
+// but are left in place as harmless, already-correct advances (their
+// original comments explain what they were guarding) rather than churned
+// for the sake of it. Only calls guarding an actual download-progress/
+// segment-progress burst still do real work.
 function flushPipelineThrottle(): void {
   jest.advanceTimersByTime(PIPELINE_THROTTLE_MS);
 }
@@ -603,6 +616,70 @@ describe('LoginComponent (pipeline runner characterization)', () => {
   });
 
   // ---------------------------------------------------------------------
+  // Regression (found in review of this task's first pass): on the
+  // skipped-diarization -> chained-translation path, PipelineRunnerService
+  // emits '{stage:"diarization",type:"skipped"}' -> transcriptionFinalized
+  // -> '{stage:"translation",type:"start"}' synchronously, back to back, in
+  // the SAME JS tick. Under a naive "throttle the whole mapped-action
+  // stream" pipe, throttleTime's trailing-only-keeps-the-LAST-value
+  // semantics silently dropped `transcriptionFinalized` (the action that
+  // flips `transcription.active` to `false`) in favor of the
+  // `translationStart` action right behind it. `transcription.active` then
+  // stayed stuck `true` for the rest of the run. Because
+  // `PipelineActions.error`'s reducer case checks `transcription.active`
+  // BEFORE `translation.active`, a LATER translation error got misrouted
+  // into the transcription slice instead of the translation slice — the
+  // translation panel just spun forever with no visible error message.
+  // Fixed by dispatching every discrete state-transition/terminal action
+  // (dispatchPipelineActions()/isThrottleSafeProgressAction() in
+  // pipeline-event-mapping.ts) unthrottled, reserving throttling for pure
+  // download-progress/segment-progress ticks only.
+  // ---------------------------------------------------------------------
+  describe('regression: transcriptionFinalized must survive the skipped-diarization -> chained-translation burst', () => {
+    it('leaves transcription.active false (not stuck true) and routes a later translation error into translation.error, not transcription.error', async () => {
+      const transcribeOpts = makeTranscriptionOptions(); // diarization OFF
+      const translateOpts = { sourceLanguage: 'en', targetLanguage: 'sv' };
+      const dropzone = makeDropzoneStub({
+        transcribeOptions: transcribeOpts,
+        hasAudio: true,
+        translateOptions: translateOpts,
+      });
+      component.dropzone = dropzone as any;
+      const transcriptionSubject = new Subject<TranscriptionEvent>();
+      transcriptionServiceMock.transcribe.mockReturnValue(transcriptionSubject);
+      const translationSubject = new Subject<TranslationEvent>();
+      translationServiceMock.translate.mockReturnValue(translationSubject);
+
+      component.onOfflineSubmit(false);
+      const annotJson = makeAnnotJsonWithSegments();
+      // Fires the exact synchronous burst described above: inner
+      // transcription 'result' -> diarization 'skipped' -> (await) ->
+      // transcriptionFinalized -> translation 'start', all inside this one
+      // next() + microtask flush, with NO jest.advanceTimersByTime() in
+      // between — this is deliberately the worst case (everything lands in
+      // a single throttle window) that the bug required.
+      transcriptionSubject.next({ type: 'result', annotJson });
+      await flushMicrotasks();
+
+      // The actual regression: transcription.active must be false (was
+      // stuck `true` pre-fix) and translation.active must be true — no
+      // flush needed for either, since both dispatch immediately now.
+      expect(component.transcription().active).toBe(false);
+      expect(component.translation().active).toBe(true);
+
+      translationSubject.error(new Error('translation blew up'));
+
+      // The user-visible consequence of the bug: the error must land in
+      // the TRANSLATION slice (transcription.active being falsely `true`
+      // used to route it into the transcription slice instead, where
+      // nothing in the UI ever displayed it).
+      expect(component.translation().error).toBe('translation blew up');
+      expect(component.translation().active).toBe(false);
+      expect(component.transcription().error).toBeNull();
+    });
+  });
+
+  // ---------------------------------------------------------------------
   // Regression: diarizationWarning must be visible for the WHOLE translation
   // phase on the chained path, not just delivered at the very end
   // ---------------------------------------------------------------------
@@ -714,16 +791,13 @@ describe('LoginComponent (pipeline runner characterization)', () => {
       // Advance the phase to 'initializing' before the 30s download budget
       // would fire, which also re-arms the stall timer with the 60s budget.
       subject.next({ type: 'model-init' });
-
-      // The 'model-init' dispatch is still throttled (2nd event in the
-      // window opened by 'translation start'), but the huge advance below —
-      // needed anyway for the stall-timing assertions — flushes it long
-      // before either boundary check, so the phase assertion is simply
-      // moved to occur after that advance instead of needing a brand new,
-      // precisely-sized flush inserted here (which would perturb the
-      // stall-timer's own ms-exact deadline maths below).
-      jest.advanceTimersByTime(TRANSLATION_INIT_STALL_MS - 1);
+      // 'model-init' is a discrete phase-transition action — it bypasses
+      // the throttle entirely (see isThrottleSafeProgressAction()), so it's
+      // visible promptly, right here, not merely "eventually" once the
+      // stall-timing advance below happens to flush it.
       expect(component.translation().phase).toBe('initializing');
+
+      jest.advanceTimersByTime(TRANSLATION_INIT_STALL_MS - 1);
       expect(component.translation().error).toBeNull();
 
       jest.advanceTimersByTime(1);
@@ -773,13 +847,12 @@ describe('LoginComponent (pipeline runner characterization)', () => {
 
       subject.next({ type: 'model-init' });
       subject.next({ type: 'translate-start', total: 4 });
-
-      // Same reasoning as the test above: the big stall-budget advance below
-      // flushes these throttled dispatches long before it completes, so the
-      // phase assertion is simply ordered after it rather than needing its
-      // own new, precisely-sized flush.
-      jest.advanceTimersByTime(TRANSLATION_INIT_STALL_MS);
+      // Both 'model-init' and 'translate-start' are discrete phase-
+      // transition actions — bypass the throttle entirely, visible
+      // promptly right here.
       expect(component.translation().phase).toBe('translating');
+
+      jest.advanceTimersByTime(TRANSLATION_INIT_STALL_MS);
       expect(component.translation().error).toBe(
         'Translation stalled — no progress for 60 seconds. Cancel and retry.',
       );

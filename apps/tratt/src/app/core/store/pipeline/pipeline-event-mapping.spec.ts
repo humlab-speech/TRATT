@@ -11,6 +11,8 @@ import type { OAnnotJSON } from '@tratt/annotation';
 import { map, Subject } from 'rxjs';
 import type { PipelineEvent } from '../../shared/service/pipeline-runner.service';
 import {
+  dispatchPipelineActions,
+  isThrottleSafeProgressAction,
   mapPipelineEventToAction,
   PIPELINE_THROTTLE_MS,
   pipelineThrottle,
@@ -250,5 +252,159 @@ describe('pipelineThrottle — terminal-event-survival (the critical guarantee)'
 
     source.next({ stage: 'diarization', type: 'started' });
     expect(dispatched).toEqual([PipelineActions.diarizationStarted()]);
+  });
+});
+
+describe('isThrottleSafeProgressAction', () => {
+  it('classifies download-progress/segment-progress inner events as throttle-safe', () => {
+    expect(
+      isThrottleSafeProgressAction(
+        PipelineActions.transcriptionEvent({
+          event: { type: 'download-progress', loaded: 1, total: 2, file: 'a' },
+        }),
+      ),
+    ).toBe(true);
+    expect(
+      isThrottleSafeProgressAction(
+        PipelineActions.transcriptionEvent({
+          event: { type: 'segment-progress', segmentEndS: 1 },
+        }),
+      ),
+    ).toBe(true);
+    expect(
+      isThrottleSafeProgressAction(
+        PipelineActions.diarizationEvent({
+          event: { type: 'download-progress', loaded: 1, total: 2, file: 'a' },
+        }),
+      ),
+    ).toBe(true);
+    expect(
+      isThrottleSafeProgressAction(
+        PipelineActions.translationEvent({
+          event: { type: 'download-progress', loaded: 1, total: 2, file: 'a' },
+        }),
+      ),
+    ).toBe(true);
+    expect(
+      isThrottleSafeProgressAction(
+        PipelineActions.translationEvent({
+          event: { type: 'segment-progress', index: 1, total: 2 },
+        }),
+      ),
+    ).toBe(true);
+  });
+
+  it.each([
+    [
+      'transcriptionEvent{transcribe-start}',
+      PipelineActions.transcriptionEvent({
+        event: { type: 'transcribe-start', audioDurationS: 1 },
+      }),
+    ],
+    [
+      'transcriptionEvent{inner result}',
+      PipelineActions.transcriptionEvent({
+        event: { type: 'result', annotJson: {} as any },
+      }),
+    ],
+    [
+      'diarizationEvent{diarize-start}',
+      PipelineActions.diarizationEvent({
+        event: { type: 'diarize-start', audioDurationS: 1 },
+      }),
+    ],
+    [
+      'translationEvent{model-init}',
+      PipelineActions.translationEvent({ event: { type: 'model-init' } }),
+    ],
+    [
+      'translationEvent{translate-start}',
+      PipelineActions.translationEvent({
+        event: { type: 'translate-start', total: 1 },
+      }),
+    ],
+    ['transcriptionFinalized', PipelineActions.transcriptionFinalized({
+      diarizationWarning: null,
+      willTranslate: true,
+    })],
+    ['diarizationStarted', PipelineActions.diarizationStarted()],
+    ['diarizationSkipped', PipelineActions.diarizationSkipped()],
+    ['translationStart', PipelineActions.translationStart()],
+    ['stalled', PipelineActions.stalled({ phase: 'downloading', message: 'x' })],
+    ['result', PipelineActions.result({ diarizationWarning: null })],
+    ['cancelled', PipelineActions.cancelled()],
+  ])('classifies %s as NOT throttle-safe (must bypass)', (_label, action) => {
+    expect(isThrottleSafeProgressAction(action)).toBe(false);
+  });
+});
+
+describe('dispatchPipelineActions — the actual fix for the dropped-transcriptionFinalized regression', () => {
+  beforeEach(() => {
+    jest.useFakeTimers();
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
+  // Reproduces, at the mapping-module level (no Angular/Store involved),
+  // exactly the production sequence that dropped `transcriptionFinalized`
+  // pre-fix: 'diarization skipped' -> `transcriptionFinalized` ->
+  // 'translation start', all emitted synchronously, in the same JS tick,
+  // with zero fake-timer time elapsed in between — the worst case for a
+  // naive whole-stream throttle.
+  it('dispatches transcriptionFinalized immediately even when translationStart follows it synchronously in the same tick', () => {
+    const source = new Subject<PipelineEvent>();
+    const dispatched: Action[] = [];
+    dispatchPipelineActions(source.pipe(map(mapPipelineEventToAction))).subscribe(
+      (action) => dispatched.push(action),
+    );
+
+    source.next({ stage: 'diarization', type: 'skipped' });
+    source.next({
+      stage: 'transcription',
+      type: 'finalized',
+      diarizationWarning: null,
+      willTranslate: true,
+    });
+    source.next({ stage: 'translation', type: 'start' });
+
+    // No jest.advanceTimersByTime() at all — proves none of these three
+    // discrete actions were ever waiting on the throttle in the first
+    // place.
+    expect(dispatched).toEqual([
+      PipelineActions.diarizationSkipped(),
+      PipelineActions.transcriptionFinalized({
+        diarizationWarning: null,
+        willTranslate: true,
+      }),
+      PipelineActions.translationStart(),
+    ]);
+  });
+
+  it('still throttles a genuine download-progress burst to leading+trailing, unaffected by the split', () => {
+    const source = new Subject<PipelineEvent>();
+    const dispatched: Action[] = [];
+    dispatchPipelineActions(source.pipe(map(mapPipelineEventToAction))).subscribe(
+      (action) => dispatched.push(action),
+    );
+
+    for (let i = 1; i <= 10; i++) {
+      source.next({
+        stage: 'transcription',
+        event: { type: 'download-progress', loaded: i, total: 10, file: 'a' },
+      });
+    }
+    // Only the leading value so far — the rest are held in the throttle.
+    expect(dispatched).toHaveLength(1);
+
+    jest.advanceTimersByTime(PIPELINE_THROTTLE_MS);
+    // Leading + trailing (the last of the burst) — never all 10.
+    expect(dispatched).toHaveLength(2);
+    expect(dispatched[1]).toEqual(
+      PipelineActions.transcriptionEvent({
+        event: { type: 'download-progress', loaded: 10, total: 10, file: 'a' },
+      }),
+    );
   });
 });

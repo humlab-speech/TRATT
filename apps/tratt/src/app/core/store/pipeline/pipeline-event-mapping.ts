@@ -1,5 +1,12 @@
 import { Action } from '@ngrx/store';
-import { MonoTypeOperatorFunction, throttleTime } from 'rxjs';
+import {
+  filter,
+  merge,
+  MonoTypeOperatorFunction,
+  Observable,
+  share,
+  throttleTime,
+} from 'rxjs';
 import type { PipelineEvent } from '../../shared/service/pipeline-runner.service';
 import { PipelineActions } from './pipeline.actions';
 
@@ -16,12 +23,29 @@ export const PIPELINE_THROTTLE_MS = 250;
  * The exact throttle configuration this slice requires: `leading: true` so
  * the UI updates immediately on the first event of a burst (no perceived
  * lag), `trailing: true` so the LAST event of a burst is never silently
- * dropped — this is what guarantees a terminal event (result/error/stalled/
- * cancelled) landing inside a throttle window right after a burst of
- * progress events still gets dispatched. See
- * pipeline-event-mapping.spec.ts's "does not drop a terminal event" test,
- * which verifies this empirically against the real operator rather than
- * just trusting `trailing: true`'s documented semantics.
+ * dropped.
+ *
+ * IMPORTANT — this ONLY guarantees the LAST event of a burst survives, not
+ * every state-transition event that happens to land inside one. A
+ * synchronous burst containing e.g. `transcriptionFinalized` followed
+ * immediately (same JS tick, same throttle window) by `translationStart` —
+ * which really happens, since `PipelineRunnerService` emits both
+ * synchronously back to back whenever transcription finishes with
+ * diarization skipped and translation is chained — would silently drop
+ * `transcriptionFinalized` under a NAIVE "throttle everything" pipe: only
+ * `translationStart` (the last value) is kept, `transcriptionFinalized`
+ * (which is what flips `transcription.active` back to `false`) is
+ * discarded, never dispatched. See `pipeline-event-mapping.spec.ts`'s "does
+ * not drop a terminal event" test for the narrower, still-true claim this
+ * operator alone actually backs.
+ *
+ * This is exactly why `pipelineThrottle()` must NEVER be applied
+ * indiscriminately to the whole mapped-action stream — see
+ * `dispatchPipelineActions()` below, which applies it ONLY to the subset of
+ * actions classified as safe-to-throttle progress ticks
+ * (`isThrottleSafeProgressAction()`), and dispatches every other action —
+ * every discrete state transition and terminal outcome — immediately,
+ * unthrottled.
  *
  * Design call (see task-3-report.md for the full writeup): this operator is
  * meant to be applied by whichever caller subscribes to
@@ -36,6 +60,91 @@ export function pipelineThrottle<T>(): MonoTypeOperatorFunction<T> {
     leading: true,
     trailing: true,
   });
+}
+
+/**
+ * Classifies a mapped `PipelineActions` action as safe to throttle (a pure,
+ * high-frequency progress tick that exists only to drive a progress bar —
+ * nothing durable depends on receiving every single one, and dropping an
+ * intermediate one is invisible/harmless) vs. NOT safe to throttle (a
+ * discrete, one-shot state transition or terminal outcome — durable store
+ * state, or which store SLICE an error lands in, depends on every one of
+ * these actually reaching the reducer).
+ *
+ * Only two inner `TranscriptionEvent`/`DiarizationEvent`/`TranslationEvent`
+ * types are true progress ticks: `'download-progress'` (fires many times per
+ * second while a model streams in) and `'segment-progress'` (fires once per
+ * ASR/translation segment). Every other action this module can produce —
+ * including every OTHER inner event type wrapped by `transcriptionEvent`/
+ * `diarizationEvent`/`translationEvent` (`transcribe-start`,
+ * `backend-fallback`, inner `result`, `diarize-start`, `model-init`,
+ * `translate-start`, `segments`) and every top-level action
+ * (`transcriptionFinalized`, `diarizationStarted`, `diarizationSkipped`,
+ * `translationStart`, `stalled`, `result`, `cancelled`) — is a discrete,
+ * one-shot event and must bypass the throttle. Some of these (e.g.
+ * `diarizationSkipped`, `cancelled`) are no-ops in today's reducer, but are
+ * still classified as bypass rather than throttle-safe: they're one-shot by
+ * NATURE (there is exactly one per run, never a rapid stream of them), so
+ * throttling them buys nothing and only adds a class of bug (a later no-op
+ * action silently eating an earlier consequential one in the same window,
+ * exactly like this module's own `transcriptionFinalized`/`translationStart`
+ * collision) for zero benefit.
+ */
+export function isThrottleSafeProgressAction(action: Action): boolean {
+  if (action.type === PipelineActions.transcriptionEvent.type) {
+    const inner = (action as ReturnType<typeof PipelineActions.transcriptionEvent>)
+      .event.type;
+    return inner === 'download-progress' || inner === 'segment-progress';
+  }
+  if (action.type === PipelineActions.diarizationEvent.type) {
+    const inner = (action as ReturnType<typeof PipelineActions.diarizationEvent>)
+      .event.type;
+    return inner === 'download-progress';
+  }
+  if (action.type === PipelineActions.translationEvent.type) {
+    const inner = (action as ReturnType<typeof PipelineActions.translationEvent>)
+      .event.type;
+    return inner === 'download-progress' || inner === 'segment-progress';
+  }
+  return false;
+}
+
+/**
+ * The actual dispatch-ready stream: splits the mapped-action stream in two
+ * (via `filter()`, not the deprecated `partition()` helper, though it's the
+ * same split-and-remerge shape) by `isThrottleSafeProgressAction()`, runs
+ * `pipelineThrottle()` over ONLY the throttle-safe half, and `merge()`s the
+ * untouched discrete/terminal half back in — so every discrete
+ * state-transition/terminal action reaches `store.dispatch` immediately, in
+ * original order, regardless of what's happening in the progress-tick half,
+ * while progress ticks are still capped at ~4Hz. This is what
+ * `login.component.ts` (Task 4) actually subscribes to; it's exported here
+ * (rather than assembled inline in the component) for the same one-tested-
+ * definition reason `pipelineThrottle()` and `mapPipelineEventToAction()`
+ * are.
+ */
+export function dispatchPipelineActions(
+  action$: Observable<Action>,
+): Observable<Action> {
+  // `share()` is load-bearing, not cosmetic: `action$` traces back to
+  // `PipelineRunnerService.run()`'s COLD Observable (it starts the actual
+  // transcribe()/diarize()/translate() work from its subscriber-setup
+  // callback). Splitting it into `immediate$`/`progress$` below and
+  // `merge()`-ing them back together means TWO independent subscribers —
+  // without `share()`, each one would re-subscribe to (and thus re-run) the
+  // whole pipeline from scratch, firing every underlying service call and
+  // every `tap()` side effect (elapsed-time interval setup, navigation)
+  // TWICE. `share()` ensures both partitions observe the SAME single
+  // upstream run.
+  const shared$ = action$.pipe(share());
+  const immediate$ = shared$.pipe(
+    filter((action) => !isThrottleSafeProgressAction(action)),
+  );
+  const progress$ = shared$.pipe(
+    filter(isThrottleSafeProgressAction),
+    pipelineThrottle(),
+  );
+  return merge(immediate$, progress$);
 }
 
 /**

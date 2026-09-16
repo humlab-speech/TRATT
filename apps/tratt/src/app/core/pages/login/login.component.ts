@@ -38,8 +38,8 @@ import { RecordedFileService } from '../../shared/service/recorded-file.service'
 import { RootState } from '../../store';
 import { AuthenticationStoreService } from '../../store/authentication';
 import {
+  dispatchPipelineActions,
   mapPipelineEventToAction,
-  pipelineThrottle,
 } from '../../store/pipeline/pipeline-event-mapping';
 import { PipelineActions } from '../../store/pipeline/pipeline.actions';
 import {
@@ -261,21 +261,24 @@ I just want to let you know, that the OCTRA server is currently offline.
   // unthrottled — used only for the handful of concerns that must never be
   // delayed/collapsed (elapsed-time bookkeeping, and the terminal
   // navigation side effect). `map(mapPipelineEventToAction)` +
-  // `pipelineThrottle()` (Task 3's tested pair) is what actually reaches
-  // the store, at ~4Hz, so a real-time stream of progress events can't
-  // flood the reducer/change detection.
+  // `dispatchPipelineActions()` (Task 3's tested trio, the last one added
+  // to fix a real bug — see its own doc comment) is what actually reaches
+  // the store: discrete state-transition/terminal actions dispatch
+  // immediately, every time, while only pure progress ticks
+  // (download-progress/segment-progress) are capped at ~4Hz, so a real-time
+  // stream of progress events can't flood the reducer/change detection
+  // without ever being able to silently drop something like
+  // `transcriptionFinalized`.
   private _runPipeline(input: PipelineInput): void {
-    this._pipelineSub = this.pipelineRunnerService
-      .run(input)
-      .pipe(
+    this._pipelineSub = dispatchPipelineActions(
+      this.pipelineRunnerService.run(input).pipe(
         tap((event: PipelineEvent) => this._onRawPipelineEvent(event)),
         map(mapPipelineEventToAction),
-        pipelineThrottle(),
-      )
-      .subscribe({
-        next: (action) => this.store.dispatch(action),
-        error: (err: Error) => this._onPipelineError(err),
-      });
+      ),
+    ).subscribe({
+      next: (action) => this.store.dispatch(action),
+      error: (err: Error) => this._onPipelineError(err),
+    });
   }
 
   private _onRawPipelineEvent(event: PipelineEvent): void {

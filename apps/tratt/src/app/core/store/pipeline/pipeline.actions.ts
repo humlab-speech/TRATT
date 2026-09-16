@@ -8,7 +8,7 @@ import type { TranslationEvent } from '../../shared/service/local-translation.se
  * `PipelineRunnerService`'s real `PipelineEvent` union (Task 2's shipped
  * shape — NOT the master plan's illustrative sketch) plus a small number of
  * UI-only, non-`PipelineEvent` actions (`transcriptionStart`,
- * `*Cancelled`, `*ErrorDismissed`, `*ElapsedTick`) that mirror
+ * `*Cancelled`, `*ErrorDismissed`) that mirror
  * `login.component.ts`'s own synchronous, component-initiated resets (the
  * pre-run reset before `pipelineRunnerService.run()` is even called, and the
  * cancel/dismiss button handlers) — these never arrive as `PipelineEvent`s,
@@ -61,15 +61,6 @@ export class PipelineActions {
     '[Pipeline] transcription error dismissed',
   );
 
-  // Local 1s-tick display timer — mirrors the component's own
-  // `setInterval(... elapsedMs = Date.now() - start ...)`. Optional for
-  // Task 4 to use; included so `elapsedMs` has a well-defined way to reach
-  // the store if Task 4 chooses to move the interval there too.
-  static transcriptionElapsedTick = createAction(
-    '[Pipeline] transcription elapsed tick',
-    props<{ elapsedMs: number }>(),
-  );
-
   // Wraps `{stage:'diarization', type:'started'}`.
   static diarizationStarted = createAction('[Pipeline] diarization started');
 
@@ -101,11 +92,6 @@ export class PipelineActions {
   // Mirrors `dismissTranslationError()`'s non-active branch.
   static translationErrorDismissed = createAction(
     '[Pipeline] translation error dismissed',
-  );
-
-  static translationElapsedTick = createAction(
-    '[Pipeline] translation elapsed tick',
-    props<{ elapsedMs: number }>(),
   );
 
   // Wraps `{stage:'pipeline', type:'stalled', phase, message}`. Today's
