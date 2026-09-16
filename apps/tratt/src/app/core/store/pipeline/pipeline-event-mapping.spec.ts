@@ -407,4 +407,84 @@ describe('dispatchPipelineActions — the actual fix for the dropped-transcripti
       }),
     );
   });
+
+  // Regression for the SECOND bug found in review (the first fix, which
+  // composed pipelineThrottle() via filter()+merge() into two independently
+  // subscribed branches, traded the original dropping bug for THIS
+  // reordering bug): a throttled trailing progress tick, still pending when
+  // a later bypass action arrives, must be flushed BEFORE that bypass
+  // action — never after it. `merge()` cannot provide that guarantee, since
+  // its two source branches emit independently of one another; only a
+  // single, order-preserving subscription (what dispatchPipelineActions()
+  // is now built as) can.
+  it('flushes a pending progress tick BEFORE a bypass action that arrives right after it, never after (transcription slice)', () => {
+    const source = new Subject<PipelineEvent>();
+    const dispatched: Action[] = [];
+    dispatchPipelineActions(source.pipe(map(mapPipelineEventToAction))).subscribe(
+      (action) => dispatched.push(action),
+    );
+
+    // Ordinary production timing: a download-progress burst immediately
+    // (same tick, zero time elapsed) followed by transcribe-start once the
+    // download finishes and transcription actually begins.
+    for (let i = 1; i <= 5; i++) {
+      source.next({
+        stage: 'transcription',
+        event: { type: 'download-progress', loaded: i, total: 5, file: 'a' },
+      });
+    }
+    source.next({
+      stage: 'transcription',
+      event: { type: 'transcribe-start', audioDurationS: 10 },
+    });
+
+    // download-progress(1) was the leading edge (emitted immediately);
+    // download-progress(5) was still pending (held by the throttle) when
+    // transcribe-start arrived — it must be flushed FIRST, so
+    // transcribe-start is the LAST action in the sequence, not sandwiched
+    // before a stale trailing progress tick that would otherwise reset
+    // `transcription.phase` back to 'downloading' in the reducer.
+    expect(dispatched).toEqual([
+      PipelineActions.transcriptionEvent({
+        event: { type: 'download-progress', loaded: 1, total: 5, file: 'a' },
+      }),
+      PipelineActions.transcriptionEvent({
+        event: { type: 'download-progress', loaded: 5, total: 5, file: 'a' },
+      }),
+      PipelineActions.transcriptionEvent({
+        event: { type: 'transcribe-start', audioDurationS: 10 },
+      }),
+    ]);
+  });
+
+  it('flushes a pending progress tick BEFORE a bypass action that arrives right after it, never after (translation slice)', () => {
+    const source = new Subject<PipelineEvent>();
+    const dispatched: Action[] = [];
+    dispatchPipelineActions(source.pipe(map(mapPipelineEventToAction))).subscribe(
+      (action) => dispatched.push(action),
+    );
+
+    source.next({ stage: 'translation', type: 'start' });
+    for (let i = 1; i <= 5; i++) {
+      source.next({
+        stage: 'translation',
+        event: { type: 'download-progress', loaded: i, total: 5, file: 'b' },
+      });
+    }
+    source.next({
+      stage: 'translation',
+      event: { type: 'model-init' },
+    });
+
+    expect(dispatched).toEqual([
+      PipelineActions.translationStart(),
+      PipelineActions.translationEvent({
+        event: { type: 'download-progress', loaded: 1, total: 5, file: 'b' },
+      }),
+      PipelineActions.translationEvent({
+        event: { type: 'download-progress', loaded: 5, total: 5, file: 'b' },
+      }),
+      PipelineActions.translationEvent({ event: { type: 'model-init' } }),
+    ]);
+  });
 });

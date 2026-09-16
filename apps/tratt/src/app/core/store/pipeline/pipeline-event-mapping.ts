@@ -1,12 +1,5 @@
 import { Action } from '@ngrx/store';
-import {
-  filter,
-  merge,
-  MonoTypeOperatorFunction,
-  Observable,
-  share,
-  throttleTime,
-} from 'rxjs';
+import { MonoTypeOperatorFunction, Observable, throttleTime } from 'rxjs';
 import type { PipelineEvent } from '../../shared/service/pipeline-runner.service';
 import { PipelineActions } from './pipeline.actions';
 
@@ -40,12 +33,19 @@ export const PIPELINE_THROTTLE_MS = 250;
  * operator alone actually backs.
  *
  * This is exactly why `pipelineThrottle()` must NEVER be applied
- * indiscriminately to the whole mapped-action stream — see
- * `dispatchPipelineActions()` below, which applies it ONLY to the subset of
+ * indiscriminately to the whole mapped-action stream. `dispatchPipelineActions()`
+ * below needs the ~4Hz cap this operator provides ONLY for the subset of
  * actions classified as safe-to-throttle progress ticks
- * (`isThrottleSafeProgressAction()`), and dispatches every other action —
- * every discrete state transition and terminal outcome — immediately,
- * unthrottled.
+ * (`isThrottleSafeProgressAction()`) — but it does NOT compose this operator
+ * via `filter()`+`merge()` the way an earlier version of this file did.
+ * Splitting the stream into two independently-subscribed branches and
+ * merging them back together introduces a SECOND bug on top of the
+ * dropping one this operator's own docs warn about: a throttled progress
+ * tick held in the "safe" branch can be emitted by `merge()` AFTER a
+ * bypass action that arrived later on the source but skipped the throttle
+ * entirely — reordering the output relative to the input. See
+ * `dispatchPipelineActions()`'s own doc comment for the single-subscription,
+ * order-preserving design that replaces that approach.
  *
  * Design call (see task-3-report.md for the full writeup): this operator is
  * meant to be applied by whichever caller subscribes to
@@ -110,41 +110,124 @@ export function isThrottleSafeProgressAction(action: Action): boolean {
 }
 
 /**
- * The actual dispatch-ready stream: splits the mapped-action stream in two
- * (via `filter()`, not the deprecated `partition()` helper, though it's the
- * same split-and-remerge shape) by `isThrottleSafeProgressAction()`, runs
- * `pipelineThrottle()` over ONLY the throttle-safe half, and `merge()`s the
- * untouched discrete/terminal half back in — so every discrete
- * state-transition/terminal action reaches `store.dispatch` immediately, in
- * original order, regardless of what's happening in the progress-tick half,
- * while progress ticks are still capped at ~4Hz. This is what
- * `login.component.ts` (Task 4) actually subscribes to; it's exported here
- * (rather than assembled inline in the component) for the same one-tested-
- * definition reason `pipelineThrottle()` and `mapPipelineEventToAction()`
- * are.
+ * The actual dispatch-ready stream. A SINGLE subscription to `action$`
+ * (unlike an earlier version of this function, which subscribed twice via
+ * `filter()`+`merge()` — see `pipelineThrottle()`'s doc comment for why
+ * that reordered output relative to input) drives a small state machine
+ * that holds at most one pending throttle-safe ("progress-tick") action at
+ * a time, on its own short timer:
+ *
+ * - A throttle-safe action arriving while nothing is pending is emitted
+ *   immediately (the "leading" edge) and arms a `PIPELINE_THROTTLE_MS`
+ *   cooldown timer.
+ * - A throttle-safe action arriving while the cooldown timer is still
+ *   running REPLACES whatever was pending (only the latest survives —
+ *   intermediate progress values are still safe to collapse; that's the
+ *   whole point of throttling them).
+ * - A NOT-throttle-safe ("bypass") action FLUSHES any pending throttle-safe
+ *   action first (emitting it, since it arrived earlier on the source and
+ *   must not be reordered behind something that arrived later), then emits
+ *   itself immediately. This is the fix for the reordering bug: a stale
+ *   trailing `download-progress` can never land after a `transcribe-start`
+ *   that logically followed it, because bypass actions always drain the
+ *   pending slot before emitting.
+ * - When the cooldown timer fires with something still pending, that
+ *   pending action is flushed (the "trailing" edge), and a new cooldown
+ *   timer starts — so a continuous progress-tick stream still never
+ *   exceeds ~4Hz.
+ * - On source completion (or error), any pending action is flushed before
+ *   forwarding the completion/error, so nothing pending is ever silently
+ *   lost even if the run ends mid-window.
+ *
+ * This keeps everything to ONE subscription against `action$` (so, unlike
+ * the `filter()`+`merge()` version, there's no need for `share()` either —
+ * `action$` traces back to `PipelineRunnerService.run()`'s COLD Observable,
+ * and a single subscriber here means it only ever runs once) and guarantees
+ * the output is always a strict subsequence-preserving reordering of the
+ * input: nothing is ever dropped (the original bug), and nothing is ever
+ * emitted out of the order it arrived in (the bug this replaces).
+ *
+ * This is what `login.component.ts` (Task 4) actually subscribes to; it's
+ * exported here (rather than assembled inline in the component) for the
+ * same one-tested-definition reason `pipelineThrottle()` and
+ * `mapPipelineEventToAction()` are.
  */
 export function dispatchPipelineActions(
   action$: Observable<Action>,
 ): Observable<Action> {
-  // `share()` is load-bearing, not cosmetic: `action$` traces back to
-  // `PipelineRunnerService.run()`'s COLD Observable (it starts the actual
-  // transcribe()/diarize()/translate() work from its subscriber-setup
-  // callback). Splitting it into `immediate$`/`progress$` below and
-  // `merge()`-ing them back together means TWO independent subscribers —
-  // without `share()`, each one would re-subscribe to (and thus re-run) the
-  // whole pipeline from scratch, firing every underlying service call and
-  // every `tap()` side effect (elapsed-time interval setup, navigation)
-  // TWICE. `share()` ensures both partitions observe the SAME single
-  // upstream run.
-  const shared$ = action$.pipe(share());
-  const immediate$ = shared$.pipe(
-    filter((action) => !isThrottleSafeProgressAction(action)),
-  );
-  const progress$ = shared$.pipe(
-    filter(isThrottleSafeProgressAction),
-    pipelineThrottle(),
-  );
-  return merge(immediate$, progress$);
+  return new Observable<Action>((subscriber) => {
+    let pending: Action | null = null;
+    let timerId: ReturnType<typeof setTimeout> | null = null;
+
+    const clearTimer = (): void => {
+      if (timerId !== null) {
+        clearTimeout(timerId);
+        timerId = null;
+      }
+    };
+
+    // Emits whatever's pending (if anything) and clears the timer. Used
+    // both for an out-of-order flush (a bypass action, or completion) and
+    // for the timer's own trailing-edge fire.
+    const flushPending = (): void => {
+      clearTimer();
+      if (pending !== null) {
+        const action = pending;
+        pending = null;
+        subscriber.next(action);
+      }
+    };
+
+    const armTimer = (): void => {
+      clearTimer();
+      timerId = setTimeout(() => {
+        timerId = null;
+        // Trailing edge: emit whatever accumulated during the cooldown (if
+        // anything), then re-arm so a continuous progress-tick stream still
+        // can't exceed one emission per PIPELINE_THROTTLE_MS.
+        if (pending !== null) {
+          const action = pending;
+          pending = null;
+          subscriber.next(action);
+          armTimer();
+        }
+      }, PIPELINE_THROTTLE_MS);
+    };
+
+    const subscription = action$.subscribe({
+      next: (action) => {
+        if (!isThrottleSafeProgressAction(action)) {
+          // Bypass action: flush any earlier-arrived, still-pending
+          // progress tick FIRST — preserving input order — then emit this
+          // one immediately.
+          flushPending();
+          subscriber.next(action);
+          return;
+        }
+        if (timerId === null) {
+          // Leading edge of a fresh cooldown window.
+          subscriber.next(action);
+          armTimer();
+        } else {
+          // Still cooling down — hold as the latest pending value.
+          pending = action;
+        }
+      },
+      error: (err) => {
+        flushPending();
+        subscriber.error(err);
+      },
+      complete: () => {
+        flushPending();
+        subscriber.complete();
+      },
+    });
+
+    return () => {
+      clearTimer();
+      subscription.unsubscribe();
+    };
+  });
 }
 
 /**
