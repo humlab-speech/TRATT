@@ -47,13 +47,16 @@ export const PIPELINE_THROTTLE_MS = 250;
  * `dispatchPipelineActions()`'s own doc comment for the single-subscription,
  * order-preserving design that replaces that approach.
  *
- * Design call (see task-3-report.md for the full writeup): this operator is
- * meant to be applied by whichever caller subscribes to
- * `PipelineRunnerService.run()` and dispatches the mapped actions — today
- * that's `login.component.ts` (Task 4), applied inline in its own
- * `.subscribe()`, not inside an NgRx effect. Exported here (rather than
- * defined inline in the component) purely so it has ONE tested definition
- * instead of being re-typed at the call site.
+ * NOT used by production code as of Task 4's fix round 2 — `login.component.ts`
+ * subscribes to `dispatchPipelineActions()` below instead, which reimplements
+ * order-preserving throttling by hand rather than composing this operator via
+ * `filter()`+`merge()` (that composition is exactly what reordered output
+ * relative to input; see `dispatchPipelineActions()`'s own doc comment).
+ * Kept, exported, and still under test here anyway: it's the smallest
+ * possible demonstration of `throttleTime`'s own `{leading,trailing}`
+ * survival guarantee in isolation — the specific property the rest of this
+ * module's design had to work around — and that guarantee is worth pinning
+ * on its own regardless of which production code path currently composes it.
  */
 export function pipelineThrottle<T>(): MonoTypeOperatorFunction<T> {
   return throttleTime<T>(PIPELINE_THROTTLE_MS, undefined, {
@@ -133,19 +136,27 @@ export function isThrottleSafeProgressAction(action: Action): boolean {
  *   pending slot before emitting.
  * - When the cooldown timer fires with something still pending, that
  *   pending action is flushed (the "trailing" edge), and a new cooldown
- *   timer starts — so a continuous progress-tick stream still never
- *   exceeds ~4Hz.
+ *   timer starts — so a continuous, uninterrupted progress-tick stream still
+ *   never exceeds ~4Hz. Note a bypass action also clears the cooldown timer
+ *   (it must, to flush synchronously) — so bypass actions interleaved with
+ *   progress ticks reset the ~4Hz window each time. Not reachable in
+ *   practice: every bypass-class action is one-shot per pipeline run, never
+ *   interleaved per-tick with progress events.
  * - On source completion (or error), any pending action is flushed before
- *   forwarding the completion/error, so nothing pending is ever silently
- *   lost even if the run ends mid-window.
+ *   forwarding the completion/error, so nothing pending is silently lost
+ *   even if the run ends mid-window. (An external `unsubscribe()` — not a
+ *   source completion — does discard a still-pending action; that's normal
+ *   Observable teardown semantics, not a gap this design claims to close.)
  *
  * This keeps everything to ONE subscription against `action$` (so, unlike
  * the `filter()`+`merge()` version, there's no need for `share()` either —
  * `action$` traces back to `PipelineRunnerService.run()`'s COLD Observable,
- * and a single subscriber here means it only ever runs once) and guarantees
- * the output is always a strict subsequence-preserving reordering of the
- * input: nothing is ever dropped (the original bug), and nothing is ever
- * emitted out of the order it arrived in (the bug this replaces).
+ * and a single subscriber here means it only ever runs once). The output is
+ * an order-preserving subsequence of the input: every bypass action and
+ * every terminal/state-transition action always reaches the subscriber,
+ * always in arrival order; only intermediate throttle-safe progress ticks
+ * may be collapsed (the whole point of throttling them) — never dropped
+ * entirely, never reordered.
  *
  * This is what `login.component.ts` (Task 4) actually subscribes to; it's
  * exported here (rather than assembled inline in the component) for the
