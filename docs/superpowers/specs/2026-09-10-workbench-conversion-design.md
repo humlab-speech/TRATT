@@ -545,3 +545,62 @@ safe today only because both real call sites (`startSession()`, `completeReattac
 store state immediately after changing residency — a future code path that changes audio residency
 without a subsequent store write would render stale until something else the `computed()` actually
 depends on changes. Worth revisiting if that assumption is ever violated.
+
+## Step 2.9 shipped shape (2026-09-16) — the final step of Phase 2
+
+This step turned out much smaller than the original conversion plan's one-line "second ingest path...
+through the same BundleService" wording implied — there is no `BundleService` anywhere in this codebase
+(false at every prior step of this conversion effort too), and no new bundle-creation logic was needed
+at all. `TrattDropzoneComponent` already had a `public addFile(file: File): void` method whose doc
+comment literally anticipated this exact integration ("Stage a programmatically supplied file (e.g.
+from the recording panel)"), unused until now. The whole step was: mount the existing
+`RecordingPanelComponent` (its recovery banner for interrupted recordings comes along for free, nested
+in its own template) inside `WorkbenchComponent`'s left rail, behind an `ngbNav` upload/record tab pair
+— reusing `login.component.html`'s own existing tab pattern byte-for-byte, including
+`[destroyOnHide]="false"`, which was necessary and independently verified (against actual
+`@ng-bootstrap` source, not just asserted) to keep `<tratt-dropzone>` structurally present in the DOM
+regardless of which tab is active — `WorkbenchComponent`'s existing `@ViewChild(TrattDropzoneComponent)`
+would otherwise silently go `undefined` while the record tab is active, breaking `startSession()` and
+everything else that depends on it. `onUseRecording(file)` mirrors `login.component.ts`'s existing
+handler exactly: `recordedFileService.recordedFile = file; dropzone?.addFile(file);`, switching back to
+the upload tab afterward so the user immediately sees the recording land in the pending-file list. From
+that point on, a recorded file is indistinguishable from a dropped one — it flows through step 2.7's
+existing sequential-decode pipeline and gets a real per-entry bundle id from `startSession()`'s existing
+loop, with zero new code needed for any of that.
+
+`RecordingService`/`RecordingPersistenceService`/the separate `tratt-recordings` Dexie database (chunk
+persistence during an in-progress recording, crash/interruption recovery) were not touched and remain
+exactly as they were — this step only connects their existing output to the bundle system, matching the
+plan's own scope boundary.
+
+**Deliberately inherited limitation, not new**: recording remains a pre-session ingest path only,
+exactly like dropping a file — `startSession()` is still a single-shot gesture (step 2.7's own explicit
+scope boundary), so a recording made *after* a session has already started stages into the dropzone the
+same way a mid-session file drop would (reachable on the next full session start, not immediately live).
+
+**Navigation-guard investigation (Task 2), no change needed**: neither `/workbench` nor the legacy
+`/local` has ever had real router-level `canDeactivate` protection against navigating away with an
+unsaved recording — `login.deactivateguard.ts`/`ComponentCanDeactivate` exist in the codebase but are
+dead code, registered in `main.ts`'s DI providers but never wired into any route's `canDeactivate` array
+(confirmed zero hits across `app.routes.ts`), and even if they were, `LoginComponent.canDeactivate()`
+checks login-form validity, not recording state, so it was never the right mechanism for this concern
+anyway. The only real protection anywhere in the app is explicit in-app calls to
+`RecordedFileService.checkUnsaved()` — from `WorkbenchComponent.abortTranscription()` (pre-existing) and
+the shared navbar's `logout()` (mounted app-wide via the root shell, `app.component.html`) — both
+already reachable from `/workbench`, so no disparity with the legacy page existed to begin with.
+
+One real, but explicitly out-of-scope-for-this-step, gap surfaced during that investigation and worth
+tracking separately: during the pre-session window specifically (a recording is staged via the record
+tab, but `startSession()` hasn't run yet), NEITHER guarded exit is even rendered —
+`abortTranscription()`'s button lives behind `@if (sessionReady)`, and the navbar's profile
+dropdown containing `logout()` lives behind `@if (appStorage.loggedIn && ...)`, and `loggedIn` only
+flips true once `startSession()` completes. In that specific window, browser back/forward or a direct
+URL edit is genuinely uncaught — but this is confirmed identical on `/local` today (which mounts the
+same recording panel, the same pre-session way, via `login.component.html`), so it is not a
+`/workbench`-specific regression this step introduced; it is a pre-existing, universal gap, unrelated to
+routing, that a future step could close (e.g. a `beforeunload` handler, or making the guard checks
+apply during the pre-session window too) if it ever turns out to matter in practice.
+
+**Phase 2 ("Collection") is now complete** — steps 2.1 through 2.9 have all landed, reviewed, and (where
+findings warranted it) fixed and re-reviewed. Phase 3 ("pipeline and capacity," per the master plan's
+own phase breakdown) is next.
