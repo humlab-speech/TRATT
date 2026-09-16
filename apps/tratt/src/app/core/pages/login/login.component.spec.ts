@@ -680,8 +680,12 @@ describe('LoginComponent (pipeline runner characterization)', () => {
   });
 
   // ---------------------------------------------------------------------
-  // Regression: diarizationWarning must be visible for the WHOLE translation
-  // phase on the chained path, not just delivered at the very end
+  // Regression: diarizationWarning's underlying STORE STATE must be set
+  // before translation events start arriving on the chained path, not just
+  // delivered at the very end (matching the old code's write timing exactly
+  // — the banner's own template gate separately makes it unrenderable
+  // during translation in both the old and new code, a different,
+  // pre-existing bug this test doesn't cover; see the design doc)
   // ---------------------------------------------------------------------
   describe('diarization failure while chaining to translation', () => {
     it('sets diarizationWarning BEFORE translation events start arriving, not just after the pipeline finally resolves', async () => {

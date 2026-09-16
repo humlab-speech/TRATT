@@ -43,10 +43,17 @@ export type PipelineEvent =
   // `{stage:'pipeline', type:'result'}` event) so a consumer can surface it
   // immediately — on the chained transcribe->translate path, the old
   // component code set `this.diarizationWarning` at this exact point, well
-  // before translation (which can take minutes) even starts, so the warning
-  // banner was visible for the whole translation phase. Delivering it only
-  // on the final `result` event would mean it arrives the instant before
-  // the pipeline navigates away, effectively never shown. `willTranslate`
+  // before translation (which can take minutes) even starts. This preserves
+  // that store-write TIMING exactly (matching the zero-behavior-change bar),
+  // not the banner's actual on-screen visibility — the banner's own template
+  // gate (`login.component.html`) already unmounts it the instant
+  // `transcription.active` goes false, which happens at this same point, so
+  // it was never actually renderable during translation in either the old
+  // code or this one. That's a separate, pre-existing UI bug, not something
+  // this fix creates or closes — see the design doc's step-3a notes.
+  // Delivering the warning only on the final `result` event (the bug this
+  // replaced) would additionally have meant the underlying STATE arrived the
+  // instant before the pipeline navigates away. `willTranslate`
   // lets the consumer decide the same phase transition
   // (`transcription.phase = 'idle'`) the original code made from the SAME
   // captured `translateOptions` value the service already used to decide
