@@ -1,10 +1,42 @@
 <div class="workbench">
   <div class="workbench__left">
-    <tratt-dropzone
-      height="180px"
-      [showAutoTranscribe]="true"
-      [allowMultipleAudio]="true"
-    ></tratt-dropzone>
+    <ul
+      ngbNav
+      #workbenchNav="ngbNav"
+      [(activeId)]="activeTab"
+      [destroyOnHide]="false"
+      class="nav-tabs"
+    >
+      <li [ngbNavItem]="'upload'">
+        <button ngbNavLink type="button">
+          <i class="bi bi-folder2-open me-1"></i>
+          {{ 'workbench.tabs.upload' | transloco }}
+        </button>
+        <ng-template ngbNavContent>
+          <div class="pt-2">
+            <tratt-dropzone
+              height="180px"
+              [showAutoTranscribe]="true"
+              [allowMultipleAudio]="true"
+            ></tratt-dropzone>
+          </div>
+        </ng-template>
+      </li>
+      <li [ngbNavItem]="'record'">
+        <button ngbNavLink type="button">
+          <i class="bi bi-mic-fill me-1"></i>
+          {{ 'workbench.tabs.record' | transloco }}
+        </button>
+        <ng-template ngbNavContent>
+          <div class="pt-2">
+            <tratt-recording-panel
+              (useRecording)="onUseRecording($event)"
+            ></tratt-recording-panel>
+          </div>
+        </ng-template>
+      </li>
+    </ul>
+    <div [ngbNavOutlet]="workbenchNav"></div>
     @if (sessionReady || hasAnyBundles()) {
       <!-- Lets the user switch between bundles that already exist: either
            created by the one startSession() call at session start, or

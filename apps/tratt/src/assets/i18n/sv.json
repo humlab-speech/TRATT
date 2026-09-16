@@ -730,6 +730,10 @@
   },
   "workbench": {
     "start session": "Starta session",
+    "tabs": {
+      "upload": "Ladda upp fil",
+      "record": "Spela in nu"
+    },
     "bundle_list": {
       "title": "Filer",
       "reattach": "Bifoga fil…"

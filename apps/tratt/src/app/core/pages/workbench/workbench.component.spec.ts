@@ -30,6 +30,23 @@ jest.mock('../../component/bundle-list/bundle-list.component', () => {
   return { BundleListComponent };
 });
 
+// recording-panel.component.ts injects RecordingService/RecordingPersistenceService
+// (IndexedDB + MediaRecorder-backed), neither of which this bare TestBed provides,
+// and its ngOnInit calls persistence.pruneOlderThan/refreshRecoverable immediately.
+// This spec only needs WorkbenchComponent.onUseRecording()'s wiring and the panel's
+// mere presence in the template — not its internal recording behavior (that's
+// recording-panel.component.spec.ts's job) — so stub it out with a minimal
+// standalone stand-in exposing the one `(useRecording)` output, same
+// rationale/pattern as the tratt-dropzone/bundle-list mocks above.
+jest.mock('../../component/recording-panel/recording-panel.component', () => {
+  const { Component, EventEmitter, Output } = require('@angular/core');
+  @Component({ selector: 'tratt-recording-panel', template: '' })
+  class RecordingPanelComponent {
+    @Output() useRecording = new EventEmitter();
+  }
+  return { RecordingPanelComponent };
+});
+
 // WorkbenchComponent imports editorComponents (for changeEditor), which pulls in
 // 2D-editor/dictaphone-editor/linear-editor. Those import TranscrEditorComponent from
 // the core/component barrel, which re-exports navbar.component.ts ->
@@ -256,6 +273,58 @@ describe('WorkbenchComponent', () => {
     // resolves correctly for the ordinary (N=1) case too.
     expect(audioBundleIds[0]).toBe(DEFAULT_BUNDLE_ID);
     expect(reset).toHaveBeenCalled();
+  });
+
+  // Task 1 (step 2.9): mounting the recording panel and wiring its
+  // (useRecording) output into the existing addFile()/recordedFileService
+  // handoff, mirroring login.component.ts's onUseRecording() exactly.
+  describe('onUseRecording', () => {
+    it('sets recordedFileService.recordedFile and stages the file on the dropzone', () => {
+      fixture.detectChanges();
+      const addFile = jest.fn();
+      component.dropzone = { addFile } as any;
+      const recordedFileService = TestBed.inject(RecordedFileService) as any;
+      const file = new File(['content'], 'recording.wav');
+
+      component.onUseRecording(file);
+
+      expect(recordedFileService.recordedFile).toBe(file);
+      expect(addFile).toHaveBeenCalledWith(file);
+    });
+
+    it('does not throw when the dropzone ViewChild is not yet resolved', () => {
+      fixture.detectChanges();
+      component.dropzone = undefined;
+      const file = new File(['content'], 'recording.wav');
+
+      expect(() => component.onUseRecording(file)).not.toThrow();
+    });
+  });
+
+  it('mounts tratt-recording-panel in the template', () => {
+    fixture.detectChanges();
+
+    const recordingPanel = fixture.debugElement.query(
+      By.css('tratt-recording-panel'),
+    );
+    expect(recordingPanel).toBeTruthy();
+  });
+
+  // Guards against the ViewChild pitfall called out in the task brief: if the
+  // recording panel is surfaced via an @if-gated tab/toggle that removes
+  // <tratt-dropzone> from the DOM while the "record" pane is active, the
+  // `@ViewChild(TrattDropzoneComponent) dropzone` query resolves to
+  // `undefined` while hidden, breaking startSession() and onUseRecording()
+  // alike — not just the new code. This must stay resolved regardless of
+  // which pane the UI is currently emphasizing.
+  it('keeps the dropzone ViewChild resolved regardless of which tab/pane is active', () => {
+    fixture.detectChanges();
+    expect(component.dropzone).toBeTruthy();
+
+    (component as any).activeTab = 'record';
+    fixture.detectChanges();
+
+    expect(component.dropzone).toBeTruthy();
   });
 
   it('creates the selected editor component inside the loadeditor viewContainerRef', () => {

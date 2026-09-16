@@ -9,7 +9,7 @@ import {
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { TranslocoPipe } from '@jsverse/transloco';
-import { NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
+import { NgbModalRef, NgbNavModule } from '@ng-bootstrap/ng-bootstrap';
 import { Store } from '@ngrx/store';
 import { AnnotJSONConverter, Converter } from '@tratt/annotation';
 import { timer } from 'rxjs';
@@ -19,6 +19,7 @@ import { TRATTEditor } from '../../../editors/tratt-editor';
 import { BundleListComponent } from '../../component/bundle-list/bundle-list.component';
 import { DefaultComponent } from '../../component/default.component';
 import { NavbarService } from '../../component/navbar/navbar.service';
+import { RecordingPanelComponent } from '../../component/recording-panel/recording-panel.component';
 import { FastbarComponent } from '../../component/taskbar/taskbar.component';
 import { TrattDropzoneComponent } from '../../component/tratt-dropzone/tratt-dropzone.component';
 import { OverviewModalComponent } from '../../modals/overview-modal/overview-modal.component';
@@ -59,15 +60,28 @@ import {
   imports: [
     TrattDropzoneComponent,
     BundleListComponent,
+    RecordingPanelComponent,
     TranslocoPipe,
     FastbarComponent,
     LoadeditorDirective,
     FormsModule,
+    NgbNavModule,
   ],
 })
 export class WorkbenchComponent extends DefaultComponent implements OnInit {
   @ViewChild(TrattDropzoneComponent) dropzone?: TrattDropzoneComponent;
   @ViewChild(LoadeditorDirective) showEditor?: LoadeditorDirective;
+
+  // Toggles which left-rail pane (drop-zone file list vs. recording panel) is
+  // emphasized. Both are template siblings rendered inside an ngbNav with
+  // `[destroyOnHide]="false"` (same pattern as login.component.html's own
+  // upload/record tabs) — the inactive pane is only hidden by ngb-nav's CSS,
+  // never structurally removed via `@if`, so <tratt-dropzone> stays in the
+  // DOM and `@ViewChild(TrattDropzoneComponent) dropzone` above stays
+  // resolved no matter which tab is active. See workbench.component.spec.ts's
+  // "keeps the dropzone ViewChild resolved regardless of which tab/pane is
+  // active" test.
+  activeTab: 'upload' | 'record' = 'upload';
 
   sessionStarting = false;
   sessionReady = false;
@@ -227,6 +241,19 @@ export class WorkbenchComponent extends DefaultComponent implements OnInit {
 
     this.authStoreService.loginLocal(files, annotation, removeData, audioBundleIds);
     this.dropzone!.reset();
+  }
+
+  // Mirrors login.component.ts's onUseRecording() exactly (the only other
+  // mount point for RecordingPanelComponent's (useRecording) output): stage
+  // the finished recording as a plain File on the dropzone's pending-file
+  // list via its existing addFile() method, and record it on
+  // RecordedFileService so the rest of the app (e.g. the "export recording"
+  // button) can find it later. Then switch back to the upload tab so the
+  // user immediately sees the recording land in the dropzone's list.
+  onUseRecording(file: File): void {
+    this.recordedFileService.recordedFile = file;
+    this.dropzone?.addFile(file);
+    this.activeTab = 'upload';
   }
 
   // Unlike TranscriptionComponent.changeEditor(), this does NOT write

@@ -782,6 +782,10 @@
   },
   "workbench": {
     "start session": "Start session",
+    "tabs": {
+      "upload": "Upload file",
+      "record": "Record now"
+    },
     "bundle_list": {
       "title": "Files",
       "reattach": "Attach file…"
