@@ -608,3 +608,91 @@ apply during the pre-session window too) if it ever turns out to matter in pract
 **Phase 2 ("Collection") is now complete** — steps 2.1 through 2.9 have all landed, reviewed, and (where
 findings warranted it) fixed and re-reviewed. Phase 3 ("pipeline and capacity," per the master plan's
 own phase breakdown) is next.
+
+## Step 3a shipped shape (2026-09-16) — extract the pipeline runner
+
+The master plan calls this "the critical task" of Phase 3. It was, and remained so throughout: two of
+its four substantive tasks needed real fix rounds for genuine, user-visible bugs — a higher hit rate
+than any other single step in this conversion effort, matching the stakes correctly (real, working
+ASR/diarization/translation orchestration, a hard zero-behavior-change bar, and — before this step's own
+first task — zero pre-existing test coverage for any of it).
+
+**Corrected premises, found during planning.** The original conversion plan's prose describes "the 30-
+second download and 60-second initialisation stall timers" as if pipeline-wide; they are, and remain,
+**translation-only** — transcription and diarization have no equivalent watchdog. `login.component.ts`
+already had ASR/diarization/translation *worker-wrapping* extracted into services
+(`LocalTranscriptionService`, `LocalDiarizationRuntimeService`, `LocalTranslationService`) before this
+step began — what this step actually extracted was the *orchestration* (sequencing, timers, elapsed-time
+counters, cancel) still living as plain component fields and methods, not the worker plumbing itself.
+
+**Task 1 — characterization first, and it found two real pre-existing bugs.** `login.component.spec.ts`
+did not exist before this step; 20 tests now pin the exact pre-extraction behavior, including two bugs
+deliberately preserved (not fixed, per this step's own zero-behavior-change mandate, though either would
+be a reasonable, separately-scoped fix later): `onOfflineSubmit(removeData)`'s argument is discarded —
+every finalization path hardcodes `false`; and dismissing an error while a stage is still active routes
+through cancel, which never clears `.error`, so the stale message survives the dismiss. Getting this
+suite to compile at all required a narrowly-scoped Jest transformer (`login.component.ts`'s `@Component`
+providers array constructs a Worker inline via `new URL(path, import.meta.url)`, unparseable by ts-jest
+outside a real module context) — confirmed inert for test purposes and confirmed to touch nothing in the
+real webpack build.
+
+**Task 2 — `PipelineRunnerService`, and the diarization DI-scoping question resolved for real.**
+`LocalDiarizationRuntimeService` was component-scoped (not `providedIn: 'root'`) with its worker-factory
+token provided inside `login.component.ts`'s own `@Component` decorator — traced via git blame to a
+specific prior commit and confirmed to be an accidental side effect of an unrelated bugfix, not
+load-bearing (the service builds a fresh Worker on every `diarize()` call regardless of its own DI
+scope, so no cross-invocation state exists to leak). Now `providedIn: 'root'`, token provided at the app
+root. **Fix round 1** (of this task): the extraction initially delayed delivering the
+`diarizationWarning` to the component until the pipeline's terminal event — on the chained
+transcribe→diarization-fails→translate path, this meant the warning banner, previously visible for the
+entire translation phase that followed (potentially minutes), now appeared for an instant right before
+the page navigated away, effectively invisible. Fixed by carrying it on an earlier event instead.
+`PipelineRunnerService.cancel()` also became one state-derived, symmetric method (replacing the old
+`cancelTranscription()`/`cancelTranslation()` two-method asymmetry, which cancelled different numbers of
+underlying services depending on which was called) — `login.component.ts` still exposes two named
+methods for its two UI buttons, both now calling the same underlying symmetric `cancel()`.
+
+**Task 3 — a brand-new NgRx "pipeline" slice; this app had zero pipeline state in the store before this
+step.** Progress throttled to ~4Hz (`throttleTime(250, {leading:true, trailing:true})`) specifically so
+a real-time worker event stream doesn't flood the reducer. No new effect — the triggering component
+already calls the service directly and imperatively (matching its own existing pattern), so it throttles
+and dispatches inline rather than introducing effect machinery for a single, component-initiated,
+one-shot operation.
+
+**Task 4 — the thin-consumer rewire, and where the throttling actually got dangerous.** `login.component.ts`
+dropped its own `transcription`/`translation` fields (about 110 lines of direct field mutation collapsed
+to two ~8-line raw-event handlers plus a declarative dispatch pipe) and now reads the template from
+store selectors — except elapsed-time display, which by deliberate design stays a local, unthrottled UI
+concern fed from the raw (pre-throttle) event stream, never dispatched into the store (a ticking clock
+in NgRx every second forever is exactly the flooding problem the throttle exists to prevent).
+
+Two real bugs surfaced here, both in how "throttle most things, but never drop state transitions" was
+implemented — genuinely the hardest part of this whole step:
+
+- **Fix round 1**: the first attempt split the mapped-action stream with `filter()` + `merge()` — a
+  "bypass" branch for state-transition/terminal actions and a throttled branch for pure progress ticks.
+  This fixed the original dropping bug (verified: on the transcribe→diarization-skipped→translate path,
+  `transcriptionFinalized` used to land inside the same throttle window as later events and get silently
+  eaten by `throttleTime`'s trailing-only-keeps-the-last semantics, leaving `transcription.active` stuck
+  `true` — which then caused a later translation error to be checked against the wrong slice in the
+  reducer and misrouted into `transcription.error`, never shown to the user). But splitting into two
+  independently-subscribed-then-merged branches introduced a *second*, different bug: a throttled,
+  trailing progress tick could now be delivered *after* a later bypass action that had already arrived
+  and been processed — resetting `phase` back to `'downloading'` even though the stage had already
+  moved on, on the ordinary download-then-stage-start transition, in both the transcription and
+  translation slices.
+- **Fix round 2**: replaced the split-and-merge with a single-subscription, hand-rolled operator
+  (`dispatchPipelineActions()`) implementing a small flush state machine — one pending progress-tick
+  slot with a cooldown timer; any bypass action flushes the pending slot *first*, then emits itself,
+  guaranteeing output order matches input order by construction rather than by timing. This is the
+  design lesson of this whole step: **composing `filter()`+`merge()` over a throttle cannot preserve
+  order when only one branch is throttled** — a single-subscription flush-on-bypass design is what
+  actually closes both the dropping and the reordering failure modes at once. Verified via 9+ scenario
+  probes (back-to-back bypass actions, progress-then-bypass collapsing correctly, timer-fires-with-
+  nothing-pending, completion/error-with-pending-flushes-first, sustained-stream still capped at ~4Hz,
+  clean teardown on external unsubscribe) in addition to the two committed regression tests, each
+  independently confirmed to fail against the pre-fix code and pass against the fix.
+
+**`/workbench` remains completely untouched by this step**, confirmed by the final review (below) — this
+was a pure `/local`-only internal refactor, exactly matching the master plan's own "ship 3a alone" framing.
+Wiring pipeline UI into `/workbench` is separate, future work.
