@@ -6,8 +6,9 @@ import { TranslocoPipe } from '@jsverse/transloco';
 import { NgbNavModule } from '@ng-bootstrap/ng-bootstrap';
 import { AccountLoginMethod } from '@octra/api-types';
 import { OctraAPIService } from '@octra/ngx-octra-api';
+import { Store } from '@ngrx/store';
 import { FileSize, getFileSize, formatMinutesSeconds } from '@tratt/utilities';
-import { Observable, Subscription } from 'rxjs';
+import { map, Observable, Subscription, tap } from 'rxjs';
 import { AuthenticationComponent } from '../../component/authentication-component/authentication-component.component';
 import { DefaultComponent } from '../../component/default.component';
 import { MaintenanceBannerComponent } from '../../component/maintenance/maintenance-banner/maint-banner.component';
@@ -34,18 +35,22 @@ import {
   PipelineRunnerService,
 } from '../../shared/service/pipeline-runner.service';
 import { RecordedFileService } from '../../shared/service/recorded-file.service';
+import { RootState } from '../../store';
 import { AuthenticationStoreService } from '../../store/authentication';
+import {
+  mapPipelineEventToAction,
+  pipelineThrottle,
+} from '../../store/pipeline/pipeline-event-mapping';
+import { PipelineActions } from '../../store/pipeline/pipeline.actions';
+import {
+  selectDiarizationWarning,
+  selectTranscription,
+  selectTranslation,
+} from '../../store/pipeline/pipeline.selectors';
 import { BrowserTestComponent } from '../browser-test/browser-test.component';
 import { offlineSubmitLabelKey } from './offline-submit-label.helper';
 import { ComponentCanDeactivate } from './login.deactivateguard';
 import { LoginService } from './login.service';
-
-type TranslationPhase =
-  | 'idle'
-  | 'downloading'
-  | 'initializing'
-  | 'translating'
-  | 'finalizing';
 
 function formatDuration(seconds: number): string {
   return formatMinutesSeconds(seconds);
@@ -87,67 +92,36 @@ export class LoginComponent
     this.activeTab = 'upload';
   }
 
-  transcription: {
-    active: boolean;
-    phase: 'downloading' | 'transcribing' | 'diarizing' | 'finalizing' | 'idle';
-    downloadLoaded: number;
-    downloadTotal: number;
-    downloadExpectedBytes: number;
-    downloadFile: string;
-    elapsedMs: number;
-    audioDurationS: number;
-    segmentEndS: number;
-    error: string | null;
-    usedWebGPU: boolean;
-  } = {
-    active: false,
-    phase: 'idle',
-    downloadLoaded: 0,
-    downloadTotal: 0,
-    downloadExpectedBytes: 0,
-    downloadFile: '',
-    elapsedMs: 0,
-    audioDurationS: 0,
-    segmentEndS: 0,
-    error: null,
-    usedWebGPU: false,
-  };
+  // Store-backed progress/phase/error state (Task 3's `pipeline` feature
+  // slice) — signals, read directly in the template as `transcription()`/
+  // `translation()`/`diarizationWarning()`, matching the `selectSignal`
+  // convention already used by workbench.component.ts/bundle-list.component.ts
+  // for component-level selector reads.
+  readonly transcription = this.store.selectSignal(selectTranscription);
+  readonly translation = this.store.selectSignal(selectTranslation);
+  readonly diarizationWarning = this.store.selectSignal(
+    selectDiarizationWarning,
+  );
 
-  diarizationWarning: string | null = null;
+  // Elapsed-time ticking is DELIBERATELY kept local and unthrottled (Global
+  // Constraint from the master plan) — a `setInterval` writing into NgRx
+  // every second forever is exactly the reducer-flooding problem
+  // `pipelineThrottle()` exists to prevent. These two fields are driven by
+  // the RAW (unthrottled) event stream in `_onRawPipelineEvent` below, not
+  // by anything dispatched into the store.
+  transcriptionElapsedMs = 0;
+  translationElapsedMs = 0;
 
   private _elapsedIntervalId: ReturnType<typeof setInterval> | null = null;
   private _transcriptionStartTime = 0;
+  private _translationElapsedIntervalId: ReturnType<typeof setInterval> | null =
+    null;
+  private _translationStartTime = 0;
 
   readonly formatDuration = formatDuration;
 
   private _pipelineSub: Subscription | null = null;
   private _pendingRemoveData = false;
-
-  translation: {
-    active: boolean;
-    phase: TranslationPhase;
-    downloadLoaded: number;
-    downloadTotal: number;
-    downloadFile: string;
-    elapsedMs: number;
-    segmentIndex: number;
-    segmentTotal: number;
-    error: string | null;
-  } = {
-    active: false,
-    phase: 'idle',
-    downloadLoaded: 0,
-    downloadTotal: 0,
-    downloadFile: '',
-    elapsedMs: 0,
-    segmentIndex: 0,
-    segmentTotal: 0,
-    error: null,
-  };
-
-  private _translationElapsedIntervalId: ReturnType<typeof setInterval> | null =
-    null;
-  private _translationStartTime = 0;
 
   state: {
     online: {
@@ -199,6 +173,7 @@ export class LoginComponent
     public authStoreService: AuthenticationStoreService,
     protected compatibilityService: CompatibilityService,
     private pipelineRunnerService: PipelineRunnerService,
+    private store: Store<RootState>,
     private route: ActivatedRoute,
     public recordedFileService: RecordedFileService,
   ) {
@@ -259,29 +234,21 @@ I just want to let you know, that the OCTRA server is currently offline.
     });
   }
 
-  // Presentation-only reset (matches today's `_startTranscription`'s
-  // object-literal reset exactly) — computing `downloadExpectedBytes` needs
-  // KB_WHISPER_MODELS/OPENAI_WHISPER_MODELS, which are UI concerns, not
-  // pipeline state, so this stays here rather than moving into
-  // PipelineRunnerService.
+  // Dispatched synchronously, BEFORE calling pipelineRunnerService.run() —
+  // mirrors today's inline object-literal reset exactly. `downloadExpectedBytes`
+  // needs KB_WHISPER_MODELS/OPENAI_WHISPER_MODELS, which are UI concerns, not
+  // pipeline state, so that computation stays here rather than moving into
+  // PipelineRunnerService or PipelineActions.
   private _startTranscriptionPipeline(opts: TranscriptionOptions): void {
-    this.diarizationWarning = null;
     const modelMeta =
       KB_WHISPER_MODELS.find((m) => m.modelId === opts.modelId) ??
       OPENAI_WHISPER_MODELS.find((m) => m.modelId === opts.modelId);
-    this.transcription = {
-      active: true,
-      phase: 'downloading',
-      downloadLoaded: 0,
-      downloadTotal: 0,
-      downloadExpectedBytes: (modelMeta?.sizeMb ?? 0) * 1024 * 1024,
-      downloadFile: '',
-      elapsedMs: 0,
-      audioDurationS: 0,
-      segmentEndS: 0,
-      error: null,
-      usedWebGPU: opts.useWebGPU,
-    };
+    this.store.dispatch(
+      PipelineActions.transcriptionStart({
+        downloadExpectedBytes: (modelMeta?.sizeMb ?? 0) * 1024 * 1024,
+        usedWebGPU: opts.useWebGPU,
+      }),
+    );
     this._runPipeline({
       audioManager: this.dropzone!.audioManager,
       oaudiofile: this.dropzone!.oaudiofile,
@@ -290,192 +257,82 @@ I just want to let you know, that the OCTRA server is currently offline.
     });
   }
 
+  // Single subscription to the pipeline run. `tap()` sees every RAW event,
+  // unthrottled — used only for the handful of concerns that must never be
+  // delayed/collapsed (elapsed-time bookkeeping, and the terminal
+  // navigation side effect). `map(mapPipelineEventToAction)` +
+  // `pipelineThrottle()` (Task 3's tested pair) is what actually reaches
+  // the store, at ~4Hz, so a real-time stream of progress events can't
+  // flood the reducer/change detection.
   private _runPipeline(input: PipelineInput): void {
-    this._pipelineSub = this.pipelineRunnerService.run(input).subscribe({
-      next: (event: PipelineEvent) => this._onPipelineEvent(event),
-      error: (err: Error) => this._onPipelineError(err),
-    });
+    this._pipelineSub = this.pipelineRunnerService
+      .run(input)
+      .pipe(
+        tap((event: PipelineEvent) => this._onRawPipelineEvent(event)),
+        map(mapPipelineEventToAction),
+        pipelineThrottle(),
+      )
+      .subscribe({
+        next: (action) => this.store.dispatch(action),
+        error: (err: Error) => this._onPipelineError(err),
+      });
   }
 
-  private _onPipelineEvent(event: PipelineEvent): void {
-    if (event.stage === 'transcription') {
-      if ('event' in event) {
-        this._onTranscriptionEvent(event.event);
-      } else {
-        // 'finalized': diarization (or the skipped-diarization branch) has
-        // resolved — mirrors today's inline `this.transcription.active =
-        // false;` (+ conditional phase reset when translation follows),
-        // which used to run directly inside handleCompletedTranscription().
-        // diarizationWarning is set HERE (not only on the terminal
-        // 'pipeline result' event) so it's visible for the whole translation
-        // phase that may follow, matching today's timing exactly — setting
-        // it only at the very end would mean it's superseded by navigation
-        // before ever being shown. `willTranslate` is the SAME captured
-        // value the service used to decide whether to chain into
-        // translation, rather than a second, independent read of
-        // `dropzone.translateOptions` that could in principle disagree.
-        this.transcription.active = false;
-        this.diarizationWarning = event.diarizationWarning;
-        if (event.willTranslate) {
-          this.transcription.phase = 'idle';
-        }
-      }
-    } else if (event.stage === 'diarization') {
-      if ('event' in event && event.event.type === 'download-progress') {
-        this.transcription.downloadLoaded = event.event.loaded;
-        this.transcription.downloadTotal = event.event.total;
-        this.transcription.downloadFile = event.event.file;
-      } else if ('type' in event && event.type === 'started') {
-        // Mirrors today's inline `this.transcription.phase = 'diarizing';`
-        // write, which used to happen synchronously right before diarize()
-        // was called.
-        this.transcription.phase = 'diarizing';
-      }
-      // 'skipped' is a no-op, matching today exactly (the original code
-      // only ever set phase='diarizing' inside the `if (diarizationEnabled)`
-      // branch — the disabled branch never touched .phase at all).
-    } else if (event.stage === 'translation') {
-      if ('type' in event && event.type === 'start') {
-        // Mirrors today's `_startTranslation`'s object-literal reset
-        // exactly, for both the chained-after-transcription and the
-        // direct translation-only submit entry points.
-        this.translation = {
-          active: true,
-          phase: 'downloading',
-          downloadLoaded: 0,
-          downloadTotal: 0,
-          downloadFile: '',
-          elapsedMs: 0,
-          segmentIndex: 0,
-          segmentTotal: 0,
-          error: null,
-        };
-      } else {
-        this._onTranslationEvent(event.event);
-      }
-    } else if (event.stage === 'pipeline') {
-      if (event.type === 'result') {
-        this.diarizationWarning = event.diarizationWarning;
-        this.dropzone?.setAnnotationFromAnnotJson(event.annotJson);
-        this.proceedWithLogin(false);
-      } else if (event.type === 'stalled') {
-        this.translation.error = event.message;
-      }
-      // 'cancelled' is a no-op here — cancelTranscription()/
-      // cancelTranslation() already do their own synchronous field resets
-      // below, independent of any event from the pipeline.
+  private _onRawPipelineEvent(event: PipelineEvent): void {
+    if (event.stage === 'transcription' && 'event' in event) {
+      this._onRawTranscriptionEvent(event.event);
+    } else if (event.stage === 'translation' && 'event' in event) {
+      this._onRawTranslationEvent(event.event);
+    } else if (event.stage === 'pipeline' && event.type === 'result') {
+      // Mirrors today's finalization: routes straight to the dropzone/login
+      // flow, independent of the (throttled) store dispatch for this same
+      // event — this must never be delayed by throttling.
+      this.dropzone?.setAnnotationFromAnnotJson(event.annotJson);
+      this.proceedWithLogin(false);
     }
   }
 
-  private _onPipelineError(err: Error): void {
-    if (this.transcription.active) {
-      this._clearElapsedInterval();
-      this.transcription.error = err.message;
-      this.transcription.active = false;
-    } else if (this.translation.active) {
-      this._clearTranslationElapsed();
-      this.translation.error = err.message;
-      this.translation.active = false;
-      this.translation.phase = 'idle';
-    }
-  }
-
-  private _onTranscriptionEvent(event: TranscriptionEvent): void {
-    if (event.type === 'download-progress') {
-      this.transcription.phase = 'downloading';
-      this.transcription.downloadLoaded = event.loaded;
-      this.transcription.downloadTotal = event.total;
-      this.transcription.downloadFile = event.file;
-    } else if (event.type === 'transcribe-start') {
-      this.transcription.phase = 'transcribing';
-      this.transcription.audioDurationS = event.audioDurationS;
-      this.transcription.elapsedMs = 0;
-      this.transcription.segmentEndS = 0;
+  private _onRawTranscriptionEvent(event: TranscriptionEvent): void {
+    if (event.type === 'transcribe-start') {
+      this.transcriptionElapsedMs = 0;
       this._transcriptionStartTime = Date.now();
       this._elapsedIntervalId = setInterval(() => {
-        this.transcription.elapsedMs =
-          Date.now() - this._transcriptionStartTime;
+        this.transcriptionElapsedMs = Date.now() - this._transcriptionStartTime;
       }, 1000);
-    } else if (event.type === 'segment-progress') {
-      this.transcription.segmentEndS = event.segmentEndS;
-    } else if (event.type === 'backend-fallback') {
-      this.transcription.usedWebGPU = false;
-      this.transcription.phase = 'downloading';
-      this.transcription.downloadLoaded = 0;
-      this.transcription.downloadTotal = 0;
-      this.transcription.downloadFile =
-        'Retrying with WASM after WebGPU startup failure';
     } else if (event.type === 'result') {
       this._clearElapsedInterval();
-      this.transcription.phase = 'finalizing';
     }
   }
 
-  private _onTranslationEvent(event: TranslationEvent): void {
-    if (event.type === 'download-progress') {
-      this.translation.phase = 'downloading';
-      this.translation.downloadLoaded = event.loaded;
-      this.translation.downloadTotal = event.total;
-      this.translation.downloadFile = event.file;
-    } else if (event.type === 'model-init') {
-      this.translation.phase = 'initializing';
-    } else if (event.type === 'translate-start') {
-      this.translation.phase = 'translating';
-      this.translation.segmentTotal = event.total;
-      this.translation.segmentIndex = 0;
-      this.translation.elapsedMs = 0;
+  private _onRawTranslationEvent(event: TranslationEvent): void {
+    if (event.type === 'translate-start') {
+      this.translationElapsedMs = 0;
       this._translationStartTime = Date.now();
       this._translationElapsedIntervalId = setInterval(() => {
-        this.translation.elapsedMs = Date.now() - this._translationStartTime;
+        this.translationElapsedMs = Date.now() - this._translationStartTime;
       }, 1000);
-    } else if (event.type === 'segment-progress') {
-      this.translation.segmentIndex = event.index;
-      this.translation.segmentTotal = event.total;
     } else if (event.type === 'result') {
       this._clearTranslationElapsed();
-      this.translation.active = false;
-      this.translation.phase = 'finalizing';
     }
+  }
+
+  // Mirrors today's `_onPipelineError`: whichever stage is active absorbs
+  // the error (the reducer itself decides which — see pipeline.reducer.ts's
+  // `PipelineActions.error` case, which reproduces the exact same
+  // transcription-vs-translation asymmetry the old inline branches had).
+  // Dispatched directly (never throttled) — delivered via the run()
+  // Observable's error() channel, not next(), so there's no burst to
+  // collapse.
+  private _onPipelineError(err: Error): void {
+    this._clearElapsedInterval();
+    this._clearTranslationElapsed();
+    this.store.dispatch(PipelineActions.error({ message: err.message }));
   }
 
   private _clearTranslationElapsed(): void {
     if (this._translationElapsedIntervalId !== null) {
       clearInterval(this._translationElapsedIntervalId);
       this._translationElapsedIntervalId = null;
-    }
-  }
-
-  // NOTE (cancel-symmetry judgment call): PipelineRunnerService.cancel() is
-  // the single, stage-aware method the extraction plan calls for — it reads
-  // its OWN tracked active-stage state and cancels exactly the right
-  // underlying worker service(s), rather than being told which stage to
-  // cancel. login.component.ts still exposes two distinctly-named methods
-  // (cancelTranscription/cancelTranslation) because login.component.spec.ts's
-  // characterization suite probes them directly, from a fresh component with
-  // no pipeline ever started, and asserts two DIFFERENT outcomes from that
-  // *identical* (idle) state purely based on which method name was called —
-  // an invariant no state-derived single method can reproduce, since there is
-  // no state to derive from yet. In every reachable production call site
-  // (both route through dismissTranscriptionError()/dismissTranslationError(),
-  // themselves gated behind `.active`), PipelineRunnerService.cancel() is only
-  // ever invoked while its internal active-stage tracking genuinely agrees
-  // with which of these two methods is calling it, so behavior is identical
-  // to today's. See task-2-report.md for the full reasoning.
-  cancelTranslation(): void {
-    this._clearTranslationElapsed();
-    this.pipelineRunnerService.cancel();
-    this._pipelineSub?.unsubscribe();
-    this._pipelineSub = null;
-    this.translation.active = false;
-    this.translation.phase = 'idle';
-  }
-
-  dismissTranslationError(): void {
-    if (this.translation.active) {
-      this.cancelTranslation();
-    } else {
-      this._clearTranslationElapsed();
-      this.translation.error = null;
     }
   }
 
@@ -486,21 +343,45 @@ I just want to let you know, that the OCTRA server is currently offline.
     }
   }
 
+  // NOTE (cancel-symmetry judgment call, carried over from Task 2):
+  // PipelineRunnerService.cancel() is the single, stage-aware method the
+  // extraction plan calls for — it reads its OWN tracked active-stage state
+  // and cancels exactly the right underlying worker service(s), rather than
+  // being told which stage to cancel. login.component.ts still exposes two
+  // distinctly-named methods (cancelTranscription/cancelTranslation) because
+  // login.component.spec.ts's characterization suite probes them directly.
+  // See task-2-report.md for the full reasoning.
+  cancelTranslation(): void {
+    this._clearTranslationElapsed();
+    this.pipelineRunnerService.cancel();
+    this._pipelineSub?.unsubscribe();
+    this._pipelineSub = null;
+    this.store.dispatch(PipelineActions.translationCancelled());
+  }
+
+  dismissTranslationError(): void {
+    if (this.translation().active) {
+      this.cancelTranslation();
+    } else {
+      this._clearTranslationElapsed();
+      this.store.dispatch(PipelineActions.translationErrorDismissed());
+    }
+  }
+
   cancelTranscription(): void {
     this._clearElapsedInterval();
     this.pipelineRunnerService.cancel();
     this._pipelineSub?.unsubscribe();
     this._pipelineSub = null;
-    this.transcription.active = false;
-    this.transcription.phase = 'idle';
+    this.store.dispatch(PipelineActions.transcriptionCancelled());
   }
 
   dismissTranscriptionError(): void {
-    if (this.transcription.active) {
+    if (this.transcription().active) {
       this.cancelTranscription();
     } else {
       this._clearElapsedInterval();
-      this.transcription.error = null;
+      this.store.dispatch(PipelineActions.transcriptionErrorDismissed());
     }
   }
 

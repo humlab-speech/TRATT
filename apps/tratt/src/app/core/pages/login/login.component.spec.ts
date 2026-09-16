@@ -60,6 +60,7 @@ jest.mock('../../shared/service/local-translation.service', () => ({
 import { ElementRef } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { TranslocoService } from '@jsverse/transloco';
+import { Action, provideStore, Store } from '@ngrx/store';
 import { OAnnotJSON, OLabel, OSegment, OSegmentLevel } from '@tratt/annotation';
 import { Subject } from 'rxjs';
 import type { DiarizationEvent } from '../../shared/service/local-diarization-runtime.service';
@@ -69,6 +70,11 @@ import type {
 } from '../../shared/service/local-transcription.service';
 import type { TranslationEvent } from '../../shared/service/local-translation.service';
 import { PipelineRunnerService } from '../../shared/service/pipeline-runner.service';
+import { PIPELINE_THROTTLE_MS } from '../../store/pipeline/pipeline-event-mapping';
+import { PipelineActions } from '../../store/pipeline/pipeline.actions';
+import { reducer as pipelineReducer } from '../../store/pipeline/pipeline.reducer';
+import { PipelineState } from '../../store/pipeline';
+import { RootState } from '../../store';
 import { LoginComponent } from './login.component';
 
 // Exact ms budgets from login.component.ts — not exported, so hardcoded here
@@ -86,6 +92,70 @@ async function flushMicrotasks(times = 6): Promise<void> {
   for (let i = 0; i < times; i++) {
     await Promise.resolve();
   }
+}
+
+// login.component.ts now dispatches through a throttled (`pipelineThrottle()`,
+// ~4Hz) channel on its way to the store (Task 3/4's design — see
+// pipeline-event-mapping.ts). Every place below that needs to observe a
+// store-derived field (`component.transcription()`/`.translation()`/
+// `.diarizationWarning()`) synchronously after an event has to first let a
+// throttle window close, exactly like a real 250ms tick would in production.
+//
+// throttleTime's own mechanics (verified empirically against this exact
+// operator, not just assumed from its docs) matter here: a window that only
+// ever emitted its leading value (nothing else arrived while it was open)
+// is fully idle again after ONE `PIPELINE_THROTTLE_MS` advance — the next
+// value to arrive becomes a fresh leading edge. But a window that also
+// delivered a TRAILING value (2+ events collapsed into it) re-arms one more
+// full cooldown period as a side effect of that trailing send, so it takes
+// a SECOND `PIPELINE_THROTTLE_MS` advance before it's truly idle — until
+// then, the very next value to arrive is itself held rather than treated as
+// leading, and would be silently dropped if something else supersedes it
+// before that second advance happens.
+//
+// `flushPipelineThrottle()` merely delivers whatever's currently pending —
+// enough when nothing after it needs to be its own leading edge.
+// `flushPipelineThrottleFully()` guarantees full idle, for the (more
+// common, in this pipeline's synchronous multi-event cascades) case where
+// the NEXT event dispatched must not be silently superseded before it's
+// ever delivered.
+function flushPipelineThrottle(): void {
+  jest.advanceTimersByTime(PIPELINE_THROTTLE_MS);
+}
+
+function flushPipelineThrottleFully(): void {
+  jest.advanceTimersByTime(PIPELINE_THROTTLE_MS * 2);
+}
+
+// Test-only escape hatch, local to this spec file (does NOT touch
+// pipeline.reducer.ts): injects an `active:true` + `error:<msg>` combination
+// for the TRANSCRIPTION slice — a pairing the real reducer's own actions can
+// never produce together (`transcriptionStart` always clears `.error`, and
+// `PipelineActions.error` always pairs a non-null `.error` with
+// `active:false`). Notably, the ORIGINAL pre-extraction component could not
+// reach this combination via its own code either — `_onPipelineError` always
+// wrote both fields together — so the pre-Task-4 version of this test was
+// ALREADY a pure white-box artifact (direct field mutation) isolating
+// `dismissTranscriptionError()`'s branching logic from how `.error` actually
+// gets populated. This reproduces that same isolation now that the field is
+// store-backed, via one synthetic, test-local action type layered on top of
+// the real reducer, rather than by changing what's being asserted.
+const TEST_FORCE_TRANSCRIPTION_ERROR = '[TEST ONLY] force transcription error';
+function testPipelineReducer(
+  state: PipelineState | undefined,
+  action: Action,
+): PipelineState {
+  const next = pipelineReducer(state, action);
+  if (action.type === TEST_FORCE_TRANSCRIPTION_ERROR) {
+    return {
+      ...next,
+      transcription: {
+        ...next.transcription,
+        error: (action as unknown as { message: string }).message,
+      },
+    };
+  }
+  return next;
 }
 
 function makeDropzoneStub(overrides: Record<string, unknown> = {}) {
@@ -132,6 +202,7 @@ function makeAnnotJsonWithSegments(): OAnnotJSON {
 
 describe('LoginComponent (pipeline runner characterization)', () => {
   let component: LoginComponent;
+  let store: Store<RootState>;
   let transcriptionServiceMock: {
     transcribe: jest.Mock<any>;
     cancel: jest.Mock<any>;
@@ -184,8 +255,15 @@ describe('LoginComponent (pipeline runner characterization)', () => {
           provide: TranslocoService,
           useValue: { translate: translocoTranslate },
         },
+        // Real Store + real pipeline reducer (wrapped with one test-local
+        // escape-hatch action — see testPipelineReducer above): dispatches
+        // made by login.component.ts must flow through the ACTUAL reducer
+        // so this suite proves the wiring works end to end, not just that
+        // the right actions were constructed.
+        provideStore({ pipeline: testPipelineReducer }),
       ],
     });
+    store = TestBed.inject(Store) as Store<RootState>;
 
     // PipelineRunnerService is constructed directly (real class, mocked leaf
     // services + TranslocoService injected via plain constructor args — no
@@ -211,7 +289,8 @@ describe('LoginComponent (pipeline runner characterization)', () => {
     // plain constructor argument instead), but is kept here since it's
     // harmless and avoids a larger diff. Every constructor dependency is
     // passed positionally below, matching LoginComponent's real constructor
-    // parameter order exactly.
+    // parameter order exactly (Task 4 added `store: Store<RootState>` right
+    // after `pipelineRunnerService`).
     component = TestBed.runInInjectionContext(
       () =>
         new LoginComponent(
@@ -225,6 +304,7 @@ describe('LoginComponent (pipeline runner characterization)', () => {
           authStoreService as any,
           { testCompability: jest.fn(async () => true) } as any, // compatibilityService
           pipelineRunnerService,
+          store,
           { snapshot: { data: {} } } as any, // route
           recordedFileService as any,
         ),
@@ -268,37 +348,57 @@ describe('LoginComponent (pipeline runner characterization)', () => {
         opts,
       );
 
+      // First event on this run — the leading edge of a fresh throttle
+      // window, so it reaches the store synchronously; no flush needed yet.
       subject.next({
         type: 'download-progress',
         loaded: 10,
         total: 100,
         file: 'model.bin',
       });
-      expect(component.transcription.phase).toBe('downloading');
-      expect(component.transcription.downloadLoaded).toBe(10);
-      expect(component.transcription.downloadTotal).toBe(100);
-      expect(component.transcription.downloadFile).toBe('model.bin');
+      expect(component.transcription().phase).toBe('downloading');
+      expect(component.transcription().downloadLoaded).toBe(10);
+      expect(component.transcription().downloadTotal).toBe(100);
+      expect(component.transcription().downloadFile).toBe('model.bin');
 
+      flushPipelineThrottle();
       subject.next({ type: 'transcribe-start', audioDurationS: 12 });
-      expect(component.transcription.phase).toBe('transcribing');
-      expect(component.transcription.audioDurationS).toBe(12);
-      expect(component.transcription.elapsedMs).toBe(0);
+      expect(component.transcription().phase).toBe('transcribing');
+      expect(component.transcription().audioDurationS).toBe(12);
+      // elapsedMs is now a LOCAL, unthrottled field (Global Constraint —
+      // elapsed-time ticking never goes through the store).
+      expect(component.transcriptionElapsedMs).toBe(0);
 
+      flushPipelineThrottle();
       subject.next({ type: 'segment-progress', segmentEndS: 5 });
-      expect(component.transcription.segmentEndS).toBe(5);
+      expect(component.transcription().segmentEndS).toBe(5);
 
+      flushPipelineThrottle();
       const annotJson = makeAnnotJsonWithSegments();
       subject.next({ type: 'result', annotJson });
-      // phase flips to 'finalizing' synchronously, before the async
-      // handleCompletedTranscription() work below has had a chance to run.
-      expect(component.transcription.phase).toBe('finalizing');
+      // phase flips to 'finalizing' synchronously (this is the leading edge
+      // of a fresh throttle window, thanks to the flush above), before the
+      // async handleCompletedTranscription() work below has had a chance to
+      // run.
+      expect(component.transcription().phase).toBe('finalizing');
 
+      // Fully closes this window (it collapsed TWO events — 'result' itself,
+      // plus the synchronous 'diarization skipped' that immediately follows
+      // it — so it needs the full two-advance idle guarantee, not just a
+      // delivery flush) BEFORE the async finalized/pipeline-result cascade
+      // fires (both synchronous with each other, inside the awaited
+      // microtask flush below) — so that cascade starts fresh, and its
+      // 'transcription finalized' action (which flips `.active` to false)
+      // lands as its own leading edge rather than being silently
+      // superseded, within the same throttle window, by the 'pipeline
+      // result' action that immediately follows it.
+      flushPipelineThrottleFully();
       await flushMicrotasks();
 
       expect(diarizationServiceMock.diarize).not.toHaveBeenCalled();
       expect(translationServiceMock.translate).not.toHaveBeenCalled();
-      expect(component.diarizationWarning).toBeNull();
-      expect(component.transcription.active).toBe(false);
+      expect(component.diarizationWarning()).toBeNull();
+      expect(component.transcription().active).toBe(false);
       expect(dropzone.setAnnotationFromAnnotJson).toHaveBeenCalledWith(
         annotJson,
       );
@@ -327,8 +427,11 @@ describe('LoginComponent (pipeline runner characterization)', () => {
       component.onOfflineSubmit(false);
       subject.error(new Error('worker crashed'));
 
-      expect(component.transcription.error).toBe('worker crashed');
-      expect(component.transcription.active).toBe(false);
+      // Errors are delivered via the Observable's error() channel, not
+      // next(), so PipelineActions.error is dispatched directly, unthrottled
+      // — no flush needed.
+      expect(component.transcription().error).toBe('worker crashed');
+      expect(component.transcription().active).toBe(false);
       expect(authStoreService.loginLocal).not.toHaveBeenCalled();
     });
   });
@@ -354,13 +457,20 @@ describe('LoginComponent (pipeline runner characterization)', () => {
       component.onOfflineSubmit(false);
       const annotJson = makeAnnotJsonWithSegments();
       transcriptionSubject.next({ type: 'result', annotJson });
+      // This window collapsed TWO events — 'result' (leading) and the
+      // synchronous 'diarization started' that immediately follows it
+      // inside the same JS tick (held/trailing) — so it needs the full
+      // two-advance idle guarantee: one to deliver 'diarization started',
+      // a second so the window is genuinely idle again before
+      // diarizationSubject.next() below fires its own event.
+      flushPipelineThrottleFully();
       await flushMicrotasks();
 
       expect(diarizationServiceMock.diarize).toHaveBeenCalledWith(
         dropzone.audioManager,
         opts.diarization,
       );
-      expect(component.transcription.phase).toBe('diarizing');
+      expect(component.transcription().phase).toBe('diarizing');
 
       diarizationSubject.next({
         type: 'result',
@@ -369,11 +479,15 @@ describe('LoginComponent (pipeline runner characterization)', () => {
           { startS: 0.9, endS: 2.0, speakerId: 'SPEAKER_01' },
         ],
       });
+      // Same reasoning as above: close this window before the
+      // finalized/pipeline-result cascade fires, so 'transcription
+      // finalized' (which flips `.active`) lands as its own leading edge.
+      flushPipelineThrottle();
       await flushMicrotasks();
 
-      expect(component.diarizationWarning).toBeNull();
+      expect(component.diarizationWarning()).toBeNull();
       expect(consoleErrorSpy).not.toHaveBeenCalled();
-      expect(component.transcription.active).toBe(false);
+      expect(component.transcription().active).toBe(false);
       expect(dropzone.setAnnotationFromAnnotJson).toHaveBeenCalledTimes(1);
       const finalizedAnnotJson = dropzone.setAnnotationFromAnnotJson.mock
         .calls[0][0] as OAnnotJSON;
@@ -415,23 +529,31 @@ describe('LoginComponent (pipeline runner characterization)', () => {
       await flushMicrotasks();
 
       diarizationSubject.error(new Error('diarization worker crashed'));
+      // Fully closes the still-open window from the 'result'/'diarization
+      // started' pair above (2 events collapsed — needs the full
+      // two-advance idle guarantee), so the finalized/pipeline-result
+      // cascade that fires once this microtask flush resumes starts fresh —
+      // 'transcription finalized' (setting diarizationWarning + `.active`)
+      // becomes its own leading edge instead of being dropped in favor of
+      // the 'pipeline result' action right behind it.
+      flushPipelineThrottleFully();
       await flushMicrotasks();
 
       expect(translocoTranslate).toHaveBeenCalledWith(
         'login.auto-transcription.diarization failed',
         { message: 'diarization worker crashed' },
       );
-      expect(component.diarizationWarning).toBe(
+      expect(component.diarizationWarning()).toBe(
         translocoTranslate.mock.results[0].value,
       );
       expect(consoleErrorSpy).toHaveBeenCalledWith(
         '[diarization]',
-        component.diarizationWarning,
+        component.diarizationWarning(),
       );
       // Critical: the pipeline does NOT abort — it still finalizes with the
       // original, undiarized annotJson (same reference: applyOptionalSpeakerSegmentation's
       // catch branch returns `{ annotJson: args.annotJson, ... }` unchanged).
-      expect(component.transcription.active).toBe(false);
+      expect(component.transcription().active).toBe(false);
       expect(dropzone.setAnnotationFromAnnotJson).toHaveBeenCalledWith(
         annotJson,
       );
@@ -461,6 +583,11 @@ describe('LoginComponent (pipeline runner characterization)', () => {
       const annotJson = makeAnnotJsonWithSegments();
       transcriptionSubject.next({ type: 'result', annotJson });
       await flushMicrotasks();
+      // The cascade fired by the microtask flush above ends with
+      // '{stage:"translation", type:"start"}' — the LAST event in that
+      // burst, so the throttle's trailing guarantee (Task 3's own tested
+      // property) is exactly what's needed here: one flush delivers it.
+      flushPipelineThrottle();
 
       // Auto-triggered — no further call from the test into _startTranslation.
       expect(translationServiceMock.translate).toHaveBeenCalledTimes(1);
@@ -468,7 +595,7 @@ describe('LoginComponent (pipeline runner characterization)', () => {
         annotJson,
         translateOpts,
       );
-      expect(component.translation.active).toBe(true);
+      expect(component.translation().active).toBe(true);
       // proceedWithLogin/loginLocal must NOT have fired yet — translation owns
       // finalization now.
       expect(authStoreService.loginLocal).not.toHaveBeenCalled();
@@ -504,23 +631,34 @@ describe('LoginComponent (pipeline runner characterization)', () => {
       await flushMicrotasks();
 
       diarizationSubject.error(new Error('diarization worker crashed'));
+      // Fully close the still-open window from 'result'/'diarization
+      // started' (2 events collapsed — needs the full two-advance idle
+      // guarantee) so 'transcription finalized' (sets diarizationWarning)
+      // becomes a fresh leading edge of its own, rather than being dropped
+      // in favor of the '{stage:"translation", type:"start"}' event that
+      // follows it synchronously in the same continuation.
+      flushPipelineThrottleFully();
       await flushMicrotasks();
+      // Flush again (delivery-only suffices here) so the trailing
+      // '{stage:"translation", type:"start"}' — held by the window
+      // 'transcription finalized' just opened — reaches the store too.
+      flushPipelineThrottle();
 
       // Translation has been kicked off (proving we're on the chained path,
       // well before the pipeline's terminal result)...
       expect(translationServiceMock.translate).toHaveBeenCalledTimes(1);
-      expect(component.translation.active).toBe(true);
+      expect(component.translation().active).toBe(true);
       expect(authStoreService.loginLocal).not.toHaveBeenCalled();
       // ...and the warning is ALREADY visible, not withheld until the
       // pipeline finally resolves minutes later.
-      expect(component.diarizationWarning).toBe(
+      expect(component.diarizationWarning()).toBe(
         translocoTranslate.mock.results[0].value,
       );
 
       // Still visible once translation actually starts progressing (proves
       // nothing later in the translation phase clobbers it back to null).
       translationSubject.next({ type: 'model-init' });
-      expect(component.diarizationWarning).toBe(
+      expect(component.diarizationWarning()).toBe(
         translocoTranslate.mock.results[0].value,
       );
     });
@@ -549,17 +687,24 @@ describe('LoginComponent (pipeline runner characterization)', () => {
       const subject = new Subject<TranslationEvent>();
       startTranslationOnly(subject);
 
-      expect(component.translation.phase).toBe('downloading');
-      expect(component.translation.active).toBe(true);
+      // '{stage:"translation", type:"start"}' is the very first (and only)
+      // event so far — the leading edge of a fresh window — so this is
+      // already visible synchronously, no flush needed.
+      expect(component.translation().phase).toBe('downloading');
+      expect(component.translation().active).toBe(true);
 
       jest.advanceTimersByTime(TRANSLATION_DOWNLOAD_STALL_MS - 1);
-      expect(component.translation.error).toBeNull();
+      expect(component.translation().error).toBeNull();
 
       jest.advanceTimersByTime(1);
-      expect(component.translation.error).toBe(
+      // The stall message itself arrives via the SERVICE's own internal
+      // setTimeout (entirely independent of any test-driven event), well
+      // after any earlier throttle window has long since auto-closed, so it
+      // lands as a fresh leading edge — synchronous, no flush needed.
+      expect(component.translation().error).toBe(
         'Download stalled — likely a browser storage limit. Cancel and retry with "Skip browser cache" enabled.',
       );
-      expect(component.translation.active).toBe(true);
+      expect(component.translation().active).toBe(true);
     });
 
     it('sets the exact init/translating-stall message at exactly 60000ms of silence once past the download phase', () => {
@@ -569,16 +714,23 @@ describe('LoginComponent (pipeline runner characterization)', () => {
       // Advance the phase to 'initializing' before the 30s download budget
       // would fire, which also re-arms the stall timer with the 60s budget.
       subject.next({ type: 'model-init' });
-      expect(component.translation.phase).toBe('initializing');
 
+      // The 'model-init' dispatch is still throttled (2nd event in the
+      // window opened by 'translation start'), but the huge advance below —
+      // needed anyway for the stall-timing assertions — flushes it long
+      // before either boundary check, so the phase assertion is simply
+      // moved to occur after that advance instead of needing a brand new,
+      // precisely-sized flush inserted here (which would perturb the
+      // stall-timer's own ms-exact deadline maths below).
       jest.advanceTimersByTime(TRANSLATION_INIT_STALL_MS - 1);
-      expect(component.translation.error).toBeNull();
+      expect(component.translation().phase).toBe('initializing');
+      expect(component.translation().error).toBeNull();
 
       jest.advanceTimersByTime(1);
-      expect(component.translation.error).toBe(
+      expect(component.translation().error).toBe(
         'Model load stalled. Try refreshing the page.',
       );
-      expect(component.translation.active).toBe(true);
+      expect(component.translation().active).toBe(true);
     });
 
     it('re-arms the stall timer on every non-result event, so a late progress event resets the budget instead of letting the original timer fire', () => {
@@ -586,9 +738,13 @@ describe('LoginComponent (pipeline runner characterization)', () => {
       startTranslationOnly(subject);
 
       jest.advanceTimersByTime(TRANSLATION_DOWNLOAD_STALL_MS - 1);
-      expect(component.translation.error).toBeNull();
+      expect(component.translation().error).toBeNull();
 
-      // Arrives just before the original 30s budget would have fired.
+      // Arrives just before the original 30s budget would have fired. The
+      // stall-timer re-arm this triggers is entirely internal to
+      // PipelineRunnerService (independent of the component's throttled
+      // store dispatch), so it re-arms regardless of when its OWN mapped
+      // action happens to reach the store.
       subject.next({
         type: 'download-progress',
         loaded: 1,
@@ -599,12 +755,14 @@ describe('LoginComponent (pipeline runner characterization)', () => {
       // If the timer had NOT been re-armed, the original timer (now 1ms from
       // firing) would fire almost immediately. Advancing this far again
       // proves it did not: the re-armed timer only starts counting from the
-      // progress event above.
+      // progress event above. This advance is also, incidentally, more than
+      // enough to flush the progress event's own throttled dispatch — not
+      // that this test reads it.
       jest.advanceTimersByTime(TRANSLATION_DOWNLOAD_STALL_MS - 1);
-      expect(component.translation.error).toBeNull();
+      expect(component.translation().error).toBeNull();
 
       jest.advanceTimersByTime(1);
-      expect(component.translation.error).toBe(
+      expect(component.translation().error).toBe(
         'Download stalled — likely a browser storage limit. Cancel and retry with "Skip browser cache" enabled.',
       );
     });
@@ -615,10 +773,14 @@ describe('LoginComponent (pipeline runner characterization)', () => {
 
       subject.next({ type: 'model-init' });
       subject.next({ type: 'translate-start', total: 4 });
-      expect(component.translation.phase).toBe('translating');
 
+      // Same reasoning as the test above: the big stall-budget advance below
+      // flushes these throttled dispatches long before it completes, so the
+      // phase assertion is simply ordered after it rather than needing its
+      // own new, precisely-sized flush.
       jest.advanceTimersByTime(TRANSLATION_INIT_STALL_MS);
-      expect(component.translation.error).toBe(
+      expect(component.translation().phase).toBe('translating');
+      expect(component.translation().error).toBe(
         'Translation stalled — no progress for 60 seconds. Cancel and retry.',
       );
     });
@@ -627,8 +789,15 @@ describe('LoginComponent (pipeline runner characterization)', () => {
   // ---------------------------------------------------------------------
   // Elapsed-time intervals
   // ---------------------------------------------------------------------
+  // elapsedMs is now a LOCAL, unthrottled component field (Global
+  // Constraint: elapsed-time ticking never goes through the store — a
+  // setInterval writing into NgRx every second forever is exactly the
+  // reducer-flooding problem pipelineThrottle() exists to prevent). None of
+  // these tests touch the store at all, so none of them need throttle
+  // flushes — only the field-access syntax changed
+  // (`component.transcription.elapsedMs` -> `component.transcriptionElapsedMs`).
   describe('elapsed-time intervals', () => {
-    it('ticks transcription.elapsedMs in 1000ms increments after transcribe-start, and stops ticking once result fires', async () => {
+    it('ticks transcriptionElapsedMs in 1000ms increments after transcribe-start, and stops ticking once result fires', async () => {
       const opts = makeTranscriptionOptions();
       const dropzone = makeDropzoneStub({
         transcribeOptions: opts,
@@ -640,23 +809,23 @@ describe('LoginComponent (pipeline runner characterization)', () => {
 
       component.onOfflineSubmit(false);
       subject.next({ type: 'transcribe-start', audioDurationS: 10 });
-      expect(component.transcription.elapsedMs).toBe(0);
+      expect(component.transcriptionElapsedMs).toBe(0);
 
       jest.advanceTimersByTime(1000);
-      expect(component.transcription.elapsedMs).toBe(1000);
+      expect(component.transcriptionElapsedMs).toBe(1000);
       jest.advanceTimersByTime(1000);
-      expect(component.transcription.elapsedMs).toBe(2000);
+      expect(component.transcriptionElapsedMs).toBe(2000);
 
       const annotJson = makeAnnotJsonWithSegments();
       subject.next({ type: 'result', annotJson });
       await flushMicrotasks();
 
-      const frozenValue = component.transcription.elapsedMs;
+      const frozenValue = component.transcriptionElapsedMs;
       jest.advanceTimersByTime(5000);
-      expect(component.transcription.elapsedMs).toBe(frozenValue);
+      expect(component.transcriptionElapsedMs).toBe(frozenValue);
     });
 
-    it('stops ticking transcription.elapsedMs once the observable errors', () => {
+    it('stops ticking transcriptionElapsedMs once the observable errors', () => {
       const opts = makeTranscriptionOptions();
       const dropzone = makeDropzoneStub({
         transcribeOptions: opts,
@@ -669,15 +838,15 @@ describe('LoginComponent (pipeline runner characterization)', () => {
       component.onOfflineSubmit(false);
       subject.next({ type: 'transcribe-start', audioDurationS: 10 });
       jest.advanceTimersByTime(1000);
-      expect(component.transcription.elapsedMs).toBe(1000);
+      expect(component.transcriptionElapsedMs).toBe(1000);
 
       subject.error(new Error('boom'));
-      const frozenValue = component.transcription.elapsedMs;
+      const frozenValue = component.transcriptionElapsedMs;
       jest.advanceTimersByTime(5000);
-      expect(component.transcription.elapsedMs).toBe(frozenValue);
+      expect(component.transcriptionElapsedMs).toBe(frozenValue);
     });
 
-    it('stops ticking transcription.elapsedMs once cancelTranscription() is called', () => {
+    it('stops ticking transcriptionElapsedMs once cancelTranscription() is called', () => {
       const opts = makeTranscriptionOptions();
       const dropzone = makeDropzoneStub({
         transcribeOptions: opts,
@@ -690,15 +859,15 @@ describe('LoginComponent (pipeline runner characterization)', () => {
       component.onOfflineSubmit(false);
       subject.next({ type: 'transcribe-start', audioDurationS: 10 });
       jest.advanceTimersByTime(1000);
-      expect(component.transcription.elapsedMs).toBe(1000);
+      expect(component.transcriptionElapsedMs).toBe(1000);
 
       component.cancelTranscription();
-      const frozenValue = component.transcription.elapsedMs;
+      const frozenValue = component.transcriptionElapsedMs;
       jest.advanceTimersByTime(5000);
-      expect(component.transcription.elapsedMs).toBe(frozenValue);
+      expect(component.transcriptionElapsedMs).toBe(frozenValue);
     });
 
-    it('ticks translation.elapsedMs in 1000ms increments after translate-start, and stops ticking once result fires', async () => {
+    it('ticks translationElapsedMs in 1000ms increments after translate-start, and stops ticking once result fires', async () => {
       const annotJson = makeAnnotJsonWithSegments();
       const dropzone = makeDropzoneStub({
         translateOptions: { sourceLanguage: 'en', targetLanguage: 'sv' },
@@ -712,19 +881,19 @@ describe('LoginComponent (pipeline runner characterization)', () => {
       component.onOfflineSubmit(false);
       subject.next({ type: 'model-init' });
       subject.next({ type: 'translate-start', total: 4 });
-      expect(component.translation.elapsedMs).toBe(0);
+      expect(component.translationElapsedMs).toBe(0);
 
       jest.advanceTimersByTime(1000);
-      expect(component.translation.elapsedMs).toBe(1000);
+      expect(component.translationElapsedMs).toBe(1000);
       jest.advanceTimersByTime(1000);
-      expect(component.translation.elapsedMs).toBe(2000);
+      expect(component.translationElapsedMs).toBe(2000);
 
       subject.next({ type: 'result', annotJson });
       await flushMicrotasks();
 
-      const frozenValue = component.translation.elapsedMs;
+      const frozenValue = component.translationElapsedMs;
       jest.advanceTimersByTime(5000);
-      expect(component.translation.elapsedMs).toBe(frozenValue);
+      expect(component.translationElapsedMs).toBe(frozenValue);
     });
   });
 
@@ -748,7 +917,9 @@ describe('LoginComponent (pipeline runner characterization)', () => {
     // this setup now starts a real, still-open pipeline for the relevant
     // stage first, matching how these methods are actually reached in
     // production — the ASSERTED behavior (which services get cancelled, and
-    // the resulting active/phase fields) is unchanged.
+    // the resulting active/phase fields) is unchanged. `cancelTranscription()`/
+    // `cancelTranslation()` dispatch their `*Cancelled` action directly
+    // (unthrottled), so no flush is needed here either.
     it('cancelTranscription() cancels BOTH the transcription and diarization services', () => {
       const dropzone = makeDropzoneStub({
         transcribeOptions: makeTranscriptionOptions(),
@@ -765,8 +936,8 @@ describe('LoginComponent (pipeline runner characterization)', () => {
       expect(transcriptionServiceMock.cancel).toHaveBeenCalledTimes(1);
       expect(diarizationServiceMock.cancel).toHaveBeenCalledTimes(1);
       expect(translationServiceMock.cancel).not.toHaveBeenCalled();
-      expect(component.transcription.active).toBe(false);
-      expect(component.transcription.phase).toBe('idle');
+      expect(component.transcription().active).toBe(false);
+      expect(component.transcription().phase).toBe('idle');
     });
 
     it('cancelTranslation() cancels ONLY the translation service (not transcription, not diarization)', () => {
@@ -786,8 +957,8 @@ describe('LoginComponent (pipeline runner characterization)', () => {
       expect(translationServiceMock.cancel).toHaveBeenCalledTimes(1);
       expect(transcriptionServiceMock.cancel).not.toHaveBeenCalled();
       expect(diarizationServiceMock.cancel).not.toHaveBeenCalled();
-      expect(component.translation.active).toBe(false);
-      expect(component.translation.phase).toBe('idle');
+      expect(component.translation().active).toBe(false);
+      expect(component.translation().phase).toBe('idle');
     });
   });
 
@@ -802,6 +973,14 @@ describe('LoginComponent (pipeline runner characterization)', () => {
       // stage-aware from its OWN tracked state, so it needs a genuinely
       // active stage to route the cancel call correctly. The asserted
       // behavior below is unchanged.
+      //
+      // `.error` is set here via the TEST_FORCE_TRANSCRIPTION_ERROR escape
+      // hatch (see testPipelineReducer above), not a real PipelineAction:
+      // the real reducer can never produce `active:true` + a non-null
+      // `.error` together (nor could the pre-extraction component — see
+      // that helper's comment), so this stays exactly what it always was —
+      // a white-box injection isolating this method's branching from how
+      // `.error` gets populated in practice.
       const dropzone = makeDropzoneStub({
         transcribeOptions: makeTranscriptionOptions(),
         hasAudio: true,
@@ -811,34 +990,50 @@ describe('LoginComponent (pipeline runner characterization)', () => {
         new Subject<TranscriptionEvent>(),
       );
       component.onOfflineSubmit(false);
-      component.transcription.error = 'some error';
+      store.dispatch({
+        type: TEST_FORCE_TRANSCRIPTION_ERROR,
+        message: 'some error',
+      });
 
       component.dismissTranscriptionError();
 
       expect(transcriptionServiceMock.cancel).toHaveBeenCalledTimes(1);
       expect(diarizationServiceMock.cancel).toHaveBeenCalledTimes(1);
-      expect(component.transcription.active).toBe(false);
-      expect(component.transcription.phase).toBe('idle');
+      expect(component.transcription().active).toBe(false);
+      expect(component.transcription().phase).toBe('idle');
       // Surprising-but-real: dismiss while active does NOT clear the error
       // field itself; only the inactive branch below does that.
-      expect(component.transcription.error).toBe('some error');
+      expect(component.transcription().error).toBe('some error');
     });
 
     it('dismissTranscriptionError() just clears .error and touches no services when active is false', () => {
-      component.transcription.active = false;
-      component.transcription.error = 'some error';
+      // Reached via two REAL PipelineActions this time (no escape hatch
+      // needed): `error` is exactly how a real, non-null `.error` combines
+      // with `active:false` in production.
+      store.dispatch(
+        PipelineActions.transcriptionStart({
+          downloadExpectedBytes: 0,
+          usedWebGPU: false,
+        }),
+      );
+      store.dispatch(PipelineActions.error({ message: 'some error' }));
 
       component.dismissTranscriptionError();
 
       expect(transcriptionServiceMock.cancel).not.toHaveBeenCalled();
       expect(diarizationServiceMock.cancel).not.toHaveBeenCalled();
-      expect(component.transcription.error).toBeNull();
+      expect(component.transcription().error).toBeNull();
     });
 
     it('dismissTranslationError() routes through cancelTranslation() when active is true (and leaves .error UNCHANGED)', () => {
       // See the "cancel asymmetry" describe block above for why this setup
       // starts a real, still-open translation run rather than just setting
       // `.active = true` by hand. The asserted behavior below is unchanged.
+      //
+      // Unlike transcription, `.error` here is set via a REAL action
+      // (PipelineActions.stalled) that legitimately pairs a non-null
+      // `.error` with `active` staying true — mirrors today's pipeline
+      // 'stalled' handling, which likewise only ever wrote `.error`.
       const dropzone = makeDropzoneStub({
         translateOptions: { sourceLanguage: 'en', targetLanguage: 'sv' },
         hasAnnotation: true,
@@ -849,24 +1044,31 @@ describe('LoginComponent (pipeline runner characterization)', () => {
         new Subject<TranslationEvent>(),
       );
       component.onOfflineSubmit(false);
-      component.translation.error = 'some translation error';
+      store.dispatch(
+        PipelineActions.stalled({
+          phase: 'downloading',
+          message: 'some translation error',
+        }),
+      );
 
       component.dismissTranslationError();
 
       expect(translationServiceMock.cancel).toHaveBeenCalledTimes(1);
-      expect(component.translation.active).toBe(false);
-      expect(component.translation.phase).toBe('idle');
-      expect(component.translation.error).toBe('some translation error');
+      expect(component.translation().active).toBe(false);
+      expect(component.translation().phase).toBe('idle');
+      expect(component.translation().error).toBe('some translation error');
     });
 
     it('dismissTranslationError() just clears .error and touches no services when active is false', () => {
-      component.translation.active = false;
-      component.translation.error = 'some translation error';
+      store.dispatch(PipelineActions.translationStart());
+      store.dispatch(
+        PipelineActions.error({ message: 'some translation error' }),
+      );
 
       component.dismissTranslationError();
 
       expect(translationServiceMock.cancel).not.toHaveBeenCalled();
-      expect(component.translation.error).toBeNull();
+      expect(component.translation().error).toBeNull();
     });
   });
 });
