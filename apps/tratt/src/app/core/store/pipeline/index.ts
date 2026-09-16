@@ -1,7 +1,3 @@
-import { RootState } from '../index';
-
-export const selectPipeline = (state: RootState) => state.pipeline;
-
 // Field shapes mirror `login.component.ts`'s own `transcription`/`translation`
 // component fields exactly (same field names, same types) — see the task
 // brief's explicit instruction that Task 4's template rewrite should be

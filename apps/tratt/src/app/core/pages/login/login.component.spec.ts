@@ -94,9 +94,9 @@ async function flushMicrotasks(times = 6): Promise<void> {
   }
 }
 
-// login.component.ts now dispatches through a throttled (`pipelineThrottle()`,
-// ~4Hz) channel on its way to the store (Task 3/4's design — see
-// pipeline-event-mapping.ts). Every place below that needs to observe a
+// login.component.ts now dispatches through a throttled (`dispatchPipelineActions()`,
+// ~4Hz-capped for progress ticks) channel on its way to the store (Task 3/4's
+// design — see pipeline-event-mapping.ts). Every place below that needs to observe a
 // store-derived field (`component.transcription()`/`.translation()`/
 // `.diarizationWarning()`) synchronously after an event has to first let a
 // throttle window close, exactly like a real 250ms tick would in production.
@@ -122,8 +122,8 @@ async function flushMicrotasks(times = 6): Promise<void> {
 //
 // UPDATE (post-review fix): login.component.ts/pipeline-event-mapping.ts no
 // longer throttle the WHOLE mapped-action stream — only pure progress ticks
-// (download-progress/segment-progress) go through pipelineThrottle() at
-// all; every discrete state-transition/terminal action now dispatches
+// (download-progress/segment-progress) go through dispatchPipelineActions()'s
+// throttle-safe path at all; every discrete state-transition/terminal action now dispatches
 // immediately (see dispatchPipelineActions()/isThrottleSafeProgressAction()
 // and the "regression: transcriptionFinalized must survive..." test below
 // for why). Most of the flush calls below, inserted for THOSE discrete
@@ -865,7 +865,7 @@ describe('LoginComponent (pipeline runner characterization)', () => {
   // elapsedMs is now a LOCAL, unthrottled component field (Global
   // Constraint: elapsed-time ticking never goes through the store — a
   // setInterval writing into NgRx every second forever is exactly the
-  // reducer-flooding problem pipelineThrottle() exists to prevent). None of
+  // reducer-flooding problem dispatchPipelineActions() exists to prevent). None of
   // these tests touch the store at all, so none of them need throttle
   // flushes — only the field-access syntax changed
   // (`component.transcription.elapsedMs` -> `component.transcriptionElapsedMs`).

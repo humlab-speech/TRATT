@@ -106,9 +106,9 @@ export class LoginComponent
   // Elapsed-time ticking is DELIBERATELY kept local and unthrottled (Global
   // Constraint from the master plan) — a `setInterval` writing into NgRx
   // every second forever is exactly the reducer-flooding problem
-  // `pipelineThrottle()` exists to prevent. These two fields are driven by
-  // the RAW (unthrottled) event stream in `_onRawPipelineEvent` below, not
-  // by anything dispatched into the store.
+  // `dispatchPipelineActions()` exists to prevent. These two fields are
+  // driven by the RAW (unthrottled) event stream in `_onRawPipelineEvent`
+  // below, not by anything dispatched into the store.
   transcriptionElapsedMs = 0;
   translationElapsedMs = 0;
 
