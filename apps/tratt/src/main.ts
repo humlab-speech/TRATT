@@ -53,6 +53,7 @@ import { AppStorageService } from './app/core/shared/service/appstorage.service'
 import { BugReportService } from './app/core/shared/service/bug-report.service';
 import { CompatibilityService } from './app/core/shared/service/compatibility.service';
 import { IDBService } from './app/core/shared/service/idb.service';
+import { LOCAL_DIARIZATION_WORKER_FACTORY } from './app/core/shared/service/local-diarization-worker.token';
 import { APIEffects } from './app/core/store/api';
 import { ApplicationInitEffects } from './app/core/store/application/application-init.effects';
 import { ApplicationSessionEffects } from './app/core/store/application/application-session.effects';
@@ -181,6 +182,25 @@ bootstrapApplication(AppComponent, {
     BugReportService,
     CompatibilityService,
     MultiThreadingService,
+    // LocalDiarizationRuntimeService is providedIn: 'root' and needs this
+    // factory at the same scope — diarize() already creates a fresh Worker
+    // per call (see LocalDiarizationRuntimeService.diarize()'s
+    // this.createWorker() call), so root-scoping the factory doesn't lose
+    // the "fresh worker per attempt" behavior. This used to live in
+    // LoginComponent's own `providers` array as a workaround for a DI scope
+    // mismatch bug (see commit 0b192eb67); providing it here alongside the
+    // now-root-provided service is the proper fix.
+    {
+      provide: LOCAL_DIARIZATION_WORKER_FACTORY,
+      useValue: () =>
+        new Worker(
+          new URL(
+            './app/core/workers/pyannote-diarization.worker',
+            import.meta.url,
+          ),
+          { type: 'module' },
+        ),
+    },
 
     // HTTP & Animation
     provideHttpClient(withInterceptorsFromDi()),
