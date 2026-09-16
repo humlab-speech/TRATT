@@ -581,20 +581,24 @@ same way a mid-session file drop would (reachable on the next full session start
 **Navigation-guard investigation (Task 2), no change needed**: neither `/workbench` nor the legacy
 `/local` has ever had real router-level `canDeactivate` protection against navigating away with an
 unsaved recording — `login.deactivateguard.ts`/`ComponentCanDeactivate` exist in the codebase but are
-dead code, registered in `main.ts`'s DI providers but never wired into any route's `canDeactivate` array
-(confirmed zero hits across `app.routes.ts`), and even if they were, `LoginComponent.canDeactivate()`
-checks login-form validity, not recording state, so it was never the right mechanism for this concern
-anyway. The only real protection anywhere in the app is explicit in-app calls to
-`RecordedFileService.checkUnsaved()` — from `WorkbenchComponent.abortTranscription()` (pre-existing) and
-the shared navbar's `logout()` (mounted app-wide via the root shell, `app.component.html`) — both
-already reachable from `/workbench`, so no disparity with the legacy page existed to begin with.
+dead code with zero consumers anywhere — provided in `main.ts`'s DI array but never even injected into
+a component, let alone wired into any route's `canDeactivate` array (confirmed zero hits across
+`app.routes.ts`) — and even if it were, `LoginComponent.canDeactivate()` checks login-form validity, not
+recording state, so it was never the right mechanism for this concern anyway. The only real protection
+anywhere in the app is explicit in-app calls to `RecordedFileService.checkUnsaved()` — from
+`WorkbenchComponent.abortTranscription()` (pre-existing) and the shared navbar's `logout()` (mounted
+app-wide via the root shell, `app.component.html`) — both already reachable from `/workbench`, so no
+disparity with the legacy page existed to begin with. (The navbar's `logout()` exit is additionally
+gated on `useMode === 'online' || useMode === 'demo'`, so it never actually renders for LOCAL mode at
+all — one fewer applicable exit path, not a gap.)
 
 One real, but explicitly out-of-scope-for-this-step, gap surfaced during that investigation and worth
 tracking separately: during the pre-session window specifically (a recording is staged via the record
 tab, but `startSession()` hasn't run yet), NEITHER guarded exit is even rendered —
 `abortTranscription()`'s button lives behind `@if (sessionReady)`, and the navbar's profile
-dropdown containing `logout()` lives behind `@if (appStorage.loggedIn && ...)`, and `loggedIn` only
-flips true once `startSession()` completes. In that specific window, browser back/forward or a direct
+dropdown containing `logout()` lives behind `@if (appStorage.loggedIn && ...)` (moot for LOCAL mode
+regardless, per above), and `loggedIn` only flips true once `startSession()` completes. In that specific
+window, browser back/forward or a direct
 URL edit is genuinely uncaught — but this is confirmed identical on `/local` today (which mounts the
 same recording panel, the same pre-session way, via `login.component.html`), so it is not a
 `/workbench`-specific regression this step introduced; it is a pre-existing, universal gap, unrelated to
