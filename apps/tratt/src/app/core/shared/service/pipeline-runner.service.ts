@@ -39,7 +39,26 @@ export type PipelineEvent =
   // no-diarization branch) has resolved — mirrors login.component.ts's
   // today-inline `this.transcription.active = false;` write, relocated here
   // since that decision point now lives in the service, not the component.
-  | { stage: 'transcription'; type: 'finalized' }
+  // Carries `diarizationWarning` HERE (not only on the terminal
+  // `{stage:'pipeline', type:'result'}` event) so a consumer can surface it
+  // immediately — on the chained transcribe->translate path, the old
+  // component code set `this.diarizationWarning` at this exact point, well
+  // before translation (which can take minutes) even starts, so the warning
+  // banner was visible for the whole translation phase. Delivering it only
+  // on the final `result` event would mean it arrives the instant before
+  // the pipeline navigates away, effectively never shown. `willTranslate`
+  // lets the consumer decide the same phase transition
+  // (`transcription.phase = 'idle'`) the original code made from the SAME
+  // captured `translateOptions` value the service already used to decide
+  // whether to chain into translation, instead of re-reading it
+  // independently from a live external source (e.g. a dropzone field) that
+  // could in principle disagree.
+  | {
+      stage: 'transcription';
+      type: 'finalized';
+      diarizationWarning: string | null;
+      willTranslate: boolean;
+    }
   | { stage: 'diarization'; event: DiarizationEvent }
   | { stage: 'diarization'; type: 'skipped' }
   // Emitted synchronously right before diarize() is called, only when
@@ -96,6 +115,7 @@ export class PipelineRunnerService {
   private _stallTimerId: ReturnType<typeof setTimeout> | null = null;
   private _translationPhase: TranslationStallPhase = 'downloading';
   private _diarizationWarning: string | null = null;
+  private _subscriber: Subscriber<PipelineEvent> | null = null;
 
   constructor(
     private localTranscriptionService: LocalTranscriptionService,
@@ -107,6 +127,7 @@ export class PipelineRunnerService {
   run(input: PipelineInput): Observable<PipelineEvent> {
     return new Observable<PipelineEvent>((subscriber) => {
       this._diarizationWarning = null;
+      this._subscriber = subscriber;
 
       if (input.transcribeOptions) {
         this._activeStage = 'transcription';
@@ -115,6 +136,7 @@ export class PipelineRunnerService {
         this._activeStage = 'translation';
         this._runTranslationStage(input.annotJson, input.translateOptions, subscriber);
       } else {
+        this._subscriber = null;
         subscriber.complete();
       }
 
@@ -132,9 +154,14 @@ export class PipelineRunnerService {
    * stage owns — both transcription+diarization for an active transcription
    * stage (matching today's `cancelTranscription()`), or translation alone
    * for an active translation stage (matching today's `cancelTranslation()`).
-   * A no-op when nothing is active.
+   * A no-op when nothing is active. When a stage WAS active, emits a
+   * terminal `{stage:'pipeline', type:'cancelled'}` event on the returned
+   * `run()` Observable before completing it, so a consumer can react to
+   * "the run was cancelled" as a real event rather than just silence.
    */
   cancel(): void {
+    const wasActive = this._activeStage !== null;
+
     if (this._activeStage === 'translation') {
       this._clearStallTimer();
       this.localTranslationService.cancel();
@@ -145,6 +172,13 @@ export class PipelineRunnerService {
     this._stageSub?.unsubscribe();
     this._stageSub = null;
     this._activeStage = null;
+
+    const subscriber = this._subscriber;
+    this._subscriber = null;
+    if (wasActive && subscriber && !subscriber.closed) {
+      subscriber.next({ stage: 'pipeline', type: 'cancelled' });
+      subscriber.complete();
+    }
   }
 
   private _runTranscriptionStage(
@@ -168,6 +202,7 @@ export class PipelineRunnerService {
         },
         error: (err) => {
           this._activeStage = null;
+          this._subscriber = null;
           subscriber.error(err);
         },
       });
@@ -225,13 +260,19 @@ export class PipelineRunnerService {
     }
     this._diarizationWarning = diarizationWarning;
 
-    subscriber.next({ stage: 'transcription', type: 'finalized' });
+    subscriber.next({
+      stage: 'transcription',
+      type: 'finalized',
+      diarizationWarning,
+      willTranslate: !!input.translateOptions,
+    });
 
     if (input.translateOptions) {
       this._activeStage = 'translation';
       this._runTranslationStage(segmented.annotJson, input.translateOptions, subscriber);
     } else {
       this._activeStage = null;
+      this._subscriber = null;
       subscriber.next({
         stage: 'pipeline',
         type: 'result',
@@ -258,6 +299,7 @@ export class PipelineRunnerService {
         if (event.type === 'result') {
           this._clearStallTimer();
           this._activeStage = null;
+          this._subscriber = null;
           subscriber.next({
             stage: 'pipeline',
             type: 'result',
@@ -280,6 +322,7 @@ export class PipelineRunnerService {
       error: (err) => {
         this._clearStallTimer();
         this._activeStage = null;
+        this._subscriber = null;
         subscriber.error(err);
       },
     });

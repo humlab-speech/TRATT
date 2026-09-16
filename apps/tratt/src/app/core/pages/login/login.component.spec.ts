@@ -476,6 +476,57 @@ describe('LoginComponent (pipeline runner characterization)', () => {
   });
 
   // ---------------------------------------------------------------------
+  // Regression: diarizationWarning must be visible for the WHOLE translation
+  // phase on the chained path, not just delivered at the very end
+  // ---------------------------------------------------------------------
+  describe('diarization failure while chaining to translation', () => {
+    it('sets diarizationWarning BEFORE translation events start arriving, not just after the pipeline finally resolves', async () => {
+      const transcribeOpts = makeTranscriptionOptions({
+        diarization: { modelId: 'diar-model', useWebGPU: false },
+      });
+      const translateOpts = { sourceLanguage: 'en', targetLanguage: 'sv' };
+      const dropzone = makeDropzoneStub({
+        transcribeOptions: transcribeOpts,
+        hasAudio: true,
+        translateOptions: translateOpts,
+      });
+      component.dropzone = dropzone as any;
+      const transcriptionSubject = new Subject<TranscriptionEvent>();
+      transcriptionServiceMock.transcribe.mockReturnValue(transcriptionSubject);
+      const diarizationSubject = new Subject<DiarizationEvent>();
+      diarizationServiceMock.diarize.mockReturnValue(diarizationSubject);
+      const translationSubject = new Subject<TranslationEvent>();
+      translationServiceMock.translate.mockReturnValue(translationSubject);
+
+      component.onOfflineSubmit(false);
+      const annotJson = makeAnnotJsonWithSegments();
+      transcriptionSubject.next({ type: 'result', annotJson });
+      await flushMicrotasks();
+
+      diarizationSubject.error(new Error('diarization worker crashed'));
+      await flushMicrotasks();
+
+      // Translation has been kicked off (proving we're on the chained path,
+      // well before the pipeline's terminal result)...
+      expect(translationServiceMock.translate).toHaveBeenCalledTimes(1);
+      expect(component.translation.active).toBe(true);
+      expect(authStoreService.loginLocal).not.toHaveBeenCalled();
+      // ...and the warning is ALREADY visible, not withheld until the
+      // pipeline finally resolves minutes later.
+      expect(component.diarizationWarning).toBe(
+        translocoTranslate.mock.results[0].value,
+      );
+
+      // Still visible once translation actually starts progressing (proves
+      // nothing later in the translation phase clobbers it back to null).
+      translationSubject.next({ type: 'model-init' });
+      expect(component.diarizationWarning).toBe(
+        translocoTranslate.mock.results[0].value,
+      );
+    });
+  });
+
+  // ---------------------------------------------------------------------
   // Translation stall timers
   // ---------------------------------------------------------------------
   describe('translation stall timers', () => {

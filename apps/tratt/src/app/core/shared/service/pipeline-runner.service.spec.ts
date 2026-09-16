@@ -144,7 +144,12 @@ describe('PipelineRunnerService', () => {
         event: { type: 'result', annotJson },
       });
       expect(events).toContainEqual({ stage: 'diarization', type: 'skipped' });
-      expect(events).toContainEqual({ stage: 'transcription', type: 'finalized' });
+      expect(events).toContainEqual({
+        stage: 'transcription',
+        type: 'finalized',
+        diarizationWarning: null,
+        willTranslate: false,
+      });
       const resultEvent = events.find(
         (e) => e.stage === 'pipeline' && e.type === 'result',
       ) as Extract<PipelineEvent, { stage: 'pipeline'; type: 'result' }>;
@@ -254,6 +259,60 @@ describe('PipelineRunnerService', () => {
       ) as Extract<PipelineEvent, { stage: 'pipeline'; type: 'result' }>;
       expect(resultEvent.annotJson).toBe(annotJson);
       expect(resultEvent.diarizationWarning).toBe(translocoTranslate.mock.results[0].value);
+    });
+
+    it('carries diarizationWarning on the "finalized" event, BEFORE the translation stage starts, when chaining into translation', async () => {
+      const opts = makeTranscriptionOptions({
+        diarization: { modelId: 'diar-model', useWebGPU: false },
+      });
+      const translateOpts: TranslationOptions = {
+        sourceLanguage: 'en',
+        targetLanguage: 'sv',
+      };
+      const transcriptionSubject = new Subject<TranscriptionEvent>();
+      transcriptionServiceMock.transcribe.mockReturnValue(transcriptionSubject);
+      const diarizationSubject = new Subject<DiarizationEvent>();
+      diarizationServiceMock.diarize.mockReturnValue(diarizationSubject);
+      const translationSubject = new Subject<TranslationEvent>();
+      translationServiceMock.translate.mockReturnValue(translationSubject);
+
+      const events: PipelineEvent[] = [];
+      service
+        .run({
+          audioManager,
+          oaudiofile,
+          transcribeOptions: opts,
+          translateOptions: translateOpts,
+        })
+        .subscribe({ next: (e) => events.push(e) });
+
+      const annotJson = makeAnnotJsonWithSegments();
+      transcriptionSubject.next({ type: 'result', annotJson });
+      await Promise.resolve();
+      await Promise.resolve();
+
+      diarizationSubject.error(new Error('diarization worker crashed'));
+      await Promise.resolve();
+      await Promise.resolve();
+      await Promise.resolve();
+
+      const finalizedIndex = events.findIndex(
+        (e) => e.stage === 'transcription' && 'type' in e && e.type === 'finalized',
+      );
+      const translationStartIndex = events.findIndex(
+        (e) => e.stage === 'translation' && 'type' in e && e.type === 'start',
+      );
+      expect(finalizedIndex).toBeGreaterThanOrEqual(0);
+      expect(translationStartIndex).toBeGreaterThan(finalizedIndex);
+
+      const finalizedEvent = events[finalizedIndex] as Extract<
+        PipelineEvent,
+        { stage: 'transcription'; type: 'finalized' }
+      >;
+      expect(finalizedEvent.diarizationWarning).toBe(
+        translocoTranslate.mock.results[0].value,
+      );
+      expect(finalizedEvent.willTranslate).toBe(true);
     });
   });
 
@@ -478,6 +537,30 @@ describe('PipelineRunnerService', () => {
       expect(transcriptionServiceMock.cancel).not.toHaveBeenCalled();
       expect(diarizationServiceMock.cancel).not.toHaveBeenCalled();
       expect(translationServiceMock.cancel).not.toHaveBeenCalled();
+    });
+
+    it('emits a terminal {stage:"pipeline", type:"cancelled"} event on the run() Observable and completes it, when cancelling an active run', () => {
+      const subject = new Subject<TranscriptionEvent>();
+      transcriptionServiceMock.transcribe.mockReturnValue(subject);
+
+      const events: PipelineEvent[] = [];
+      let completed = false;
+      service
+        .run({ audioManager, oaudiofile, transcribeOptions: makeTranscriptionOptions() })
+        .subscribe({ next: (e) => events.push(e), complete: () => (completed = true) });
+
+      service.cancel();
+
+      expect(events).toContainEqual({ stage: 'pipeline', type: 'cancelled' });
+      expect(completed).toBe(true);
+    });
+
+    it('does NOT emit a cancelled event when cancel() is called with nothing active', () => {
+      const events: PipelineEvent[] = [];
+      // No run() call at all — nothing to have a subscriber for, and
+      // cancel() must not throw or emit anything.
+      expect(() => service.cancel()).not.toThrow();
+      expect(events).toEqual([]);
     });
   });
 });

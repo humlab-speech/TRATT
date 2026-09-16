@@ -306,8 +306,17 @@ I just want to let you know, that the OCTRA server is currently offline.
         // resolved — mirrors today's inline `this.transcription.active =
         // false;` (+ conditional phase reset when translation follows),
         // which used to run directly inside handleCompletedTranscription().
+        // diarizationWarning is set HERE (not only on the terminal
+        // 'pipeline result' event) so it's visible for the whole translation
+        // phase that may follow, matching today's timing exactly — setting
+        // it only at the very end would mean it's superseded by navigation
+        // before ever being shown. `willTranslate` is the SAME captured
+        // value the service used to decide whether to chain into
+        // translation, rather than a second, independent read of
+        // `dropzone.translateOptions` that could in principle disagree.
         this.transcription.active = false;
-        if (this.dropzone?.translateOptions) {
+        this.diarizationWarning = event.diarizationWarning;
+        if (event.willTranslate) {
           this.transcription.phase = 'idle';
         }
       }
