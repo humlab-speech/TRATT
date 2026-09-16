@@ -250,6 +250,15 @@ export class PipelineRunnerService {
       },
     });
 
+    if (subscriber.closed) {
+      // Cancelled while diarization was in flight. cancel() has already torn
+      // down the transcription/diarization services, unsubscribed _stageSub,
+      // and completed this subscriber — resuming into a translation stage or
+      // emitting further events here would leak a worker and a stall timer
+      // that nothing can ever reach again, and nobody is listening anyway.
+      return;
+    }
+
     const diarizationWarning = segmented.errorMessage
       ? this.transloco.translate('login.auto-transcription.diarization failed', {
           message: segmented.errorMessage,

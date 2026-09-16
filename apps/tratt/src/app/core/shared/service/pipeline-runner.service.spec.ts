@@ -497,6 +497,90 @@ describe('PipelineRunnerService', () => {
     });
   });
 
+  describe('cancel during in-flight diarization (Fix A regression)', () => {
+    it('never starts a translation run when cancel() fires while diarization is still in flight, even after the diarization promise later settles', async () => {
+      const opts = makeTranscriptionOptions({
+        diarization: { modelId: 'diar-model', useWebGPU: false },
+      });
+      const translateOpts: TranslationOptions = {
+        sourceLanguage: 'en',
+        targetLanguage: 'sv',
+      };
+      const transcriptionSubject = new Subject<TranscriptionEvent>();
+      transcriptionServiceMock.transcribe.mockReturnValue(transcriptionSubject);
+      const diarizationSubject = new Subject<DiarizationEvent>();
+      diarizationServiceMock.diarize.mockReturnValue(diarizationSubject);
+
+      const events: PipelineEvent[] = [];
+      let completed = false;
+      service
+        .run({
+          audioManager,
+          oaudiofile,
+          transcribeOptions: opts,
+          translateOptions: translateOpts,
+        })
+        .subscribe({ next: (e) => events.push(e), complete: () => (completed = true) });
+
+      const annotJson = makeAnnotJsonWithSegments();
+      transcriptionSubject.next({ type: 'result', annotJson });
+      await Promise.resolve();
+      await Promise.resolve();
+
+      expect(diarizationServiceMock.diarize).toHaveBeenCalled();
+
+      // User clicks Cancel while diarization is still genuinely in flight —
+      // the diarization mock has NOT resolved/rejected yet.
+      service.cancel();
+      expect(completed).toBe(true);
+      expect(events).toContainEqual({ stage: 'pipeline', type: 'cancelled' });
+      const eventCountAtCancel = events.length;
+
+      // The pending diarize() observable now ends (mirrors what
+      // LocalDiarizationRuntimeService.cancel() does to the real one),
+      // resolving the awaited applyOptionalSpeakerSegmentation() call.
+      diarizationSubject.error(new Error('diarization worker crashed'));
+      await Promise.resolve();
+      await Promise.resolve();
+      await Promise.resolve();
+
+      expect(translationServiceMock.translate).not.toHaveBeenCalled();
+      expect(events.length).toBe(eventCountAtCancel);
+    });
+
+    it('does not emit a pipeline result after cancel() when no translation was configured', async () => {
+      const opts = makeTranscriptionOptions({
+        diarization: { modelId: 'diar-model', useWebGPU: false },
+      });
+      const transcriptionSubject = new Subject<TranscriptionEvent>();
+      transcriptionServiceMock.transcribe.mockReturnValue(transcriptionSubject);
+      const diarizationSubject = new Subject<DiarizationEvent>();
+      diarizationServiceMock.diarize.mockReturnValue(diarizationSubject);
+
+      const events: PipelineEvent[] = [];
+      service
+        .run({ audioManager, oaudiofile, transcribeOptions: opts })
+        .subscribe({ next: (e) => events.push(e) });
+
+      const annotJson = makeAnnotJsonWithSegments();
+      transcriptionSubject.next({ type: 'result', annotJson });
+      await Promise.resolve();
+      await Promise.resolve();
+
+      service.cancel();
+      expect(events).toContainEqual({ stage: 'pipeline', type: 'cancelled' });
+
+      diarizationSubject.error(new Error('diarization worker crashed'));
+      await Promise.resolve();
+      await Promise.resolve();
+      await Promise.resolve();
+
+      expect(
+        events.find((e) => e.stage === 'pipeline' && e.type === 'result'),
+      ).toBeUndefined();
+    });
+  });
+
   describe('cancel() stage-aware routing', () => {
     it('cancels transcription + diarization services when transcription is the active stage', () => {
       const subject = new Subject<TranscriptionEvent>();
