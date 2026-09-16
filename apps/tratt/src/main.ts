@@ -27,7 +27,10 @@ import { EffectsModule } from '@ngrx/effects';
 import { StoreModule } from '@ngrx/store';
 import { StoreDevtoolsModule } from '@ngrx/store-devtools';
 import { NgxOctraApiModule } from '@octra/ngx-octra-api';
-import { TrattComponentsModule } from '@tratt/ngx-components';
+import {
+  MultiThreadingService,
+  TrattComponentsModule,
+} from '@tratt/ngx-components';
 import { TrattUtilitiesModule } from '@tratt/ngx-utilities';
 import 'jodit/esm/plugins/justify/justify.js';
 import {
@@ -47,7 +50,6 @@ import { ReloadFileGuard } from './app/core/pages/intern/reload-file/reload-file
 import { PagesModule } from './app/core/pages/pages.module';
 import { ALoginGuard, DeALoginGuard } from './app/core/shared/guard';
 import { TranscActivateGuard } from './app/core/shared/guard/transcr.activateguard';
-import { MultiThreadingService } from '@tratt/ngx-components';
 import { AudioService, SettingsService } from './app/core/shared/service';
 import { AppStorageService } from './app/core/shared/service/appstorage.service';
 import { BugReportService } from './app/core/shared/service/bug-report.service';
@@ -65,6 +67,7 @@ import {
 } from './app/core/store/authentication';
 import { IDBEffects } from './app/core/store/idb/idb-effects.service';
 import { BundleRestoreEffects } from './app/core/store/login-mode/annotation/bundle-restore.effects';
+import * as fromPipeline from './app/core/store/pipeline/pipeline.reducer';
 import * as fromUser from './app/core/store/user/user.reducer';
 import { environment } from './environments/environment';
 
@@ -113,6 +116,7 @@ bootstrapApplication(AppComponent, {
           application: fromApplication.reducer,
           authentication: authenticationReducer,
           user: fromUser.reducer,
+          pipeline: fromPipeline.reducer,
         },
         {
           metaReducers: !environment.production ? [] : [],

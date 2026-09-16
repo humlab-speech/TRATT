@@ -5,6 +5,7 @@ import {
   LocalBundleCollectionState,
   resolveLocalBundleState,
 } from './login-mode/annotation/local-bundle-collection';
+import { PipelineState } from './pipeline';
 import { UserState } from './user';
 
 export enum LoginMode {
@@ -43,6 +44,7 @@ export interface RootState {
   localMode: LocalBundleCollectionState;
   urlMode: AnnotationState;
   user: UserState;
+  pipeline: PipelineState;
 }
 
 export function getModeState(appState: RootState): AnnotationState | undefined {
