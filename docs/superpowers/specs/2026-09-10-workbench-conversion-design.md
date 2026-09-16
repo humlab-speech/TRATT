@@ -708,3 +708,23 @@ implemented — genuinely the hardest part of this whole step:
 **`/workbench` remains completely untouched by this step**, confirmed by the final review (below) — this
 was a pure `/local`-only internal refactor, exactly matching the master plan's own "ship 3a alone" framing.
 Wiring pipeline UI into `/workbench` is separate, future work.
+
+**Final whole-branch review, one more real bug.** A full end-to-end trace of the final architecture (not
+the superseded intermediate versions) found one more genuine, live defect neither task-scoped review
+could see: `PipelineRunnerService._handleTranscriptionResult` holds a `subscriber` reference across an
+`await` on the diarization result — if the user clicks Cancel while diarization is genuinely in flight
+(a real, reachable UI state; the Cancel button is visible then), `cancel()` runs synchronously and closes
+the subscriber, but the pending `await` resolves anyway afterward (diarization's own `cancel()` causes
+its Observable to complete without a value, which `applyOptionalSpeakerSegmentation`'s existing try/catch
+already treats as a diarization failure — that part was always correct), and execution used to continue
+past the cancellation point, still starting a real translation worker and arming a 30-second stall timer
+that nothing could ever reach again. Fixed with a `subscriber.closed` guard right after the await
+resolves. Verified by empirically reverting just the guard and confirming the regression test fails for
+exactly this reason (a ghost `translate()` call after cancel) — the same "prove it against the actual
+pre-fix code, not just read the diff" standard held throughout this step.
+
+The same pass also caught a factually inaccurate claim in this very doc section (already corrected
+above): the diarization-warning banner was never actually *visible* to the user on the chained path in
+either the old or new code — its own template gate independently unmounts it the moment transcription
+finishes — a separate, pre-existing UI bug this step didn't introduce and isn't fixing, only correctly
+preserving the underlying store-write *timing* of (not the on-screen visibility of, which never existed).
