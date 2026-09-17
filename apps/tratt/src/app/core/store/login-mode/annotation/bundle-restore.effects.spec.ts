@@ -10,7 +10,14 @@ if (typeof (globalThis as any).structuredClone === 'undefined') {
 
 import 'fake-indexeddb/auto'; // polyfills global indexedDB for this test file
 import { TestBed } from '@angular/core/testing';
-import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
+import {
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  jest,
+} from '@jest/globals';
 import { provideMockActions } from '@ngrx/effects/testing';
 import { Store } from '@ngrx/store';
 import { provideMockStore } from '@ngrx/store/testing';
@@ -18,11 +25,12 @@ import Dexie from 'dexie';
 import { from, ReplaySubject, throwError } from 'rxjs';
 import { IDBService } from '../../../shared/service/idb.service';
 import { TrattDatabase } from '../../../shared/tratt-database';
-import { LoginMode, RootState } from '../../index';
-import { DEFAULT_BUNDLE_ID } from './local-bundle-collection';
-import { BundleRestoreEffects } from './bundle-restore.effects';
-import { LoginModeActions } from '../login-mode.actions';
 import { IDBActions } from '../../idb/idb.actions';
+import { LoginMode, RootState } from '../../index';
+import { PipelineQueueActions } from '../../pipeline-queue/pipeline-queue.actions';
+import { LoginModeActions } from '../login-mode.actions';
+import { BundleRestoreEffects } from './bundle-restore.effects';
+import { DEFAULT_BUNDLE_ID } from './local-bundle-collection';
 
 const DB_NAME = 'bundle-restore-effects-test';
 
@@ -51,7 +59,9 @@ describe('BundleRestoreEffects', () => {
       {
         bundleId: DEFAULT_BUNDLE_ID,
         name: 'options',
-        value: { sessionfile: { name: 'default.wav', size: 1, type: 'audio/wav' } },
+        value: {
+          sessionfile: { name: 'default.wav', size: 1, type: 'audio/wav' },
+        },
       },
       {
         bundleId: DEFAULT_BUNDLE_ID,
@@ -107,7 +117,9 @@ describe('BundleRestoreEffects', () => {
       listLocalBundleIds: () => from(db.listLocalBundleIds()),
       loadModeOptions: (mode: LoginMode, bundleId?: string) =>
         bundleId === failBundleId
-          ? throwError(() => new Error(`simulated load failure for ${bundleId}`))
+          ? throwError(
+              () => new Error(`simulated load failure for ${bundleId}`),
+            )
           : db.loadDataOfMode(mode, 'options', {}, bundleId),
       loadAnnotation: (mode: LoginMode, bundleId?: string) =>
         db.loadDataOfMode(mode, 'annotation', undefined, bundleId),
@@ -142,7 +154,9 @@ describe('BundleRestoreEffects', () => {
       next: () => {
         const createBundleCalls = dispatchSpy.mock.calls
           .map((call) => call[0])
-          .filter((action: any) => action.type === LoginModeActions.createBundle.type);
+          .filter(
+            (action: any) => action.type === LoginModeActions.createBundle.type,
+          );
 
         expect(createBundleCalls).toHaveLength(2);
 
@@ -209,7 +223,8 @@ describe('BundleRestoreEffects', () => {
             const createBundleCalls = dispatchSpy.mock.calls
               .map((call) => call[0])
               .filter(
-                (action: any) => action.type === LoginModeActions.createBundle.type,
+                (action: any) =>
+                  action.type === LoginModeActions.createBundle.type,
               );
             expect(createBundleCalls).toHaveLength(0);
 
@@ -245,7 +260,9 @@ describe('BundleRestoreEffects', () => {
       next: () => {
         const createBundleCalls = dispatchSpy.mock.calls
           .map((call) => call[0])
-          .filter((action: any) => action.type === LoginModeActions.createBundle.type);
+          .filter(
+            (action: any) => action.type === LoginModeActions.createBundle.type,
+          );
 
         const byId = Object.fromEntries(
           createBundleCalls.map((a: any) => [a.bundleId, a]),
@@ -301,7 +318,11 @@ describe('BundleRestoreEffects', () => {
             LoginMode.LOCAL,
             'options',
             {
-              sessionfile: { name: 'real-write.wav', size: 55, type: 'audio/wav' },
+              sessionfile: {
+                name: 'real-write.wav',
+                size: 55,
+                type: 'audio/wav',
+              },
               currentEditor: '2D-Editor',
             },
             false,
@@ -323,7 +344,8 @@ describe('BundleRestoreEffects', () => {
             const createBundleCalls = dispatchSpy.mock.calls
               .map((call) => call[0])
               .filter(
-                (action: any) => action.type === LoginModeActions.createBundle.type,
+                (action: any) =>
+                  action.type === LoginModeActions.createBundle.type,
               );
             const byId = Object.fromEntries(
               createBundleCalls.map((a: any) => [a.bundleId, a]),
@@ -355,5 +377,83 @@ describe('BundleRestoreEffects', () => {
           }),
         );
       });
+  });
+
+  it('rehydrates a persisted queued/running runState as interrupted, for bundle-1 too', (done) => {
+    // bundle-1's ENTITY restore is handled by the pre-existing
+    // loadOptions$/loadAnnotation$ boot effects (unaffected here), but
+    // nothing else restores its persisted runState — this effect must load
+    // bundle-1's options row too, purely for that field.
+    Promise.all([
+      db.bundles.put({
+        bundleId: DEFAULT_BUNDLE_ID,
+        name: 'options',
+        value: {
+          sessionfile: { name: 'default.wav', size: 1, type: 'audio/wav' },
+          runState: 'running',
+        },
+      }),
+      db.bundles.put({
+        bundleId: 'bundle-3',
+        name: 'options',
+        value: {
+          sessionfile: { name: 'three.wav', size: 33, type: 'audio/wav' },
+          currentEditor: 'Dictaphone-Editor',
+          runState: 'queued',
+        },
+      }),
+    ]).then(() => {
+      effects.restoreBundles$.subscribe({
+        next: () => {
+          expect(dispatchSpy).toHaveBeenCalledWith(
+            PipelineQueueActions.restoreInterrupted({
+              entries: [
+                { bundleId: DEFAULT_BUNDLE_ID, state: 'running' },
+                { bundleId: 'bundle-3', state: 'queued' },
+              ],
+            }),
+          );
+          done();
+        },
+        error: done,
+      });
+
+      actions$.next(
+        IDBActions.loadOptions.success({
+          applicationOptions: {} as any,
+          localOptions: {} as any,
+          onlineOptions: {} as any,
+          demoOptions: {} as any,
+          urlOptions: {} as any,
+        }),
+      );
+    });
+  });
+
+  it('does not dispatch restoreInterrupted when no bundle has a persisted runState', (done) => {
+    // Default fixture from beforeEach — none of its options rows carry a
+    // runState field.
+    effects.restoreBundles$.subscribe({
+      next: () => {
+        expect(
+          dispatchSpy.mock.calls.filter(
+            ([a]: any[]) =>
+              a.type === PipelineQueueActions.restoreInterrupted.type,
+          ),
+        ).toEqual([]);
+        done();
+      },
+      error: done,
+    });
+
+    actions$.next(
+      IDBActions.loadOptions.success({
+        applicationOptions: {} as any,
+        localOptions: {} as any,
+        onlineOptions: {} as any,
+        demoOptions: {} as any,
+        urlOptions: {} as any,
+      }),
+    );
   });
 });

@@ -12,10 +12,12 @@ import {
   tap,
 } from 'rxjs';
 import { SessionFile } from '../../../obj/SessionFile';
-import { IIDBModeOptions } from '../../../shared/tratt-database';
 import { IDBService } from '../../../shared/service/idb.service';
-import { LoginMode, RootState } from '../../index';
+import { IIDBModeOptions } from '../../../shared/tratt-database';
 import { IDBActions } from '../../idb/idb.actions';
+import { LoginMode, RootState } from '../../index';
+import { BundleRunState } from '../../pipeline-queue';
+import { PipelineQueueActions } from '../../pipeline-queue/pipeline-queue.actions';
 import { LoginModeActions } from '../login-mode.actions';
 import { DEFAULT_BUNDLE_ID } from './local-bundle-collection';
 
@@ -60,13 +62,24 @@ export class BundleRestoreEffects {
               const otherBundleIds = bundleIds.filter(
                 (bundleId) => bundleId !== DEFAULT_BUNDLE_ID,
               );
+              // bundle-1's ENTITY is restored by the pre-existing
+              // loadOptions$/loadAnnotation$ boot effects (restoring it here
+              // too would double-populate it) — but nothing else restores
+              // its persisted runState, so load its options row here purely
+              // for that one field. `loadBundle` is reused unchanged: its
+              // extra loadAnnotation call for bundle-1 is a read, and the
+              // result is discarded below by the DEFAULT_BUNDLE_ID skip in
+              // the createBundle loop.
+              const idsToLoad = bundleIds.includes(DEFAULT_BUNDLE_ID)
+                ? [DEFAULT_BUNDLE_ID, ...otherBundleIds]
+                : otherBundleIds;
 
-              if (otherBundleIds.length === 0) {
+              if (idsToLoad.length === 0) {
                 return of([] as (RestoredBundleData | undefined)[]);
               }
 
               return forkJoin(
-                otherBundleIds.map((bundleId) =>
+                idsToLoad.map((bundleId) =>
                   this.loadBundle(bundleId).pipe(
                     catchError((error) => {
                       console.error(
@@ -80,8 +93,31 @@ export class BundleRestoreEffects {
               );
             }),
             tap((results) => {
+              const runEntries: {
+                bundleId: string;
+                state: BundleRunState;
+              }[] = [];
+
               for (const result of results) {
-                if (!result?.options?.sessionfile) {
+                if (!result) {
+                  continue;
+                }
+
+                const persistedRunState = result.options?.runState;
+                if (persistedRunState) {
+                  runEntries.push({
+                    bundleId: result.bundleId,
+                    state: persistedRunState,
+                  });
+                }
+
+                if (result.bundleId === DEFAULT_BUNDLE_ID) {
+                  // Entity already restored by loadOptions$/loadAnnotation$;
+                  // this row was loaded only for its runState above.
+                  continue;
+                }
+
+                if (!result.options?.sessionfile) {
                   // Defensive skip: an unused/blank bundle should never have
                   // gotten a real bundleId beyond bundle-1 in the first
                   // place — but guard anyway.
@@ -102,6 +138,16 @@ export class BundleRestoreEffects {
                     sessionFile,
                     restoredOptions: result.options,
                     restoredAnnotation: result.annotation,
+                  }),
+                );
+              }
+
+              if (runEntries.length > 0) {
+                // 'queued'/'running' become 'interrupted' in the reducer —
+                // a run NEVER silently resumes across a reload.
+                this.store.dispatch(
+                  PipelineQueueActions.restoreInterrupted({
+                    entries: runEntries,
                   }),
                 );
               }
