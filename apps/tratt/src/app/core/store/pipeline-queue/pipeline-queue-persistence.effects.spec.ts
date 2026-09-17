@@ -138,6 +138,31 @@ describe('PipelineQueuePersistenceEffects', () => {
     expect(options.runState).toBe('idle');
   });
 
+  // F5 (final whole-branch review fix wave): the reducer's `pause` action
+  // can resolve directly to stopNow() (when nothing is active), resetting
+  // every queued bundle's run state to 'idle' in-memory — but `pause` was
+  // missing from this effect's ofType() list, so that reset was never
+  // persisted. Mirrors the `stopped` test above.
+  it('writes every bundle whose state was reset by pause resolving to stopNow()', () => {
+    store.setState({
+      ...initialState,
+      pipelineQueue: {
+        queue: [],
+        activeId: null,
+        mode: 'idle',
+        runs: { a: { state: 'idle' } },
+      },
+    } as unknown as RootState);
+
+    actions$.next(PipelineQueueActions.pause());
+
+    expect(idbService.saveModeOptions).toHaveBeenCalledTimes(1);
+    const [, options, bundleId] = idbService.saveModeOptions.mock
+      .calls[0] as any[];
+    expect(bundleId).toBe('a');
+    expect(options.runState).toBe('idle');
+  });
+
   it("persists a queue-written transcript against that bundle's own id", () => {
     effects.saveBundleTranscript$.subscribe();
 

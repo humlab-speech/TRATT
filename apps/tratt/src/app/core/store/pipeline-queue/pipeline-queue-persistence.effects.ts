@@ -51,6 +51,14 @@ export class PipelineQueuePersistenceEffects {
           PipelineQueueActions.bundleDone,
           PipelineQueueActions.bundleFailed,
           PipelineQueueActions.stopped,
+          // F5 (final whole-branch review fix wave): the reducer's `pause`
+          // action can resolve directly to stopNow() (when nothing is
+          // active), resetting every queued bundle's in-memory run state to
+          // 'idle' — the same reset `stopped` gets. Without `pause` in this
+          // list that reset was never persisted, so a next-boot restore
+          // could rehydrate stale 'queued' Dexie rows as 'interrupted'
+          // instead of the 'idle' the queue actually settled on.
+          PipelineQueueActions.pause,
         ),
         withLatestFrom(this.store),
         mergeMap(([action, appState]) => {
@@ -120,10 +128,11 @@ export class PipelineQueuePersistenceEffects {
   ) {}
 
   /**
-   * Which bundles this action changed the persisted state of. `enqueued`
-   * and `stopped` change several at once; the rest change exactly one —
-   * `activateNext` changes whichever bundle is active AFTER the reducer ran,
-   * which `withLatestFrom(this.store)` above already sees.
+   * Which bundles this action changed the persisted state of. `enqueued`,
+   * `stopped`, and `pause` (F5 fix: when it resolves to stopNow()) change
+   * several at once; the rest change exactly one — `activateNext` changes
+   * whichever bundle is active AFTER the reducer ran, which
+   * `withLatestFrom(this.store)` above already sees.
    */
   private resolveBundleIds(action: Action, appState: RootState): string[] {
     if (action.type === PipelineQueueActions.enqueued.type) {
@@ -134,7 +143,13 @@ export class PipelineQueuePersistenceEffects {
       const activeId = appState.pipelineQueue.activeId;
       return activeId === null ? [] : [activeId];
     }
-    if (action.type === PipelineQueueActions.stopped.type) {
+    if (
+      action.type === PipelineQueueActions.stopped.type ||
+      action.type === PipelineQueueActions.pause.type
+    ) {
+      // Same "persist every currently-known bundle id's run state" handling
+      // as `stopped` — see the ofType() doc comment above for why `pause`
+      // needs it too.
       return Object.keys(appState.pipelineQueue.runs);
     }
     return [
