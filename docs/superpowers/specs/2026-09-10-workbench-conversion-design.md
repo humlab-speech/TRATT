@@ -874,3 +874,82 @@ queue" and calls `stop()`. Pipeline configuration (model, language, diarization/
 already collected today via `AutoTranscribeOptionsComponent`/`TranscriptionOptions` on `/local` — needs a
 home on `/workbench` too; this plan reuses that existing component rather than building a second
 configuration UI, mounted once in the workbench shell rather than per-bundle.
+
+## Step 3b-i shipped shape (2026-09-17) — the queue
+
+Shipped as its own 7-task plan, deliberately split from warm-worker refcounting (3b-ii,
+still unstarted — see this doc's own "Ruling: split 3b into two independently-shippable
+sub-steps" above). `PipelineRunnerService` and the three worker-wrapper services from step
+3a are completely untouched by 3b-i; every queued bundle still reloads its model from
+scratch, correct but slow, exactly as scoped.
+
+**New territory, not an extension of anything.** Confirmed during planning: the bundle
+entity has no `residency`/`run` field (contrary to this doc's own "Architecture" section,
+copied from the master plan's `TrattBundle` sketch — `residency` actually lives in
+`AudioService`'s LRU policy, and per-bundle `run` state never existed before this step),
+and `/workbench` had zero pipeline wiring before this step — no run button, no per-row
+status, nothing. A new `pipeline-queue` NgRx slice, a new `PipelineQueueService`, and the
+first-ever pipeline UI on `/workbench` were all built from nothing, deliberately kept
+separate from the existing singleton `pipeline` slice (which still serves `login.component.ts`/
+`/local` unchanged).
+
+**Task 4 (`PipelineQueueService`, the FIFO drain loop) had the plan's one real bug** —
+matching 3a's own pattern of its riskiest async-orchestration task being where defects
+actually hide. A shared `finalized` boolean was reset too late in `runBundle()` (after both
+early-exit failure paths), so from the *second* finalized bundle onward, a decode failure or
+missing-options failure silently no-op'd: no `bundleFailed`, no `advance()`, and the queue
+permanently deadlocked with no UI recovery path short of a reload. This exact defect was
+present in the plan's own code listing — the implementer transcribed it faithfully; the plan
+was wrong. Fixed by replacing the shared boolean with per-run tokens threaded through a
+`claimFinalize()` guard at every finalization site, verified by re-deriving the token
+threading by hand and by running the new regression tests against the pre-fix commit in a
+throwaway worktree to confirm they genuinely fail there.
+
+**The final whole-branch review — the same review type that caught 3a's ghost-translation-run
+bug — found 9 more findings**, none individually blocking, across the boundaries between
+tasks (exactly where a task-scoped review structurally cannot look): the `/workbench` run
+button didn't check whether pipeline options were actually configured, so a first-time user
+could drain an entire queue straight to failure with an untranslated tooltip; `ensureResident()`
+(made `public` specifically so the queue could call it for non-selected bundles) bypassed
+`AudioService`'s only LRU-accounting call site, so a drain of restored bundles grew resident
+memory without bound; a transcript that failed to deserialize still marked its bundle `done`
+(excluded from both "run all" and per-row retry) rather than `failed`, stranding it
+permanently; a restored `interrupted` bundle's status badge lived entirely inside the
+bundle-list row's non-`awaitingMedia` template branch, but every restored bundle *is*
+`awaitingMedia` immediately post-reload — so the interrupted state was invisible exactly when
+"closing the tab ends the run" was supposed to be communicated; and `pause`'s in-memory
+`stopNow()` reset wasn't in the persistence effect's trigger list. All five were fixed in one
+scoped wave and each closed with a mutation-verified regression test (revert the fix, confirm
+the new test fails with exactly the described defect, revert back clean).
+
+**One accepted trade-off, logged rather than chased further.** Fixing the `ensureResident()`
+LRU-accounting bug removed an accidental guarantee: before the fix, the selection effect was
+`trackSelection()`'s only caller, so the selected bundle was always most-recently-used and
+could never be evicted. Now the queue's own residency calls also participate in the same
+`MAX_RESIDENT_BUNDLES` cap, so draining 4+ bundles can evict the AudioManager of the bundle
+the user is actively viewing — recoverable (reselecting it re-decodes; the envelope survives
+eviction, so the signal display never goes blank, just needs a moment) and strictly better
+than the unbounded growth it replaced, but a real, user-visible trade nobody had named. Not
+fixed in this step's one allowed fix wave; logged as a 2-line follow-up (pin the selected
+bundle in the eviction loop) that also happens to be the natural seam 3b-ii's warm-worker
+refcounting already owns.
+
+**Two open QA items, unclosable without a real browser** (this environment had none
+throughout): a live pointer-event click on `AutoTranscribeOptionsComponent`'s labels, now
+bound via `[attr.for]` instead of a static `for`, to confirm the browser's label/control
+association still works (very low risk — the rendered attribute is unchanged for `/local`'s
+default `idPrefix=''`, and a throwaway dual-mount DOM test found zero id collisions); and an
+actual end-to-end queue drain with real audio and a real model download, which no session on
+this branch has ever observed — Tasks 1/4/5's logic is unit- and integration-tested in
+isolation (the `pipeline-queue.service.spec.ts` suite does wire a real `provideStore` with
+the real reducer), but no test spans the queue service, the login-mode reducer, and the
+persistence effects together in one process, so the exact ordering `setBundleTranscript` →
+persist → `bundleDone` → persist has never executed end-to-end anywhere but production.
+Both carried forward for whoever runs human QA on this step before it reaches real users.
+
+**A machine-level tooling gap surfaced during the final fix wave and its re-review**: this
+worktree's `rtk`-wrapped `npx prettier`/`npx jest` invocations are unreliable here — `rtk`
+reported a real prettier diff as clean, and separately produced zero output at all for
+jest's summary lines (not wrong numbers — no numbers). Every verification claim in this
+step that matters was independently re-confirmed using `node_modules/.bin/<tool>` directly,
+bypassing the wrapper, but this is a standing gap outside this plan's scope to fix.
