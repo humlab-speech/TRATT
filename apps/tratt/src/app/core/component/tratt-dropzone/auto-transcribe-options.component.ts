@@ -349,13 +349,16 @@ const DEFAULT_KEY_FOR_FAMILY: Record<string, string> = {
           <input
             class="form-check-input"
             type="checkbox"
-            id="autoTranscribeCheck"
+            [id]="idPrefix() + 'autoTranscribeCheck'"
             [(ngModel)]="enabled"
             (ngModelChange)="emitChange()"
             [disabled]="isSafari()"
             [class.safari-disabled]="isSafari()"
           />
-          <label class="form-check-label" for="autoTranscribeCheck">
+          <label
+            class="form-check-label"
+            [attr.for]="idPrefix() + 'autoTranscribeCheck'"
+          >
             {{ 'login.auto-transcription.auto-transcribe label' | transloco }}
           </label>
         </div>
@@ -369,12 +372,15 @@ const DEFAULT_KEY_FOR_FAMILY: Record<string, string> = {
         @if (enabled()) {
           <div class="d-flex flex-column gap-1">
             <div class="mb-2">
-              <label for="languageSelect" class="form-label form-label-sm mb-1">
+              <label
+                [attr.for]="idPrefix() + 'languageSelect'"
+                class="form-label form-label-sm mb-1"
+              >
                 {{ 'login.auto-transcription.language label' | transloco }}
               </label>
               <select
                 class="form-select form-select-sm"
-                id="languageSelect"
+                [id]="idPrefix() + 'languageSelect'"
                 [(ngModel)]="selectedLanguage"
                 (ngModelChange)="onLanguageChange()"
               >
@@ -389,7 +395,7 @@ const DEFAULT_KEY_FOR_FAMILY: Record<string, string> = {
                 <input
                   class="form-check-input"
                   type="radio"
-                  [id]="'model-' + model.modelId"
+                  [id]="idPrefix() + 'model-' + model.modelId"
                   [value]="model.modelId"
                   [(ngModel)]="selectedModelId"
                   [disabled]="
@@ -404,7 +410,7 @@ const DEFAULT_KEY_FOR_FAMILY: Record<string, string> = {
                     !!model.unsupportedReason ||
                     (model.requiresWebGpu && !hasWebGpu())
                   "
-                  [for]="'model-' + model.modelId"
+                  [for]="idPrefix() + 'model-' + model.modelId"
                   [ngbTooltip]="
                     model.unsupportedReason ??
                     (model.requiresWebGpu && !hasWebGpu()
@@ -471,11 +477,14 @@ const DEFAULT_KEY_FOR_FAMILY: Record<string, string> = {
               <input
                 class="form-check-input"
                 type="checkbox"
-                id="speakerSegmentationCheck"
+                [id]="idPrefix() + 'speakerSegmentationCheck'"
                 [(ngModel)]="speakerSegmentationEnabled"
                 (ngModelChange)="emitChange()"
               />
-              <label class="form-check-label" for="speakerSegmentationCheck">
+              <label
+                class="form-check-label"
+                [attr.for]="idPrefix() + 'speakerSegmentationCheck'"
+              >
                 {{
                   'login.auto-transcription.speaker separation label'
                     | transloco
@@ -490,7 +499,10 @@ const DEFAULT_KEY_FOR_FAMILY: Record<string, string> = {
 
             @if (speakerSegmentationEnabled) {
               <div class="mt-2 ms-3">
-                <label class="form-label small mb-1" for="numSpeakersInput">
+                <label
+                  class="form-label small mb-1"
+                  [attr.for]="idPrefix() + 'numSpeakersInput'"
+                >
                   {{
                     'login.auto-transcription.speaker count label' | transloco
                   }}
@@ -498,14 +510,13 @@ const DEFAULT_KEY_FOR_FAMILY: Record<string, string> = {
                 <div class="d-flex align-items-center gap-2">
                   <input
                     type="number"
-                    id="numSpeakersInput"
+                    [id]="idPrefix() + 'numSpeakersInput'"
                     class="form-control form-control-sm"
                     style="width: 80px"
                     min="1"
                     max="10"
                     [placeholder]="
-                      'login.auto-transcription.speaker count auto'
-                        | transloco
+                      'login.auto-transcription.speaker count auto' | transloco
                     "
                     [(ngModel)]="numSpeakersValue"
                     (ngModelChange)="emitChange()"
@@ -517,8 +528,7 @@ const DEFAULT_KEY_FOR_FAMILY: Record<string, string> = {
                     [disabled]="numSpeakers === null"
                   >
                     {{
-                      'login.auto-transcription.speaker count auto'
-                        | transloco
+                      'login.auto-transcription.speaker count auto' | transloco
                     }}
                   </button>
                 </div>
@@ -551,6 +561,16 @@ export class AutoTranscribeOptionsComponent implements OnInit {
   readonly audioLoaded = input<boolean>(false);
   readonly annotationAlreadyLoaded = input<boolean>(false);
   readonly optionsChange = output<TranscriptionOptions | null>();
+
+  /**
+   * Prefix for every element id this component generates. Default `''`
+   * keeps `/local`'s rendered markup byte-identical. `/workbench` mounts a
+   * SECOND instance of this component (the pipeline queue's own
+   * configuration) which can be on screen at the same time as the dropzone's
+   * instance — without a prefix the two would emit duplicate element ids and
+   * every `<label for>` would resolve to the first one.
+   */
+  readonly idPrefix = input<string>('');
 
   private readonly transloco = inject(TranslocoService);
   private readonly destroyRef = inject(DestroyRef);
