@@ -1,8 +1,10 @@
 import { Injectable } from '@angular/core';
 import { Action, Store } from '@ngrx/store';
+import { TrattAnnotation } from '@tratt/annotation';
 import { map, Subscription, tap } from 'rxjs';
-import { RootState } from '../../store/index';
+import { LoginMode, RootState } from '../../store/index';
 import { selectAllBundleSummaries } from '../../store/login-mode/annotation/annotation.selectors';
+import { LoginModeActions } from '../../store/login-mode/login-mode.actions';
 import {
   BundleRunError,
   computeReadyBundleIds,
@@ -316,11 +318,25 @@ export class PipelineQueueService {
   private succeed(
     bundleId: string,
     token: number,
-    _event: Extract<PipelineEvent, { stage: 'pipeline'; type: 'result' }>,
+    event: Extract<PipelineEvent, { stage: 'pipeline'; type: 'result' }>,
   ): void {
     if (!this.claimFinalize(token)) {
       return;
     }
+
+    const transcript = TrattAnnotation.deserialize(event.annotJson);
+    if (transcript) {
+      // Explicitly bundle-scoped: AnnotationActions.overwriteTranscript.do
+      // would land on whatever bundle the user currently has selected.
+      this.store.dispatch(
+        LoginModeActions.setBundleTranscript({
+          mode: LoginMode.LOCAL,
+          bundleId,
+          transcript,
+        }),
+      );
+    }
+
     this.store.dispatch(PipelineQueueActions.bundleDone({ bundleId }));
     this.advance();
   }

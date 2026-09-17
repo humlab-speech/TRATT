@@ -16,7 +16,8 @@ jest.mock('./local-translation.service', () => ({
 import { provideStore, Store } from '@ngrx/store';
 import { OAnnotJSON } from '@tratt/annotation';
 import { Subject } from 'rxjs';
-import { RootState } from '../../store/index';
+import { LoginMode, RootState } from '../../store/index';
+import { LoginModeActions } from '../../store/login-mode/login-mode.actions';
 import { PipelineQueueActions } from '../../store/pipeline-queue/pipeline-queue.actions';
 import { reducer as pipelineQueueReducer } from '../../store/pipeline-queue/pipeline-queue.reducer';
 import { selectPipelineQueueFeature } from '../../store/pipeline-queue/pipeline-queue.selectors';
@@ -366,5 +367,33 @@ describe('PipelineQueueService', () => {
     });
     expect(queueState().activeId).toBeNull();
     expect(queueState().mode).toBe('idle');
+  });
+
+  it('writes the produced annotation back to the bundle that produced it', async () => {
+    const dispatched: any[] = [];
+    store.dispatch = ((action: any) => {
+      dispatched.push(action);
+      return Store.prototype.dispatch.call(store, action);
+    }) as any;
+
+    service.enqueue(['a']);
+    await Promise.resolve();
+
+    const annotJson = new OAnnotJSON('a.wav', 'a', 16000, []);
+    events[0].next({
+      stage: 'pipeline',
+      type: 'result',
+      annotJson,
+      diarizationWarning: null,
+    });
+    await Promise.resolve();
+
+    const write = dispatched.find(
+      (a) => a.type === LoginModeActions.setBundleTranscript.type,
+    );
+    expect(write).toBeDefined();
+    expect(write.bundleId).toBe('a');
+    expect(write.mode).toBe(LoginMode.LOCAL);
+    expect(write.transcript).toBeDefined();
   });
 });
