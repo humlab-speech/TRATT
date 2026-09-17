@@ -1043,3 +1043,74 @@ the models/annotations breakdown and "Media is never written to storage" verbati
 property worth stating per the master plan's own text) and working memory (`"X of ~Y"`, colored
 by the three-tier threshold above, a note naming the resident-bundle count and "This, not
 storage, is what limits how much media you can hold at once").
+
+## Step 3c shipped shape (2026-09-17) — capacity indicator
+
+Three tasks, all clean on first review except one low-severity polish item; the lowest defect
+rate of any step in this conversion so far — appropriate for a pure-measurement, read-only
+feature with no async orchestration and no user-driven control surface (unlike 3a's pipeline
+extraction or 3b-i's queue).
+
+**`CapacityService`** (`apps/tratt/src/app/core/shared/service/capacity.service.ts`,
+`providedIn: 'root'`) ships exactly as designed: two pure estimator functions
+(`estimateModelBytes`, `estimateResidentBytes`) plus a thin service wrapping real
+`navigator.storage.estimate()` and a live sum over `AudioService.audiomanagers`, polled every
+`CAPACITY_POLL_MS = 5000`. A new `findWhisperModelSizeMb()` helper searches all four Whisper
+model arrays — deliberately NOT reproducing `login.component.ts`'s existing, separate
+two-array `.find()` that silently misses the Finnish and Norwegian families; that bug is
+untouched, out of this step's scope, and now has a correct sibling implementation instead of
+a second broken one.
+
+**One real correctness bug, caught and fixed within Task 1 itself** (not needing the final
+whole-branch review to surface it, unlike 3a and 3b-i's headline bugs): `estimateResidentBytes`
+originally wrapped both of a resident bundle's contributing reads — source bytes and PCM
+sample count — in a single `try`/`catch`, so a manager whose `.resource` getter threw (a real,
+documented risk: `AudioManager.resource` dereferences its mechanism without a guard) would also
+silently lose its `.channel` contribution, normally the dominant term. Split into two
+independent `try`/`catch` blocks so each field degrades on its own fault; mutation-verified.
+
+**The final whole-branch review found one real, user-visible issue and two smaller ones**,
+none blocking, all fixed in one wave:
+
+- **F1 (medium):** on a fresh `/workbench` — and until the user actually configures a
+  transcription model — the storage note confidently rendered "Models 0 MB cached +
+  annotations Y MB," attributing 100% of real browser storage usage to annotations, even
+  when that usage is entirely Whisper models cached from a prior `/local` session. This
+  wasn't visible to any task-scoped review: Task 1 verified the estimator correct for the
+  inputs it was given, Task 2 verified the component renders whatever it's handed correctly,
+  Task 3 verified the mount point — the wrongness only existed where the mount's own stated
+  rationale (render on an empty workbench, since cached models can predate any bundle) met
+  the actual, structural fact that nothing on an empty workbench feeds the estimator a
+  non-null configuration. Fixed by rendering an honest "breakdown unavailable" note instead
+  of a confident split whenever the models estimate is genuinely unknown (`modelsBytes() ===
+  0`) rather than actually zero.
+- **F2 (low, partial fix by design):** the 5-second poll's `setInterval` ran inside Angular's
+  zone, costing two app-wide change-detection passes per tick for the rest of the SPA
+  session once started — including on unrelated, non-`OnPush` routes like the 2D-Editor,
+  since `CapacityService` is a `providedIn: 'root'` singleton whose `DestroyRef` resolves to
+  the *root* injector, not any component's. Fixed the change-detection cost only
+  (`NgZone.runOutsideAngular`), deliberately NOT the poll's lifetime — stopping the poll on
+  navigating away from `/workbench` would be a real lifecycle redesign (refcounted
+  subscribe/unsubscribe against the indicator's own destroy), logged as a follow-up rather
+  than attempted inside this step's one allowed fix wave. `/workbench` hosts the whole editor
+  inline, so the common session flow never actually leaves the route the poll is wanted for.
+- **F3 (low):** configured transcription options, once set, were never cleared — a stale
+  model-size estimate could survive a `/workbench` exit/return cycle where the session
+  doesn't restore. Fixed with a real `ngOnDestroy` override clearing the configured options,
+  calling through to the base class's own teardown.
+
+**Confirmed correct by the final review, a genuine cross-step interaction working as
+intended**: the RAM bar's live estimate correctly includes bundles step 3b-i's
+`PipelineQueueService` made resident via `AudioService.ensureResident()`, not just
+user-selected ones — the same `_audiomanagers` map both features share. This also makes step
+3b-i's own already-logged, already-accepted N1 (fixing an LRU-eviction bug there let the
+currently-selected bundle become evictable mid-drain) meaningfully more visible to the user in
+practice — the RAM bar gives a real, live signal that residency pressure is building, even
+though eviction triggers on bundle count, not bytes, so it's a partial rather than a direct
+warning. Not something this step needed to fix; recorded because the final review traced it
+concretely rather than leaving it assumed.
+
+Same manual-verification gap as every step in this conversion: no real browser was ever
+available. Build/`tsc`/full-suite verification stayed clean throughout, including one final
+production build confirming the pre-existing 4.66 MB bundle-budget overage (documented by step
+3b-i's own final review) is unchanged, not worsened.
