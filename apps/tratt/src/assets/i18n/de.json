@@ -727,6 +727,11 @@
         "cancelled": "Cancelled",
         "unknown": "Failed"
       }
+    },
+    "queue": {
+      "run": "Transcribe {{count}} file(s)",
+      "pause": "Pause queue",
+      "options_title": "Pipeline settings"
     }
   }
 }

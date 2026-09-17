@@ -752,6 +752,11 @@
         "cancelled": "Avbruten",
         "unknown": "Misslyckades"
       }
+    },
+    "queue": {
+      "run": "Transkribera {{count}} fil(er)",
+      "pause": "Pausa kön",
+      "options_title": "Pipelineinställningar"
     }
   }
 }
