@@ -953,3 +953,93 @@ reported a real prettier diff as clean, and separately produced zero output at a
 jest's summary lines (not wrong numbers — no numbers). Every verification claim in this
 step that matters was independently re-confirmed using `node_modules/.bin/<tool>` directly,
 bypassing the wrapper, but this is a standing gap outside this plan's scope to fix.
+
+## Step 3c design (2026-09-17) — capacity indicator
+
+**Grounding facts, found during planning.** Two things the master plan's prose assumes that
+don't hold in this codebase, plus one gap it doesn't address at all:
+
+1. **The RAM formula's "native-rate + 16kHz copy, simultaneously" model is already disproven**
+   — by this doc's own step 2.5 finding above ("non-WAV playback is already permanently
+   degraded to 16kHz mono"). At most ONE PCM array (`AudioManager.channel`, a single
+   `Float32Array | undefined`) is ever resident per manager, at whatever rate the active
+   decode path produced. `prepareMonoAudioForMlModel()` builds its 16kHz copy fresh, per
+   pipeline run, uncached — it never stays resident on the manager. The working-memory
+   estimate for 3c therefore sums, per currently-resident bundle: `manager.resource.size`
+   (source bytes) + `(manager.channel?.length ?? 0) * 4` (whatever single PCM array is
+   actually resident right now, Float32 = 4 bytes/sample) — real current state, not a
+   double-copy guess.
+2. **No per-model size registry exists for diarization**, unlike ASR (`KbWhisperModel.sizeMb`,
+   real numbers across all four language arrays) and translation
+   (`OPUS_MT_BYTES_PER_PAIR = 80_000_000`, `MULTILINGUAL_BYTES = 450_000_000` in
+   `local-translation.service.ts`). The interactive mockup's own script
+   (`reference/TRATT Workbench.dc.html:261,384`) uses a flat, hand-picked `90` MB for
+   diarization with no grounding anywhere in the codebase. This step keeps that same flat
+   placeholder (documented as an approximation, not a real number) rather than inventing a
+   registry the diarization service itself doesn't have.
+3. **Storage usage cannot be attributed per-bundle.** `tratt-database.ts`'s `saveModeData()`
+   never computes or retains a serialized byte length, and there is no existing
+   per-item/per-row size API. The one and only existing `navigator.storage.estimate()` call
+   in the codebase (`local-translation.service.ts:338-359`, a pre-download quota check) is a
+   one-shot check, not a running total. 3c must therefore treat the browser's own
+   `{quota, usage}` as ground truth for the storage bar's fill level, and can only
+   *approximate* the "models vs. annotations" breakdown text by subtracting an estimated
+   models total (computed from the currently-configured ASR/diarization/translation options'
+   known or placeholder sizes) from the real `usage` figure — not by summing real per-item
+   sizes, which don't exist.
+
+**Service.** `CapacityService` (`apps/tratt/src/app/core/shared/service/capacity.service.ts`,
+`providedIn: 'root'`) exposes two independent signals:
+
+- `storage: Signal<{ usedBytes: number; quotaBytes: number; modelsEstimateBytes: number }>` —
+  `usedBytes`/`quotaBytes` from `navigator.storage.estimate()` (real numbers); `modelsEstimateBytes`
+  computed client-side from whichever ASR/diarization/translation options are currently
+  configured on `/workbench` (a new `findWhisperModelSizeMb(modelId)` helper searches all four
+  `KB_WHISPER_MODELS`/`FINNISH_WHISPER_MODELS`/`NORWEGIAN_WHISPER_MODELS`/`OPENAI_WHISPER_MODELS`
+  arrays — none exists today — plus the flat diarization placeholder and the existing translation
+  byte constants). The UI's "annotations" figure in the breakdown note is
+  `max(0, usedBytes - modelsEstimateBytes)`, labeled as an approximation, not summed from real
+  per-annotation sizes (per finding #3 above).
+- `residentMemory: Signal<{ estimatedBytes: number; residentCount: number; budgetBytes: number }>`
+  — summed live over `audioService.audiomanagers` per the corrected formula (finding #1).
+  `budgetBytes` is one exported constant, `RAM_BUDGET_BYTES = 2_000_000_000` (2 GB) — a
+  conservative, device-independent floor chosen because this codebase has no existing
+  `navigator.deviceMemory`-based sizing convention to extend, and because the browser gives no
+  reliable per-tab memory ceiling to query. Documented as a single named export specifically so
+  it's a one-line change if real-world use shows it wrong, not a value buried in a formula.
+
+**Ruling: periodic polling, not event-driven triggers.** The master plan's prose calls for
+polling "on mount, after a model download, and after a save." Wiring a poll trigger into every
+model-download-completion and save-effect action across ASR/diarization/translation/IDB would
+touch a wide, unrelated surface for a UI element whose whole purpose is an *approximate*,
+labeled-as-such estimate — precision to the exact triggering action buys little a bar that's a
+few seconds stale doesn't already give. `CapacityService` instead polls both `storage` and
+`residentMemory` together on a single interval (`CAPACITY_POLL_MS = 5000`) for as long as
+anything is subscribed to either signal (Angular's own `toSignal`/effect lifecycle, no manual
+subscription management), plus once immediately on construction. This is a deliberate scope cut
+from the master plan's literal trigger list, not an oversight — recorded here as a ruling, not
+silently substituted.
+
+**Ruling: "warn, don't block" is the RAM bar's own live color, not a predictive pre-drop gate.**
+The master plan says "warn — do not block — when a drop would push past roughly 80%." Read
+literally this could mean computing, *before* a drop completes, whether it would cross the
+threshold and interrupting the drop flow with a warning. This step does not build that — the
+existing multi-file ingest flow (step 2.7) is untouched, and no new interception point is added
+to it. Instead, the RAM bar itself is live (recomputed on the same 5s poll, reading real-time
+`AudioService` state) and changes color at the same thresholds the mockup script already
+establishes (`reference/TRATT Workbench.dc.html:469`): green below 55%, amber 55-80%, red above
+80% — so the warning appears within one poll interval of a drop pushing residency past 80%,
+satisfying "warn, do not block" without a new pre-drop prediction path. If a stricter, literal
+pre-drop check is wanted later, it is a small, separately-scoped addition on top of this
+service's already-live `residentMemory` signal, not a redesign.
+
+**UI.** `CapacityIndicatorComponent` (new standalone `OnPush` component), mounted as a new
+sibling block inside `.workbench__left` (the existing 340px left-rail column that already hosts
+the upload/record tabs, the step-3b-i bundle list, and the queue panel — there is no separate
+`sidebar`/`left-rail` class to reuse; `workbench__left` already is that role), following the
+same `workbench__<block>`/`workbench__<block>-<part>` BEM-ish naming the queue panel established
+in step 3b-i. Two bars, matching the mockup's copy pattern: storage (`"X of Y"`, a note listing
+the models/annotations breakdown and "Media is never written to storage" verbatim, a privacy
+property worth stating per the master plan's own text) and working memory (`"X of ~Y"`, colored
+by the three-tier threshold above, a note naming the resident-bundle count and "This, not
+storage, is what limits how much media you can hold at once").
