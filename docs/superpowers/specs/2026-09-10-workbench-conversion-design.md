@@ -728,3 +728,149 @@ above): the diarization-warning banner was never actually *visible* to the user 
 either the old or new code — its own template gate independently unmounts it the moment transcription
 finishes — a separate, pre-existing UI bug this step didn't introduce and isn't fixing, only correctly
 preserving the underlying store-write *timing* of (not the on-screen visibility of, which never existed).
+
+## Step 3b design (2026-09-17) — the queue
+
+**Grounding facts, found during planning.** Three things the original conversion plan's prose assumes
+that don't hold in this codebase as it stands after phases 2 and 3a:
+
+1. **The bundle entity has no `residency` or `run` field.** The master plan's `TrattBundle` interface
+   (this doc's own "Architecture" section above, copied from the plan) describes `residency` and `run`
+   as fields on the bundle entity. They were never built that way. `residency` ended up living entirely
+   in `AudioService` (an LRU eviction policy over `MAX_RESIDENT_BUNDLES = 3`, keyed by selection order,
+   per the Step 2.5 shipped-shape note above) — not a reducer field. `run` (pipeline progress/outcome)
+   was never built at all, per-bundle or otherwise: the only pipeline state that exists today is the
+   `pipeline` NgRx slice from step 3a, which is a **singleton**, has no `bundleId` field anywhere, and
+   is wired exclusively to `login.component.ts` (the old `/local` page). This step is where per-bundle
+   run state gets built for the first time — there is no existing thing to extend, only new work.
+2. **`/workbench` has no pipeline wiring at all yet**, confirmed by the 3a final review above. There is
+   no "run" button, no per-row status, nothing. This step is the first time any pipeline trigger reaches
+   the new UI, not an addition to something already wired there.
+3. **The three worker-wrapper services (`LocalTranscriptionService`, `LocalDiarizationRuntimeService`,
+   `LocalTranslationService`) all call `this.cancel()` as the first statement of every public entry
+   method**, and `cancel()` unconditionally `terminate()`s the worker. There is no acquire/release
+   concept anywhere in them. This is exactly the behavior `PipelineRunnerService.cancel()` (step 3a)
+   already depends on — it assumes calling cancel on the currently-active stage's service(s) fully tears
+   the worker down. Warm-worker reuse (master plan §6.3b) requires changing this invariant in code that
+   3a's extraction and its whole-branch review just finished proving correct under the
+   terminate-per-run model.
+
+**Ruling: split 3b into two independently-shippable sub-steps, 3b-i (queue mechanics) and 3b-ii (warm
+worker).** The master plan's own risk register already frames warm worker as a tunable trade ("a
+fallback to the current terminate-per-run behaviour if the trade proves bad" — §10), and 3a's whole
+value came from shipping the highest-risk piece alone and proving it before building on it. Warm-worker
+refcounting changes a currently-correct, just-proven invariant (terminate-per-run) in all three worker
+services simultaneously — doing that in the same step as building the queue's FIFO/persistence/failure
+machinery from nothing would make a task review unable to isolate which change caused a regression.
+3b-i ships the queue with the existing terminate-per-run `PipelineRunnerService` unchanged — every
+queued bundle still reloads its model from scratch, which is correct, just slow. 3b-ii (separate plan,
+after 3b-i ships and is reviewed) adds acquire/release refcounting on top of a queue that's already
+proven correct. This plan (and the SDD workspace it drives) covers **3b-i only**.
+
+**State shape.** A new store slice, `pipeline-queue` (`apps/tratt/src/app/core/store/pipeline-queue/`),
+deliberately separate from the existing `pipeline` slice (which stays exactly as 3a shipped it, still
+serving `login.component.ts` alone — untouched):
+
+```ts
+export interface PipelineQueueState {
+  queue: string[]; // FIFO of pending bundle ids, oldest first
+  activeId: string | null; // bundle id currently running, or null when idle
+  mode: 'idle' | 'running' | 'pausing'; // 'pausing' = finish activeId, then stop, don't drain queue
+  runs: Dictionary<BundleRunStatus>; // keyed by bundleId; absent entry ⇒ treat as {state:'idle'}
+}
+
+export type BundleRunErrorKind =
+  | 'decode'
+  | 'model-load'
+  | 'oom'
+  | 'cancelled'
+  | 'unknown';
+
+export interface BundleRunStatus {
+  state: 'idle' | 'queued' | 'running' | 'done' | 'failed' | 'interrupted';
+  stage?: 'decode' | 'asr' | 'diarization' | 'translation';
+  progress?: number; // 0-1, mirrors the active pipeline slice's own progress while running
+  error?: { kind: BundleRunErrorKind; message: string };
+}
+```
+
+`runs` is a plain `Dictionary`, not an `@ngrx/entity` collection keyed identically to `localBundleAdapter`
+— there is no independent lifecycle for a `BundleRunStatus` (it's always 1:1 with a bundle, created
+lazily on first enqueue, never created standalone) so entity machinery buys nothing. A bundle with no
+`runs[bundleId]` entry reads as `{state:'idle'}` via the selector, not via an eagerly-populated
+dictionary entry for every bundle on creation.
+
+**Ready-bundle / skip rules.** A bundle is eligible for `enqueue()` when `!bundle.awaitingMedia` (per
+`selectAllBundleSummaries`, i.e. audio is resident or re-attachable — not literally "unresolved" per
+the master plan's word, since this codebase's actual awaiting-media state already captures that) AND
+its current `runs[bundleId]?.state` is not one of `'queued' | 'running' | 'done'`. This makes "already
+transcribed" and "already in the queue" the same check as "has a terminal/active run state" rather than
+inventing a second, separate "already-transcribed" heuristic over transcript content — once a bundle
+finishes once, its `done` state is exactly what excludes it from a subsequent "run all" by default; an
+explicit per-row retry (state `'failed'` or `'interrupted'` → re-enqueue) is the only way back into the
+queue for a bundle that isn't `'idle'`.
+
+**Failure isolation.** `BundleRunErrorKind` mirrors the master plan's five classes. `'decode'` covers
+`AudioService`'s re-decode-on-selection failing when the queue ensures a bundle is resident before
+running it (see below) — not a case `PipelineRunnerService` itself can produce, since audio is already
+decoded before `run()` is called. `'model-load'` and `'oom'` are derived from the existing
+`classifyTranscriptionWorkerError()` (`local-transcription-errors.ts`) for transcription/diarization
+worker failures — reused, not reimplemented. `'cancelled'` covers the `{stage:'pipeline',
+type:'cancelled'}` `PipelineEvent` arriving for a queue-initiated (not user-initiated) cancel — see
+interruption below. `'unknown'` is the fallback for anything `PipelineRunnerService`'s `run()` Observable
+errors with that doesn't classify. A failed bundle's `runs[bundleId]` becomes `{state:'failed', error}`;
+the queue advances to the next id — one failure never stops the run, matching "Failure: a failed item is
+marked in the list; the queue continues; retry is per-row" (this doc's own "Decisions locked in").
+
+**Residency before running.** Before calling `pipelineRunnerService.run()` for a queued bundle, the
+queue service must ensure that bundle's audio is resident (the step 2.7 Task 7 `ensureResident()` path
+noted in the "Finding (2026-09-15...)" section above) — a bundle evicted by `AudioService`'s LRU policy
+is exactly as re-decodable as a freshly-selected one, and the queue must not silently skip or crash on a
+bundle that simply isn't the most-recently-selected 3. A residency failure here is the `'decode'` error
+class above.
+
+**Interruption.** No pipeline run state is persisted anywhere today (`IIDBModeOptions` has no such
+field, confirmed during exploration — only annotation content, session/task linkage, editor prefs, and
+comment/feedback are persisted). This step adds one: `IIDBModeOptions` gains an optional
+`runState?: BundleRunStatus['state']`, written through the existing `saveModeOptions(mode, options,
+bundleId)` per-bundle path whenever `pipeline-queue`'s reducer transitions a bundle's state (a new effect
+listening on the queue slice's actions, following the existing `savemodeOptions$` trigger-list
+convention). On restore (`BundleRestoreEffects`, the same place that already restores bundles beyond
+`bundle-1`), any bundle whose persisted `runState` is `'queued'` or `'running'` is rehydrated as
+`'interrupted'`, never silently resumed — matching "say plainly in the UI that closing the tab ends the
+run" (master plan §6.3b). This step does **not** attempt to persist or restore FIFO queue *position*
+(the `queue: string[]` array itself) — only the per-bundle terminal/non-terminal state. Restoring exact
+queue order across a reload is not what "interrupted, not running" asks for, and inventing that
+machinery for a case the plan doesn't actually require would be scope the plan didn't ask for.
+
+**`PipelineQueueService` (`apps/tratt/src/app/core/shared/service/pipeline-queue.service.ts`,
+`providedIn: 'root'`).** Public API:
+
+```ts
+enqueue(bundleIds: string[]): void; // appends eligible ids to the FIFO tail (skip-rule filtered), starts draining if mode is 'idle'
+stop(): void; // mode -> 'pausing'; finishes activeId, then goes idle; queue contents beyond activeId are NOT run, and are reset to 'idle' (not 'queued') so a later "run" recomputes ready bundles fresh
+cancelActive(): void; // cancels just the in-flight bundle (via PipelineRunnerService.cancel()); its runs[] entry becomes {state:'failed', error:{kind:'cancelled', ...}}; the queue then continues draining
+retry(bundleId: string): void; // re-enqueue a single non-idle bundle regardless of its current state (bypasses the eligibility filter enqueue() applies, since retry is an explicit per-row user action)
+```
+
+One subscription at a time to `pipelineRunnerService.run()`, sequenced with `concatMap`-equivalent
+manual chaining (matching `PipelineRunnerService`'s own single-subscriber assumption from 3a — never two
+concurrent `run()` calls). Per-bundle progress while `activeId` is set reuses the existing
+`mapPipelineEventToAction`/`isThrottleSafeProgressAction` classification from
+`pipeline-event-mapping.ts` (step 3a), but dispatches into the **new** `pipeline-queue` actions (a
+bundle-scoped `stage`/`progress` update on `runs[activeId]`), not the old singleton `pipeline` actions —
+that mapping module's pure functions are reused, its wiring into `login.component.ts`'s specific action
+types is not.
+
+**UI wiring (`/workbench` only, first time any pipeline UI reaches it).** `bundle-list.component.ts`'s
+existing `bundles` computed (which already merges `selectAllBundleSummaries()` with a live
+`AudioService.hasResident()` check, per its own doc comment) gains one more merge: each row's
+`runs[bundleId]` (default `{state:'idle'}`) from a new `selectBundleRunStatus(bundleId)` selector,
+driving a status label and accent color per row (mirroring the mockup's `done`/`running`/`queued`/`error`
+states in `reference/TRATT Workbench.dc.html`), plus a retry action for `failed`/`interrupted` rows. A
+"run pipeline on N ready bundles" button (count from the skip-rule-filtered selector above) calls
+`pipelineQueueService.enqueue(readyIds)`; while `mode === 'running'`, the same control becomes "pause
+queue" and calls `stop()`. Pipeline configuration (model, language, diarization/translation toggles) —
+already collected today via `AutoTranscribeOptionsComponent`/`TranscriptionOptions` on `/local` — needs a
+home on `/workbench` too; this plan reuses that existing component rather than building a second
+configuration UI, mounted once in the workbench shell rather than per-bundle.
