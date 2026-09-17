@@ -43,7 +43,9 @@ import {
   resolveLocalBundleState,
 } from '../login-mode/annotation/local-bundle-collection';
 import { LoginModeActions } from '../login-mode/login-mode.actions';
+import { runStatusOf } from '../pipeline-queue';
 import { UserActions } from '../user/user.actions';
+import { buildModeOptions } from './build-mode-options';
 import { IDBActions } from './idb.actions';
 
 @Injectable({
@@ -506,7 +508,10 @@ export class IDBEffects {
       filter(
         (action) =>
           action.type !== LoginModeActions.createBundle.type ||
-          !((action as any).restoredOptions || (action as any).restoredAnnotation),
+          !(
+            (action as any).restoredOptions ||
+            (action as any).restoredAnnotation
+          ),
       ),
       withLatestFrom(this.store),
       mergeMap(([action, appState]) => {
@@ -516,39 +521,23 @@ export class IDBEffects {
         );
 
         if (modeState) {
+          const bundleId = this.resolveLocalBundleId(
+            (action as any).mode,
+            appState,
+          );
+          // Always re-write the CURRENT runState, never omit it: this write
+          // replaces the whole stored options object (see buildModeOptions'
+          // doc comment), so omitting it would erase a finished run's state.
+          const runState =
+            bundleId === undefined
+              ? undefined
+              : runStatusOf(appState.pipelineQueue.runs, bundleId).state;
+
           return this.idbService
             .saveModeOptions(
               (action as any).mode,
-              {
-                sessionfile:
-                  modeState?.sessionFile &&
-                  Object.keys(modeState.sessionFile).length > 0
-                    ? modeState.sessionFile.toAny()
-                    : null,
-                importConverter: modeState.importConverter,
-                currentEditor: modeState.currentEditor ?? null,
-                currentLevel: modeState.transcript?.selectedLevelIndex ?? null,
-                logging: modeState.logging.enabled ?? null,
-                project: modeState.currentSession?.loadFromServer
-                  ? (modeState.currentSession?.currentProject ?? null)
-                  : undefined,
-                transcriptID: modeState.currentSession?.loadFromServer
-                  ? (modeState.currentSession?.task?.id ?? null)
-                  : undefined,
-                feedback: modeState.currentSession?.assessment ?? null,
-                comment: modeState.currentSession?.comment ?? null,
-                additionalSpeakerIds: modeState.additionalSpeakerIds?.length
-                  ? modeState.additionalSpeakerIds
-                  : null,
-                user: appState.authentication.me
-                  ? {
-                      id: appState.authentication.me.id,
-                      name: appState.authentication.me.username,
-                      email: appState.authentication.me.email,
-                    }
-                  : undefined,
-              },
-              this.resolveLocalBundleId((action as any).mode, appState),
+              buildModeOptions(modeState, appState.authentication.me, runState),
+              bundleId,
             )
             .pipe(
               map(() => {

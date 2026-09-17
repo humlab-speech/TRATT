@@ -14,6 +14,7 @@ import {
 } from 'rxjs';
 import { LoginMode } from '../store';
 import { DEFAULT_BUNDLE_ID } from '../store/login-mode/annotation/local-bundle-collection';
+import type { BundleRunState } from '../store/pipeline-queue';
 
 /**
  * Database names used before the rename from OCTRA to TRATT. Deployments that
@@ -253,7 +254,6 @@ export class TrattDatabase extends Dexie {
   }
 
   private async upgradeToDatabaseV4(tr: Transaction) {
-
     const optionKeys = [
       'accessCode',
       'audioSettings',
@@ -273,7 +273,6 @@ export class TrattDatabase extends Dexie {
     const options = (await tr.table('options').bulkGet(optionKeys)).filter(
       (a) => a !== undefined,
     );
-
 
     for (let i = 0; i < options.length; i++) {
       const option = options[i];
@@ -398,13 +397,11 @@ export class TrattDatabase extends Dexie {
           name: 'logs',
           value: oldLogs,
         });
-
       }
     }
   }
 
-  private async upgradeToDatabaseV5(transaction: Transaction) {
-  }
+  private async upgradeToDatabaseV5(transaction: Transaction) {}
 
   private async upgradeToDatabaseV6(tr: Transaction) {
     const localDataTable = tr.table('local_data');
@@ -580,10 +577,10 @@ export class TrattDatabase extends Dexie {
               // yet on its first save. Fall back to put() so the first save
               // for a new bundle actually persists instead of vanishing.
               return from(
-                this.bundles.put(
-                  { bundleId, name, value: prepared },
-                  [bundleId, name],
-                ),
+                this.bundles.put({ bundleId, name, value: prepared }, [
+                  bundleId,
+                  name,
+                ]),
               );
             }
             return of(updatedCount);
@@ -795,6 +792,12 @@ export interface IIDBModeOptions {
     name: string;
     email: string;
   } | null;
+  /**
+   * Per-bundle pipeline run state (step 3b-i). 'queued'/'running' are
+   * rehydrated as 'interrupted' at boot by BundleRestoreEffects — a run
+   * never survives a reload.
+   */
+  runState?: BundleRunState;
 }
 
 export interface IIDBApplicationOptions {

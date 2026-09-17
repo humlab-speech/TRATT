@@ -1,8 +1,8 @@
 import { TestBed } from '@angular/core/testing';
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { provideMockActions } from '@ngrx/effects/testing';
-import { provideMockStore } from '@ngrx/store/testing';
 import { Store } from '@ngrx/store';
+import { provideMockStore } from '@ngrx/store/testing';
 import { SessionStorageService } from 'ngx-webstorage';
 import { of, ReplaySubject, throwError } from 'rxjs';
 import { AudioService } from '../../shared/service';
@@ -16,8 +16,8 @@ import {
   localBundleAdapter,
 } from '../login-mode/annotation/local-bundle-collection';
 import { LoginModeActions } from '../login-mode/login-mode.actions';
-import { IDBActions } from './idb.actions';
 import { IDBEffects } from './idb-effects.service';
+import { IDBActions } from './idb.actions';
 
 // createEffect() returns the raw effect observable (see @ngrx/effects
 // createEffect: `effect = source()`, only tagged with dispatch metadata).
@@ -270,6 +270,7 @@ describe('IDBEffects — persists to the real selected bundle (Task 3)', () => {
         ),
         selectedBundleId,
       },
+      pipelineQueue: { queue: [], activeId: null, mode: 'idle', runs: {} },
     } as unknown as RootState;
   };
 
