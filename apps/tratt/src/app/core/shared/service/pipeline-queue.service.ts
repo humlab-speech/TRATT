@@ -51,8 +51,34 @@ export class PipelineQueueService {
   private transcribeOptions: TranscriptionOptions | null = null;
   /** Carried across progress ticks within one run — see QueueProgressResult. */
   private audioDurationS = 0;
-  /** Guards against double-finalizing one run (result + complete). */
-  private finalized = false;
+  /**
+   * Monotonically incremented at the very top of every `runBundle()` call,
+   * before any `await` or early-exit — a per-run identity token, NOT a
+   * shared "is anything finalized" boolean. `succeed()`/`fail()` only ever
+   * act on the token they were handed if it still equals `currentRunToken`
+   * (this run hasn't been superseded by the next one) AND it isn't
+   * `finalizedToken` yet (this exact run hasn't already been finalized once
+   * — result then complete, or a cancel racing an error). A shared boolean
+   * here previously caused a real bug: reset too late (after the first
+   * early-exit branches), it stayed `true` from the PREVIOUS bundle and
+   * silently swallowed every `fail()` call on the second and later bundles,
+   * permanently deadlocking the queue. Per-run tokens make that class of bug
+   * structurally impossible — a fresh token is minted before any early-exit
+   * path can run, so there is no shared mutable flag to be stale.
+   */
+  private currentRunToken = 0;
+  /** The token already finalized (result/fail dispatched) for the CURRENT run, if any. */
+  private finalizedToken: number | null = null;
+  /**
+   * Set by `cancelActive()` to the token of the run it targeted. Consulted
+   * by `runBundle()` immediately after the `ensureResident()` await: a
+   * cancel click that lands while residency is still resolving arrives too
+   * early for `PipelineRunnerService.cancel()` to have anything to cancel
+   * (no worker/timer exists yet), so without this check the run would
+   * silently proceed once residency resolved, discarding the user's cancel
+   * and starting a full model-load + ASR run anyway.
+   */
+  private cancelRequestedToken: number | null = null;
 
   private queueState = this.store.selectSignal(selectPipelineQueueFeature);
   private runs = this.store.selectSignal(selectAllRunStatuses);
@@ -120,16 +146,26 @@ export class PipelineQueueService {
   }
 
   /**
-   * Cancel just the in-flight bundle. The resulting
-   * `{stage:'pipeline', type:'cancelled'}` event is what actually records
-   * the failure and advances the queue — `cancel()` emits it synchronously
-   * before completing the run Observable (see PipelineRunnerService.cancel),
-   * so there is exactly one code path that finalizes a cancelled run.
+   * Cancel just the in-flight bundle. When `PipelineRunnerService` already
+   * has an active run, the resulting `{stage:'pipeline', type:'cancelled'}`
+   * event is what actually records the failure and advances the queue —
+   * `cancel()` emits it synchronously before completing the run Observable
+   * (see PipelineRunnerService.cancel), so there is exactly one code path
+   * that finalizes a cancelled run in that case.
+   *
+   * But `activeId` is set (via the `activateNext` action) BEFORE
+   * `runBundle()` even starts awaiting `ensureResident()` — so a cancel
+   * click can land in the window where this bundle is "active" from the
+   * queue's point of view but `PipelineRunnerService` has nothing to cancel
+   * yet. `cancelRequestedToken` records that intent so `runBundle()` can
+   * still honor it once the await resolves, instead of silently starting
+   * the run anyway.
    */
   cancelActive(): void {
     if (this.queueState().activeId === null) {
       return;
     }
+    this.cancelRequestedToken = this.currentRunToken;
     this.pipelineRunnerService.cancel();
   }
 
@@ -145,9 +181,19 @@ export class PipelineQueueService {
   }
 
   private async runBundle(bundleId: string): Promise<void> {
+    // Minted BEFORE any early-exit path (including the synchronous
+    // `!options` branch right below) — see currentRunToken's doc comment
+    // for why this must never move later, and why it replaces a shared
+    // "finalized" boolean.
+    const token = ++this.currentRunToken;
+    this.audioDurationS = 0;
+
     const options = this.transcribeOptions;
     if (!options) {
-      this.fail(bundleId, { kind: 'unknown', message: NO_OPTIONS_MESSAGE });
+      this.fail(bundleId, token, {
+        kind: 'unknown',
+        message: NO_OPTIONS_MESSAGE,
+      });
       return;
     }
 
@@ -155,21 +201,30 @@ export class PipelineQueueService {
     // re-decodable as a freshly-selected one, and the queue must not skip or
     // crash on a bundle that simply isn't one of the 3 most recent.
     const resident = await this.audioService.ensureResident(bundleId);
+
+    // A cancel click that arrived while the line above was still pending —
+    // see cancelRequestedToken's doc comment. Checked before touching the
+    // manager or subscribing, so a cancelled bundle never starts a run.
+    if (this.cancelRequestedToken === token) {
+      this.fail(bundleId, token, {
+        kind: 'cancelled',
+        message: 'Run cancelled.',
+      });
+      return;
+    }
+
     const manager = resident
       ? this.audioService.getManager(bundleId)
       : undefined;
     if (!manager) {
-      this.fail(bundleId, {
+      this.fail(bundleId, token, {
         kind: 'decode',
         message: `Could not decode audio for this file.`,
       });
       return;
     }
 
-    this.audioDurationS = 0;
-    this.finalized = false;
-
-    this.runSub = dispatchPipelineActions(
+    const sub = dispatchPipelineActions(
       this.pipelineRunnerService
         .run({
           audioManager: manager,
@@ -180,40 +235,73 @@ export class PipelineQueueService {
           // transcription + optional diarization only.
         })
         .pipe(
-          tap((event: PipelineEvent) => this.onRawEvent(bundleId, event)),
+          tap((event: PipelineEvent) =>
+            this.onRawEvent(bundleId, token, event),
+          ),
           map(mapPipelineEventToAction),
         ),
     ).subscribe({
       next: (action: Action) => this.onThrottledAction(action),
       error: (err: unknown) =>
-        this.fail(bundleId, classifyBundleRunError(err, options.useWebGPU)),
+        this.fail(
+          bundleId,
+          token,
+          classifyBundleRunError(err, options.useWebGPU),
+        ),
       complete: () => {
-        if (!this.finalized) {
-          this.fail(bundleId, {
-            kind: 'unknown',
-            message: 'The pipeline ended without producing a result.',
-          });
-        }
+        // No-op via claimFinalize() if 'result' (or an error/cancel) already
+        // finalized this token — this unconditional call replaces the old
+        // `if (!this.finalized)` guard now that finalization is per-token.
+        this.fail(bundleId, token, {
+          kind: 'unknown',
+          message: 'The pipeline ended without producing a result.',
+        });
       },
     });
+
+    // Guard against PipelineRunnerService.run() terminating SYNCHRONOUSLY on
+    // subscribe (e.g. a synchronous error from the transcription stage):
+    // succeed()/fail() -> advance() would already have unsubscribed and
+    // started the next bundle — incrementing currentRunToken — before this
+    // line runs, in which case `sub` belongs to an already-superseded run
+    // and must not overwrite the next bundle's `runSub`.
+    if (token === this.currentRunToken) {
+      this.runSub = sub;
+    } else {
+      sub.unsubscribe();
+    }
   }
 
   /**
    * Raw (unthrottled) event handling — only the terminal outcomes, which
    * must never be delayed or collapsed by the throttle.
    */
-  private onRawEvent(bundleId: string, event: PipelineEvent): void {
+  private onRawEvent(
+    bundleId: string,
+    token: number,
+    event: PipelineEvent,
+  ): void {
     const cancelled = bundleRunErrorFromPipelineEvent(event);
     if (cancelled) {
-      this.fail(bundleId, cancelled);
+      this.fail(bundleId, token, cancelled);
       return;
     }
     if (event.stage === 'pipeline' && event.type === 'result') {
-      this.succeed(bundleId, event);
+      this.succeed(bundleId, token, event);
     }
   }
 
-  /** Throttled progress ticks — bundle-scoped, never the old slice's actions. */
+  /**
+   * Throttled progress ticks — bundle-scoped in practice because they only
+   * ever arrive while `bundleId`'s run is the active one, but the dispatched
+   * `PipelineQueueActions.progress` action itself carries no `bundleId` and
+   * the reducer applies it to `state.activeId` (`pipeline-queue.reducer.ts`).
+   * That is safe only because `advance()` below unsubscribes `runSub` —
+   * whose teardown clears `dispatchPipelineActions`' pending trailing-edge
+   * timer — BEFORE `activateNext()` ever runs. If that order is ever
+   * reversed, a still-pending throttled tick from the bundle that just
+   * finished could land on the next bundle's row instead of being dropped.
+   */
   private onThrottledAction(action: Action): void {
     const result = mapPipelineActionToQueueProgress(
       action,
@@ -227,26 +315,45 @@ export class PipelineQueueService {
 
   private succeed(
     bundleId: string,
+    token: number,
     _event: Extract<PipelineEvent, { stage: 'pipeline'; type: 'result' }>,
   ): void {
-    if (this.finalized) {
+    if (!this.claimFinalize(token)) {
       return;
     }
-    this.finalized = true;
     this.store.dispatch(PipelineQueueActions.bundleDone({ bundleId }));
     this.advance();
   }
 
-  private fail(bundleId: string, error: BundleRunError): void {
-    if (this.finalized) {
+  private fail(bundleId: string, token: number, error: BundleRunError): void {
+    if (!this.claimFinalize(token)) {
       return;
     }
-    this.finalized = true;
     this.store.dispatch(PipelineQueueActions.bundleFailed({ bundleId, error }));
     this.advance();
   }
 
+  /**
+   * The single point that decides whether a terminal outcome (`succeed()`/
+   * `fail()`) is allowed to actually dispatch — see `currentRunToken`'s doc
+   * comment. Rejects both a token from a superseded run (`token !==
+   * currentRunToken`, the bug this whole scheme replaces a shared boolean
+   * to fix) and a second terminal outcome for the SAME still-current run
+   * (`token === finalizedToken` — e.g. a 'result' event followed later by
+   * the Observable's own `complete()` callback).
+   */
+  private claimFinalize(token: number): boolean {
+    if (token !== this.currentRunToken || token === this.finalizedToken) {
+      return false;
+    }
+    this.finalizedToken = token;
+    return true;
+  }
+
   private advance(): void {
+    // See onThrottledAction's doc comment: this unsubscribe (and the
+    // pending-timer teardown it triggers inside dispatchPipelineActions)
+    // must happen BEFORE activateNext() below.
     this.runSub?.unsubscribe();
     this.runSub = null;
     if (this.queueState().mode === 'pausing') {

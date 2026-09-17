@@ -256,4 +256,115 @@ describe('PipelineQueueService', () => {
     expect(queueState().runs['a'].state).toBe('failed');
     expect(queueState().runs['a'].error.kind).toBe('unknown');
   });
+
+  // Regression tests for the "finalized reset too late" deadlock: every
+  // failure-path test above enqueues a single bundle into a fresh service,
+  // so the (now removed) shared `finalized` boolean was still at its field
+  // default and the bug was invisible. These enqueue TWO bundles so the
+  // second bundle's early-exit `fail()` runs after the first bundle has
+  // already finalized once.
+  it('fails two consecutive bundles on decode failure, without wedging the queue', async () => {
+    audio.ensureResident.mockResolvedValue(false as never);
+    service.enqueue(['a', 'b']);
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(runner.run).not.toHaveBeenCalled();
+    expect(queueState().runs['a']).toEqual({
+      state: 'failed',
+      error: {
+        kind: 'decode',
+        message: 'Could not decode audio for this file.',
+      },
+    });
+    expect(queueState().runs['b']).toEqual({
+      state: 'failed',
+      error: {
+        kind: 'decode',
+        message: 'Could not decode audio for this file.',
+      },
+    });
+    expect(queueState().activeId).toBeNull();
+    expect(queueState().mode).toBe('idle');
+  });
+
+  it('advances past a success into a decode failure on the next bundle', async () => {
+    audio.ensureResident.mockImplementation(
+      async (bundleId: unknown) => bundleId !== 'b',
+    );
+    service.enqueue(['a', 'b']);
+    await Promise.resolve();
+
+    expect(runner.run).toHaveBeenCalledTimes(1);
+    events[0].next({
+      stage: 'pipeline',
+      type: 'result',
+      annotJson: new OAnnotJSON('a.wav', 'a', 16000, []),
+      diarizationWarning: null,
+    });
+    events[0].complete();
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(queueState().runs['a']).toEqual({ state: 'done' });
+    expect(queueState().runs['b']).toEqual({
+      state: 'failed',
+      error: {
+        kind: 'decode',
+        message: 'Could not decode audio for this file.',
+      },
+    });
+    expect(runner.run).toHaveBeenCalledTimes(1); // 'b' never reached the runner
+    expect(queueState().activeId).toBeNull();
+    expect(queueState().mode).toBe('idle');
+  });
+
+  it('fails both queued bundles when no transcription options are configured', async () => {
+    service.setTranscribeOptions(null);
+    service.enqueue(['a', 'b']);
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(runner.run).not.toHaveBeenCalled();
+    expect(queueState().runs['a']).toEqual({
+      state: 'failed',
+      error: { kind: 'unknown', message: expect.any(String) },
+    });
+    expect(queueState().runs['b']).toEqual({
+      state: 'failed',
+      error: { kind: 'unknown', message: expect.any(String) },
+    });
+    expect(queueState().activeId).toBeNull();
+    expect(queueState().mode).toBe('idle');
+  });
+
+  it('cancels a bundle whose residency check is still pending, and never starts the runner', async () => {
+    let resolveResident!: (resident: boolean) => void;
+    audio.ensureResident.mockImplementation(
+      () =>
+        new Promise<boolean>((resolve) => {
+          resolveResident = resolve;
+        }),
+    );
+
+    service.enqueue(['a']);
+    await Promise.resolve();
+    expect(queueState().activeId).toBe('a');
+    expect(runner.run).not.toHaveBeenCalled();
+
+    service.cancelActive();
+    expect(runner.cancel).toHaveBeenCalledTimes(1);
+
+    resolveResident(true);
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(runner.run).not.toHaveBeenCalled();
+    expect(queueState().runs['a']).toEqual({
+      state: 'failed',
+      error: { kind: 'cancelled', message: 'Run cancelled.' },
+    });
+    expect(queueState().activeId).toBeNull();
+    expect(queueState().mode).toBe('idle');
+  });
 });
