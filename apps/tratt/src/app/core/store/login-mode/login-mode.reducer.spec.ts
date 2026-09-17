@@ -300,7 +300,12 @@ describe('LoginModeReducers — createBundle / selectBundle', () => {
       LoginModeActions.createBundle({
         mode: LoginMode.LOCAL,
         bundleId: 'bundle-2',
-        sessionFile: new SessionFile('b.wav', 2, new Date(2024, 0, 1), 'audio/wav'),
+        sessionFile: new SessionFile(
+          'b.wav',
+          2,
+          new Date(2024, 0, 1),
+          'audio/wav',
+        ),
       }),
     ) as unknown as LocalBundleCollectionState;
     // createBundle selects the new bundle; select bundle-1 back so the
@@ -327,6 +332,12 @@ describe('LoginModeReducers — createBundle / selectBundle', () => {
     expect(state.bundles.entities['bundle-2']!.transcript).toBe(transcript);
     expect(state.bundles.entities[DEFAULT_BUNDLE_ID]!.transcript).not.toBe(
       transcript,
+    );
+    // Stronger than the transcript-only check above: the selected bundle's
+    // entity is the exact same object reference post-write, not merely a
+    // different transcript — proving nothing about it was touched at all.
+    expect(state.bundles.entities[DEFAULT_BUNDLE_ID]).toBe(
+      selectedIsOne.bundles.entities[DEFAULT_BUNDLE_ID],
     );
   });
 
@@ -414,7 +425,7 @@ describe('LoginModeReducers — createBundle with restored content (step 2.8)', 
     expect(entity?.transcript?.levels).toEqual([]);
   });
 
-  it('Minor 2: createBundle with BOTH restoredOptions and restoredAnnotation set (BundleRestoreEffects\' actual shape) applies both independently', () => {
+  it("Minor 2: createBundle with BOTH restoredOptions and restoredAnnotation set (BundleRestoreEffects' actual shape) applies both independently", () => {
     const reducer = new LoginModeReducers(LoginMode.LOCAL).create();
     const initial = reducer(undefined, {
       type: '@@INIT',

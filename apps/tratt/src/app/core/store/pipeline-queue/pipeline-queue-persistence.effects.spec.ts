@@ -58,7 +58,9 @@ describe('PipelineQueuePersistenceEffects', () => {
     };
     audioService = {
       getManager: jest.fn(() => ({
-        resource: { info: { fullname: 'a.wav', sampleRate: 16000, duration: 1 } },
+        resource: {
+          info: { fullname: 'a.wav', sampleRate: 16000, duration: 1 },
+        },
       })),
     } as any;
 
@@ -145,7 +147,13 @@ describe('PipelineQueuePersistenceEffects', () => {
       localMode: {
         ...(initialState as any).localMode,
         bundles: localBundleAdapter.setAll(
-          [{ ...bundleA, audio: { fileName: 'a.wav' }, transcript: { serialize } }],
+          [
+            {
+              ...bundleA,
+              audio: { fileName: 'a.wav' },
+              transcript: { serialize },
+            },
+          ],
           localBundleAdapter.getInitialState(),
         ),
       },
