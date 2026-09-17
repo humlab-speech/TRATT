@@ -8,6 +8,19 @@ import {
   it,
   jest,
 } from '@jest/globals';
+
+// Same workaround as pipeline-queue.service.spec.ts: these two services
+// construct their Worker via `new URL('...', import.meta.url)` at module
+// scope, which ts-jest's CommonJS config cannot compile. This spec never
+// touches the real classes — PipelineQueueService itself is replaced by a
+// mock below, but its import graph still reaches these two modules.
+jest.mock('../../shared/service/local-transcription.service', () => ({
+  LocalTranscriptionService: class LocalTranscriptionService {},
+}));
+jest.mock('../../shared/service/local-translation.service', () => ({
+  LocalTranslationService: class LocalTranslationService {},
+}));
+
 import { TranslocoService } from '@jsverse/transloco';
 import { MockStore, provideMockStore } from '@ngrx/store/testing';
 import { AudioManager } from '@tratt/web-media';
@@ -15,10 +28,11 @@ import { of } from 'rxjs';
 import { BundleReattachMismatchAnswer } from '../../modals/bundle-reattach-mismatch-modal/bundle-reattach-mismatch-modal.component';
 import { TrattModalService } from '../../modals/tratt-modal.service';
 import { SessionFile } from '../../obj/SessionFile';
+import { AudioService } from '../../shared/service/audio.service';
+import { PipelineQueueService } from '../../shared/service/pipeline-queue.service';
 import { LoginMode, RootState } from '../../store/index';
 import { localBundleAdapter } from '../../store/login-mode/annotation/local-bundle-collection';
 import { LoginModeActions } from '../../store/login-mode/login-mode.actions';
-import { AudioService } from '../../shared/service/audio.service';
 import { BundleListComponent } from './bundle-list.component';
 
 // Convention: mock Store via @ngrx/store/testing's provideMockStore with a
@@ -33,6 +47,7 @@ describe('BundleListComponent', () => {
     hasResident: jest.Mock;
   };
   let modalService: { openModal: jest.Mock<any> };
+  let pipelineQueueService: { retry: jest.Mock };
 
   const matchingSessionFile = new SessionFile(
     'a.wav',
@@ -60,6 +75,12 @@ describe('BundleListComponent', () => {
         localBundleAdapter.getInitialState(),
       ),
       selectedBundleId: 'bundle-b',
+    },
+    pipelineQueue: {
+      queue: [],
+      activeId: null,
+      mode: 'idle',
+      runs: {},
     },
   } as unknown as RootState;
 
@@ -92,6 +113,7 @@ describe('BundleListComponent', () => {
       hasResident: jest.fn().mockReturnValue(false),
     };
     modalService = { openModal: jest.fn() };
+    pipelineQueueService = { retry: jest.fn() };
 
     await TestBed.configureTestingModule({
       imports: [BundleListComponent],
@@ -99,6 +121,7 @@ describe('BundleListComponent', () => {
         provideMockStore({ initialState }),
         { provide: AudioService, useValue: audioService },
         { provide: TrattModalService, useValue: modalService },
+        { provide: PipelineQueueService, useValue: pipelineQueueService },
         {
           provide: TranslocoService,
           useValue: {
@@ -106,6 +129,12 @@ describe('BundleListComponent', () => {
             langChanges$: of('en'),
             translate: (key: string) => key,
             config: { reRenderOnLangChange: false },
+            // TranslocoPipe.transform() calls this to resolve the scope
+            // before it will call translate() at all — without it, the
+            // pipe's internal subscribe() throws (swallowed by RxJS as an
+            // unhandled error) and every transloco-piped label renders as
+            // the pipe's empty initial `lastValue` instead of the key.
+            _loadDependencies: () => of({}),
           },
         },
       ],
@@ -166,14 +195,18 @@ describe('BundleListComponent', () => {
   describe('re-attach control', () => {
     it('renders a file input for a bundle with awaitingMedia true', () => {
       const rows = fixture.debugElement.queryAll(By.css('.bundle-list__item'));
-      const rowA = rows.find((r) => r.nativeElement.textContent.includes('a.wav'));
+      const rowA = rows.find((r) =>
+        r.nativeElement.textContent.includes('a.wav'),
+      );
       const input = rowA!.query(By.css('input[type="file"]'));
       expect(input).toBeTruthy();
     });
 
     it('does not render a file input for a bundle with awaitingMedia false', () => {
       const rows = fixture.debugElement.queryAll(By.css('.bundle-list__item'));
-      const rowB = rows.find((r) => r.nativeElement.textContent.includes('b.wav'));
+      const rowB = rows.find((r) =>
+        r.nativeElement.textContent.includes('b.wav'),
+      );
       const input = rowB!.query(By.css('input[type="file"]'));
       expect(input).toBeFalsy();
     });
@@ -191,7 +224,9 @@ describe('BundleListComponent', () => {
         'audio/wav',
         matchingSessionFile.timestamp!.getTime(),
       );
-      const event = { target: { files: [file], value: '' } } as unknown as Event;
+      const event = {
+        target: { files: [file], value: '' },
+      } as unknown as Event;
 
       await fixture.componentInstance.onReattachFileSelected('bundle-a', event);
 
@@ -229,7 +264,9 @@ describe('BundleListComponent', () => {
         'audio/wav',
         matchingSessionFile.timestamp!.getTime(),
       );
-      const event = { target: { files: [file], value: '' } } as unknown as Event;
+      const event = {
+        target: { files: [file], value: '' },
+      } as unknown as Event;
 
       let resolveModal: (value: BundleReattachMismatchAnswer) => void;
       modalService.openModal.mockReturnValue(
@@ -273,7 +310,9 @@ describe('BundleListComponent', () => {
         'audio/wav',
         matchingSessionFile.timestamp!.getTime(),
       );
-      const event = { target: { files: [file], value: '' } } as unknown as Event;
+      const event = {
+        target: { files: [file], value: '' },
+      } as unknown as Event;
 
       modalService.openModal.mockResolvedValue(
         BundleReattachMismatchAnswer.CANCEL,
@@ -303,7 +342,9 @@ describe('BundleListComponent', () => {
         'audio/wav',
         matchingSessionFile.timestamp!.getTime(),
       );
-      const event = { target: { files: [file], value: '' } } as unknown as Event;
+      const event = {
+        target: { files: [file], value: '' },
+      } as unknown as Event;
 
       modalService.openModal.mockRejectedValue(new Error('backdrop dismissed'));
 
@@ -325,7 +366,9 @@ describe('BundleListComponent', () => {
       fixture.detectChanges();
 
       const rows = fixture.debugElement.queryAll(By.css('.bundle-list__item'));
-      const rowA = rows.find((r) => r.nativeElement.textContent.includes('a.wav'));
+      const rowA = rows.find((r) =>
+        r.nativeElement.textContent.includes('a.wav'),
+      );
       expect(rowA!.query(By.css('input[type="file"]'))).toBeFalsy();
       expect(rowA!.query(By.css('button.bundle-list__item-btn'))).toBeTruthy();
     });
@@ -336,7 +379,9 @@ describe('BundleListComponent', () => {
       fixture.detectChanges();
 
       const rows = fixture.debugElement.queryAll(By.css('.bundle-list__item'));
-      const rowA = rows.find((r) => r.nativeElement.textContent.includes('a.wav'));
+      const rowA = rows.find((r) =>
+        r.nativeElement.textContent.includes('a.wav'),
+      );
       expect(rowA!.query(By.css('input[type="file"]'))).toBeTruthy();
     });
 
@@ -346,7 +391,9 @@ describe('BundleListComponent', () => {
       fixture.detectChanges();
 
       const rows = fixture.debugElement.queryAll(By.css('.bundle-list__item'));
-      const rowB = rows.find((r) => r.nativeElement.textContent.includes('b.wav'));
+      const rowB = rows.find((r) =>
+        r.nativeElement.textContent.includes('b.wav'),
+      );
       expect(rowB!.query(By.css('input[type="file"]'))).toBeFalsy();
       expect(rowB!.query(By.css('button.bundle-list__item-btn'))).toBeTruthy();
     });
@@ -386,8 +433,15 @@ describe('BundleListComponent', () => {
         },
       } as unknown as RootState);
 
-      const file = fakeFile('c.ogg', 10, 'video/ogg', oggSessionFile.timestamp!.getTime());
-      const event = { target: { files: [file], value: '' } } as unknown as Event;
+      const file = fakeFile(
+        'c.ogg',
+        10,
+        'video/ogg',
+        oggSessionFile.timestamp!.getTime(),
+      );
+      const event = {
+        target: { files: [file], value: '' },
+      } as unknown as Event;
 
       await fixture.componentInstance.onReattachFileSelected('bundle-c', event);
 
@@ -398,6 +452,92 @@ describe('BundleListComponent', () => {
         }),
       );
       expect(modalService.openModal).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('pipeline run status and retry', () => {
+    it('renders the run status label for each bundle', async () => {
+      store.setState({
+        ...initialState,
+        pipelineQueue: {
+          queue: [],
+          activeId: 'bundle-b',
+          mode: 'running',
+          runs: {
+            'bundle-b': { state: 'running', stage: 'asr', progress: 0.5 },
+          },
+        },
+      } as unknown as RootState);
+      fixture.detectChanges();
+
+      const labels = fixture.debugElement
+        .queryAll(By.css('.bundle-list__status'))
+        .map((el) => el.nativeElement.textContent.trim());
+      expect(labels).toContain('workbench.bundle_list.status.running');
+    });
+
+    it('renders no status element for a bundle with no run entry', () => {
+      fixture.detectChanges();
+      expect(
+        fixture.debugElement.queryAll(By.css('.bundle-list__status')).length,
+      ).toBe(0);
+    });
+
+    it('shows a retry button only for failed and interrupted rows and calls the queue service', () => {
+      // bundle-a's fixture has audio.loaded false (awaitingMedia from the
+      // selector); as in the "Fix 5" suite above, a resident AudioManager
+      // (hasResident true) is what makes a row render the click-to-select
+      // branch — and therefore the status/retry UI — instead of the
+      // re-attach control. This test is about run-state gating of retry,
+      // not the re-attach control, so both rows need to be in that branch.
+      audioService.hasResident.mockReturnValue(true);
+      store.setState({
+        ...initialState,
+        pipelineQueue: {
+          queue: [],
+          activeId: null,
+          mode: 'idle',
+          runs: {
+            'bundle-a': { state: 'interrupted' },
+            'bundle-b': {
+              state: 'failed',
+              error: { kind: 'oom', message: 'GPU out of memory' },
+            },
+          },
+        },
+      } as unknown as RootState);
+      fixture.detectChanges();
+
+      const retryButtons = fixture.debugElement.queryAll(
+        By.css('.bundle-list__retry'),
+      );
+      expect(retryButtons.length).toBe(2);
+
+      retryButtons[1].nativeElement.click();
+      expect(pipelineQueueService.retry).toHaveBeenCalledWith('bundle-b');
+    });
+
+    it("exposes the raw failure message as the failed row's title", () => {
+      store.setState({
+        ...initialState,
+        pipelineQueue: {
+          queue: [],
+          activeId: null,
+          mode: 'idle',
+          runs: {
+            'bundle-b': {
+              state: 'failed',
+              error: { kind: 'oom', message: 'GPU out of memory' },
+            },
+          },
+        },
+      } as unknown as RootState);
+      fixture.detectChanges();
+
+      const failed = fixture.debugElement.query(By.css('.bundle-list__error'));
+      expect(failed.nativeElement.getAttribute('title')).toBe(
+        'GPU out of memory',
+      );
     });
   });
 });

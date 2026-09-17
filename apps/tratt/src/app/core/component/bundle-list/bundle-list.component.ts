@@ -10,12 +10,15 @@ import {
 import { TrattModalService } from '../../modals/tratt-modal.service';
 import { SessionFile } from '../../obj/SessionFile';
 import { AudioService } from '../../shared/service/audio.service';
+import { PipelineQueueService } from '../../shared/service/pipeline-queue.service';
 import { LoginMode, RootState } from '../../store/index';
 import {
   selectAllBundleSummaries,
   selectLocalMode,
 } from '../../store/login-mode/annotation/annotation.selectors';
 import { LoginModeActions } from '../../store/login-mode/login-mode.actions';
+import { runStatusOf } from '../../store/pipeline-queue';
+import { selectAllRunStatuses } from '../../store/pipeline-queue/pipeline-queue.selectors';
 
 /**
  * Lists the bundles created by the one `startSession()` call at the start of
@@ -43,6 +46,7 @@ import { LoginModeActions } from '../../store/login-mode/login-mode.actions';
 })
 export class BundleListComponent {
   private bundleSummaries = this.store.selectSignal(selectAllBundleSummaries);
+  private runStatuses = this.store.selectSignal(selectAllRunStatuses);
 
   // `selectAllBundleSummaries`'s `awaitingMedia` only reflects the store's
   // `audio.loaded` flag, which the reducer only ever sets for whichever
@@ -52,13 +56,19 @@ export class BundleListComponent {
   // ever been selected — combine the selector with that live signal so
   // switching to an unselected-but-already-resident bundle doesn't show the
   // re-attach control.
-  bundles = computed(() =>
-    this.bundleSummaries().map((b) => ({
+  //
+  // Step 3b adds one more merge: each row's pipeline run status (absent
+  // entry ⇒ idle, via runStatusOf) so a row can show queued/running/done/
+  // failed/interrupted and offer a retry.
+  bundles = computed(() => {
+    const runs = this.runStatuses();
+    return this.bundleSummaries().map((b) => ({
       ...b,
       awaitingMedia:
         b.awaitingMedia && !this.audioService.hasResident(b.bundleId),
-    })),
-  );
+      run: runStatusOf(runs, b.bundleId),
+    }));
+  });
 
   // Only consulted from onReattachFileSelected() (not template-bound) to look
   // up a bundle's persisted SessionFile for the fingerprint comparison —
@@ -69,12 +79,23 @@ export class BundleListComponent {
     private store: Store<RootState>,
     private audioService: AudioService,
     private modService: TrattModalService,
+    private pipelineQueueService: PipelineQueueService,
   ) {}
 
   selectBundle(bundleId: string): void {
     this.store.dispatch(
       LoginModeActions.selectBundle({ mode: LoginMode.LOCAL, bundleId }),
     );
+  }
+
+  /**
+   * Per-row retry for a failed or interrupted bundle. Goes through
+   * `PipelineQueueService.retry()`, which deliberately bypasses the
+   * eligibility filter `enqueue()` applies — retry is an explicit user
+   * action on one specific row.
+   */
+  onRetry(bundleId: string): void {
+    this.pipelineQueueService.retry(bundleId);
   }
 
   async onReattachFileSelected(bundleId: string, event: Event): Promise<void> {
@@ -96,7 +117,8 @@ export class BundleListComponent {
     );
     const manager = result.audioManager!;
 
-    const sessionFile = this.localMode().bundles.entities[bundleId]?.sessionFile;
+    const sessionFile =
+      this.localMode().bundles.entities[bundleId]?.sessionFile;
     if (this.fingerprintMatches(sessionFile, file)) {
       this.completeReattach(bundleId, manager, file);
       return;

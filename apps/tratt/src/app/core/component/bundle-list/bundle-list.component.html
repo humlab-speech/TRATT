@@ -45,6 +45,45 @@
                fallback needed. -->
           {{ bundle.name }}
         </button>
+        @if (bundle.run.state !== 'idle') {
+          <span
+            class="bundle-list__status"
+            [class.bundle-list__status--running]="
+              bundle.run.state === 'running'
+            "
+            [class.bundle-list__status--done]="bundle.run.state === 'done'"
+            [class.bundle-list__status--error]="
+              bundle.run.state === 'failed' ||
+              bundle.run.state === 'interrupted'
+            "
+          >
+            {{ 'workbench.bundle_list.status.' + bundle.run.state | transloco }}
+          </span>
+        }
+        @if (bundle.run.state === 'failed' && bundle.run.error) {
+          <!-- The kind is the translated, user-facing summary; the raw
+               message (often an untranslatable worker/browser string) is
+               the tooltip, so nothing is hidden from the user. -->
+          <span
+            class="bundle-list__error"
+            [attr.title]="bundle.run.error.message"
+          >
+            {{
+              'workbench.bundle_list.error.' + bundle.run.error.kind | transloco
+            }}
+          </span>
+        }
+        @if (
+          bundle.run.state === 'failed' || bundle.run.state === 'interrupted'
+        ) {
+          <button
+            type="button"
+            class="bundle-list__retry"
+            (click)="onRetry(bundle.bundleId)"
+          >
+            {{ 'workbench.bundle_list.retry' | transloco }}
+          </button>
+        }
       }
     </li>
   }
