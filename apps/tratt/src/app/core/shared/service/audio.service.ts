@@ -57,6 +57,16 @@ export class AudioService {
   }
 
   /**
+   * The `AudioManager` registered for a SPECIFIC bundle, independent of the
+   * current selection (`current` resolves through `selectedBundleId`). The
+   * pipeline queue runs bundles the user has not selected, so it cannot use
+   * `current`.
+   */
+  public getManager(bundleId: string): AudioManager | undefined {
+    return this._audiomanagers.get(bundleId);
+  }
+
+  /**
    * @deprecated Use `current` instead. This throws in dev builds when there
    * is no resolvable manager for the current selection, instead of silently
    * returning undefined/wrong data (the old array-index-0 behavior).
@@ -229,22 +239,27 @@ export class AudioService {
    * re-registers the resulting `AudioManager`, if `bundleId` currently has
    * no resident manager (e.g. it was LRU-evicted by `trackSelection()`) but
    * does have a source `File` on record (registered via
-   * `registerAudioManager(..., sourceFile)`). No-op if a manager is already
-   * resident, or if no source file was ever retained for `bundleId` (e.g. an
-   * ONLINE-mode registration via `loadAudio()`).
+   * `registerAudioManager(..., sourceFile)`).
+   *
+   * Resolves to whether `bundleId` has a resident manager afterwards. Public
+   * (and outcome-reporting) since step 3b-i: the pipeline queue must ensure
+   * residency before running a bundle and needs to distinguish "ready" from
+   * "could not decode" (its `'decode'` error class) — the selection `effect`
+   * in the constructor still calls it fire-and-forget and ignores the
+   * result, exactly as before.
    */
   private _pendingResidency = new Set<string>();
 
-  private async ensureResident(bundleId: string): Promise<void> {
-    if (
-      this._audiomanagers.has(bundleId) ||
-      this._pendingResidency.has(bundleId)
-    ) {
-      return;
+  public async ensureResident(bundleId: string): Promise<boolean> {
+    if (this._audiomanagers.has(bundleId)) {
+      return true;
+    }
+    if (this._pendingResidency.has(bundleId)) {
+      return false;
     }
     const sourceFile = this._sourceFiles.get(bundleId);
     if (!sourceFile) {
-      return;
+      return false;
     }
     this._pendingResidency.add(bundleId);
     try {
@@ -262,10 +277,12 @@ export class AudioService {
       // stream completed without ever reaching progress===1) — best-effort,
       // matching evict()'s pattern above: leave the bundle unresident rather
       // than surfacing an unhandled rejection. The user sees a no-audio
-      // state for that bundle and can retry by reselecting it again.
+      // state for that bundle and can retry by reselecting it again; the
+      // queue turns the `false` return below into a 'decode' run error.
     } finally {
       this._pendingResidency.delete(bundleId);
     }
+    return this._audiomanagers.has(bundleId);
   }
 
   public async destroy(disconnect = true) {

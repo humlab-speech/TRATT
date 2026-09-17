@@ -1,12 +1,19 @@
-import { TestBed } from '@angular/core/testing';
 import { HttpClient } from '@angular/common/http';
-import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
-import { provideMockStore, MockStore } from '@ngrx/store/testing';
+import { TestBed } from '@angular/core/testing';
+import {
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  jest,
+} from '@jest/globals';
+import { MockStore, provideMockStore } from '@ngrx/store/testing';
+import { AudioManager } from '@tratt/web-media';
 import { Subject, of, throwError } from 'rxjs';
 import { LoginMode, RootState } from '../../store/index';
 import { localBundleAdapter } from '../../store/login-mode/annotation/local-bundle-collection';
 import { AudioService } from './audio.service';
-import { AudioManager } from '@tratt/web-media';
 
 // Convention: mock Store via @ngrx/store/testing's provideMockStore, as
 // established by idb-effects.service.spec.ts, rather than a hand-rolled
@@ -272,11 +279,18 @@ describe('AudioService — re-decode on reselection of an evicted bundle', () =>
       destroy: jest.fn(async () => undefined),
     }) as any;
 
-  const fakeFile = (name: string) =>
+  const fakeFile = (
+    name: string,
+    size = 8,
+    type = 'audio/wav',
+    lastModified = 1,
+  ) =>
     ({
       name,
-      type: 'audio/wav',
-      arrayBuffer: jest.fn(async () => new ArrayBuffer(8)),
+      size,
+      type,
+      lastModified,
+      arrayBuffer: jest.fn(async () => new ArrayBuffer(size)),
     }) as unknown as File;
 
   const selectBundle = (id: string) => {
@@ -319,15 +333,17 @@ describe('AudioService — re-decode on reselection of an evicted bundle', () =>
     const redecodedB1 = fakeManager('b1-redecoded');
     const createSpy = jest
       .spyOn(AudioManager, 'create')
-      .mockReturnValue(
-        of({ audioManager: redecodedB1, progress: 1 }) as any,
-      );
+      .mockReturnValue(of({ audioManager: redecodedB1, progress: 1 }) as any);
 
     // Re-select the evicted bundle.
     selectBundle('b1');
     await flushMicrotasks();
 
-    expect(createSpy).toHaveBeenCalledWith('b1.wav', 'audio/wav', expect.anything());
+    expect(createSpy).toHaveBeenCalledWith(
+      'b1.wav',
+      'audio/wav',
+      expect.anything(),
+    );
     expect(service.current).toBe(redecodedB1);
     expect(service.current).not.toBe(originalB1);
   });
@@ -403,9 +419,7 @@ describe('AudioService — re-decode on reselection of an evicted bundle', () =>
 
     jest
       .spyOn(AudioManager, 'create')
-      .mockReturnValue(
-        throwError(() => new Error('decode failed')) as any,
-      );
+      .mockReturnValue(throwError(() => new Error('decode failed')) as any);
 
     expect(() => selectBundle('b1')).not.toThrow();
     await flushMicrotasks();
@@ -444,9 +458,7 @@ describe('AudioService — re-decode on reselection of an evicted bundle', () =>
     const redecodedB1 = fakeManager('b1-redecoded');
     const createSpy = jest
       .spyOn(AudioManager, 'create')
-      .mockReturnValue(
-        of({ audioManager: redecodedB1, progress: 1 }) as any,
-      );
+      .mockReturnValue(of({ audioManager: redecodedB1, progress: 1 }) as any);
 
     // Fire two rapid reselections back to the evicted bundle before the
     // first re-decode's microtasks have a chance to resolve.
@@ -456,6 +468,82 @@ describe('AudioService — re-decode on reselection of an evicted bundle', () =>
 
     expect(createSpy).toHaveBeenCalledTimes(1);
     expect(service.current).toBe(redecodedB1);
+  });
+});
+
+describe('AudioService — getManager / ensureResident (public, step 3b-i)', () => {
+  let service: AudioService;
+
+  const stateWithSelected = (selectedBundleId: string) =>
+    ({
+      application: { mode: LoginMode.LOCAL },
+      localMode: {
+        bundles: localBundleAdapter.getInitialState(),
+        selectedBundleId,
+      },
+    }) as unknown as RootState;
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      providers: [
+        AudioService,
+        { provide: HttpClient, useValue: {} },
+        provideMockStore({ initialState: stateWithSelected('bundle-1') }),
+      ],
+    });
+    service = TestBed.inject(AudioService);
+  });
+
+  const fakeManager = () =>
+    ({
+      resource: { name: 'x.wav' },
+      audioMechanism: { missingPermission: { subscribe: jest.fn() } },
+      channel: new Float32Array(1000).fill(0.1),
+      destroy: jest.fn(async () => undefined),
+    }) as any;
+
+  const fakeFile = (
+    name: string,
+    size = 8,
+    type = 'audio/wav',
+    lastModified = 1,
+  ) =>
+    ({
+      name,
+      size,
+      type,
+      lastModified,
+      arrayBuffer: jest.fn(async () => new ArrayBuffer(size)),
+    }) as unknown as File;
+
+  it('getManager returns the manager registered for that bundle, regardless of selection', () => {
+    const manager = fakeManager();
+    service.registerAudioManager('bundle-x', manager as any);
+    expect(service.getManager('bundle-x')).toBe(manager);
+    expect(service.getManager('bundle-y')).toBeUndefined();
+  });
+
+  it('ensureResident resolves true when the bundle is already resident', async () => {
+    service.registerAudioManager('bundle-x', fakeManager() as any);
+    await expect(service.ensureResident('bundle-x')).resolves.toBe(true);
+  });
+
+  it('ensureResident resolves false when no source file was ever retained', async () => {
+    await expect(service.ensureResident('bundle-never-seen')).resolves.toBe(
+      false,
+    );
+  });
+
+  it('ensureResident resolves false when the re-decode throws', async () => {
+    const manager = fakeManager();
+    const file = fakeFile('a.wav', 4, 'audio/wav', 1);
+    (file.arrayBuffer as jest.Mock<any>).mockRejectedValue(
+      new Error('read failed') as never,
+    );
+    service.registerAudioManager('bundle-x', manager as any, file);
+    service.evict('bundle-x');
+
+    await expect(service.ensureResident('bundle-x')).resolves.toBe(false);
   });
 });
 
