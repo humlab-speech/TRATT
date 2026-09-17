@@ -702,5 +702,31 @@
   },
   "branding": {
     "tagline": "Transkription von Sprache zu Text"
+  },
+  "workbench": {
+    "start session": "Start session",
+    "tabs": {
+      "upload": "Upload file",
+      "record": "Record now"
+    },
+    "bundle_list": {
+      "title": "Files",
+      "reattach": "Attach file…",
+      "retry": "Retry",
+      "status": {
+        "queued": "Queued",
+        "running": "Running",
+        "done": "Done",
+        "failed": "Failed",
+        "interrupted": "Interrupted"
+      },
+      "error": {
+        "decode": "Could not read the audio",
+        "model-load": "Could not load the model",
+        "oom": "Ran out of memory",
+        "cancelled": "Cancelled",
+        "unknown": "Failed"
+      }
+    }
   }
 }

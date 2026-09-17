@@ -736,7 +736,22 @@
     },
     "bundle_list": {
       "title": "Filer",
-      "reattach": "Bifoga fil…"
+      "reattach": "Bifoga fil…",
+      "retry": "Försök igen",
+      "status": {
+        "queued": "I kö",
+        "running": "Körs",
+        "done": "Klar",
+        "failed": "Misslyckades",
+        "interrupted": "Avbruten"
+      },
+      "error": {
+        "decode": "Kunde inte läsa ljudet",
+        "model-load": "Kunde inte ladda modellen",
+        "oom": "Minnet tog slut",
+        "cancelled": "Avbruten",
+        "unknown": "Misslyckades"
+      }
     }
   }
 }
