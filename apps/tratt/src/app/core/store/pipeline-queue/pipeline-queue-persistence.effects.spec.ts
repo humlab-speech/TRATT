@@ -4,16 +4,22 @@ import { provideMockActions } from '@ngrx/effects/testing';
 import { MockStore, provideMockStore } from '@ngrx/store/testing';
 import { Observable, of, Subject } from 'rxjs';
 import { SessionFile } from '../../obj/SessionFile';
+import { AudioService } from '../../shared/service/audio.service';
 import { IDBService } from '../../shared/service/idb.service';
 import { LoginMode, RootState } from '../index';
 import { localBundleAdapter } from '../login-mode/annotation/local-bundle-collection';
+import { LoginModeActions } from '../login-mode/login-mode.actions';
 import { PipelineQueuePersistenceEffects } from './pipeline-queue-persistence.effects';
 import { PipelineQueueActions } from './pipeline-queue.actions';
 
 describe('PipelineQueuePersistenceEffects', () => {
   let actions$: Subject<any>;
   let store: MockStore<RootState>;
-  let idbService: { saveModeOptions: jest.Mock<any> };
+  let idbService: {
+    saveModeOptions: jest.Mock<any>;
+    saveAnnotation: jest.Mock<any>;
+  };
+  let audioService: { getManager: jest.Mock<any> };
   let effects: PipelineQueuePersistenceEffects;
 
   const bundleA = {
@@ -46,7 +52,15 @@ describe('PipelineQueuePersistenceEffects', () => {
 
   beforeEach(() => {
     actions$ = new Subject<any>();
-    idbService = { saveModeOptions: jest.fn(() => of(undefined)) };
+    idbService = {
+      saveModeOptions: jest.fn(() => of(undefined)),
+      saveAnnotation: jest.fn(() => of(undefined)),
+    };
+    audioService = {
+      getManager: jest.fn(() => ({
+        resource: { info: { fullname: 'a.wav', sampleRate: 16000, duration: 1 } },
+      })),
+    } as any;
 
     TestBed.configureTestingModule({
       providers: [
@@ -54,6 +68,7 @@ describe('PipelineQueuePersistenceEffects', () => {
         provideMockActions(() => actions$ as Observable<any>),
         provideMockStore({ initialState }),
         { provide: IDBService, useValue: idbService },
+        { provide: AudioService, useValue: audioService },
       ],
     });
 
@@ -119,5 +134,49 @@ describe('PipelineQueuePersistenceEffects', () => {
       .calls[0] as any[];
     expect(bundleId).toBe('a');
     expect(options.runState).toBe('idle');
+  });
+
+  it("persists a queue-written transcript against that bundle's own id", () => {
+    effects.saveBundleTranscript$.subscribe();
+
+    const serialize = jest.fn(() => ({ name: 'a.wav', levels: [] }));
+    store.setState({
+      ...initialState,
+      localMode: {
+        ...(initialState as any).localMode,
+        bundles: localBundleAdapter.setAll(
+          [{ ...bundleA, audio: { fileName: 'a.wav' }, transcript: { serialize } }],
+          localBundleAdapter.getInitialState(),
+        ),
+      },
+    } as unknown as RootState);
+
+    actions$.next(
+      LoginModeActions.setBundleTranscript({
+        mode: LoginMode.LOCAL,
+        bundleId: 'a',
+        transcript: { serialize } as any,
+      }),
+    );
+
+    expect(idbService.saveAnnotation).toHaveBeenCalledTimes(1);
+    const [mode, , bundleId] = idbService.saveAnnotation.mock.calls[0] as any[];
+    expect(mode).toBe(LoginMode.LOCAL);
+    expect(bundleId).toBe('a');
+  });
+
+  it('persists nothing when that bundle has no resident audio manager', () => {
+    effects.saveBundleTranscript$.subscribe();
+    audioService.getManager.mockReturnValue(undefined);
+
+    actions$.next(
+      LoginModeActions.setBundleTranscript({
+        mode: LoginMode.LOCAL,
+        bundleId: 'a',
+        transcript: { serialize: jest.fn() } as any,
+      }),
+    );
+
+    expect(idbService.saveAnnotation).not.toHaveBeenCalled();
   });
 });

@@ -9,9 +9,11 @@ import {
   of,
   withLatestFrom,
 } from 'rxjs';
+import { AudioService } from '../../shared/service/audio.service';
 import { IDBService } from '../../shared/service/idb.service';
 import { buildModeOptions } from '../idb/build-mode-options';
 import { LoginMode, RootState } from '../index';
+import { LoginModeActions } from '../login-mode/login-mode.actions';
 import { runStatusOf } from './index';
 import { PipelineQueueActions } from './pipeline-queue.actions';
 
@@ -65,10 +67,56 @@ export class PipelineQueuePersistenceEffects {
     { dispatch: false },
   );
 
+  /**
+   * Persists a transcript the queue produced for a bundle that is usually
+   * NOT the selected one.
+   *
+   * A dedicated effect rather than another entry in `IDBEffects.
+   * saveAnnotation`'s trigger list, for the same reason `saveRunState$` is
+   * separate: that effect resolves its bundle id from `selectedBundleId` AND
+   * reads sample rate/duration off `AudioService.current` — both of which
+   * point at the wrong bundle here. This one uses the action's explicit
+   * `bundleId` and that bundle's own `AudioManager`.
+   */
+  saveBundleTranscript$ = createEffect(
+    () =>
+      this.actions$.pipe(
+        ofType(LoginModeActions.setBundleTranscript),
+        withLatestFrom(this.store),
+        mergeMap(([action, appState]) => {
+          const modeState =
+            appState.localMode.bundles.entities[action.bundleId];
+          const manager = this.audioService.getManager(action.bundleId);
+          if (!modeState || !manager) {
+            // No resident audio means no sample rate/duration to serialize
+            // against. The transcript is still in the store; it just isn't
+            // persisted for this bundle until something re-saves it.
+            return EMPTY;
+          }
+          return this.idbService
+            .saveAnnotation(
+              LoginMode.LOCAL,
+              action.transcript.serialize(
+                modeState.audio?.fileName ?? manager.resource.info.fullname,
+                manager.resource.info.sampleRate,
+                manager.resource.info.duration,
+              ),
+              action.bundleId,
+            )
+            .pipe(
+              mergeMap(() => of(undefined)),
+              catchError(() => of(undefined)),
+            );
+        }),
+      ),
+    { dispatch: false },
+  );
+
   constructor(
     private actions$: Actions,
     private store: Store<RootState>,
     private idbService: IDBService,
+    private audioService: AudioService,
   ) {}
 
   /**
