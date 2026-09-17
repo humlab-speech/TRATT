@@ -28,6 +28,7 @@ export class AudioService {
   private _audiomanagers = new Map<string, AudioManager>();
   private _envelopes = new Map<string, AudioEnvelope>();
   private _sourceFiles = new Map<string, File>();
+  private _pendingResidency = new Set<string>();
   private recentBundleIds: string[] = [];
   private selectedBundleId = this.store.selectSignal(selectSelectedBundleId);
 
@@ -248,8 +249,6 @@ export class AudioService {
    * in the constructor still calls it fire-and-forget and ignores the
    * result, exactly as before.
    */
-  private _pendingResidency = new Set<string>();
-
   public async ensureResident(bundleId: string): Promise<boolean> {
     if (this._audiomanagers.has(bundleId)) {
       return true;
