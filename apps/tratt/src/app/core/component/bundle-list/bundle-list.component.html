@@ -58,8 +58,7 @@
           [class.bundle-list__status--running]="bundle.run.state === 'running'"
           [class.bundle-list__status--done]="bundle.run.state === 'done'"
           [class.bundle-list__status--error]="
-            bundle.run.state === 'failed' ||
-            bundle.run.state === 'interrupted'
+            bundle.run.state === 'failed' || bundle.run.state === 'interrupted'
           "
         >
           {{ 'workbench.bundle_list.status.' + bundle.run.state | transloco }}
@@ -69,7 +68,10 @@
         <!-- The kind is the translated, user-facing summary; the raw
              message (often an untranslatable worker/browser string) is
              the tooltip, so nothing is hidden from the user. -->
-        <span class="bundle-list__error" [attr.title]="bundle.run.error.message">
+        <span
+          class="bundle-list__error"
+          [attr.title]="bundle.run.error.message"
+        >
           {{
             'workbench.bundle_list.error.' + bundle.run.error.kind | transloco
           }}
