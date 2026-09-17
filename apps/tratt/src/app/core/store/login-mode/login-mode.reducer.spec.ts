@@ -292,6 +292,57 @@ describe('LoginModeReducers — createBundle / selectBundle', () => {
       withB2.bundles.entities[DEFAULT_BUNDLE_ID],
     );
   });
+
+  it('setBundleTranscript writes to the NAMED bundle, not the selected one', () => {
+    const reducer = new LoginModeReducers(LoginMode.LOCAL).create();
+    const withTwo = reducer(
+      reducer(undefined, { type: '@@INIT' } as any) as any,
+      LoginModeActions.createBundle({
+        mode: LoginMode.LOCAL,
+        bundleId: 'bundle-2',
+        sessionFile: new SessionFile('b.wav', 2, new Date(2024, 0, 1), 'audio/wav'),
+      }),
+    ) as unknown as LocalBundleCollectionState;
+    // createBundle selects the new bundle; select bundle-1 back so the
+    // target of this write is explicitly NOT the selected bundle.
+    const selectedIsOne = reducer(
+      withTwo as any,
+      LoginModeActions.selectBundle({
+        mode: LoginMode.LOCAL,
+        bundleId: DEFAULT_BUNDLE_ID,
+      }),
+    ) as unknown as LocalBundleCollectionState;
+    const transcript = { marker: 'queued-result' } as any;
+
+    const state = reducer(
+      selectedIsOne as any,
+      LoginModeActions.setBundleTranscript({
+        mode: LoginMode.LOCAL,
+        bundleId: 'bundle-2',
+        transcript,
+      }),
+    ) as unknown as LocalBundleCollectionState;
+
+    expect(state.selectedBundleId).toBe(DEFAULT_BUNDLE_ID);
+    expect(state.bundles.entities['bundle-2']!.transcript).toBe(transcript);
+    expect(state.bundles.entities[DEFAULT_BUNDLE_ID]!.transcript).not.toBe(
+      transcript,
+    );
+  });
+
+  it('setBundleTranscript is a no-op for a bundle id that does not exist', () => {
+    const reducer = new LoginModeReducers(LoginMode.LOCAL).create();
+    const before = reducer(undefined, { type: '@@INIT' } as any);
+    const state = reducer(
+      before as any,
+      LoginModeActions.setBundleTranscript({
+        mode: LoginMode.LOCAL,
+        bundleId: 'ghost',
+        transcript: {} as any,
+      }),
+    );
+    expect(state).toBe(before);
+  });
 });
 
 describe('LoginModeReducers — createBundle with restored content (step 2.8)', () => {

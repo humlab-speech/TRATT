@@ -159,6 +159,27 @@ function wrapAsLocalBundleCollectionReducer(
       }
       return { ...state, selectedBundleId: bundleId };
     }
+    if (action.type === LoginModeActions.setBundleTranscript.type) {
+      const { bundleId, transcript } = action as ReturnType<
+        typeof LoginModeActions.setBundleTranscript
+      >;
+      const existing = state.bundles.entities[bundleId];
+      if (!existing) {
+        return state;
+      }
+      // Written straight onto the entity, bypassing the undo-wrapped inner
+      // reducer on purpose: a pipeline result is a machine-produced
+      // document replacement, not a user edit, and pushing it onto that
+      // bundle's ngrx-wieder history would let Ctrl+Z "undo" a
+      // transcription the user never typed.
+      return {
+        ...state,
+        bundles: localBundleAdapter.setOne(
+          { ...existing, transcript },
+          state.bundles,
+        ),
+      };
+    }
     const currentInner = resolveLocalBundleState(state) ?? initialInner;
     const nextInner = innerReducer(currentInner, action);
     if (nextInner === currentInner) {

@@ -7,7 +7,11 @@ import {
   props,
 } from '@ngrx/store';
 import { CurrentAccountDto, ProjectDto, TaskDto } from '@octra/api-types';
-import { IAnnotJSON } from '@tratt/annotation';
+import {
+  IAnnotJSON,
+  TrattAnnotation,
+  TrattAnnotationSegment,
+} from '@tratt/annotation';
 import { SessionFile } from '../../obj/SessionFile';
 import { IIDBModeOptions } from '../../shared/tratt-database';
 import { LoginMode } from '../index';
@@ -36,6 +40,24 @@ export class LoginModeActions extends AnnotationActions {
   static selectBundle = createAction(
     'annotation Select bundle',
     props<{ mode: LoginMode; bundleId: string }>(),
+  );
+
+  /**
+   * Writes a transcript into ONE named bundle, independent of the current
+   * selection. `AnnotationActions.overwriteTranscript.do` cannot be used for
+   * this: every action except createBundle/selectBundle is routed by
+   * `wrapAsLocalBundleCollectionReducer` to `selectedBundleId`, so using it
+   * for a background pipeline result would overwrite whatever bundle the
+   * user currently has open. Dispatched by PipelineQueueService when a
+   * queued run produces its annotation.
+   */
+  static setBundleTranscript = createAction(
+    'annotation Set bundle transcript',
+    props<{
+      mode: LoginMode;
+      bundleId: string;
+      transcript: TrattAnnotation<TrattAnnotationSegment>;
+    }>(),
   );
 
   static changeComment = createActionGroup({
