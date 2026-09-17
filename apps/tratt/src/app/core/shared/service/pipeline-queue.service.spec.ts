@@ -14,7 +14,7 @@ jest.mock('./local-translation.service', () => ({
 }));
 
 import { provideStore, Store } from '@ngrx/store';
-import { OAnnotJSON } from '@tratt/annotation';
+import { OAnnotJSON, TrattAnnotation } from '@tratt/annotation';
 import { Subject } from 'rxjs';
 import { LoginMode, RootState } from '../../store/index';
 import { LoginModeActions } from '../../store/login-mode/login-mode.actions';
@@ -395,5 +395,35 @@ describe('PipelineQueueService', () => {
     expect(write.bundleId).toBe('a');
     expect(write.mode).toBe(LoginMode.LOCAL);
     expect(write.transcript).toBeDefined();
+  });
+
+  // F3 (final whole-branch review fix wave): a 'result' event whose
+  // annotJson fails to deserialize must fail the bundle, not mark it
+  // 'done' — 'done' is excluded from both computeReadyBundleIds and the
+  // per-row retry gate, so a silent deserialize miss previously stranded
+  // the bundle with an empty transcript for the life of the profile.
+  it('fails the bundle (not done) when the result event annotJson fails to deserialize', async () => {
+    const deserializeSpy = jest
+      .spyOn(TrattAnnotation, 'deserialize')
+      .mockReturnValue(undefined as any);
+
+    service.enqueue(['a']);
+    await Promise.resolve();
+
+    events[0].next({
+      stage: 'pipeline',
+      type: 'result',
+      annotJson: new OAnnotJSON('a.wav', 'a', 16000, []),
+      diarizationWarning: null,
+    });
+    events[0].complete();
+    await Promise.resolve();
+
+    expect(queueState().runs['a'].state).toBe('failed');
+    expect(queueState().runs['a'].error.kind).toBe('unknown');
+    expect(queueState().activeId).toBeNull();
+    expect(queueState().mode).toBe('idle');
+
+    deserializeSpy.mockRestore();
   });
 });

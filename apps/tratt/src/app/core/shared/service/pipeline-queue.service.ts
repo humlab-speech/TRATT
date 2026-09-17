@@ -325,17 +325,42 @@ export class PipelineQueueService {
     }
 
     const transcript = TrattAnnotation.deserialize(event.annotJson);
-    if (transcript) {
-      // Explicitly bundle-scoped: AnnotationActions.overwriteTranscript.do
-      // would land on whatever bundle the user currently has selected.
+    if (!transcript) {
+      // F3 (final whole-branch review fix wave): a 'result' event whose
+      // annotJson fails to deserialize previously still marked the bundle
+      // 'done' unconditionally — permanently stranding it with an empty
+      // transcript, since 'done' is excluded from both computeReadyBundleIds
+      // and the per-row retry gate (failed/interrupted only). Fail instead,
+      // so the existing retry affordance applies. No dedicated
+      // bundle-run-errors.ts constant fits — that module classifies what
+      // PipelineRunnerService.run() itself errors WITH, and this isn't a
+      // runner error, it's an in-process deserialize miss on an otherwise
+      // successful 'result' event — so 'unknown' with a clear inline
+      // message, matching the "pipeline ended without producing a result"
+      // complete()-fallback message's own convention.
       this.store.dispatch(
-        LoginModeActions.setBundleTranscript({
-          mode: LoginMode.LOCAL,
+        PipelineQueueActions.bundleFailed({
           bundleId,
-          transcript,
+          error: {
+            kind: 'unknown',
+            message:
+              'The pipeline produced a result that could not be read as a transcript.',
+          },
         }),
       );
+      this.advance();
+      return;
     }
+
+    // Explicitly bundle-scoped: AnnotationActions.overwriteTranscript.do
+    // would land on whatever bundle the user currently has selected.
+    this.store.dispatch(
+      LoginModeActions.setBundleTranscript({
+        mode: LoginMode.LOCAL,
+        bundleId,
+        transcript,
+      }),
+    );
 
     this.store.dispatch(PipelineQueueActions.bundleDone({ bundleId }));
     this.advance();
