@@ -3,6 +3,7 @@ import {
   ChangeDetectorRef,
   Component,
   computed,
+  OnDestroy,
   OnInit,
   signal,
   Type,
@@ -81,7 +82,10 @@ import {
     CapacityIndicatorComponent,
   ],
 })
-export class WorkbenchComponent extends DefaultComponent implements OnInit {
+export class WorkbenchComponent
+  extends DefaultComponent
+  implements OnInit, OnDestroy
+{
   @ViewChild(TrattDropzoneComponent) dropzone?: TrattDropzoneComponent;
   @ViewChild(LoadeditorDirective) showEditor?: LoadeditorDirective;
 
@@ -282,6 +286,22 @@ export class WorkbenchComponent extends DefaultComponent implements OnInit {
         this.cd.markForCheck();
       },
     );
+  }
+
+  /**
+   * F3 (step 3c final review): `setConfiguredOptions()` is root-singleton
+   * state on `CapacityService` — nothing else ever clears it. Without this,
+   * a configured-but-stale model estimate (e.g. the user ticked
+   * Auto-transcribe, picked a large model, then left before the queue panel
+   * remounted with fresh options on return) could survive leaving and
+   * re-entering `/workbench`, misattributing storage to a configuration no
+   * longer offered anywhere on screen. Bounded in practice (the readout
+   * clamps to real usedBytes), but clearing on destroy closes the gap
+   * cleanly rather than relying on that bound.
+   */
+  override ngOnDestroy(): void {
+    this.capacityService.setConfiguredOptions(null);
+    super.ngOnDestroy();
   }
 
   private mountDefaultEditor(): void {

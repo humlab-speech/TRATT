@@ -778,6 +778,23 @@ describe('WorkbenchComponent', () => {
 
     expect(capacityService.setConfiguredOptions).toHaveBeenCalledWith(null);
   });
+
+  // F3 (step 3c final review): setConfiguredOptions() is root-singleton
+  // state that nothing else clears — leaving /workbench with a model
+  // configured could otherwise leave a stale estimate live for the rest of
+  // the SPA session. Assert the component clears it on its own destroy.
+  it('clears the CapacityService model estimate when the component is destroyed', () => {
+    component.onQueueOptionsChange({
+      modelId: 'onnx-community/kb-whisper-small-ONNX',
+      useWebGPU: false,
+      language: 'sv',
+    } as never);
+    capacityService.setConfiguredOptions.mockClear();
+
+    fixture.destroy();
+
+    expect(capacityService.setConfiguredOptions).toHaveBeenCalledWith(null);
+  });
 });
 
 // The outer suite stubs Store.selectSignal directly with a hand-rolled
