@@ -87,7 +87,10 @@ describe('pipeline-queue.reducer', () => {
         seed({
           activeId: 'a',
           mode: 'running',
-          runs: { a: { state: 'running', stage: 'decode' }, b: { state: 'queued' } },
+          runs: {
+            a: { state: 'running', stage: 'decode' },
+            b: { state: 'queued' },
+          },
         }),
         PipelineQueueActions.progress({ stage: 'asr', progress: 0.25 }),
       );
@@ -141,6 +144,22 @@ describe('pipeline-queue.reducer', () => {
       expect(state.queue).toEqual(['b']);
       expect(state.mode).toBe('running');
     });
+
+    it('leaves activeId untouched when the completing bundle is not the active one', () => {
+      // Same guard as bundleFailed's — a late bundleDone for a bundle the
+      // queue has already moved past must not clobber the real activeId.
+      const state = reducer(
+        seed({
+          activeId: 'b',
+          mode: 'running',
+          runs: { a: { state: 'running' }, b: { state: 'running' } },
+        }),
+        PipelineQueueActions.bundleDone({ bundleId: 'a' }),
+      );
+      expect(state.activeId).toBe('b');
+      expect(state.runs['a']).toEqual({ state: 'done' });
+      expect(state.runs['b']).toEqual({ state: 'running' });
+    });
   });
 
   describe('bundleFailed', () => {
@@ -150,7 +169,10 @@ describe('pipeline-queue.reducer', () => {
           activeId: 'a',
           mode: 'running',
           queue: ['b'],
-          runs: { a: { state: 'running', stage: 'asr' }, b: { state: 'queued' } },
+          runs: {
+            a: { state: 'running', stage: 'asr' },
+            b: { state: 'queued' },
+          },
         }),
         PipelineQueueActions.bundleFailed({
           bundleId: 'a',
@@ -164,6 +186,28 @@ describe('pipeline-queue.reducer', () => {
       expect(state.activeId).toBeNull();
       expect(state.queue).toEqual(['b']);
       expect(state.runs['b']).toEqual({ state: 'queued' });
+    });
+
+    it('leaves activeId untouched when the completing bundle is not the active one', () => {
+      // Guards against a late/out-of-order bundleFailed for a bundle the
+      // queue has already moved past clobbering the real in-flight id.
+      const state = reducer(
+        seed({
+          activeId: 'b',
+          mode: 'running',
+          runs: { a: { state: 'running' }, b: { state: 'running' } },
+        }),
+        PipelineQueueActions.bundleFailed({
+          bundleId: 'a',
+          error: { kind: 'unknown', message: 'stale failure' },
+        }),
+      );
+      expect(state.activeId).toBe('b');
+      expect(state.runs['a']).toEqual({
+        state: 'failed',
+        error: { kind: 'unknown', message: 'stale failure' },
+      });
+      expect(state.runs['b']).toEqual({ state: 'running' });
     });
   });
 
@@ -215,6 +259,28 @@ describe('pipeline-queue.reducer', () => {
       expect(state.runs['a']).toEqual({ state: 'done' });
       expect(state.runs['b']).toEqual({ state: 'idle' });
       expect(state.runs['c']).toEqual({ state: 'idle' });
+    });
+
+    it('also resets a still-active bundle to idle, never leaving it stuck running', () => {
+      // Off the intended call sequence (bundleDone/bundleFailed normally
+      // clears activeId before stopped() is dispatched), but stopNow()
+      // guards it anyway so a UI reading runStatusOf() can never see a
+      // permanently-spinning row with nothing left to advance it.
+      const state = reducer(
+        seed({
+          activeId: 'a',
+          mode: 'pausing',
+          queue: ['b'],
+          runs: {
+            a: { state: 'running', stage: 'asr', progress: 0.5 },
+            b: { state: 'queued' },
+          },
+        }),
+        PipelineQueueActions.stopped(),
+      );
+      expect(state.activeId).toBeNull();
+      expect(state.runs['a']).toEqual({ state: 'idle' });
+      expect(state.runs['b']).toEqual({ state: 'idle' });
     });
   });
 

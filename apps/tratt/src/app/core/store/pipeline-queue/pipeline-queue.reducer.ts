@@ -10,11 +10,21 @@ export const initialState: PipelineQueueState = {
   runs: {},
 };
 
-/** Shared by `pause` (with nothing active) and `stopped`. */
+/**
+ * Shared by `pause` (with nothing active) and `stopped`. On the intended
+ * call sequence `activeId` is already `null` by the time this runs
+ * (`bundleDone`/`bundleFailed` clears it before `stopped` is dispatched),
+ * but resetting a still-active bundle defensively here too means a
+ * `stopped` dispatched out of that order can never leave a `runs` entry
+ * stuck at `'running'` with nothing left to advance it.
+ */
 function stopNow(state: PipelineQueueState): PipelineQueueState {
   const runs: Dictionary<BundleRunStatus> = { ...state.runs };
   for (const bundleId of state.queue) {
     runs[bundleId] = { state: 'idle' };
+  }
+  if (state.activeId !== null) {
+    runs[state.activeId] = { state: 'idle' };
   }
   return { ...state, queue: [], activeId: null, mode: 'idle', runs };
 }
@@ -102,7 +112,10 @@ export const reducer = createReducer(
     return { ...state, mode: 'pausing' };
   }),
 
-  on(PipelineQueueActions.stopped, (state): PipelineQueueState => stopNow(state)),
+  on(
+    PipelineQueueActions.stopped,
+    (state): PipelineQueueState => stopNow(state),
+  ),
 
   on(
     PipelineQueueActions.restoreInterrupted,

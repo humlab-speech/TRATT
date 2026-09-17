@@ -67,8 +67,8 @@ import {
 } from './app/core/store/authentication';
 import { IDBEffects } from './app/core/store/idb/idb-effects.service';
 import { BundleRestoreEffects } from './app/core/store/login-mode/annotation/bundle-restore.effects';
-import * as fromPipeline from './app/core/store/pipeline/pipeline.reducer';
 import * as fromPipelineQueue from './app/core/store/pipeline-queue/pipeline-queue.reducer';
+import * as fromPipeline from './app/core/store/pipeline/pipeline.reducer';
 import * as fromUser from './app/core/store/user/user.reducer';
 import { environment } from './environments/environment';
 

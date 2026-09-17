@@ -15,11 +15,6 @@ export const selectActiveBundleId = createSelector(
   (s) => s.activeId,
 );
 
-export const selectQueuedBundleIds = createSelector(
-  selectPipelineQueueFeature,
-  (s) => s.queue,
-);
-
 /**
  * The whole `runs` dictionary in one read. Consumers index it via
  * `runStatusOf(runs, bundleId)` (which applies the "absent ⇒ idle" default).
