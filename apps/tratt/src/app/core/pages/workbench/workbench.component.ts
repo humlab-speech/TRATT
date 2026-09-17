@@ -21,6 +21,7 @@ import { DefaultComponent } from '../../component/default.component';
 import { NavbarService } from '../../component/navbar/navbar.service';
 import { RecordingPanelComponent } from '../../component/recording-panel/recording-panel.component';
 import { FastbarComponent } from '../../component/taskbar/taskbar.component';
+import { AutoTranscribeOptionsComponent } from '../../component/tratt-dropzone/auto-transcribe-options.component';
 import { TrattDropzoneComponent } from '../../component/tratt-dropzone/tratt-dropzone.component';
 import { OverviewModalComponent } from '../../modals/overview-modal/overview-modal.component';
 import { ShortcutsModalComponent } from '../../modals/shortcuts-modal/shortcuts-modal.component';
@@ -39,6 +40,8 @@ import { LoadeditorDirective } from '../../shared/directive/loadeditor.directive
 import { SettingsService, UserInteractionsService } from '../../shared/service';
 import { AppStorageService } from '../../shared/service/appstorage.service';
 import { AudioService } from '../../shared/service/audio.service';
+import { TranscriptionOptions } from '../../shared/service/local-transcription.service';
+import { PipelineQueueService } from '../../shared/service/pipeline-queue.service';
 import { RecordedFileService } from '../../shared/service/recorded-file.service';
 import { RoutingService } from '../../shared/service/routing.service';
 import { LoadingStatus, LoginMode, RootState } from '../../store';
@@ -51,6 +54,11 @@ import {
   DEFAULT_BUNDLE_ID,
   generateBundleId,
 } from '../../store/login-mode/annotation/local-bundle-collection';
+import { computeReadyBundleIds } from '../../store/pipeline-queue';
+import {
+  selectAllRunStatuses,
+  selectQueueMode,
+} from '../../store/pipeline-queue/pipeline-queue.selectors';
 
 @Component({
   selector: 'tratt-workbench',
@@ -66,6 +74,7 @@ import {
     LoadeditorDirective,
     FormsModule,
     NgbNavModule,
+    AutoTranscribeOptionsComponent,
   ],
 })
 export class WorkbenchComponent extends DefaultComponent implements OnInit {
@@ -121,6 +130,52 @@ export class WorkbenchComponent extends DefaultComponent implements OnInit {
     this.bundleSummaries().some((b) => b.name !== undefined),
   );
 
+  private queueMode = this.store.selectSignal(selectQueueMode);
+  private runStatuses = this.store.selectSignal(selectAllRunStatuses);
+
+  /** True while a bundle is in flight — the run button becomes "pause". */
+  queueRunning = computed(() => this.queueMode() !== 'idle');
+
+  /**
+   * The bundles a "run" would actually enqueue. Computed in the component
+   * rather than in a selector because the skip rule needs a LIVE residency
+   * check: `selectAllBundleSummaries`'s `awaitingMedia` is `!audio.loaded`,
+   * which the reducer only ever sets for the SELECTED bundle, so every
+   * other genuinely-resident bundle would be wrongly excluded. This mirrors
+   * BundleListComponent's own long-standing merge of the same two sources.
+   *
+   * Known caveat (documented for step 2.8's identical pattern): the
+   * AudioService manager registry is a plain Map, not a signal, so a code
+   * path that changes residency WITHOUT a subsequent store write would
+   * leave this stale until something else it depends on changes. Both real
+   * residency-changing call sites (startSession, completeReattach) write to
+   * the store immediately afterwards.
+   */
+  readyBundleIds = computed(() =>
+    computeReadyBundleIds(
+      this.bundleSummaries(),
+      this.runStatuses(),
+      (bundleId) => this.audioService.hasResident(bundleId),
+    ),
+  );
+
+  /**
+   * One global pipeline configuration for the whole queue (the spec's "one
+   * global config, run as a queue over all loaded media"), fed from the
+   * shell-mounted AutoTranscribeOptionsComponent rather than per bundle.
+   */
+  onQueueOptionsChange(options: TranscriptionOptions | null): void {
+    this.pipelineQueueService.setTranscribeOptions(options);
+  }
+
+  onRunPauseClick(): void {
+    if (this.queueRunning()) {
+      this.pipelineQueueService.stop();
+      return;
+    }
+    this.pipelineQueueService.enqueue(this.readyBundleIds());
+  }
+
   get useMode(): string {
     return this._useMode;
   }
@@ -151,6 +206,7 @@ export class WorkbenchComponent extends DefaultComponent implements OnInit {
     private uiService: UserInteractionsService,
     private cd: ChangeDetectorRef,
     private store: Store<RootState>,
+    private pipelineQueueService: PipelineQueueService,
   ) {
     super();
   }
@@ -239,7 +295,12 @@ export class WorkbenchComponent extends DefaultComponent implements OnInit {
       files.push(nativeFile);
     });
 
-    this.authStoreService.loginLocal(files, annotation, removeData, audioBundleIds);
+    this.authStoreService.loginLocal(
+      files,
+      annotation,
+      removeData,
+      audioBundleIds,
+    );
     this.dropzone!.reset();
   }
 

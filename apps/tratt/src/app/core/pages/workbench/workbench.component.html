@@ -48,6 +48,42 @@
            dropped mid-session — that remains a single-shot ingest; see
            BundleListComponent. -->
       <tratt-bundle-list></tratt-bundle-list>
+
+      <!-- The queue's own pipeline configuration. A SECOND mount of the
+           component the dropzone already uses (deliberately — that one is
+           bound to the dropzone's pre-session `hasAudio` and disappears the
+           moment startSession() resets it, taking its emitted options with
+           it). `idPrefix` keeps the two mounts' element ids distinct on the
+           one screen where both can be visible at once: a returning user
+           with restored bundles who drops a new file. -->
+      <div class="workbench__queue">
+        <h6 class="workbench__queue-title">
+          {{ 'workbench.queue.options_title' | transloco }}
+        </h6>
+        <tratt-auto-transcribe-options
+          idPrefix="queue-"
+          [audioLoaded]="true"
+          [annotationAlreadyLoaded]="false"
+          (optionsChange)="onQueueOptionsChange($event)"
+        ></tratt-auto-transcribe-options>
+        <button
+          type="button"
+          class="btn btn-outline-primary workbench__queue-run"
+          [disabled]="!queueRunning() && readyBundleIds().length === 0"
+          (click)="onRunPauseClick()"
+        >
+          @if (queueRunning()) {
+            <i class="bi bi-pause-fill me-1"></i>
+            {{ 'workbench.queue.pause' | transloco }}
+          } @else {
+            <i class="bi bi-play-fill me-1"></i>
+            {{
+              'workbench.queue.run'
+                | transloco: { count: readyBundleIds().length }
+            }}
+          }
+        </button>
+      </div>
     }
     <button
       type="button"

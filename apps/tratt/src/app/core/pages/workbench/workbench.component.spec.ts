@@ -1,4 +1,26 @@
-import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
+import {
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  jest,
+} from '@jest/globals';
+
+// Task 7: WorkbenchComponent now mounts the REAL AutoTranscribeOptionsComponent
+// itself (the queue's own config panel) and injects PipelineQueueService — both
+// reach local-transcription.service.ts / local-translation.service.ts, which
+// instantiate a Worker via `new URL('...', import.meta.url)` at module scope and
+// fail to compile under this project's CommonJS ts-jest config. Same workaround
+// as bundle-list.component.spec.ts / pipeline-queue.service.spec.ts: this spec
+// never touches the real worker-backed services (PipelineQueueService itself is
+// replaced by a mock below), so stub the two leaf modules out entirely.
+jest.mock('../../shared/service/local-transcription.service', () => ({
+  LocalTranscriptionService: class LocalTranscriptionService {},
+}));
+jest.mock('../../shared/service/local-translation.service', () => ({
+  LocalTranslationService: class LocalTranslationService {},
+}));
 
 // tratt-dropzone.component.ts transitively imports AutoTranscribeOptionsComponent and
 // AutoTranslateOptionsComponent, which import local-transcription.service.ts /
@@ -72,17 +94,23 @@ import { TrattModalService } from '../../modals/tratt-modal.service';
 import { SettingsService, UserInteractionsService } from '../../shared/service';
 import { AppStorageService } from '../../shared/service/appstorage.service';
 import { AudioService } from '../../shared/service/audio.service';
+import { PipelineQueueService } from '../../shared/service/pipeline-queue.service';
 import { RecordedFileService } from '../../shared/service/recorded-file.service';
 import { RoutingService } from '../../shared/service/routing.service';
 import { LoadingStatus } from '../../store';
 import { ApplicationStoreService } from '../../store/application/application-store.service';
 import { AuthenticationStoreService } from '../../store/authentication/authentication-store.service';
 import { initialState as annotationInitialState } from '../../store/login-mode/annotation/annotation.reducer';
+import { selectAllBundleSummaries } from '../../store/login-mode/annotation/annotation.selectors';
 import { AnnotationStoreService } from '../../store/login-mode/annotation/annotation.store.service';
 import {
   DEFAULT_BUNDLE_ID,
   localBundleAdapter,
 } from '../../store/login-mode/annotation/local-bundle-collection';
+import {
+  selectAllRunStatuses,
+  selectQueueMode,
+} from '../../store/pipeline-queue/pipeline-queue.selectors';
 import { WorkbenchComponent } from './workbench.component';
 
 // Lightweight stand-in mounted in place of a real editor (e.g.
@@ -113,13 +141,27 @@ if (
 describe('WorkbenchComponent', () => {
   let fixture: ComponentFixture<WorkbenchComponent>;
   let component: WorkbenchComponent;
-  let audioService: { registerAudioManager: jest.Mock };
+  let audioService: { registerAudioManager: jest.Mock; hasResident: jest.Mock };
   let authStoreService: { loginLocal: jest.Mock };
   let loading$: BehaviorSubject<{ status: LoadingStatus }>;
   let bundleSummaries: any[];
+  // Task 7: the queue's own store slice, read through the same
+  // selector-routed Store stub as bundleSummaries below.
+  let queueMode: 'idle' | 'running' | 'pausing';
+  let runStatuses: Record<string, { state: string }>;
+  let pipelineQueueService: {
+    setTranscribeOptions: jest.Mock;
+    enqueue: jest.Mock;
+    stop: jest.Mock;
+    retry: jest.Mock;
+    readyBundleIds: jest.Mock;
+  };
 
   beforeEach(async () => {
-    audioService = { registerAudioManager: jest.fn() };
+    audioService = {
+      registerAudioManager: jest.fn(),
+      hasResident: jest.fn().mockReturnValue(false),
+    };
     authStoreService = { loginLocal: jest.fn() };
     loading$ = new BehaviorSubject<{ status: LoadingStatus }>({
       status: LoadingStatus.INITIALIZE,
@@ -127,6 +169,15 @@ describe('WorkbenchComponent', () => {
     // No bundles by default: matches a clean/logged-out profile where
     // nothing has been restored from IndexedDB and no session has started.
     bundleSummaries = [];
+    queueMode = 'idle';
+    runStatuses = {};
+    pipelineQueueService = {
+      setTranscribeOptions: jest.fn(),
+      enqueue: jest.fn(),
+      stop: jest.fn(),
+      retry: jest.fn(),
+      readyBundleIds: jest.fn(() => []),
+    };
 
     await TestBed.configureTestingModule({
       imports: [WorkbenchComponent],
@@ -142,15 +193,30 @@ describe('WorkbenchComponent', () => {
         { provide: TrattModalService, useValue: {} },
         { provide: ApplicationStoreService, useValue: { loading$ } },
         { provide: UserInteractionsService, useValue: {} },
+        { provide: PipelineQueueService, useValue: pipelineQueueService },
         {
-          // WorkbenchComponent reads selectAllBundleSummaries directly (same
-          // selectSignal convention as AudioService/BundleListComponent) to
-          // decide whether restored-but-unresolved bundles should reveal the
-          // bundle-list before sessionReady. Stub selectSignal generically so
-          // it works regardless of which selector is passed, matching the
-          // bundleSummaries fixture set per-test below.
+          // WorkbenchComponent reads selectAllBundleSummaries / selectQueueMode
+          // / selectAllRunStatuses directly (same selectSignal convention as
+          // AudioService/BundleListComponent). Stub selectSignal per-selector
+          // (by reference) rather than generically, now that more than one
+          // distinct selector is read — a single shared fixture (the old
+          // `() => bundleSummaries` for every selector) would silently hand
+          // the queue-mode/run-status reads the wrong shape.
           provide: Store,
-          useValue: { selectSignal: () => () => bundleSummaries },
+          useValue: {
+            selectSignal: (selector: unknown) => {
+              if (selector === selectAllBundleSummaries) {
+                return () => bundleSummaries;
+              }
+              if (selector === selectQueueMode) {
+                return () => queueMode;
+              }
+              if (selector === selectAllRunStatuses) {
+                return () => runStatuses;
+              }
+              return () => undefined;
+            },
+          },
         },
         {
           provide: TranslocoService,
@@ -160,6 +226,10 @@ describe('WorkbenchComponent', () => {
             translate: (key: string) => key,
             selectTranslate: () => of(''),
             config: { reRenderOnLangChange: false },
+            // AutoTranscribeOptionsComponent's own template (mounted a
+            // second time in the queue panel) resolves its translation
+            // scope via this before calling translate() at all.
+            _loadDependencies: () => of({}),
           },
         },
       ],
@@ -254,13 +324,8 @@ describe('WorkbenchComponent', () => {
     expect(registeredManagers).toEqual(managers);
 
     expect(authStoreService.loginLocal).toHaveBeenCalledTimes(1);
-    const [files, annotation, removeData, audioBundleIds] =
-      authStoreService.loginLocal.mock.calls[0] as [
-        File[],
-        undefined,
-        boolean,
-        string[],
-      ];
+    const [files, annotation, removeData, audioBundleIds] = authStoreService
+      .loginLocal.mock.calls[0] as [File[], undefined, boolean, string[]];
     expect(files).toEqual(nativeFiles);
     expect(annotation).toBeUndefined();
     expect(removeData).toBe(false);
@@ -368,7 +433,12 @@ describe('WorkbenchComponent', () => {
 
     it('hasAnyBundles() is true when the store has bundles even though sessionReady is still false', () => {
       bundleSummaries = [
-        { bundleId: 'bundle-a', name: 'a.wav', selected: true, awaitingMedia: true },
+        {
+          bundleId: 'bundle-a',
+          name: 'a.wav',
+          selected: true,
+          awaitingMedia: true,
+        },
       ];
       fixture.detectChanges();
 
@@ -402,7 +472,12 @@ describe('WorkbenchComponent', () => {
 
     it('mounts tratt-bundle-list once bundles exist, even before sessionReady', () => {
       bundleSummaries = [
-        { bundleId: 'bundle-a', name: 'a.wav', selected: true, awaitingMedia: true },
+        {
+          bundleId: 'bundle-a',
+          name: 'a.wav',
+          selected: true,
+          awaitingMedia: true,
+        },
       ];
       fixture.detectChanges();
 
@@ -563,6 +638,95 @@ describe('WorkbenchComponent', () => {
       expect(component.sessionStarting).toBe(true);
     });
   });
+
+  // Task 7: run/pause control + queue configuration panel.
+  describe('pipeline queue run/pause control', () => {
+    it('forwards pipeline options changes to the queue service', () => {
+      fixture.detectChanges();
+      const options = { modelId: 'm', useWebGPU: false } as any;
+
+      component.onQueueOptionsChange(options);
+
+      expect(pipelineQueueService.setTranscribeOptions).toHaveBeenCalledWith(
+        options,
+      );
+    });
+
+    it('enqueues every ready bundle when the run button is clicked while idle', () => {
+      bundleSummaries = [
+        {
+          bundleId: 'bundle-a',
+          name: 'a.wav',
+          selected: true,
+          awaitingMedia: false,
+        },
+        {
+          bundleId: 'bundle-b',
+          name: 'b.wav',
+          selected: false,
+          awaitingMedia: false,
+        },
+      ];
+      queueMode = 'idle';
+      runStatuses = {};
+      fixture.detectChanges();
+
+      expect(component.readyBundleIds()).toEqual(['bundle-a', 'bundle-b']);
+      component.onRunPauseClick();
+      expect(pipelineQueueService.enqueue).toHaveBeenCalledWith([
+        'bundle-a',
+        'bundle-b',
+      ]);
+      expect(pipelineQueueService.stop).not.toHaveBeenCalled();
+    });
+
+    it('pauses instead of enqueuing when the queue is already running', () => {
+      bundleSummaries = [
+        {
+          bundleId: 'bundle-a',
+          name: 'a.wav',
+          selected: true,
+          awaitingMedia: false,
+        },
+        {
+          bundleId: 'bundle-b',
+          name: 'b.wav',
+          selected: false,
+          awaitingMedia: false,
+        },
+      ];
+      queueMode = 'running';
+      runStatuses = { 'bundle-a': { state: 'running' } };
+      fixture.detectChanges();
+
+      expect(component.queueRunning()).toBe(true);
+      component.onRunPauseClick();
+      expect(pipelineQueueService.stop).toHaveBeenCalledTimes(1);
+      expect(pipelineQueueService.enqueue).not.toHaveBeenCalled();
+    });
+
+    it('excludes already-done bundles from the ready set', () => {
+      bundleSummaries = [
+        {
+          bundleId: 'bundle-a',
+          name: 'a.wav',
+          selected: true,
+          awaitingMedia: false,
+        },
+        {
+          bundleId: 'bundle-b',
+          name: 'b.wav',
+          selected: false,
+          awaitingMedia: false,
+        },
+      ];
+      queueMode = 'idle';
+      runStatuses = { 'bundle-a': { state: 'done' } };
+      fixture.detectChanges();
+
+      expect(component.readyBundleIds()).toEqual(['bundle-b']);
+    });
+  });
 });
 
 // The outer suite stubs Store.selectSignal directly with a hand-rolled
@@ -593,7 +757,10 @@ describe('WorkbenchComponent with real default LOCAL store state', () => {
     await TestBed.configureTestingModule({
       imports: [WorkbenchComponent],
       providers: [
-        { provide: AudioService, useValue: {} },
+        {
+          provide: AudioService,
+          useValue: { hasResident: jest.fn().mockReturnValue(false) },
+        },
         { provide: AuthenticationStoreService, useValue: {} },
         { provide: AppStorageService, useValue: {} },
         { provide: RoutingService, useValue: { staticQueryParams: {} } },
@@ -609,7 +776,32 @@ describe('WorkbenchComponent with real default LOCAL store state', () => {
           },
         },
         { provide: UserInteractionsService, useValue: {} },
-        provideMockStore({ initialState: { localMode } as any }),
+        {
+          provide: PipelineQueueService,
+          useValue: {
+            setTranscribeOptions: jest.fn(),
+            enqueue: jest.fn(),
+            stop: jest.fn(),
+            retry: jest.fn(),
+            readyBundleIds: jest.fn(() => []),
+          },
+        },
+        provideMockStore({
+          initialState: {
+            localMode,
+            // WorkbenchComponent now also reads selectQueueMode /
+            // selectAllRunStatuses (Task 7), both feature-selected off the
+            // 'pipelineQueue' slice — it must exist on this mock state or
+            // those selectors throw reading properties of undefined, even
+            // for tests that never touch the queue panel directly.
+            pipelineQueue: {
+              queue: [],
+              activeId: null,
+              mode: 'idle',
+              runs: {},
+            },
+          } as any,
+        }),
         {
           provide: TranslocoService,
           useValue: {
@@ -618,6 +810,7 @@ describe('WorkbenchComponent with real default LOCAL store state', () => {
             translate: (key: string) => key,
             selectTranslate: () => of(''),
             config: { reRenderOnLangChange: false },
+            _loadDependencies: () => of({}),
           },
         },
       ],
