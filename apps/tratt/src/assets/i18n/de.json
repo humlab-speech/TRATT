@@ -731,7 +731,8 @@
     "queue": {
       "run": "Transcribe {{count}} file(s)",
       "pause": "Pause queue",
-      "options_title": "Pipeline settings"
+      "options_title": "Pipeline settings",
+      "no_options_hint": "Keine Transkriptionsoptionen festgelegt — aktivieren Sie zuerst die automatische Transkription."
     }
   }
 }

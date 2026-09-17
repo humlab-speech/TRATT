@@ -69,7 +69,15 @@
         <button
           type="button"
           class="btn btn-outline-primary workbench__queue-run"
-          [disabled]="!queueRunning() && readyBundleIds().length === 0"
+          [disabled]="
+            !queueRunning() &&
+            (readyBundleIds().length === 0 || queueOptions() === null)
+          "
+          [attr.title]="
+            !queueRunning() && queueOptions() === null
+              ? ('workbench.queue.no_options_hint' | transloco)
+              : null
+          "
           (click)="onRunPauseClick()"
         >
           @if (queueRunning()) {

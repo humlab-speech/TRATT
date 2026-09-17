@@ -913,11 +913,44 @@ describe('WorkbenchComponent with real default LOCAL store state', () => {
       // isResident escape hatch, since bundlesState() never sets
       // audio.loaded true.
       const fx = await createWithLocalMode(localMode, ['bundle-a']);
+      // F1 fix-wave regression: the real AutoTranscribeOptionsComponent
+      // mount emits `null` on init (unchecked), which now also gates the
+      // run button — so this "ready" test must drive real options through
+      // the same handler the template wires, exactly as a user ticking
+      // "Auto-transcribe" would.
+      fx.componentInstance.onQueueOptionsChange({
+        modelId: 'm',
+        useWebGPU: false,
+      } as any);
+      fx.detectChanges();
       const button = runButton(fx);
 
       expect(button.disabled).toBe(false);
       expect(button.querySelector('.bi-play-fill')).toBeTruthy();
       expect(button.querySelector('.bi-pause-fill')).toBeFalsy();
+    });
+
+    // F1 (final whole-branch review fix wave): the run button must stay
+    // disabled while no pipeline options are configured, even when bundles
+    // ARE ready — previously only `readyBundleIds().length` gated it, so a
+    // user could enqueue and immediately fail every ready bundle without
+    // ever ticking "Auto-transcribe".
+    it('stays disabled with a ready bundle when no pipeline options are configured', async () => {
+      const localMode = {
+        bundles: bundlesState([
+          { bundleId: DEFAULT_BUNDLE_ID, sessionFile: undefined },
+          { bundleId: 'bundle-a', sessionFile: { name: 'a.wav' } },
+        ]),
+        selectedBundleId: DEFAULT_BUNDLE_ID,
+      };
+
+      const fx = await createWithLocalMode(localMode, ['bundle-a']);
+      const button = runButton(fx);
+
+      expect(fx.componentInstance.readyBundleIds()).toEqual(['bundle-a']);
+      expect(fx.componentInstance.queueOptions()).toBeNull();
+      expect(button.disabled).toBe(true);
+      expect(button.title).toBe('workbench.queue.no_options_hint');
     });
 
     it('is enabled with the pause icon while the queue is running', async () => {
@@ -969,6 +1002,12 @@ describe('WorkbenchComponent with real default LOCAL store state', () => {
       (
         TestBed.inject(AudioService).hasResident as jest.Mock
       ).mockImplementation((id) => id === 'bundle-a');
+      // F1 fix-wave regression: options must also be configured for the
+      // button to flip to enabled — see the "ready" test above.
+      fx.componentInstance.onQueueOptionsChange({
+        modelId: 'm',
+        useWebGPU: false,
+      } as any);
       fx.detectChanges();
 
       expect(runButton(fx).disabled).toBe(false);

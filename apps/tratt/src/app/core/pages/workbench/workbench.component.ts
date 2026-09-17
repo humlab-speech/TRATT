@@ -4,6 +4,7 @@ import {
   Component,
   computed,
   OnInit,
+  signal,
   Type,
   ViewChild,
 } from '@angular/core';
@@ -160,11 +161,23 @@ export class WorkbenchComponent extends DefaultComponent implements OnInit {
   );
 
   /**
+   * Tracks the last options emitted by the queue's AutoTranscribeOptionsComponent
+   * mount, mirroring what `PipelineQueueService.setTranscribeOptions()` holds
+   * (that service's own copy isn't readable from here). `null` means the run
+   * button must be disabled — see F1 in the step 3b-i final-review fix wave:
+   * previously the template only checked `readyBundleIds().length`, so
+   * clicking "Transcribe N file(s)" before ever ticking "Auto-transcribe"
+   * enqueued and then immediately failed every ready bundle.
+   */
+  queueOptions = signal<TranscriptionOptions | null>(null);
+
+  /**
    * One global pipeline configuration for the whole queue (the spec's "one
    * global config, run as a queue over all loaded media"), fed from the
    * shell-mounted AutoTranscribeOptionsComponent rather than per bundle.
    */
   onQueueOptionsChange(options: TranscriptionOptions | null): void {
+    this.queueOptions.set(options);
     this.pipelineQueueService.setTranscribeOptions(options);
   }
 

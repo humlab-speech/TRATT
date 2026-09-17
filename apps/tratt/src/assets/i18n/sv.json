@@ -756,7 +756,8 @@
     "queue": {
       "run": "Transkribera {{count}} fil(er)",
       "pause": "Pausa kön",
-      "options_title": "Pipelineinställningar"
+      "options_title": "Pipelineinställningar",
+      "no_options_hint": "Inga transkriptionsalternativ inställda — aktivera automatisk transkribering först."
     }
   }
 }
