@@ -180,6 +180,20 @@ describe('estimateResidentBytes', () => {
       1_000_000,
     );
   });
+
+  it("still counts a manager's channel bytes when its resource getter throws", () => {
+    // Task 1 review finding: a single try/catch around both reads would
+    // drop the channel contribution too — normally the dominant term —
+    // for a manager whose only fault is an unguarded `.resource` read.
+    const brokenResourceOnly = {
+      get resource(): never {
+        throw new Error('audio mechanism not constructed');
+      },
+      channel: new Float32Array(1000),
+    } as unknown as AudioManager;
+
+    expect(estimateResidentBytes([brokenResourceOnly])).toBe(4000);
+  });
 });
 
 describe('CapacityService', () => {

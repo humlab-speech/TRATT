@@ -147,12 +147,19 @@ export function estimateResidentBytes(
 ): number {
   let total = 0;
   for (const manager of managers) {
+    // Two separate try/catch blocks, not one: a throw reading `.resource`
+    // (the riskier, unguarded getter) must not also discard `.channel`'s
+    // contribution — normally the dominant term — for the same manager.
     try {
       total += manager.resource?.size ?? 0;
-      total += (manager.channel?.length ?? 0) * BYTES_PER_FLOAT32_SAMPLE;
     } catch {
       // See doc comment: a manager whose mechanism/resource is not there
-      // contributes nothing rather than breaking the whole estimate.
+      // contributes nothing for this term rather than breaking the estimate.
+    }
+    try {
+      total += (manager.channel?.length ?? 0) * BYTES_PER_FLOAT32_SAMPLE;
+    } catch {
+      // Same rationale, independently, for the channel read.
     }
   }
   return total;
