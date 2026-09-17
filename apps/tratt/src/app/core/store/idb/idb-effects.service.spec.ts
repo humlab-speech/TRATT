@@ -352,6 +352,38 @@ describe('IDBEffects — persists to the real selected bundle (Task 3)', () => {
       );
     });
 
+    it("forwards the selected bundle's live runState from the pipelineQueue slice", (done) => {
+      // Task 2 review F1: without this, `savemodeOptions$` dropping the
+      // `runState` argument entirely would leave every other test in this
+      // suite green, since buildState()'s default `runs: {}` never
+      // populates one.
+      const state = buildState('bundle-2');
+      state.pipelineQueue = {
+        queue: [],
+        activeId: null,
+        mode: 'idle',
+        runs: { 'bundle-2': { state: 'done' } },
+      };
+      setup(state);
+
+      const subscription = effects.savemodeOptions$.subscribe(() => {
+        expect(idbService.saveModeOptions).toHaveBeenCalledWith(
+          LoginMode.LOCAL,
+          expect.objectContaining({ runState: 'done' }),
+          'bundle-2',
+        );
+        subscription.unsubscribe();
+        done();
+      });
+
+      actions$.next(
+        LoginModeActions.changeComment.do({
+          mode: LoginMode.LOCAL,
+          comment: 'hello',
+        }),
+      );
+    });
+
     it('Fix 4: does NOT re-persist for a createBundle dispatch carrying restoredOptions', async () => {
       setup(buildState(DEFAULT_BUNDLE_ID));
 

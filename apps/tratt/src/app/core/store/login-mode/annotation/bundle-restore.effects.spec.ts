@@ -1,3 +1,8 @@
+// organize-imports-ignore — prettier-plugin-organize-imports would otherwise
+// resort 'fake-indexeddb/auto' after 'dexie' below; it MUST run first (it
+// polyfills global indexedDB before Dexie's module-load-time code touches
+// it), and a resort here breaks all tests in this file with no obvious link
+// back to import order. See task-2-review.md finding F2.
 // jsdom's test environment doesn't expose the Node-global structuredClone,
 // which fake-indexeddb relies on to clone values on put/add. Polyfill it
 // with Node's own implementation before fake-indexeddb installs itself.
