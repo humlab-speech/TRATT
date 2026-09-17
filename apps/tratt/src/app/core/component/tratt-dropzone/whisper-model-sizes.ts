@@ -41,6 +41,5 @@ export function findWhisperModelSizeMb(modelId: string): number | undefined {
   if (!modelId) {
     return undefined;
   }
-  return ALL_WHISPER_MODELS.find((model) => model.modelId === modelId)
-    ?.sizeMb;
+  return ALL_WHISPER_MODELS.find((model) => model.modelId === modelId)?.sizeMb;
 }

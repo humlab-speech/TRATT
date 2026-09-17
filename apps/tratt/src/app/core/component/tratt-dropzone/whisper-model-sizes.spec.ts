@@ -19,9 +19,9 @@ import {
 
 describe('findWhisperModelSizeMb', () => {
   it('finds a KB (Swedish) model', () => {
-    expect(
-      findWhisperModelSizeMb('onnx-community/kb-whisper-small-ONNX'),
-    ).toBe(400);
+    expect(findWhisperModelSizeMb('onnx-community/kb-whisper-small-ONNX')).toBe(
+      400,
+    );
   });
 
   it('finds a Finnish model', () => {
@@ -33,9 +33,9 @@ describe('findWhisperModelSizeMb', () => {
   });
 
   it('finds a Norwegian model', () => {
-    expect(findWhisperModelSizeMb('FredrikKarlssonSpeech/nb-whisper-large-onnx')).toBe(
-      1210,
-    );
+    expect(
+      findWhisperModelSizeMb('FredrikKarlssonSpeech/nb-whisper-large-onnx'),
+    ).toBe(1210);
   });
 
   it('finds an OpenAI model', () => {

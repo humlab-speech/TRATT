@@ -1,5 +1,14 @@
+import {
+  computed,
+  DestroyRef,
+  inject,
+  Injectable,
+  Signal,
+  signal,
+} from '@angular/core';
 import { AudioManager } from '@tratt/web-media';
 import { findWhisperModelSizeMb } from '../../component/tratt-dropzone/whisper-model-sizes';
+import { AudioService } from './audio.service';
 import type { TranscriptionOptions } from './local-transcription.service';
 import type { TranslationAvailability } from './local-translation.service';
 
@@ -147,4 +156,105 @@ export function estimateResidentBytes(
     }
   }
   return total;
+}
+
+/**
+ * Live, approximate capacity readout for `/workbench`: how much browser
+ * storage this app is using, and how much working memory the currently
+ * resident decoded audio holds.
+ *
+ * Both figures refresh together on ONE `CAPACITY_POLL_MS` interval, started
+ * on construction (which, for a `providedIn: 'root'` service, is the first
+ * time anything injects it — in practice when the capacity indicator first
+ * mounts) and torn down with the injector via `DestroyRef`. See
+ * `CAPACITY_POLL_MS` for why this is polled rather than event-driven.
+ *
+ * This service only MEASURES. It never blocks, warns, gates, or intercepts —
+ * the "warn, don't block" behaviour of step 3c is entirely the RAM bar's own
+ * live colour, in `CapacityIndicatorComponent`.
+ */
+@Injectable({ providedIn: 'root' })
+export class CapacityService {
+  /**
+   * Bumped on every poll. `residentMemory` depends on it so that a `computed`
+   * can re-read `AudioService`'s plain (non-signal) `Map` on each tick.
+   */
+  private readonly pollTick = signal(0);
+
+  private readonly rawStorage = signal<{
+    usedBytes: number;
+    quotaBytes: number;
+  }>({ usedBytes: 0, quotaBytes: 0 });
+
+  private readonly transcribeOptions = signal<TranscriptionOptions | null>(
+    null,
+  );
+  private readonly translationAvailability =
+    signal<TranslationAvailability | null>(null);
+
+  readonly storage: Signal<StorageCapacity> = computed(() => {
+    const raw = this.rawStorage();
+    return {
+      usedBytes: raw.usedBytes,
+      quotaBytes: raw.quotaBytes,
+      modelsEstimateBytes: estimateModelBytes(
+        this.transcribeOptions(),
+        this.translationAvailability(),
+      ),
+    };
+  });
+
+  readonly residentMemory: Signal<ResidentMemoryEstimate> = computed(() => {
+    this.pollTick();
+    const managers = this.audioService.audiomanagers;
+    return {
+      estimatedBytes: estimateResidentBytes(managers),
+      residentCount: managers.length,
+      budgetBytes: RAM_BUDGET_BYTES,
+    };
+  });
+
+  constructor(private audioService: AudioService) {
+    void this.refresh();
+    const handle = setInterval(() => void this.refresh(), CAPACITY_POLL_MS);
+    inject(DestroyRef).onDestroy(() => clearInterval(handle));
+  }
+
+  /**
+   * Tells the storage bar which pipeline models are currently configured, so
+   * it can split "models" from "annotations". Applied immediately — a user
+   * ticking a bigger model should not wait up to `CAPACITY_POLL_MS` to see the
+   * models segment grow.
+   *
+   * `translation` is optional and defaults to `null`: `/workbench` configures
+   * no translation (see `estimateModelBytes`'s doc comment).
+   */
+  setConfiguredOptions(
+    transcribe: TranscriptionOptions | null,
+    translation: TranslationAvailability | null = null,
+  ): void {
+    this.transcribeOptions.set(transcribe);
+    this.translationAvailability.set(translation);
+  }
+
+  /**
+   * One measurement pass over both figures. `residentMemory` is synchronous
+   * and simply re-derives from `pollTick`; storage needs the async browser
+   * API, whose failure (or absence) leaves the last known figures in place
+   * rather than flashing the bar back to zero.
+   */
+  private async refresh(): Promise<void> {
+    this.pollTick.update((n) => n + 1);
+    if (!navigator.storage?.estimate) {
+      return;
+    }
+    try {
+      const { usage = 0, quota = 0 } = await navigator.storage.estimate();
+      this.rawStorage.set({ usedBytes: usage, quotaBytes: quota });
+    } catch {
+      // Storage estimation can reject (permissions, private mode). Keep the
+      // previous figures — a capacity readout going momentarily blank is
+      // worse than one being a few seconds stale.
+    }
+  }
 }
