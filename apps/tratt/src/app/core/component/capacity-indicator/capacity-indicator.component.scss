@@ -1,0 +1,73 @@
+.capacity-indicator {
+  background: #fff;
+  border: 1px solid #d4d9e0;
+  border-radius: 4px;
+  padding: 9px 11px 10px 11px;
+}
+
+.capacity-indicator__row {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 11px;
+  color: #667a90;
+}
+
+.capacity-indicator__row--spaced {
+  margin-top: 9px;
+}
+
+.capacity-indicator__label {
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+}
+
+.capacity-indicator__value {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.capacity-indicator__bar {
+  margin-top: 5px;
+  height: 8px;
+  border-radius: 4px;
+  background: #e6e8ed;
+  overflow: hidden;
+  display: flex;
+}
+
+.capacity-indicator__storage-models {
+  height: 100%;
+  background: #2a4765;
+}
+
+.capacity-indicator__storage-annotations {
+  height: 100%;
+  background: #3d6b5c;
+}
+
+.capacity-indicator__memory-fill {
+  height: 100%;
+}
+
+// The three thresholds the design doc pins to the mockup's own script:
+// green below 55% of RAM_BUDGET_BYTES, amber 55-80%, red above 80%.
+.capacity-indicator__memory-fill--ok {
+  background: #3d6b5c;
+}
+
+.capacity-indicator__memory-fill--warn {
+  background: #d7b17c;
+}
+
+.capacity-indicator__memory-fill--danger {
+  background: #d7263d;
+}
+
+.capacity-indicator__note {
+  margin-top: 4px;
+  font-size: 11px;
+  color: #6b7c90;
+  line-height: 1.4;
+}

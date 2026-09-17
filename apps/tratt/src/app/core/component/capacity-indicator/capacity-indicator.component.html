@@ -1,0 +1,65 @@
+<div class="capacity-indicator">
+  <div class="capacity-indicator__row">
+    <span class="capacity-indicator__label">
+      {{ 'workbench.capacity.storage_label' | transloco }}
+    </span>
+    <span class="capacity-indicator__value">
+      {{
+        'workbench.capacity.storage_text'
+          | transloco: { used: storageUsedText(), quota: storageQuotaText() }
+      }}
+    </span>
+  </div>
+  <div class="capacity-indicator__bar">
+    <div
+      class="capacity-indicator__storage-models"
+      [style.width.%]="modelsPercent()"
+    ></div>
+    <div
+      class="capacity-indicator__storage-annotations"
+      [style.width.%]="annotationsPercent()"
+    ></div>
+  </div>
+  @if (storageAvailable()) {
+    <div class="capacity-indicator__note capacity-indicator__storage-note">
+      {{
+        'workbench.capacity.storage_note'
+          | transloco: { models: modelsText(), annotations: annotationsText() }
+      }}
+    </div>
+  } @else {
+    <div
+      class="capacity-indicator__note capacity-indicator__storage-unavailable"
+    >
+      {{ 'workbench.capacity.storage_unavailable' | transloco }}
+    </div>
+  }
+
+  <div class="capacity-indicator__row capacity-indicator__row--spaced">
+    <span class="capacity-indicator__label">
+      {{ 'workbench.capacity.memory_label' | transloco }}
+    </span>
+    <span class="capacity-indicator__value">
+      {{
+        'workbench.capacity.memory_text'
+          | transloco: { used: memoryUsedText(), budget: memoryBudgetText() }
+      }}
+    </span>
+  </div>
+  <div class="capacity-indicator__bar">
+    <div
+      class="capacity-indicator__memory-fill"
+      [class.capacity-indicator__memory-fill--ok]="memoryLevel() === 'ok'"
+      [class.capacity-indicator__memory-fill--warn]="memoryLevel() === 'warn'"
+      [class.capacity-indicator__memory-fill--danger]="
+        memoryLevel() === 'danger'
+      "
+      [style.width.%]="memoryPercent()"
+    ></div>
+  </div>
+  <div class="capacity-indicator__note capacity-indicator__memory-note">
+    {{
+      'workbench.capacity.memory_note' | transloco: { count: residentCount() }
+    }}
+  </div>
+</div>
