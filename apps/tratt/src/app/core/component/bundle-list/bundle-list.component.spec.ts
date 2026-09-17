@@ -483,6 +483,46 @@ describe('BundleListComponent', () => {
       ).toBe(0);
     });
 
+    // F4 (final whole-branch review fix wave): the status/retry block used
+    // to live entirely inside the non-awaitingMedia @else branch, but every
+    // bundle restored from IndexedDB IS awaitingMedia for the whole first
+    // session after a reload (no audio decoded yet) — so the 'interrupted'
+    // badge Task 2's restore-as-interrupted work exists to show was
+    // invisible at exactly the moment it mattered. bundle-a's fixture
+    // already has audio.loaded false and audioService.hasResident() false
+    // by default, so it's genuinely awaitingMedia here — no extra mocking
+    // needed to reach that branch.
+    it("shows the interrupted badge for a row that is both awaitingMedia and has runStatus.state === 'interrupted'", () => {
+      store.setState({
+        ...initialState,
+        pipelineQueue: {
+          queue: [],
+          activeId: null,
+          mode: 'idle',
+          runs: { 'bundle-a': { state: 'interrupted' } },
+        },
+      } as unknown as RootState);
+      fixture.detectChanges();
+
+      // Still the re-attach control, not the click-to-select button — this
+      // row genuinely is awaitingMedia.
+      expect(
+        fixture.debugElement.query(By.css('.bundle-list__reattach-input')),
+      ).toBeTruthy();
+
+      const labels = fixture.debugElement
+        .queryAll(By.css('.bundle-list__status'))
+        .map((el) => el.nativeElement.textContent.trim());
+      expect(labels).toContain('workbench.bundle_list.status.interrupted');
+
+      // Not actionable without re-attaching audio first — no retry button
+      // for an awaitingMedia row, even though 'interrupted' would normally
+      // grant one.
+      expect(
+        fixture.debugElement.query(By.css('.bundle-list__retry')),
+      ).toBeFalsy();
+    });
+
     it('shows a retry button only for failed and interrupted rows and calls the queue service', () => {
       // bundle-a's fixture has audio.loaded false (awaitingMedia from the
       // selector); as in the "Fix 5" suite above, a resident AudioManager

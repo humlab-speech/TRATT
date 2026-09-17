@@ -45,45 +45,53 @@
                fallback needed. -->
           {{ bundle.name }}
         </button>
-        @if (bundle.run.state !== 'idle') {
-          <span
-            class="bundle-list__status"
-            [class.bundle-list__status--running]="
-              bundle.run.state === 'running'
-            "
-            [class.bundle-list__status--done]="bundle.run.state === 'done'"
-            [class.bundle-list__status--error]="
-              bundle.run.state === 'failed' ||
-              bundle.run.state === 'interrupted'
-            "
-          >
-            {{ 'workbench.bundle_list.status.' + bundle.run.state | transloco }}
-          </span>
-        }
-        @if (bundle.run.state === 'failed' && bundle.run.error) {
-          <!-- The kind is the translated, user-facing summary; the raw
-               message (often an untranslatable worker/browser string) is
-               the tooltip, so nothing is hidden from the user. -->
-          <span
-            class="bundle-list__error"
-            [attr.title]="bundle.run.error.message"
-          >
-            {{
-              'workbench.bundle_list.error.' + bundle.run.error.kind | transloco
-            }}
-          </span>
-        }
-        @if (
-          bundle.run.state === 'failed' || bundle.run.state === 'interrupted'
-        ) {
-          <button
-            type="button"
-            class="bundle-list__retry"
-            (click)="onRetry(bundle.bundleId)"
-          >
-            {{ 'workbench.bundle_list.retry' | transloco }}
-          </button>
-        }
+      }
+      <!-- Hoisted out of the @else above (F4, final whole-branch review fix
+           wave): a bundle restored from IndexedDB is `awaitingMedia` for the
+           whole first session after a reload (no audio decoded yet), so a
+           status block scoped to the non-awaitingMedia branch never rendered
+           the 'interrupted' badge exactly when it matters most — right after
+           the reload that caused it. Renders in BOTH branches now. -->
+      @if (bundle.run.state !== 'idle') {
+        <span
+          class="bundle-list__status"
+          [class.bundle-list__status--running]="bundle.run.state === 'running'"
+          [class.bundle-list__status--done]="bundle.run.state === 'done'"
+          [class.bundle-list__status--error]="
+            bundle.run.state === 'failed' ||
+            bundle.run.state === 'interrupted'
+          "
+        >
+          {{ 'workbench.bundle_list.status.' + bundle.run.state | transloco }}
+        </span>
+      }
+      @if (bundle.run.state === 'failed' && bundle.run.error) {
+        <!-- The kind is the translated, user-facing summary; the raw
+             message (often an untranslatable worker/browser string) is
+             the tooltip, so nothing is hidden from the user. -->
+        <span class="bundle-list__error" [attr.title]="bundle.run.error.message">
+          {{
+            'workbench.bundle_list.error.' + bundle.run.error.kind | transloco
+          }}
+        </span>
+      }
+      @if (
+        !bundle.awaitingMedia &&
+        (bundle.run.state === 'failed' || bundle.run.state === 'interrupted')
+      ) {
+        <!-- Deliberately gated on !awaitingMedia: retrying a bundle whose
+             audio isn't resident this session isn't actionable — it would
+             just fail again as a 'decode' error. The re-attach input above
+             is the actual escape hatch for an awaitingMedia + interrupted
+             row; once re-attached the row flips to this branch and the
+             retry button appears normally. -->
+        <button
+          type="button"
+          class="bundle-list__retry"
+          (click)="onRetry(bundle.bundleId)"
+        >
+          {{ 'workbench.bundle_list.retry' | transloco }}
+        </button>
       }
     </li>
   }
