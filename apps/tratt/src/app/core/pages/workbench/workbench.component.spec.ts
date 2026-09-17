@@ -85,7 +85,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { TranslocoService } from '@jsverse/transloco';
 import { Store } from '@ngrx/store';
-import { provideMockStore } from '@ngrx/store/testing';
+import { MockStore, provideMockStore } from '@ngrx/store/testing';
 import { randomUUID } from 'node:crypto';
 import { BehaviorSubject, of } from 'rxjs';
 import { editorComponents } from '../../../editors/components';
@@ -753,13 +753,28 @@ describe('WorkbenchComponent with real default LOCAL store state', () => {
     );
   }
 
-  async function createWithLocalMode(localMode: unknown) {
+  async function createWithLocalMode(
+    localMode: unknown,
+    // Task 7 review (Q1 follow-up): lets a bundle be "ready" (ignoring
+    // awaitingMedia, exactly like computeReadyBundleIds's own isResident
+    // escape hatch) without needing audio.loaded true in the seeded
+    // localMode fixture, since bundlesState() never sets it.
+    residentIds: string[] = [],
+    initialPipelineQueue: unknown = {
+      queue: [],
+      activeId: null,
+      mode: 'idle',
+      runs: {},
+    },
+  ) {
     await TestBed.configureTestingModule({
       imports: [WorkbenchComponent],
       providers: [
         {
           provide: AudioService,
-          useValue: { hasResident: jest.fn().mockReturnValue(false) },
+          useValue: {
+            hasResident: jest.fn((id: string) => residentIds.includes(id)),
+          },
         },
         { provide: AuthenticationStoreService, useValue: {} },
         { provide: AppStorageService, useValue: {} },
@@ -794,12 +809,7 @@ describe('WorkbenchComponent with real default LOCAL store state', () => {
             // 'pipelineQueue' slice — it must exist on this mock state or
             // those selectors throw reading properties of undefined, even
             // for tests that never touch the queue panel directly.
-            pipelineQueue: {
-              queue: [],
-              activeId: null,
-              mode: 'idle',
-              runs: {},
-            },
+            pipelineQueue: initialPipelineQueue,
           } as any,
         }),
         {
@@ -855,5 +865,113 @@ describe('WorkbenchComponent with real default LOCAL store state', () => {
     expect(component.sessionReady).toBe(false);
     expect(component.hasAnyBundles()).toBe(true);
     expect(fx.debugElement.query(By.css('tratt-bundle-list'))).toBeTruthy();
+  });
+
+  // Task 7 review (Q1): the outer suite's hand-rolled selectSignal stub
+  // returns plain closures, not real signals, so component.computed()s
+  // there never re-evaluate after the first read — no test in that suite
+  // can exercise the run button actually changing on screen. This
+  // describe block's real provideMockStore DOES produce reactive signals,
+  // so these three tests assert on the rendered DOM (not component
+  // methods) for each state, closing that coverage gap.
+  describe('run/pause button rendering (Task 7 review Q1)', () => {
+    function runButton(fx: ComponentFixture<WorkbenchComponent>) {
+      return fx.debugElement.query(By.css('.workbench__queue-run'))
+        .nativeElement as HTMLButtonElement;
+    }
+
+    it('is disabled with the play icon when the queue is idle and nothing is ready', async () => {
+      const localMode = {
+        bundles: bundlesState([
+          { bundleId: DEFAULT_BUNDLE_ID, sessionFile: undefined },
+          // Named (so hasAnyBundles() is true and the queue panel actually
+          // renders) but not resident, so it's still not ready — keeps
+          // this test's readyBundleIds at zero.
+          { bundleId: 'bundle-a', sessionFile: { name: 'a.wav' } },
+        ]),
+        selectedBundleId: DEFAULT_BUNDLE_ID,
+      };
+
+      const fx = await createWithLocalMode(localMode);
+      const button = runButton(fx);
+
+      expect(button.disabled).toBe(true);
+      expect(button.querySelector('.bi-play-fill')).toBeTruthy();
+      expect(button.querySelector('.bi-pause-fill')).toBeFalsy();
+    });
+
+    it('is enabled with the play icon when a bundle is ready and the queue is idle', async () => {
+      const localMode = {
+        bundles: bundlesState([
+          { bundleId: DEFAULT_BUNDLE_ID, sessionFile: undefined },
+          { bundleId: 'bundle-a', sessionFile: { name: 'a.wav' } },
+        ]),
+        selectedBundleId: DEFAULT_BUNDLE_ID,
+      };
+
+      // residentIds makes 'bundle-a' ready via computeReadyBundleIds' own
+      // isResident escape hatch, since bundlesState() never sets
+      // audio.loaded true.
+      const fx = await createWithLocalMode(localMode, ['bundle-a']);
+      const button = runButton(fx);
+
+      expect(button.disabled).toBe(false);
+      expect(button.querySelector('.bi-play-fill')).toBeTruthy();
+      expect(button.querySelector('.bi-pause-fill')).toBeFalsy();
+    });
+
+    it('is enabled with the pause icon while the queue is running', async () => {
+      const localMode = {
+        bundles: bundlesState([
+          { bundleId: DEFAULT_BUNDLE_ID, sessionFile: undefined },
+          { bundleId: 'bundle-a', sessionFile: { name: 'a.wav' } },
+        ]),
+        selectedBundleId: DEFAULT_BUNDLE_ID,
+      };
+
+      const fx = await createWithLocalMode(localMode, ['bundle-a'], {
+        queue: [],
+        activeId: 'bundle-a',
+        mode: 'running',
+        runs: { 'bundle-a': { state: 'running' } },
+      });
+      const button = runButton(fx);
+
+      expect(button.disabled).toBe(false);
+      expect(button.querySelector('.bi-pause-fill')).toBeTruthy();
+      expect(button.querySelector('.bi-play-fill')).toBeFalsy();
+    });
+
+    it('flips from disabled to enabled when the store transitions from not-ready to ready', async () => {
+      const localMode = {
+        bundles: bundlesState([
+          { bundleId: DEFAULT_BUNDLE_ID, sessionFile: undefined },
+          // Named so the queue panel renders from the start; not yet
+          // resident, so readyBundleIds starts at zero.
+          { bundleId: 'bundle-a', sessionFile: { name: 'a.wav' } },
+        ]),
+        selectedBundleId: DEFAULT_BUNDLE_ID,
+      };
+
+      const fx = await createWithLocalMode(localMode);
+      expect(runButton(fx).disabled).toBe(true);
+
+      // Real reactivity, not a fresh fixture: proves the SAME component
+      // instance's computed()s re-evaluate when the underlying store state
+      // changes, which is the transition the feature is actually about.
+      // (Bundle set is unchanged — only residency, via the AudioService
+      // mock below, and the store's own change-detection tick, differ.)
+      const store = TestBed.inject(Store) as MockStore;
+      store.setState({
+        localMode,
+        pipelineQueue: { queue: [], activeId: null, mode: 'idle', runs: {} },
+      } as any);
+      (
+        TestBed.inject(AudioService).hasResident as jest.Mock
+      ).mockImplementation((id) => id === 'bundle-a');
+      fx.detectChanges();
+
+      expect(runButton(fx).disabled).toBe(false);
+    });
   });
 });
