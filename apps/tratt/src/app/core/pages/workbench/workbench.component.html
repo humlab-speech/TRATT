@@ -93,6 +93,17 @@
         </button>
       </div>
     }
+    <!-- Deliberately OUTSIDE the `@if` above: cached ML models are the
+         dominant browser-storage consumer and can exist long before this
+         workbench has a single bundle (they are downloaded from /local too),
+         so the storage readout has to render on an empty workbench as well.
+         Keeping it outside also keeps CapacityService's 5s poll from being
+         torn down and restarted every time session state flips. Its own
+         markup lives in the component; this wrapper only carries the
+         left-rail spacing, matching `.workbench__queue`. -->
+    <div class="workbench__capacity">
+      <tratt-capacity-indicator></tratt-capacity-indicator>
+    </div>
     <button
       type="button"
       class="btn btn-primary workbench__start"

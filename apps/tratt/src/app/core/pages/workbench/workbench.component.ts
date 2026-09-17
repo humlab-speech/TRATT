@@ -18,6 +18,7 @@ import { AppInfo } from '../../../app.info';
 import { editorComponents } from '../../../editors/components';
 import { TRATTEditor } from '../../../editors/tratt-editor';
 import { BundleListComponent } from '../../component/bundle-list/bundle-list.component';
+import { CapacityIndicatorComponent } from '../../component/capacity-indicator/capacity-indicator.component';
 import { DefaultComponent } from '../../component/default.component';
 import { NavbarService } from '../../component/navbar/navbar.service';
 import { RecordingPanelComponent } from '../../component/recording-panel/recording-panel.component';
@@ -41,6 +42,7 @@ import { LoadeditorDirective } from '../../shared/directive/loadeditor.directive
 import { SettingsService, UserInteractionsService } from '../../shared/service';
 import { AppStorageService } from '../../shared/service/appstorage.service';
 import { AudioService } from '../../shared/service/audio.service';
+import { CapacityService } from '../../shared/service/capacity.service';
 import { TranscriptionOptions } from '../../shared/service/local-transcription.service';
 import { PipelineQueueService } from '../../shared/service/pipeline-queue.service';
 import { RecordedFileService } from '../../shared/service/recorded-file.service';
@@ -76,6 +78,7 @@ import {
     FormsModule,
     NgbNavModule,
     AutoTranscribeOptionsComponent,
+    CapacityIndicatorComponent,
   ],
 })
 export class WorkbenchComponent extends DefaultComponent implements OnInit {
@@ -175,10 +178,18 @@ export class WorkbenchComponent extends DefaultComponent implements OnInit {
    * One global pipeline configuration for the whole queue (the spec's "one
    * global config, run as a queue over all loaded media"), fed from the
    * shell-mounted AutoTranscribeOptionsComponent rather than per bundle.
+   *
+   * Step 3c also forwards it to CapacityService, which needs to know which
+   * models are configured to split the storage bar into "models" vs
+   * "annotations" — browser storage cannot be attributed per item, so that
+   * split is an estimate derived from the configuration, not a sum of real
+   * per-row sizes. Applied here rather than on the 5s poll so a user picking
+   * a bigger model sees the models segment move immediately.
    */
   onQueueOptionsChange(options: TranscriptionOptions | null): void {
     this.queueOptions.set(options);
     this.pipelineQueueService.setTranscribeOptions(options);
+    this.capacityService.setConfiguredOptions(options);
   }
 
   onRunPauseClick(): void {
@@ -220,6 +231,7 @@ export class WorkbenchComponent extends DefaultComponent implements OnInit {
     private cd: ChangeDetectorRef,
     private store: Store<RootState>,
     private pipelineQueueService: PipelineQueueService,
+    private capacityService: CapacityService,
   ) {
     super();
   }

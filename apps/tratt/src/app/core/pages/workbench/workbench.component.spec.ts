@@ -80,7 +80,7 @@ jest.mock('../../component/recording-panel/recording-panel.component', () => {
 // `'../../component/navbar/navbar.service'` import is a different, unaffected module.
 jest.mock('../../component/navbar', () => ({}));
 
-import { Component } from '@angular/core';
+import { Component, signal, WritableSignal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { TranslocoService } from '@jsverse/transloco';
@@ -94,6 +94,12 @@ import { TrattModalService } from '../../modals/tratt-modal.service';
 import { SettingsService, UserInteractionsService } from '../../shared/service';
 import { AppStorageService } from '../../shared/service/appstorage.service';
 import { AudioService } from '../../shared/service/audio.service';
+import {
+  CapacityService,
+  RAM_BUDGET_BYTES,
+  ResidentMemoryEstimate,
+  StorageCapacity,
+} from '../../shared/service/capacity.service';
 import { PipelineQueueService } from '../../shared/service/pipeline-queue.service';
 import { RecordedFileService } from '../../shared/service/recorded-file.service';
 import { RoutingService } from '../../shared/service/routing.service';
@@ -156,6 +162,16 @@ describe('WorkbenchComponent', () => {
     retry: jest.Mock;
     readyBundleIds: jest.Mock;
   };
+  // Step 3c: WorkbenchComponent now mounts CapacityIndicatorComponent, which
+  // injects the real root CapacityService — which would start a 5s poll over
+  // an AudioService stub that has no `audiomanagers`. Provide signals-backed
+  // fakes instead; the component's own behaviour is covered in
+  // capacity-indicator.component.spec.ts.
+  let capacityService: {
+    storage: WritableSignal<StorageCapacity>;
+    residentMemory: WritableSignal<ResidentMemoryEstimate>;
+    setConfiguredOptions: jest.Mock;
+  };
 
   beforeEach(async () => {
     audioService = {
@@ -178,6 +194,19 @@ describe('WorkbenchComponent', () => {
       retry: jest.fn(),
       readyBundleIds: jest.fn(() => []),
     };
+    capacityService = {
+      storage: signal<StorageCapacity>({
+        usedBytes: 0,
+        quotaBytes: 0,
+        modelsEstimateBytes: 0,
+      }),
+      residentMemory: signal<ResidentMemoryEstimate>({
+        estimatedBytes: 0,
+        residentCount: 0,
+        budgetBytes: RAM_BUDGET_BYTES,
+      }),
+      setConfiguredOptions: jest.fn(),
+    };
 
     await TestBed.configureTestingModule({
       imports: [WorkbenchComponent],
@@ -194,6 +223,7 @@ describe('WorkbenchComponent', () => {
         { provide: ApplicationStoreService, useValue: { loading$ } },
         { provide: UserInteractionsService, useValue: {} },
         { provide: PipelineQueueService, useValue: pipelineQueueService },
+        { provide: CapacityService, useValue: capacityService },
         {
           // WorkbenchComponent reads selectAllBundleSummaries / selectQueueMode
           // / selectAllRunStatuses directly (same selectSignal convention as
@@ -727,6 +757,27 @@ describe('WorkbenchComponent', () => {
       expect(component.readyBundleIds()).toEqual(['bundle-b']);
     });
   });
+
+  it('forwards the queue pipeline options to CapacityService so the storage bar can split models from annotations', () => {
+    const options = {
+      modelId: 'onnx-community/kb-whisper-small-ONNX',
+      useWebGPU: false,
+      language: 'sv',
+    };
+
+    component.onQueueOptionsChange(options as never);
+
+    expect(pipelineQueueService.setTranscribeOptions).toHaveBeenCalledWith(
+      options,
+    );
+    expect(capacityService.setConfiguredOptions).toHaveBeenCalledWith(options);
+  });
+
+  it('clears the CapacityService model estimate when the options are cleared', () => {
+    component.onQueueOptionsChange(null);
+
+    expect(capacityService.setConfiguredOptions).toHaveBeenCalledWith(null);
+  });
 });
 
 // The outer suite stubs Store.selectSignal directly with a hand-rolled
@@ -799,6 +850,22 @@ describe('WorkbenchComponent with real default LOCAL store state', () => {
             stop: jest.fn(),
             retry: jest.fn(),
             readyBundleIds: jest.fn(() => []),
+          },
+        },
+        {
+          provide: CapacityService,
+          useValue: {
+            storage: signal<StorageCapacity>({
+              usedBytes: 0,
+              quotaBytes: 0,
+              modelsEstimateBytes: 0,
+            }),
+            residentMemory: signal<ResidentMemoryEstimate>({
+              estimatedBytes: 0,
+              residentCount: 0,
+              budgetBytes: RAM_BUDGET_BYTES,
+            }),
+            setConfiguredOptions: jest.fn(),
           },
         },
         provideMockStore({
@@ -1012,5 +1079,26 @@ describe('WorkbenchComponent with real default LOCAL store state', () => {
 
       expect(runButton(fx).disabled).toBe(false);
     });
+  });
+
+  // Step 3c: the capacity block is deliberately OUTSIDE the
+  // `@if (sessionReady || hasAnyBundles())` gate — cached models are the
+  // dominant storage consumer and can exist before any bundle does, so the
+  // readout must render on a completely empty workbench too.
+  it('renders the capacity indicator even with no named bundles', async () => {
+    const localMode = {
+      bundles: bundlesState([
+        { bundleId: DEFAULT_BUNDLE_ID, sessionFile: undefined },
+      ]),
+      selectedBundleId: DEFAULT_BUNDLE_ID,
+    };
+
+    const fx = await createWithLocalMode(localMode);
+
+    expect(fx.componentInstance.hasAnyBundles()).toBe(false);
+    expect(fx.debugElement.query(By.css('.workbench__capacity'))).toBeTruthy();
+    expect(
+      fx.debugElement.query(By.css('tratt-capacity-indicator')),
+    ).toBeTruthy();
   });
 });
