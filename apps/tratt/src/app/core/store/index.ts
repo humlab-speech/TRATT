@@ -6,6 +6,7 @@ import {
   resolveLocalBundleState,
 } from './login-mode/annotation/local-bundle-collection';
 import { PipelineState } from './pipeline';
+import { PipelineQueueState } from './pipeline-queue';
 import { UserState } from './user';
 
 export enum LoginMode {
@@ -45,6 +46,7 @@ export interface RootState {
   urlMode: AnnotationState;
   user: UserState;
   pipeline: PipelineState;
+  pipelineQueue: PipelineQueueState;
 }
 
 export function getModeState(appState: RootState): AnnotationState | undefined {
