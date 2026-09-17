@@ -3,6 +3,7 @@ import {
   DestroyRef,
   inject,
   Injectable,
+  NgZone,
   Signal,
   signal,
 } from '@angular/core';
@@ -223,7 +224,22 @@ export class CapacityService {
 
   constructor(private audioService: AudioService) {
     void this.refresh();
-    const handle = setInterval(() => void this.refresh(), CAPACITY_POLL_MS);
+    // Fix wave F2 (step 3c final review): the interval callback — and the
+    // `navigator.storage.estimate()` promise it awaits inside `refresh()` —
+    // must not run inside Angular's zone. Left unwrapped, each 5s tick cost
+    // TWO app-wide zone-triggered change-detection passes for the whole SPA
+    // session once started, including on unrelated non-OnPush routes (e.g.
+    // the 2D-Editor) after the user has already left /workbench. Signals
+    // written from inside stay correct without zone re-entry: this app's
+    // OnPush components already re-render on signal writes via Angular's
+    // signal-based change-detection notification, independent of the zone.
+    // Only the change-detection COST is addressed here, not the poll's
+    // lifetime (still root-injector-scoped via DestroyRef below) — a
+    // navigation-scoped teardown is a separate, larger redesign the review
+    // explicitly did not ask for in this fix wave.
+    const handle = inject(NgZone).runOutsideAngular(() =>
+      setInterval(() => void this.refresh(), CAPACITY_POLL_MS),
+    );
     inject(DestroyRef).onDestroy(() => clearInterval(handle));
   }
 

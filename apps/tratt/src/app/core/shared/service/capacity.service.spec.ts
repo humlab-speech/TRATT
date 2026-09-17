@@ -19,6 +19,7 @@ jest.mock('./local-translation.service', () => ({
   LocalTranslationService: class LocalTranslationService {},
 }));
 
+import { NgZone } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { AudioManager } from '@tratt/web-media';
 import { AudioService } from './audio.service';
@@ -315,6 +316,34 @@ describe('CapacityService', () => {
     await jest.advanceTimersByTimeAsync(CAPACITY_POLL_MS * 3);
 
     expect(estimate).toHaveBeenCalledTimes(1);
+  });
+
+  // F2 (step 3c final review, change-detection-cost half): the poll must not
+  // tick inside Angular's zone (each tick previously cost two app-wide
+  // zone-triggered change-detection passes, forever, even off /workbench).
+  // This asserts BOTH halves: the interval is genuinely scheduled via
+  // NgZone.runOutsideAngular, and the signals it writes from inside that
+  // callback still update correctly — zone re-entry is not needed for a
+  // computed()/signal read to see a fresh value.
+  it('schedules its poll outside the Angular zone, and its signal writes still update correctly from there', async () => {
+    const ngZone = TestBed.inject(NgZone);
+    const runOutsideAngularSpy = jest.spyOn(ngZone, 'runOutsideAngular');
+
+    const service = TestBed.inject(CapacityService);
+    await jest.advanceTimersByTimeAsync(0);
+
+    expect(runOutsideAngularSpy).toHaveBeenCalled();
+
+    managers = [managerWith(1_000_000, 1000)];
+    estimate.mockResolvedValueOnce({
+      usage: 600_000_000,
+      quota: 8_000_000_000,
+    });
+    await jest.advanceTimersByTimeAsync(CAPACITY_POLL_MS);
+
+    expect(service.residentMemory().residentCount).toBe(1);
+    expect(service.residentMemory().estimatedBytes).toBe(1_000_000 + 4000);
+    expect(service.storage().usedBytes).toBe(600_000_000);
   });
 
   it('applies configured model sizes immediately, without waiting for a poll', async () => {
