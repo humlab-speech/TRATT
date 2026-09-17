@@ -739,6 +739,7 @@
       "storage_text": "{{used}} of {{quota}}",
       "storage_note": "Models {{models}} cached + annotations {{annotations}}. Media is never written to storage.",
       "storage_unavailable": "This browser does not report storage usage.",
+      "storage_breakdown_unavailable": "Storage breakdown unavailable until a pipeline is configured.",
       "memory_label": "Working memory (est.)",
       "memory_text": "{{used}} of ~{{budget}}",
       "memory_note": "Decoded audio for {{count}} resident file(s). This, not storage, is what limits how much media you can hold at once."

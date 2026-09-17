@@ -162,6 +162,45 @@ describe('CapacityIndicatorComponent', () => {
     );
   });
 
+  // F1 (step 3c final review): nothing configured yet means the
+  // models/annotations split is UNKNOWN, not genuinely zero. Before the fix,
+  // this state rendered the normal breakdown note claiming "Models 0 MB
+  // cached", confidently misattributing any real cached-model bytes (from
+  // `/local`, which this route can't see) entirely to "annotations".
+  it('shows a breakdown-unavailable note instead of a confident 0 MB models split when nothing is configured, even with heavy real usage', () => {
+    storage.set({
+      usedBytes: 1_500_000_000,
+      quotaBytes: 8_000_000_000,
+      modelsEstimateBytes: 0,
+    });
+    fixture.detectChanges();
+
+    expect(
+      fixture.debugElement.query(By.css('.capacity-indicator__storage-note')),
+    ).toBeFalsy();
+    expect(
+      fixture.debugElement.query(
+        By.css('.capacity-indicator__storage-breakdown-unavailable'),
+      ),
+    ).toBeTruthy();
+    expect(text('.capacity-indicator__storage-breakdown-unavailable')).toBe(
+      'workbench.capacity.storage_breakdown_unavailable',
+    );
+  });
+
+  it('still renders the normal models/annotations breakdown once a model is configured', () => {
+    // Default beforeEach state already has modelsEstimateBytes: 400_000_000
+    // (non-zero) — this is the happy-path regression guard for F1's fix.
+    expect(
+      fixture.debugElement.query(
+        By.css('.capacity-indicator__storage-breakdown-unavailable'),
+      ),
+    ).toBeFalsy();
+    expect(text('.capacity-indicator__storage-note')).toBe(
+      'workbench.capacity.storage_note',
+    );
+  });
+
   it('colours the memory bar green below 55% of budget', () => {
     residentMemory.set({
       estimatedBytes: RAM_BUDGET_BYTES * 0.3,

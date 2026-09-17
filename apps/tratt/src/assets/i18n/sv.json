@@ -764,6 +764,7 @@
       "storage_text": "{{used}} av {{quota}}",
       "storage_note": "Modeller {{models}} cachade + annotationer {{annotations}}. Media skrivs aldrig till lagringen.",
       "storage_unavailable": "Den här webbläsaren rapporterar inte lagringsanvändning.",
+      "storage_breakdown_unavailable": "Lagringsfördelning otillgänglig tills en pipeline är konfigurerad.",
       "memory_label": "Arbetsminne (uppskattat)",
       "memory_text": "{{used}} av ~{{budget}}",
       "memory_note": "Avkodat ljud för {{count}} fil(er) i minnet. Det är detta, inte lagringen, som begränsar hur mycket media du kan ha igång samtidigt."

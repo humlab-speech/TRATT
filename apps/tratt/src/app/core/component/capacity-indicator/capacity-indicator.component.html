@@ -21,12 +21,21 @@
     ></div>
   </div>
   @if (storageAvailable()) {
-    <div class="capacity-indicator__note capacity-indicator__storage-note">
-      {{
-        'workbench.capacity.storage_note'
-          | transloco: { models: modelsText(), annotations: annotationsText() }
-      }}
-    </div>
+    @if (storageBreakdownKnown()) {
+      <div class="capacity-indicator__note capacity-indicator__storage-note">
+        {{
+          'workbench.capacity.storage_note'
+            | transloco
+              : { models: modelsText(), annotations: annotationsText() }
+        }}
+      </div>
+    } @else {
+      <div
+        class="capacity-indicator__note capacity-indicator__storage-breakdown-unavailable"
+      >
+        {{ 'workbench.capacity.storage_breakdown_unavailable' | transloco }}
+      </div>
+    }
   } @else {
     <div
       class="capacity-indicator__note capacity-indicator__storage-unavailable"

@@ -66,6 +66,17 @@ export class CapacityIndicatorComponent {
     Math.max(0, this.storage().usedBytes - this.modelsBytes()),
   );
 
+  /**
+   * False when nothing is configured yet (`modelsBytes() === 0`), i.e. the
+   * models/annotations split is genuinely UNKNOWN rather than genuinely a
+   * zero split. Bytes already sitting in browser storage (e.g. cached
+   * Whisper models downloaded from `/local`, which this route knows nothing
+   * about) would otherwise be attributed entirely to "annotations" — see F1
+   * of the step 3c final review. Mirrors `storageAvailable()`'s shape: don't
+   * assert a confident breakdown the data can't support.
+   */
+  readonly storageBreakdownKnown = computed(() => this.modelsBytes() > 0);
+
   readonly modelsPercent = computed(() =>
     this.percentOf(this.modelsBytes(), this.storage().quotaBytes),
   );
