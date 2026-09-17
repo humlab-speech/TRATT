@@ -251,6 +251,14 @@ export class AudioService {
    */
   public async ensureResident(bundleId: string): Promise<boolean> {
     if (this._audiomanagers.has(bundleId)) {
+      // Already resident — still participate in the LRU cap. See F2 in the
+      // step 3b-i final-review fix wave: the queue calls ensureResident()
+      // for bundles the user never selected, and trackSelection() is the
+      // ONLY place recentBundleIds/eviction bookkeeping happens. Calling it
+      // here (as well as from the selection effect) is idempotent — it just
+      // moves bundleId to the most-recently-used end, it doesn't push a
+      // duplicate entry or evict twice for the same bundle.
+      this.trackSelection(bundleId);
       return true;
     }
     if (this._pendingResidency.has(bundleId)) {
@@ -270,6 +278,9 @@ export class AudioService {
       );
       if (result.audioManager) {
         this.registerAudioManager(bundleId, result.audioManager);
+        // Newly made resident by the queue (not via selection) — same LRU
+        // accounting as above, at the point residency is freshly achieved.
+        this.trackSelection(bundleId);
       }
     } catch (e) {
       // Re-decode failed (corrupted/stale retained File, or the create()

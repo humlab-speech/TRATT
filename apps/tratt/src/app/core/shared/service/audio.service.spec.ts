@@ -545,6 +545,32 @@ describe('AudioService — getManager / ensureResident (public, step 3b-i)', () 
 
     await expect(service.ensureResident('bundle-x')).resolves.toBe(false);
   });
+
+  // F2 (final whole-branch review fix wave): ensureResident() must feed the
+  // same LRU accounting trackSelection() owns, so bundles the QUEUE makes
+  // resident (never selected) still get evicted past MAX_RESIDENT_BUNDLES.
+  // Seeds 4 bundles purely via registerAudioManager()+ensureResident() — no
+  // selectBundle()/trackSelection() call anywhere in this test — mirroring
+  // PipelineQueueService.runBundle()'s actual call pattern.
+  it('ensureResident tracks every bundle it touches in the same LRU cap as selection, evicting past MAX_RESIDENT_BUNDLES', async () => {
+    const managers: Record<string, any> = {
+      b1: fakeManager(),
+      b2: fakeManager(),
+      b3: fakeManager(),
+      b4: fakeManager(),
+    };
+
+    for (const id of ['b1', 'b2', 'b3', 'b4']) {
+      service.registerAudioManager(id, managers[id]);
+      await expect(service.ensureResident(id)).resolves.toBe(true);
+    }
+
+    expect(managers['b1'].destroy).toHaveBeenCalled();
+    expect(service.hasResident('b1')).toBe(false);
+    expect(service.hasResident('b2')).toBe(true);
+    expect(service.hasResident('b3')).toBe(true);
+    expect(service.hasResident('b4')).toBe(true);
+  });
 });
 
 describe('AudioService missingPermission notifier (C8)', () => {
