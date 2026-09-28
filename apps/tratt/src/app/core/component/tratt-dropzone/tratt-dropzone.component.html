@@ -6,7 +6,12 @@
 >
   <i class="bi bi-info-circle"></i> {{ 'g.supported files' | transloco }}
 </button>
-<tratt-drop-zone #dropzone (afterdrop)="afterDrop()" [height]="height">
+<tratt-drop-zone
+  #dropzone
+  (afterdrop)="afterDrop()"
+  [height]="height"
+  [showIcon]="files.length === 0"
+>
   <table [hidden]="files.length === 0" class="dropzone-table position-relative">
     @for (fileProgress of files; track fileProgress.id) {
       <tr>
