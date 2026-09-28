@@ -580,4 +580,98 @@ describe('BundleListComponent', () => {
       );
     });
   });
+
+  describe('bulk actions', () => {
+    it('select-all checks every row, and unchecking it clears the selection', () => {
+      const selectAll = fixture.debugElement.query(
+        By.css('.bundle-list__select-all'),
+      );
+      selectAll.nativeElement.click();
+      fixture.detectChanges();
+
+      const rowCheckboxes = fixture.debugElement.queryAll(
+        By.css('.bundle-list__item-checkbox'),
+      );
+      expect(rowCheckboxes.every((el) => el.nativeElement.checked)).toBe(true);
+
+      selectAll.nativeElement.click();
+      fixture.detectChanges();
+      expect(
+        fixture.debugElement
+          .queryAll(By.css('.bundle-list__item-checkbox'))
+          .every((el) => !el.nativeElement.checked),
+      ).toBe(true);
+    });
+
+    it('remove dispatches removeBundles for the checked ids and clears the selection', () => {
+      const dispatchSpy = jest.spyOn(store, 'dispatch');
+      const rowCheckboxes = fixture.debugElement.queryAll(
+        By.css('.bundle-list__item-checkbox'),
+      );
+      rowCheckboxes[0].nativeElement.click();
+      fixture.detectChanges();
+
+      fixture.debugElement
+        .query(By.css('.bundle-list__remove'))
+        .nativeElement.click();
+
+      expect(dispatchSpy).toHaveBeenCalledWith(
+        LoginModeActions.removeBundles({
+          mode: LoginMode.LOCAL,
+          bundleIds: [bundleA.bundleId],
+        }),
+      );
+    });
+
+    it('remove is a no-op when nothing is checked', () => {
+      const dispatchSpy = jest.spyOn(store, 'dispatch');
+      fixture.debugElement
+        .query(By.css('.bundle-list__remove'))
+        .nativeElement.click();
+      expect(dispatchSpy).not.toHaveBeenCalledWith(
+        expect.objectContaining({ type: LoginModeActions.removeBundles.type }),
+      );
+    });
+
+    it('clear finished removes only bundles whose run.state is done', () => {
+      // bundleA/bundleB fixtures at the top of this file don't carry a run
+      // status; override the mock store's runs feature so bundleA reads as
+      // 'done' for this one test — mirrors the "pipeline run status and
+      // retry" describe block's existing store.setState({...initialState,
+      // pipelineQueue: {...}}) pattern rather than a `store.state` getter,
+      // which MockStore/Store don't expose (see mock_store.d.ts).
+      store.setState({
+        ...initialState,
+        pipelineQueue: {
+          queue: [],
+          activeId: null,
+          mode: 'idle',
+          runs: { [bundleA.bundleId]: { state: 'done' } },
+        },
+      } as unknown as RootState);
+      fixture.detectChanges();
+
+      const dispatchSpy = jest.spyOn(store, 'dispatch');
+      fixture.debugElement
+        .query(By.css('.bundle-list__clear-finished'))
+        .nativeElement.click();
+
+      expect(dispatchSpy).toHaveBeenCalledWith(
+        LoginModeActions.removeBundles({
+          mode: LoginMode.LOCAL,
+          bundleIds: [bundleA.bundleId],
+        }),
+      );
+    });
+
+    it('clear finished is a no-op when no bundle is done', () => {
+      const dispatchSpy = jest.spyOn(store, 'dispatch');
+      fixture.debugElement
+        .query(By.css('.bundle-list__clear-finished'))
+        .nativeElement.click();
+      expect(dispatchSpy).not.toHaveBeenCalledWith(
+        expect.objectContaining({ type: LoginModeActions.removeBundles.type }),
+      );
+    });
+  });
 });

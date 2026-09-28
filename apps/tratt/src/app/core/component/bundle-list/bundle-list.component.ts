@@ -1,4 +1,9 @@
-import { ChangeDetectionStrategy, Component, computed } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  signal,
+} from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { Store } from '@ngrx/store';
 import { AudioManager, normalizeMimeType } from '@tratt/web-media';
@@ -69,6 +74,59 @@ export class BundleListComponent {
       run: runStatusOf(runs, b.bundleId),
     }));
   });
+
+  private _selected = signal<Set<string>>(new Set());
+
+  isSelected(bundleId: string): boolean {
+    return this._selected().has(bundleId);
+  }
+
+  allSelected = computed(
+    () =>
+      this.bundles().length > 0 &&
+      this.bundles().every((b) => this._selected().has(b.bundleId)),
+  );
+
+  toggleSelected(bundleId: string): void {
+    const next = new Set(this._selected());
+    if (next.has(bundleId)) {
+      next.delete(bundleId);
+    } else {
+      next.add(bundleId);
+    }
+    this._selected.set(next);
+  }
+
+  toggleSelectAll(): void {
+    this._selected.set(
+      this.allSelected()
+        ? new Set()
+        : new Set(this.bundles().map((b) => b.bundleId)),
+    );
+  }
+
+  onRemoveSelected(): void {
+    const ids = [...this._selected()];
+    if (ids.length === 0) {
+      return;
+    }
+    this.store.dispatch(
+      LoginModeActions.removeBundles({ mode: LoginMode.LOCAL, bundleIds: ids }),
+    );
+    this._selected.set(new Set());
+  }
+
+  onClearFinished(): void {
+    const ids = this.bundles()
+      .filter((b) => b.run.state === 'done')
+      .map((b) => b.bundleId);
+    if (ids.length === 0) {
+      return;
+    }
+    this.store.dispatch(
+      LoginModeActions.removeBundles({ mode: LoginMode.LOCAL, bundleIds: ids }),
+    );
+  }
 
   // Only consulted from onReattachFileSelected() (not template-bound) to look
   // up a bundle's persisted SessionFile for the fingerprint comparison —

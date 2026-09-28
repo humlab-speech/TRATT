@@ -8,6 +8,31 @@
   of the click-to-select button (step 2.8 Task 5).
 -->
 @if (bundles().length > 0) {
+  <div class="bundle-list__bulk-bar">
+    <label class="bundle-list__select-all-label">
+      <input
+        type="checkbox"
+        class="bundle-list__select-all"
+        [checked]="allSelected()"
+        (change)="toggleSelectAll()"
+      />
+      {{ 'workbench.bundle_list.select_all' | transloco }}
+    </label>
+    <button
+      type="button"
+      class="bundle-list__clear-finished"
+      (click)="onClearFinished()"
+    >
+      {{ 'workbench.bundle_list.clear_finished' | transloco }}
+    </button>
+    <button
+      type="button"
+      class="bundle-list__remove"
+      (click)="onRemoveSelected()"
+    >
+      {{ 'workbench.bundle_list.remove' | transloco }}
+    </button>
+  </div>
   <h6 class="bundle-list__title">
     {{ 'workbench.bundle_list.title' | transloco }}
   </h6>
@@ -15,6 +40,12 @@
 <ul class="bundle-list">
   @for (bundle of bundles(); track bundle.bundleId) {
     <li class="bundle-list__item" [class.active]="bundle.selected">
+      <input
+        type="checkbox"
+        class="bundle-list__item-checkbox"
+        [checked]="isSelected(bundle.bundleId)"
+        (change)="toggleSelected(bundle.bundleId)"
+      />
       @if (bundle.awaitingMedia) {
         <label
           class="bundle-list__reattach-label"
