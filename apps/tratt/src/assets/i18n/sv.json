@@ -737,6 +737,10 @@
     "bundle_list": {
       "title": "Filer",
       "reattach": "Bifoga fil…",
+      "select_all": "Markera alla",
+      "clear_finished": "Rensa klara",
+      "remove": "Ta bort",
+      "export_catalogue": "Exportera katalog…",
       "retry": "Försök igen",
       "status": {
         "queued": "I kö",
@@ -768,6 +772,17 @@
       "memory_label": "Arbetsminne (uppskattat)",
       "memory_text": "{{used}} av ~{{budget}}",
       "memory_note": "Avkodat ljud för {{count}} fil(er) i minnet. Det är detta, inte lagringen, som begränsar hur mycket media du kan ha igång samtidigt."
+    },
+    "catalogue_export": {
+      "title": "Exportera katalog",
+      "formats_label": "Format",
+      "bundles_label": "{{count}} fil(er) markerade",
+      "all_bundles_hint": "Inga filer markerade — exporterar alla {{count}}.",
+      "export": "Exportera",
+      "cancel": "Avbryt",
+      "progress": "Exporterar {{current}} av {{total}}…",
+      "warnings_title": "Klar med varningar",
+      "done": "Klar — {{count}} fil(er) arkiverade."
     }
   }
 }

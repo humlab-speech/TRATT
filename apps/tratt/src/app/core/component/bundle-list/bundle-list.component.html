@@ -32,6 +32,13 @@
     >
       {{ 'workbench.bundle_list.remove' | transloco }}
     </button>
+    <button
+      type="button"
+      class="bundle-list__export-catalogue"
+      (click)="onExportCatalogue()"
+    >
+      {{ 'workbench.bundle_list.export_catalogue' | transloco }}
+    </button>
   </div>
   <h6 class="bundle-list__title">
     {{ 'workbench.bundle_list.title' | transloco }}

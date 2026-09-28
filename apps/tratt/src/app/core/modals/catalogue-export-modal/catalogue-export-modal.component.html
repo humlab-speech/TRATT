@@ -1,0 +1,59 @@
+<div class="modal-header">
+  <h5 class="modal-title">{{ 'workbench.catalogue_export.title' | transloco }}</h5>
+  <button type="button" class="btn-close" (click)="close()"></button>
+</div>
+<div class="modal-body">
+  <p>
+    {{
+      'workbench.catalogue_export.bundles_label'
+        | transloco: { count: bundleIds.length }
+    }}
+  </p>
+
+  <fieldset class="catalogue-export__formats">
+    <legend>{{ 'workbench.catalogue_export.formats_label' | transloco }}</legend>
+    @for (converter of exportableConverters; track converter.name) {
+      <label class="catalogue-export__format-option">
+        <input
+          type="checkbox"
+          [checked]="isChecked(converter.name)"
+          (change)="toggleConverter(converter.name)"
+        />
+        {{ converter.name }}
+      </label>
+    }
+  </fieldset>
+
+  @if (progress()) {
+    <p class="catalogue-export__progress">
+      {{
+        'workbench.catalogue_export.progress'
+          | transloco
+            : { current: progress()!.completed, total: progress()!.total }
+      }}
+    </p>
+  }
+
+  @if (warnings().length > 0) {
+    <div class="catalogue-export__warnings">
+      <strong>{{ 'workbench.catalogue_export.warnings_title' | transloco }}</strong>
+      <ul>
+        @for (warning of warnings(); track warning) {
+          <li>{{ warning }}</li>
+        }
+      </ul>
+    </div>
+  }
+</div>
+<div class="modal-footer">
+  <button type="button" class="btn btn-secondary" (click)="close()">
+    {{ 'workbench.catalogue_export.cancel' | transloco }}
+  </button>
+  <button
+    type="button"
+    class="btn btn-primary catalogue-export__export"
+    (click)="onExport()"
+  >
+    {{ 'workbench.catalogue_export.export' | transloco }}
+  </button>
+</div>

@@ -494,6 +494,10 @@
     "bundle_list": {
       "title": "Files",
       "reattach": "Attach file…",
+      "select_all": "Select all",
+      "clear_finished": "Clear finished",
+      "remove": "Remove",
+      "export_catalogue": "Export catalogue…",
       "retry": "Retry",
       "status": {
         "queued": "Queued",
@@ -525,6 +529,17 @@
       "memory_label": "Working memory (est.)",
       "memory_text": "{{used}} of ~{{budget}}",
       "memory_note": "Decoded audio for {{count}} resident file(s). This, not storage, is what limits how much media you can hold at once."
+    },
+    "catalogue_export": {
+      "title": "Export catalogue",
+      "formats_label": "Formats",
+      "bundles_label": "{{count}} file(s) selected",
+      "all_bundles_hint": "No files checked — exporting all {{count}}.",
+      "export": "Export",
+      "cancel": "Cancel",
+      "progress": "Exporting {{current}} of {{total}}…",
+      "warnings_title": "Completed with warnings",
+      "done": "Done — {{count}} file(s) archived."
     }
   }
 }

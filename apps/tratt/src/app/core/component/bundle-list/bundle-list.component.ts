@@ -12,6 +12,7 @@ import {
   BundleReattachMismatchAnswer,
   BundleReattachMismatchModalComponent,
 } from '../../modals/bundle-reattach-mismatch-modal/bundle-reattach-mismatch-modal.component';
+import { CatalogueExportModalComponent } from '../../modals/catalogue-export-modal/catalogue-export-modal.component';
 import { TrattModalService } from '../../modals/tratt-modal.service';
 import { SessionFile } from '../../obj/SessionFile';
 import { AudioService } from '../../shared/service/audio.service';
@@ -125,6 +126,20 @@ export class BundleListComponent {
     }
     this.store.dispatch(
       LoginModeActions.removeBundles({ mode: LoginMode.LOCAL, bundleIds: ids }),
+    );
+  }
+
+  onExportCatalogue(): void {
+    const ids =
+      this._selected().size > 0
+        ? [...this._selected()]
+        : this.bundles().map((b) => b.bundleId);
+    this.modService.openModal(
+      CatalogueExportModalComponent,
+      CatalogueExportModalComponent.options,
+      {
+        bundleIds: ids,
+      },
     );
   }
 
