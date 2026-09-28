@@ -101,6 +101,11 @@ export class PipelineQueueService {
     this.transcribeOptions = options;
   }
 
+  /** Read access for CatalogueExportService's manifest — see its own doc comment. */
+  getTranscribeOptions(): TranscriptionOptions | null {
+    return this.transcribeOptions;
+  }
+
   /** The ids `enqueue()` would actually accept right now. */
   readyBundleIds(): string[] {
     return computeReadyBundleIds(this.summaries(), this.runs(), (bundleId) =>
