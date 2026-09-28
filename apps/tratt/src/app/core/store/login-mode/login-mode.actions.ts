@@ -60,6 +60,16 @@ export class LoginModeActions extends AnnotationActions {
     }>(),
   );
 
+  /**
+   * Bulk-removes bundles from the local collection (BundleListComponent's
+   * "remove" bulk action). The reducer guarantees the collection never ends
+   * up empty — see its own comment.
+   */
+  static removeBundles = createAction(
+    'annotation Remove bundles',
+    props<{ mode: LoginMode; bundleIds: string[] }>(),
+  );
+
   static changeComment = createActionGroup({
     source: `annotation/change comment`,
     events: {

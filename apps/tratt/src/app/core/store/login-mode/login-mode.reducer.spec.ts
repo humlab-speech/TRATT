@@ -356,6 +356,115 @@ describe('LoginModeReducers — createBundle / selectBundle', () => {
   });
 });
 
+describe('LoginModeReducers — removeBundles', () => {
+  const sessionFile = new SessionFile('b2.wav', 123, new Date(), 'audio/wav');
+
+  it('removes the given bundles and leaves the rest untouched', () => {
+    const reducer = new LoginModeReducers(LoginMode.LOCAL).create();
+    const initial = reducer(undefined, {
+      type: '@@INIT',
+    } as any) as unknown as LocalBundleCollectionState;
+    const withB2 = reducer(
+      initial as any,
+      LoginModeActions.createBundle({
+        mode: LoginMode.LOCAL,
+        bundleId: 'b2',
+        sessionFile,
+      }),
+    ) as unknown as LocalBundleCollectionState;
+
+    const next = reducer(
+      withB2 as any,
+      LoginModeActions.removeBundles({
+        mode: LoginMode.LOCAL,
+        bundleIds: [DEFAULT_BUNDLE_ID],
+      }),
+    ) as unknown as LocalBundleCollectionState;
+
+    expect(next.bundles.entities[DEFAULT_BUNDLE_ID]).toBeUndefined();
+    expect(next.bundles.entities['b2']).toBe(withB2.bundles.entities['b2']);
+  });
+
+  it('reselects a remaining bundle when the selected one is removed', () => {
+    const reducer = new LoginModeReducers(LoginMode.LOCAL).create();
+    const initial = reducer(undefined, {
+      type: '@@INIT',
+    } as any) as unknown as LocalBundleCollectionState;
+    const withB2 = reducer(
+      initial as any,
+      LoginModeActions.createBundle({
+        mode: LoginMode.LOCAL,
+        bundleId: 'b2',
+        sessionFile,
+      }),
+    ) as unknown as LocalBundleCollectionState;
+    // createBundle selects the new bundle — confirm the starting point.
+    expect(withB2.selectedBundleId).toBe('b2');
+
+    const next = reducer(
+      withB2 as any,
+      LoginModeActions.removeBundles({
+        mode: LoginMode.LOCAL,
+        bundleIds: ['b2'],
+      }),
+    ) as unknown as LocalBundleCollectionState;
+
+    expect(next.selectedBundleId).toBe(DEFAULT_BUNDLE_ID);
+  });
+
+  it('never leaves the collection empty — removing every bundle restores the default sentinel', () => {
+    const reducer = new LoginModeReducers(LoginMode.LOCAL).create();
+    const initial = reducer(undefined, {
+      type: '@@INIT',
+    } as any) as unknown as LocalBundleCollectionState;
+
+    const next = reducer(
+      initial as any,
+      LoginModeActions.removeBundles({
+        mode: LoginMode.LOCAL,
+        bundleIds: [DEFAULT_BUNDLE_ID],
+      }),
+    ) as unknown as LocalBundleCollectionState;
+
+    expect(next.bundles.ids.length).toBe(1);
+    expect(next.selectedBundleId).toBe(DEFAULT_BUNDLE_ID);
+    expect(next.bundles.entities[DEFAULT_BUNDLE_ID]?.sessionFile).toBeUndefined();
+  });
+
+  it('removing a non-selected bundle leaves selectedBundleId untouched', () => {
+    const reducer = new LoginModeReducers(LoginMode.LOCAL).create();
+    const initial = reducer(undefined, {
+      type: '@@INIT',
+    } as any) as unknown as LocalBundleCollectionState;
+    const withB2 = reducer(
+      initial as any,
+      LoginModeActions.createBundle({
+        mode: LoginMode.LOCAL,
+        bundleId: 'b2',
+        sessionFile,
+      }),
+    ) as unknown as LocalBundleCollectionState;
+    const reselected = reducer(
+      withB2 as any,
+      LoginModeActions.selectBundle({
+        mode: LoginMode.LOCAL,
+        bundleId: DEFAULT_BUNDLE_ID,
+      }),
+    ) as unknown as LocalBundleCollectionState;
+
+    const next = reducer(
+      reselected as any,
+      LoginModeActions.removeBundles({
+        mode: LoginMode.LOCAL,
+        bundleIds: ['b2'],
+      }),
+    ) as unknown as LocalBundleCollectionState;
+
+    expect(next.selectedBundleId).toBe(DEFAULT_BUNDLE_ID);
+    expect(next.bundles.entities['b2']).toBeUndefined();
+  });
+});
+
 describe('LoginModeReducers — createBundle with restored content (step 2.8)', () => {
   const sessionFile = new SessionFile('b2.wav', 123, new Date(), 'audio/wav');
 

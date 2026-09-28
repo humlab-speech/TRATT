@@ -180,6 +180,35 @@ function wrapAsLocalBundleCollectionReducer(
         ),
       };
     }
+    if (action.type === LoginModeActions.removeBundles.type) {
+      const { bundleIds } = action as ReturnType<
+        typeof LoginModeActions.removeBundles
+      >;
+      const removed = new Set(bundleIds);
+      const remainingIds = (state.bundles.ids as string[]).filter(
+        (id) => !removed.has(id),
+      );
+      if (remainingIds.length === 0) {
+        // Never leave the collection empty — hasAnyBundles() and the rest
+        // of the shell assume at least one entity always exists (the
+        // DEFAULT_BUNDLE_ID sentinel this same function seeds on init).
+        return {
+          ...state,
+          bundles: localBundleAdapter.setOne(
+            { ...initialInner, bundleId: DEFAULT_BUNDLE_ID },
+            localBundleAdapter.removeMany(bundleIds, state.bundles),
+          ),
+          selectedBundleId: DEFAULT_BUNDLE_ID,
+        };
+      }
+      return {
+        ...state,
+        bundles: localBundleAdapter.removeMany(bundleIds, state.bundles),
+        selectedBundleId: removed.has(state.selectedBundleId)
+          ? remainingIds[0]
+          : state.selectedBundleId,
+      };
+    }
     const currentInner = resolveLocalBundleState(state) ?? initialInner;
     const nextInner = innerReducer(currentInner, action);
     if (nextInner === currentInner) {
