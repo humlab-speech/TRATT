@@ -858,12 +858,19 @@ describe('BundleListComponent', () => {
       );
     }
 
+    // Dispatches on whichever element currently has focus (falling back to
+    // the list root only if nothing does), letting the event bubble up to
+    // the <ul>'s (keydown) binding — matching real browser event flow,
+    // where a keydown's `target` is the focused element and `currentTarget`
+    // is whatever ancestor the listener is bound to. Dispatching directly
+    // on the <ul> (as an earlier version of this helper did) would give
+    // every keydown `target === <ul>`, which can never satisfy a handler
+    // that guards on "did this key originate from a row's primary
+    // control" — silently testing a scenario no real keypress produces.
     function dispatchKey(key: string) {
-      fixture.debugElement
-        .query(By.css('.bundle-list'))
-        .nativeElement.dispatchEvent(
-          new KeyboardEvent('keydown', { key, bubbles: true }),
-        );
+      (document.activeElement ?? fixture.debugElement.query(By.css('.bundle-list')).nativeElement).dispatchEvent(
+        new KeyboardEvent('keydown', { key, bubbles: true }),
+      );
       fixture.detectChanges();
     }
 
@@ -899,7 +906,8 @@ describe('BundleListComponent', () => {
     });
 
     it('ArrowUp on the first row stays put instead of wrapping or erroring', () => {
-      focusTargets()[0].nativeElement.focus();
+      focusTargets()[1].nativeElement.focus();
+      dispatchKey('Home'); // establish a verified starting position at row 0
 
       dispatchKey('ArrowUp');
 
@@ -908,7 +916,8 @@ describe('BundleListComponent', () => {
     });
 
     it('ArrowDown on the last row stays put instead of wrapping', () => {
-      focusTargets()[1].nativeElement.focus();
+      focusTargets()[0].nativeElement.focus();
+      dispatchKey('End'); // establish a verified starting position at the last row
 
       dispatchKey('ArrowDown');
 
@@ -932,6 +941,85 @@ describe('BundleListComponent', () => {
 
       const targets = focusTargets();
       expect(document.activeElement).toBe(targets[0].nativeElement);
+    });
+
+    it('syncs the roving tabindex to whichever row focus lands on for any reason, not just arrow keys', () => {
+      // Simulates a user clicking a different row directly (a real click
+      // moves native focus to the clicked control before the click handler
+      // even runs) — without a focus-arrival sync, the roving tabindex
+      // would stay wherever the last arrow-key move left it.
+      focusTargets()[1].nativeElement.focus();
+      dispatchKey('Home'); // arrow-track row 0 first, so a stale index would be observable
+
+      focusTargets()[1].nativeElement.focus(); // then "click" row 1 directly
+      fixture.detectChanges();
+
+      const targets = focusTargets();
+      expect(targets[0].attributes['tabindex']).toBe('-1');
+      expect(targets[1].attributes['tabindex']).toBe('0');
+    });
+
+    it('does not relocate focus when an arrow key originates from a row\'s secondary control (checkbox)', () => {
+      const checkbox = fixture.debugElement.queryAll(
+        By.css('.bundle-list__item-checkbox'),
+      )[0];
+      checkbox.nativeElement.focus();
+
+      dispatchKey('ArrowDown');
+
+      expect(document.activeElement).toBe(checkbox.nativeElement);
+    });
+
+    it('keeps the roving tabindex on the correct bundle when an earlier row is removed', () => {
+      // A third bundle, non-awaitingMedia (plain button row) like bundle-b,
+      // so the fixture is [bundle-a (row 0), bundle-b (row 1, selected),
+      // bundle-c (row 2)] — three rows, so the tracked bundle can sit in
+      // the MIDDLE of the remaining rows after row 0 is removed, which is
+      // what actually exposes position-based (rather than identity-based)
+      // tracking: removing row 0 shifts bundle-c from index 2 to index 1,
+      // landing exactly on bundle-b's OLD index — a position tracker still
+      // pointed at "index 1" would now misattribute tabindex to bundle-b
+      // even though the user's last arrow move was onto bundle-c.
+      const bundleC = {
+        bundleId: 'bundle-c',
+        sessionFile: new SessionFile('c.wav', 3, new Date(), 'audio/wav'),
+        audio: { loaded: true },
+      } as any;
+      store.setState({
+        application: { mode: LoginMode.LOCAL },
+        localMode: {
+          bundles: localBundleAdapter.setAll(
+            [bundleA, bundleB, bundleC],
+            localBundleAdapter.getInitialState(),
+          ),
+          selectedBundleId: 'bundle-b',
+        },
+        pipelineQueue: { queue: [], activeId: null, mode: 'idle', runs: {} },
+      } as unknown as RootState);
+      fixture.detectChanges();
+
+      // Arrow-track row 2 (bundle-c).
+      focusTargets()[1].nativeElement.focus();
+      dispatchKey('ArrowDown');
+
+      // Remove row 0 (bundle-a) — bundle-c shifts from index 2 to index 1.
+      store.setState({
+        application: { mode: LoginMode.LOCAL },
+        localMode: {
+          bundles: localBundleAdapter.setAll(
+            [bundleB, bundleC],
+            localBundleAdapter.getInitialState(),
+          ),
+          selectedBundleId: 'bundle-b',
+        },
+        pipelineQueue: { queue: [], activeId: null, mode: 'idle', runs: {} },
+      } as unknown as RootState);
+      fixture.detectChanges();
+
+      const targets = focusTargets();
+      expect(targets.length).toBe(2);
+      expect(targets[0].attributes['tabindex']).toBe('-1'); // bundle-b, selected but not arrow-tracked
+      expect(targets[1].attributes['tabindex']).toBe('0'); // bundle-c, still the arrow-tracked bundle
     });
   });
 });

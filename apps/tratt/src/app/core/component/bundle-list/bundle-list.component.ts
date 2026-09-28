@@ -162,16 +162,22 @@ export class BundleListComponent {
    * on the focused button already selects it via native button semantics —
    * no extra code needed for that half.
    *
-   * `-1` is the "uninitialized" sentinel: until the user has actually used
-   * arrow keys, the roving tabindex tracks whichever row is currently
-   * selected, so Tabbing into the list lands on the right row first.
+   * Tracked by `bundleId`, not array position: `bundles()` is a positionally
+   * unstable array (removing an earlier row shifts every later row's
+   * index), so a raw index would silently drift onto the wrong bundle after
+   * a removal. `null` is the "uninitialized" sentinel — until the user has
+   * actually moved focus into the list (by any means, not just arrow keys;
+   * see `onRowFocus()`), the roving tabindex tracks whichever row is
+   * currently selected, so Tabbing into the list lands on the right row
+   * first.
    */
-  private focusedRowIndex = signal(-1);
+  private focusedBundleId = signal<string | null>(null);
 
   private effectiveFocusedIndex = computed(() => {
     const rows = this.bundles();
-    const idx = this.focusedRowIndex();
-    if (idx >= 0 && idx < rows.length) {
+    const id = this.focusedBundleId();
+    const idx = id === null ? -1 : rows.findIndex((b) => b.bundleId === id);
+    if (idx >= 0) {
       return idx;
     }
     const selectedIdx = rows.findIndex((b) => b.selected);
@@ -182,8 +188,32 @@ export class BundleListComponent {
     return this.effectiveFocusedIndex() === index ? 0 : -1;
   }
 
+  /**
+   * Keeps the roving tabindex in sync with real DOM focus regardless of how
+   * it got there — a mouse click on a different row, or Tab/Shift+Tab —
+   * not just arrow-key moves. Bound to each `.bundle-list__item-primary`
+   * element's native `(focus)` event (not delegated via bubbling: `focus`
+   * itself doesn't bubble, only `focusin` does, and a direct per-element
+   * binding is simpler than a `focusin` delegate here).
+   */
+  onRowFocus(bundleId: string): void {
+    this.focusedBundleId.set(bundleId);
+  }
+
   onListKeydown(event: KeyboardEvent): void {
-    const count = this.bundles().length;
+    // Only react to a key that actually originated from a row's primary
+    // control — the checkbox and retry button are legitimately reachable
+    // via normal Tab order, and an arrow key pressed there must not hijack
+    // focus away to a different row.
+    if (
+      !(event.target as HTMLElement).classList.contains(
+        'bundle-list__item-primary',
+      )
+    ) {
+      return;
+    }
+    const rows = this.bundles();
+    const count = rows.length;
     if (count === 0) {
       return;
     }
@@ -205,7 +235,7 @@ export class BundleListComponent {
         return;
     }
     event.preventDefault();
-    this.focusedRowIndex.set(next);
+    this.focusedBundleId.set(rows[next].bundleId);
     const targets = (event.currentTarget as HTMLElement).querySelectorAll(
       '.bundle-list__item-primary',
     );

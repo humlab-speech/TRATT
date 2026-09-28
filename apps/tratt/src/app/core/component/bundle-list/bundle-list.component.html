@@ -75,6 +75,7 @@
           class="bundle-list__reattach-input bundle-list__item-primary"
           [attr.tabindex]="rowTabIndex(i)"
           (change)="onReattachFileSelected(bundle.bundleId, $event)"
+          (focus)="onRowFocus(bundle.bundleId)"
         />
       } @else {
         <button
@@ -82,6 +83,7 @@
           class="bundle-list__item-btn bundle-list__item-primary"
           [attr.tabindex]="rowTabIndex(i)"
           (click)="selectBundle(bundle.bundleId)"
+          (focus)="onRowFocus(bundle.bundleId)"
         >
           <!-- `bundle.name` comes from `sessionFile?.name`; sessionFile is a
                required prop on the createBundle action, so this is always
