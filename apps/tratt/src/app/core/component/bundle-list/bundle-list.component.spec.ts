@@ -847,4 +847,91 @@ describe('BundleListComponent', () => {
       );
     });
   });
+
+  describe('keyboard navigation', () => {
+    // Fixture order is [bundle-a (awaitingMedia, reattach input), bundle-b
+    // (selected, click-to-select button)] — deliberately exercises roving
+    // tabindex across BOTH row shapes, not just plain buttons.
+    function focusTargets() {
+      return fixture.debugElement.queryAll(
+        By.css('.bundle-list__item-primary'),
+      );
+    }
+
+    function dispatchKey(key: string) {
+      fixture.debugElement
+        .query(By.css('.bundle-list'))
+        .nativeElement.dispatchEvent(
+          new KeyboardEvent('keydown', { key, bubbles: true }),
+        );
+      fixture.detectChanges();
+    }
+
+    it('defaults the roving tabindex to the currently-selected row', () => {
+      const targets = focusTargets();
+      expect(targets[0].attributes['tabindex']).toBe('-1');
+      expect(targets[1].attributes['tabindex']).toBe('0');
+    });
+
+    it('ArrowUp moves focus to the previous row and updates tabindex, without changing selection', () => {
+      const dispatchSpy = jest.spyOn(store, 'dispatch');
+      focusTargets()[1].nativeElement.focus();
+
+      dispatchKey('ArrowUp');
+
+      const targets = focusTargets();
+      expect(targets[0].attributes['tabindex']).toBe('0');
+      expect(targets[1].attributes['tabindex']).toBe('-1');
+      expect(document.activeElement).toBe(targets[0].nativeElement);
+      expect(dispatchSpy).not.toHaveBeenCalledWith(
+        expect.objectContaining({ type: LoginModeActions.selectBundle.type }),
+      );
+    });
+
+    it('ArrowDown moves focus to the next row', () => {
+      focusTargets()[0].nativeElement.focus();
+
+      dispatchKey('ArrowDown');
+
+      const targets = focusTargets();
+      expect(document.activeElement).toBe(targets[1].nativeElement);
+      expect(targets[1].attributes['tabindex']).toBe('0');
+    });
+
+    it('ArrowUp on the first row stays put instead of wrapping or erroring', () => {
+      focusTargets()[0].nativeElement.focus();
+
+      dispatchKey('ArrowUp');
+
+      const targets = focusTargets();
+      expect(document.activeElement).toBe(targets[0].nativeElement);
+    });
+
+    it('ArrowDown on the last row stays put instead of wrapping', () => {
+      focusTargets()[1].nativeElement.focus();
+
+      dispatchKey('ArrowDown');
+
+      const targets = focusTargets();
+      expect(document.activeElement).toBe(targets[1].nativeElement);
+    });
+
+    it('End moves focus straight to the last row', () => {
+      focusTargets()[0].nativeElement.focus();
+
+      dispatchKey('End');
+
+      const targets = focusTargets();
+      expect(document.activeElement).toBe(targets[1].nativeElement);
+    });
+
+    it('Home moves focus straight to the first row', () => {
+      focusTargets()[1].nativeElement.focus();
+
+      dispatchKey('Home');
+
+      const targets = focusTargets();
+      expect(document.activeElement).toBe(targets[0].nativeElement);
+    });
+  });
 });

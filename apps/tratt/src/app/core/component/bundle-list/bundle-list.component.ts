@@ -151,6 +151,67 @@ export class BundleListComponent {
     this._selected.set(next);
   }
 
+  /**
+   * Roving tabindex over each row's primary focusable control (the
+   * click-to-select button, or the reattach file input for an
+   * `awaitingMedia` row) — `.bundle-list__item-primary` in the template.
+   * Arrow-key traversal is a pure focus move, deliberately never a
+   * `selectBundle` dispatch: `selectBundle` triggers real work
+   * (`AudioService.ensureResident()`/decode) per bundle, so auto-selecting
+   * on every row arrowed past would be wasteful and surprising. Enter/Space
+   * on the focused button already selects it via native button semantics —
+   * no extra code needed for that half.
+   *
+   * `-1` is the "uninitialized" sentinel: until the user has actually used
+   * arrow keys, the roving tabindex tracks whichever row is currently
+   * selected, so Tabbing into the list lands on the right row first.
+   */
+  private focusedRowIndex = signal(-1);
+
+  private effectiveFocusedIndex = computed(() => {
+    const rows = this.bundles();
+    const idx = this.focusedRowIndex();
+    if (idx >= 0 && idx < rows.length) {
+      return idx;
+    }
+    const selectedIdx = rows.findIndex((b) => b.selected);
+    return selectedIdx >= 0 ? selectedIdx : 0;
+  });
+
+  rowTabIndex(index: number): number {
+    return this.effectiveFocusedIndex() === index ? 0 : -1;
+  }
+
+  onListKeydown(event: KeyboardEvent): void {
+    const count = this.bundles().length;
+    if (count === 0) {
+      return;
+    }
+    let next: number;
+    switch (event.key) {
+      case 'ArrowDown':
+        next = Math.min(this.effectiveFocusedIndex() + 1, count - 1);
+        break;
+      case 'ArrowUp':
+        next = Math.max(this.effectiveFocusedIndex() - 1, 0);
+        break;
+      case 'Home':
+        next = 0;
+        break;
+      case 'End':
+        next = count - 1;
+        break;
+      default:
+        return;
+    }
+    event.preventDefault();
+    this.focusedRowIndex.set(next);
+    const targets = (event.currentTarget as HTMLElement).querySelectorAll(
+      '.bundle-list__item-primary',
+    );
+    (targets[next] as HTMLElement | undefined)?.focus();
+  }
+
   onExportCatalogue(): void {
     // Final whole-branch review fix: intersect the selection with the live
     // bundle ids rather than trusting `_selected()` raw — belt-and-braces

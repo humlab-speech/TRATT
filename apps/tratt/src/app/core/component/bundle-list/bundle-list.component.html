@@ -44,8 +44,8 @@
     {{ 'workbench.bundle_list.title' | transloco }}
   </h6>
 }
-<ul class="bundle-list">
-  @for (bundle of bundles(); track bundle.bundleId) {
+<ul class="bundle-list" (keydown)="onListKeydown($event)">
+  @for (bundle of bundles(); track bundle.bundleId; let i = $index) {
     <li class="bundle-list__item" [class.active]="bundle.selected">
       <input
         type="checkbox"
@@ -64,17 +64,23 @@
                fallback needed. -->
           {{ bundle.name }} — {{ 'workbench.bundle_list.reattach' | transloco }}
         </label>
+        <!-- Roving tabindex target for this row (see onListKeydown()): the
+             visually-hidden-but-focusable file input, not the label — a
+             <label for="..."> is never itself tabbable, only the input it
+             references is. -->
         <input
           type="file"
           accept="audio/*"
           [id]="'bundle-reattach-' + bundle.bundleId"
-          class="bundle-list__reattach-input"
+          class="bundle-list__reattach-input bundle-list__item-primary"
+          [attr.tabindex]="rowTabIndex(i)"
           (change)="onReattachFileSelected(bundle.bundleId, $event)"
         />
       } @else {
         <button
           type="button"
-          class="bundle-list__item-btn"
+          class="bundle-list__item-btn bundle-list__item-primary"
+          [attr.tabindex]="rowTabIndex(i)"
           (click)="selectBundle(bundle.bundleId)"
         >
           <!-- `bundle.name` comes from `sessionFile?.name`; sessionFile is a
