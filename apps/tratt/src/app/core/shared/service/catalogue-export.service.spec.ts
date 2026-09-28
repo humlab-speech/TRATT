@@ -199,6 +199,17 @@ describe('CatalogueExportService', () => {
     expect(interviewDirs.size).toBe(2);
   });
 
+  it('surfaces a rejection thrown inside run() as an Observable error, not a silent hang', async () => {
+    const { service, audioService } = setup([makeBundle('bundle-1', 'a.wav')]);
+    audioService.ensureResident.mockImplementationOnce(async () => {
+      throw new Error('boom');
+    });
+
+    await expect(
+      lastValueFrom(service.exportBundles(['bundle-1'], ['AnnotJSON'])),
+    ).rejects.toThrow('boom');
+  });
+
   it('builds a manifest.json entry with model/language from the queue config and no translation stage', async () => {
     const { service } = setup([makeBundle('bundle-1', 'a.wav')]);
 

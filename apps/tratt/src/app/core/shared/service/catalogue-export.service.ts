@@ -61,7 +61,9 @@ export class CatalogueExportService {
     converterNames: string[],
   ): Observable<CatalogueExportProgress> {
     return new Observable<CatalogueExportProgress>((subscriber) => {
-      void this.run(bundleIds, converterNames, subscriber);
+      this.run(bundleIds, converterNames, subscriber).catch((err) =>
+        subscriber.error(err),
+      );
     });
   }
 
