@@ -242,3 +242,50 @@ describe('TrattDatabase.listLocalBundleIds()', () => {
     db.close();
   });
 });
+
+describe('TrattDatabase.deleteLocalBundles()', () => {
+  const DB_NAME = 'tratt-database-delete-local-bundles-test';
+
+  afterEach(async () => {
+    await Dexie.delete(DB_NAME);
+  });
+
+  it('deletes every row for the given bundle ids and leaves the rest untouched', async () => {
+    const db = new TrattDatabase(DB_NAME);
+    await db.init();
+
+    await db.bundles.bulkPut([
+      { bundleId: 'bundle-1', name: 'options', value: { a: 1 } },
+      { bundleId: 'bundle-1', name: 'annotation', value: { a: 2 } },
+      { bundleId: 'bundle-2', name: 'options', value: { b: 1 } },
+      { bundleId: 'bundle-3', name: 'options', value: { c: 1 } },
+    ]);
+
+    await db.deleteLocalBundles(['bundle-1', 'bundle-2']);
+
+    const remainingIds = await db.listLocalBundleIds();
+    expect(remainingIds).toEqual(['bundle-3']);
+    expect(await db.bundles.get(['bundle-1', 'options'])).toBeUndefined();
+    expect(await db.bundles.get(['bundle-1', 'annotation'])).toBeUndefined();
+    expect(await db.bundles.get(['bundle-2', 'options'])).toBeUndefined();
+    expect(await db.bundles.get(['bundle-3', 'options'])).toBeDefined();
+
+    db.close();
+  });
+
+  it('is a no-op when none of the given ids are present', async () => {
+    const db = new TrattDatabase(DB_NAME);
+    await db.init();
+
+    await db.bundles.bulkPut([
+      { bundleId: 'bundle-1', name: 'options', value: { a: 1 } },
+    ]);
+
+    await expect(
+      db.deleteLocalBundles(['does-not-exist']),
+    ).resolves.toBeUndefined();
+    expect(await db.bundles.get(['bundle-1', 'options'])).toBeDefined();
+
+    db.close();
+  });
+});

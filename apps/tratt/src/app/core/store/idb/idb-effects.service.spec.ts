@@ -176,6 +176,83 @@ describe('IDBEffects.loadOptions$ (IDB open failure)', () => {
   });
 });
 
+// Final whole-branch review fix: LoginModeActions.removeBundles only ever
+// touched the NgRx store — nothing deleted the corresponding Dexie rows, so
+// a "removed" bundle resurrected on the next boot's listLocalBundleIds()
+// walk (see bundle-restore.effects.ts). removeBundles$ is the durability
+// counterpart.
+describe('IDBEffects.removeBundles$', () => {
+  let effects: IDBEffects;
+  let actions$: ReplaySubject<unknown>;
+  let idbService: { deleteLocalBundles: jest.Mock };
+
+  beforeEach(() => {
+    actions$ = new ReplaySubject(1);
+    idbService = {
+      deleteLocalBundles: jest.fn().mockReturnValue(of(undefined)),
+    };
+
+    TestBed.configureTestingModule({
+      providers: [
+        IDBEffects,
+        provideMockActions(() => actions$),
+        provideMockStore({ initialState: {} }),
+        { provide: IDBService, useValue: idbService },
+        { provide: SessionStorageService, useValue: {} },
+        { provide: RoutingService, useValue: {} },
+        { provide: AudioService, useValue: { audioManager: undefined } },
+      ],
+    });
+
+    effects = TestBed.inject(IDBEffects);
+  });
+
+  it('calls idbService.deleteLocalBundles with the removed bundle ids when removeBundles is dispatched', (done) => {
+    const subscription = effects.removeBundles$.subscribe({
+      next: () => {
+        expect(idbService.deleteLocalBundles).toHaveBeenCalledWith([
+          'bundle-2',
+          'bundle-3',
+        ]);
+        subscription.unsubscribe();
+        done();
+      },
+    });
+
+    actions$.next(
+      LoginModeActions.removeBundles({
+        mode: LoginMode.LOCAL,
+        bundleIds: ['bundle-2', 'bundle-3'],
+      }),
+    );
+  });
+
+  it('does not throw and still resolves when the IDB delete fails', (done) => {
+    idbService.deleteLocalBundles.mockReturnValue(
+      throwError(() => new Error('simulated delete failure')),
+    );
+    const consoleErrorSpy = jest
+      .spyOn(console, 'error')
+      .mockImplementation(() => undefined);
+
+    const subscription = effects.removeBundles$.subscribe({
+      next: () => {
+        expect(consoleErrorSpy).toHaveBeenCalled();
+        consoleErrorSpy.mockRestore();
+        subscription.unsubscribe();
+        done();
+      },
+    });
+
+    actions$.next(
+      LoginModeActions.removeBundles({
+        mode: LoginMode.LOCAL,
+        bundleIds: ['bundle-2'],
+      }),
+    );
+  });
+});
+
 describe('IDBEffects.getModeStateFromString', () => {
   let effects: IDBEffects;
   let actions$: ReplaySubject<unknown>;

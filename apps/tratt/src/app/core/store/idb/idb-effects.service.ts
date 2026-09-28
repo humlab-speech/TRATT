@@ -1005,6 +1005,32 @@ export class IDBEffects {
     ),
   );
 
+  /**
+   * Final whole-branch review fix: `LoginModeActions.removeBundles` only
+   * ever touched the NgRx store — nothing deleted the corresponding rows
+   * from the Dexie `bundles` table, so a "removed" bundle resurrected on
+   * the next reload via `BundleRestoreEffects`'s `listLocalBundleIds()`
+   * walk. `{ dispatch: false }`: `removeBundles` has no success/fail
+   * action-group siblings to map onto, and a failed IDB delete here must
+   * not disturb the store — the bundle is already gone from the UI either
+   * way, so this is best-effort cleanup, logged on failure.
+   */
+  removeBundles$ = createEffect(
+    () =>
+      this.actions$.pipe(
+        ofType(LoginModeActions.removeBundles),
+        exhaustMap((action) =>
+          this.idbService.deleteLocalBundles(action.bundleIds).pipe(
+            catchError((error) => {
+              console.error('Failed to delete bundles from IndexedDB', error);
+              return of(undefined);
+            }),
+          ),
+        ),
+      ),
+    { dispatch: false },
+  );
+
   clearAllData$ = createEffect(
     () =>
       this.actions$.pipe(

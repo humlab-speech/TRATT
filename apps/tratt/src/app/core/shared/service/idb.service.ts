@@ -137,6 +137,16 @@ export class IDBService {
   }
 
   /**
+   * Deletes every persisted row for the given LOCAL-mode bundle ids — the
+   * IDB-durability counterpart to `LoginModeActions.removeBundles`. Without
+   * this, a bundle removed from the store resurrects on the next boot via
+   * `BundleRestoreEffects`'s `listLocalBundleIds()` walk.
+   */
+  public deleteLocalBundles(bundleIds: string[]): Observable<void> {
+    return from(this.database.deleteLocalBundles(bundleIds));
+  }
+
+  /**
    * load annotation
    */
   public loadAnnotation(mode: LoginMode, bundleId?: string) {

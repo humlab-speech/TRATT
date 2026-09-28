@@ -428,6 +428,18 @@ export class TrattDatabase extends Dexie {
     return Array.from(new Set(keys.map((k) => k[0])));
   }
 
+  /**
+   * Deletes every row belonging to the given bundle ids — the full
+   * counterpart to listLocalBundleIds()/createBundle's persistence: a
+   * bundle removed from the store must not resurrect on the next boot's
+   * listLocalBundleIds() walk.
+   */
+  public async deleteLocalBundles(bundleIds: string[]): Promise<void> {
+    await this.bundles
+      .filter((entry) => bundleIds.includes(entry.bundleId))
+      .delete();
+  }
+
   private async backupCurrentDatabase() {
     await this.open();
     const backup = await this.export({ prettyJson: true });
