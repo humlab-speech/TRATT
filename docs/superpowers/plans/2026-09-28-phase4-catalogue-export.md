@@ -741,7 +741,7 @@ git commit -m "feat(workbench): add CatalogueExportService for multi-bundle zip 
 
 **Interfaces:**
 - Consumes: `LoginModeActions.removeBundles` (Task 1).
-- Produces: `BundleListComponent.selectedForBulk: Signal<Set<string>>` (or equivalent readable selection state) and `(exportSelected)` output emitting `string[]` (the checked bundle ids, or all bundle ids if none are checked) — consumed by `WorkbenchComponent`/wherever `CatalogueExportModalComponent` is opened in Task 4.
+- Produces: a private selection-state signal (`_selected: Signal<Set<string>>` in the reference code below) plus `toggleSelected()`/`toggleSelectAll()`/`onRemoveSelected()`/`onClearFinished()` methods. No `@Output()` is needed: Task 4 adds `CatalogueExportModalComponent`'s opener as a method directly on this same `BundleListComponent` (see Task 4 Step 8), reading `_selected()` in-component rather than through a cross-component event.
 
 - [ ] **Step 1: Write the failing component tests**
 
