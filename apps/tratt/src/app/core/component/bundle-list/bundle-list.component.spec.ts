@@ -695,9 +695,7 @@ describe('BundleListComponent', () => {
       );
       rowCheckboxes[0].nativeElement.click(); // checks bundle-a
       fixture.detectChanges();
-      expect(fixture.componentInstance.isSelected(bundleA.bundleId)).toBe(
-        true,
-      );
+      expect(fixture.componentInstance.isSelected(bundleA.bundleId)).toBe(true);
 
       fixture.debugElement
         .query(By.css('.bundle-list__clear-finished'))
@@ -734,9 +732,7 @@ describe('BundleListComponent', () => {
       } as unknown as RootState);
       fixture.detectChanges();
 
-      const ids = fixture.componentInstance
-        .bundles()
-        .map((b) => b.bundleId);
+      const ids = fixture.componentInstance.bundles().map((b) => b.bundleId);
       expect(ids).toEqual(['bundle-b']);
 
       const rows = fixture.debugElement.queryAll(By.css('.bundle-list__item'));
@@ -868,9 +864,10 @@ describe('BundleListComponent', () => {
     // that guards on "did this key originate from a row's primary
     // control" — silently testing a scenario no real keypress produces.
     function dispatchKey(key: string) {
-      (document.activeElement ?? fixture.debugElement.query(By.css('.bundle-list')).nativeElement).dispatchEvent(
-        new KeyboardEvent('keydown', { key, bubbles: true }),
-      );
+      (
+        document.activeElement ??
+        fixture.debugElement.query(By.css('.bundle-list')).nativeElement
+      ).dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true }));
       fixture.detectChanges();
     }
 
@@ -959,7 +956,7 @@ describe('BundleListComponent', () => {
       expect(targets[1].attributes['tabindex']).toBe('0');
     });
 
-    it('does not relocate focus when an arrow key originates from a row\'s secondary control (checkbox)', () => {
+    it("does not relocate focus when an arrow key originates from a row's secondary control (checkbox)", () => {
       const checkbox = fixture.debugElement.queryAll(
         By.css('.bundle-list__item-checkbox'),
       )[0];
