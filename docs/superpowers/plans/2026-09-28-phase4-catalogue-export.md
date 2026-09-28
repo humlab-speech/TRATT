@@ -278,6 +278,7 @@ import { RootState } from '../../store/index';
 import { localBundleAdapter } from '../../store/login-mode/annotation/local-bundle-collection';
 import { TrattAnnotation } from '@tratt/annotation';
 import { SessionFile } from '../../obj/SessionFile';
+import { AppInfo } from '../../../app.info';
 
 function makeBundle(bundleId: string, fileName: string) {
   return {
@@ -395,6 +396,31 @@ describe('CatalogueExportService', () => {
     const entries = Object.keys(unzipSync(last.archive!));
     expect(entries.some((e) => e.startsWith('bundles/b/'))).toBe(true);
     expect(entries.some((e) => e.startsWith('bundles/a/'))).toBe(false);
+  });
+
+  it('records a warning and continues when one converter errors on one bundle, but still writes files from the other requested converter', async () => {
+    const { service } = setup([makeBundle('bundle-1', 'a.wav')]);
+    const annotJsonConverter = AppInfo.converters.find(
+      (c) => c.name === 'AnnotJSON',
+    )!;
+    const exportSpy = jest
+      .spyOn(annotJsonConverter, 'export')
+      .mockReturnValueOnce({ error: 'boom' });
+
+    const last = await lastValueFrom(
+      service.exportBundles(['bundle-1'], ['AnnotJSON', 'SRT']),
+    );
+
+    expect(last.warnings.some((w) => w.includes('AnnotJSON'))).toBe(true);
+    const entries = Object.keys(unzipSync(last.archive!));
+    expect(entries.some((e) => e.startsWith('bundles/a/') && e.endsWith('.srt'))).toBe(
+      true,
+    );
+    expect(
+      entries.some((e) => e.startsWith('bundles/a/') && e.endsWith('.json')),
+    ).toBe(false);
+
+    exportSpy.mockRestore();
   });
 
   it('deduplicates two bundles that share a basename', async () => {
@@ -558,7 +584,7 @@ export class CatalogueExportService {
         : undefined;
       if (!manager) {
         warnings.push(
-          `Skipped ${entity.sessionFile?.name ?? bundleId}: audio could not be made resident.`,
+          `Skipped ${bundleId} (${entity.sessionFile?.name ?? 'unknown file'}): audio could not be made resident.`,
         );
         subscriber.next({
           completedBundles: i + 1,
