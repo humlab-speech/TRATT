@@ -1,4 +1,6 @@
 import { describe, expect, it } from '@jest/globals';
+import { LoginMode } from '../index';
+import { LoginModeActions } from '../login-mode/login-mode.actions';
 import { PipelineQueueState } from './index';
 import { PipelineQueueActions } from './pipeline-queue.actions';
 import { initialState, reducer } from './pipeline-queue.reducer';
@@ -306,6 +308,66 @@ describe('pipeline-queue.reducer', () => {
       expect(state.queue).toEqual([]);
       expect(state.activeId).toBeNull();
       expect(state.mode).toBe('idle');
+    });
+  });
+
+  // Final whole-branch review fix: nothing dropped a removed bundle's
+  // stale `runs` entry, so a phantom/stale row could show an outdated
+  // status badge after removal.
+  describe('LoginModeActions.removeBundles', () => {
+    it('drops runs entries for the removed bundle ids only', () => {
+      const state = reducer(
+        seed({
+          runs: {
+            a: { state: 'done' },
+            b: { state: 'failed', error: { kind: 'oom', message: 'boom' } },
+            c: { state: 'queued' },
+          },
+        }),
+        LoginModeActions.removeBundles({
+          mode: LoginMode.LOCAL,
+          bundleIds: ['a', 'b'],
+        }),
+      );
+      expect(state.runs['a']).toBeUndefined();
+      expect(state.runs['b']).toBeUndefined();
+      expect(state.runs['c']).toEqual({ state: 'queued' });
+    });
+
+    it('does not touch queue/activeId/mode — removing a mid-flight bundle is out of scope', () => {
+      const before = seed({
+        queue: ['b'],
+        activeId: 'a',
+        mode: 'running',
+        runs: {
+          a: { state: 'running', stage: 'asr' },
+          b: { state: 'queued' },
+        },
+      });
+      const state = reducer(
+        before,
+        LoginModeActions.removeBundles({
+          mode: LoginMode.LOCAL,
+          bundleIds: ['a'],
+        }),
+      );
+      expect(state.queue).toEqual(before.queue);
+      expect(state.activeId).toBe(before.activeId);
+      expect(state.mode).toBe(before.mode);
+      expect(state.runs['a']).toBeUndefined();
+      expect(state.runs['b']).toEqual({ state: 'queued' });
+    });
+
+    it('is a no-op (returns the same state reference) when none of the removed ids have a runs entry', () => {
+      const before = seed({ runs: { c: { state: 'done' } } });
+      const state = reducer(
+        before,
+        LoginModeActions.removeBundles({
+          mode: LoginMode.LOCAL,
+          bundleIds: ['does-not-exist'],
+        }),
+      );
+      expect(state).toBe(before);
     });
   });
 });

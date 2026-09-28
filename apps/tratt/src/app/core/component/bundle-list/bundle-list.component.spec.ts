@@ -26,6 +26,7 @@ import { MockStore, provideMockStore } from '@ngrx/store/testing';
 import { AudioManager } from '@tratt/web-media';
 import { of } from 'rxjs';
 import { BundleReattachMismatchAnswer } from '../../modals/bundle-reattach-mismatch-modal/bundle-reattach-mismatch-modal.component';
+import { CatalogueExportModalComponent } from '../../modals/catalogue-export-modal/catalogue-export-modal.component';
 import { TrattModalService } from '../../modals/tratt-modal.service';
 import { SessionFile } from '../../obj/SessionFile';
 import { AudioService } from '../../shared/service/audio.service';
@@ -671,6 +672,178 @@ describe('BundleListComponent', () => {
         .nativeElement.click();
       expect(dispatchSpy).not.toHaveBeenCalledWith(
         expect.objectContaining({ type: LoginModeActions.removeBundles.type }),
+      );
+    });
+
+    // Finding #3 (final whole-branch review fix wave): onClearFinished()
+    // used to leave `_selected` holding the now-dead id, which could then
+    // leak into onExportCatalogue()'s "no selection = all" fallback.
+    it('clear finished also clears the selection', () => {
+      store.setState({
+        ...initialState,
+        pipelineQueue: {
+          queue: [],
+          activeId: null,
+          mode: 'idle',
+          runs: { [bundleA.bundleId]: { state: 'done' } },
+        },
+      } as unknown as RootState);
+      fixture.detectChanges();
+
+      const rowCheckboxes = fixture.debugElement.queryAll(
+        By.css('.bundle-list__item-checkbox'),
+      );
+      rowCheckboxes[0].nativeElement.click(); // checks bundle-a
+      fixture.detectChanges();
+      expect(fixture.componentInstance.isSelected(bundleA.bundleId)).toBe(
+        true,
+      );
+
+      fixture.debugElement
+        .query(By.css('.bundle-list__clear-finished'))
+        .nativeElement.click();
+
+      expect(fixture.componentInstance.isSelected(bundleA.bundleId)).toBe(
+        false,
+      );
+    });
+  });
+
+  // Finding #2 (final whole-branch review fix wave): BundleListComponent.
+  // bundles() previously had no name filter, so once every bundle was
+  // removed and the reducer re-seeded one nameless DEFAULT_BUNDLE_ID
+  // sentinel (the "collection never empty" invariant), this list still
+  // rendered a phantom row with an empty name.
+  describe('nameless sentinel filtering', () => {
+    it('excludes a bundle with an undefined sessionFile name from bundles()', () => {
+      const nameless = {
+        bundleId: 'bundle-1',
+        sessionFile: undefined,
+        audio: { loaded: false },
+      } as any;
+      store.setState({
+        application: { mode: LoginMode.LOCAL },
+        localMode: {
+          bundles: localBundleAdapter.setAll(
+            [nameless, bundleB],
+            localBundleAdapter.getInitialState(),
+          ),
+          selectedBundleId: 'bundle-b',
+        },
+        pipelineQueue: { queue: [], activeId: null, mode: 'idle', runs: {} },
+      } as unknown as RootState);
+      fixture.detectChanges();
+
+      const ids = fixture.componentInstance
+        .bundles()
+        .map((b) => b.bundleId);
+      expect(ids).toEqual(['bundle-b']);
+
+      const rows = fixture.debugElement.queryAll(By.css('.bundle-list__item'));
+      expect(rows.length).toBe(1);
+    });
+  });
+
+  // Finding #3 (final whole-branch review fix wave): the exact reported
+  // sequence — check a bundle, it becomes 'done', clear finished, then
+  // export catalogue with nothing visibly checked. Before the fix, the
+  // stale `_selected` id could leak into the export even after removal;
+  // this exercises the full round trip through onClearFinished() and
+  // onExportCatalogue() together.
+  describe("Finding #3: clear-finished doesn't leak a stale id into export", () => {
+    it('opens the export modal with only the live remaining bundle ids and wasAllBundlesDefault true', () => {
+      store.setState({
+        ...initialState,
+        pipelineQueue: {
+          queue: [],
+          activeId: null,
+          mode: 'idle',
+          runs: { [bundleA.bundleId]: { state: 'done' } },
+        },
+      } as unknown as RootState);
+      fixture.detectChanges();
+
+      const rowCheckboxes = fixture.debugElement.queryAll(
+        By.css('.bundle-list__item-checkbox'),
+      );
+      rowCheckboxes[0].nativeElement.click(); // checks bundle-a (the finished one)
+      fixture.detectChanges();
+
+      fixture.debugElement
+        .query(By.css('.bundle-list__clear-finished'))
+        .nativeElement.click();
+
+      // Reflects what the real removeBundles reducer would have done —
+      // this spec drives the component against a mocked store, so the
+      // removal itself is simulated here.
+      store.setState({
+        application: { mode: LoginMode.LOCAL },
+        localMode: {
+          bundles: localBundleAdapter.setAll(
+            [bundleB],
+            localBundleAdapter.getInitialState(),
+          ),
+          selectedBundleId: 'bundle-b',
+        },
+        pipelineQueue: { queue: [], activeId: null, mode: 'idle', runs: {} },
+      } as unknown as RootState);
+      fixture.detectChanges();
+
+      fixture.debugElement
+        .query(By.css('.bundle-list__export-catalogue'))
+        .nativeElement.click();
+
+      expect(modalService.openModal).toHaveBeenCalledWith(
+        CatalogueExportModalComponent,
+        CatalogueExportModalComponent.options,
+        { bundleIds: [bundleB.bundleId], wasAllBundlesDefault: true },
+      );
+    });
+
+    it('does not fall back to "all" when a live bundle is still genuinely checked after clear-finished', () => {
+      store.setState({
+        ...initialState,
+        pipelineQueue: {
+          queue: [],
+          activeId: null,
+          mode: 'idle',
+          runs: { [bundleA.bundleId]: { state: 'done' } },
+        },
+      } as unknown as RootState);
+      fixture.detectChanges();
+
+      const rowCheckboxes = fixture.debugElement.queryAll(
+        By.css('.bundle-list__item-checkbox'),
+      );
+      rowCheckboxes[0].nativeElement.click(); // bundle-a (finished)
+      rowCheckboxes[1].nativeElement.click(); // bundle-b (still live)
+      fixture.detectChanges();
+
+      fixture.debugElement
+        .query(By.css('.bundle-list__clear-finished'))
+        .nativeElement.click();
+
+      store.setState({
+        application: { mode: LoginMode.LOCAL },
+        localMode: {
+          bundles: localBundleAdapter.setAll(
+            [bundleB],
+            localBundleAdapter.getInitialState(),
+          ),
+          selectedBundleId: 'bundle-b',
+        },
+        pipelineQueue: { queue: [], activeId: null, mode: 'idle', runs: {} },
+      } as unknown as RootState);
+      fixture.detectChanges();
+
+      fixture.debugElement
+        .query(By.css('.bundle-list__export-catalogue'))
+        .nativeElement.click();
+
+      expect(modalService.openModal).toHaveBeenCalledWith(
+        CatalogueExportModalComponent,
+        CatalogueExportModalComponent.options,
+        { bundleIds: [bundleB.bundleId], wasAllBundlesDefault: false },
       );
     });
   });

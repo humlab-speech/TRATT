@@ -66,14 +66,23 @@ export class BundleListComponent {
   // Step 3b adds one more merge: each row's pipeline run status (absent
   // entry ⇒ idle, via runStatusOf) so a row can show queued/running/done/
   // failed/interrupted and offer a retry.
+  //
+  // Final whole-branch review fix: filtered to exclude the nameless
+  // DEFAULT_BUNDLE_ID sentinel the reducer re-seeds once every bundle has
+  // been removed (`b.name !== undefined` — same predicate
+  // WorkbenchComponent.hasAnyBundles() already uses for its own visibility
+  // gate). Without this, removing every bundle left one phantom row here
+  // with an empty name.
   bundles = computed(() => {
     const runs = this.runStatuses();
-    return this.bundleSummaries().map((b) => ({
-      ...b,
-      awaitingMedia:
-        b.awaitingMedia && !this.audioService.hasResident(b.bundleId),
-      run: runStatusOf(runs, b.bundleId),
-    }));
+    return this.bundleSummaries()
+      .filter((b) => b.name !== undefined)
+      .map((b) => ({
+        ...b,
+        awaitingMedia:
+          b.awaitingMedia && !this.audioService.hasResident(b.bundleId),
+        run: runStatusOf(runs, b.bundleId),
+      }));
   });
 
   private _selected = signal<Set<string>>(new Set());
@@ -127,18 +136,39 @@ export class BundleListComponent {
     this.store.dispatch(
       LoginModeActions.removeBundles({ mode: LoginMode.LOCAL, bundleIds: ids }),
     );
+    // Final whole-branch review fix: unlike onRemoveSelected(), this used to
+    // leave `_selected` holding ids that no longer exist — a stale id could
+    // then leak into onExportCatalogue()'s "no selection = all" fallback
+    // logic, silently exporting a dead bundle. Surgically drop just the
+    // ids that were actually removed here (rather than clearing the whole
+    // selection like onRemoveSelected() does) so a bundle the user still
+    // has genuinely checked stays checked.
+    const removed = new Set(ids);
+    const next = new Set(this._selected());
+    for (const id of removed) {
+      next.delete(id);
+    }
+    this._selected.set(next);
   }
 
   onExportCatalogue(): void {
-    const ids =
-      this._selected().size > 0
-        ? [...this._selected()]
-        : this.bundles().map((b) => b.bundleId);
+    // Final whole-branch review fix: intersect the selection with the live
+    // bundle ids rather than trusting `_selected()` raw — belt-and-braces
+    // alongside onClearFinished() now clearing it, so a dead id can never
+    // leak into an export even if `_selected` goes stale again for some
+    // other reason in the future.
+    const liveIds = new Set(this.bundles().map((b) => b.bundleId));
+    const selected = [...this._selected()].filter((id) => liveIds.has(id));
+    const wasAllBundlesDefault = selected.length === 0;
+    const ids = wasAllBundlesDefault
+      ? this.bundles().map((b) => b.bundleId)
+      : selected;
     this.modService.openModal(
       CatalogueExportModalComponent,
       CatalogueExportModalComponent.options,
       {
         bundleIds: ids,
+        wasAllBundlesDefault,
       },
     );
   }

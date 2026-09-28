@@ -1,5 +1,6 @@
 import { Dictionary } from '@ngrx/entity';
 import { createReducer, on } from '@ngrx/store';
+import { LoginModeActions } from '../login-mode/login-mode.actions';
 import { BundleRunStatus, PipelineQueueState } from './index';
 import { PipelineQueueActions } from './pipeline-queue.actions';
 
@@ -131,6 +132,30 @@ export const reducer = createReducer(
             : { state: entry.state };
       }
       return { ...state, runs };
+    },
+  ),
+
+  /**
+   * Final whole-branch review fix: a removed bundle's stale `runs` entry
+   * otherwise survives removal, and a phantom/stale row could show an
+   * outdated status badge. Scoped narrowly to the `runs` dictionary only —
+   * `queue`/`activeId` are left untouched; removing a bundle that's
+   * currently mid-flight (queued/running) is a separate, harder edge case
+   * outside this fix's scope.
+   */
+  on(
+    LoginModeActions.removeBundles,
+    (state, { bundleIds }): PipelineQueueState => {
+      const removed = new Set(bundleIds);
+      const runs: Dictionary<BundleRunStatus> = { ...state.runs };
+      let changed = false;
+      for (const bundleId of removed) {
+        if (bundleId in runs) {
+          delete runs[bundleId];
+          changed = true;
+        }
+      }
+      return changed ? { ...state, runs } : state;
     },
   ),
 );
