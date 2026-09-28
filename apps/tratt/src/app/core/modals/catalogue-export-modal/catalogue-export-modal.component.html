@@ -3,12 +3,21 @@
   <button type="button" class="btn-close" (click)="close()"></button>
 </div>
 <div class="modal-body">
-  <p>
-    {{
-      'workbench.catalogue_export.bundles_label'
-        | transloco: { count: bundleIds.length }
-    }}
-  </p>
+  @if (wasAllBundlesDefault) {
+    <p class="catalogue-export__all-hint">
+      {{
+        'workbench.catalogue_export.all_bundles_hint'
+          | transloco: { count: bundleIds.length }
+      }}
+    </p>
+  } @else {
+    <p>
+      {{
+        'workbench.catalogue_export.bundles_label'
+          | transloco: { count: bundleIds.length }
+      }}
+    </p>
+  }
 
   <fieldset class="catalogue-export__formats">
     <legend>{{ 'workbench.catalogue_export.formats_label' | transloco }}</legend>
@@ -25,13 +34,22 @@
   </fieldset>
 
   @if (progress()) {
-    <p class="catalogue-export__progress">
-      {{
-        'workbench.catalogue_export.progress'
-          | transloco
-            : { current: progress()!.completed, total: progress()!.total }
-      }}
-    </p>
+    @if (exportDone()) {
+      <p class="catalogue-export__done">
+        {{
+          'workbench.catalogue_export.done'
+            | transloco: { count: progress()!.total }
+        }}
+      </p>
+    } @else {
+      <p class="catalogue-export__progress">
+        {{
+          'workbench.catalogue_export.progress'
+            | transloco
+              : { current: progress()!.completed, total: progress()!.total }
+        }}
+      </p>
+    }
   }
 
   @if (warnings().length > 0) {
@@ -52,6 +70,7 @@
   <button
     type="button"
     class="btn btn-primary catalogue-export__export"
+    [disabled]="checkedConverters().size === 0 || isExporting()"
     (click)="onExport()"
   >
     {{ 'workbench.catalogue_export.export' | transloco }}
