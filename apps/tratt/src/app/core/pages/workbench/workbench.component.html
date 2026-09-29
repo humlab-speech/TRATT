@@ -123,6 +123,23 @@
           }}</span>
         </div>
       }
+      <div class="workbench__editor-tabs" role="tablist">
+        @for (entry of editorComponentsList; track entry.name) {
+          <button
+            type="button"
+            class="workbench__editor-tab"
+            role="tab"
+            [class.workbench__editor-tab--active]="
+              activeEditorName() === entry.name
+            "
+            [attr.aria-selected]="activeEditorName() === entry.name"
+            (click)="changeEditor(entry.name)"
+          >
+            <i [class]="entry.icon"></i>
+            {{ entry.translate | transloco }}
+          </button>
+        }
+      </div>
       <tratt-fastbar
         (overviewbtnclicked)="openOverview()"
         (shortcutbtnclicked)="openShortcutsModal()"

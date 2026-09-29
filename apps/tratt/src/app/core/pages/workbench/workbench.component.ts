@@ -104,6 +104,16 @@ export class WorkbenchComponent
   sessionStarting = false;
   sessionReady = false;
 
+  // The currently-mounted editor's name, for the editor-switcher tab row's
+  // highlight — set by changeEditor() on every call, whether that call came
+  // from a manual tab click or from mountDefaultEditor()'s auto-mount at
+  // session start.
+  activeEditorName = signal<string | undefined>(undefined);
+
+  // Template-readable handle on the module-level editorComponents constant
+  // — Angular templates can't reference an import directly.
+  readonly editorComponentsList = editorComponents;
+
   showCommentSection = false;
   modalOverview?: NgbModalRef;
   modalShortcutsDialogue?: NgbModalRef;
@@ -387,12 +397,6 @@ export class WorkbenchComponent
     this.activeTab = 'upload';
   }
 
-  // Unlike TranscriptionComponent.changeEditor(), this does NOT write
-  // `appStorage.interface` / `this.interface` — it's currently safe only
-  // because `mountDefaultEditor()` is the sole caller and already writes
-  // `appStorage.interface` before invoking this. If an editor-switcher UI
-  // ever calls `changeEditor()` directly, editor selection will silently
-  // stop persisting; that bookkeeping needs restoring first.
   changeEditor(name: string): void {
     let comp: Type<TRATTEditor> | undefined;
 
@@ -420,6 +424,9 @@ export class WorkbenchComponent
     const viewContainerRef = this.showEditor.viewContainerRef;
     viewContainerRef.clear();
     viewContainerRef.createComponent<TRATTEditor>(comp);
+
+    this.appStorage.interface = name;
+    this.activeEditorName.set(name);
   }
 
   openOverview() {

@@ -442,6 +442,118 @@ describe('WorkbenchComponent', () => {
     expect(createComponentSpy).toHaveBeenCalled();
   });
 
+  describe('changeEditor persistence', () => {
+    beforeEach(() => {
+      component.showEditor = {
+        viewContainerRef: { clear: jest.fn(), createComponent: jest.fn() },
+      } as any;
+    });
+
+    it('writes the selected editor name to appStorage.interface', () => {
+      component.appStorage = { interface: undefined } as any;
+
+      component.changeEditor('Linear Editor');
+
+      expect(component.appStorage.interface).toBe('Linear Editor');
+    });
+
+    it('updates activeEditorName so the tab row can highlight it', () => {
+      component.appStorage = { interface: undefined } as any;
+
+      component.changeEditor('Linear Editor');
+
+      expect(component.activeEditorName()).toBe('Linear Editor');
+    });
+
+    it('disposes the previously-mounted editor before mounting the next one, on every call — not just the first', () => {
+      const clearSpy = jest.fn();
+      const createSpy = jest.fn();
+      component.showEditor = {
+        viewContainerRef: { clear: clearSpy, createComponent: createSpy },
+      } as any;
+      component.appStorage = { interface: undefined } as any;
+
+      component.changeEditor('Dictaphone Editor');
+      component.changeEditor('Linear Editor');
+      component.changeEditor('2D-Editor');
+
+      expect(clearSpy).toHaveBeenCalledTimes(3);
+      expect(createSpy).toHaveBeenCalledTimes(3);
+    });
+  });
+
+  describe('editor switcher tab row', () => {
+    it('renders one tab per editorComponents entry, inside the sessionReady right pane', () => {
+      component.showEditor = {
+        viewContainerRef: { clear: jest.fn(), createComponent: jest.fn() },
+      } as any;
+      component.appStorage = { interface: undefined } as any;
+      fixture.detectChanges();
+      loading$.next({ status: LoadingStatus.FINISHED });
+      fixture.detectChanges();
+
+      const tabs = fixture.debugElement.queryAll(
+        By.css('.workbench__editor-tab'),
+      );
+      expect(tabs.length).toBe(editorComponents.length);
+    });
+
+    it("clicking a tab calls changeEditor with that entry's name", () => {
+      component.showEditor = {
+        viewContainerRef: { clear: jest.fn(), createComponent: jest.fn() },
+      } as any;
+      component.appStorage = { interface: undefined } as any;
+      const changeEditorSpy = jest.spyOn(component, 'changeEditor');
+      fixture.detectChanges();
+      loading$.next({ status: LoadingStatus.FINISHED });
+      fixture.detectChanges();
+
+      const tabs = fixture.debugElement.queryAll(
+        By.css('.workbench__editor-tab'),
+      );
+      tabs[1].nativeElement.click();
+
+      expect(changeEditorSpy).toHaveBeenCalledWith(editorComponents[1].name);
+    });
+
+    it('highlights the tab matching the auto-mounted default editor, not only after a manual click', () => {
+      // Swap editorComponents[2]'s real editor for the lightweight fake
+      // (same technique as "resolves the real showEditor ViewChild..."
+      // above) so mountDefaultEditor()'s real auto-mount path — real
+      // ViewChild, real createComponent() — can run without a real
+      // editor's heavyweight audio dependencies.
+      const realEditor = editorComponents[2].editor;
+      (editorComponents[2] as { editor: unknown }).editor = FakeEditorComponent;
+      component.appStorage = { interface: undefined } as any;
+      (component as any).settingsService = {
+        projectsettings: { interfaces: [editorComponents[2].name] },
+        isTheme: jest.fn().mockReturnValue(false),
+      };
+
+      try {
+        fixture.detectChanges();
+        loading$.next({ status: LoadingStatus.FINISHED });
+        fixture.detectChanges();
+
+        // mountDefaultEditor() (Task 5 of the phase-1 plan) is what runs
+        // here, not a click — this proves activeEditorName is set by that
+        // path too.
+        expect(component.activeEditorName()).toBe(editorComponents[2].name);
+        const activeTab = fixture.debugElement.query(
+          By.css('.workbench__editor-tab--active'),
+        );
+        expect(activeTab).toBeTruthy();
+        const allTabs = fixture.debugElement.queryAll(
+          By.css('.workbench__editor-tab'),
+        );
+        expect(allTabs[2].nativeElement).toBe(activeTab.nativeElement);
+      } finally {
+        editorComponents[2].editor = realEditor;
+        component.showEditor?.viewContainerRef.clear();
+      }
+    });
+  });
+
   it('keeps the right pane hidden while application.loading.status is not FINISHED', () => {
     fixture.detectChanges();
     expect(component.sessionReady).toBe(false);
