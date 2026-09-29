@@ -9,6 +9,8 @@
   border-right: 1px solid #d4d9e0;
 }
 .workbench__right {
+  display: flex;
+  flex-direction: column;
   overflow-y: auto;
 }
 
