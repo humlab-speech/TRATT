@@ -196,7 +196,7 @@
                       | transloco
                         : {
                             sampleRate:
-                              audio.audioManager.resource.info.audioBufferInfo
+                              audio.current!.resource.info.audioBufferInfo
                                 ?.sampleRate,
                           }
                   }}
@@ -225,7 +225,7 @@
                   >
                     <tratt-naming-drag-and-drop
                       #namingConvention
-                      [fileName]="audio.audioManager!.resource!.name"
+                      [fileName]="audio.current!.resource!.name"
                       [firstSegment]="
                         annotationStoreService.currentLevel!.items[0]
                       "

@@ -66,7 +66,7 @@ export type DiarizationDType =
 export const DIARIZATION_DEFAULT_MODEL_ID =
   'onnx-community/pyannote-segmentation-3.0';
 
-@Injectable()
+@Injectable({ providedIn: 'root' })
 export class LocalDiarizationRuntimeService implements OnDestroy {
   private worker: Worker | null = null;
   private subject: Subject<DiarizationEvent> | null = null;

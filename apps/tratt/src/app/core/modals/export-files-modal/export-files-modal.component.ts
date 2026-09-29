@@ -152,7 +152,7 @@ export class ExportFilesModalComponent extends TrattModal implements OnInit {
         value: 'opened',
       },
       Date.now(),
-      this.audio.audioManager.playPosition,
+      this.audio.current!.playPosition,
       undefined,
       undefined,
       undefined,
@@ -184,7 +184,7 @@ export class ExportFilesModalComponent extends TrattModal implements OnInit {
         value: 'closed',
       },
       Date.now(),
-      this.audio.audiomanagers[0].playPosition,
+      this.audio.current!.playPosition,
       undefined,
       undefined,
       undefined,
@@ -263,6 +263,7 @@ export class ExportFilesModalComponent extends TrattModal implements OnInit {
   }
 
   updateParentFormat(converter: Converter, levelnum?: number) {
+    const manager = this.audio.current!;
     if (levelnum === undefined && !converter.multitiers) {
       levelnum = 0;
     }
@@ -276,9 +277,9 @@ export class ExportFilesModalComponent extends TrattModal implements OnInit {
         return;
       }
       const oannotjson = this.annotationStoreService.transcript?.serialize(
-        this.audio.audioManager.resource.info.fullname,
-        this.audio.audioManager.sampleRate,
-        this.audio.audioManager.resource.info.duration,
+        manager.resource.info.fullname,
+        manager.sampleRate,
+        manager.resource.info.duration,
       );
       this.preparing = {
         name: converter.name,
@@ -293,7 +294,7 @@ export class ExportFilesModalComponent extends TrattModal implements OnInit {
              */
         }
 
-        const oAudioFile = this.audio.audioManager.resource.getOAudioFile();
+        const oAudioFile = this.audio.current!.resource.getOAudioFile();
         const result: ExportResult = converter.export(
           oannotjson,
           oAudioFile,
@@ -336,7 +337,7 @@ export class ExportFilesModalComponent extends TrattModal implements OnInit {
       preparing: true,
     };
     this.parentformat.download =
-      this.audio.audioManager.resource.info.name + '.json';
+      this.audio.current!.resource.info.name + '.json';
 
     if (this.parentformat.uri !== undefined) {
       window.URL.revokeObjectURL(this.parentformat.uri.toString());

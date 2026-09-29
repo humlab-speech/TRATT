@@ -163,15 +163,16 @@ export class AnnotationStoreService {
   transcriptString = computed(() => {
     const transcript = this.transcriptForString();
     if (transcript) {
+      const manager = this.audio.current!;
       const annotation = transcript.serialize(
-        this.audio.audioManager.resource.name,
-        this.audio.audioManager.resource.info.sampleRate,
-        this.audio.audioManager.resource.info.duration.clone(),
+        manager.resource.name,
+        manager.resource.info.sampleRate,
+        manager.resource.info.duration.clone(),
       );
 
       const result = new TextConverter().export(
         annotation,
-        this.audio.audioManager.resource.getOAudioFile(),
+        manager.resource.getOAudioFile(),
         transcript.selectedLevelIndex!,
       )!.file!;
 
@@ -198,9 +199,7 @@ export class AnnotationStoreService {
   guidelinesSignal = this.store.selectSignal(selectGuidelines);
 
   // Observable compatibility for components using subscribe()
-  transcript$: Observable<
-    TrattAnnotation<TrattAnnotationSegment> | undefined
-  >;
+  transcript$: Observable<TrattAnnotation<TrattAnnotationSegment> | undefined>;
   currentLevel$: Observable<
     TrattAnnotationAnyLevel<TrattAnnotationSegment> | undefined
   >;
@@ -212,9 +211,7 @@ export class AnnotationStoreService {
   transcriptString$: Observable<string>;
 
   // Value properties for backward compatibility with components
-  get transcript():
-    | TrattAnnotation<TrattAnnotationSegment>
-    | undefined {
+  get transcript(): TrattAnnotation<TrattAnnotationSegment> | undefined {
     return this._transcript;
   }
 
@@ -301,14 +298,15 @@ export class AnnotationStoreService {
     this.transcriptString$ = this.store.select(selectAnnotationTranscript).pipe(
       map((transcript) => {
         if (transcript) {
+          const manager = this.audio.current!;
           const annotation = transcript.serialize(
-            this.audio.audioManager.resource.name,
-            this.audio.audioManager.resource.info.sampleRate,
-            this.audio.audioManager.resource.info.duration.clone(),
+            manager.resource.name,
+            manager.resource.info.sampleRate,
+            manager.resource.info.duration.clone(),
           );
           const result = new TextConverter().export(
             annotation,
-            this.audio.audioManager.resource.getOAudioFile(),
+            manager.resource.getOAudioFile(),
             transcript.selectedLevelIndex!,
           )!.file!;
           return result.content;
@@ -408,7 +406,7 @@ export class AnnotationStoreService {
     this.store.dispatch(
       AnnotationActions.addAnnotationLevel.do({
         levelType,
-        audioDuration: this.audio.audiomanagers[0].resource.info.duration,
+        audioDuration: this.audio.current!.resource.info.duration,
         mode: this.appStorage.useMode,
       }),
     );
@@ -554,9 +552,7 @@ export class AnnotationStoreService {
     );
   }
 
-  overwriteTranscript(
-    transcript: TrattAnnotation<TrattAnnotationSegment>,
-  ) {
+  overwriteTranscript(transcript: TrattAnnotation<TrattAnnotationSegment>) {
     this.store.dispatch(
       AnnotationActions.overwriteTranscript.do({
         transcript,

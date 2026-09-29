@@ -484,5 +484,62 @@
   },
   "branding": {
     "tagline": "trascrizione del parlato in testo"
+  },
+  "workbench": {
+    "start session": "Start session",
+    "tabs": {
+      "upload": "Upload file",
+      "record": "Record now"
+    },
+    "bundle_list": {
+      "title": "Files",
+      "reattach": "Attach file…",
+      "select_all": "Select all",
+      "clear_finished": "Clear finished",
+      "remove": "Remove",
+      "export_catalogue": "Export catalogue…",
+      "retry": "Retry",
+      "status": {
+        "queued": "Queued",
+        "running": "Running",
+        "done": "Done",
+        "failed": "Failed",
+        "interrupted": "Interrupted"
+      },
+      "error": {
+        "decode": "Could not read the audio",
+        "model-load": "Could not load the model",
+        "oom": "Ran out of memory",
+        "cancelled": "Cancelled",
+        "unknown": "Failed"
+      }
+    },
+    "queue": {
+      "run": "Transcribe {{count}} file(s)",
+      "pause": "Pause queue",
+      "options_title": "Pipeline settings",
+      "no_options_hint": "No transcription options configured — enable auto transcription first."
+    },
+    "capacity": {
+      "storage_label": "Browser storage",
+      "storage_text": "{{used}} of {{quota}}",
+      "storage_note": "Models {{models}} cached + annotations {{annotations}}. Media is never written to storage.",
+      "storage_unavailable": "This browser does not report storage usage.",
+      "storage_breakdown_unavailable": "Storage breakdown unavailable until a pipeline is configured.",
+      "memory_label": "Working memory (est.)",
+      "memory_text": "{{used}} of ~{{budget}}",
+      "memory_note": "Decoded audio for {{count}} resident file(s). This, not storage, is what limits how much media you can hold at once."
+    },
+    "catalogue_export": {
+      "title": "Export catalogue",
+      "formats_label": "Formats",
+      "bundles_label": "{{count}} file(s) selected",
+      "all_bundles_hint": "No files checked — exporting all {{count}}.",
+      "export": "Export",
+      "cancel": "Cancel",
+      "progress": "Exporting {{current}} of {{total}}…",
+      "warnings_title": "Completed with warnings",
+      "done": "Done — {{count}} file(s) archived."
+    }
   }
 }

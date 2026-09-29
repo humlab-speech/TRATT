@@ -1,0 +1,146 @@
+<!--
+  Switches between bundles created by the single startSession() call at
+  session start. Does NOT support dropping more files into an
+  already-active session — see BundleListComponent's doc comment.
+
+  A bundle restored from IndexedDB with no audio resident this session
+  (`awaitingMedia`, step 2.8 Task 4) renders a re-attach file input instead
+  of the click-to-select button (step 2.8 Task 5).
+-->
+@if (bundles().length > 0) {
+  <div class="bundle-list__bulk-bar">
+    <label class="bundle-list__select-all-label">
+      <input
+        type="checkbox"
+        class="bundle-list__select-all"
+        [checked]="allSelected()"
+        (change)="toggleSelectAll()"
+      />
+      {{ 'workbench.bundle_list.select_all' | transloco }}
+    </label>
+    <button
+      type="button"
+      class="bundle-list__clear-finished"
+      (click)="onClearFinished()"
+    >
+      {{ 'workbench.bundle_list.clear_finished' | transloco }}
+    </button>
+    <button
+      type="button"
+      class="bundle-list__remove"
+      (click)="onRemoveSelected()"
+    >
+      {{ 'workbench.bundle_list.remove' | transloco }}
+    </button>
+    <button
+      type="button"
+      class="bundle-list__export-catalogue"
+      (click)="onExportCatalogue()"
+    >
+      {{ 'workbench.bundle_list.export_catalogue' | transloco }}
+    </button>
+  </div>
+  <h6 class="bundle-list__title">
+    {{ 'workbench.bundle_list.title' | transloco }}
+  </h6>
+}
+<ul class="bundle-list" (keydown)="onListKeydown($event)">
+  @for (bundle of bundles(); track bundle.bundleId; let i = $index) {
+    <li class="bundle-list__item" [class.active]="bundle.selected">
+      <input
+        type="checkbox"
+        class="bundle-list__item-checkbox"
+        [checked]="isSelected(bundle.bundleId)"
+        (change)="toggleSelected(bundle.bundleId)"
+      />
+      @if (bundle.awaitingMedia) {
+        <label
+          class="bundle-list__reattach-label"
+          [attr.for]="'bundle-reattach-' + bundle.bundleId"
+        >
+          <!-- `bundle.name` comes from `sessionFile?.name`; sessionFile is a
+               required prop on the createBundle action, so this is always
+               populated in practice for LOCAL bundles — no placeholder
+               fallback needed. -->
+          {{ bundle.name }} — {{ 'workbench.bundle_list.reattach' | transloco }}
+        </label>
+        <!-- Roving tabindex target for this row (see onListKeydown()): the
+             visually-hidden-but-focusable file input, not the label — a
+             <label for="..."> is never itself tabbable, only the input it
+             references is. -->
+        <input
+          type="file"
+          accept="audio/*"
+          [id]="'bundle-reattach-' + bundle.bundleId"
+          class="bundle-list__reattach-input bundle-list__item-primary"
+          [attr.tabindex]="rowTabIndex(i)"
+          (change)="onReattachFileSelected(bundle.bundleId, $event)"
+          (focus)="onRowFocus(bundle.bundleId)"
+        />
+      } @else {
+        <button
+          type="button"
+          class="bundle-list__item-btn bundle-list__item-primary"
+          [attr.tabindex]="rowTabIndex(i)"
+          (click)="selectBundle(bundle.bundleId)"
+          (focus)="onRowFocus(bundle.bundleId)"
+        >
+          <!-- `bundle.name` comes from `sessionFile?.name`; sessionFile is a
+               required prop on the createBundle action, so this is always
+               populated in practice for LOCAL bundles — no placeholder
+               fallback needed. -->
+          {{ bundle.name }}
+        </button>
+      }
+      <!-- Hoisted out of the @else above (F4, final whole-branch review fix
+           wave): a bundle restored from IndexedDB is `awaitingMedia` for the
+           whole first session after a reload (no audio decoded yet), so a
+           status block scoped to the non-awaitingMedia branch never rendered
+           the 'interrupted' badge exactly when it matters most — right after
+           the reload that caused it. Renders in BOTH branches now. -->
+      @if (bundle.run.state !== 'idle') {
+        <span
+          class="bundle-list__status"
+          [class.bundle-list__status--running]="bundle.run.state === 'running'"
+          [class.bundle-list__status--done]="bundle.run.state === 'done'"
+          [class.bundle-list__status--error]="
+            bundle.run.state === 'failed' || bundle.run.state === 'interrupted'
+          "
+        >
+          {{ 'workbench.bundle_list.status.' + bundle.run.state | transloco }}
+        </span>
+      }
+      @if (bundle.run.state === 'failed' && bundle.run.error) {
+        <!-- The kind is the translated, user-facing summary; the raw
+             message (often an untranslatable worker/browser string) is
+             the tooltip, so nothing is hidden from the user. -->
+        <span
+          class="bundle-list__error"
+          [attr.title]="bundle.run.error.message"
+        >
+          {{
+            'workbench.bundle_list.error.' + bundle.run.error.kind | transloco
+          }}
+        </span>
+      }
+      @if (
+        !bundle.awaitingMedia &&
+        (bundle.run.state === 'failed' || bundle.run.state === 'interrupted')
+      ) {
+        <!-- Deliberately gated on !awaitingMedia: retrying a bundle whose
+             audio isn't resident this session isn't actionable — it would
+             just fail again as a 'decode' error. The re-attach input above
+             is the actual escape hatch for an awaitingMedia + interrupted
+             row; once re-attached the row flips to this branch and the
+             retry button appears normally. -->
+        <button
+          type="button"
+          class="bundle-list__retry"
+          (click)="onRetry(bundle.bundleId)"
+        >
+          {{ 'workbench.bundle_list.retry' | transloco }}
+        </button>
+      }
+    </li>
+  }
+</ul>

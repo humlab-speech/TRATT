@@ -1,0 +1,307 @@
+<div class="workbench">
+  <div class="workbench__left">
+    <ul
+      ngbNav
+      #workbenchNav="ngbNav"
+      [(activeId)]="activeTab"
+      [destroyOnHide]="false"
+      class="nav-tabs"
+    >
+      <li [ngbNavItem]="'upload'">
+        <button ngbNavLink type="button">
+          <i class="bi bi-folder2-open me-1"></i>
+          {{ 'workbench.tabs.upload' | transloco }}
+        </button>
+        <ng-template ngbNavContent>
+          <div class="pt-2">
+            <tratt-dropzone
+              height="180px"
+              [showAutoTranscribe]="true"
+              [allowMultipleAudio]="true"
+            ></tratt-dropzone>
+          </div>
+        </ng-template>
+      </li>
+      <li [ngbNavItem]="'record'">
+        <button ngbNavLink type="button">
+          <i class="bi bi-mic-fill me-1"></i>
+          {{ 'workbench.tabs.record' | transloco }}
+        </button>
+        <ng-template ngbNavContent>
+          <div class="pt-2">
+            <tratt-recording-panel
+              (useRecording)="onUseRecording($event)"
+            ></tratt-recording-panel>
+          </div>
+        </ng-template>
+      </li>
+    </ul>
+    <div [ngbNavOutlet]="workbenchNav"></div>
+    @if (sessionReady || hasAnyBundles()) {
+      <!-- Lets the user switch between bundles that already exist: either
+           created by the one startSession() call at session start, or
+           restored from IndexedDB at boot (step 2.8) and still awaiting
+           media before they can be resolved. Shown as soon as any bundle
+           exists, even before sessionReady — a restored bundle never has
+           audio decoded this session, so sessionReady alone would hide it
+           indefinitely. Does NOT extend startSession() to accept files
+           dropped mid-session — that remains a single-shot ingest; see
+           BundleListComponent. -->
+      <tratt-bundle-list></tratt-bundle-list>
+
+      <!-- The queue's own pipeline configuration. A SECOND mount of the
+           component the dropzone already uses (deliberately — that one is
+           bound to the dropzone's pre-session `hasAudio` and disappears the
+           moment startSession() resets it, taking its emitted options with
+           it). `idPrefix` keeps the two mounts' element ids distinct on the
+           one screen where both can be visible at once: a returning user
+           with restored bundles who drops a new file. -->
+      <div class="workbench__queue">
+        <h6 class="workbench__queue-title">
+          {{ 'workbench.queue.options_title' | transloco }}
+        </h6>
+        <tratt-auto-transcribe-options
+          idPrefix="queue-"
+          [audioLoaded]="true"
+          [annotationAlreadyLoaded]="false"
+          (optionsChange)="onQueueOptionsChange($event)"
+        ></tratt-auto-transcribe-options>
+        <button
+          type="button"
+          class="btn btn-outline-primary workbench__queue-run"
+          [disabled]="
+            !queueRunning() &&
+            (readyBundleIds().length === 0 || queueOptions() === null)
+          "
+          [attr.title]="
+            !queueRunning() && queueOptions() === null
+              ? ('workbench.queue.no_options_hint' | transloco)
+              : null
+          "
+          (click)="onRunPauseClick()"
+        >
+          @if (queueRunning()) {
+            <i class="bi bi-pause-fill me-1"></i>
+            {{ 'workbench.queue.pause' | transloco }}
+          } @else {
+            <i class="bi bi-play-fill me-1"></i>
+            {{
+              'workbench.queue.run'
+                | transloco: { count: readyBundleIds().length }
+            }}
+          }
+        </button>
+      </div>
+    }
+    <!-- Deliberately OUTSIDE the `@if` above: cached ML models are the
+         dominant browser-storage consumer and can exist long before this
+         workbench has a single bundle (they are downloaded from /local too),
+         so the storage readout has to render on an empty workbench as well.
+         Keeping it outside also keeps CapacityService's 5s poll from being
+         torn down and restarted every time session state flips. Its own
+         markup lives in the component; this wrapper only carries the
+         left-rail spacing, matching `.workbench__queue`. -->
+    <div class="workbench__capacity">
+      <tratt-capacity-indicator></tratt-capacity-indicator>
+    </div>
+    <button
+      type="button"
+      class="btn btn-primary workbench__start"
+      [disabled]="sessionStarting"
+      (click)="startSession(false)"
+    >
+      {{ 'workbench.start session' | transloco }}
+    </button>
+  </div>
+  @if (sessionReady) {
+    <div class="workbench__right">
+      @if (selectedBundleHeader; as header) {
+        <div class="workbench__editor-header">
+          <span class="workbench__editor-header-name">{{ header.name }}</span>
+          <span class="workbench__editor-header-meta">
+            {{ header.durationText }} · {{ header.sampleRateKhz }} kHz
+            {{
+              (header.channels === 1
+                ? 'workbench.editor_header.mono'
+                : 'workbench.editor_header.stereo'
+              ) | transloco
+            }}
+            · {{ header.sizeText }}
+          </span>
+        </div>
+      }
+      <div class="workbench__editor-tabs">
+        @for (entry of editorComponentsList; track entry.name) {
+          <button
+            type="button"
+            class="workbench__editor-tab"
+            [class.workbench__editor-tab--active]="
+              activeEditorName() === entry.name
+            "
+            [attr.aria-pressed]="activeEditorName() === entry.name"
+            (click)="changeEditor(entry.name)"
+          >
+            <i [class]="entry.icon" aria-hidden="true"></i>
+            {{ entry.translate | transloco }}
+          </button>
+        }
+      </div>
+      <tratt-fastbar
+        (overviewbtnclicked)="openOverview()"
+        (shortcutbtnclicked)="openShortcutsModal()"
+        [buttonLabels]="{
+          shortcuts: 'g.shortcuts' | transloco,
+          overview: 'g.overview' | transloco,
+          help: 'g.help' | transloco,
+        }"
+      ></tratt-fastbar>
+
+      <div class="flex">
+        <ng-container trattLoadeditor #showEditor></ng-container>
+      </div>
+
+      @if (showCommentSection) {
+        <div class="row">
+          <textarea
+            [ngModel]="annotationStoreService.comment"
+            (ngModelChange)="annotationStoreService.changeComment($event)"
+            class="w-100 d-flex"
+            name="comment"
+            placeholder="{{ 'g.insert comment' | transloco }}"
+            style="
+              resize: none;
+              background-color: var(--tratt-note-surface);
+              height: 40px;
+            "
+          ></textarea>
+        </div>
+      }
+      <div class="row" id="bottom-navigation" role="group">
+        <div class="btn-group w-100">
+          @if (
+            selectedTheme === 'shortAudioFiles' &&
+            (useMode === 'online' || useMode === 'demo')
+          ) {
+            <button
+              (click)="abortTranscription()"
+              class="col-md-3 btn btn-secondary"
+              type="button"
+            >
+              <i class="bi bi-x-circle"></i>
+              <span>
+                {{ 'g.quit' | transloco }}
+              </span>
+            </button>
+            <button
+              (click)="sendTranscriptionForShortAudioFiles('bad')"
+              class="col-md-3 btn btn-danger"
+              type="button"
+            >
+              <i class="bi bi-star-fill"></i>
+            </button>
+            <button
+              (click)="sendTranscriptionForShortAudioFiles('middle')"
+              class="btn btn-raised btn-warning col-md-3 btn btn-warning"
+              type="button"
+              style="background-color: var(--tratt-accent-warning)"
+            >
+              <i class="bi bi-star-fill"></i>
+              <i class="bi bi-star-fill"></i>
+            </button>
+            <button
+              (click)="sendTranscriptionForShortAudioFiles('good')"
+              class="col-md-3 btn btn-primary"
+              type="button"
+            >
+              <i class="bi bi-star-fill"></i>
+              <i class="bi bi-star-fill"></i>
+              <i class="bi bi-star-fill"></i>
+            </button>
+          } @else {
+            @if (
+              useMode !== 'url' || routingService.staticQueryParams.bottomNav
+            ) {
+              <button
+                (click)="abortTranscription()"
+                type="button"
+                class="col-md-6 btn btn-secondary"
+              >
+                <i class="bi bi-x-circle"></i>
+                @if (!appStorage.easyMode) {
+                  <span class="d-none d-md-inline">
+                    {{ 'g.quit' | transloco }}
+                  </span>
+                }
+              </button>
+            }
+            @if (
+              useMode === 'local' ||
+              (useMode === 'url' && routingService.staticQueryParams.bottomNav)
+            ) {
+              <button
+                (click)="navbarServ.doclick('export')"
+                class="col-md-6 btn btn-primary"
+                type="button"
+              >
+                <i class="bi bi-download"></i>
+                @if (!appStorage.easyMode) {
+                  <span class="d-none d-md-inline">
+                    {{ 'g.export data' | transloco }}</span
+                  >
+                }
+              </button>
+            }
+            @if (
+              (useMode === 'local' ||
+                (useMode === 'url' &&
+                  routingService.staticQueryParams.bottomNav)) &&
+              recordedFileService.recordedFile
+            ) {
+              <button
+                (click)="recordedFileService.triggerExport()"
+                class="col-md-6 btn btn-secondary"
+                type="button"
+              >
+                <i class="bi bi-mic-fill"></i>
+                @if (!appStorage.easyMode) {
+                  <span class="d-none d-md-inline">
+                    {{ 'g.export recording' | transloco }}</span
+                  >
+                }
+              </button>
+            }
+            @if (useMode === 'online' || useMode === 'demo') {
+              <button
+                (click)="onSendButtonClick()"
+                class="col-md-6 btn btn-primary"
+                type="button"
+              >
+                @if (!appStorage.easyMode) {
+                  <span class="d-none d-md-inline">
+                    {{ 'transcription.send' | transloco }}
+                  </span>
+                }
+                <i class="bi bi-send-fill"></i>
+              </button>
+            }
+            @if (useMode === 'url') {
+              @if (
+                !routingService.staticQueryParams.readonly &&
+                routingService.staticQueryParams.embedded
+              ) {
+                <button
+                  (click)="onSaveTranscriptionButtonClicked()"
+                  class="btn btn-primary"
+                  type="button"
+                >
+                  <i class="bi bi-floppy-fill"></i>
+                  <span> {{ 'g.save' | transloco }} </span>
+                </button>
+              }
+            }
+          }
+        </div>
+      </div>
+    </div>
+  }
+</div>

@@ -12,10 +12,10 @@
     class="dropzone"
     tabindex="0"
   >
-    <div class="inner postion-relative" style="margin: auto 0">
-      <i
-        class="bi bi-folder2-open dragndrop position-absolute top-50 start-50 translate-middle"
-      ></i>
+    <div class="inner">
+      @if (showIcon) {
+        <i class="bi bi-folder2-open dragndrop"></i>
+      }
       <ng-content></ng-content>
       <input
         #fileinput

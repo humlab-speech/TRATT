@@ -1,0 +1,85 @@
+.workbench {
+  display: grid;
+  grid-template-columns: 340px 1fr;
+  height: 100%;
+  min-height: 0;
+}
+.workbench__left {
+  overflow-y: auto;
+  border-right: 1px solid #d4d9e0;
+}
+.workbench__right {
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+}
+
+.workbench__queue {
+  margin-top: 0.75rem;
+}
+
+.workbench__queue-title {
+  margin-bottom: 0.25rem;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  color: #667a90;
+}
+
+.workbench__queue-run {
+  width: 100%;
+  margin-top: 0.5rem;
+}
+
+.workbench__capacity {
+  margin-top: 0.75rem;
+}
+
+.workbench__editor-header {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid #d4d9e0;
+}
+
+.workbench__editor-header-name {
+  font-weight: 600;
+}
+
+.workbench__editor-header-meta {
+  font-size: 0.8rem;
+  color: #667a90;
+}
+
+.workbench__editor-tabs {
+  display: flex;
+  gap: 0.25rem;
+  padding: 0.5rem 0.75rem 0;
+}
+
+.workbench__editor-tab {
+  border: none;
+  background: transparent;
+  padding: 0.3rem 0.6rem;
+  border-radius: 4px 4px 0 0;
+  font-size: 0.85rem;
+  color: #667a90;
+  cursor: pointer;
+
+  i {
+    margin-right: 0.25rem;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tratt-chrome, #2a4765);
+    outline-offset: 1px;
+  }
+}
+
+.workbench__editor-tab--active {
+  background: var(--tratt-surface-background);
+  color: inherit;
+  font-weight: 600;
+}

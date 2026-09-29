@@ -13,7 +13,7 @@
         class="col-12 col-sm-9"
         style="text-align: left; padding-left: 20px"
       >
-        {{ audio.audioManager.resource.info!.fullname }}:
+        {{ audio.current!.resource.info!.fullname }}:
         <i>{{ annotationStoreService.task?.orgtext }}</i>
       </div>
       @if (annotationStoreService.textInput !== undefined) {

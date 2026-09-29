@@ -3,8 +3,18 @@ import { IAnnotJSON, ILevel, ILink, OAnnotJSON } from '@tratt/annotation';
 import { removeEmptyProperties } from '@tratt/utilities';
 import Dexie, { Transaction } from 'dexie';
 import 'dexie-export-import';
-import { firstValueFrom, from, map, Observable, of, Subject } from 'rxjs';
+import {
+  firstValueFrom,
+  from,
+  map,
+  mergeMap,
+  Observable,
+  of,
+  Subject,
+} from 'rxjs';
 import { LoginMode } from '../store';
+import { DEFAULT_BUNDLE_ID } from '../store/login-mode/annotation/local-bundle-collection';
+import type { BundleRunState } from '../store/pipeline-queue';
 
 /**
  * Database names used before the rename from OCTRA to TRATT. Deployments that
@@ -19,6 +29,7 @@ export class TrattDatabase extends Dexie {
   public urlData!: Dexie.Table<IIDBEntry, string>;
   public localData!: Dexie.Table<IIDBEntry, string>;
   public app_options!: Dexie.Table<IIDBEntry, string>;
+  public bundles!: Dexie.Table<IBundleEntry, [string, string]>;
   public onReady: Subject<void>;
 
   //...other tables goes here...
@@ -39,8 +50,17 @@ export class TrattDatabase extends Dexie {
       // ignore
     }
 
-    if (currentVersion > 0 && currentVersion < 0.4) {
-      await this.backupCurrentDatabase();
+    if (currentVersion > 0 && currentVersion < 0.6) {
+      try {
+        await this.backupCurrentDatabase();
+      } catch (e) {
+        this.onReady.error(
+          new Error(
+            `Failed to back up existing database before upgrading it. This can happen if storage quota is exceeded (a backup roughly doubles storage use). Your existing data has not been modified. Original error: ${e}`,
+          ),
+        );
+        throw e;
+      }
     }
 
     this.version(0.2)
@@ -90,12 +110,24 @@ export class TrattDatabase extends Dexie {
       })
       .upgrade(this.upgradeToDatabaseV5);
 
+    this.version(0.6)
+      .stores({
+        demo_data: '&name, value',
+        online_data: '&name, value',
+        local_data: '&name, value',
+        url_data: '&name, value',
+        app_options: '&name, value',
+        bundles: '[bundleId+name]',
+      })
+      .upgrade(this.upgradeToDatabaseV6);
+
     this.demoData = this.table('demo_data');
     this.onlineData = this.table('online_data');
     this.localData = this.table('local_data');
     this.urlData = this.table('url_data');
 
     this.app_options = this.table('app_options');
+    this.bundles = this.table('bundles');
 
     try {
       await this.open();
@@ -105,7 +137,7 @@ export class TrattDatabase extends Dexie {
           `Failed to open IndexedDB database. This may happen in private browsing mode. Original error: ${e}`,
         ),
       );
-      return;
+      throw e; // propagate — nothing downstream can react to onReady.error alone
     }
     try {
       await this.checkAndFillPopulation();
@@ -113,6 +145,7 @@ export class TrattDatabase extends Dexie {
       this.onReady.complete();
     } catch (e) {
       this.onReady.error(e);
+      throw e;
     }
   }
 
@@ -221,7 +254,6 @@ export class TrattDatabase extends Dexie {
   }
 
   private async upgradeToDatabaseV4(tr: Transaction) {
-
     const optionKeys = [
       'accessCode',
       'audioSettings',
@@ -241,7 +273,6 @@ export class TrattDatabase extends Dexie {
     const options = (await tr.table('options').bulkGet(optionKeys)).filter(
       (a) => a !== undefined,
     );
-
 
     for (let i = 0; i < options.length; i++) {
       const option = options[i];
@@ -366,12 +397,47 @@ export class TrattDatabase extends Dexie {
           name: 'logs',
           value: oldLogs,
         });
-
       }
     }
   }
 
-  private async upgradeToDatabaseV5(transaction: Transaction) {
+  private async upgradeToDatabaseV5(transaction: Transaction) {}
+
+  private async upgradeToDatabaseV6(tr: Transaction) {
+    const localDataTable = tr.table('local_data');
+    const bundlesTable = tr.table('bundles');
+    const rows = await localDataTable.toArray();
+    for (const row of rows) {
+      await bundlesTable.put({
+        bundleId: DEFAULT_BUNDLE_ID,
+        name: row.name,
+        value: row.value,
+      });
+    }
+  }
+
+  /**
+   * Returns every distinct bundleId present in the `bundles` table. The
+   * table's only index is the compound `[bundleId+name]` primary key — no
+   * secondary index on bundleId alone — so this is a full-table-scan of
+   * primary keys, not an indexed query. Fine at expected row counts (a
+   * handful of rows per bundle).
+   */
+  public async listLocalBundleIds(): Promise<string[]> {
+    const keys = await this.bundles.toCollection().primaryKeys();
+    return Array.from(new Set(keys.map((k) => k[0])));
+  }
+
+  /**
+   * Deletes every row belonging to the given bundle ids — the full
+   * counterpart to listLocalBundleIds()/createBundle's persistence: a
+   * bundle removed from the store must not resurrect on the next boot's
+   * listLocalBundleIds() walk.
+   */
+  public async deleteLocalBundles(bundleIds: string[]): Promise<void> {
+    await this.bundles
+      .filter((entry) => bundleIds.includes(entry.bundleId))
+      .delete();
   }
 
   private async backupCurrentDatabase() {
@@ -423,10 +489,20 @@ export class TrattDatabase extends Dexie {
     if (optionsLength === 0) {
       await firstValueFrom(this.populateModeOptions(LoginMode.ONLINE));
     }
+    // LOCAL mode's 'options' entry now lives in the bundles table (keyed by
+    // [bundleId, name]), not local_data — saveModeData()/loadDataOfMode()
+    // route LOCAL-mode reads/writes there. Checking local_data here would
+    // never see writes made after this change and would keep re-populating
+    // (overwriting) bundle-1's saved options on every init.
     optionsLength =
-      (await this.localData.get('options'))?.value === undefined ? 0 : 1;
+      (await this.bundles.get([DEFAULT_BUNDLE_ID, 'options']))?.value ===
+      undefined
+        ? 0
+        : 1;
     if (optionsLength === 0) {
-      await firstValueFrom(this.populateModeOptions(LoginMode.LOCAL));
+      await firstValueFrom(
+        this.populateModeOptions(LoginMode.LOCAL, DEFAULT_BUNDLE_ID),
+      );
     }
     optionsLength =
       (await this.urlData.get('options'))?.value === undefined ? 0 : 1;
@@ -452,13 +528,13 @@ export class TrattDatabase extends Dexie {
     );
   }
 
-  private populateModeOptions(mode: LoginMode) {
+  private populateModeOptions(mode: LoginMode, bundleId?: string) {
     const modeOptions: IIDBModeOptions = {
       currentEditor: '2D-Editor',
       logging: true,
     };
 
-    return this.saveModeData(mode, 'options', modeOptions, true);
+    return this.saveModeData(mode, 'options', modeOptions, true, bundleId);
   }
 
   public saveModeData(
@@ -466,7 +542,68 @@ export class TrattDatabase extends Dexie {
     name: string,
     value: any,
     overwrite = false,
+    bundleId?: string,
   ) {
+    let prepared =
+      typeof value === 'object' && value !== undefined && value !== null
+        ? JSON.parse(JSON.stringify(value))
+        : value;
+    prepared = removeEmptyProperties(prepared, {
+      removeNull: false,
+      removeEmptyStrings: false,
+      removeUndefined: true,
+    });
+
+    if (mode === LoginMode.LOCAL) {
+      if (!bundleId) {
+        console.error('saveModeData: bundleId is required for LOCAL mode');
+        return of();
+      }
+      // write undefined or null
+      if (overwrite) {
+        return from(
+          this.bundles.put(
+            {
+              bundleId,
+              name,
+              value: prepared,
+            },
+            [bundleId, name],
+          ),
+        ).pipe(
+          map(() => {
+            return;
+          }),
+        );
+      } else {
+        return from(
+          this.bundles.update([bundleId, name], {
+            value: prepared,
+          }),
+        ).pipe(
+          mergeMap((updatedCount) => {
+            if (updatedCount === 0) {
+              // update() silently no-ops on a missing key instead of creating
+              // one — the row for any bundle beyond DEFAULT_BUNDLE_ID/URL mode
+              // (never pre-seeded by checkAndFillPopulation()) doesn't exist
+              // yet on its first save. Fall back to put() so the first save
+              // for a new bundle actually persists instead of vanishing.
+              return from(
+                this.bundles.put({ bundleId, name, value: prepared }, [
+                  bundleId,
+                  name,
+                ]),
+              );
+            }
+            return of(updatedCount);
+          }),
+          map(() => {
+            return;
+          }),
+        );
+      }
+    }
+
     const table = this.getTableFromString(mode);
 
     if (!table) {
@@ -474,15 +611,6 @@ export class TrattDatabase extends Dexie {
     }
 
     if (table) {
-      let prepared =
-        typeof value === 'object' && value !== undefined && value !== null
-          ? JSON.parse(JSON.stringify(value))
-          : value;
-      prepared = removeEmptyProperties(prepared, {
-        removeNull: false,
-        removeEmptyStrings: false,
-        removeUndefined: true,
-      });
       // write undefined or null
       if (overwrite) {
         return from(
@@ -539,7 +667,28 @@ export class TrattDatabase extends Dexie {
     return this;
   }
 
-  public loadDataOfMode<T>(mode: LoginMode, name: string, emptyValue: T) {
+  public loadDataOfMode<T>(
+    mode: LoginMode,
+    name: string,
+    emptyValue: T,
+    bundleId?: string,
+  ) {
+    if (mode === LoginMode.LOCAL) {
+      if (!bundleId) {
+        console.error('loadDataOfMode: bundleId is required for LOCAL mode');
+        return of(emptyValue);
+      }
+      return from(this.bundles.get([bundleId, name])).pipe(
+        map((result) => {
+          if (result && result.value) {
+            return result.value as T;
+          } else {
+            return emptyValue;
+          }
+        }),
+      );
+    }
+
     const table = this.getTableFromString(mode);
     if (table) {
       return from(table.get(name)).pipe(
@@ -631,6 +780,10 @@ export interface IIDBEntry {
   value: any;
 }
 
+export interface IBundleEntry extends IIDBEntry {
+  bundleId: string;
+}
+
 export interface IIDBLogs extends IIDBEntry {
   value: any[];
 }
@@ -651,6 +804,12 @@ export interface IIDBModeOptions {
     name: string;
     email: string;
   } | null;
+  /**
+   * Per-bundle pipeline run state (step 3b-i). 'queued'/'running' are
+   * rehydrated as 'interrupted' at boot by BundleRestoreEffects — a run
+   * never survives a reload.
+   */
+  runState?: BundleRunState;
 }
 
 export interface IIDBApplicationOptions {

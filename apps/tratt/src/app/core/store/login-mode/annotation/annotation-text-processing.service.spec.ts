@@ -38,7 +38,7 @@ function createService(overrides: {
   const audio =
     overrides.audio ??
     ({
-      audioManager: {
+      current: {
         resource: {
           name: 'audio.wav',
           info: { sampleRate: 16000, duration: { samples: 32000 } },

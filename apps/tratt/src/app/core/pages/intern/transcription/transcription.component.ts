@@ -133,6 +133,7 @@ export class TranscriptionComponent
         this.appStorage
           .afterSaving()
           .then(() => {
+            const manager = this.audio.current!;
             if (shortcut.keys.mac! === 'SHIFT + ALT + 1') {
               this.sendTranscriptionForShortAudioFiles('bad');
               this.uiService.addElementFromEvent(
@@ -141,7 +142,7 @@ export class TranscriptionComponent
                   value: 'send_transcription:1',
                 },
                 Date.now(),
-                this.audio.audiomanagers[0].playPosition,
+                manager.playPosition,
                 undefined,
                 undefined,
                 undefined,
@@ -155,7 +156,7 @@ export class TranscriptionComponent
                   value: 'send_transcription:2',
                 },
                 Date.now(),
-                this.audio.audiomanagers[0].playPosition,
+                manager.playPosition,
                 undefined,
                 undefined,
                 undefined,
@@ -169,7 +170,7 @@ export class TranscriptionComponent
                   value: 'send_transcription:3',
                 },
                 Date.now(),
-                this.audio.audiomanagers[0].playPosition,
+                manager.playPosition,
                 undefined,
                 undefined,
                 undefined,
@@ -330,7 +331,7 @@ export class TranscriptionComponent
     public recordedFileService: RecordedFileService,
   ) {
     super();
-    this.audioManager = this.audio.audiomanagers[0];
+    this.audioManager = this.audio.current!;
     this.shortcutService.registerGeneralShortcutGroup(this.modalShortcuts);
 
     this.subscribe(this.audioManager.statechange, {
@@ -813,14 +814,15 @@ export class TranscriptionComponent
       }
     }
 
+    const manager = this.audio.current!;
     const oannotjson = this.annotationStoreService.transcript!.serialize(
-      this.audio.audioManager.resource.info.fullname,
-      this.audio.audioManager.resource.info.sampleRate,
-      this.audio.audioManager.resource.info.duration,
+      manager.resource.info.fullname,
+      manager.resource.info.sampleRate,
+      manager.resource.info.duration,
     );
     const result = converter.export(
       oannotjson,
-      this.audio.audioManager.resource.getOAudioFile(),
+      manager.resource.getOAudioFile(),
       0,
     );
 

@@ -4,6 +4,11 @@
 
 .recording-panel {
   background-color: var(--bs-body-bg);
+  // Lets the toolbar respond to ITS OWN rendered width rather than the
+  // viewport's: this component is mounted both full-width on /local and
+  // inside the workbench's ~300px left rail, and a viewport media query
+  // can't tell those two apart.
+  container-type: inline-size;
 }
 
 .recording-toolbar {
@@ -23,6 +28,23 @@
 
   &__right {
     justify-self: end;
+  }
+}
+
+// Narrow container (workbench left rail): stop squeezing the 3-column grid
+// into word-per-line wrap — stack the sections instead. Threshold picked
+// above the workbench rail's typical inner width so it reliably engages
+// there while staying off on /local's full-width mount.
+@container (max-width: 420px) {
+  .recording-toolbar {
+    grid-template-columns: 1fr;
+
+    &__left,
+    &__center,
+    &__right {
+      justify-self: center;
+      text-align: center;
+    }
   }
 }
 

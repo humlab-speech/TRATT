@@ -1,5 +1,6 @@
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
+import { Router } from '@angular/router';
 import { TranslocoService } from '@jsverse/transloco';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { Store } from '@ngrx/store';
@@ -54,13 +55,23 @@ import { ApplicationActions } from '../../application/application.actions';
 import { checkAndThrowError } from '../../error.handlers';
 import { getModeState, LoginMode, RootState } from '../../index';
 import { LoginModeActions } from '../login-mode.actions';
-import { AnnotationActions } from './annotation.actions';
 import { AnnotationMaintenanceService } from './annotation-maintenance.service';
+import { AnnotationActions } from './annotation.actions';
 import { AnnotationState, GuidelinesItem } from './index';
+import { resolveLocalBundleState } from './local-bundle-collection';
 
 import { FileInfo } from '@tratt/web-media';
 import mime from 'mime';
 import { FeedBackForm } from '../../../obj/FeedbackForm/FeedBackForm';
+
+/**
+ * True when `url` is the `/workbench` route or a sub-path/query/hash of it.
+ * Deliberately anchored (not a plain `startsWith('/workbench')` check) so it
+ * doesn't also match a hypothetical future route like `/workbench-v2`.
+ */
+export function isWorkbenchRoute(url: string): boolean {
+  return /^\/workbench(\/|\?|#|$)/.test(url);
+}
 
 @Injectable()
 export class AnnotationLoadEffects {
@@ -374,8 +385,11 @@ export class AnnotationLoadEffects {
             }
           } else if (state.application.mode === LoginMode.LOCAL) {
             // local mode
-            if (state.localMode.sessionFile !== undefined) {
-              if (this.audio.audiomanagers.length > 0) {
+            if (
+              resolveLocalBundleState(state.localMode)?.sessionFile !==
+              undefined
+            ) {
+              if (this.audio.current !== undefined) {
                 this.store.dispatch(
                   AnnotationActions.loadAudio.success({
                     mode: LoginMode.LOCAL,
@@ -387,10 +401,11 @@ export class AnnotationLoadEffects {
                   }),
                 );
               } else if (state.application.audioAlreadyLoaded) {
-                // Audio was registered in proceedWithLogin but is no longer in audiomanagers —
-                // this is unexpected and indicates a bug (e.g. premature destroy() call).
+                // Audio was registered in proceedWithLogin but no manager is registered
+                // for the selected bundle — this is unexpected and indicates a bug
+                // (e.g. premature destroy() call).
                 console.error(
-                  '[onAudioLoad$ LOCAL] BUG: audioAlreadyLoaded=true but audiomanagers is empty — audio manager was lost after registration',
+                  '[onAudioLoad$ LOCAL] BUG: audioAlreadyLoaded=true but no manager is registered for the selected bundle — audio manager was lost after registration',
                 );
                 this.store.dispatch(
                   AnnotationActions.loadAudio.fail({
@@ -407,8 +422,8 @@ export class AnnotationLoadEffects {
               }
             } else {
               console.error(
-                '[onAudioLoad$ LOCAL] FAIL: sessionFile is undefined — audiomanagers.length=',
-                this.audio.audiomanagers.length,
+                '[onAudioLoad$ LOCAL] FAIL: sessionFile is undefined — audio.current defined=',
+                this.audio.current !== undefined,
               );
               this.store.dispatch(
                 AnnotationActions.loadAudio.fail({
@@ -429,15 +444,17 @@ export class AnnotationLoadEffects {
         withLatestFrom(this.store),
         tap(([a, state]) => {
           if (state.application.mode === LoginMode.LOCAL) {
-            this.routingService
-              .navigate(
-                'reload audio local',
-                ['/intern/transcr/reload-file'],
-                AppInfo.queryParamsHandling,
-              )
-              .catch((error) => {
-                console.error(error);
-              });
+            if (!isWorkbenchRoute(this.router.url)) {
+              this.routingService
+                .navigate(
+                  'reload audio local',
+                  ['/intern/transcr/reload-file'],
+                  AppInfo.queryParamsHandling,
+                )
+                .catch((error) => {
+                  console.error(error);
+                });
+            }
           } else {
             // it's an error
             this.modalsService.openErrorModal(a.error);
@@ -464,11 +481,13 @@ export class AnnotationLoadEffects {
         ofType(AnnotationActions.initTranscriptionService.success),
         withLatestFrom(this.store),
         tap(([action, state]) => {
-          this.routingService.navigate(
-            'transcription initialized',
-            ['/intern/transcr'],
-            AppInfo.queryParamsHandling,
-          );
+          if (!isWorkbenchRoute(this.router.url)) {
+            this.routingService.navigate(
+              'transcription initialized',
+              ['/intern/transcr'],
+              AppInfo.queryParamsHandling,
+            );
+          }
         }),
       ),
     { dispatch: false },
@@ -674,13 +693,16 @@ export class AnnotationLoadEffects {
                   }),
                 );
               } else if (a.mode === LoginMode.LOCAL) {
+                const localSessionFile = resolveLocalBundleState(
+                  state.localMode,
+                )?.sessionFile;
                 observables.push(
                   of({
                     inputs: [
                       {
                         id: Date.now().toString(),
-                        filename: state.localMode.sessionFile?.name ?? '',
-                        fileType: state.localMode.sessionFile?.type ?? '',
+                        filename: localSessionFile?.name ?? '',
+                        fileType: localSessionFile?.type ?? '',
                         chain_position: 0,
                         type: 'input',
                         creator_type: TaskInputOutputCreatorType.user,
@@ -922,11 +944,13 @@ export class AnnotationLoadEffects {
       this.actions$.pipe(
         ofType(AnnotationActions.redirectToTranscription.do),
         tap((a) => {
-          this.routingService.navigate(
-            'redirect to transcription loadOnlineInformationAfterIDBLoaded',
-            ['/intern/transcr'],
-            AppInfo.queryParamsHandling,
-          );
+          if (!isWorkbenchRoute(this.router.url)) {
+            this.routingService.navigate(
+              'redirect to transcription loadOnlineInformationAfterIDBLoaded',
+              ['/intern/transcr'],
+              AppInfo.queryParamsHandling,
+            );
+          }
         }),
       ),
     { dispatch: false },
@@ -1017,7 +1041,7 @@ export class AnnotationLoadEffects {
               >(task, 'transcript', (io: TaskInputOutputDto) => {
                 return isValidAnnotation(
                   io,
-                  this.audio.audioManager.resource.getOAudioFile(),
+                  this.audio.current!.resource.getOAudioFile(),
                 );
               })
             : undefined;
@@ -1039,7 +1063,7 @@ export class AnnotationLoadEffects {
             const level = newAnnotation.createSegmentLevel(levelName);
             level.items.push(
               newAnnotation.createSegment(
-                this.audio.audioManager.resource.info.duration,
+                this.audio.current!.resource.info.duration,
                 [
                   new OLabel(levelName, ''), // empty transcript
                 ],
@@ -1067,7 +1091,7 @@ export class AnnotationLoadEffects {
           const level = newAnnotation.createSegmentLevel(levelName);
           level.items.push(
             newAnnotation.createSegment(
-              this.audio.audioManager.resource.info.duration,
+              this.audio.current!.resource.info.duration,
               [
                 new OLabel(levelName, ''), // empty transcript
               ],
@@ -1131,7 +1155,7 @@ export class AnnotationLoadEffects {
       }
 
       const transcript = modeState.transcript.changeSampleRate(
-        this.audio.audioManager.resource.info.sampleRate,
+        this.audio.current!.resource.info.sampleRate,
       );
 
       const currentLevelIndex =
@@ -1182,6 +1206,7 @@ export class AnnotationLoadEffects {
     private appStorage: AppStorageService,
     private transloco: TranslocoService,
     private maintenance: AnnotationMaintenanceService,
+    private router: Router,
   ) {}
 }
 

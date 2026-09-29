@@ -2,6 +2,13 @@ import { createFeatureSelector, createSelector } from '@ngrx/store';
 import { selectMode } from '../../application/application.selectors';
 import { LoginMode } from '../../index';
 import { AnnotationState } from './index';
+import {
+  localBundleAdapter,
+  LocalBundleCollectionState,
+  resolveLocalBundleState,
+} from './local-bundle-collection';
+
+const { selectAll: selectAllBundleEntities } = localBundleAdapter.getSelectors();
 
 // Per-mode feature selectors
 export const selectOnlineMode =
@@ -9,8 +16,27 @@ export const selectOnlineMode =
 export const selectDemoMode =
   createFeatureSelector<AnnotationState>('demoMode');
 export const selectLocalMode =
-  createFeatureSelector<AnnotationState>('localMode');
+  createFeatureSelector<LocalBundleCollectionState>('localMode');
 export const selectUrlMode = createFeatureSelector<AnnotationState>('urlMode');
+
+// Hard-wired to selectLocalMode; harmless today since AudioService (used by ONLINE/DEMO/URL
+// sessions too) always resolves through the same constant key, but revisit once step 2.7 makes
+// selectedBundleId genuinely variable — non-LOCAL sessions would then read LOCAL's selection state.
+export const selectSelectedBundleId = createSelector(
+  selectLocalMode,
+  (local): string => local.selectedBundleId,
+);
+
+export const selectAllBundleSummaries = createSelector(
+  selectLocalMode,
+  (local) =>
+    selectAllBundleEntities(local.bundles).map((b) => ({
+      bundleId: b.bundleId,
+      name: b.sessionFile?.name,
+      selected: b.bundleId === local.selectedBundleId,
+      awaitingMedia: !b.audio.loaded,
+    })),
+);
 
 /** Returns the active mode's AnnotationState based on application.mode. */
 export const selectActiveAnnotation = createSelector(
@@ -26,7 +52,7 @@ export const selectActiveAnnotation = createSelector(
       case LoginMode.DEMO:
         return demo;
       case LoginMode.LOCAL:
-        return local;
+        return resolveLocalBundleState(local);
       case LoginMode.URL:
         return url;
       default:

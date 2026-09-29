@@ -33,6 +33,7 @@ import {
   AnnotationState,
 } from '../../store/login-mode/annotation';
 import { AnnotationActions } from '../../store/login-mode/annotation/annotation.actions';
+import { resolveLocalBundleState } from '../../store/login-mode/annotation/local-bundle-collection';
 import { ConsoleEntry, ConsoleGroupEntry } from './bug-report.service';
 
 @Injectable({
@@ -48,7 +49,14 @@ export class AppStorageService {
   }
 
   get sessionfile(): SessionFile {
-    return this._snapshot.localMode.sessionFile!;
+    // Non-null assertion relies on resolveLocalBundleState() always finding an
+    // entity at DEFAULT_BUNDLE_ID, which wrapAsLocalBundleCollectionReducer
+    // currently guarantees by construction (single hardcoded entity). Revisit
+    // once real multi-bundle support lands (phase-2 step 2.2): a stale or
+    // missing selectedBundleId could then make this throw instead of the
+    // `| undefined`-propagating pattern used elsewhere (getModeState(),
+    // IDBEffectsService.getModeStateFromString()).
+    return resolveLocalBundleState(this._snapshot.localMode)!.sessionFile!;
   }
 
   get playOnHover(): boolean | undefined | null {

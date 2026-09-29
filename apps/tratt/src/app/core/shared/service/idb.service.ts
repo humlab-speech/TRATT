@@ -124,18 +124,37 @@ export class IDBService {
   /**
    * load all logs
    */
-  public loadLogs(mode: LoginMode) {
-    return this.database.loadDataOfMode<any[]>(mode, 'logs', []);
+  public loadLogs(mode: LoginMode, bundleId?: string) {
+    return this.database.loadDataOfMode<any[]>(mode, 'logs', [], bundleId);
+  }
+
+  /**
+   * every distinct LOCAL-mode bundle id currently persisted in IDB
+   * (see TrattDatabase.listLocalBundleIds()).
+   */
+  public listLocalBundleIds(): Observable<string[]> {
+    return from(this.database.listLocalBundleIds());
+  }
+
+  /**
+   * Deletes every persisted row for the given LOCAL-mode bundle ids — the
+   * IDB-durability counterpart to `LoginModeActions.removeBundles`. Without
+   * this, a bundle removed from the store resurrects on the next boot via
+   * `BundleRestoreEffects`'s `listLocalBundleIds()` walk.
+   */
+  public deleteLocalBundles(bundleIds: string[]): Observable<void> {
+    return from(this.database.deleteLocalBundles(bundleIds));
   }
 
   /**
    * load annotation
    */
-  public loadAnnotation(mode: LoginMode) {
+  public loadAnnotation(mode: LoginMode, bundleId?: string) {
     return this.database.loadDataOfMode<IAnnotJSON>(
       mode,
       'annotation',
       undefined as any,
+      bundleId,
     );
   }
 
@@ -156,47 +175,83 @@ export class IDBService {
     }
   }
 
-  public saveModeOptions(mode: LoginMode, options: IIDBModeOptions) {
-    return this.database.saveModeData(mode, 'options', options);
+  public saveModeOptions(
+    mode: LoginMode,
+    options: IIDBModeOptions,
+    bundleId?: string,
+  ) {
+    return this.database.saveModeData(
+      mode,
+      'options',
+      options,
+      false,
+      bundleId,
+    );
   }
 
-  public loadModeOptions(mode: LoginMode): Observable<IIDBModeOptions> {
+  public loadModeOptions(
+    mode: LoginMode,
+    bundleId?: string,
+  ): Observable<IIDBModeOptions> {
     return this.database.loadDataOfMode<IIDBModeOptions>(
       mode,
       'options',
       DefaultModeOptions,
+      bundleId,
     );
   }
 
   public loadImportOptions(
     mode: LoginMode,
+    bundleId?: string,
   ): Observable<IIDBModeOptions | undefined> {
     return this.database.loadDataOfMode<IIDBModeOptions | undefined>(
       mode,
       'importOptions',
       undefined,
+      bundleId,
     );
   }
 
   /**
    * save one log item.
    */
-  public saveLogs(mode: LoginMode, logs: any[]) {
-    return this.database.saveModeData(mode, 'logs', logs, true);
+  public saveLogs(mode: LoginMode, logs: any[], bundleId?: string) {
+    return this.database.saveModeData(mode, 'logs', logs, true, bundleId);
   }
 
   /**
    * save one annotation level.
    */
-  public saveAnnotation(mode: LoginMode, annotation: OAnnotJSON) {
-    return this.database.saveModeData(mode, 'annotation', annotation, true);
+  public saveAnnotation(
+    mode: LoginMode,
+    annotation: OAnnotJSON,
+    bundleId?: string,
+  ) {
+    return this.database.saveModeData(
+      mode,
+      'annotation',
+      annotation,
+      true,
+      bundleId,
+    );
   }
 
   /**
    * save converter options.
    */
-  public saveImportOptions(mode: LoginMode, options: Record<string, any>) {
-    return this.database.saveModeData(mode, 'importOptions', options, true);
+  public saveImportOptions(
+    mode: LoginMode,
+    options: Record<string, any>,
+    bundleId?: string,
+  ) {
+    return this.database.saveModeData(
+      mode,
+      'importOptions',
+      options,
+      true,
+      bundleId,
+    );
   }
 
   /**

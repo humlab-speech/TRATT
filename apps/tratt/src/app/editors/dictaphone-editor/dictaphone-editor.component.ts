@@ -218,7 +218,7 @@ export class DictaphoneEditorComponent
   }
 
   ngOnInit() {
-    this.audioManager = this.audio.audiomanagers[0];
+    this.audioManager = this.audio.current!;
     this.audiochunk = this.audioManager.mainchunk.clone();
     this.editor.settings.markers =
       this.annotationStoreService.guidelines?.markers ?? [];
@@ -302,6 +302,14 @@ export class DictaphoneEditorComponent
         this.appStorage.saving.emit('success');
       }
     }
+  }
+
+  // TrattEditorRequirements: commits whatever's still sitting inside the
+  // typing-debounce window straight to the store, bypassing the timer —
+  // called by a host about to dispose this editor's view (e.g. a live
+  // editor switch), so an edit mid-debounce isn't silently lost.
+  flushPendingEdits(): void {
+    this.afterTyping('stopped');
   }
 
   private triggerUIAction = (keyboardEvent: Event, shortcutObj: any) => {

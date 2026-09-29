@@ -12,6 +12,18 @@ export interface TrattEditorRequirements {
   enableAllShortcuts(): void;
 
   initialized: EventEmitter<void>;
+
+  /**
+   * Synchronously commits any edit still sitting in a debounced
+   * save-on-typing-stopped timer (e.g. `transcr-editor`'s 1s typing
+   * debounce) straight to the store/annotation, bypassing the timer.
+   * Optional because not every editor buffers edits this way (TRN-Editor
+   * commits per-cell on Enter, with no debounce to flush). A caller that
+   * is about to dispose this editor's view (e.g. a live editor switch)
+   * must call this first, or an edit still inside the debounce window is
+   * silently lost when the view is destroyed.
+   */
+  flushPendingEdits?(): void;
 }
 
 export abstract class TRATTEditor extends DefaultComponent {

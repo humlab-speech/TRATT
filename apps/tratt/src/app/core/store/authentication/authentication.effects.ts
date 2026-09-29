@@ -39,6 +39,10 @@ import { ApplicationActions } from '../application/application.actions';
 import { checkAndThrowError } from '../error.handlers';
 import { IDBActions } from '../idb/idb.actions';
 import { LoginMode, RootState } from '../index';
+import {
+  DEFAULT_BUNDLE_ID,
+  generateBundleId,
+} from '../login-mode/annotation/local-bundle-collection';
 import { LoginModeActions } from '../login-mode/login-mode.actions';
 import { AuthenticationActions } from './authentication.actions';
 
@@ -242,61 +246,84 @@ export class AuthenticationEffects {
       exhaustMap((a) => {
         const checkInputs = () => {
           if (a.files !== undefined) {
-            // get audio file
-            let audiofile: File | undefined;
-            for (const file of a.files) {
-              if (
-                AudioManager.isValidAudioFileName(
-                  file.name,
-                  AppInfo.audioformats,
-                )
-              ) {
-                audiofile = file;
-                break;
-              }
-            }
+            const validAudioFiles = a.files.filter((file) =>
+              AudioManager.isValidAudioFileName(
+                file.name,
+                AppInfo.audioformats,
+              ),
+            );
 
-            if (audiofile !== undefined) {
-              this.store.dispatch(
-                AuthenticationActions.loginLocal.prepare({
-                  ...a,
-                  sessionFile: this.getSessionFile(audiofile),
-                }),
-              );
-              return race(
-                this.actions$.pipe(
-                  ofType(IDBActions.saveModeOptions.success),
-                  filter((s) => s.mode === a.mode),
-                  take(1),
-                ),
-                this.actions$.pipe(
-                  ofType(IDBActions.saveModeOptions.fail),
-                  take(1),
-                  tap(() =>
-                    console.warn(
-                      '[onLoginLocal$] saveModeOptions failed — proceeding without IDB',
-                    ),
-                  ),
-                ),
-              ).pipe(
-                take(1),
-                exhaustMap(() => {
-                  return of(
-                    AuthenticationActions.loginLocal.success({
-                      ...a,
-                      sessionFile: this.getSessionFile(audiofile!),
-                      audioAlreadyLoaded: true,
-                    }),
-                  );
-                }),
-              );
-            } else {
+            if (validAudioFiles.length === 0) {
               return of(
                 AuthenticationActions.loginLocal.fail(
                   new Error('file not supported'),
                 ),
               );
             }
+
+            const audiofile = validAudioFiles[0];
+            const firstBundleId = a.audioBundleIds?.[0] ?? DEFAULT_BUNDLE_ID;
+
+            // Defensive: make sure we're writing bundle #1's session into
+            // bundle #1, regardless of whatever bundle happened to be
+            // selected before this login attempt (normally already true —
+            // selectBundle no-ops if firstBundleId is already selected or
+            // already bundle-1's default).
+            this.store.dispatch(
+              LoginModeActions.selectBundle({
+                mode: a.mode,
+                bundleId: firstBundleId,
+              }),
+            );
+            this.store.dispatch(
+              AuthenticationActions.loginLocal.prepare({
+                ...a,
+                sessionFile: this.getSessionFile(audiofile),
+              }),
+            );
+            return race(
+              this.actions$.pipe(
+                ofType(IDBActions.saveModeOptions.success),
+                filter((s) => s.mode === a.mode),
+                take(1),
+              ),
+              this.actions$.pipe(
+                ofType(IDBActions.saveModeOptions.fail),
+                take(1),
+                tap(() =>
+                  console.warn(
+                    '[onLoginLocal$] saveModeOptions failed — proceeding without IDB',
+                  ),
+                ),
+              ),
+            ).pipe(
+              take(1),
+              exhaustMap(() => {
+                // Only now, after bundle #1's own save-gate has resolved
+                // (success or fail), create the remaining bundles — so their
+                // saves can never be mistaken for bundle #1's by the race
+                // above, which has already unsubscribed via take(1).
+                for (const extraFile of validAudioFiles.slice(1)) {
+                  const idx = validAudioFiles.indexOf(extraFile);
+                  const bundleId =
+                    a.audioBundleIds?.[idx] ?? generateBundleId();
+                  this.store.dispatch(
+                    LoginModeActions.createBundle({
+                      mode: a.mode,
+                      bundleId,
+                      sessionFile: this.getSessionFile(extraFile),
+                    }),
+                  );
+                }
+                return of(
+                  AuthenticationActions.loginLocal.success({
+                    ...a,
+                    sessionFile: this.getSessionFile(audiofile),
+                    audioAlreadyLoaded: true,
+                  }),
+                );
+              }),
+            );
           } else {
             return of(
               AuthenticationActions.loginLocal.fail(

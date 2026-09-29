@@ -1,7 +1,24 @@
-import { describe, expect, it, jest } from '@jest/globals';
+import {
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  jest,
+} from '@jest/globals';
 import { OAnnotJSON, OLabel, OSegment, OSegmentLevel } from '@tratt/annotation';
+import * as webMedia from '@tratt/web-media';
+import { AudioManager, FileInfo } from '@tratt/web-media';
+import { of, Subject } from 'rxjs';
 import { TrattDropzoneService } from './tratt-dropzone.service';
-import { FileInfo } from '@tratt/web-media';
+
+jest.mock('@tratt/web-media', () => {
+  const actual: object = jest.requireActual('@tratt/web-media');
+  return {
+    ...actual,
+    readFile: jest.fn(),
+  };
+});
 
 describe('TrattDropzoneService speaker injection', () => {
   it('applies speaker turns to the current annotation', () => {
@@ -59,5 +76,211 @@ describe('TrattDropzoneService openImportOptionsModal', () => {
     await service.openImportOptionsModal(fileProgress);
 
     expect(dispatch).not.toHaveBeenCalled();
+  });
+});
+
+describe('TrattDropzoneService multi-file audio ingest', () => {
+  let isValidSpy: jest.SpiedFunction<typeof AudioManager.isValidAudioFileName>;
+  let createSpy: jest.SpiedFunction<typeof AudioManager.create> | undefined;
+
+  const makeAudioManager = (id: number) =>
+    ({
+      id,
+      destroy: jest.fn(),
+      stopDecoding: jest.fn(),
+      resource: { info: { duration: { samples: 1000 } } },
+      sampleRate: 16000,
+    }) as unknown as AudioManager;
+
+  const makeFile = (name: string, size = 1000): File =>
+    new File([new Uint8Array(size)], name, { type: 'audio/wav' });
+
+  const newService = () =>
+    new TrattDropzoneService(
+      {} as never,
+      { dispatch: jest.fn() } as never,
+      { translate: (key: string) => key } as never,
+    );
+
+  beforeEach(() => {
+    isValidSpy = jest
+      .spyOn(AudioManager, 'isValidAudioFileName')
+      .mockReturnValue(true);
+    (webMedia.readFile as jest.Mock).mockReturnValue(
+      of({ status: 'success', progress: 1, result: new ArrayBuffer(8) }),
+    );
+  });
+
+  afterEach(() => {
+    isValidSpy.mockRestore();
+    createSpy?.mockRestore();
+    createSpy = undefined;
+  });
+
+  it('retains every valid audio file as a separate entry with a distinct AudioManager', async () => {
+    const manager1 = makeAudioManager(1);
+    const manager2 = makeAudioManager(2);
+    createSpy = jest
+      .spyOn(AudioManager, 'create')
+      .mockReturnValueOnce(of({ audioManager: manager1, progress: 1 }) as never)
+      .mockReturnValueOnce(
+        of({ audioManager: manager2, progress: 1 }) as never,
+      );
+
+    const service = newService();
+    service.allowMultipleAudio = true;
+    service.add(makeFile('file1.wav'));
+    service.add(makeFile('file2.wav'));
+
+    await Promise.resolve();
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(service.files.length).toBe(2);
+    expect(service.files.every((f) => f.status === 'valid')).toBe(true);
+    expect((manager1 as any).destroy).not.toHaveBeenCalled();
+    expect((manager2 as any).destroy).not.toHaveBeenCalled();
+
+    const entries = service.validAudioEntries;
+    expect(entries.length).toBe(2);
+    expect(entries[0].audioManager).toBe(manager1);
+    expect(entries[1].audioManager).toBe(manager2);
+    expect(entries[0].audioManager).not.toBe(entries[1].audioManager);
+  });
+
+  it("does not start decoding the second file until the first file's decode chain completes", async () => {
+    const manager1 = makeAudioManager(1);
+    const manager2 = makeAudioManager(2);
+    const firstDecode$ = new Subject<{
+      audioManager: AudioManager;
+      progress: number;
+    }>();
+
+    createSpy = jest
+      .spyOn(AudioManager, 'create')
+      .mockReturnValueOnce(firstDecode$.asObservable() as never)
+      .mockReturnValueOnce(
+        of({ audioManager: manager2, progress: 1 }) as never,
+      );
+
+    const service = newService();
+    service.allowMultipleAudio = true;
+    service.add(makeFile('file1.wav'));
+    service.add(makeFile('file2.wav'));
+
+    await Promise.resolve();
+    await Promise.resolve();
+
+    // First decode still in flight: second file's decode must not have started.
+    expect(AudioManager.create).toHaveBeenCalledTimes(1);
+
+    firstDecode$.next({ audioManager: manager1, progress: 1 });
+    firstDecode$.complete();
+
+    await Promise.resolve();
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(AudioManager.create).toHaveBeenCalledTimes(2);
+    expect(service.validAudioEntries.length).toBe(2);
+  });
+
+  it('does not remove the first audio file when a second audio file is dropped and allowMultipleAudio is true', async () => {
+    createSpy = jest
+      .spyOn(AudioManager, 'create')
+      .mockReturnValue(
+        of({ audioManager: makeAudioManager(1), progress: 1 }) as never,
+      );
+
+    const service = newService();
+    service.allowMultipleAudio = true;
+    service.add(makeFile('file1.wav'));
+
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(service.files.length).toBe(1);
+
+    service.add(makeFile('file2.wav'));
+
+    expect(service.files.length).toBe(2);
+    expect(service.files.some((f) => f.file.fullname === 'file1.wav')).toBe(
+      true,
+    );
+    expect(service.files.some((f) => f.file.fullname === 'file2.wav')).toBe(
+      true,
+    );
+  });
+
+  // Fix 4 (fixwave-1): allowMultipleAudio defaults to false, so every
+  // consumer that doesn't opt in (reload-file, login) keeps the original
+  // single-audio-file eviction behavior — this is the direct regression
+  // test protecting those legacy pages.
+  it('evicts the first audio file when a second audio file is dropped and allowMultipleAudio is left at its default (false)', async () => {
+    createSpy = jest
+      .spyOn(AudioManager, 'create')
+      .mockReturnValue(
+        of({ audioManager: makeAudioManager(1), progress: 1 }) as never,
+      );
+
+    const service = newService();
+    expect(service.allowMultipleAudio).toBe(false);
+    service.add(makeFile('file1.wav'));
+
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(service.files.length).toBe(1);
+
+    service.add(makeFile('file2.wav'));
+
+    expect(service.files.length).toBe(1);
+    expect(service.files.some((f) => f.file.fullname === 'file1.wav')).toBe(
+      false,
+    );
+    expect(service.files.some((f) => f.file.fullname === 'file2.wav')).toBe(
+      true,
+    );
+  });
+});
+
+describe('TrattDropzoneService reset()', () => {
+  const newService = () =>
+    new TrattDropzoneService(
+      {} as never,
+      { dispatch: jest.fn() } as never,
+      { translate: (key: string) => key } as never,
+    );
+
+  const makeAudioManager = () =>
+    ({
+      id: 1,
+      destroy: jest.fn(),
+      stopDecoding: jest.fn(),
+      resource: { info: { duration: { samples: 1000 } } },
+      sampleRate: 16000,
+    }) as unknown as AudioManager;
+
+  // Fix 5 (fixwave-1): reset() must clear the pending-file list WITHOUT
+  // destroying any AudioManager — ownership has already transferred to
+  // AudioService by the time WorkbenchComponent.startSession() calls this.
+  it('clears the file list without destroying any retained AudioManager', () => {
+    const manager = makeAudioManager();
+    const service = newService();
+    (service as any)._files = [
+      {
+        id: 1,
+        status: 'valid',
+        progress: 1,
+        checked_converters: 0,
+        file: new FileInfo('a.wav', 'audio/wav', 100),
+        audioManager: manager,
+      },
+    ];
+
+    service.reset();
+
+    expect(service.files.length).toBe(0);
+    expect((manager as any).destroy).not.toHaveBeenCalled();
   });
 });

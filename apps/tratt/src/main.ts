@@ -27,7 +27,10 @@ import { EffectsModule } from '@ngrx/effects';
 import { StoreModule } from '@ngrx/store';
 import { StoreDevtoolsModule } from '@ngrx/store-devtools';
 import { NgxOctraApiModule } from '@octra/ngx-octra-api';
-import { TrattComponentsModule } from '@tratt/ngx-components';
+import {
+  MultiThreadingService,
+  TrattComponentsModule,
+} from '@tratt/ngx-components';
 import { TrattUtilitiesModule } from '@tratt/ngx-utilities';
 import 'jodit/esm/plugins/justify/justify.js';
 import {
@@ -47,12 +50,12 @@ import { ReloadFileGuard } from './app/core/pages/intern/reload-file/reload-file
 import { PagesModule } from './app/core/pages/pages.module';
 import { ALoginGuard, DeALoginGuard } from './app/core/shared/guard';
 import { TranscActivateGuard } from './app/core/shared/guard/transcr.activateguard';
-import { MultiThreadingService } from '@tratt/ngx-components';
 import { AudioService, SettingsService } from './app/core/shared/service';
 import { AppStorageService } from './app/core/shared/service/appstorage.service';
 import { BugReportService } from './app/core/shared/service/bug-report.service';
 import { CompatibilityService } from './app/core/shared/service/compatibility.service';
 import { IDBService } from './app/core/shared/service/idb.service';
+import { LOCAL_DIARIZATION_WORKER_FACTORY } from './app/core/shared/service/local-diarization-worker.token';
 import { APIEffects } from './app/core/store/api';
 import { ApplicationInitEffects } from './app/core/store/application/application-init.effects';
 import { ApplicationSessionEffects } from './app/core/store/application/application-session.effects';
@@ -63,6 +66,10 @@ import {
   authenticationReducer,
 } from './app/core/store/authentication';
 import { IDBEffects } from './app/core/store/idb/idb-effects.service';
+import { BundleRestoreEffects } from './app/core/store/login-mode/annotation/bundle-restore.effects';
+import { PipelineQueuePersistenceEffects } from './app/core/store/pipeline-queue/pipeline-queue-persistence.effects';
+import * as fromPipelineQueue from './app/core/store/pipeline-queue/pipeline-queue.reducer';
+import * as fromPipeline from './app/core/store/pipeline/pipeline.reducer';
 import * as fromUser from './app/core/store/user/user.reducer';
 import { environment } from './environments/environment';
 
@@ -111,6 +118,8 @@ bootstrapApplication(AppComponent, {
           application: fromApplication.reducer,
           authentication: authenticationReducer,
           user: fromUser.reducer,
+          pipeline: fromPipeline.reducer,
+          pipelineQueue: fromPipelineQueue.reducer,
         },
         {
           metaReducers: !environment.production ? [] : [],
@@ -136,6 +145,8 @@ bootstrapApplication(AppComponent, {
     importProvidersFrom(
       EffectsModule.forRoot([
         IDBEffects,
+        BundleRestoreEffects,
+        PipelineQueuePersistenceEffects,
         ApplicationInitEffects,
         ApplicationSessionEffects,
         ApplicationUiEffects,
@@ -179,6 +190,25 @@ bootstrapApplication(AppComponent, {
     BugReportService,
     CompatibilityService,
     MultiThreadingService,
+    // LocalDiarizationRuntimeService is providedIn: 'root' and needs this
+    // factory at the same scope — diarize() already creates a fresh Worker
+    // per call (see LocalDiarizationRuntimeService.diarize()'s
+    // this.createWorker() call), so root-scoping the factory doesn't lose
+    // the "fresh worker per attempt" behavior. This used to live in
+    // LoginComponent's own `providers` array as a workaround for a DI scope
+    // mismatch bug (see commit 0b192eb67); providing it here alongside the
+    // now-root-provided service is the proper fix.
+    {
+      provide: LOCAL_DIARIZATION_WORKER_FACTORY,
+      useValue: () =>
+        new Worker(
+          new URL(
+            './app/core/workers/pyannote-diarization.worker',
+            import.meta.url,
+          ),
+          { type: 'module' },
+        ),
+    },
 
     // HTTP & Animation
     provideHttpClient(withInterceptorsFromDi()),

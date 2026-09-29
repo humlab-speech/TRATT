@@ -110,6 +110,7 @@ export class AnnotationTextProcessingService {
 
   public extractUI(uiElements: StatisticElem[]): OLogging {
     const now = new Date();
+    const manager = this.audio.current!;
     const result: OLogging = new OLogging(
       '1.0',
       'UTF-8',
@@ -117,9 +118,9 @@ export class AnnotationTextProcessingService {
         ? 'local'
         : this.appStorage.onlineSession?.currentProject?.name,
       now.toUTCString(),
-      this.audio.audioManager.resource.name,
-      this.audio.audioManager.resource.info.sampleRate,
-      this.audio.audioManager.resource.info.duration.samples,
+      manager.resource.name,
+      manager.resource.info.sampleRate,
+      manager.resource.info.duration.samples,
       [],
     );
 

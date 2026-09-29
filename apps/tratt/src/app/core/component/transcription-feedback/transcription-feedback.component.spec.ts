@@ -6,6 +6,11 @@ function createComponent(overrides: { feedback?: any } = {}) {
   const changeFeedback = jest.fn();
   const annotationStoreService = {
     feedback: overrides.feedback,
+    // Real AnnotationStoreService.feedback$ is a live Observable the
+    // component's feedbackForm$ field pipes off of at construction time
+    // (see f5b6f4e1c) — every test here constructs the component directly,
+    // so this must exist even though none of these tests read feedbackForm$
+    // itself, or `.pipe()` on undefined throws before the test body runs.
     feedback$: of(overrides.feedback),
     changeFeedback,
   } as never;

@@ -260,60 +260,60 @@
                 </div>
 
                 @if (
-                  (transcription.active ||
-                    transcription.error ||
-                    transcription.phase === 'finalizing') &&
-                  !translation.active &&
-                  !translation.error
+                  (transcription().active ||
+                    transcription().error ||
+                    transcription().phase === 'finalizing') &&
+                  !translation().active &&
+                  !translation().error
                 ) {
                   <div
                     class="transcription-progress mt-3 p-3 border rounded bg-light"
                   >
-                    @if (transcription.phase === 'downloading') {
+                    @if (transcription().phase === 'downloading') {
                       <div>
                         <strong>{{
                           'login.auto-transcription.downloading model'
                             | transloco
                         }}</strong>
-                        @if (transcription.downloadFile) {
+                        @if (transcription().downloadFile) {
                           <div class="text-muted small">
-                            {{ transcription.downloadFile }}
+                            {{ transcription().downloadFile }}
                           </div>
                         }
                         @if (
-                          transcription.downloadLoaded > 0 ||
-                          transcription.downloadTotal > 0 ||
-                          transcription.downloadExpectedBytes > 0
+                          transcription().downloadLoaded > 0 ||
+                          transcription().downloadTotal > 0 ||
+                          transcription().downloadExpectedBytes > 0
                         ) {
                           <div class="progress mt-1" style="height: 18px">
                             <div
                               class="progress-bar"
                               role="progressbar"
                               [style.width]="
-                                (transcription.downloadLoaded /
-                                  (transcription.downloadTotal ||
-                                    transcription.downloadExpectedBytes)) *
+                                (transcription().downloadLoaded /
+                                  (transcription().downloadTotal ||
+                                    transcription().downloadExpectedBytes)) *
                                   100 +
                                 '%'
                               "
                             >
                               {{
-                                (transcription.downloadLoaded /
-                                  (transcription.downloadTotal ||
-                                    transcription.downloadExpectedBytes)) *
+                                (transcription().downloadLoaded /
+                                  (transcription().downloadTotal ||
+                                    transcription().downloadExpectedBytes)) *
                                   100 | number: '1.0-0'
                               }}%
                             </div>
                           </div>
                           <small class="text-muted">
                             {{
-                              transcription.downloadLoaded / 1048576
+                              transcription().downloadLoaded / 1048576
                                 | number: '1.0-0'
                             }}
                             MB /
                             {{
-                              (transcription.downloadTotal ||
-                                transcription.downloadExpectedBytes) / 1048576
+                              (transcription().downloadTotal ||
+                                transcription().downloadExpectedBytes) / 1048576
                                 | number: '1.0-0'
                             }}
                             MB
@@ -325,7 +325,7 @@
                           ></div>
                         }
                       </div>
-                    } @else if (transcription.phase === 'diarizing') {
+                    } @else if (transcription().phase === 'diarizing') {
                       <div>
                         <strong>{{
                           'login.auto-transcription.diarizingLabel' | transloco
@@ -335,35 +335,35 @@
                           role="status"
                         ></div>
                         @if (
-                          transcription.downloadLoaded > 0 ||
-                          transcription.downloadTotal > 0
+                          transcription().downloadLoaded > 0 ||
+                          transcription().downloadTotal > 0
                         ) {
                           <div class="progress mt-1" style="height: 18px">
                             <div
                               class="progress-bar bg-info"
                               role="progressbar"
                               [style.width]="
-                                (transcription.downloadLoaded /
-                                  transcription.downloadTotal) *
+                                (transcription().downloadLoaded /
+                                  transcription().downloadTotal) *
                                   100 +
                                 '%'
                               "
                             >
                               {{
-                                (transcription.downloadLoaded /
-                                  transcription.downloadTotal) *
+                                (transcription().downloadLoaded /
+                                  transcription().downloadTotal) *
                                   100 | number: '1.0-0'
                               }}%
                             </div>
                           </div>
                           <small class="text-muted">
                             {{
-                              transcription.downloadLoaded / 1048576
+                              transcription().downloadLoaded / 1048576
                                 | number: '1.0-0'
                             }}
                             MB /
                             {{
-                              transcription.downloadTotal / 1048576
+                              transcription().downloadTotal / 1048576
                                 | number: '1.0-0'
                             }}
                             MB
@@ -377,7 +377,7 @@
                           </div>
                         }
                       </div>
-                    } @else if (transcription.phase === 'finalizing') {
+                    } @else if (transcription().phase === 'finalizing') {
                       <div>
                         <strong>{{
                           'login.auto-transcription.transcription complete'
@@ -388,7 +388,7 @@
                           role="status"
                         ></div>
                       </div>
-                    } @else if (transcription.phase === 'transcribing') {
+                    } @else if (transcription().phase === 'transcribing') {
                       <div>
                         <strong>{{
                           'login.auto-transcription.transcribing audio'
@@ -398,30 +398,30 @@
                           class="spinner-border spinner-border-sm ms-2 d-inline-block"
                           role="status"
                         ></div>
-                        @if (transcription.audioDurationS > 0) {
+                        @if (transcription().audioDurationS > 0) {
                           <div class="progress mt-2" style="height: 14px">
                             <div
                               class="progress-bar bg-success"
                               role="progressbar"
                               [style.width]="
-                                (transcription.segmentEndS /
-                                  transcription.audioDurationS) *
+                                (transcription().segmentEndS /
+                                  transcription().audioDurationS) *
                                   100 +
                                 '%'
                               "
                             ></div>
                           </div>
                           <small class="text-muted">
-                            {{ formatDuration(transcription.segmentEndS) }} /
-                            {{ formatDuration(transcription.audioDurationS) }}
+                            {{ formatDuration(transcription().segmentEndS) }} /
+                            {{ formatDuration(transcription().audioDurationS) }}
                             &nbsp;·&nbsp;
                             {{ 'login.auto-transcription.elapsed' | transloco }}
-                            {{ formatDuration(transcription.elapsedMs / 1000) }}
+                            {{ formatDuration(transcriptionElapsedMs / 1000) }}
                           </small>
                         } @else {
                           <div class="mt-1 text-muted small">
                             {{ 'login.auto-transcription.elapsed' | transloco }}
-                            {{ formatDuration(transcription.elapsedMs / 1000) }}
+                            {{ formatDuration(transcriptionElapsedMs / 1000) }}
                           </div>
                         }
                         <div class="mt-1 text-muted small">
@@ -433,10 +433,10 @@
                       </div>
                     }
 
-                    @if (transcription.error) {
+                    @if (transcription().error) {
                       <div class="alert alert-danger mt-2 py-1 mb-0 small">
-                        {{ transcription.error }}
-                        @if (transcription.usedWebGPU) {
+                        {{ transcription().error }}
+                        @if (transcription().usedWebGPU) {
                           <div
                             class="mt-1"
                             [innerHTML]="
@@ -453,7 +453,7 @@
                       (click)="dismissTranscriptionError()"
                     >
                       {{
-                        transcription.active
+                        transcription().active
                           ? ('login.auto-transcription.cancel' | transloco)
                           : ('login.auto-transcription.dismiss' | transloco)
                       }}
@@ -463,58 +463,58 @@
                       {{ 'login.auto-transcription.model cached' | transloco }}
                     </small>
 
-                    @if (diarizationWarning) {
+                    @if (diarizationWarning()) {
                       <div class="alert alert-warning mt-2 py-1 mb-0 small">
-                        {{ diarizationWarning }}
+                        {{ diarizationWarning() }}
                       </div>
                     }
                   </div>
                 }
                 @if (
-                  translation.active ||
-                  translation.error ||
-                  translation.phase === 'finalizing'
+                  translation().active ||
+                  translation().error ||
+                  translation().phase === 'finalizing'
                 ) {
                   <div
                     class="translation-progress mt-3 p-3 border rounded bg-light"
                   >
-                    @if (translation.phase === 'downloading') {
+                    @if (translation().phase === 'downloading') {
                       <div>
                         <strong>{{
                           'login.translation.phase.downloading' | transloco
                         }}</strong>
-                        @if (translation.downloadFile) {
+                        @if (translation().downloadFile) {
                           <div class="text-muted small">
-                            {{ translation.downloadFile }}
+                            {{ translation().downloadFile }}
                           </div>
                         }
-                        @if (translation.downloadTotal > 0) {
+                        @if (translation().downloadTotal > 0) {
                           <div class="progress mt-1" style="height: 18px">
                             <div
                               class="progress-bar"
                               role="progressbar"
                               [style.width]="
-                                (translation.downloadLoaded /
-                                  translation.downloadTotal) *
+                                (translation().downloadLoaded /
+                                  translation().downloadTotal) *
                                   100 +
                                 '%'
                               "
                             >
                               {{
-                                (translation.downloadLoaded /
-                                  translation.downloadTotal) *
+                                (translation().downloadLoaded /
+                                  translation().downloadTotal) *
                                   100 | number: '1.0-0'
                               }}%
                             </div>
                           </div>
                           <small class="text-muted">
                             {{
-                              translation.downloadLoaded / 1048576
+                              translation().downloadLoaded / 1048576
                                 | number: '1.0-0'
                             }}
                             MB /
                             {{
-                              translation.downloadTotal / 1048576
+                              translation().downloadTotal / 1048576
                                 | number: '1.0-0'
                             }}
                             MB
@@ -526,7 +526,7 @@
                           ></div>
                         }
                       </div>
-                    } @else if (translation.phase === 'initializing') {
+                    } @else if (translation().phase === 'initializing') {
                       <div>
                         <strong>{{
                           'login.translation.phase.initializing' | transloco
@@ -543,7 +543,7 @@
                           ></div>
                         </div>
                       </div>
-                    } @else if (translation.phase === 'finalizing') {
+                    } @else if (translation().phase === 'finalizing') {
                       <div>
                         <strong>{{
                           'login.translation.phase.finalizing' | transloco
@@ -553,7 +553,7 @@
                           role="status"
                         ></div>
                       </div>
-                    } @else if (translation.phase === 'translating') {
+                    } @else if (translation().phase === 'translating') {
                       <div>
                         <strong>{{
                           'login.translation.phase.translating' | transloco
@@ -562,32 +562,32 @@
                           class="spinner-border spinner-border-sm ms-2 d-inline-block"
                           role="status"
                         ></div>
-                        @if (translation.segmentTotal > 0) {
+                        @if (translation().segmentTotal > 0) {
                           <div class="progress mt-2" style="height: 14px">
                             <div
                               class="progress-bar bg-success"
                               role="progressbar"
                               [style.width]="
-                                (translation.segmentIndex /
-                                  translation.segmentTotal) *
+                                (translation().segmentIndex /
+                                  translation().segmentTotal) *
                                   100 +
                                 '%'
                               "
                             ></div>
                           </div>
                           <small class="text-muted">
-                            {{ translation.segmentIndex }} /
-                            {{ translation.segmentTotal }} &nbsp;·&nbsp;
+                            {{ translation().segmentIndex }} /
+                            {{ translation().segmentTotal }} &nbsp;·&nbsp;
                             {{ 'login.auto-transcription.elapsed' | transloco }}
-                            {{ formatDuration(translation.elapsedMs / 1000) }}
+                            {{ formatDuration(translationElapsedMs / 1000) }}
                           </small>
                         }
                       </div>
                     }
 
-                    @if (translation.error) {
+                    @if (translation().error) {
                       <div class="alert alert-danger mt-2 py-1 mb-0 small">
-                        {{ translation.error }}
+                        {{ translation().error }}
                       </div>
                     }
 
@@ -597,7 +597,7 @@
                       (click)="dismissTranslationError()"
                     >
                       {{
-                        translation.active
+                        translation().active
                           ? ('login.auto-transcription.cancel' | transloco)
                           : ('login.auto-transcription.dismiss' | transloco)
                       }}
@@ -608,8 +608,8 @@
                   <button
                     (click)="onOfflineSubmit(false)"
                     [disabled]="
-                      transcription.active ||
-                      translation.active ||
+                      transcription().active ||
+                      translation().active ||
                       (dropzone?.files?.length ?? 0) === 0 ||
                       !dropzone?.statistics ||
                       (dropzone?.statistics?.invalid ?? 0) > 0 ||
@@ -626,8 +626,8 @@
                   <button
                     (click)="onOfflineSubmit(true)"
                     [disabled]="
-                      transcription.active ||
-                      translation.active ||
+                      transcription().active ||
+                      translation().active ||
                       (dropzone?.files?.length ?? 0) === 0 ||
                       !dropzone?.statistics ||
                       (dropzone?.statistics?.invalid ?? 0) > 0 ||

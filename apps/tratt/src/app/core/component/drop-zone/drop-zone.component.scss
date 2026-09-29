@@ -11,8 +11,16 @@
   cursor: pointer;
 }
 
+.dropzone .inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 100%;
+}
+
 .dropzone .dragndrop {
-  padding: 10px;
   color: black;
   font-size: 30px;
 }

@@ -1,11 +1,13 @@
+import { Type } from '@angular/core';
 import { TwoDEditorComponent } from './2D-editor';
 import { DictaphoneEditorComponent } from './dictaphone-editor';
 import { LinearEditorComponent } from './linear-editor';
 import { TrnEditorComponent } from './trn-editor';
+import { TRATTEditor } from './tratt-editor';
 
 export const editorComponents: {
   name: string;
-  editor: any;
+  editor: Type<TRATTEditor>;
   translate: string;
   icon: string;
 }[] = [

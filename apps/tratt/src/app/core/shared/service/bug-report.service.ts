@@ -176,19 +176,16 @@ export class BugReportService {
     }
 
     if (this.annotationStoreService.transcript) {
-      if (this.audio.audioManager) {
-        const file = getFileSize(this.audio.audioManager.resource.size!);
+      const manager = this.audio.current;
+      if (manager) {
+        const file = getFileSize(manager.resource.size!);
         protocol.tool.audiofile_size = file.size + ' ' + file.label;
         protocol.tool.audiofile_duration =
-          this.audio.audioManager.resource.info.duration.seconds;
-        protocol.tool.audiofile_samplerate =
-          this.audio.audioManager.resource.info.sampleRate;
-        protocol.tool.audiofile_bitrate =
-          this.audio.audioManager.resource.info.bitrate;
-        protocol.tool.audiofile_channels =
-          this.audio.audioManager.resource.info.channels;
-        protocol.tool.audiofile_type =
-          this.audio.audioManager.resource.extension;
+          manager.resource.info.duration.seconds;
+        protocol.tool.audiofile_samplerate = manager.resource.info.sampleRate;
+        protocol.tool.audiofile_bitrate = manager.resource.info.bitrate;
+        protocol.tool.audiofile_channels = manager.resource.info.channels;
+        protocol.tool.audiofile_type = manager.resource.extension;
       }
       const transcript = this.annotationStoreService.transcriptSignal();
       if (transcript) {

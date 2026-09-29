@@ -20,6 +20,11 @@ export class DropZoneComponent implements OnInit {
   @Input()
   innerhtml = '';
   @Input() height = 'auto';
+  /** Hides the decorative folder icon once the consumer has real content to
+   * show (a file list) — it previously stayed absolutely centered over
+   * `<ng-content>` regardless, overlapping whatever text/table was
+   * projected in. Defaults to true so existing bare usages are unchanged. */
+  @Input() showIcon = true;
   @Output() public afterdrop: EventEmitter<File[]> = new EventEmitter<File[]>();
   @ViewChild('fileinput', { static: true }) fileinput!: ElementRef;
   private fileAPIsupported = false;

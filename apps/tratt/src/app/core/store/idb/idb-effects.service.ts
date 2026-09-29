@@ -38,8 +38,14 @@ import { AuthenticationActions } from '../authentication';
 import { getModeState, LoginMode, RootState } from '../index';
 import { AnnotationState } from '../login-mode/annotation';
 import { AnnotationActions } from '../login-mode/annotation/annotation.actions';
+import {
+  DEFAULT_BUNDLE_ID,
+  resolveLocalBundleState,
+} from '../login-mode/annotation/local-bundle-collection';
 import { LoginModeActions } from '../login-mode/login-mode.actions';
+import { runStatusOf } from '../pipeline-queue';
 import { UserActions } from '../user/user.actions';
+import { buildModeOptions } from './build-mode-options';
 import { IDBActions } from './idb.actions';
 
 @Injectable({
@@ -51,7 +57,8 @@ export class IDBEffects {
       ofType(ApplicationActions.initApplication.setSessionStorageOptions),
       withLatestFrom(this.store),
       exhaustMap(([action, state]) => {
-        const databaseName = state.application.appConfiguration?.tratt.database.name;
+        const databaseName =
+          state.application.appConfiguration?.tratt.database.name;
 
         if (!databaseName) {
           return of(
@@ -109,7 +116,10 @@ export class IDBEffects {
                   'showFeedbackNotice',
                   'userProfile',
                 ]),
-                this.idbService.loadModeOptions(LoginMode.LOCAL),
+                this.idbService.loadModeOptions(
+                  LoginMode.LOCAL,
+                  DEFAULT_BUNDLE_ID,
+                ),
                 this.idbService.loadModeOptions(LoginMode.DEMO),
                 this.idbService.loadModeOptions(LoginMode.ONLINE),
                 this.idbService.loadModeOptions(LoginMode.URL),
@@ -138,6 +148,17 @@ export class IDBEffects {
             catchError((err: string) => {
               console.error(err);
 
+              // loadOptions.fail has no reducer/effect listening for it —
+              // also dispatch addError so the user actually sees the
+              // pre-built LoadingComponent failure UI instead of hanging
+              // silently at /load forever. Matches this effect's existing
+              // side-channel dispatch pattern above (loadImportOptions.do).
+              this.store.dispatch(
+                ApplicationActions.addError({
+                  error: err,
+                }),
+              );
+
               return of(
                 IDBActions.loadOptions.fail({
                   error: err,
@@ -156,7 +177,7 @@ export class IDBEffects {
       exhaustMap(([action, state]) => {
         return forkJoin([
           this.idbService.loadLogs(LoginMode.ONLINE),
-          this.idbService.loadLogs(LoginMode.LOCAL),
+          this.idbService.loadLogs(LoginMode.LOCAL, DEFAULT_BUNDLE_ID),
           this.idbService.loadLogs(LoginMode.DEMO),
           this.idbService.loadLogs(LoginMode.URL),
         ]).pipe(
@@ -209,7 +230,7 @@ export class IDBEffects {
       exhaustMap((action) => {
         return forkJoin([
           this.idbService.loadAnnotation(LoginMode.ONLINE),
-          this.idbService.loadAnnotation(LoginMode.LOCAL),
+          this.idbService.loadAnnotation(LoginMode.LOCAL, DEFAULT_BUNDLE_ID),
           this.idbService.loadAnnotation(LoginMode.DEMO),
         ]).pipe(
           withLatestFrom(this.store),
@@ -264,7 +285,7 @@ export class IDBEffects {
         const modeState = getModeState(appState);
 
         if (modeState) {
-          if (!this.audio.audioManager) {
+          if (!this.audio.current) {
             return of(
               ApplicationActions.undoFailed({
                 error: 'No audio loaded — cannot save undo state.',
@@ -278,10 +299,11 @@ export class IDBEffects {
             .saveAnnotation(
               appState.application.mode!,
               modeState.transcript.serialize(
-                this.audio.audioManager.resource.info.fullname,
-                this.audio.audioManager.resource.info.sampleRate,
-                this.audio.audioManager.resource.info.duration,
+                this.audio.current.resource.info.fullname,
+                this.audio.current.resource.info.sampleRate,
+                this.audio.current.resource.info.duration,
               ),
+              this.resolveLocalBundleId(appState.application.mode!, appState),
             )
             .pipe(
               map(() => ApplicationActions.undoSuccess()),
@@ -313,7 +335,7 @@ export class IDBEffects {
         const modeState = getModeState(appState);
 
         if (modeState) {
-          if (!this.audio.audioManager) {
+          if (!this.audio.current) {
             return of(
               ApplicationActions.redoFailed({
                 error: 'No audio loaded — cannot save redo state.',
@@ -325,10 +347,11 @@ export class IDBEffects {
             .saveAnnotation(
               appState.application.mode!,
               modeState.transcript.serialize(
-                this.audio.audioManager.resource.info.fullname,
-                this.audio.audioManager.resource.info.sampleRate,
-                this.audio.audioManager.resource.info.duration,
+                this.audio.current.resource.info.fullname,
+                this.audio.current.resource.info.sampleRate,
+                this.audio.current.resource.info.duration,
               ),
+              this.resolveLocalBundleId(appState.application.mode!, appState),
             )
             .pipe(
               map(() => ApplicationActions.redoSuccess()),
@@ -473,6 +496,7 @@ export class IDBEffects {
         AuthenticationActions.loginURL.success,
         AuthenticationActions.loginLocal.prepare,
         AuthenticationActions.loginLocal.success,
+        LoginModeActions.createBundle,
         LoginModeActions.startAnnotation.success,
         ApplicationActions.changeApplicationOption.do,
         LoginModeActions.endTranscription.do,
@@ -480,6 +504,14 @@ export class IDBEffects {
         LoginModeActions.setImportConverter.do,
         AnnotationActions.addSpeakerId.do,
         AnnotationActions.removeSpeakerId.do,
+      ),
+      filter(
+        (action) =>
+          action.type !== LoginModeActions.createBundle.type ||
+          !(
+            (action as any).restoredOptions ||
+            (action as any).restoredAnnotation
+          ),
       ),
       withLatestFrom(this.store),
       mergeMap(([action, appState]) => {
@@ -489,36 +521,24 @@ export class IDBEffects {
         );
 
         if (modeState) {
+          const bundleId = this.resolveLocalBundleId(
+            (action as any).mode,
+            appState,
+          );
+          // Always re-write the CURRENT runState, never omit it: this write
+          // replaces the whole stored options object (see buildModeOptions'
+          // doc comment), so omitting it would erase a finished run's state.
+          const runState =
+            bundleId === undefined
+              ? undefined
+              : runStatusOf(appState.pipelineQueue.runs, bundleId).state;
+
           return this.idbService
-            .saveModeOptions((action as any).mode, {
-              sessionfile:
-                modeState?.sessionFile &&
-                Object.keys(modeState.sessionFile).length > 0
-                  ? modeState.sessionFile.toAny()
-                  : null,
-              importConverter: modeState.importConverter,
-              currentEditor: modeState.currentEditor ?? null,
-              currentLevel: modeState.transcript?.selectedLevelIndex ?? null,
-              logging: modeState.logging.enabled ?? null,
-              project: modeState.currentSession?.loadFromServer
-                ? (modeState.currentSession?.currentProject ?? null)
-                : undefined,
-              transcriptID: modeState.currentSession?.loadFromServer
-                ? (modeState.currentSession?.task?.id ?? null)
-                : undefined,
-              feedback: modeState.currentSession?.assessment ?? null,
-              comment: modeState.currentSession?.comment ?? null,
-              additionalSpeakerIds: modeState.additionalSpeakerIds?.length
-                ? modeState.additionalSpeakerIds
-                : null,
-              user: appState.authentication.me
-                ? {
-                    id: appState.authentication.me.id,
-                    name: appState.authentication.me.username,
-                    email: appState.authentication.me.email,
-                  }
-                : undefined,
-            })
+            .saveModeOptions(
+              (action as any).mode,
+              buildModeOptions(modeState, appState.authentication.me, runState),
+              bundleId,
+            )
             .pipe(
               map(() => {
                 return IDBActions.saveModeOptions.success({
@@ -787,7 +807,11 @@ export class IDBEffects {
 
         if (modeState) {
           return this.idbService
-            .saveLogs((action as any).mode, modeState.logging.logs)
+            .saveLogs(
+              (action as any).mode,
+              modeState.logging.logs,
+              this.resolveLocalBundleId((action as any).mode, appState),
+            )
             .pipe(
               map(() => IDBActions.saveLogs.success()),
               catchError((error) => {
@@ -831,7 +855,7 @@ export class IDBEffects {
         const modeState = this.getModeStateFromString(appState, action.mode);
 
         if (modeState) {
-          if (!this.audio.audioManager) {
+          if (!this.audio.current) {
             // Audio not yet loaded (e.g. loginLocal.prepare fires before audio is registered).
             // Skip annotation save — it will be saved once audio loads successfully.
             return of(IDBActions.saveAnnotation.success());
@@ -841,9 +865,10 @@ export class IDBEffects {
               action.mode,
               modeState.transcript.serialize(
                 modeState.audio.fileName,
-                this.audio.audioManager.resource.info.sampleRate,
-                this.audio.audioManager.resource.info.duration,
+                this.audio.current.resource.info.sampleRate,
+                this.audio.current.resource.info.duration,
               ),
+              this.resolveLocalBundleId(action.mode, appState),
             )
             .pipe(
               map(() => IDBActions.saveAnnotation.success()),
@@ -909,7 +934,12 @@ export class IDBEffects {
     this.actions$.pipe(
       ofType(IDBActions.loadImportOptions.do),
       mergeMap((action) => {
-        return from(this.idbService.loadImportOptions(action.mode)).pipe(
+        return from(
+          this.idbService.loadImportOptions(
+            action.mode,
+            action.mode === LoginMode.LOCAL ? DEFAULT_BUNDLE_ID : undefined,
+          ),
+        ).pipe(
           map((importOptions) =>
             IDBActions.loadImportOptions.success({
               mode: action.mode,
@@ -957,9 +987,14 @@ export class IDBEffects {
     this.actions$.pipe(
       ofType(LoginModeActions.changeImportOptions.do),
       filter((action) => action.importOptions != null),
-      exhaustMap((action) =>
+      withLatestFrom(this.store),
+      exhaustMap(([action, appState]) =>
         this.idbService
-          .saveImportOptions(action.mode, action.importOptions!)
+          .saveImportOptions(
+            action.mode,
+            action.importOptions!,
+            this.resolveLocalBundleId(action.mode, appState),
+          )
           .pipe(
             map(() => IDBActions.saveImportOptions.success()),
             catchError((error: Error) =>
@@ -968,6 +1003,32 @@ export class IDBEffects {
           ),
       ),
     ),
+  );
+
+  /**
+   * Final whole-branch review fix: `LoginModeActions.removeBundles` only
+   * ever touched the NgRx store — nothing deleted the corresponding rows
+   * from the Dexie `bundles` table, so a "removed" bundle resurrected on
+   * the next reload via `BundleRestoreEffects`'s `listLocalBundleIds()`
+   * walk. `{ dispatch: false }`: `removeBundles` has no success/fail
+   * action-group siblings to map onto, and a failed IDB delete here must
+   * not disturb the store — the bundle is already gone from the UI either
+   * way, so this is best-effort cleanup, logged on failure.
+   */
+  removeBundles$ = createEffect(
+    () =>
+      this.actions$.pipe(
+        ofType(LoginModeActions.removeBundles),
+        exhaustMap((action) =>
+          this.idbService.deleteLocalBundles(action.bundleIds).pipe(
+            catchError((error) => {
+              console.error('Failed to delete bundles from IndexedDB', error);
+              return of(undefined);
+            }),
+          ),
+        ),
+      ),
+    { dispatch: false },
   );
 
   clearAllData$ = createEffect(
@@ -1015,12 +1076,21 @@ export class IDBEffects {
     });
   }
 
+  private resolveLocalBundleId(
+    mode: LoginMode,
+    appState: RootState,
+  ): string | undefined {
+    return mode === LoginMode.LOCAL
+      ? appState.localMode.selectedBundleId
+      : undefined;
+  }
+
   getModeStateFromString(appState: RootState, mode: LoginMode) {
     let modeState: AnnotationState | undefined = undefined;
     if (mode === 'online') {
       modeState = appState.onlineMode;
     } else if (mode === 'local') {
-      modeState = appState.localMode;
+      modeState = resolveLocalBundleState(appState.localMode);
     } else if (mode === 'demo') {
       modeState = appState.demoMode;
     } else if (mode === 'url') {

@@ -80,13 +80,19 @@ export class AuthenticationStoreService {
     );
   }
 
-  async loginLocal(files: File[], annotation?: OAnnotJSON, removeData = false) {
+  async loginLocal(
+    files: File[],
+    annotation?: OAnnotJSON,
+    removeData = false,
+    audioBundleIds?: string[],
+  ) {
     this.store.dispatch(
       AuthenticationActions.loginLocal.do({
         files,
         annotation,
         removeData,
         mode: LoginMode.LOCAL,
+        audioBundleIds,
       }),
     );
   }

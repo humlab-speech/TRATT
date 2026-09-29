@@ -434,6 +434,13 @@
       "button": "Ladda ned säkerhetskopia",
       "header": "Meddelande om säkerhetskopia"
     },
+    "bundle reattach mismatch": {
+      "actual": "Du valde:",
+      "expected": "Förväntad:",
+      "header": "Det här verkar inte vara samma fil",
+      "text": "Filen du valde matchar inte det som ursprungligen spelades in för det här paketet. Vill du använda den ändå?",
+      "use anyway": "Använd ändå"
+    },
     "feedback-notice": {
       "body": "För att ytterligare förbättra TRATT eller åtgärda buggar behöver vi din återkoppling. Du kan enkelt och snabbt skicka oss din återkoppling genom att använda återkopplingsfunktionen. Du kan enkelt och snabbt berätta din åsikt genom att klicka på frågetecknet i det övre högra hörnet och fylla i formuläret. <b>Om det är ett tekniskt problem är det mycket viktigt att skicka återkopplingen tillsammans med protokollet till oss så snart som möjligt.</b> Protokollet hjälper oss att snabbt diagnostisera och felsöka problem på ett lämpligt sätt.<br/><br/>Tack.<br/><br/><i>TRATT-teamet</i>",
       "header": "Återkoppling behövs"
@@ -720,5 +727,66 @@
   },
   "branding": {
     "tagline": "transkription av tal till text"
+  },
+  "workbench": {
+    "start session": "Starta session",
+    "tabs": {
+      "upload": "Ladda upp fil",
+      "record": "Spela in nu"
+    },
+    "editor_header": {
+      "mono": "mono",
+      "stereo": "stereo"
+    },
+    "bundle_list": {
+      "title": "Filer",
+      "reattach": "Bifoga fil…",
+      "select_all": "Markera alla",
+      "clear_finished": "Rensa klara",
+      "remove": "Ta bort",
+      "export_catalogue": "Exportera katalog…",
+      "retry": "Försök igen",
+      "status": {
+        "queued": "I kö",
+        "running": "Körs",
+        "done": "Klar",
+        "failed": "Misslyckades",
+        "interrupted": "Avbruten"
+      },
+      "error": {
+        "decode": "Kunde inte läsa ljudet",
+        "model-load": "Kunde inte ladda modellen",
+        "oom": "Minnet tog slut",
+        "cancelled": "Avbruten",
+        "unknown": "Misslyckades"
+      }
+    },
+    "queue": {
+      "run": "Transkribera {{count}} fil(er)",
+      "pause": "Pausa kön",
+      "options_title": "Pipelineinställningar",
+      "no_options_hint": "Inga transkriptionsalternativ inställda — aktivera automatisk transkribering först."
+    },
+    "capacity": {
+      "storage_label": "Webbläsarlagring",
+      "storage_text": "{{used}} av {{quota}}",
+      "storage_note": "Modeller {{models}} cachade + annotationer {{annotations}}. Media skrivs aldrig till lagringen.",
+      "storage_unavailable": "Den här webbläsaren rapporterar inte lagringsanvändning.",
+      "storage_breakdown_unavailable": "Lagringsfördelning otillgänglig tills en pipeline är konfigurerad.",
+      "memory_label": "Arbetsminne (uppskattat)",
+      "memory_text": "{{used}} av ~{{budget}}",
+      "memory_note": "Avkodat ljud för {{count}} fil(er) i minnet. Det är detta, inte lagringen, som begränsar hur mycket media du kan ha igång samtidigt."
+    },
+    "catalogue_export": {
+      "title": "Exportera katalog",
+      "formats_label": "Format",
+      "bundles_label": "{{count}} fil(er) markerade",
+      "all_bundles_hint": "Inga filer markerade — exporterar alla {{count}}.",
+      "export": "Exportera",
+      "cancel": "Avbryt",
+      "progress": "Exporterar {{current}} av {{total}}…",
+      "warnings_title": "Klar med varningar",
+      "done": "Klar — {{count}} fil(er) arkiverade."
+    }
   }
 }

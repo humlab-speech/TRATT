@@ -463,8 +463,16 @@ export class LinearEditorComponent
     }
   };
 
+  // TrattEditorRequirements: commits whatever's still sitting inside the
+  // typing-debounce window straight to the store, bypassing the timer —
+  // called by a host about to dispose this editor's view (e.g. a live
+  // editor switch), so an edit mid-debounce isn't silently lost.
+  flushPendingEdits(): void {
+    this.onEditorTyping('stopped');
+  }
+
   ngOnInit() {
-    this.audioManager = this.audio.audiomanagers[0];
+    this.audioManager = this.audio.current!;
     this.audioChunkTop = this.audioManager.mainchunk.clone();
     this.audioChunkMagnifier = this.audioManager.mainchunk.clone();
     this.selectedAudioChunk = this.audioChunkTop;

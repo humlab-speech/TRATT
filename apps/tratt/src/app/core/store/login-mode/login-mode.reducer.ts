@@ -1,5 +1,6 @@
 import { Action, ActionReducer, on } from '@ngrx/store';
 import {
+  OAnnotJSON,
   OLabel,
   TrattAnnotation,
   TrattAnnotationSegment,
@@ -21,12 +22,207 @@ import { AnnotationState } from './annotation';
 import { AnnotationActions } from './annotation/annotation.actions';
 import * as fromAnnotation from './annotation/annotation.reducer';
 import { AnnotationStateReducers } from './annotation/annotation.reducer';
+import {
+  DEFAULT_BUNDLE_ID,
+  IdentifiedAnnotationState,
+  LocalBundleCollectionState,
+  localBundleAdapter,
+  resolveLocalBundleState,
+} from './annotation/local-bundle-collection';
 import { LoginModeActions } from './login-mode.actions';
 
 export const initialState: AnnotationState = {
   ...fromAnnotation.initialState,
   currentSession: {},
 };
+
+/**
+ * Pure field-mapping helper: writes a single IDB-persisted option (keyed by
+ * `attribute`) into the corresponding `AnnotationState` field. Hoisted out of
+ * `LoginModeReducers` (it never referenced `this`) so it's callable both from
+ * `create()`'s `loadOptions.success` handler and from the plain
+ * `wrapAsLocalBundleCollectionReducer` function's `createBundle` case.
+ */
+function writeOptionToStore(
+  state: AnnotationState,
+  attribute: string,
+  value: any,
+): AnnotationState {
+  switch (attribute) {
+    case 'comment':
+      state.currentSession = {
+        ...state.currentSession,
+        comment: value,
+      };
+      break;
+    case 'project':
+      state = {
+        ...state,
+        previousSession: {
+          ...state.previousSession,
+          project: {
+            id: value?.id as string,
+          },
+        } as any,
+      };
+      break;
+    case 'transcriptID':
+      state = {
+        ...state,
+        previousSession: {
+          ...state.previousSession,
+          task: {
+            id: value,
+          },
+        } as any,
+      };
+      break;
+    case 'sessionfile':
+      state = {
+        ...state,
+        sessionFile: SessionFile.fromAny(value),
+      };
+      break;
+    case 'importConverter':
+      state = {
+        ...state,
+        importConverter: value,
+      };
+      break;
+  }
+
+  return state;
+}
+
+/**
+ * Wraps an `AnnotationState` reducer so its output is stored as the single
+ * entity of a `LocalBundleCollectionState`, keyed by `DEFAULT_BUNDLE_ID`.
+ * Used only for LOCAL mode; ONLINE/DEMO/URL keep the flat `AnnotationState`.
+ */
+function wrapAsLocalBundleCollectionReducer(
+  innerReducer: ActionReducer<AnnotationState, Action>,
+): ActionReducer<LocalBundleCollectionState, Action> {
+  const initialInner = innerReducer(undefined, {
+    type: '@ngrx/store/init',
+  } as Action);
+  const initialCollectionState: LocalBundleCollectionState = {
+    bundles: localBundleAdapter.setOne(
+      { ...initialInner, bundleId: DEFAULT_BUNDLE_ID },
+      localBundleAdapter.getInitialState(),
+    ),
+    selectedBundleId: DEFAULT_BUNDLE_ID,
+  };
+
+  return (
+    state: LocalBundleCollectionState = initialCollectionState,
+    action: Action,
+  ): LocalBundleCollectionState => {
+    if (action.type === LoginModeActions.createBundle.type) {
+      const { bundleId, sessionFile, restoredOptions, restoredAnnotation } =
+        action as ReturnType<typeof LoginModeActions.createBundle>;
+      let entity: IdentifiedAnnotationState = {
+        ...initialInner,
+        bundleId,
+        sessionFile,
+      };
+      if (restoredOptions) {
+        for (const [name, value] of getProperties(restoredOptions)) {
+          entity = {
+            ...writeOptionToStore(entity, name, value),
+            bundleId,
+            sessionFile,
+          };
+        }
+      }
+      if (restoredAnnotation) {
+        const deserializedAnnotation =
+          OAnnotJSON.deserialize(restoredAnnotation);
+        if (deserializedAnnotation) {
+          entity = {
+            ...entity,
+            transcript: TrattAnnotation.deserialize(deserializedAnnotation),
+          };
+        }
+      }
+      return {
+        ...state,
+        bundles: localBundleAdapter.addOne(entity, state.bundles),
+        selectedBundleId: bundleId,
+      };
+    }
+    if (action.type === LoginModeActions.selectBundle.type) {
+      const { bundleId } = action as ReturnType<
+        typeof LoginModeActions.selectBundle
+      >;
+      if (!state.bundles.entities[bundleId]) {
+        return state;
+      }
+      return { ...state, selectedBundleId: bundleId };
+    }
+    if (action.type === LoginModeActions.setBundleTranscript.type) {
+      const { bundleId, transcript } = action as ReturnType<
+        typeof LoginModeActions.setBundleTranscript
+      >;
+      const existing = state.bundles.entities[bundleId];
+      if (!existing) {
+        return state;
+      }
+      // Written straight onto the entity, bypassing the undo-wrapped inner
+      // reducer on purpose: a pipeline result is a machine-produced
+      // document replacement, not a user edit, and pushing it onto that
+      // bundle's ngrx-wieder history would let Ctrl+Z "undo" a
+      // transcription the user never typed.
+      return {
+        ...state,
+        bundles: localBundleAdapter.setOne(
+          { ...existing, transcript },
+          state.bundles,
+        ),
+      };
+    }
+    if (action.type === LoginModeActions.removeBundles.type) {
+      const { bundleIds } = action as ReturnType<
+        typeof LoginModeActions.removeBundles
+      >;
+      const removed = new Set(bundleIds);
+      const remainingIds = (state.bundles.ids as string[]).filter(
+        (id) => !removed.has(id),
+      );
+      if (remainingIds.length === 0) {
+        // Never leave the collection empty — hasAnyBundles() and the rest
+        // of the shell assume at least one entity always exists (the
+        // DEFAULT_BUNDLE_ID sentinel this same function seeds on init).
+        return {
+          ...state,
+          bundles: localBundleAdapter.setOne(
+            { ...initialInner, bundleId: DEFAULT_BUNDLE_ID },
+            localBundleAdapter.removeMany(bundleIds, state.bundles),
+          ),
+          selectedBundleId: DEFAULT_BUNDLE_ID,
+        };
+      }
+      return {
+        ...state,
+        bundles: localBundleAdapter.removeMany(bundleIds, state.bundles),
+        selectedBundleId: removed.has(state.selectedBundleId)
+          ? remainingIds[0]
+          : state.selectedBundleId,
+      };
+    }
+    const currentInner = resolveLocalBundleState(state) ?? initialInner;
+    const nextInner = innerReducer(currentInner, action);
+    if (nextInner === currentInner) {
+      return state;
+    }
+    return {
+      ...state,
+      bundles: localBundleAdapter.setOne(
+        { ...nextInner, bundleId: state.selectedBundleId },
+        state.bundles,
+      ),
+    };
+  };
+}
 
 // initialize ngrx-wieder with custom config
 const { createUndoRedoReducer } = undoRedo({
@@ -45,8 +241,10 @@ const { createUndoRedoReducer } = undoRedo({
 export class LoginModeReducers {
   constructor(private mode: LoginMode) {}
 
-  public create(): ActionReducer<AnnotationState, Action> {
-    return createUndoRedoReducer(
+  public create():
+    | ActionReducer<AnnotationState, Action>
+    | ActionReducer<LocalBundleCollectionState, Action> {
+    const inner: ActionReducer<AnnotationState, Action> = createUndoRedoReducer(
       initialState,
       ...(new AnnotationStateReducers(this.mode).create() as any),
       on(
@@ -149,7 +347,7 @@ export class LoginModeReducers {
           }
 
           for (const [name, value] of getProperties(options)) {
-            result = this.writeOptionToStore(result, name, value);
+            result = writeOptionToStore(result, name, value);
           }
 
           return result;
@@ -283,9 +481,7 @@ export class LoginModeReducers {
               for (const level of transcript.levels) {
                 if (level instanceof TrattAnnotationSegmentLevel) {
                   for (const item of (
-                    level as TrattAnnotationSegmentLevel<
-                      TrattAnnotationSegment
-                    >
+                    level as TrattAnnotationSegmentLevel<TrattAnnotationSegment>
                   ).items) {
                     const idx = item.labels.findIndex(
                       (l) => l.name !== 'Speaker',
@@ -413,56 +609,9 @@ export class LoginModeReducers {
         },
       ),
     );
-  }
 
-  writeOptionToStore(
-    state: AnnotationState,
-    attribute: string,
-    value: any,
-  ): AnnotationState {
-    switch (attribute) {
-      case 'comment':
-        state.currentSession = {
-          ...state.currentSession,
-          comment: value,
-        };
-        break;
-      case 'project':
-        state = {
-          ...state,
-          previousSession: {
-            ...state.previousSession,
-            project: {
-              id: value?.id as string,
-            },
-          } as any,
-        };
-        break;
-      case 'transcriptID':
-        state = {
-          ...state,
-          previousSession: {
-            ...state.previousSession,
-            task: {
-              id: value,
-            },
-          } as any,
-        };
-        break;
-      case 'sessionfile':
-        state = {
-          ...state,
-          sessionFile: SessionFile.fromAny(value),
-        };
-        break;
-      case 'importConverter':
-        state = {
-          ...state,
-          importConverter: value,
-        };
-        break;
-    }
-
-    return state;
+    return this.mode === LoginMode.LOCAL
+      ? wrapAsLocalBundleCollectionReducer(inner)
+      : inner;
   }
 }

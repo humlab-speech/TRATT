@@ -16,8 +16,9 @@ export class NavbarService {
   private _showExport = false;
 
   public get fileSize(): FileSize | undefined {
-    if (this.audio.audioManager?.resource?.size !== undefined) {
-      return getFileSize(this.audio.audioManager.resource.size);
+    const manager = this.audio.current;
+    if (manager?.resource?.size !== undefined) {
+      return getFileSize(manager.resource.size);
     }
     return undefined;
   }
