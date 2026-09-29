@@ -14,6 +14,7 @@ import { TranslocoPipe } from '@jsverse/transloco';
 import { NgbModalRef, NgbNavModule } from '@ng-bootstrap/ng-bootstrap';
 import { Store } from '@ngrx/store';
 import { AnnotJSONConverter, Converter } from '@tratt/annotation';
+import { formatMinutesSeconds, getFileSize } from '@tratt/utilities';
 import { timer } from 'rxjs';
 import { AppInfo } from '../../../app.info';
 import { editorComponents } from '../../../editors/components';
@@ -195,6 +196,30 @@ export class WorkbenchComponent
     this.pipelineQueueService.setTranscribeOptions(options);
     this.capacityService.setConfiguredOptions(options);
   }
+
+  /**
+   * Static filename/duration/format header for the right pane, matching
+   * the reference mockup's top line. `audioService.current` is a plain
+   * getter, not a signal, so this computed() only re-evaluates when read
+   * from a context that's already re-checked on the events that change it
+   * — the existing `@if (sessionReady)` gate's own `detectChanges()`/
+   * `markForCheck()` calls (ngOnInit's loading$ subscription) already do
+   * that. Undefined for a bundle whose audio isn't resident this session
+   * (e.g. a restored, not-yet-reattached bundle) rather than throwing.
+   */
+  selectedBundleHeader = computed(() => {
+    const manager = this.audioService.current;
+    if (!manager) {
+      return undefined;
+    }
+    const info = manager.resource.info;
+    const fileSize = getFileSize(info.size);
+    const channelLabel = info.channels === 1 ? 'mono' : 'stereo';
+    return {
+      name: info.fullname,
+      metadata: `${formatMinutesSeconds(info.duration.seconds)} · ${Math.round(info.sampleRate / 1000)} kHz ${channelLabel} · ${fileSize.size} ${fileSize.label}`,
+    };
+  });
 
   onRunPauseClick(): void {
     if (this.queueRunning()) {

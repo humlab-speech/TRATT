@@ -147,7 +147,11 @@ if (
 describe('WorkbenchComponent', () => {
   let fixture: ComponentFixture<WorkbenchComponent>;
   let component: WorkbenchComponent;
-  let audioService: { registerAudioManager: jest.Mock; hasResident: jest.Mock };
+  let audioService: {
+    registerAudioManager: jest.Mock;
+    hasResident: jest.Mock;
+    current: any;
+  };
   let authStoreService: { loginLocal: jest.Mock };
   let loading$: BehaviorSubject<{ status: LoadingStatus }>;
   let bundleSummaries: any[];
@@ -177,6 +181,7 @@ describe('WorkbenchComponent', () => {
     audioService = {
       registerAudioManager: jest.fn(),
       hasResident: jest.fn().mockReturnValue(false),
+      current: undefined,
     };
     authStoreService = { loginLocal: jest.fn() };
     loading$ = new BehaviorSubject<{ status: LoadingStatus }>({
@@ -794,6 +799,36 @@ describe('WorkbenchComponent', () => {
     fixture.destroy();
 
     expect(capacityService.setConfiguredOptions).toHaveBeenCalledWith(null);
+  });
+
+  describe('selectedBundleHeader', () => {
+    it('is undefined when no audio is resident for the selection', () => {
+      audioService.current = undefined;
+      fixture.detectChanges();
+
+      expect(component.selectedBundleHeader()).toBeUndefined();
+    });
+
+    it('formats name, duration, sample rate, and size from the resident AudioManager', () => {
+      audioService.current = {
+        resource: {
+          info: {
+            fullname: 'example.wav',
+            duration: { seconds: 125 },
+            sampleRate: 48000,
+            channels: 2,
+            size: 90_000_000,
+          },
+        },
+      };
+      fixture.detectChanges();
+
+      const header = component.selectedBundleHeader();
+      expect(header?.name).toBe('example.wav');
+      expect(header?.metadata).toContain('2:05');
+      expect(header?.metadata).toContain('48');
+      expect(header?.metadata).toContain('stereo');
+    });
   });
 });
 

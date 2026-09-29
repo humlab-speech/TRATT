@@ -115,6 +115,14 @@
   </div>
   @if (sessionReady) {
     <div class="workbench__right">
+      @if (selectedBundleHeader(); as header) {
+        <div class="workbench__editor-header">
+          <span class="workbench__editor-header-name">{{ header.name }}</span>
+          <span class="workbench__editor-header-meta">{{
+            header.metadata
+          }}</span>
+        </div>
+      }
       <tratt-fastbar
         (overviewbtnclicked)="openOverview()"
         (shortcutbtnclicked)="openShortcutsModal()"
