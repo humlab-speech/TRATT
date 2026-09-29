@@ -71,6 +71,11 @@
   i {
     margin-right: 0.25rem;
   }
+
+  &:focus-visible {
+    outline: 2px solid var(--tratt-chrome, #2a4765);
+    outline-offset: 1px;
+  }
 }
 
 .workbench__editor-tab--active {

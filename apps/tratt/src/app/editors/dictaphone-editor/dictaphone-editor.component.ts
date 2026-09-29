@@ -304,6 +304,14 @@ export class DictaphoneEditorComponent
     }
   }
 
+  // TrattEditorRequirements: commits whatever's still sitting inside the
+  // typing-debounce window straight to the store, bypassing the timer —
+  // called by a host about to dispose this editor's view (e.g. a live
+  // editor switch), so an edit mid-debounce isn't silently lost.
+  flushPendingEdits(): void {
+    this.afterTyping('stopped');
+  }
+
   private triggerUIAction = (keyboardEvent: Event, shortcutObj: any) => {
     shortcutObj.value = `audio:${shortcutObj.value}`;
     this.uiService.addElementFromEvent(

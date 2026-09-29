@@ -20,7 +20,10 @@
   margin-bottom: 0.375rem;
 
   &.active {
-    border-left-color: var(--tratt-accent-green, #3d6b5c);
+    // Not --tratt-accent-green: that token is a deprecated alias for
+    // --tratt-chrome (navy), not an actual green. --tratt-success is the
+    // real green.
+    border-left-color: var(--tratt-success, #3d6b5c);
     background-color: var(--tratt-surface-background);
 
     .bundle-list__item-btn {
@@ -75,18 +78,26 @@
   font-size: 0.7rem;
   font-weight: 600;
   white-space: nowrap;
-  background: var(--tratt-surface-muted, #e6e8ed);
+  // --tratt-surface-sunken, not --tratt-surface-muted — that name doesn't
+  // exist as a token in this codebase (the fallback was silently always
+  // winning).
+  background: var(--tratt-surface-sunken, #e6e8ed);
   color: var(--tratt-text-muted, #667a90);
 }
 
 .bundle-list__status--running {
   background: #fbeed9;
-  color: var(--tratt-accent-warning);
+  // Not --tratt-accent-warning (#d7b17c) directly: that gold on this pale
+  // background measures ~1.75:1 contrast at this pill's small/bold text —
+  // well under WCAG AA. Darkened for legibility; background unchanged.
+  color: #8a5a1f;
 }
 
 .bundle-list__status--done {
   background: #e2ede8;
-  color: var(--tratt-accent-green);
+  // Not --tratt-accent-green: deprecated alias for --tratt-chrome (navy),
+  // not a green — see the .active rule's own note above.
+  color: var(--tratt-success, #3d6b5c);
 }
 
 .bundle-list__status--error {

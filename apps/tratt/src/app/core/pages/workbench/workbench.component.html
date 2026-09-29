@@ -115,27 +115,33 @@
   </div>
   @if (sessionReady) {
     <div class="workbench__right">
-      @if (selectedBundleHeader(); as header) {
+      @if (selectedBundleHeader; as header) {
         <div class="workbench__editor-header">
           <span class="workbench__editor-header-name">{{ header.name }}</span>
-          <span class="workbench__editor-header-meta">{{
-            header.metadata
-          }}</span>
+          <span class="workbench__editor-header-meta">
+            {{ header.durationText }} · {{ header.sampleRateKhz }} kHz
+            {{
+              (header.channels === 1
+                ? 'workbench.editor_header.mono'
+                : 'workbench.editor_header.stereo'
+              ) | transloco
+            }}
+            · {{ header.sizeText }}
+          </span>
         </div>
       }
-      <div class="workbench__editor-tabs" role="tablist">
+      <div class="workbench__editor-tabs">
         @for (entry of editorComponentsList; track entry.name) {
           <button
             type="button"
             class="workbench__editor-tab"
-            role="tab"
             [class.workbench__editor-tab--active]="
               activeEditorName() === entry.name
             "
-            [attr.aria-selected]="activeEditorName() === entry.name"
+            [attr.aria-pressed]="activeEditorName() === entry.name"
             (click)="changeEditor(entry.name)"
           >
-            <i [class]="entry.icon"></i>
+            <i [class]="entry.icon" aria-hidden="true"></i>
             {{ entry.translate | transloco }}
           </button>
         }

@@ -2,6 +2,7 @@ import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
+  ComponentRef,
   computed,
   OnDestroy,
   OnInit,
@@ -18,7 +19,10 @@ import { formatMinutesSeconds, getFileSize } from '@tratt/utilities';
 import { timer } from 'rxjs';
 import { AppInfo } from '../../../app.info';
 import { editorComponents } from '../../../editors/components';
-import { TRATTEditor } from '../../../editors/tratt-editor';
+import {
+  TRATTEditor,
+  TrattEditorRequirements,
+} from '../../../editors/tratt-editor';
 import { BundleListComponent } from '../../component/bundle-list/bundle-list.component';
 import { CapacityIndicatorComponent } from '../../component/capacity-indicator/capacity-indicator.component';
 import { DefaultComponent } from '../../component/default.component';
@@ -110,9 +114,32 @@ export class WorkbenchComponent
   // session start.
   activeEditorName = signal<string | undefined>(undefined);
 
-  // Template-readable handle on the module-level editorComponents constant
-  // — Angular templates can't reference an import directly.
-  readonly editorComponentsList = editorComponents;
+  // The currently-mounted editor's ComponentRef, so changeEditor() can (a)
+  // flush its pending edits before disposing it and (b) tell whether
+  // activeEditorName actually corresponds to something mounted right now
+  // (undefined after a failed mount, even if activeEditorName itself still
+  // names the last-attempted editor — see changeEditor()'s F6 handling).
+  private currentEditorRef?: ComponentRef<TRATTEditor>;
+
+  // The editor-switcher tab row's entries, filtered against the project's
+  // configured interfaces (final whole-branch review, F3) — mirrors
+  // mountDefaultEditor()'s own validation and the navbar's own
+  // interfaceActive() filter (navbar.component.ts), so the tab row can't
+  // offer an editor the project doesn't allow, which mountDefaultEditor()
+  // would then silently revert away from on the next session start. Falls
+  // back to every editor when no list is configured, matching
+  // mountDefaultEditor()'s own `?? []` fallback (an empty list there means
+  // "nothing configured yet," not "nothing allowed"). A getter, not a
+  // `computed()` or a field snapshotted once — same F2 staleness reasoning
+  // as `selectedBundleHeader`: `settingsService.projectsettings` is a plain
+  // getter, not a signal.
+  get editorComponentsList(): typeof editorComponents {
+    const interfaces = this.settingsService.projectsettings?.interfaces;
+    if (!interfaces || interfaces.length === 0) {
+      return editorComponents;
+    }
+    return editorComponents.filter((entry) => interfaces.includes(entry.name));
+  }
 
   showCommentSection = false;
   modalOverview?: NgbModalRef;
@@ -209,27 +236,43 @@ export class WorkbenchComponent
 
   /**
    * Static filename/duration/format header for the right pane, matching
-   * the reference mockup's top line. `audioService.current` is a plain
-   * getter, not a signal, so this computed() only re-evaluates when read
-   * from a context that's already re-checked on the events that change it
-   * — the existing `@if (sessionReady)` gate's own `detectChanges()`/
-   * `markForCheck()` calls (ngOnInit's loading$ subscription) already do
-   * that. Undefined for a bundle whose audio isn't resident this session
-   * (e.g. a restored, not-yet-reattached bundle) rather than throwing.
+   * the reference mockup's top line. A plain getter, not a `computed()`:
+   * `audioService.current` reads a plain Map entry, not a signal, so a
+   * `computed()` here would read no signal at all and Angular would never
+   * re-run it after its first evaluation — it would cache that first
+   * result forever (final whole-branch review, F2). `AudioService`'s
+   * manager registry can change with no accompanying signal write (e.g.
+   * `ensureResident()` re-registering an evicted bundle's manager), so that
+   * staleness is genuinely reachable, not theoretical. A getter has no such
+   * cache — it re-evaluates on every read, the same as any other
+   * OnPush-rechecked template expression, which is the actual guarantee
+   * this needs. Undefined for a bundle whose audio isn't resident this
+   * session (e.g. a restored, not-yet-reattached bundle) rather than
+   * throwing.
    */
-  selectedBundleHeader = computed(() => {
+  get selectedBundleHeader():
+    | {
+        name: string;
+        durationText: string;
+        sampleRateKhz: number;
+        channels: number;
+        sizeText: string;
+      }
+    | undefined {
     const manager = this.audioService.current;
     if (!manager) {
       return undefined;
     }
     const info = manager.resource.info;
     const fileSize = getFileSize(info.size);
-    const channelLabel = info.channels === 1 ? 'mono' : 'stereo';
     return {
       name: info.fullname,
-      metadata: `${formatMinutesSeconds(info.duration.seconds)} · ${Math.round(info.sampleRate / 1000)} kHz ${channelLabel} · ${fileSize.size} ${fileSize.label}`,
+      durationText: formatMinutesSeconds(info.duration.seconds),
+      sampleRateKhz: Math.round(info.sampleRate / 1000),
+      channels: info.channels,
+      sizeText: `${fileSize.size} ${fileSize.label}`,
     };
-  });
+  }
 
   onRunPauseClick(): void {
     if (this.queueRunning()) {
@@ -398,12 +441,23 @@ export class WorkbenchComponent
   }
 
   changeEditor(name: string): void {
-    let comp: Type<TRATTEditor> | undefined;
-
     if (name === undefined || name === '') {
       // fallback to last editor
       name = editorComponents[editorComponents.length - 1].name;
     }
+
+    // F5 (final whole-branch review): clicking the already-mounted tab must
+    // be a no-op, not a needless dispose/remount (loses playback position,
+    // and — without this guard — would also needlessly race F1's flush).
+    // Gated on `currentEditorRef` too, not just the name: after a failed
+    // mount (F6, below), activeEditorName can still name an editor that
+    // isn't actually on screen, and a retry of that same name must go
+    // through, not be swallowed by this guard.
+    if (name === this.activeEditorName() && this.currentEditorRef) {
+      return;
+    }
+
+    let comp: Type<TRATTEditor> | undefined;
     for (const editorComponent of editorComponents) {
       if (name === editorComponent.name) {
         comp = editorComponent.editor;
@@ -421,9 +475,41 @@ export class WorkbenchComponent
       return;
     }
 
+    // F1 (final whole-branch review): the text editors (Dictaphone, Linear)
+    // only commit a typed edit to the store when their typing-debounce
+    // timer fires, ~1s after the last keystroke. Disposing the view via
+    // clear() below destroys that timer along with it — flush first so an
+    // edit still inside the debounce window isn't silently lost on a live
+    // switch.
+    // `TRATTEditor` doesn't itself declare `TrattEditorRequirements`'s
+    // members (each concrete editor implements both independently) — cast
+    // narrows to call this one optional member, matching this codebase's
+    // existing convention for dynamically-created editor instances (see
+    // TranscriptionComponent.changeEditor()'s own `as any` for `openModal`).
+    (
+      this.currentEditorRef?.instance as TrattEditorRequirements | undefined
+    )?.flushPendingEdits?.();
+
     const viewContainerRef = this.showEditor.viewContainerRef;
     viewContainerRef.clear();
-    viewContainerRef.createComponent<TRATTEditor>(comp);
+
+    // F6 (final whole-branch review): a throw during mount must not leave
+    // appStorage.interface/activeEditorName claiming a switch that didn't
+    // actually happen — clear() has already emptied the pane, so the
+    // honest state is "nothing is mounted", not "the new editor is active".
+    // Left pointing at the previous editor's name rather than blanked, so
+    // the tab row's highlight still matches the caller's last real
+    // intent — a click on that same tab retries the mount (see the guard
+    // above).
+    try {
+      this.currentEditorRef = viewContainerRef.createComponent<TRATTEditor>(
+        comp,
+      );
+    } catch (error) {
+      this.currentEditorRef = undefined;
+      console.error('ERROR failed to mount editor component', error);
+      return;
+    }
 
     this.appStorage.interface = name;
     this.activeEditorName.set(name);

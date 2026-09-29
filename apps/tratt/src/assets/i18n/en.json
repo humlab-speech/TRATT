@@ -786,6 +786,10 @@
       "upload": "Upload file",
       "record": "Record now"
     },
+    "editor_header": {
+      "mono": "mono",
+      "stereo": "stereo"
+    },
     "bundle_list": {
       "title": "Files",
       "reattach": "Attach file…",

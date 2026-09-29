@@ -480,6 +480,142 @@ describe('WorkbenchComponent', () => {
       expect(clearSpy).toHaveBeenCalledTimes(3);
       expect(createSpy).toHaveBeenCalledTimes(3);
     });
+
+    // Review finding F1 (final whole-branch review): all editors are
+    // store-backed only after their typing-debounce timer fires — an edit
+    // still inside that ~1s window lived only in the editor instance until
+    // now. A live switch must flush it before the view (and the timer with
+    // it) is destroyed.
+    it("flushes the previously-mounted editor's pending edits before disposing it, on a live switch", () => {
+      const flushSpy = jest.fn();
+      const clearSpy = jest.fn();
+      const createSpy = jest
+        .fn()
+        .mockReturnValueOnce({ instance: { flushPendingEdits: flushSpy } })
+        .mockReturnValueOnce({ instance: {} });
+      component.showEditor = {
+        viewContainerRef: { clear: clearSpy, createComponent: createSpy },
+      } as any;
+      component.appStorage = { interface: undefined } as any;
+
+      component.changeEditor('Dictaphone Editor');
+      expect(flushSpy).not.toHaveBeenCalled();
+
+      component.changeEditor('Linear Editor');
+
+      expect(flushSpy).toHaveBeenCalledTimes(1);
+      // Flushed before the old view was cleared, not after — clear() is
+      // what would destroy the timer the flush needs to race.
+      expect(flushSpy.mock.invocationCallOrder[0]).toBeLessThan(
+        clearSpy.mock.invocationCallOrder[1],
+      );
+    });
+
+    it('does not throw when the newly-mounted editor has no flushPendingEdits (optional interface member)', () => {
+      component.showEditor = {
+        viewContainerRef: {
+          clear: jest.fn(),
+          createComponent: jest.fn().mockReturnValue({ instance: {} }),
+        },
+      } as any;
+      component.appStorage = { interface: undefined } as any;
+
+      component.changeEditor('Dictaphone Editor');
+
+      expect(() => component.changeEditor('Linear Editor')).not.toThrow();
+    });
+
+    // F5: clicking the tab that's already active must not tear down and
+    // rebuild the same editor (loses playback position/caret, and — before
+    // F1's fix — could drop a pending edit for no reason).
+    it('does nothing when changeEditor is called with the already-active editor name', () => {
+      const clearSpy = jest.fn();
+      const createSpy = jest.fn().mockReturnValue({ instance: {} });
+      component.showEditor = {
+        viewContainerRef: { clear: clearSpy, createComponent: createSpy },
+      } as any;
+      component.appStorage = { interface: undefined } as any;
+
+      component.changeEditor('Linear Editor');
+      clearSpy.mockClear();
+      createSpy.mockClear();
+
+      component.changeEditor('Linear Editor');
+
+      expect(clearSpy).not.toHaveBeenCalled();
+      expect(createSpy).not.toHaveBeenCalled();
+    });
+
+    // F6: a mount that throws must not leave appStorage.interface/
+    // activeEditorName claiming a switch that didn't actually happen.
+    it('leaves appStorage.interface and activeEditorName unchanged if the new editor throws during mount', () => {
+      const consoleErrorSpy = jest
+        .spyOn(console, 'error')
+        .mockImplementation(() => undefined);
+      component.showEditor = {
+        viewContainerRef: {
+          clear: jest.fn(),
+          createComponent: jest.fn().mockReturnValue({ instance: {} }),
+        },
+      } as any;
+      component.appStorage = { interface: undefined } as any;
+      component.changeEditor('Dictaphone Editor');
+      expect(component.activeEditorName()).toBe('Dictaphone Editor');
+
+      component.showEditor = {
+        viewContainerRef: {
+          clear: jest.fn(),
+          createComponent: jest.fn(() => {
+            throw new Error('boom');
+          }),
+        },
+      } as any;
+
+      component.changeEditor('Linear Editor');
+
+      expect(component.appStorage.interface).toBe('Dictaphone Editor');
+      expect(component.activeEditorName()).toBe('Dictaphone Editor');
+      expect(consoleErrorSpy).toHaveBeenCalled();
+      consoleErrorSpy.mockRestore();
+    });
+
+    // F5's "already-active" guard must not get stuck after a failed mount:
+    // clear() already destroyed whatever was on screen even though the
+    // failed switch left activeEditorName naming the PREVIOUS editor (F6).
+    // Clicking that same, now-stale name again must still attempt a real
+    // mount, not silently no-op forever because "it's already active".
+    it('retries a real mount when the stale active-editor name is clicked again after a failed switch away from it', () => {
+      jest.spyOn(console, 'error').mockImplementation(() => undefined);
+      component.appStorage = { interface: undefined } as any;
+      component.showEditor = {
+        viewContainerRef: {
+          clear: jest.fn(),
+          createComponent: jest.fn().mockReturnValue({ instance: {} }),
+        },
+      } as any;
+      component.changeEditor('Dictaphone Editor');
+      expect(component.activeEditorName()).toBe('Dictaphone Editor');
+
+      component.showEditor = {
+        viewContainerRef: {
+          clear: jest.fn(),
+          createComponent: jest.fn(() => {
+            throw new Error('boom');
+          }),
+        },
+      } as any;
+      component.changeEditor('Linear Editor');
+      expect(component.activeEditorName()).toBe('Dictaphone Editor');
+
+      const createSpy = jest.fn().mockReturnValue({ instance: {} });
+      component.showEditor = {
+        viewContainerRef: { clear: jest.fn(), createComponent: createSpy },
+      } as any;
+
+      component.changeEditor('Dictaphone Editor');
+
+      expect(createSpy).toHaveBeenCalled();
+    });
   });
 
   describe('editor switcher tab row', () => {
@@ -488,6 +624,72 @@ describe('WorkbenchComponent', () => {
         viewContainerRef: { clear: jest.fn(), createComponent: jest.fn() },
       } as any;
       component.appStorage = { interface: undefined } as any;
+      fixture.detectChanges();
+      loading$.next({ status: LoadingStatus.FINISHED });
+      fixture.detectChanges();
+
+      const tabs = fixture.debugElement.queryAll(
+        By.css('.workbench__editor-tab'),
+      );
+      expect(tabs.length).toBe(editorComponents.length);
+    });
+
+    // Review finding F3 (final whole-branch review): mountDefaultEditor()
+    // already validates appStorage.interface against
+    // settingsService.projectsettings.interfaces (falling back to
+    // interfaces[0] when invalid), and the navbar's own editor buttons
+    // filter through the same list (navbar.component.ts's
+    // interfaceActive()). Rendering all four editorComponents unconditionally
+    // let a user mount an editor the project doesn't allow, which
+    // mountDefaultEditor() would then silently revert away from on the next
+    // session start — the tab row must respect the same allow-list.
+    it("only renders tabs for the project's configured interfaces, when a list is configured", () => {
+      // mountDefaultEditor() will pick a real, valid interface from the
+      // list below and call the real changeEditor() — swap its editor for
+      // the lightweight fake (same technique as the pre-existing "resolves
+      // the real showEditor ViewChild..." test) so it can mount for real
+      // without a real editor's heavyweight audio dependencies.
+      const realEditor = editorComponents[0].editor;
+      (editorComponents[0] as { editor: unknown }).editor = FakeEditorComponent;
+      component.appStorage = { interface: undefined } as any;
+      (component as any).settingsService = {
+        projectsettings: {
+          interfaces: [editorComponents[0].name, editorComponents[2].name],
+        },
+        isTheme: jest.fn().mockReturnValue(false),
+      };
+
+      try {
+        fixture.detectChanges();
+        loading$.next({ status: LoadingStatus.FINISHED });
+        fixture.detectChanges();
+
+        const tabs = fixture.debugElement.queryAll(
+          By.css('.workbench__editor-tab'),
+        );
+        expect(tabs.length).toBe(2);
+        // The spec's TranslocoService mock echoes the raw key
+        // (`translate: (key) => key`), so tab text is the untranslated
+        // `entry.translate` key, not the English display word.
+        const labels = tabs.map((t) => t.nativeElement.textContent.trim());
+        expect(labels.some((l) => l.includes('simple editor'))).toBe(true);
+        expect(labels.some((l) => l.includes('TRN editor'))).toBe(true);
+        expect(labels.some((l) => l.includes('linear editor'))).toBe(false);
+      } finally {
+        editorComponents[0].editor = realEditor;
+        component.showEditor?.viewContainerRef.clear();
+      }
+    });
+
+    it('renders every editor as a tab when no interfaces list is configured (falls back to showing all)', () => {
+      component.showEditor = {
+        viewContainerRef: { clear: jest.fn(), createComponent: jest.fn() },
+      } as any;
+      component.appStorage = { interface: undefined } as any;
+      (component as any).settingsService = {
+        projectsettings: {},
+        isTheme: jest.fn().mockReturnValue(false),
+      };
       fixture.detectChanges();
       loading$.next({ status: LoadingStatus.FINISHED });
       fixture.detectChanges();
@@ -524,9 +726,15 @@ describe('WorkbenchComponent', () => {
       // editor's heavyweight audio dependencies.
       const realEditor = editorComponents[2].editor;
       (editorComponents[2] as { editor: unknown }).editor = FakeEditorComponent;
-      component.appStorage = { interface: undefined } as any;
+      // Already-valid so mountDefaultEditor() keeps it rather than
+      // resetting to interfaces[0] — see mountDefaultEditor()'s own
+      // "valid === undefined" branch.
+      component.appStorage = { interface: editorComponents[2].name } as any;
       (component as any).settingsService = {
-        projectsettings: { interfaces: [editorComponents[2].name] },
+        // Every editor allowed (not just index 2) — this test's own point
+        // is that the *third* tab among several gets highlighted, not
+        // merely that a lone tab does.
+        projectsettings: { interfaces: editorComponents.map((e) => e.name) },
         isTheme: jest.fn().mockReturnValue(false),
       };
 
@@ -918,7 +1126,7 @@ describe('WorkbenchComponent', () => {
       audioService.current = undefined;
       fixture.detectChanges();
 
-      expect(component.selectedBundleHeader()).toBeUndefined();
+      expect(component.selectedBundleHeader).toBeUndefined();
     });
 
     it('formats name, duration, sample rate, and size from the resident AudioManager', () => {
@@ -935,11 +1143,54 @@ describe('WorkbenchComponent', () => {
       };
       fixture.detectChanges();
 
-      const header = component.selectedBundleHeader();
+      const header = component.selectedBundleHeader;
       expect(header?.name).toBe('example.wav');
-      expect(header?.metadata).toContain('2:05');
-      expect(header?.metadata).toContain('48');
-      expect(header?.metadata).toContain('stereo');
+      expect(header?.durationText).toBe('2:05');
+      expect(header?.sampleRateKhz).toBe(48);
+      expect(header?.channels).toBe(2);
+      expect(header?.sizeText).toContain('MB');
+    });
+
+    // Review finding F2 (final whole-branch review): as a computed(),
+    // selectedBundleHeader read only plain-getter state
+    // (audioService.current) with no signal dependency inside it — Angular
+    // never re-runs a computed() unless a signal it read is invalidated, so
+    // it would silently cache its FIRST result forever. AudioService's
+    // manager registry is a plain Map (documented caveat on readyBundleIds
+    // in this same file), so a residency change with no accompanying signal
+    // write — e.g. AudioService.ensureResident() re-registering an evicted
+    // bundle's manager — would leave the header stuck showing stale data.
+    // A plain getter (re-evaluated on every read, same as any other
+    // OnPush-rechecked template expression) has no such cache to go stale.
+    it('reflects a change to audioService.current on the very next read, with no intervening signal write', () => {
+      audioService.current = {
+        resource: {
+          info: {
+            fullname: 'first.wav',
+            duration: { seconds: 10 },
+            sampleRate: 16000,
+            channels: 1,
+            size: 1000,
+          },
+        },
+      };
+      expect(component.selectedBundleHeader?.name).toBe('first.wav');
+
+      // Mutated directly, the same way AudioService's real registry Map is
+      // mutated by ensureResident() — no store dispatch, no signal write.
+      audioService.current = {
+        resource: {
+          info: {
+            fullname: 'second.wav',
+            duration: { seconds: 20 },
+            sampleRate: 16000,
+            channels: 1,
+            size: 2000,
+          },
+        },
+      };
+
+      expect(component.selectedBundleHeader?.name).toBe('second.wav');
     });
   });
 });

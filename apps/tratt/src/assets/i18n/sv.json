@@ -734,6 +734,10 @@
       "upload": "Ladda upp fil",
       "record": "Spela in nu"
     },
+    "editor_header": {
+      "mono": "mono",
+      "stereo": "stereo"
+    },
     "bundle_list": {
       "title": "Filer",
       "reattach": "Bifoga fil…",
