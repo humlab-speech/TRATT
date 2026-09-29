@@ -50,6 +50,11 @@
   text-align: left;
   font: inherit;
   color: inherit;
+  // A long filename otherwise overflows the row uncut (min-width: 0 makes
+  // this flex child shrinkable, but a shrunk width alone doesn't clip text).
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 .bundle-list__reattach-label {

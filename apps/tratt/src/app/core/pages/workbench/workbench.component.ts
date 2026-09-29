@@ -319,6 +319,17 @@ export class WorkbenchComponent
   }
 
   ngOnInit(): void {
+    // navbarServ.showInterfaces is app-singleton state, only ever set true by
+    // the old /intern/transcr page (transcription.component.ts) and never
+    // reset there — so it stays true across an in-app navigation to
+    // /workbench, making the navbar's own editor-switcher buttons render
+    // here too. They're dead on this route (nothing subscribes to
+    // navbarServ.interfacechange outside transcription.component.ts) and
+    // their [ngClass] active state can silently diverge from this page's own
+    // tab row. Force it off, same pattern as news.component.ts and
+    // transcription-end.component.ts.
+    this.navbarServ.showInterfaces = false;
+
     this.subscribe(
       this.appStoreService.loading$,
       (loading: ApplicationState['loading']) => {

@@ -274,6 +274,19 @@ describe('WorkbenchComponent', () => {
     component = fixture.componentInstance;
   });
 
+  // navbarServ.showInterfaces is app-singleton state left `true` by the old
+  // /intern/transcr page and never reset there — a same-session SPA
+  // navigation to /workbench must not inherit it, or the navbar's own
+  // (dead, on this route) editor-switcher buttons render alongside this
+  // page's own tab row.
+  it('forces navbarServ.showInterfaces off on init', () => {
+    component.navbarServ = { showInterfaces: true } as any;
+
+    component.ngOnInit();
+
+    expect(component.navbarServ.showInterfaces).toBe(false);
+  });
+
   it('registers the dropzone audio manager and calls loginLocal on startSession', () => {
     const manager = { id: 'fake-manager' } as any;
     const nativeFile = new File(['content'], 'a.wav');
