@@ -67,3 +67,4 @@ vitest.config.*.timestamp*
 /apps/translations/translations
 /apps/translations/config.php
 Skärmavbild*.png
+.gstack/

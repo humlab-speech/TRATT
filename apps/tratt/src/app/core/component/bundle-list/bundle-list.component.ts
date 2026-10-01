@@ -17,6 +17,7 @@ import { TrattModalService } from '../../modals/tratt-modal.service';
 import { SessionFile } from '../../obj/SessionFile';
 import { AudioService } from '../../shared/service/audio.service';
 import { PipelineQueueService } from '../../shared/service/pipeline-queue.service';
+import { AuthenticationActions } from '../../store/authentication';
 import { LoginMode, RootState } from '../../store/index';
 import {
   selectAllBundleSummaries,
@@ -383,14 +384,33 @@ export class BundleListComponent {
    * then dispatch the mode's login/task-info chain) rather than the
    * annotation-load.effects.ts LOCAL branch's dead-end fail path — see
    * task-5-report.md's step-1 findings: `selectBundle` alone never re-enters
-   * that chain, so `loadProjectAndTaskInformation.do` (the same action
-   * `authentication.effects.ts`'s `loginSuccess$` dispatches for a fresh
+   * that chain, so the login chain (the same one
+   * `authentication.effects.ts`'s `onLoginLocal$` dispatches for a fresh
    * LOCAL login) is what's needed to make `afterInitApplication$` dispatch
    * `prepareTaskDataForAnnotation.do`, which eventually reaches
    * `onAudioLoad$`'s already-working `this.audio.current !== undefined`
    * branch (since we just registered a manager for this bundle) and sets
    * `loading.status = FINISHED` — the flag `WorkbenchComponent.sessionReady`
    * is actually derived from.
+   *
+   * Dispatches `AuthenticationActions.loginLocal.success` — not
+   * `LoginModeActions.loadProjectAndTaskInformation.do` directly, as an
+   * earlier version of this method did — because on a re-attach that is the
+   * FIRST action of a fresh page load (no `startSession()` call this
+   * session yet, e.g. reattaching straight into a bundle restored from
+   * IndexedDB at boot), `state.application.mode` is still `undefined`:
+   * nothing else this session ever sets it. `afterInitApplication$` checks
+   * `!state.application.mode` BEFORE it ever reaches the "effectively
+   * logged in" audio-resident bypass (step 2.8's fix for the *mid-session*
+   * reattach case, which only helps once `mode` is already LOCAL from an
+   * earlier login this session) and unconditionally redirects away —
+   * silently, with no console error, leaving `sessionReady` false forever.
+   * `loginLocal.success`'s reducer case is what actually sets
+   * `application.mode = LOCAL` (and `loggedIn = true`, covering the
+   * mid-session case too), and `authentication.effects.ts`'s `loginSuccess$`
+   * already dispatches the same `loadProjectAndTaskInformation.do` this
+   * method used to dispatch by hand — so this reuses that existing,
+   * already-proven chain instead of re-deriving part of it here.
    */
   private completeReattach(
     bundleId: string,
@@ -401,11 +421,15 @@ export class BundleListComponent {
     this.store.dispatch(
       LoginModeActions.selectBundle({ mode: LoginMode.LOCAL, bundleId }),
     );
+    const sessionFile = this.localMode().bundles.entities[bundleId]
+      ?.sessionFile as SessionFile;
     this.store.dispatch(
-      LoginModeActions.loadProjectAndTaskInformation.do({
-        projectID: '7234892',
-        taskID: '73482',
+      AuthenticationActions.loginLocal.success({
         mode: LoginMode.LOCAL,
+        files: [file],
+        sessionFile,
+        removeData: false,
+        audioAlreadyLoaded: true,
       }),
     );
   }

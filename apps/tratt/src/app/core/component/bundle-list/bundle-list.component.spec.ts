@@ -31,6 +31,7 @@ import { TrattModalService } from '../../modals/tratt-modal.service';
 import { SessionFile } from '../../obj/SessionFile';
 import { AudioService } from '../../shared/service/audio.service';
 import { PipelineQueueService } from '../../shared/service/pipeline-queue.service';
+import { AuthenticationActions } from '../../store/authentication';
 import { LoginMode, RootState } from '../../store/index';
 import { localBundleAdapter } from '../../store/login-mode/annotation/local-bundle-collection';
 import { LoginModeActions } from '../../store/login-mode/login-mode.actions';
@@ -212,7 +213,7 @@ describe('BundleListComponent', () => {
       expect(input).toBeFalsy();
     });
 
-    it('registers the manager and dispatches selectBundle + loadProjectAndTaskInformation.do on a fingerprint match, without opening the modal', async () => {
+    it('registers the manager and dispatches selectBundle + loginLocal.success on a fingerprint match, without opening the modal', async () => {
       const dispatchSpy = jest.spyOn(store, 'dispatch');
       const manager = fakeManager();
       jest
@@ -242,11 +243,21 @@ describe('BundleListComponent', () => {
           bundleId: 'bundle-a',
         }),
       );
+      // Not loadProjectAndTaskInformation.do directly: on a re-attach that's
+      // the first action of a fresh page load, `state.application.mode` is
+      // still undefined (nothing else this session has set it), and
+      // `afterInitApplication$` redirects away before ever reaching the
+      // "effectively logged in" bypass. `loginLocal.success` is what
+      // actually sets `application.mode`/`loggedIn`, and
+      // `authentication.effects.ts`'s `loginSuccess$` dispatches the same
+      // `loadProjectAndTaskInformation.do` from there.
       expect(dispatchSpy).toHaveBeenCalledWith(
-        LoginModeActions.loadProjectAndTaskInformation.do({
-          projectID: '7234892',
-          taskID: '73482',
+        AuthenticationActions.loginLocal.success({
           mode: LoginMode.LOCAL,
+          files: [file],
+          sessionFile: matchingSessionFile,
+          removeData: false,
+          audioAlreadyLoaded: true,
         }),
       );
       expect(modalService.openModal).not.toHaveBeenCalled();
