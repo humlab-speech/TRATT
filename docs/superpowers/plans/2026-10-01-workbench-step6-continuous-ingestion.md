@@ -856,7 +856,7 @@ git commit -m "feat(workbench): compact mode for AutoTranslateOptionsComponent"
 
 **Interfaces:**
 - Consumes: `TrattDropzoneComponent.filesAdded: EventEmitter<{statistics: DropzoneStatistics; addedFiles: FileProgress[]}>`, `.consumeEntry(id: number): void` (Task 1), `LoginModeActions.createBundle({..., selectAfterCreate: false})` (Task 2), `selectAllBundleSummaries()`'s `hasAnnotationContent` (Task 3, consumed transitively via `computeReadyBundleIds`/`PipelineQueueService.enqueue`).
-- Produces: `WorkbenchComponent` implements `AfterViewInit`. Public `startSession(removeData: boolean)` is **removed** (replaced by private `runFirstWave`/`runLaterWave`, invoked only from the new `filesAdded` subscription). `sessionStarting` field is **removed** (its sole consumer, the Start button, is removed in Task 7). New `onQueueTranslateOptionsChange(options: TranslationOptions | null): void` and `queueTranslateOptions = signal<TranslationOptions | null>(null)` (Task 7's template wires this).
+- Produces: `WorkbenchComponent` implements `AfterViewInit`, plus new private `runFirstWave`/`runLaterWave` methods invoked only from the new `filesAdded` subscription. **Ruling (pre-flight scan):** the existing public `startSession(removeData: boolean)` method and the `sessionStarting` field are left in place, untouched, by this task — deleting them here would leave `workbench.component.html`'s still-present `(click)="startSession(false)"`/`[disabled]="sessionStarting"` bindings pointing at nothing until Task 7 runs, breaking the build in between. They become truly dead code once Task 7 removes the Start button, and are deleted there (bundled with that template edit) instead — see Task 7. New `onQueueTranslateOptionsChange(options: TranslationOptions | null): void` and `queueTranslateOptions = signal<TranslationOptions | null>(null)` (Task 7's template wires this).
 
 > **Design-doc gap this task resolves:** the spec's "Decisions locked in" says "a newly-created bundle auto-enqueues into the pipeline immediately if config is set," but its own "Architecture" section never describes the trigger. A naive `pipelineQueueService.enqueue([bundleId])` call placed right after `authStoreService.loginLocal(...)` (first wave) would race the async `loginLocal.do → loginLocal.prepare` effect chain that actually writes that bundle's `sessionFile`/`transcript` — enqueuing before an imported annotation (if any) has landed would defeat Task 3's `hasAnnotationContent` exclusion for exactly the case it exists to protect. This task closes that gap with a one-shot, per-bundle-id pending set resolved reactively off `selectAllBundleSummaries()` (whose `name` field only becomes defined once that bundle's `sessionFile` — and, in the same reducer case, its `transcript` — have actually been written), used uniformly for both the first-wave (async) and later-wave (synchronous) paths.
 
@@ -922,11 +922,11 @@ Add a `dispatch: jest.fn()` to the top-level `describe('WorkbenchComponent', ...
 
 Keep a reference to this mock's `dispatch` in the outer scope (same pattern as `audioService`/`authStoreService`) by capturing it in a new `let storeDispatch: jest.Mock;` assigned inside `beforeEach` alongside the `Store` provider's `dispatch: (storeDispatch = jest.fn())`.
 
-- [ ] **Step 2: Delete the now-obsolete `sessionStarting` tests and rewrite the direct `startSession()` tests as `filesAdded`-driven ones**
+- [ ] **Step 2: Add new `filesAdded`-driven tests alongside the existing ones**
 
-Delete the entire `describe('sessionStarting reset', ...)` block (and its preceding "Finding 3" comment) — the field it tests no longer exists.
+Per this task's ruling above, `startSession()`/`sessionStarting` are NOT removed in this task, so their existing tests (the three `component.startSession(false)` tests, and the whole `describe('sessionStarting reset', ...)` block) stay exactly as they are — do not touch or delete them here. Task 7 deletes both the method/field and these tests together when it removes the Start button.
 
-Replace the three existing tests that call `component.startSession(false)` directly (`'registers the dropzone audio manager and calls loginLocal on startSession'`, `'does nothing when the dropzone has no valid audio entries'`, `'registers a distinct bundle id per dropped audio file and passes them all to loginLocal'`) with the following, which exercise the real `ngAfterViewInit` + `filesAdded` subscription instead:
+Add the following new tests, which exercise the real `ngAfterViewInit` + `filesAdded` subscription (the new continuous-ingestion path) independently of the untouched `startSession()` tests:
 
 ```ts
 function fileProgress(
@@ -1220,18 +1220,7 @@ export class WorkbenchComponent
 {
 ```
 
-Remove the `sessionStarting = false;` field (keep `sessionReady = false;`).
-
-In `ngOnInit()`'s `loading$` subscription callback, remove this block entirely:
-
-```ts
-        if (
-          loading?.status === LoadingStatus.FINISHED ||
-          loading?.status === LoadingStatus.FAILED
-        ) {
-          this.sessionStarting = false;
-        }
-```
+Leave the `sessionStarting = false;` field and `ngOnInit()`'s `loading$` subscription (including its `sessionStarting = false` reset block) exactly as they are — per this task's ruling, Task 7 removes them together with the Start button.
 
 Add new fields (near `queueOptions`):
 
@@ -1323,7 +1312,7 @@ Add `ngAfterViewInit()` right after `ngOnInit()`:
   }
 ```
 
-Replace the whole `startSession(removeData: boolean): void { ... }` method with:
+Leave the existing `startSession(removeData: boolean): void { ... }` method exactly where it is, untouched (it is now unused dead code reachable only from the template's Start button — Task 7 deletes it together with that button). Add the two new private methods below it:
 
 ```ts
   /**
@@ -1430,10 +1419,12 @@ git commit -m "feat(workbench): continuous ingestion — bootstrap once, create 
 
 **Files:**
 - Modify: `apps/tratt/src/app/core/pages/workbench/workbench.component.html`
-- Modify: `apps/tratt/src/app/core/pages/workbench/workbench.component.spec.ts` (comment fixes only — see Step 3)
+- Modify: `apps/tratt/src/app/core/pages/workbench/workbench.component.ts` (dead-code removal only — see Step 3)
+- Modify: `apps/tratt/src/app/core/pages/workbench/workbench.component.spec.ts` (test removal + comment fixes — see Steps 3-4)
 
 **Interfaces:**
 - Consumes: `AutoTranscribeOptionsComponent`'s `compact` input (Task 4), `AutoTranslateOptionsComponent` (new import + its `compact` input, Task 5), `WorkbenchComponent.onQueueTranslateOptionsChange`/`queueOptions` (Task 6).
+- Removes: `WorkbenchComponent.startSession()` and the `sessionStarting` field (Task 6 deliberately left both in place — see its own ruling note — because this is the task that deletes their only remaining caller, the Start button).
 
 - [ ] **Step 1: Add `AutoTranslateOptionsComponent` to the component's imports array**
 
@@ -1558,16 +1549,37 @@ In `workbench.component.html`, replace the file's contents from the opening `<di
 
 (The right pane — everything from `@if (sessionReady) { ... }` onward — is unchanged; leave it exactly as it is in the current file.)
 
-- [ ] **Step 3: Fix two now-stale comments in `workbench.component.spec.ts`**
+- [ ] **Step 3: Delete the now-dead `startSession`/`sessionStarting` code and its tests**
+
+The template rewrite in Step 2 removed the Start button, which was `startSession()`'s and `sessionStarting`'s only remaining caller/consumer (Task 6 deliberately left both in place for exactly this reason — see its own ruling note). Delete them now, in the same task that removes the button, so the build is never left referencing a public method covered by no template binding.
+
+In `workbench.component.ts`:
+- Delete the `sessionStarting = false;` field declaration (keep `sessionReady = false;`).
+- In `ngOnInit()`'s `loading$` subscription callback, delete this block:
+  ```ts
+          if (
+            loading?.status === LoadingStatus.FINISHED ||
+            loading?.status === LoadingStatus.FAILED
+          ) {
+            this.sessionStarting = false;
+          }
+  ```
+- Delete the entire `startSession(removeData: boolean): void { ... }` method (the one directly above `runFirstWave`/`runLaterWave`, Task 6's new methods it was left alongside).
+
+In `workbench.component.spec.ts`:
+- Delete the entire `describe('sessionStarting reset', ...)` block (and its preceding "Finding 3" comment).
+- Delete the three tests that call `component.startSession(false)` directly: `'registers the dropzone audio manager and calls loginLocal on startSession'`, `'does nothing when the dropzone has no valid audio entries'`, `'registers a distinct bundle id per dropped audio file and passes them all to loginLocal'` (all superseded by Task 6's new `describe('continuous ingestion (step 6)', ...)` tests, which exercise the same registration/loginLocal/bundle-id behaviour through the real `filesAdded` path instead of a direct method call).
+
+- [ ] **Step 4: Fix two now-stale comments in `workbench.component.spec.ts`**
 
 In the `describe('run/pause button rendering (Task 7 review Q1)', ...)` block, the first two tests' comments ("Named (so hasAnyBundles() is true and the queue panel actually renders)" / "Named so the queue panel renders from the start") are no longer accurate once the panel renders unconditionally. Update both to: `// Named so hasAnyBundles() is true (unrelated to the queue panel, which now always renders).` The test bodies and assertions themselves need no change.
 
-- [ ] **Step 4: Run the full spec file**
+- [ ] **Step 5: Run the full spec file**
 
 Run: `npx jest workbench.component.spec.ts`
 Expected: PASS for every test, including `'renders the capacity indicator even with no named bundles'` and the whole `'run/pause button rendering (Task 7 review Q1)'` describe block (the queue panel/run button now render regardless of `hasAnyBundles()`, which these tests' assertions do not depend on).
 
-- [ ] **Step 5: Manual verification**
+- [ ] **Step 6: Manual verification**
 
 Run: `npm start`, open `/workbench` in a browser, drop two audio files one after another:
 - Confirm the bundle list appears above the upload/record tabs the instant the first file validates, with no "Start session" button anywhere.
@@ -1575,7 +1587,7 @@ Run: `npm start`, open `/workbench` in a browser, drop two audio files one after
 - Confirm the pipeline-settings panel (Auto-transcribe + Auto-translate, compact styling, no multi-paragraph hints) is visible before any file is dropped.
 - With "Auto-transcribe" ticked and a model chosen, drop a third file and confirm its row shows `queued`/`running` without clicking Run.
 
-- [ ] **Step 6: Commit**
+- [ ] **Step 7: Commit**
 
 ```bash
 git add apps/tratt/src/app/core/pages/workbench/workbench.component.ts apps/tratt/src/app/core/pages/workbench/workbench.component.html apps/tratt/src/app/core/pages/workbench/workbench.component.spec.ts
