@@ -354,6 +354,40 @@ describe('LoginModeReducers — createBundle / selectBundle', () => {
     );
     expect(state).toBe(before);
   });
+
+  it('createBundle leaves selectedBundleId unchanged when selectAfterCreate is false', () => {
+    const reducer = new LoginModeReducers(LoginMode.LOCAL).create();
+    const seeded = reducer(undefined, { type: '@ngrx/store/init' } as any) as unknown as LocalBundleCollectionState;
+
+    const result = reducer(
+      seeded as any,
+      LoginModeActions.createBundle({
+        mode: LoginMode.LOCAL,
+        bundleId: 'bundle-2',
+        sessionFile: new SessionFile('b.wav', 1, new Date(), 'audio/wav'),
+        selectAfterCreate: false,
+      }),
+    ) as unknown as LocalBundleCollectionState;
+
+    expect(result.selectedBundleId).toBe(seeded.selectedBundleId);
+    expect(result.bundles.entities['bundle-2']).toBeDefined();
+  });
+
+  it('createBundle still selects the new bundle when selectAfterCreate is omitted (existing behaviour)', () => {
+    const reducer = new LoginModeReducers(LoginMode.LOCAL).create();
+    const seeded = reducer(undefined, { type: '@ngrx/store/init' } as any) as unknown as LocalBundleCollectionState;
+
+    const result = reducer(
+      seeded as any,
+      LoginModeActions.createBundle({
+        mode: LoginMode.LOCAL,
+        bundleId: 'bundle-2',
+        sessionFile: new SessionFile('b.wav', 1, new Date(), 'audio/wav'),
+      }),
+    ) as unknown as LocalBundleCollectionState;
+
+    expect(result.selectedBundleId).toBe('bundle-2');
+  });
 });
 
 describe('LoginModeReducers — removeBundles', () => {

@@ -34,6 +34,15 @@ export class LoginModeActions extends AnnotationActions {
       sessionFile: SessionFile;
       restoredOptions?: IIDBModeOptions;
       restoredAnnotation?: IAnnotJSON;
+      /**
+       * Whether creating this bundle also selects it. Defaults to `true` —
+       * every existing call site (the multi-file loginLocal batch effect,
+       * BundleRestoreEffects) keeps today's behaviour unchanged. Only
+       * WorkbenchComponent's step-6 continuous-ingestion background path
+       * passes `false`, so a file decoding quietly in the background never
+       * steals focus from whatever bundle the user is actively editing.
+       */
+      selectAfterCreate?: boolean;
     }>(),
   );
 

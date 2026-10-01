@@ -118,8 +118,13 @@ function wrapAsLocalBundleCollectionReducer(
     action: Action,
   ): LocalBundleCollectionState => {
     if (action.type === LoginModeActions.createBundle.type) {
-      const { bundleId, sessionFile, restoredOptions, restoredAnnotation } =
-        action as ReturnType<typeof LoginModeActions.createBundle>;
+      const {
+        bundleId,
+        sessionFile,
+        restoredOptions,
+        restoredAnnotation,
+        selectAfterCreate = true,
+      } = action as ReturnType<typeof LoginModeActions.createBundle>;
       let entity: IdentifiedAnnotationState = {
         ...initialInner,
         bundleId,
@@ -147,7 +152,7 @@ function wrapAsLocalBundleCollectionReducer(
       return {
         ...state,
         bundles: localBundleAdapter.addOne(entity, state.bundles),
-        selectedBundleId: bundleId,
+        selectedBundleId: selectAfterCreate ? bundleId : state.selectedBundleId,
       };
     }
     if (action.type === LoginModeActions.selectBundle.type) {
