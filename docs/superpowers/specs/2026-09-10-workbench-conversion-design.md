@@ -553,7 +553,162 @@ through the same BundleService" wording implied — there is no `BundleService` 
 (false at every prior step of this conversion effort too), and no new bundle-creation logic was needed
 at all. `TrattDropzoneComponent` already had a `public addFile(file: File): void` method whose doc
 comment literally anticipated this exact integration ("Stage a programmatically supplied file (e.g.
-from the recording panel)"), unused until now. The whole step was: mount the existing
+from the recording panel)"), unused until now.
+
+## Step 6 design (2026-10-01) — continuous ingestion, empty-only auto-run, compact layout
+
+**Problem, from live screenshots.** Pre-session, the dropzone fills the entire left rail and the
+right pane is empty (`@if (sessionReady)`, `workbench.component.html:116`, is false until
+`startSession()` has run). Once a file is dropped, `AutoTranscribeOptionsComponent` +
+`AutoTranslateOptionsComponent` render side-by-side (`tratt-dropzone.component.html:130-152`'s
+`.row g-2`/`.col` pair) inside a 340px rail, each carrying `/local`'s full descriptive copy
+(`auto-transcribe-options.component.ts:339-546`) — the "two-column wall of text" the user flagged
+as wrong for workbench, appropriate only for `/local`'s dedicated settings page. Bundle list and
+editor are correct and already shipped (steps 2.x, 3b-i, Step 5) but only ever become visible
+after the one-shot `startSession()` click.
+
+**Decisions locked in (user, 2026-10-01):**
+- Drop the one-shot "Start session" gesture entirely. File ingestion is continuous: dropping a
+  file at any time (before or after the first) creates a bundle and shows it in the list
+  immediately, without a separate "start" action.
+- Pipeline config lives in one persistent, always-visible settings panel, not a one-time
+  pre-session form. Changing it only affects bundles added/run after the change.
+- A newly-created bundle auto-enqueues into the pipeline immediately if config is set — "the
+  pipeline applies to all files" is read literally, not as "wait for a manual Run click."
+- **Never overwrite or inject over existing annotation data.** A bundle only ever auto-enqueues
+  (or is offered for a manual bulk Run) if its transcript is empty — zero items across every
+  level. Scoped to a binary per-bundle check, not per-stage (e.g. diarization-only re-processing
+  of an already-transcribed bundle): `PipelineRunnerService.run()` (`pipeline-runner.service.ts`)
+  only ever starts from `transcribeOptions` — there is no entry point to run diarization or
+  translation alone against an existing transcript — so per-stage targeting would need a new
+  runner capability, not just a gating change. Explicitly deferred, not built here.
+- Full-state batch export/import (a lossless archive distinct from the existing lossy
+  `CatalogueExportService`, step 4) is a separate follow-on project, specced once this step's
+  bundle-creation path is the real one bundles get created through. Not designed in this step.
+
+**Grounding facts, found during planning:**
+
+1. **The login/session-bootstrap chain is a true one-shot — re-firing it per file is unsafe.**
+   `AuthenticationStoreService.loginLocal()` → `onLoginLocal$`
+   (`authentication.effects.ts:243-358`) unconditionally force-selects the first file's bundle
+   (`LoginModeActions.selectBundle`, lines 272-277) and, via `loginSuccess$` (lines 398-462),
+   dispatches `LoginModeActions.loadProjectAndTaskInformation.do` with **hardcoded** project/task
+   ids and no "already loaded" guard. That cascades through `afterInitApplication$`
+   (`application-session.effects.ts:120-217`, guarded only against *startup*, not re-entry) and
+   `onPrepareTaskForAnnotation$`/`onLoadOnlineInfo$` (`annotation-load.effects.ts:143-199,
+   527-915`, neither idempotent) into `loadSegments()` (lines 1003-1194), whose only guard
+   (`transcript.levels === undefined || .length === 0`, lines 1009-1012) decides whether to
+   fabricate a **brand-new blank annotation over whatever's there** — a real overwrite risk, not
+   theoretical. Re-running this chain once per dropped file would re-fetch three static config
+   files over HTTP every time, reset `UserInteractionsService` logging's start time, and yank the
+   user's bundle selection away from whatever they're actively editing. It must fire exactly once
+   per workbench visit.
+2. **The per-decode hook already exists, unused.** `TrattDropzoneService.filesChange`
+   (`tratt-dropzone.service.ts:180-183`) emits on every `updateStatistics()` call, including from
+   `readAudioFile()`'s decode-complete branch (lines 377-401) — `TrattDropzoneComponent.filesAdded`
+   re-exposes it unchanged (`tratt-dropzone.component.ts:102`). Nothing subscribes to it today;
+   `WorkbenchComponent.startSession()` instead reads `dropzone.validAudioEntries` in bulk, once, on
+   click. The emitted `addedFiles` field is the **entire current `_files` array**, not a delta — a
+   consumer must diff against previously-seen ids to find newly-`'valid'` entries.
+3. **`generateBundleId()`/`createBundle` are mechanically safe to call incrementally, with one
+   fix needed.** `generateBundleId()` (`local-bundle-collection.ts:4-8`) is `crypto.randomUUID()`,
+   stateless. But `createBundle`'s reducer (`login-mode.reducer.ts:120-151`) unconditionally sets
+   `selectedBundleId` to the new bundle on every dispatch — fine for today's single end-of-batch
+   loop, but would steal focus from the user's active bundle on every background decode if fired
+   per-file. `BundleListComponent`'s own doc comment (lines 30-46) states the one-shot assumption
+   explicitly: this is a deliberate scope boundary to lift, not an accidental gap.
+4. **`PipelineQueueService` and `CapacityService` already support a growing bundle set with no
+   change needed.** `readyBundleIds()`/`computeReadyBundleIds` (`pipeline-queue.service.ts:110-114`,
+   `store/pipeline-queue/index.ts:90-103`) read live signals on every call, not a set fixed at
+   queue-start; `enqueue()`'s reducer (`pipeline-queue.reducer.ts:35-49`) appends to the FIFO
+   whether idle or mid-run. `CapacityService` polls live state every 5s regardless of bundle count.
+5. **A fresh level's `items` genuinely defaults to empty, not a placeholder segment.**
+   `TrattAnnotation.createSegmentLevel()` → `TrattAnnotationSegmentLevel` → `OLevel`
+   (`annotjson.ts:173-177`) does `this.items = items ?? []` — no default full-span segment is ever
+   created. So "every level has zero items" is an exact, already-precedented definition of "empty"
+   (the same thing `loadSegments()`'s own guard checks at bootstrap, generalized from "zero levels"
+   to "zero items across all levels" so it stays meaningful after bootstrap has already run).
+
+**Architecture: bootstrap-once, create-many.**
+
+`WorkbenchComponent` subscribes to `dropzone.filesAdded` (`ngAfterViewInit`, once the `@ViewChild`
+resolves), tracking `private ingestedIds = new Set<number>()` and
+`private visitBootstrapped = false`. Each emission: compute
+`newlyValid = addedFiles.filter(f => f.status === 'valid' && isAudio(f) && !ingestedIds.has(f.id))`,
+mark each id ingested immediately (before any async work, so a later emission never reprocesses
+it), then:
+
+- **First wave** (`!visitBootstrapped`): set the flag synchronously, then run today's
+  `startSession()` body unchanged but over `newlyValid` instead of `dropzone.validAudioEntries` —
+  same batch shape (entry 0 → `DEFAULT_BUNDLE_ID`, rest → `generateBundleId()`, one
+  `authStoreService.loginLocal(files, annotation, false, bundleIds)` call). Preserves today's
+  proven behavior for "drop N files at once" exactly.
+- **Every later wave**: for each entry, `audioService.registerAudioManager(...)` then dispatch
+  `LoginModeActions.createBundle({..., selectAfterCreate: false})` directly — no `loginLocal`
+  call, so the login chain never re-fires.
+- After consuming an entry either way, call a new `TrattDropzoneService.consumeEntry(id)` —
+  `reset()`'s existing per-entry shape (`tratt-dropzone.service.ts:118-126`: splice from
+  `_files`, `updateStatistics()`, deliberately **not** `stopFileProcessing()`, which would destroy
+  the `AudioManager` this entry's bundle now owns) narrowed from "all" to one id.
+- `createBundle`'s reducer gains `selectAfterCreate?: boolean` (default `true`, so every existing
+  call site — including the first-wave batch loop's internal use — keeps today's behavior
+  unchanged; only the new per-file background path passes `false`).
+- The "Start session" button is removed from the template; its handler's body moves into the
+  private first-wave method, now called from the subscription instead of a click.
+- `selectAllBundleSummaries` (`annotation.selectors.ts:30-39`) gains `hasAnnotationContent: boolean`
+  (`transcript.levels.some(l => l.items.length > 0)`). `computeReadyBundleIds`
+  (`store/pipeline-queue/index.ts:90-103`) excludes any summary where this is `true`, alongside its
+  existing `awaitingMedia`/run-state checks — applies to both auto-enqueue and the manual Run
+  button, so a bundle that arrived paired with an imported transcript, or was restored from
+  IndexedDB with prior manual work, is listed and editable but never touched by the pipeline.
+- **Carried-forward gap, not fixed here**: a transcript file dropped after the first wave has
+  already bootstrapped has no attachment point — the dropzone's singular `_oannotation` pairing
+  (step 2.7's "transcript pairing stays singular, deliberately") only ever reaches the bootstrap
+  call. Pre-existing limitation, not worsened by this step.
+
+**Layout: left-rail reorder + compact styling.**
+
+In `workbench.component.html`:
+
+1. **Bundle list moves above the upload/record tabs** — the existing `@if (hasAnyBundles())`
+   block (today's lines 40-95) renders first in the left rail. Pre-first-file, nothing renders
+   here (unchanged empty state — the dropzone dominating when there is genuinely nothing to list
+   yet is correct, matching the dominance complaint being specifically about *after* a file
+   lands).
+2. **Dropzone shrinks** — `height="180px"` (line 18) drops to roughly `96px`. Viable because
+   `consumeEntry()` removes a row from the dropzone's own table the instant it's bundled: that
+   table only ever shows rows still mid-decode or failed, never a growing backlog — the bundle
+   list above now owns "the list of files."
+3. **One persistent pipeline-settings mount, not two.** Remove `[showAutoTranscribe]="true"` from
+   `<tratt-dropzone>` (line 19) — deletes the pre-session embedded config block and, with it, the
+   `.row`/`.col` side-by-side squeeze against `AutoTranslateOptionsComponent`
+   (`tratt-dropzone.component.html:129-153` — that pairing only exists inside the dropzone's own
+   template). Delete the old post-session `idPrefix="queue-"` mount (lines 59-94) too. Replace
+   both with exactly one `<tratt-auto-transcribe-options>` + `<tratt-auto-translate-options>`
+   mount, stacked vertically, visible even pre-first-file (the persistent settings panel) feeding
+   `onQueueOptionsChange()` as today.
+4. **Compact mode.** New `compact = input(false)` on `AutoTranscribeOptionsComponent`/
+   `AutoTranslateOptionsComponent`, `true` only in workbench (`/local`'s `login.component.html`
+   mount is untouched — long descriptions stay correct there). When `compact()`: suppress every
+   `<small>` hint block (lines 365-370, 435-466, 494-498, 535-539 — safari warning at lines
+   342-347 stays, it's a hard constraint, not decoration); replace the full comparative-sentence
+   model labels (lines 421-430, reading `login.auto-transcription.models.*.webgpu/wasm`) with a
+   short label computed in TS straight from `KbWhisperModel`'s own fields
+   (`` `${titlecase(model.key)} (~${model.sizeMb} MB)` ``) — no new i18n keys needed, the data is
+   already there.
+5. "Start session" button (lines 107-114) removed. Run/Pause (lines 69-93, unchanged logic) is the
+   one remaining explicit pipeline control. Right pane and capacity indicator unchanged.
+
+**Explicitly out of scope for this step**: per-stage (diarization/translation-only) reprocessing
+of an already-transcribed bundle (needs a new `PipelineRunnerService` entry point); full-state
+batch export/import (separate follow-on spec); fixing transcript-pairing-after-bootstrap (carried
+gap, unchanged by this step).
+
+**Testing shape**: extend `workbench.component.spec.ts`'s existing bundle-fixture helpers with a
+real `TrattDropzoneService.filesChange` emission sequence (not a single bulk `validAudioEntries`
+read) to exercise the first-wave/later-wave split and the `selectAfterCreate:false` non-reselection
+behavior; a `computeReadyBundleIds` unit test asserting a bundle with non-empty `transcript.levels`
+is excluded regardless of run state, mirroring the existing `awaitingMedia` exclusion test's shape. The whole step was: mount the existing
 `RecordingPanelComponent` (its recovery banner for interrupted recordings comes along for free, nested
 in its own template) inside `WorkbenchComponent`'s left rail, behind an `ngbNav` upload/record tab pair
 — reusing `login.component.html`'s own existing tab pattern byte-for-byte, including
