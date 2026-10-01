@@ -33,6 +33,7 @@ import { NavbarService } from '../../component/navbar/navbar.service';
 import { RecordingPanelComponent } from '../../component/recording-panel/recording-panel.component';
 import { FastbarComponent } from '../../component/taskbar/taskbar.component';
 import { AutoTranscribeOptionsComponent } from '../../component/tratt-dropzone/auto-transcribe-options.component';
+import { AutoTranslateOptionsComponent } from '../../component/tratt-dropzone/auto-translate-options.component';
 import { TrattDropzoneComponent } from '../../component/tratt-dropzone/tratt-dropzone.component';
 import { DropzoneStatistics } from '../../component/tratt-dropzone/tratt-dropzone.service';
 import { OverviewModalComponent } from '../../modals/overview-modal/overview-modal.component';
@@ -92,6 +93,7 @@ import {
     FormsModule,
     NgbNavModule,
     AutoTranscribeOptionsComponent,
+    AutoTranslateOptionsComponent,
     CapacityIndicatorComponent,
   ],
 })
@@ -113,7 +115,6 @@ export class WorkbenchComponent
   // active" test.
   activeTab: 'upload' | 'record' = 'upload';
 
-  sessionStarting = false;
   sessionReady = false;
 
   // The currently-mounted editor's name, for the editor-switcher tab row's
@@ -412,17 +413,6 @@ export class WorkbenchComponent
       (loading: ApplicationState['loading']) => {
         const wasReady = this.sessionReady;
         this.sessionReady = loading?.status === LoadingStatus.FINISHED;
-        // Reset the Start button's disabled state whenever a session attempt
-        // has actually concluded (successfully or not) — startSession() sets
-        // sessionStarting = true but nothing else ever clears it, so a failed
-        // or still-in-progress load must not leave the button permanently
-        // disabled.
-        if (
-          loading?.status === LoadingStatus.FINISHED ||
-          loading?.status === LoadingStatus.FAILED
-        ) {
-          this.sessionStarting = false;
-        }
         if (!wasReady && this.sessionReady) {
           // `_useMode`/`_selectedTheme`/`showCommentSection` must reflect the
           // real session state, not whatever appStorage.useMode happened to
@@ -514,39 +504,6 @@ export class WorkbenchComponent
     if (this.appStorage.interface) {
       this.changeEditor(this.appStorage.interface);
     }
-  }
-
-  startSession(removeData: boolean): void {
-    const entries = this.dropzone?.validAudioEntries ?? [];
-    if (entries.length === 0) {
-      return;
-    }
-    this.sessionStarting = true;
-    const annotation = this.dropzone!.hasAnnotation
-      ? this.dropzone!.oannotation
-      : undefined;
-
-    const audioBundleIds: string[] = [];
-    const files: File[] = [];
-    entries.forEach((entry, i) => {
-      const bundleId = i === 0 ? DEFAULT_BUNDLE_ID : generateBundleId();
-      const nativeFile = entry.fileProgress.file.file!;
-      this.audioService.registerAudioManager(
-        bundleId,
-        entry.audioManager,
-        nativeFile,
-      );
-      audioBundleIds.push(bundleId);
-      files.push(nativeFile);
-    });
-
-    this.authStoreService.loginLocal(
-      files,
-      annotation,
-      removeData,
-      audioBundleIds,
-    );
-    this.dropzone!.reset();
   }
 
   /**

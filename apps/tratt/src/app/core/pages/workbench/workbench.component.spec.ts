@@ -18,9 +18,21 @@ import {
 jest.mock('../../shared/service/local-transcription.service', () => ({
   LocalTranscriptionService: class LocalTranscriptionService {},
 }));
-jest.mock('../../shared/service/local-translation.service', () => ({
-  LocalTranslationService: class LocalTranslationService {},
-}));
+// Task 7: WorkbenchComponent's template now also mounts the REAL
+// AutoTranslateOptionsComponent (the queue's translation config panel),
+// which injects LocalTranslationService in its own constructor — so, unlike
+// the LocalTranscriptionService stand-in above (never DI-resolved in this
+// spec, since AutoTranscribeOptionsComponent only reaches it lazily, inside
+// a method), this stand-in needs real `@Injectable({ providedIn: 'root' })`
+// metadata or Angular's DI throws NullInjectorError the instant the panel
+// renders (i.e. on every fixture.detectChanges() in this file now, since the
+// queue panel is unconditional post-step-6).
+jest.mock('../../shared/service/local-translation.service', () => {
+  const { Injectable } = require('@angular/core');
+  @Injectable({ providedIn: 'root' })
+  class LocalTranslationService {}
+  return { LocalTranslationService };
+});
 
 // tratt-dropzone.component.ts transitively imports AutoTranscribeOptionsComponent and
 // AutoTranslateOptionsComponent, which import local-transcription.service.ts /
@@ -302,107 +314,6 @@ describe('WorkbenchComponent', () => {
     component.ngOnInit();
 
     expect(component.navbarServ.showInterfaces).toBe(false);
-  });
-
-  it('registers the dropzone audio manager and calls loginLocal on startSession', () => {
-    const manager = { id: 'fake-manager' } as any;
-    const nativeFile = new File(['content'], 'a.wav');
-    const reset = jest.fn();
-    component.dropzone = {
-      validAudioEntries: [
-        {
-          fileProgress: { file: { file: nativeFile } },
-          audioManager: manager,
-          oaudiofile: {} as any,
-        },
-      ],
-      hasAnnotation: false,
-      oannotation: undefined,
-      reset,
-    } as any;
-
-    component.startSession(false);
-
-    expect(audioService.registerAudioManager).toHaveBeenCalledWith(
-      DEFAULT_BUNDLE_ID,
-      manager,
-      nativeFile,
-    );
-    const [bundleId] = audioService.registerAudioManager.mock.calls[0];
-    expect(authStoreService.loginLocal).toHaveBeenCalledWith(
-      [nativeFile],
-      undefined,
-      false,
-      [bundleId],
-    );
-    // Fix 5 (fixwave-1): a successful start clears the dropzone's pending
-    // list so it can't be re-ingested by a second Start click, and its rows
-    // stop rendering stale delete buttons for already-handed-off files.
-    expect(reset).toHaveBeenCalled();
-  });
-
-  // Task 5: under the new validAudioEntries contract there is exactly one way to have
-  // zero valid entries (an empty array) — the old "audioManager present but file.file
-  // undefined" case from before Task 1 no longer applies, since validAudioEntries is
-  // constructed only from fully-decoded, valid entries. This test and the "no audio
-  // manager yet" case are therefore now identical; keeping just this one.
-  it('does nothing when the dropzone has no valid audio entries', () => {
-    component.dropzone = { validAudioEntries: [] } as any;
-    component.startSession(false);
-    expect(audioService.registerAudioManager).not.toHaveBeenCalled();
-    expect(authStoreService.loginLocal).not.toHaveBeenCalled();
-  });
-
-  it('registers a distinct bundle id per dropped audio file and passes them all to loginLocal', () => {
-    const managers = [
-      { id: 'manager-1' } as any,
-      { id: 'manager-2' } as any,
-      { id: 'manager-3' } as any,
-    ];
-    const nativeFiles = [
-      new File(['a'], 'a.wav'),
-      new File(['b'], 'b.wav'),
-      new File(['c'], 'c.wav'),
-    ];
-    const reset = jest.fn();
-    component.dropzone = {
-      validAudioEntries: managers.map((audioManager, i) => ({
-        fileProgress: { file: { file: nativeFiles[i] } },
-        audioManager,
-        oaudiofile: {} as any,
-      })),
-      hasAnnotation: false,
-      oannotation: undefined,
-      reset,
-    } as any;
-
-    component.startSession(false);
-
-    expect(audioService.registerAudioManager).toHaveBeenCalledTimes(3);
-    const registeredIds = audioService.registerAudioManager.mock.calls.map(
-      (call: any[]) => call[0],
-    );
-    const registeredManagers = audioService.registerAudioManager.mock.calls.map(
-      (call: any[]) => call[1],
-    );
-    expect(new Set(registeredIds).size).toBe(3);
-    expect(registeredManagers).toEqual(managers);
-
-    expect(authStoreService.loginLocal).toHaveBeenCalledTimes(1);
-    const [files, annotation, removeData, audioBundleIds] = authStoreService
-      .loginLocal.mock.calls[0] as [File[], undefined, boolean, string[]];
-    expect(files).toEqual(nativeFiles);
-    expect(annotation).toBeUndefined();
-    expect(removeData).toBe(false);
-    expect(audioBundleIds.length).toBe(3);
-    nativeFiles.forEach((_file, i) => {
-      expect(audioBundleIds[i]).toBe(registeredIds[i]);
-    });
-    // Fix 1 (fixwave-1): entry 0 must reuse DEFAULT_BUNDLE_ID — the store's
-    // default bundle entity always exists there, so AudioService.current
-    // resolves correctly for the ordinary (N=1) case too.
-    expect(audioBundleIds[0]).toBe(DEFAULT_BUNDLE_ID);
-    expect(reset).toHaveBeenCalled();
   });
 
   // Task 1 (step 2.9): mounting the recording panel and wiring its
@@ -985,43 +896,6 @@ describe('WorkbenchComponent', () => {
     loading$.next({ status: LoadingStatus.FINISHED });
 
     expect((component as any).navbarServ.showExport).toBe(false);
-  });
-
-  // Finding 3: startSession() sets sessionStarting = true but nothing ever
-  // reset it back to false, permanently disabling the Start button after one
-  // click (including after a failed login).
-  describe('sessionStarting reset', () => {
-    it('resets sessionStarting to false once loading.status becomes FINISHED', () => {
-      fixture.detectChanges();
-      component.appStorage = { useMode: 'local', interface: undefined } as any;
-      (component as any).settingsService = {
-        projectsettings: { interfaces: [] },
-        isTheme: jest.fn().mockReturnValue(false),
-      };
-      component.sessionStarting = true;
-
-      loading$.next({ status: LoadingStatus.FINISHED });
-
-      expect(component.sessionStarting).toBe(false);
-    });
-
-    it('resets sessionStarting to false when loading.status becomes FAILED', () => {
-      fixture.detectChanges();
-      component.sessionStarting = true;
-
-      loading$.next({ status: LoadingStatus.FAILED } as any);
-
-      expect(component.sessionStarting).toBe(false);
-    });
-
-    it('leaves sessionStarting untouched while loading.status is still in-progress (LOADING)', () => {
-      fixture.detectChanges();
-      component.sessionStarting = true;
-
-      loading$.next({ status: LoadingStatus.LOADING } as any);
-
-      expect(component.sessionStarting).toBe(true);
-    });
   });
 
   // Task 7: run/pause control + queue configuration panel.
@@ -1645,9 +1519,10 @@ describe('WorkbenchComponent with real default LOCAL store state', () => {
       const localMode = {
         bundles: bundlesState([
           { bundleId: DEFAULT_BUNDLE_ID, sessionFile: undefined },
-          // Named (so hasAnyBundles() is true and the queue panel actually
-          // renders) but not resident, so it's still not ready — keeps
-          // this test's readyBundleIds at zero.
+          // Named so hasAnyBundles() is true (unrelated to the queue panel,
+          // which now always renders).
+          // Not resident, so it's still not ready — keeps this test's
+          // readyBundleIds at zero.
           { bundleId: 'bundle-a', sessionFile: { name: 'a.wav' } },
         ]),
         selectedBundleId: DEFAULT_BUNDLE_ID,
@@ -1740,8 +1615,9 @@ describe('WorkbenchComponent with real default LOCAL store state', () => {
       const localMode = {
         bundles: bundlesState([
           { bundleId: DEFAULT_BUNDLE_ID, sessionFile: undefined },
-          // Named so the queue panel renders from the start; not yet
-          // resident, so readyBundleIds starts at zero.
+          // Named so hasAnyBundles() is true (unrelated to the queue panel,
+          // which now always renders).
+          // Not yet resident, so readyBundleIds starts at zero.
           { bundleId: 'bundle-a', sessionFile: { name: 'a.wav' } },
         ]),
         selectedBundleId: DEFAULT_BUNDLE_ID,

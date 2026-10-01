@@ -1,5 +1,11 @@
 <div class="workbench">
   <div class="workbench__left">
+    @if (hasAnyBundles()) {
+      <!-- Moved above the upload/record tabs (step 6): the bundle list is
+           the primary "what's loaded" surface once anything exists; the
+           dropzone below is now just the ingest affordance, not the list. -->
+      <tratt-bundle-list></tratt-bundle-list>
+    }
     <ul
       ngbNav
       #workbenchNav="ngbNav"
@@ -14,11 +20,11 @@
         </button>
         <ng-template ngbNavContent>
           <div class="pt-2">
-            <tratt-dropzone
-              height="180px"
-              [showAutoTranscribe]="true"
-              [allowMultipleAudio]="true"
-            ></tratt-dropzone>
+            <!-- height shrunk from 180px (step 6): consumeEntry() removes a
+                 row from this table the instant it's bundled, so this table
+                 only ever shows rows still mid-decode or failed — the
+                 bundle list above now owns "the list of files." -->
+            <tratt-dropzone height="96px" [allowMultipleAudio]="true"></tratt-dropzone>
           </div>
         </ng-template>
       </li>
@@ -37,81 +43,64 @@
       </li>
     </ul>
     <div [ngbNavOutlet]="workbenchNav"></div>
-    @if (sessionReady || hasAnyBundles()) {
-      <!-- Lets the user switch between bundles that already exist: either
-           created by the one startSession() call at session start, or
-           restored from IndexedDB at boot (step 2.8) and still awaiting
-           media before they can be resolved. Shown as soon as any bundle
-           exists, even before sessionReady — a restored bundle never has
-           audio decoded this session, so sessionReady alone would hide it
-           indefinitely. Does NOT extend startSession() to accept files
-           dropped mid-session — that remains a single-shot ingest; see
-           BundleListComponent. -->
-      <tratt-bundle-list></tratt-bundle-list>
 
-      <!-- The queue's own pipeline configuration. A SECOND mount of the
-           component the dropzone already uses (deliberately — that one is
-           bound to the dropzone's pre-session `hasAudio` and disappears the
-           moment startSession() resets it, taking its emitted options with
-           it). `idPrefix` keeps the two mounts' element ids distinct on the
-           one screen where both can be visible at once: a returning user
-           with restored bundles who drops a new file. -->
-      <div class="workbench__queue">
-        <h6 class="workbench__queue-title">
-          {{ 'workbench.queue.options_title' | transloco }}
-        </h6>
-        <tratt-auto-transcribe-options
-          idPrefix="queue-"
-          [audioLoaded]="true"
-          [annotationAlreadyLoaded]="false"
-          (optionsChange)="onQueueOptionsChange($event)"
-        ></tratt-auto-transcribe-options>
-        <button
-          type="button"
-          class="btn btn-outline-primary workbench__queue-run"
-          [disabled]="
-            !queueRunning() &&
-            (readyBundleIds().length === 0 || queueOptions() === null)
-          "
-          [attr.title]="
-            !queueRunning() && queueOptions() === null
-              ? ('workbench.queue.no_options_hint' | transloco)
-              : null
-          "
-          (click)="onRunPauseClick()"
-        >
-          @if (queueRunning()) {
-            <i class="bi bi-pause-fill me-1"></i>
-            {{ 'workbench.queue.pause' | transloco }}
-          } @else {
-            <i class="bi bi-play-fill me-1"></i>
-            {{
-              'workbench.queue.run'
-                | transloco: { count: readyBundleIds().length }
-            }}
-          }
-        </button>
-      </div>
-    }
-    <!-- Deliberately OUTSIDE the `@if` above: cached ML models are the
-         dominant browser-storage consumer and can exist long before this
-         workbench has a single bundle (they are downloaded from /local too),
-         so the storage readout has to render on an empty workbench as well.
-         Keeping it outside also keeps CapacityService's 5s poll from being
-         torn down and restarted every time session state flips. Its own
-         markup lives in the component; this wrapper only carries the
-         left-rail spacing, matching `.workbench__queue`. -->
+    <!-- One persistent pipeline-settings panel (step 6), visible even
+         pre-first-file — replaces both the dropzone's own pre-session
+         [showAutoTranscribe] mount (removed above) and the old
+         sessionReady-gated post-session mount. Changing it only affects
+         bundles added/run after the change. -->
+    <div class="workbench__queue">
+      <h6 class="workbench__queue-title">
+        {{ 'workbench.queue.options_title' | transloco }}
+      </h6>
+      <tratt-auto-transcribe-options
+        idPrefix="queue-"
+        [audioLoaded]="true"
+        [annotationAlreadyLoaded]="false"
+        [compact]="true"
+        (optionsChange)="onQueueOptionsChange($event)"
+      ></tratt-auto-transcribe-options>
+      <tratt-auto-translate-options
+        [annotationAlreadyLoaded]="false"
+        [transcribeWillRun]="queueOptions() !== null"
+        [sourceLanguageHint]="queueOptions()?.language"
+        [compact]="true"
+        (optionsChange)="onQueueTranslateOptionsChange($event)"
+      ></tratt-auto-translate-options>
+      <button
+        type="button"
+        class="btn btn-outline-primary workbench__queue-run"
+        [disabled]="
+          !queueRunning() &&
+          (readyBundleIds().length === 0 || queueOptions() === null)
+        "
+        [attr.title]="
+          !queueRunning() && queueOptions() === null
+            ? ('workbench.queue.no_options_hint' | transloco)
+            : null
+        "
+        (click)="onRunPauseClick()"
+      >
+        @if (queueRunning()) {
+          <i class="bi bi-pause-fill me-1"></i>
+          {{ 'workbench.queue.pause' | transloco }}
+        } @else {
+          <i class="bi bi-play-fill me-1"></i>
+          {{
+            'workbench.queue.run'
+              | transloco: { count: readyBundleIds().length }
+          }}
+        }
+      </button>
+    </div>
+
+    <!-- Deliberately OUTSIDE any session-state gate: cached ML models are
+         the dominant browser-storage consumer and can exist long before
+         this workbench has a single bundle, so the storage readout has to
+         render on an empty workbench too. -->
     <div class="workbench__capacity">
       <tratt-capacity-indicator></tratt-capacity-indicator>
     </div>
-    <button
-      type="button"
-      class="btn btn-primary workbench__start"
-      [disabled]="sessionStarting"
-      (click)="startSession(false)"
-    >
-      {{ 'workbench.start session' | transloco }}
-    </button>
   </div>
   @if (sessionReady) {
     <div class="workbench__right">
