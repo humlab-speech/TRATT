@@ -125,6 +125,11 @@ export class TrattDropzoneComponent
     this.trattDropzoneService.reset();
   }
 
+  /** Narrow per-id counterpart to reset() — see TrattDropzoneService.consumeEntry(). */
+  public consumeEntry(id: number): void {
+    this.trattDropzoneService.consumeEntry(id);
+  }
+
   /** Delegates to `TrattDropzoneService.validAudioEntries` — see there for details.
    * Consumed by `WorkbenchComponent.startSession()` (Task 5) to register one bundle
    * per successfully-decoded dropped audio file. */

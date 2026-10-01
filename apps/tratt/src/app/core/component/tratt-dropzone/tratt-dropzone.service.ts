@@ -125,6 +125,25 @@ export class TrattDropzoneService {
     this.updateStatistics();
   }
 
+  /**
+   * Removes exactly one entry from the pending list — the narrow, per-id
+   * counterpart to reset()'s "clear everything" shape, used by continuous
+   * ingestion (step 6) so a row still mid-decode is never collaterally
+   * dropped when a DIFFERENT row finishes and gets consumed. Like reset(),
+   * does NOT destroy the entry's AudioManager (already handed off to
+   * AudioService by the caller) and does not touch _oaudiofile/_oannotation
+   * — those are session-singular fields unrelated to any one entry.
+   */
+  consumeEntry(id: number): void {
+    const index = this._files.findIndex((f) => f.id === id);
+    if (index === -1) {
+      return;
+    }
+    this._subscrManager.removeByTag(`fileProgress${id}`);
+    this._files.splice(index, 1);
+    this.updateStatistics();
+  }
+
   get files(): FileProgress[] {
     return this._files;
   }

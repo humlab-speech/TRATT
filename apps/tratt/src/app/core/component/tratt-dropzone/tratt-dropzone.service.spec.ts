@@ -284,3 +284,109 @@ describe('TrattDropzoneService reset()', () => {
     expect((manager as any).destroy).not.toHaveBeenCalled();
   });
 });
+
+describe('consumeEntry', () => {
+  let isValidSpy: jest.SpiedFunction<typeof AudioManager.isValidAudioFileName>;
+  let createSpy: jest.SpiedFunction<typeof AudioManager.create> | undefined;
+
+  const makeAudioManager = (id: number) =>
+    ({
+      id,
+      destroy: jest.fn(),
+      stopDecoding: jest.fn(),
+      resource: { info: { duration: { samples: 1000 } } },
+      sampleRate: 16000,
+    }) as unknown as AudioManager;
+
+  const newService = () =>
+    new TrattDropzoneService(
+      {} as never,
+      { dispatch: jest.fn() } as never,
+      { translate: (key: string) => key } as never,
+    );
+
+  beforeEach(() => {
+    isValidSpy = jest
+      .spyOn(AudioManager, 'isValidAudioFileName')
+      .mockReturnValue(true);
+    (webMedia.readFile as jest.Mock).mockReturnValue(
+      of({ status: 'success', progress: 1, result: new ArrayBuffer(8) }),
+    );
+  });
+
+  afterEach(() => {
+    isValidSpy.mockRestore();
+    createSpy?.mockRestore();
+    createSpy = undefined;
+  });
+
+  it('removes only the matching entry, leaving others (including still-decoding ones) untouched', async () => {
+    const manager1 = makeAudioManager(1);
+    const manager2 = makeAudioManager(2);
+    createSpy = jest
+      .spyOn(AudioManager, 'create')
+      .mockReturnValueOnce(of({ audioManager: manager1, progress: 1 }) as never)
+      .mockReturnValueOnce(
+        of({ audioManager: manager2, progress: 1 }) as never,
+      );
+
+    const service = newService();
+    service.allowMultipleAudio = true;
+    service.add(new File(['a'], 'a.wav', { type: 'audio/wav' }));
+    service.add(new File(['b'], 'b.wav', { type: 'audio/wav' }));
+
+    await Promise.resolve();
+    await Promise.resolve();
+    await Promise.resolve();
+
+    const [first, second] = service.files;
+
+    service.consumeEntry(first.id);
+
+    expect(service.files).toEqual([second]);
+    expect(service.files.find((f) => f.id === first.id)).toBeUndefined();
+  });
+
+  it('does not destroy the consumed entry AudioManager', async () => {
+    const manager = makeAudioManager(1);
+    createSpy = jest
+      .spyOn(AudioManager, 'create')
+      .mockReturnValue(of({ audioManager: manager, progress: 1 }) as never);
+
+    const service = newService();
+    service.add(new File(['a'], 'a.wav', { type: 'audio/wav' }));
+
+    await Promise.resolve();
+    await Promise.resolve();
+    await Promise.resolve();
+
+    const [entry] = service.files;
+    const destroySpy = entry.audioManager
+      ? jest.spyOn(entry.audioManager, 'destroy')
+      : undefined;
+
+    service.consumeEntry(entry.id);
+
+    expect(destroySpy).not.toHaveBeenCalled();
+  });
+
+  it('is a no-op for an unknown id', async () => {
+    const manager = makeAudioManager(1);
+    createSpy = jest
+      .spyOn(AudioManager, 'create')
+      .mockReturnValue(of({ audioManager: manager, progress: 1 }) as never);
+
+    const service = newService();
+    service.add(new File(['a'], 'a.wav', { type: 'audio/wav' }));
+
+    await Promise.resolve();
+    await Promise.resolve();
+    await Promise.resolve();
+
+    const before = service.files.length;
+
+    service.consumeEntry(999999);
+
+    expect(service.files.length).toBe(before);
+  });
+});
