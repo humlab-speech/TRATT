@@ -59,9 +59,9 @@ jest.mock('../../component/tratt-dropzone/tratt-dropzone.component', () => {
     @Output() filesAdded = new EventEmitter();
     hasAnnotation = false;
     oannotation = undefined;
-    reset() {}
-    consumeEntry(_id: number) {}
-    addFile(_file: File) {}
+    reset = jest.fn();
+    consumeEntry = jest.fn();
+    addFile = jest.fn();
   }
   return { TrattDropzoneComponent };
 });
@@ -1249,6 +1249,105 @@ describe('WorkbenchComponent', () => {
         stillDecoding.file.file,
       );
       expect(component.dropzone!.consumeEntry).toHaveBeenCalledWith(2);
+    });
+
+    // C1 (final whole-branch review): a transcript file dropped alongside
+    // the first audio file may still be mid-read when the audio decodes
+    // first — the first wave must not fire (and discard the transcript) in
+    // that window.
+    it('defers the first wave while a paired transcript (non-audio) file is still being read', () => {
+      component.dropzone = makeDropzone() as any;
+      component.ngAfterViewInit();
+
+      const audioFp = fileProgress(1, new File(['a'], 'a.wav'), {
+        status: 'valid',
+        audioManager: {} as any,
+        oaudiofile: {},
+      });
+      const transcriptFp = fileProgress(
+        2,
+        new File(['x'], 'x_annot.json', { type: 'application/json' }),
+        { status: 'progress' },
+      );
+
+      component.dropzone!.filesAdded.emit({
+        statistics: {} as any,
+        addedFiles: [audioFp, transcriptFp],
+      });
+
+      expect(authStoreService.loginLocal).not.toHaveBeenCalled();
+      expect(component.dropzone!.consumeEntry).not.toHaveBeenCalled();
+    });
+
+    it('fires the first wave once the paired transcript has also validated, without discarding it', () => {
+      const dropzone = makeDropzone();
+      component.dropzone = dropzone as any;
+      component.ngAfterViewInit();
+
+      const audioFp = fileProgress(1, new File(['a'], 'a.wav'), {
+        status: 'valid',
+        audioManager: {} as any,
+        oaudiofile: {},
+      });
+      const transcriptFp = fileProgress(
+        2,
+        new File(['x'], 'x_annot.json', { type: 'application/json' }),
+        { status: 'progress' },
+      );
+      component.dropzone!.filesAdded.emit({
+        statistics: {} as any,
+        addedFiles: [audioFp, transcriptFp],
+      });
+      expect(authStoreService.loginLocal).not.toHaveBeenCalled();
+
+      // The dropzone's real pairing has since completed: the transcript
+      // validated too, and the dropzone now exposes it via
+      // hasAnnotation/oannotation.
+      const oannotation = { levels: [] } as any;
+      dropzone.hasAnnotation = true;
+      dropzone.oannotation = oannotation;
+      transcriptFp.status = 'valid';
+      component.dropzone!.filesAdded.emit({
+        statistics: {} as any,
+        addedFiles: [audioFp, transcriptFp],
+      });
+
+      expect(authStoreService.loginLocal).toHaveBeenCalledWith(
+        [audioFp.file.file],
+        oannotation,
+        false,
+        [DEFAULT_BUNDLE_ID],
+      );
+    });
+
+    // Regression guard for Task 6's own approved behavior: a sibling AUDIO
+    // file still decoding must NOT defer the first wave — only a non-audio
+    // (transcript-candidate) entry still in 'progress' does that (C1's scope
+    // is deliberately narrower than "any progress entry").
+    it('still fires the first wave immediately when a second AUDIO file (no transcript at all) is still decoding', () => {
+      component.dropzone = makeDropzone() as any;
+      component.ngAfterViewInit();
+
+      const audioFp = fileProgress(1, new File(['a'], 'a.wav'), {
+        status: 'valid',
+        audioManager: {} as any,
+        oaudiofile: {},
+      });
+      const stillDecodingAudio = fileProgress(2, new File(['b'], 'b.wav'), {
+        status: 'progress',
+      });
+
+      component.dropzone!.filesAdded.emit({
+        statistics: {} as any,
+        addedFiles: [audioFp, stillDecodingAudio],
+      });
+
+      expect(authStoreService.loginLocal).toHaveBeenCalledWith(
+        [audioFp.file.file],
+        undefined,
+        false,
+        [DEFAULT_BUNDLE_ID],
+      );
     });
 
     it('ignores a repeat emission for an already-ingested id', () => {

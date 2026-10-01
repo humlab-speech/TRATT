@@ -109,11 +109,10 @@ export class TrattDropzoneService {
    * Clears the dropzone's pending-file list after a successful session start.
    * Does NOT destroy any AudioManager — every valid entry's manager has
    * already been handed off to AudioService by this point (see
-   * WorkbenchComponent.startSession()), so destroying them here would kill
-   * audio the app now depends on. This also prevents a second Start click
-   * from re-ingesting the same files under a fresh set of generated bundle
-   * ids, and removes the now-stale delete buttons for already-handed-off
-   * rows.
+   * WorkbenchComponent.runFirstWave()), so destroying them here would kill
+   * audio the app now depends on. This also prevents re-ingesting the same
+   * files under a fresh set of generated bundle ids, and removes the
+   * now-stale delete buttons for already-handed-off rows.
    */
   reset(): void {
     for (const fileProgress of this._files) {

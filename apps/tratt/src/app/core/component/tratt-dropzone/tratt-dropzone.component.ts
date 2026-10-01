@@ -131,8 +131,8 @@ export class TrattDropzoneComponent
   }
 
   /** Delegates to `TrattDropzoneService.validAudioEntries` — see there for details.
-   * Consumed by `WorkbenchComponent.startSession()` (Task 5) to register one bundle
-   * per successfully-decoded dropped audio file. */
+   * Consumed by `WorkbenchComponent.runFirstWave()`/`runLaterWave()` to register one
+   * bundle per successfully-decoded dropped audio file. */
   get validAudioEntries(): {
     fileProgress: FileProgress;
     audioManager: AudioManager;

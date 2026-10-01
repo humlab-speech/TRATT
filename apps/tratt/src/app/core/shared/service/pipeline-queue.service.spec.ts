@@ -28,7 +28,7 @@ import { PipelineRunnerService } from './pipeline-runner.service';
 
 const LOCAL_MODE_STATE = {
   bundles: {
-    ids: ['a', 'b'],
+    ids: ['a', 'b', 'c'],
     entities: {
       a: {
         bundleId: 'a',
@@ -39,6 +39,16 @@ const LOCAL_MODE_STATE = {
         bundleId: 'b',
         audio: { loaded: false },
         sessionFile: { name: 'b.wav' },
+      },
+      c: {
+        bundleId: 'c',
+        audio: { loaded: true },
+        sessionFile: { name: 'c.wav' },
+        // Otherwise fully eligible (media resident, not awaiting, idle run
+        // state) but has non-empty annotation content — I4: enqueue() must
+        // never offer this bundle to the runner, the spec's "never overwrite
+        // annotation data" guarantee.
+        transcript: { levels: [{ items: [{}] }] },
       },
     },
   },
@@ -225,6 +235,18 @@ describe('PipelineQueueService', () => {
   it('skips a bundle whose media is missing and not resident', async () => {
     audio.hasResident.mockReturnValue(false as never);
     service.enqueue(['b']); // b.audio.loaded === false
+    await Promise.resolve();
+
+    expect(runner.run).not.toHaveBeenCalled();
+    expect(queueState().queue).toEqual([]);
+  });
+
+  // I4 (final whole-branch review): the "never overwrite annotation data"
+  // guarantee must be exercised at the enqueue() seam itself, not only at
+  // computeReadyBundleIds()'s own unit level — this is the seam the real
+  // auto-enqueue path actually calls through.
+  it('does not start a run for a bundle with hasAnnotationContent: true, even though otherwise eligible', async () => {
+    service.enqueue(['c']); // c is resident, not awaiting, idle — but has annotation content
     await Promise.resolve();
 
     expect(runner.run).not.toHaveBeenCalled();

@@ -18,7 +18,7 @@ import { NgbModalRef, NgbNavModule } from '@ng-bootstrap/ng-bootstrap';
 import { Store } from '@ngrx/store';
 import { AnnotJSONConverter, Converter } from '@tratt/annotation';
 import { formatMinutesSeconds, getFileSize } from '@tratt/utilities';
-import { normalizeMimeType } from '@tratt/web-media';
+import { AudioManager, normalizeMimeType } from '@tratt/web-media';
 import { timer } from 'rxjs';
 import { AppInfo } from '../../../app.info';
 import { editorComponents } from '../../../editors/components';
@@ -202,9 +202,9 @@ export class WorkbenchComponent
    * Known caveat (documented for step 2.8's identical pattern): the
    * AudioService manager registry is a plain Map, not a signal, so a code
    * path that changes residency WITHOUT a subsequent store write would
-   * leave this stale until something else it depends on changes. Both real
-   * residency-changing call sites (startSession, completeReattach) write to
-   * the store immediately afterwards.
+   * leave this stale until something else it depends on changes. All real
+   * residency-changing call sites (runFirstWave, runLaterWave,
+   * completeReattach) write to the store immediately afterwards.
    */
   readyBundleIds = computed(() =>
     computeReadyBundleIds(
@@ -413,6 +413,14 @@ export class WorkbenchComponent
       (loading: ApplicationState['loading']) => {
         const wasReady = this.sessionReady;
         this.sessionReady = loading?.status === LoadingStatus.FINISHED;
+        if (loading?.status === LoadingStatus.FAILED) {
+          // A failed login/bootstrap chain (e.g. HTTP config fetch failure)
+          // must not permanently strand the workbench in the background-only
+          // ingestion path — clearing this lets a later file drop retry the
+          // real bootstrap, mirroring what the deleted sessionStarting reset
+          // on FAILED used to provide.
+          this.visitBootstrapped = false;
+        }
         if (!wasReady && this.sessionReady) {
           // `_useMode`/`_selectedTheme`/`showCommentSection` must reflect the
           // real session state, not whatever appStorage.useMode happened to
@@ -446,6 +454,9 @@ export class WorkbenchComponent
 
   ngAfterViewInit(): void {
     if (!this.dropzone) {
+      console.warn(
+        'WorkbenchComponent.ngAfterViewInit: dropzone ViewChild did not resolve — continuous ingestion will not work this session.',
+      );
       return;
     }
     this.subscribe(
@@ -457,6 +468,26 @@ export class WorkbenchComponent
   }
 
   private onFilesChanged(addedFiles: FileProgress[]): void {
+    if (
+      !this.visitBootstrapped &&
+      addedFiles.some(
+        (f) =>
+          f.status === 'progress' &&
+          !AudioManager.isValidAudioFileName(f.file.fullname, AppInfo.audioformats),
+      )
+    ) {
+      // A transcript file dropped alongside the first audio file may still be
+      // mid-read when the audio finishes decoding first — bootstrapping now
+      // would read dropzone.hasAnnotation/oannotation before pairing has
+      // happened, silently discarding the transcript. Wait: every decode path
+      // (success or failure) eventually calls updateStatistics() again, which
+      // re-invokes this method, so this can never wedge permanently. Scoped to
+      // NON-audio entries specifically (via isValidAudioFileName) so a second
+      // AUDIO file still decoding does NOT defer the first wave — that case is
+      // already correctly handled by the per-id consumeEntry() path below and
+      // must keep firing immediately (see this file's own orphaning test).
+      return;
+    }
     const newlyValid = addedFiles.filter(
       (f) =>
         f.status === 'valid' &&

@@ -185,6 +185,12 @@ export class AudioService {
       const existing = this._audiomanagers.get(bundleId);
       if (existing !== manager) {
         this._audiomanagers.set(bundleId, manager);
+        // Every path that registers a new manager (background per-file
+        // ingestion, bundle-list's completeReattach(), not just explicit
+        // user selection) must participate in MAX_RESIDENT_BUNDLES LRU
+        // eviction — trackSelection() is idempotent/safe to call more than
+        // once, same precedent as ensureResident()'s own call below.
+        this.trackSelection(bundleId);
         // Drop the old manager's envelope synchronously so there's no window
         // where getEnvelope(bundleId) returns stale data for the file that's
         // already been replaced, while the new envelope computes async below.

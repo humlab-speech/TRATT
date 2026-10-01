@@ -166,6 +166,29 @@ describe('AudioService — eviction and envelope', () => {
     expect(service.audiomanagers).toContain(managers['b4']);
   });
 
+  // I2 (final whole-branch review): registerAudioManager() must itself feed
+  // LRU bookkeeping, not just explicit selection — background per-file
+  // ingestion and bundle-list's completeReattach() both register managers
+  // without ever going through trackSelection() via the selection effect.
+  it('evicts the least-recently-registered bundle once a 4th distinct bundle is registered via registerAudioManager alone, with no selection involved', () => {
+    const managers: Record<string, any> = {
+      b1: fakeManager('b1'),
+      b2: fakeManager('b2'),
+      b3: fakeManager('b3'),
+      b4: fakeManager('b4'),
+    };
+
+    for (const id of ['b1', 'b2', 'b3', 'b4']) {
+      service.registerAudioManager(id, managers[id]);
+    }
+
+    expect(managers['b1'].destroy).toHaveBeenCalled();
+    expect(service.audiomanagers).not.toContain(managers['b1']);
+    expect(service.audiomanagers).toContain(managers['b2']);
+    expect(service.audiomanagers).toContain(managers['b3']);
+    expect(service.audiomanagers).toContain(managers['b4']);
+  });
+
   it("preserves the evicted bundle's envelope after eviction", async () => {
     const managers: Record<string, any> = {
       b1: fakeManager('b1'),

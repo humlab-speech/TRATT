@@ -28,15 +28,15 @@ import { runStatusOf } from '../../store/pipeline-queue';
 import { selectAllRunStatuses } from '../../store/pipeline-queue/pipeline-queue.selectors';
 
 /**
- * Lists the bundles created by the one `startSession()` call at the start of
- * a session (see `WorkbenchComponent.startSession()`), and lets the user
- * switch between them via `LoginModeActions.selectBundle`.
+ * Lists the bundles created over the course of a session — the first-wave
+ * bootstrap and every later wave of dropped files (see
+ * `WorkbenchComponent.runFirstWave`/`runLaterWave`), plus this component's
+ * own `completeReattach()` for re-supplying a restored bundle's audio — and
+ * lets the user switch between them via `LoginModeActions.selectBundle`.
  *
- * Scope boundary: this does NOT let a user drop more files into an
- * already-active session — `startSession()` remains a single-shot ingest,
- * invoked exactly once at session start. This list only switches between
- * bundles that already exist from that one call; "drop more mid-session" is
- * out of scope for this component.
+ * Step 6 lifted the old "single-shot ingest" scope boundary: bundles are now
+ * created continuously as files are dropped mid-session, not just once at
+ * session start. This list reflects that live, growing set of bundles.
  *
  * Step 2.8, Task 5 adds one exception to that boundary: a bundle restored
  * from IndexedDB with no audio resident this session (`awaitingMedia`,
