@@ -152,10 +152,12 @@ export const HYMT_LANGUAGES: readonly string[] = [
             </small>
           }
 
-          <small class="text-muted mt-1 d-block">
-            <i class="bi bi-info-circle"></i>
-            {{ 'login.translation.model cached after download' | transloco }}
-          </small>
+          @if (!compact()) {
+            <small class="text-muted mt-1 d-block">
+              <i class="bi bi-info-circle"></i>
+              {{ 'login.translation.model cached after download' | transloco }}
+            </small>
+          }
         }
       </div>
     }
@@ -173,6 +175,16 @@ export class AutoTranslateOptionsComponent implements OnInit {
   readonly annotationAlreadyLoaded = input<boolean>(false);
   readonly transcribeWillRun = input<boolean>(false);
   readonly sourceLanguageHint = input<string | undefined>(undefined);
+  /**
+   * Step 6: suppresses the "model cached after download" hint for
+   * /workbench's narrow persistent settings panel. The availability-path
+   * messages (direct/pivot/unavailable/probing) are NOT gated by this —
+   * they are load-bearing status the user needs to judge whether
+   * translation will work, the same reasoning AutoTranscribeOptionsComponent
+   * applies to its own Safari warning. Default `false` keeps /local's mount
+   * unchanged.
+   */
+  readonly compact = input<boolean>(false);
   readonly optionsChange = output<TranslationOptions | null>();
 
   readonly enabled = signal(false);
