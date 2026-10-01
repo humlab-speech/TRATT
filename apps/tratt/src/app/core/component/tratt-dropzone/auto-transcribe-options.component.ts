@@ -362,7 +362,7 @@ const DEFAULT_KEY_FOR_FAMILY: Record<string, string> = {
             {{ 'login.auto-transcription.auto-transcribe label' | transloco }}
           </label>
         </div>
-        @if (!isSafari()) {
+        @if (!isSafari() && !compact()) {
           <small class="text-muted d-block mb-2">
             <i class="bi bi-cloud-download"></i>
             {{ 'login.auto-transcription.requires internet' | transloco }}
@@ -418,51 +418,46 @@ const DEFAULT_KEY_FOR_FAMILY: Record<string, string> = {
                       : null)
                   "
                 >
-                  {{
-                    (hasWebGpu() && model.hasWebgpuVariant
-                      ? 'login.auto-transcription.models.' +
-                        (model.i18nKey ?? model.key) +
-                        '.webgpu'
-                      : 'login.auto-transcription.models.' +
-                        (model.i18nKey ?? model.key) +
-                        '.wasm'
-                    ) | transloco
-                  }}
+                  {{ modelLabel(model) }}
                 </label>
               </div>
             }
 
-            @if (selectedLanguage === 'sv') {
-              <small class="text-muted d-block mt-1">
-                <i class="bi bi-info-circle"></i>
-                {{
-                  'login.auto-transcription.swedish kb-whisper hint' | transloco
-                }}
-              </small>
-            }
-            @if (selectedLanguage === 'fi') {
-              <small class="text-muted d-block mt-1">
-                <i class="bi bi-info-circle"></i>
-                {{
-                  'login.auto-transcription.finnish fine-tuned hint' | transloco
-                }}
-              </small>
-            }
-            @if (selectedLanguage === 'no' || selectedLanguage === 'nn') {
-              <small class="text-muted d-block mt-1">
-                <i class="bi bi-info-circle"></i>
-                {{
-                  'login.auto-transcription.norwegian fine-tuned hint'
-                    | transloco
-                }}
-              </small>
-            }
+            @if (!compact()) {
+              @if (selectedLanguage === 'sv') {
+                <small class="text-muted d-block mt-1">
+                  <i class="bi bi-info-circle"></i>
+                  {{
+                    'login.auto-transcription.swedish kb-whisper hint'
+                      | transloco
+                  }}
+                </small>
+              }
+              @if (selectedLanguage === 'fi') {
+                <small class="text-muted d-block mt-1">
+                  <i class="bi bi-info-circle"></i>
+                  {{
+                    'login.auto-transcription.finnish fine-tuned hint'
+                      | transloco
+                  }}
+                </small>
+              }
+              @if (selectedLanguage === 'no' || selectedLanguage === 'nn') {
+                <small class="text-muted d-block mt-1">
+                  <i class="bi bi-info-circle"></i>
+                  {{
+                    'login.auto-transcription.norwegian fine-tuned hint'
+                      | transloco
+                  }}
+                </small>
+              }
 
-            @if (!hasWebGpu()) {
-              <small class="text-muted">
-                <i class="bi bi-exclamation-triangle"></i>
-                {{ 'login.auto-transcription.no webgpu' | transloco }}
-              </small>
+              @if (!hasWebGpu()) {
+                <small class="text-muted">
+                  <i class="bi bi-exclamation-triangle"></i>
+                  {{ 'login.auto-transcription.no webgpu' | transloco }}
+                </small>
+              }
             }
 
             <small class="text-muted mt-1">
@@ -491,11 +486,13 @@ const DEFAULT_KEY_FOR_FAMILY: Record<string, string> = {
                 }}
               </label>
             </div>
-            <small class="text-muted d-block mt-1">
-              {{
-                'login.auto-transcription.speaker separation help' | transloco
-              }}
-            </small>
+            @if (!compact()) {
+              <small class="text-muted d-block mt-1">
+                {{
+                  'login.auto-transcription.speaker separation help' | transloco
+                }}
+              </small>
+            }
 
             @if (speakerSegmentationEnabled) {
               <div class="mt-2 ms-3">
@@ -532,11 +529,13 @@ const DEFAULT_KEY_FOR_FAMILY: Record<string, string> = {
                     }}
                   </button>
                 </div>
-                <small class="text-muted d-block mt-1">
-                  {{
-                    'login.auto-transcription.speaker count help' | transloco
-                  }}
-                </small>
+                @if (!compact()) {
+                  <small class="text-muted d-block mt-1">
+                    {{
+                      'login.auto-transcription.speaker count help' | transloco
+                    }}
+                  </small>
+                }
               </div>
             }
           </div>
@@ -571,6 +570,14 @@ export class AutoTranscribeOptionsComponent implements OnInit {
    * every `<label for>` would resolve to the first one.
    */
   readonly idPrefix = input<string>('');
+
+  /**
+   * Step 6: suppresses decorative `<small>` hints and swaps the per-model
+   * label for a short "<Name> (~<size> MB)" form, for /workbench's narrow
+   * persistent settings panel. Default `false` keeps /local's full
+   * descriptive copy unchanged.
+   */
+  readonly compact = input<boolean>(false);
 
   private readonly transloco = inject(TranslocoService);
   private readonly destroyRef = inject(DestroyRef);
@@ -662,6 +669,18 @@ export class AutoTranscribeOptionsComponent implements OnInit {
   clearNumSpeakers(): void {
     this.numSpeakers = null;
     this.emitChange();
+  }
+
+  modelLabel(model: KbWhisperModel): string {
+    if (!this.compact()) {
+      return this.transloco.translate(
+        this.hasWebGpu() && model.hasWebgpuVariant
+          ? `login.auto-transcription.models.${model.i18nKey ?? model.key}.webgpu`
+          : `login.auto-transcription.models.${model.i18nKey ?? model.key}.wasm`,
+      );
+    }
+    const titlecased = model.key.charAt(0).toUpperCase() + model.key.slice(1);
+    return `${titlecased} (~${model.sizeMb} MB)`;
   }
 
   emitChange(): void {

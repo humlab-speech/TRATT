@@ -95,7 +95,9 @@ describe('AutoTranscribeOptionsComponent', () => {
 
     expect(fallbackComponent.selectedLanguage).toBe('sv');
     expect(fallbackComponent.models).toBe(KB_WHISPER_MODELS);
-    expect(fallbackComponent.selectedModelId).toBe(KB_WHISPER_MODELS[2].modelId);
+    expect(fallbackComponent.selectedModelId).toBe(
+      KB_WHISPER_MODELS[2].modelId,
+    );
   });
 
   // Task 7: idPrefix input, added so /workbench can mount a second instance
@@ -118,6 +120,76 @@ describe('AutoTranscribeOptionsComponent', () => {
       expect(
         fixture.debugElement.query(By.css('#autoTranscribeCheck')),
       ).toBeNull();
+    });
+  });
+
+  // Task 4: compact input, added so /workbench's narrow persistent settings
+  // panel can suppress decorative hints and use a short per-model label.
+  // Default false must keep /local's full descriptive copy byte-identical.
+  describe('compact', () => {
+    it('suppresses decorative hints and uses the short model label in compact mode', () => {
+      fixture.componentRef.setInput('compact', true);
+      fixture.componentRef.setInput('audioLoaded', true);
+      component.enabled.set(true);
+      // This file's TranslocoService stub reports 'en' as the active
+      // language, which (per resolveInitialLanguage()) selects the OPENAI
+      // model family — it has no 'medium' tier. Force the sv/kb-whisper
+      // family (which defaults to 'medium') so the short-label assertion
+      // below is deterministic, matching the brief's sample expectation.
+      component.selectedLanguage = 'sv';
+      fixture.detectChanges();
+
+      const text = fixture.nativeElement.textContent as string;
+      expect(text).not.toContain('login.auto-transcription.requires internet');
+      expect(text).not.toContain('login.auto-transcription.no webgpu');
+      expect(text).not.toContain(
+        'login.auto-transcription.speaker separation help',
+      );
+      expect(text).not.toContain('login.auto-transcription.speaker count help');
+      // kept even in compact mode:
+      expect(text).toContain(
+        'login.auto-transcription.model cached after download',
+      );
+      expect(text).toMatch(/Medium \(~\d+ MB\)/);
+    });
+
+    it('renders the full i18n label (not the short one) when compact is false', () => {
+      fixture.componentRef.setInput('compact', false);
+      fixture.componentRef.setInput('audioLoaded', true);
+      component.enabled.set(true);
+      fixture.detectChanges();
+
+      expect(fixture.nativeElement.textContent as string).not.toMatch(
+        /Medium \(~\d+ MB\)/,
+      );
+    });
+
+    it('still shows the safari warning in compact mode (hard constraint, not a decorative hint)', () => {
+      fixture.componentRef.setInput('compact', true);
+      fixture.componentRef.setInput('audioLoaded', true);
+      component.enabled.set(true);
+      // First detectChanges() runs ngOnInit(), which sets isSafari from
+      // isSafariOrWebKit() (false under jsdom) — override after that fires,
+      // then re-render.
+      fixture.detectChanges();
+      component.isSafari.set(true);
+      fixture.detectChanges();
+
+      const text = fixture.nativeElement.textContent as string;
+      expect(text).toContain('login.auto-transcription.safari warning');
+    });
+
+    it('does not suppress the swedish/finnish/norwegian fine-tuned hints only when compact is false', () => {
+      fixture.componentRef.setInput('compact', false);
+      fixture.componentRef.setInput('audioLoaded', true);
+      component.enabled.set(true);
+      component.selectedLanguage = 'sv';
+      component.onLanguageChange();
+      fixture.detectChanges();
+
+      expect(fixture.nativeElement.textContent as string).toContain(
+        'login.auto-transcription.swedish kb-whisper hint',
+      );
     });
   });
 });
