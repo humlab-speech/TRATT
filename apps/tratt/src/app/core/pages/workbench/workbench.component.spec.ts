@@ -31,11 +31,25 @@ jest.mock('../../shared/service/local-translation.service', () => ({
 // stubs `component.dropzone` directly — so a minimal standalone stand-in with the
 // right selector is enough to satisfy WorkbenchComponent's `@ViewChild` and template.
 jest.mock('../../component/tratt-dropzone/tratt-dropzone.component', () => {
-  const { Component, Input } = require('@angular/core');
+  const { Component, EventEmitter, Input, Output } = require('@angular/core');
   @Component({ selector: 'tratt-dropzone', template: '' })
   class TrattDropzoneComponent {
+    // Deviation from task-6-brief.md Step 1 (documented in task-6-report.md):
+    // the real workbench.component.html still binds
+    // [showAutoTranscribe]="true" to <tratt-dropzone> — this task's own
+    // ruling leaves that template untouched until Task 7 removes the Start
+    // button and this binding together. Dropping this @Input from the mock
+    // now (as the brief's literal text does) throws NG0303 on every
+    // fixture.detectChanges() in this spec, failing ~39 pre-existing tests.
+    // Kept here until Task 7's template edit actually removes the binding.
     @Input() showAutoTranscribe = false;
     @Input() allowMultipleAudio = false;
+    @Output() filesAdded = new EventEmitter();
+    hasAnnotation = false;
+    oannotation = undefined;
+    reset() {}
+    consumeEntry(_id: number) {}
+    addFile(_file: File) {}
   }
   return { TrattDropzoneComponent };
 });
@@ -80,7 +94,7 @@ jest.mock('../../component/recording-panel/recording-panel.component', () => {
 // `'../../component/navbar/navbar.service'` import is a different, unaffected module.
 jest.mock('../../component/navbar', () => ({}));
 
-import { Component, signal, WritableSignal } from '@angular/core';
+import { Component, EventEmitter, signal, WritableSignal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { TranslocoService } from '@jsverse/transloco';
@@ -113,6 +127,7 @@ import {
   DEFAULT_BUNDLE_ID,
   localBundleAdapter,
 } from '../../store/login-mode/annotation/local-bundle-collection';
+import { LoginModeActions } from '../../store/login-mode/login-mode.actions';
 import {
   selectAllRunStatuses,
   selectQueueMode,
@@ -153,6 +168,7 @@ describe('WorkbenchComponent', () => {
     current: any;
   };
   let authStoreService: { loginLocal: jest.Mock };
+  let storeDispatch: jest.Mock;
   let loading$: BehaviorSubject<{ status: LoadingStatus }>;
   let bundleSummaries: any[];
   // Task 7: the queue's own store slice, read through the same
@@ -239,6 +255,7 @@ describe('WorkbenchComponent', () => {
           // the queue-mode/run-status reads the wrong shape.
           provide: Store,
           useValue: {
+            dispatch: (storeDispatch = jest.fn()),
             selectSignal: (selector: unknown) => {
               if (selector === selectAllBundleSummaries) {
                 return () => bundleSummaries;
@@ -1206,6 +1223,255 @@ describe('WorkbenchComponent', () => {
       expect(component.selectedBundleHeader?.name).toBe('second.wav');
     });
   });
+
+  function fileProgress(
+    id: number,
+    file: File,
+    overrides: Partial<{
+      status: 'valid' | 'progress';
+      audioManager: any;
+      oaudiofile: any;
+    }> = {},
+  ) {
+    return {
+      id,
+      status: overrides.status ?? 'progress',
+      checked_converters: 0,
+      progress: 1,
+      file: { file, fullname: file.name, type: file.type, size: file.size },
+      audioManager: overrides.audioManager,
+      oaudiofile: overrides.oaudiofile,
+    } as any;
+  }
+
+  describe('continuous ingestion (step 6)', () => {
+    function makeDropzone() {
+      return {
+        filesAdded: new EventEmitter<any>(),
+        hasAnnotation: false,
+        oannotation: undefined,
+        reset: jest.fn(),
+        consumeEntry: jest.fn(),
+        addFile: jest.fn(),
+      };
+    }
+
+    it('bootstraps via loginLocal on the first valid file and consumes just that entry', () => {
+      component.dropzone = makeDropzone() as any;
+      component.ngAfterViewInit();
+
+      const manager = { id: 'm1' } as any;
+      const nativeFile = new File(['a'], 'a.wav');
+      const fp = fileProgress(1, nativeFile, {
+        status: 'valid',
+        audioManager: manager,
+        oaudiofile: {},
+      });
+
+      component.dropzone!.filesAdded.emit({ statistics: {} as any, addedFiles: [fp] });
+
+      expect(audioService.registerAudioManager).toHaveBeenCalledWith(
+        DEFAULT_BUNDLE_ID,
+        manager,
+        nativeFile,
+      );
+      expect(authStoreService.loginLocal).toHaveBeenCalledWith(
+        [nativeFile],
+        undefined,
+        false,
+        [DEFAULT_BUNDLE_ID],
+      );
+      expect(component.dropzone!.consumeEntry).toHaveBeenCalledWith(1);
+      expect(component.dropzone!.reset).not.toHaveBeenCalled();
+    });
+
+    it('does nothing when no file has validated yet', () => {
+      component.dropzone = makeDropzone() as any;
+      component.ngAfterViewInit();
+
+      component.dropzone!.filesAdded.emit({
+        statistics: {} as any,
+        addedFiles: [fileProgress(1, new File(['a'], 'a.wav'), { status: 'progress' })],
+      });
+
+      expect(audioService.registerAudioManager).not.toHaveBeenCalled();
+      expect(authStoreService.loginLocal).not.toHaveBeenCalled();
+    });
+
+    it('routes every file after the first through createBundle directly, not loginLocal', () => {
+      component.dropzone = makeDropzone() as any;
+      component.ngAfterViewInit();
+
+      const file1 = new File(['a'], 'a.wav');
+      const file2 = new File(['b'], 'b.wav');
+      component.dropzone!.filesAdded.emit({
+        statistics: {} as any,
+        addedFiles: [
+          fileProgress(1, file1, { status: 'valid', audioManager: {} as any, oaudiofile: {} }),
+        ],
+      });
+      authStoreService.loginLocal.mockClear();
+
+      const manager2 = { id: 'm2' } as any;
+      component.dropzone!.filesAdded.emit({
+        statistics: {} as any,
+        addedFiles: [
+          fileProgress(1, file1, { status: 'valid', audioManager: {} as any, oaudiofile: {} }),
+          fileProgress(2, file2, { status: 'valid', audioManager: manager2, oaudiofile: {} }),
+        ],
+      });
+
+      expect(authStoreService.loginLocal).not.toHaveBeenCalled();
+      expect(audioService.registerAudioManager).toHaveBeenCalledWith(
+        expect.any(String),
+        manager2,
+        file2,
+      );
+      expect(storeDispatch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: LoginModeActions.createBundle.type,
+          selectAfterCreate: false,
+        }),
+      );
+      expect(component.dropzone!.consumeEntry).toHaveBeenCalledWith(2);
+    });
+
+    // Review Focus #1: a file still mid-decode when a DIFFERENT file's
+    // first-wave bootstrap fires must not be orphaned.
+    it('does not consume or lose an entry that is still decoding when the first wave fires for an earlier entry', () => {
+      component.dropzone = makeDropzone() as any;
+      component.ngAfterViewInit();
+
+      const file1 = new File(['a'], 'a.wav');
+      const stillDecoding = fileProgress(2, new File(['b'], 'b.wav'), {
+        status: 'progress',
+      });
+      component.dropzone!.filesAdded.emit({
+        statistics: {} as any,
+        addedFiles: [
+          fileProgress(1, file1, { status: 'valid', audioManager: {} as any, oaudiofile: {} }),
+          stillDecoding,
+        ],
+      });
+
+      // Only the valid entry (id 1) was consumed — id 2 was left alone.
+      expect(component.dropzone!.consumeEntry).toHaveBeenCalledTimes(1);
+      expect(component.dropzone!.consumeEntry).toHaveBeenCalledWith(1);
+      expect(component.dropzone!.reset).not.toHaveBeenCalled();
+
+      // id 2 finishing later still reaches the later-wave path correctly.
+      const manager2 = { id: 'm2' } as any;
+      stillDecoding.status = 'valid';
+      stillDecoding.audioManager = manager2;
+      stillDecoding.oaudiofile = {};
+      component.dropzone!.filesAdded.emit({
+        statistics: {} as any,
+        addedFiles: [stillDecoding],
+      });
+
+      expect(audioService.registerAudioManager).toHaveBeenCalledWith(
+        expect.any(String),
+        manager2,
+        stillDecoding.file.file,
+      );
+      expect(component.dropzone!.consumeEntry).toHaveBeenCalledWith(2);
+    });
+
+    it('ignores a repeat emission for an already-ingested id', () => {
+      component.dropzone = makeDropzone() as any;
+      component.ngAfterViewInit();
+      const fp = fileProgress(1, new File(['a'], 'a.wav'), {
+        status: 'valid',
+        audioManager: {} as any,
+        oaudiofile: {},
+      });
+      component.dropzone!.filesAdded.emit({ statistics: {} as any, addedFiles: [fp] });
+      authStoreService.loginLocal.mockClear();
+      audioService.registerAudioManager.mockClear();
+
+      component.dropzone!.filesAdded.emit({ statistics: {} as any, addedFiles: [fp] });
+
+      expect(authStoreService.loginLocal).not.toHaveBeenCalled();
+      expect(audioService.registerAudioManager).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('auto-enqueue on bundle creation (step 6)', () => {
+    function makeDropzone() {
+      return {
+        filesAdded: new EventEmitter<any>(),
+        hasAnnotation: false,
+        oannotation: undefined,
+        reset: jest.fn(),
+        consumeEntry: jest.fn(),
+        addFile: jest.fn(),
+      };
+    }
+
+    it('does not enqueue before the first-wave bundle has landed in the store, then does once it has', () => {
+      component.dropzone = makeDropzone() as any;
+      component.ngAfterViewInit();
+      component.onQueueOptionsChange({ modelId: 'm', useWebGPU: false } as any);
+
+      component.dropzone!.filesAdded.emit({
+        statistics: {} as any,
+        addedFiles: [
+          fileProgress(1, new File(['a'], 'a.wav'), {
+            status: 'valid',
+            audioManager: {} as any,
+            oaudiofile: {},
+          }),
+        ],
+      });
+      // Store hasn't actually written the bundle's sessionFile yet (loginLocal
+      // is async) — bundleSummaries still only shows the empty default.
+      expect(pipelineQueueService.enqueue).not.toHaveBeenCalled();
+
+      // The async chain lands: selectAllBundleSummaries now shows this bundle
+      // with a defined name.
+      bundleSummaries = [
+        {
+          bundleId: DEFAULT_BUNDLE_ID,
+          name: 'a.wav',
+          selected: true,
+          awaitingMedia: false,
+          hasAnnotationContent: false,
+        },
+      ];
+      fixture.detectChanges();
+
+      expect(pipelineQueueService.enqueue).toHaveBeenCalledWith([DEFAULT_BUNDLE_ID]);
+    });
+
+    it('does not auto-enqueue when no pipeline options are configured', () => {
+      component.dropzone = makeDropzone() as any;
+      component.ngAfterViewInit();
+      // queueOptions() left at its default null — no onQueueOptionsChange call.
+
+      component.dropzone!.filesAdded.emit({
+        statistics: {} as any,
+        addedFiles: [
+          fileProgress(1, new File(['a'], 'a.wav'), {
+            status: 'valid',
+            audioManager: {} as any,
+            oaudiofile: {},
+          }),
+        ],
+      });
+      bundleSummaries = [
+        {
+          bundleId: DEFAULT_BUNDLE_ID,
+          name: 'a.wav',
+          selected: true,
+          awaitingMedia: false,
+          hasAnnotationContent: false,
+        },
+      ];
+      fixture.detectChanges();
+
+      expect(pipelineQueueService.enqueue).not.toHaveBeenCalled();
+    });
+  });
 });
 
 // The outer suite stubs Store.selectSignal directly with a hand-rolled
@@ -1528,5 +1794,148 @@ describe('WorkbenchComponent with real default LOCAL store state', () => {
     expect(
       fx.debugElement.query(By.css('tratt-capacity-indicator')),
     ).toBeTruthy();
+  });
+
+  // Task 6 self-review regression: this test exists because the outer
+  // `WorkbenchComponent` suite's Store stub hands component.computed()s
+  // plain closures, not real Angular signals (see that suite's own
+  // "real default LOCAL store state" preamble comment) — so a test written
+  // there could pass "vacuously" even if the auto-enqueue effect never
+  // actually re-ran reactively. This block uses provideMockStore's REAL
+  // signals, in the exact order a real app hits them: a change-detection
+  // flush happens (ngOnInit's own loading$ subscription calls
+  // this.cd.detectChanges()) BEFORE any file has ever been dropped —
+  // i.e. the auto-enqueue effect's very first execution happens while
+  // `pendingAutoEnqueueIds` is still empty. An effect that reads no signal
+  // on a run where it returns early never gets scheduled again when that
+  // signal later changes (Angular only re-runs an effect for signals it
+  // actually read on its last execution) — confirmed with an isolated
+  // TestBed probe during this task's self-review. Reading
+  // bundleSummaries()/queueOptions() unconditionally, before that early
+  // return, is what keeps this effect alive across exactly this ordering.
+  it('still auto-enqueues after an initial change-detection flush happened while no file had been dropped yet', async () => {
+    const localMode = {
+      bundles: bundlesState([
+        { bundleId: DEFAULT_BUNDLE_ID, sessionFile: undefined },
+      ]),
+      selectedBundleId: DEFAULT_BUNDLE_ID,
+    };
+    const authStoreServiceMock = { loginLocal: jest.fn() };
+    const pipelineQueueServiceMock = {
+      setTranscribeOptions: jest.fn(),
+      enqueue: jest.fn(),
+      stop: jest.fn(),
+      retry: jest.fn(),
+      readyBundleIds: jest.fn(() => []),
+    };
+
+    await TestBed.configureTestingModule({
+      imports: [WorkbenchComponent],
+      providers: [
+        {
+          provide: AudioService,
+          useValue: {
+            registerAudioManager: jest.fn(),
+            hasResident: jest.fn(() => false),
+          },
+        },
+        { provide: AuthenticationStoreService, useValue: authStoreServiceMock },
+        { provide: AppStorageService, useValue: {} },
+        { provide: RoutingService, useValue: { staticQueryParams: {} } },
+        { provide: NavbarService, useValue: {} },
+        { provide: RecordedFileService, useValue: {} },
+        { provide: AnnotationStoreService, useValue: {} },
+        { provide: SettingsService, useValue: { isTheme: () => false } },
+        { provide: TrattModalService, useValue: {} },
+        {
+          provide: ApplicationStoreService,
+          useValue: { loading$: of({ status: LoadingStatus.INITIALIZE }) },
+        },
+        { provide: UserInteractionsService, useValue: {} },
+        { provide: PipelineQueueService, useValue: pipelineQueueServiceMock },
+        {
+          provide: CapacityService,
+          useValue: {
+            storage: signal<StorageCapacity>({
+              usedBytes: 0,
+              quotaBytes: 0,
+              modelsEstimateBytes: 0,
+            }),
+            residentMemory: signal<ResidentMemoryEstimate>({
+              estimatedBytes: 0,
+              residentCount: 0,
+              budgetBytes: RAM_BUDGET_BYTES,
+            }),
+            setConfiguredOptions: jest.fn(),
+          },
+        },
+        provideMockStore({
+          initialState: {
+            localMode,
+            pipelineQueue: { queue: [], activeId: null, mode: 'idle', runs: {} },
+          } as any,
+        }),
+        {
+          provide: TranslocoService,
+          useValue: {
+            getActiveLang: () => 'en',
+            langChanges$: of('en'),
+            translate: (key: string) => key,
+            selectTranslate: () => of(''),
+            config: { reRenderOnLangChange: false },
+            _loadDependencies: () => of({}),
+          },
+        },
+      ],
+    }).compileComponents();
+
+    const fx = TestBed.createComponent(WorkbenchComponent);
+    // First-ever flush, with no file dropped yet and pendingAutoEnqueueIds
+    // still empty — the exact real-app ordering under test.
+    fx.detectChanges();
+
+    fx.componentInstance.onQueueOptionsChange({
+      modelId: 'm',
+      useWebGPU: false,
+    } as any);
+    const nativeFile = new File(['a'], 'a.wav');
+    (fx.componentInstance.dropzone as any).filesAdded.emit({
+      statistics: {} as any,
+      addedFiles: [
+        {
+          id: 1,
+          status: 'valid',
+          checked_converters: 0,
+          progress: 1,
+          file: {
+            file: nativeFile,
+            fullname: nativeFile.name,
+            type: nativeFile.type,
+            size: nativeFile.size,
+          },
+          audioManager: { id: 'm1' } as any,
+          oaudiofile: {},
+        },
+      ],
+    });
+
+    expect(pipelineQueueServiceMock.enqueue).not.toHaveBeenCalled();
+
+    // The async loginLocal chain "lands" in the store.
+    const store = TestBed.inject(Store) as MockStore;
+    store.setState({
+      localMode: {
+        bundles: bundlesState([
+          { bundleId: DEFAULT_BUNDLE_ID, sessionFile: { name: 'a.wav' } },
+        ]),
+        selectedBundleId: DEFAULT_BUNDLE_ID,
+      },
+      pipelineQueue: { queue: [], activeId: null, mode: 'idle', runs: {} },
+    } as any);
+    fx.detectChanges();
+
+    expect(pipelineQueueServiceMock.enqueue).toHaveBeenCalledWith([
+      DEFAULT_BUNDLE_ID,
+    ]);
   });
 });

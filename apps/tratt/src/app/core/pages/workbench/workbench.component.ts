@@ -1,9 +1,11 @@
 import {
+  AfterViewInit,
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
   ComponentRef,
   computed,
+  effect,
   OnDestroy,
   OnInit,
   signal,
@@ -16,6 +18,7 @@ import { NgbModalRef, NgbNavModule } from '@ng-bootstrap/ng-bootstrap';
 import { Store } from '@ngrx/store';
 import { AnnotJSONConverter, Converter } from '@tratt/annotation';
 import { formatMinutesSeconds, getFileSize } from '@tratt/utilities';
+import { normalizeMimeType } from '@tratt/web-media';
 import { timer } from 'rxjs';
 import { AppInfo } from '../../../app.info';
 import { editorComponents } from '../../../editors/components';
@@ -31,6 +34,7 @@ import { RecordingPanelComponent } from '../../component/recording-panel/recordi
 import { FastbarComponent } from '../../component/taskbar/taskbar.component';
 import { AutoTranscribeOptionsComponent } from '../../component/tratt-dropzone/auto-transcribe-options.component';
 import { TrattDropzoneComponent } from '../../component/tratt-dropzone/tratt-dropzone.component';
+import { DropzoneStatistics } from '../../component/tratt-dropzone/tratt-dropzone.service';
 import { OverviewModalComponent } from '../../modals/overview-modal/overview-modal.component';
 import { ShortcutsModalComponent } from '../../modals/shortcuts-modal/shortcuts-modal.component';
 import {
@@ -43,13 +47,16 @@ import {
   TranscriptionStopModalComponent,
 } from '../../modals/transcription-stop-modal/transcription-stop-modal.component';
 import { TrattModalService } from '../../modals/tratt-modal.service';
+import { FileProgress } from '../../obj/objects';
 import { ProjectSettings } from '../../obj/Settings';
+import { SessionFile } from '../../obj/SessionFile';
 import { LoadeditorDirective } from '../../shared/directive/loadeditor.directive';
 import { SettingsService, UserInteractionsService } from '../../shared/service';
 import { AppStorageService } from '../../shared/service/appstorage.service';
 import { AudioService } from '../../shared/service/audio.service';
 import { CapacityService } from '../../shared/service/capacity.service';
 import { TranscriptionOptions } from '../../shared/service/local-transcription.service';
+import { TranslationOptions } from '../../shared/service/local-translation.service';
 import { PipelineQueueService } from '../../shared/service/pipeline-queue.service';
 import { RecordedFileService } from '../../shared/service/recorded-file.service';
 import { RoutingService } from '../../shared/service/routing.service';
@@ -63,6 +70,7 @@ import {
   DEFAULT_BUNDLE_ID,
   generateBundleId,
 } from '../../store/login-mode/annotation/local-bundle-collection';
+import { LoginModeActions } from '../../store/login-mode/login-mode.actions';
 import { computeReadyBundleIds } from '../../store/pipeline-queue';
 import {
   selectAllRunStatuses,
@@ -89,7 +97,7 @@ import {
 })
 export class WorkbenchComponent
   extends DefaultComponent
-  implements OnInit, OnDestroy
+  implements OnInit, AfterViewInit, OnDestroy
 {
   @ViewChild(TrattDropzoneComponent) dropzone?: TrattDropzoneComponent;
   @ViewChild(LoadeditorDirective) showEditor?: LoadeditorDirective;
@@ -235,6 +243,28 @@ export class WorkbenchComponent
   }
 
   /**
+   * Step 6: one-shot queueing for a brand-new translation config panel —
+   * captured for UI consistency with the dropzone's pre-step-6 pairing, but
+   * NOT forwarded to PipelineQueueService: PipelineRunnerService.run() has
+   * no entry point that accepts translateOptions yet (see the step 4 design
+   * note in the spec — "/workbench has no translation configuration UI").
+   * Wiring translation into the queue itself is separate, future work.
+   */
+  queueTranslateOptions = signal<TranslationOptions | null>(null);
+
+  onQueueTranslateOptionsChange(options: TranslationOptions | null): void {
+    this.queueTranslateOptions.set(options);
+  }
+
+  // Step 6 continuous ingestion bookkeeping.
+  private ingestedIds = new Set<number>();
+  private visitBootstrapped = false;
+  // Bundle ids created this visit whose creation dispatch may still be
+  // in flight (first wave only — later wave's createBundle dispatch is
+  // synchronous) — see this task's own doc comment on the race it closes.
+  private pendingAutoEnqueueIds = new Set<string>();
+
+  /**
    * Static filename/duration/format header for the right pane, matching
    * the reference mockup's top line. A plain getter, not a `computed()`:
    * `audioService.current` reads a plain Map entry, not a signal, so a
@@ -316,6 +346,53 @@ export class WorkbenchComponent
     private capacityService: CapacityService,
   ) {
     super();
+
+    // Step 6: fires once per pending bundle id, exactly when that bundle's
+    // sessionFile (and, in the same reducer case, its transcript) have
+    // actually landed in the store — see this task's doc comment above.
+    //
+    // Deviation from task-6-brief.md (documented in task-6-report.md): the
+    // brief's own version of this effect checks
+    // `pendingAutoEnqueueIds.size === 0` and returns BEFORE reading
+    // `bundleSummaries()`/`queueOptions()`. `pendingAutoEnqueueIds` is a
+    // plain `Set`, not a signal, so on the component's very first effect
+    // flush (which happens before any file has ever been dropped, i.e.
+    // while the set is still empty) that early return means NEITHER signal
+    // is read on that run — Angular's effect() only re-runs when a signal
+    // it actually read last time changes, so an effect whose first run
+    // tracks zero signals never runs again, period (confirmed empirically
+    // with an isolated TestBed probe during this task's self-review).
+    // Concretely: ngOnInit's own detectChanges() call flushes this effect
+    // once, with the set still empty, before ngAfterViewInit's dropzone
+    // subscription has ever had a chance to add anything to it — so with
+    // the brief's literal ordering, auto-enqueue would silently never fire
+    // for the lifetime of the component, in every real run of the app.
+    // Reading both signals unconditionally, before the (now purely
+    // bookkeeping) emptiness check, fixes this: the effect always tracks
+    // bundleSummaries()/queueOptions(), so it reliably re-runs once this
+    // task's own runFirstWave()/runLaterWave() populate
+    // pendingAutoEnqueueIds and the store later writes that bundle's name.
+    // The race this effect exists to close (see this task's doc comment
+    // above) is unaffected — the one-shot per-id enqueue gate below is
+    // unchanged.
+    effect(() => {
+      const summaries = this.bundleSummaries();
+      const options = this.queueOptions();
+      if (this.pendingAutoEnqueueIds.size === 0) {
+        return;
+      }
+      for (const summary of summaries) {
+        if (
+          this.pendingAutoEnqueueIds.has(summary.bundleId) &&
+          summary.name !== undefined
+        ) {
+          this.pendingAutoEnqueueIds.delete(summary.bundleId);
+          if (options !== null) {
+            this.pipelineQueueService.enqueue([summary.bundleId]);
+          }
+        }
+      }
+    });
   }
 
   ngOnInit(): void {
@@ -377,6 +454,40 @@ export class WorkbenchComponent
     );
   }
 
+  ngAfterViewInit(): void {
+    if (!this.dropzone) {
+      return;
+    }
+    this.subscribe(
+      this.dropzone.filesAdded,
+      (event: { statistics: DropzoneStatistics; addedFiles: FileProgress[] }) => {
+        this.onFilesChanged(event.addedFiles);
+      },
+    );
+  }
+
+  private onFilesChanged(addedFiles: FileProgress[]): void {
+    const newlyValid = addedFiles.filter(
+      (f) =>
+        f.status === 'valid' &&
+        f.audioManager !== undefined &&
+        f.oaudiofile !== undefined &&
+        !this.ingestedIds.has(f.id),
+    );
+    if (newlyValid.length === 0) {
+      return;
+    }
+    for (const f of newlyValid) {
+      this.ingestedIds.add(f.id);
+    }
+    if (!this.visitBootstrapped) {
+      this.visitBootstrapped = true;
+      this.runFirstWave(newlyValid);
+    } else {
+      this.runLaterWave(newlyValid);
+    }
+  }
+
   /**
    * F3 (step 3c final review): `setConfiguredOptions()` is root-singleton
    * state on `CapacityService` — nothing else ever clears it. Without this,
@@ -436,6 +547,91 @@ export class WorkbenchComponent
       audioBundleIds,
     );
     this.dropzone!.reset();
+  }
+
+  /**
+   * The login/session-bootstrap chain (AuthenticationStoreService.loginLocal()
+   * -> onLoginLocal$) must fire exactly once per workbench visit — see the
+   * spec's own grounding fact 1. This is that one call, now driven by the
+   * FIRST filesAdded emission containing at least one newly-valid audio
+   * file, instead of a manual "Start session" click. Same batch shape as
+   * before: entry 0 -> DEFAULT_BUNDLE_ID, the rest -> generateBundleId(),
+   * all handed to one loginLocal() call so onLoginLocal$'s own multi-file
+   * handling (entry 0 through the prepare/save-gate path, the rest via its
+   * own createBundle loop) runs unchanged.
+   *
+   * Consumes each entry individually via consumeEntry() rather than
+   * dropzone.reset() — reset() clears the ENTIRE pending list, which would
+   * orphan any other file still mid-decode in the same drop gesture (see
+   * this plan's Review Focus #1).
+   */
+  private runFirstWave(entries: FileProgress[]): void {
+    const annotation = this.dropzone!.hasAnnotation
+      ? this.dropzone!.oannotation
+      : undefined;
+
+    const audioBundleIds: string[] = [];
+    const files: File[] = [];
+    entries.forEach((entry, i) => {
+      const bundleId = i === 0 ? DEFAULT_BUNDLE_ID : generateBundleId();
+      const nativeFile = entry.file.file!;
+      this.audioService.registerAudioManager(
+        bundleId,
+        entry.audioManager!,
+        nativeFile,
+      );
+      audioBundleIds.push(bundleId);
+      files.push(nativeFile);
+    });
+
+    this.authStoreService.loginLocal(files, annotation, false, audioBundleIds);
+    for (const id of audioBundleIds) {
+      this.pendingAutoEnqueueIds.add(id);
+    }
+    for (const entry of entries) {
+      this.dropzone!.consumeEntry(entry.id);
+    }
+  }
+
+  /**
+   * Every file after the first-wave bootstrap: registers its AudioManager
+   * and dispatches createBundle directly, with selectAfterCreate: false so
+   * a file decoding in the background never steals focus from whatever
+   * bundle the user is actively editing (Task 2). Deliberately does NOT
+   * call authStoreService.loginLocal() — re-firing the login chain per file
+   * would re-fetch config over HTTP, reset logging's start time, and force-
+   * select the wrong bundle (spec grounding fact 1).
+   *
+   * Carried-forward gap, not fixed here: a transcript file dropped after the
+   * first wave has already bootstrapped has no attachment point — the
+   * dropzone's singular _oannotation pairing only ever reaches the
+   * bootstrap call (see the spec's step 2.7 finding of the same name).
+   */
+  private runLaterWave(entries: FileProgress[]): void {
+    for (const entry of entries) {
+      const bundleId = generateBundleId();
+      const nativeFile = entry.file.file!;
+      this.audioService.registerAudioManager(
+        bundleId,
+        entry.audioManager!,
+        nativeFile,
+      );
+      this.store.dispatch(
+        LoginModeActions.createBundle({
+          mode: LoginMode.LOCAL,
+          bundleId,
+          sessionFile: new SessionFile(
+            nativeFile.name,
+            nativeFile.size,
+            new Date(nativeFile.lastModified),
+            normalizeMimeType(nativeFile.type),
+          ),
+          selectAfterCreate: false,
+        }),
+      );
+      this.pendingAutoEnqueueIds.add(bundleId);
+      this.dropzone!.consumeEntry(entry.id);
+    }
   }
 
   // Mirrors login.component.ts's onUseRecording() exactly (the only other
