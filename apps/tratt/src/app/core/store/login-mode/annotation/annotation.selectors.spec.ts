@@ -79,19 +79,22 @@ describe('selectSelectedBundleId', () => {
 });
 
 describe('selectAllBundleSummaries', () => {
-  it('returns a summary per bundle with correct selected and awaitingMedia flags', () => {
+  it('returns a summary per bundle with correct selected, awaitingMedia and hasAnnotationContent flags', () => {
     // bundleA: never had audio decoded this session (e.g. restored from IDB
-    // at boot per step 2.8, Task 3) -> awaitingMedia true.
+    // at boot per step 2.8, Task 3) -> awaitingMedia true; no transcript at
+    // all -> hasAnnotationContent false.
     const bundleA = {
       bundleId: 'bundle-a',
       sessionFile: new SessionFile('a.wav', 1, new Date(), 'audio/wav'),
       audio: { loaded: false },
     } as any;
-    // bundleB: audio decoded this session -> awaitingMedia false.
+    // bundleB: audio decoded this session -> awaitingMedia false; has a
+    // non-empty transcript level -> hasAnnotationContent true.
     const bundleB = {
       bundleId: 'bundle-b',
       sessionFile: new SessionFile('b.wav', 2, new Date(), 'audio/wav'),
       audio: { loaded: true },
+      transcript: { levels: [{ items: [{}] }] },
     } as any;
     const local = {
       bundles: localBundleAdapter.setAll(
@@ -107,12 +110,14 @@ describe('selectAllBundleSummaries', () => {
         name: 'a.wav',
         selected: false,
         awaitingMedia: true,
+        hasAnnotationContent: false,
       },
       {
         bundleId: 'bundle-b',
         name: 'b.wav',
         selected: true,
         awaitingMedia: false,
+        hasAnnotationContent: true,
       },
     ]);
   });

@@ -35,6 +35,13 @@ export const selectAllBundleSummaries = createSelector(
       name: b.sessionFile?.name,
       selected: b.bundleId === local.selectedBundleId,
       awaitingMedia: !b.audio.loaded,
+      // Step 6: a bundle with any non-empty level is excluded from
+      // auto-enqueue and "run all" — a fresh level's items default to an
+      // empty array (TrattAnnotationSegmentLevel -> OLevel never seeds a
+      // placeholder segment), so "zero items across every level" is an
+      // exact, already-precedented definition of "empty".
+      hasAnnotationContent:
+        b.transcript?.levels?.some((l) => l.items.length > 0) ?? false,
     })),
 );
 

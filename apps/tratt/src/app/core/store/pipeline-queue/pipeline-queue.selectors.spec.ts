@@ -32,12 +32,16 @@ describe('runStatusOf', () => {
 
 describe('computeReadyBundleIds', () => {
   const summaries = [
-    { bundleId: 'idle', awaitingMedia: false },
-    { bundleId: 'done', awaitingMedia: false },
-    { bundleId: 'failed', awaitingMedia: false },
-    { bundleId: 'queued', awaitingMedia: false },
-    { bundleId: 'running', awaitingMedia: false },
-    { bundleId: 'interrupted', awaitingMedia: false },
+    { bundleId: 'idle', awaitingMedia: false, hasAnnotationContent: false },
+    { bundleId: 'done', awaitingMedia: false, hasAnnotationContent: false },
+    { bundleId: 'failed', awaitingMedia: false, hasAnnotationContent: false },
+    { bundleId: 'queued', awaitingMedia: false, hasAnnotationContent: false },
+    { bundleId: 'running', awaitingMedia: false, hasAnnotationContent: false },
+    {
+      bundleId: 'interrupted',
+      awaitingMedia: false,
+      hasAnnotationContent: false,
+    },
   ];
 
   it('excludes queued, running and done bundles', () => {
@@ -50,7 +54,13 @@ describe('computeReadyBundleIds', () => {
 
   it('excludes a bundle awaiting media with no resident manager', () => {
     const ready = computeReadyBundleIds(
-      [{ bundleId: 'idle', awaitingMedia: true }],
+      [
+        {
+          bundleId: 'idle',
+          awaitingMedia: true,
+          hasAnnotationContent: false,
+        },
+      ],
       {},
       () => false,
     );
@@ -59,11 +69,33 @@ describe('computeReadyBundleIds', () => {
 
   it('includes a bundle whose store flag says awaiting media but whose audio is actually resident', () => {
     const ready = computeReadyBundleIds(
-      [{ bundleId: 'idle', awaitingMedia: true }],
+      [
+        {
+          bundleId: 'idle',
+          awaitingMedia: true,
+          hasAnnotationContent: false,
+        },
+      ],
       {},
       (id) => id === 'idle',
     );
     expect(ready).toEqual(['idle']);
+  });
+
+  it('excludes a bundle whose transcript already has content, even when otherwise ready', () => {
+    const ready = computeReadyBundleIds(
+      [
+        { bundleId: 'empty', awaitingMedia: false, hasAnnotationContent: false },
+        {
+          bundleId: 'already-transcribed',
+          awaitingMedia: false,
+          hasAnnotationContent: true,
+        },
+      ],
+      {},
+      () => true,
+    );
+    expect(ready).toEqual(['empty']);
   });
 });
 

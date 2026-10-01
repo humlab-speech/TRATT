@@ -73,6 +73,8 @@ export function runStatusOf(
 export interface BundleSummaryForQueue {
   bundleId: string;
   awaitingMedia: boolean;
+  /** Step 6: a bundle with any transcript content is never auto-run or offered for "run all". */
+  hasAnnotationContent: boolean;
 }
 
 /**
@@ -94,6 +96,9 @@ export function computeReadyBundleIds(
 ): string[] {
   return summaries
     .filter((summary) => {
+      if (summary.hasAnnotationContent) {
+        return false;
+      }
       if (summary.awaitingMedia && !isResident(summary.bundleId)) {
         return false;
       }
