@@ -37,6 +37,7 @@
 }
 
 .workbench__right {
+  position: relative;
   display: flex;
   flex-direction: column;
   min-height: 0;
@@ -71,6 +72,15 @@
   align-items: center;
   justify-content: center;
   padding: 2rem;
+}
+
+// The selected restored file's header, pinned to the top of the
+// welcome-back pane (the card stays centred).
+.workbench__empty-header {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
 }
 
 .workbench__empty-card {

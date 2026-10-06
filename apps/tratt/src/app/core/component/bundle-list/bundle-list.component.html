@@ -67,28 +67,39 @@
         (change)="toggleSelected(bundle.bundleId)"
       />
       @if (bundle.awaitingMedia) {
+        <!-- A file whose audio isn't loaded (restored after a reload) is
+             still selectable: its transcript can be viewed in the header,
+             exported, or replaced by a dropped transcript. Attaching the
+             audio is a separate control. -->
+        <button
+          type="button"
+          class="bundle-list__item-btn bundle-list__item-primary"
+          [attr.tabindex]="rowTabIndex(i)"
+          (click)="selectBundle(bundle.bundleId)"
+          (focus)="onRowFocus(bundle.bundleId)"
+        >
+          {{ bundle.name }}
+        </button>
         <label
           class="bundle-list__reattach-label"
           [attr.for]="'bundle-reattach-' + bundle.bundleId"
+          [attr.title]="bundle.name"
         >
-          <!-- `bundle.name` comes from `sessionFile?.name`; sessionFile is a
-               required prop on the createBundle action, so this is always
-               populated in practice for LOCAL bundles — no placeholder
-               fallback needed. -->
-          {{ bundle.name }} — {{ 'workbench.bundle_list.reattach' | transloco }}
+          <i class="bi bi-paperclip" aria-hidden="true"></i>
+          {{ 'workbench.bundle_list.reattach' | transloco }}
         </label>
-        <!-- Roving tabindex target for this row (see onListKeydown()): the
-             visually-hidden-but-focusable file input, not the label — a
-             <label for="..."> is never itself tabbable, only the input it
-             references is. -->
+        <!-- Visually hidden; reached through the label above, and by Tab on
+             the active row. -->
         <input
           type="file"
           accept="audio/*"
           [id]="'bundle-reattach-' + bundle.bundleId"
-          class="bundle-list__reattach-input bundle-list__item-primary"
+          class="bundle-list__reattach-input"
+          [attr.aria-label]="
+            bundle.name + ' — ' + ('workbench.bundle_list.reattach' | transloco)
+          "
           [attr.tabindex]="rowTabIndex(i)"
           (change)="onReattachFileSelected(bundle.bundleId, $event)"
-          (focus)="onRowFocus(bundle.bundleId)"
         />
       } @else {
         <button

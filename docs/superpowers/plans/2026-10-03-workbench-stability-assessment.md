@@ -15,6 +15,10 @@ overview. Destructive flows (remove all, re-drop) were tested on
 `127.0.0.1:5321`, which has its own IndexedDB, so the `localhost` profile's
 files were left alone.
 
+A third round (2026-10-06, items 36–43) closed the remaining P1 gaps per
+`2026-10-06-workbench-remaining-gaps.md` (G1–G5); rows 42–43 were found while
+verifying it in the browser.
+
 ## Fixed in this pass
 
 | # | What the user saw | Root cause | Fix |
@@ -53,6 +57,14 @@ files were left alone.
 | 33 | The re-attach dialog showed two identical lines ("example.wav (216488 bytes)") when only the modification time differed. | It didn't show what differed. | Shows both dates and says that name and size match. |
 | 34 | Clicking outside that dialog logged an unhandled "ERROR 0". | Modal dismissal rejected the awaited promise. | Treated as "Abort". |
 | 35 | Intermittently, the editor pane stayed empty after a file was opened. | An editor destroyed before its `ngOnInit` ran threw in `ngOnDestroy` (undefined audio manager), aborting the remount. | Editors' teardown tolerates that; a failing teardown no longer aborts the mount. |
+| 36 | **Dropping a file that was already loaded added an identical row.** | Only files *waiting* for audio were matched (row 30). | A drop whose name, size and type match a file that has its audio (or an earlier file in the same drop) is skipped with a notice ("Already in the list, not added again"); its decoded audio is released. A drop of only such files selects the existing file. |
+| 37 | **"Export this transcription" was unavailable until the file's audio was attached**; after a reload, restored files could not even be selected (their rows were only "Attach file…" pickers). | The export dialog read the decoded audio; waiting rows had no select action. | The export resolves media like the catalogue export (registration-time media info, else the transcript's own timing) and passes it to the dialog. Waiting rows are selectable (name) with a separate "Attach file…" link; the "Welcome back" pane shows the selected file's header ("audio not attached") with the export button. Supersedes the "disabled while audio is missing" part of rows 17/32. |
+| 38 | **A transcript dropped after the first batch was ignored**; in a multi-file drop it paired with whichever recording decoded last; a transcript dropped with a re-attached file was not applied. | The dropzone kept one transcript, imported against the last-decoded audio; only the first file of the first drop read it. | Workbench-only pairing by basename (`pairTranscriptsByBasename`): each transcript is imported against the recording of its name — in the same drop, else a listed file (`externalAudioFor`). Applies in every wave and on re-attach; a recording waits for its transcript; files given a transcript are not auto-transcribed. A transcript for a listed file replaces its transcript after a yes/no question when it has content. No match → the row explains ("No recording named …", "already used"). |
+| 39 | Closing or reloading the tab while transcribing, decoding, saving or with an un-exported recording lost that work silently. | No `beforeunload` handling. | Pending typing is always flushed; the browser's "Leave site?" prompt appears only while work is in flight (queue running, dropzone busy, un-exported recording, IndexedDB transcript saves pending — counted by `AnnotationSaveTracker`). |
+| 40 | Dismissing *any* dialog by clicking outside it or pressing Esc logged "ERROR 0" (row 34 fixed one dialog). | `TrattModalService.openModalRef()` didn't handle the dismissal rejection. | Dismissal emits the normal close with no result. |
+| 41 | A transcript can now be dropped for a file restored from an earlier visit (audio not attached). | Pairing needed the recording's sample rate and duration. | Resolved from the stored transcript's timing, as the export does. |
+| 42 | (found verifying 38) A dropzone row could stay a spinner after it had become invalid. | The workbench (OnPush) subscribes to the dropzone in code, so a status change that touched no store state never re-rendered it. | Every dropzone update marks the view for check. |
+| 43 | (found verifying 41) A transcript imported into a restored file was back to the old one after a reload. | `saveBundleTranscript$` skipped bundles without media info. | Falls back to the transcript's own end (shared `transcriptEnd()` helper, also used by the catalogue export). |
 | 19 | Visual: unpadded rail, link-style bulk actions, "one audio file" dropzone copy overflowing its box, blank right pane, unlabeled checkboxes. | — | Padded rail, header row (title + count + Export), compact bulk buttons (Remove disabled at 0 / shows count), multi-file copy, empty/"welcome back" state, aria labels, i18n in all 7 locales (sv translated, others English as elsewhere). |
 
 ### Verification
@@ -79,29 +91,34 @@ files were left alone.
   navbar, empty state), Dictaphone/Linear/2D/overview on both files and both
   levels, typing + switching files/levels inside the debounce (speaker labels
   and ids preserved), drop-to-reattach after reload, settings surviving a
-  reload, "Export this transcription".
+  reload, "Export this transcription". Round 3 (`127.0.0.1`): duplicate drop
+  → notice, no row, file selected; reload → select a restored file →
+  "Export this transcription" builds `example2.TextGrid` without audio;
+  TextGrid dropped alone for a restored file → confirm → replaced, survives a
+  reload; mismatched name → invalid row with explanation; audio + TextGrid
+  re-attach and later-wave drops → transcript applied (Dictaphone and 2D),
+  not transcribed; synthetic `beforeunload` → prompt only with a save in
+  flight; backdrop click on a dialog → no console error.
+- Round 3: full suite 67 suites / 718 tests passing; tsc clean; ESLint 0
+  errors on changed files. New tests: `tratt-modal.service`, `annotation-save-tracker`,
+  `export-files-modal`, `transcript-pairing`, `transcript-timing`, plus new
+  cases in `tratt-dropzone.service`, `workbench.component`, `bundle-list` and
+  `pipeline-queue-persistence.effects`.
 
 ## Remaining gaps, prioritized
 
 ### P1 — friction users will hit daily
 
-1. ~~Bulk re-attach by dropping files~~ — done (row 30). A paired transcript
-   dropped with a re-attached file is not applied (re-attach keeps the
-   bundle's own transcript).
-2. **Duplicate detection on ingest.** Dropping a file whose bundle already has
-   its audio still creates an identical row. Warn/skip, or suffix the name.
+1. ~~Bulk re-attach by dropping files~~ — done (row 30); a transcript dropped
+   with it is applied too (row 38).
+2. ~~Duplicate detection on ingest~~ — done (row 36).
 3. ~~Re-attach mismatch modal~~ — now explains an mtime-only difference
    (row 33). Open question: accept name+size+type matches without asking
    (drops already do).
 4. ~~Persist pipeline settings~~ — done (row 31).
-5. **Single-file export without audio.** Route "Export this transcription"
-   through `CatalogueExportService` (works without audio), or
-   make `ExportFilesModalComponent` tolerate missing audio, then re-enable it.
-6. **Transcript pairing.** A transcript dropped after the first wave has no
-   attachment point, and multi-file drops pair with the last-decoded audio only
-   (carried gap from 2.7). Pair by basename per file.
-7. **Leaving with work in flight.** No `beforeunload` guard while the queue is
-   running or a recording is staged.
+5. ~~Single-file export without audio~~ — done (row 37).
+6. ~~Transcript pairing~~ — done, by basename in every wave (rows 38, 41).
+7. ~~Leaving with work in flight~~ — done (row 39).
 
 ### P2 — correctness/clarity
 

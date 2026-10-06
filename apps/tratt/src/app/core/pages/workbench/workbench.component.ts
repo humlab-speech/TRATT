@@ -1,3 +1,4 @@
+import { NgTemplateOutlet } from '@angular/common';
 import {
   AfterViewInit,
   ChangeDetectionStrategy,
@@ -23,10 +24,12 @@ import { Store } from '@ngrx/store';
 import {
   AnnotJSONConverter,
   Converter,
+  OAnnotJSON,
   OLabel,
   TrattAnnotation,
   TrattAnnotationSegment,
 } from '@tratt/annotation';
+import { OAudiofile } from '@tratt/media';
 import {
   formatMinutesSeconds,
   getFileSize,
@@ -48,6 +51,11 @@ import { RecordingPanelComponent } from '../../component/recording-panel/recordi
 import { FastbarComponent } from '../../component/taskbar/taskbar.component';
 import { AutoTranscribeOptionsComponent } from '../../component/tratt-dropzone/auto-transcribe-options.component';
 import { AutoTranslateOptionsComponent } from '../../component/tratt-dropzone/auto-translate-options.component';
+import {
+  audioBasename,
+  sameBasename,
+  transcriptBasename,
+} from '../../component/tratt-dropzone/transcript-pairing';
 import { TrattDropzoneComponent } from '../../component/tratt-dropzone/tratt-dropzone.component';
 import { DropzoneStatistics } from '../../component/tratt-dropzone/tratt-dropzone.service';
 import { ExportFilesModalComponent } from '../../modals/export-files-modal/export-files-modal.component';
@@ -63,6 +71,7 @@ import {
   TranscriptionStopModalComponent,
 } from '../../modals/transcription-stop-modal/transcription-stop-modal.component';
 import { TrattModalService } from '../../modals/tratt-modal.service';
+import { YesNoModalComponent } from '../../modals/yes-no-modal/yes-no-modal.component';
 import { FileProgress } from '../../obj/objects';
 import { SessionFile } from '../../obj/SessionFile';
 import { ProjectSettings } from '../../obj/Settings';
@@ -87,9 +96,11 @@ import { AuthenticationStoreService } from '../../store/authentication/authentic
 import { AuthenticationActions } from '../../store/authentication/authentication.actions';
 import { AnnotationActions } from '../../store/login-mode/annotation/annotation.actions';
 import {
+  breakMarkerCodeOf,
   selectAllBundleSummaries,
   selectLocalMode,
   selectSelectedBundleId,
+  transcriptHasContent,
 } from '../../store/login-mode/annotation/annotation.selectors';
 import { AnnotationStoreService } from '../../store/login-mode/annotation/annotation.store.service';
 import {
@@ -120,6 +131,7 @@ import {
     AutoTranscribeOptionsComponent,
     AutoTranslateOptionsComponent,
     CapacityIndicatorComponent,
+    NgTemplateOutlet,
   ],
 })
 export class WorkbenchComponent
@@ -324,6 +336,9 @@ export class WorkbenchComponent
   // in flight (first wave only — later wave's createBundle dispatch is
   // synchronous) — see this task's own doc comment on the race it closes.
   private pendingAutoEnqueueIds = new Set<string>();
+  // First-drop bundles (other than the first) whose paired transcript waits
+  // for onLoginLocal$ to create them.
+  private pendingTranscriptsByBundle = new Map<string, OAnnotJSON>();
 
   /**
    * Static filename/duration/format header for the right pane, matching
@@ -510,6 +525,26 @@ export class WorkbenchComponent
         }
       }
     });
+
+    // First-drop files other than the first are created by onLoginLocal$
+    // after the login chain started; their paired transcripts are applied
+    // as soon as they appear. (Signals read before the emptiness check — see
+    // the auto-enqueue effect above for why.)
+    effect(() => {
+      const summaries = this.bundleSummaries();
+      if (this.pendingTranscriptsByBundle.size === 0) {
+        return;
+      }
+      for (const summary of summaries) {
+        const annotation = this.pendingTranscriptsByBundle.get(
+          summary.bundleId,
+        );
+        if (annotation && summary.name !== undefined) {
+          this.pendingTranscriptsByBundle.delete(summary.bundleId);
+          untracked(() => this.applyTranscript(summary.bundleId, annotation));
+        }
+      }
+    });
   }
 
   ngOnInit(): void {
@@ -534,28 +569,9 @@ export class WorkbenchComponent
     // until the user clicked away and back).
     const transcriptReplaced$ = this.pipelineQueueService.transcriptReplaced$;
     if (transcriptReplaced$) {
-      this.subscribe(transcriptReplaced$, (bundleId: string) => {
-        // The result arrives from the ASR worker's callback, which can run
-        // outside Angular's zone; an editor created there never gets its
-        // async initialisation change-detected (the 2D editor stayed an
-        // empty canvas). Re-enter the zone and defer past the current
-        // dispatch.
-        this.ngZone.run(() =>
-          setTimeout(() => {
-            if (
-              this.sessionReady &&
-              this.currentEditorRef &&
-              bundleId === this.mountedBundleId
-            ) {
-              this.mountEditor(
-                this.activeEditorName() ?? this.appStorage.interface ?? '',
-                { flush: false },
-              );
-              this.cd.markForCheck();
-            }
-          }),
-        );
-      });
+      this.subscribe(transcriptReplaced$, (bundleId: string) =>
+        this.remountIfShowing(bundleId),
+      );
     }
 
     this.subscribe(
@@ -630,6 +646,11 @@ export class WorkbenchComponent
         statistics: DropzoneStatistics;
         addedFiles: FileProgress[];
       }) => {
+        // Subscribed here, not via a template (output) binding, so nothing
+        // marks this OnPush view: without this a status change that touches
+        // no store state (a transcript turning invalid, a decode finishing)
+        // stayed a spinner in the dropzone until the next unrelated update.
+        this.cd.markForCheck();
         this.onFilesChanged(event.addedFiles);
       },
     );
@@ -646,62 +667,267 @@ export class WorkbenchComponent
       // bundle is selected.
       this.visitBootstrapped = true;
     }
-    if (
-      !this.visitBootstrapped &&
-      addedFiles.some(
+    const isAudio = (f: FileProgress) =>
+      AudioManager.isValidAudioFileName(f.file.fullname, AppInfo.audioformats);
+    // The dropzone pairs each transcript with the recording of its basename
+    // (pairTranscriptsByBasename). A recording waits while a transcript of
+    // its name is still being read or imported, so the two are created
+    // together — in every drop, not only the first.
+    const pendingTranscripts = addedFiles
+      .filter(
         (f) =>
-          f.status === 'progress' &&
-          !AudioManager.isValidAudioFileName(
-            f.file.fullname,
-            AppInfo.audioformats,
-          ),
+          !isAudio(f) && (f.status === 'progress' || f.status === 'waiting'),
       )
-    ) {
-      // A transcript file dropped alongside the first audio file may still be
-      // mid-read when the audio finishes decoding first — bootstrapping now
-      // would read dropzone.hasAnnotation/oannotation before pairing has
-      // happened, silently discarding the transcript. Wait: every decode path
-      // (success or failure) eventually calls updateStatistics() again, which
-      // re-invokes this method, so this can never wedge permanently. Scoped to
-      // NON-audio entries specifically (via isValidAudioFileName) so a second
-      // AUDIO file still decoding does NOT defer the first wave — that case is
-      // already correctly handled by the per-id consumeEntry() path below and
-      // must keep firing immediately (see this file's own orphaning test).
-      return;
-    }
+      .map((f) => transcriptBasename(f.file.fullname, AppInfo.converters));
+    const readyTranscripts = addedFiles.filter(
+      (f) =>
+        !isAudio(f) &&
+        f.status === 'valid' &&
+        f.annotation !== undefined &&
+        f.pairedBasename !== undefined &&
+        !this.ingestedIds.has(f.id),
+    );
     const newlyValid = addedFiles.filter(
       (f) =>
         f.status === 'valid' &&
         f.audioManager !== undefined &&
         f.oaudiofile !== undefined &&
-        !this.ingestedIds.has(f.id),
+        !this.ingestedIds.has(f.id) &&
+        !pendingTranscripts.some((name) =>
+          sameBasename(name, audioBasename(f.file.fullname)),
+        ),
     );
-    if (newlyValid.length === 0) {
+    if (newlyValid.length === 0 && readyTranscripts.length === 0) {
       return;
     }
-    for (const f of newlyValid) {
+    for (const f of [...newlyValid, ...readyTranscripts]) {
       this.ingestedIds.add(f.id);
     }
+
+    // Each transcript goes to the recording of its name: one in this drop,
+    // else (it was paired via audioForTranscript) a file already listed.
+    const used = new Set<FileProgress>();
+    const transcriptFor = (audio: FileProgress) => {
+      const match = readyTranscripts.find(
+        (t) =>
+          !used.has(t) &&
+          sameBasename(t.pairedBasename!, audioBasename(audio.file.fullname)),
+      );
+      if (match) {
+        used.add(match);
+      }
+      return match;
+    };
+
     const { reattach, duplicates, fresh } =
       this.matchAwaitingBundles(newlyValid);
+    const reattachTranscripts = reattach.map(({ entry }) =>
+      transcriptFor(entry),
+    );
+    const freshTranscripts = fresh.map((entry) => transcriptFor(entry));
+    const duplicateTranscripts = duplicates.map(({ entry }) =>
+      transcriptFor(entry),
+    );
+
     if (reattach.length > 0) {
-      this.reattachDropped(reattach);
+      this.reattachDropped(reattach, reattachTranscripts);
     }
     if (duplicates.length > 0) {
       this.skipDuplicates(
         duplicates,
-        reattach.length === 0 && fresh.length === 0,
+        reattach.length === 0 &&
+          fresh.length === 0 &&
+          readyTranscripts.length === 0,
       );
+      duplicates.forEach(({ bundleId }, i) => {
+        const transcript = duplicateTranscripts[i];
+        if (transcript && bundleId !== undefined) {
+          void this.importTranscriptInto(bundleId, transcript);
+        }
+      });
     }
-    if (fresh.length === 0) {
+    if (fresh.length > 0) {
+      if (!this.visitBootstrapped) {
+        this.visitBootstrapped = true;
+        this.runFirstWave(fresh, freshTranscripts);
+      } else {
+        this.runLaterWave(fresh, freshTranscripts);
+      }
+    }
+
+    // Transcripts dropped for files that are already in the list.
+    for (const transcript of readyTranscripts) {
+      if (used.has(transcript)) {
+        continue;
+      }
+      // Same lookup as audioForTranscript (which paired it): a restored file
+      // without its audio counts too.
+      const bundleId = this.listedBundleFor(transcript.pairedBasename!, {
+        anyAudio: true,
+      });
+      if (bundleId === undefined) {
+        // Removed meanwhile — say so instead of dropping it silently.
+        transcript.status = 'invalid';
+        transcript.error = this.transloco.translate(
+          'workbench.dropzone.transcript_no_recording',
+          { name: transcript.pairedBasename },
+        );
+        continue;
+      }
+      used.add(transcript);
+      void this.importTranscriptInto(bundleId, transcript);
+    }
+    for (const transcript of used) {
+      this.dropzone!.consumeEntry(transcript.id);
+    }
+  }
+
+  /**
+   * For the dropzone (externalAudioFor): the audio of a file already in the
+   * list with this basename, so a transcript dropped on its own can be
+   * imported against it. A file restored from an earlier visit (audio not
+   * re-attached) is described by its stored transcript's timing — the same
+   * resolution "Export this transcription" uses. `'no-audio'`: the file is
+   * listed but neither is available (e.g. an empty transcript).
+   */
+  readonly audioForTranscript = (
+    basename: string,
+  ): OAudiofile | 'no-audio' | undefined | Promise<OAudiofile | 'no-audio'> => {
+    const bundleId = this.listedBundleFor(basename, { anyAudio: true });
+    if (bundleId === undefined) {
+      return undefined;
+    }
+    const info = this.audioService.getMediaInfo(bundleId);
+    if (!info) {
+      return this.catalogueExport
+        .resolveBundleMedia(bundleId)
+        .then((media) => media?.oAudioFile ?? 'no-audio')
+        .catch(() => 'no-audio' as const);
+    }
+    const audio = new OAudiofile();
+    audio.name = info.fullname;
+    audio.size = info.size;
+    audio.sampleRate = info.sampleRate;
+    audio.duration = info.duration.samples;
+    audio.type =
+      this.localMode()?.bundles.entities[bundleId]?.sessionFile?.type ?? '';
+    return audio;
+  };
+
+  /** A listed file whose recording has this basename (with media info,
+   * unless `anyAudio`). */
+  private listedBundleFor(
+    basename: string,
+    opts: { anyAudio?: boolean } = {},
+  ): string | undefined {
+    const candidates = this.bundleSummaries().filter(
+      (b) =>
+        b.name !== undefined && sameBasename(audioBasename(b.name), basename),
+    );
+    const withMedia = candidates.find(
+      (b) => this.audioService.getMediaInfo(b.bundleId) !== undefined,
+    );
+    return (withMedia ?? (opts.anyAudio ? candidates[0] : undefined))?.bundleId;
+  }
+
+  /**
+   * Loads a dropped transcript into a file that is already in the list.
+   * Replacing a transcript that has content asks first.
+   */
+  private async importTranscriptInto(
+    bundleId: string,
+    transcript: FileProgress,
+  ): Promise<void> {
+    const entity = this.localMode()?.bundles.entities[bundleId];
+    if (!entity || !transcript.annotation) {
       return;
     }
-    if (!this.visitBootstrapped) {
-      this.visitBootstrapped = true;
-      this.runFirstWave(fresh);
-    } else {
-      this.runLaterWave(fresh);
+    const file = transcript.file.fullname;
+    const name = entity.sessionFile?.name ?? file;
+    if (
+      transcriptHasContent(
+        entity.transcript,
+        breakMarkerCodeOf(entity.guidelines),
+      )
+    ) {
+      let answer: unknown;
+      try {
+        answer = await this.modService.openModal(
+          YesNoModalComponent,
+          YesNoModalComponent.options,
+          {
+            message: this.transloco.translate(
+              'workbench.transcript_import.replace_confirm',
+              { name, file },
+            ),
+          },
+        );
+      } catch {
+        answer = 'no';
+      }
+      if (answer !== 'yes') {
+        return;
+      }
     }
+    this.applyTranscript(bundleId, transcript.annotation);
+    this.alertService
+      .showAlert(
+        'success',
+        this.transloco.translate('workbench.transcript_import.applied', {
+          name,
+          file,
+        }),
+      )
+      .catch((error) => console.error(error));
+  }
+
+  /**
+   * Remounts the editor if it shows `bundleId`, after that file's transcript
+   * was replaced (transcription result, imported transcript). The callers
+   * can run outside Angular's zone (the ASR worker's callback); an editor
+   * created there never gets its async initialisation change-detected (the
+   * 2D editor stayed an empty canvas). Re-enter the zone and defer past the
+   * current dispatch.
+   */
+  private remountIfShowing(bundleId: string): void {
+    this.ngZone.run(() =>
+      setTimeout(() => {
+        if (
+          this.sessionReady &&
+          this.currentEditorRef &&
+          bundleId === this.mountedBundleId
+        ) {
+          this.mountEditor(
+            this.activeEditorName() ?? this.appStorage.interface ?? '',
+            { flush: false },
+          );
+          this.cd.markForCheck();
+        }
+      }),
+    );
+  }
+
+  /**
+   * Writes an imported transcript into a bundle (persisted to IndexedDB by
+   * the queue's persistence effect, like a transcription result) and
+   * remounts the editor if it shows that file.
+   */
+  private applyTranscript(bundleId: string, annotation: OAnnotJSON): void {
+    if (bundleId === this.selectedBundleId()) {
+      this.pendingEdits.flush();
+    }
+    const transcript = TrattAnnotation.deserialize(annotation);
+    if (transcript.levels.length > 0) {
+      transcript.changeCurrentLevelIndex(0);
+    }
+    this.store.dispatch(
+      LoginModeActions.setBundleTranscript({
+        mode: LoginMode.LOCAL,
+        bundleId,
+        transcript,
+      }),
+    );
+    this.remountIfShowing(bundleId);
   }
 
   /**
@@ -832,8 +1058,9 @@ export class WorkbenchComponent
    */
   private reattachDropped(
     pairs: { entry: FileProgress; bundleId: string }[],
+    transcripts: (FileProgress | undefined)[] = [],
   ): void {
-    for (const { entry, bundleId } of pairs) {
+    pairs.forEach(({ entry, bundleId }, i) => {
       this.audioService.registerAudioManager(
         bundleId,
         entry.audioManager!,
@@ -845,11 +1072,16 @@ export class WorkbenchComponent
           bundleId,
         }),
       );
-      // Files restored without a transcript get transcribed like new ones
-      // (the queue skips bundles that already have content).
-      this.pendingAutoEnqueueIds.add(bundleId);
       this.dropzone!.consumeEntry(entry.id);
-    }
+      const transcript = transcripts[i];
+      if (transcript) {
+        void this.importTranscriptInto(bundleId, transcript);
+      } else {
+        // Files restored without a transcript get transcribed like new ones
+        // (the queue skips bundles that already have content).
+        this.pendingAutoEnqueueIds.add(bundleId);
+      }
+    });
     if (this.visitBootstrapped || this.sessionReady) {
       this.visitBootstrapped = true;
       return;
@@ -1053,10 +1285,14 @@ export class WorkbenchComponent
    * orphan any other file still mid-decode in the same drop gesture (see
    * this plan's Review Focus #1).
    */
-  private runFirstWave(entries: FileProgress[]): void {
-    const annotation = this.dropzone!.hasAnnotation
-      ? this.dropzone!.oannotation
-      : undefined;
+  private runFirstWave(
+    entries: FileProgress[],
+    transcripts: (FileProgress | undefined)[] = [],
+  ): void {
+    // The first file's own transcript (paired by name by the dropzone) goes
+    // through the login chain, as before; the others' are applied once
+    // onLoginLocal$ has created their bundles (pendingTranscriptsByBundle).
+    const annotation = transcripts[0]?.annotation;
 
     // DEFAULT_BUNDLE_ID may already hold a real bundle restored from
     // IndexedDB (the user's previous session). It must not be reused for the
@@ -1107,9 +1343,14 @@ export class WorkbenchComponent
     }
 
     this.authStoreService.loginLocal(files, annotation, false, audioBundleIds);
-    for (const id of audioBundleIds) {
-      this.pendingAutoEnqueueIds.add(id);
-    }
+    audioBundleIds.forEach((id, i) => {
+      const paired = transcripts[i]?.annotation;
+      if (paired === undefined) {
+        this.pendingAutoEnqueueIds.add(id);
+      } else if (i > 0) {
+        this.pendingTranscriptsByBundle.set(id, paired);
+      }
+    });
     for (const entry of entries) {
       this.dropzone!.consumeEntry(entry.id);
     }
@@ -1129,7 +1370,10 @@ export class WorkbenchComponent
    * dropzone's singular _oannotation pairing only ever reaches the
    * bootstrap call (see the spec's step 2.7 finding of the same name).
    */
-  private runLaterWave(entries: FileProgress[]): void {
+  private runLaterWave(
+    entries: FileProgress[],
+    transcripts: (FileProgress | undefined)[] = [],
+  ): void {
     // Background files never steal focus from a file being edited — but
     // when the selection is the empty placeholder bundle (every file was
     // removed), there is nothing to steal from: show the first new file
@@ -1143,7 +1387,7 @@ export class WorkbenchComponent
       this.sessionReady &&
       selected !== undefined &&
       selected.sessionFile === undefined;
-    for (const entry of entries) {
+    entries.forEach((entry, i) => {
       const bundleId = generateBundleId();
       const nativeFile = entry.file.file!;
       this.audioService.registerAudioManager(
@@ -1166,9 +1410,16 @@ export class WorkbenchComponent
         }),
       );
       selectNext = false;
-      this.pendingAutoEnqueueIds.add(bundleId);
+      const paired = transcripts[i]?.annotation;
+      if (paired) {
+        // A new, empty file: its own transcript goes straight in, and it
+        // is not transcribed.
+        this.applyTranscript(bundleId, paired);
+      } else {
+        this.pendingAutoEnqueueIds.add(bundleId);
+      }
       this.dropzone!.consumeEntry(entry.id);
-    }
+    });
   }
 
   // Mirrors login.component.ts's onUseRecording() exactly (the only other

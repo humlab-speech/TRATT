@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { OAnnotJSON, TrattAnnotationSegmentLevel } from '@tratt/annotation';
+import { OAnnotJSON } from '@tratt/annotation';
 import { OAudiofile, SampleUnit } from '@tratt/media';
 import { strToU8, zipSync } from 'fflate';
 import { Observable } from 'rxjs';
@@ -9,6 +9,7 @@ import { BUILD_INFO } from '../../../build-info';
 import { RootState } from '../../store/index';
 import { selectLocalMode } from '../../store/login-mode/annotation/annotation.selectors';
 import { IdentifiedAnnotationState } from '../../store/login-mode/annotation/local-bundle-collection';
+import { transcriptEnd } from '../transcript-timing';
 import { AudioService } from './audio.service';
 import { PipelineQueueService } from './pipeline-queue.service';
 
@@ -302,16 +303,8 @@ export class CatalogueExportService {
       return undefined;
     }
 
-    let end: SampleUnit | undefined;
-    for (const level of entity.transcript?.levels ?? []) {
-      if (level instanceof TrattAnnotationSegmentLevel) {
-        const last = level.items[level.items.length - 1];
-        if (last?.time && (!end || last.time.samples > end.samples)) {
-          end = last.time;
-        }
-      }
-    }
-    if (!end || !(end.sampleRate > 0)) {
+    const end = transcriptEnd(entity.transcript);
+    if (!end) {
       return undefined;
     }
     return describe(

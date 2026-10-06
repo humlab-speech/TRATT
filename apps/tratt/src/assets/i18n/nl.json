@@ -569,7 +569,14 @@
       "audio_not_attached": "audio niet gekoppeld"
     },
     "dropzone": {
-      "already_loaded": "Staat al in de lijst, niet opnieuw toegevoegd: {{names}}"
+      "already_loaded": "Staat al in de lijst, niet opnieuw toegevoegd: {{names}}",
+      "transcript_no_recording": "Geen opname met de naam “{{name}}”. Sleep de transcriptie samen met het audiobestand, of geef haar de naam van de opname.",
+      "transcript_needs_audio": "Koppel eerst de audio van “{{name}}” en sleep de transcriptie daarna opnieuw.",
+      "transcript_already_used": "Voor “{{name}}” wordt al een andere transcriptie uit deze drop gebruikt."
+    },
+    "transcript_import": {
+      "replace_confirm": "De transcriptie van {{name}} vervangen door {{file}}? Wijzigingen in de huidige transcriptie gaan verloren.",
+      "applied": "{{file}} geladen in {{name}}."
     }
   }
 }

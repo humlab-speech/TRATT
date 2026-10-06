@@ -7,9 +7,10 @@ import {
   jest,
 } from '@jest/globals';
 import { OAnnotJSON, OLabel, OSegment, OSegmentLevel } from '@tratt/annotation';
+import { OAudiofile } from '@tratt/media';
 import * as webMedia from '@tratt/web-media';
 import { AudioManager, FileInfo } from '@tratt/web-media';
-import { of, Subject } from 'rxjs';
+import { Observable, of, Subject } from 'rxjs';
 import { TrattDropzoneService } from './tratt-dropzone.service';
 
 jest.mock('@tratt/web-media', () => {
@@ -388,5 +389,220 @@ describe('consumeEntry', () => {
     service.consumeEntry(999999);
 
     expect(service.files.length).toBe(before);
+  });
+});
+
+// Workbench: every transcript is paired with the recording of the same
+// basename. Used to be one transcript, imported against whichever audio
+// decoded last, and only for the first drop.
+describe('TrattDropzoneService pairTranscriptsByBasename', () => {
+  let createSpy: jest.SpiedFunction<typeof AudioManager.create> | undefined;
+
+  const textGrid = (text: string) => `File type = "ooTextFile"
+Object class = "TextGrid"
+
+xmin = 0
+xmax = 1
+tiers? <exists>
+size = 1
+item []:
+    item [1]:
+        class = "IntervalTier"
+        name = "words"
+        xmin = 0
+        xmax = 1
+        intervals: size = 1
+        intervals [1]:
+            xmin = 0
+            xmax = 1
+            text = "${text}"
+`;
+  const contents = new Map<string, string>();
+  const audioFile = (name: string) =>
+    new File([new Uint8Array(100)], name, { type: 'audio/wav' });
+  const transcriptFile = (name: string, text: string) => {
+    contents.set(name, textGrid(text));
+    return new File(['x'], name, { type: '' });
+  };
+  const manager = (id: number) =>
+    ({
+      id,
+      destroy: jest.fn(),
+      stopDecoding: jest.fn(),
+      resource: { info: { duration: { samples: 16000 } } },
+      sampleRate: 16000,
+    }) as unknown as AudioManager;
+  const flush = async () => {
+    for (let i = 0; i < 20; i++) {
+      await Promise.resolve();
+    }
+  };
+  const newService = () => {
+    const service = new TrattDropzoneService(
+      {} as never,
+      { dispatch: jest.fn() } as never,
+      { translate: (key: string) => key } as never,
+    );
+    service.allowMultipleAudio = true;
+    service.pairTranscriptsByBasename = true;
+    return service;
+  };
+  const entry = (service: TrattDropzoneService, name: string) =>
+    service.files.find((f) => f.file.fullname === name)!;
+  const firstText = (service: TrattDropzoneService, name: string) =>
+    (entry(service, name).annotation!.levels[0].items[0] as OSegment).labels[0]
+      .value;
+
+  beforeEach(() => {
+    contents.clear();
+    // Asynchronous like FileReader: every file of a drop is added before
+    // the first one has been read.
+    (webMedia.readFile as jest.Mock).mockImplementation(
+      ((file: File, type: string) =>
+        new Observable((subscriber) => {
+          void Promise.resolve().then(() => {
+            subscriber.next({
+              status: 'success',
+              progress: 1,
+              result:
+                type === 'text' ? contents.get(file.name) : new ArrayBuffer(8),
+            });
+            subscriber.complete();
+          });
+        })) as never,
+    );
+  });
+
+  afterEach(() => {
+    createSpy?.mockRestore();
+    createSpy = undefined;
+  });
+
+  it('pairs each transcript with the recording of its name, whatever the decode order', async () => {
+    createSpy = jest
+      .spyOn(AudioManager, 'create')
+      .mockReturnValueOnce(
+        of({ audioManager: manager(1), progress: 1 }) as never,
+      )
+      .mockReturnValueOnce(
+        of({ audioManager: manager(2), progress: 1 }) as never,
+      );
+    const service = newService();
+
+    service.add(transcriptFile('b.TextGrid', 'text of b'));
+    service.add(transcriptFile('a.TextGrid', 'text of a'));
+    service.add(audioFile('a.wav'));
+    service.add(audioFile('b.wav'));
+    await flush();
+
+    expect(entry(service, 'a.TextGrid').status).toBe('valid');
+    expect(entry(service, 'a.TextGrid').pairedBasename).toBe('a');
+    expect(firstText(service, 'a.TextGrid')).toBe('text of a');
+    expect(entry(service, 'b.TextGrid').pairedBasename).toBe('b');
+    expect(firstText(service, 'b.TextGrid')).toBe('text of b');
+    // Both kept (a second transcript no longer evicts the first) and the
+    // singular legacy transcript stays unset.
+    expect(service.oannotation).toBeUndefined();
+  });
+
+  it('waits while its recording is still decoding', async () => {
+    const decode$ = new Subject<{
+      audioManager: AudioManager;
+      progress: number;
+    }>();
+    createSpy = jest
+      .spyOn(AudioManager, 'create')
+      .mockReturnValueOnce(decode$.asObservable() as never);
+    const service = newService();
+
+    service.add(audioFile('a.wav'));
+    service.add(transcriptFile('a.TextGrid', 'hello'));
+    await flush();
+    // Queued behind the decode (`progress`) or read and waiting — not paired.
+    expect(['progress', 'waiting']).toContain(
+      entry(service, 'a.TextGrid').status,
+    );
+
+    decode$.next({ audioManager: manager(1), progress: 1 });
+    decode$.complete();
+    await flush();
+
+    expect(entry(service, 'a.TextGrid').status).toBe('valid');
+  });
+
+  it('uses a recording already in the list (externalAudioFor)', async () => {
+    const service = newService();
+    const listed = new OAudiofile();
+    listed.name = 'listed.wav';
+    listed.sampleRate = 16000;
+    listed.duration = 16000;
+    service.externalAudioFor = (basename) =>
+      basename === 'listed' ? listed : undefined;
+
+    service.add(transcriptFile('listed.TextGrid', 'from disk'));
+    await flush();
+
+    expect(entry(service, 'listed.TextGrid').status).toBe('valid');
+    expect(firstText(service, 'listed.TextGrid')).toBe('from disk');
+  });
+
+  it('waits for a recording resolved asynchronously (restored file)', async () => {
+    const service = newService();
+    const listed = new OAudiofile();
+    listed.name = 'listed.wav';
+    listed.sampleRate = 16000;
+    listed.duration = 16000;
+    let resolve!: (a: OAudiofile) => void;
+    service.externalAudioFor = () =>
+      new Promise<OAudiofile>((r) => (resolve = r));
+
+    service.add(transcriptFile('listed.TextGrid', 'from disk'));
+    await flush();
+    expect(entry(service, 'listed.TextGrid').status).toBe('waiting');
+
+    resolve(listed);
+    await flush();
+    expect(entry(service, 'listed.TextGrid').status).toBe('valid');
+    expect(firstText(service, 'listed.TextGrid')).toBe('from disk');
+  });
+
+  it('explains when there is no recording of that name, or its audio is missing', async () => {
+    const service = newService();
+    service.externalAudioFor = (basename) =>
+      basename === 'restored' ? 'no-audio' : undefined;
+
+    service.add(transcriptFile('nowhere.TextGrid', 'x'));
+    service.add(transcriptFile('restored.TextGrid', 'x'));
+    await flush();
+
+    expect(entry(service, 'nowhere.TextGrid').status).toBe('invalid');
+    expect(entry(service, 'nowhere.TextGrid').error).toBe(
+      'workbench.dropzone.transcript_no_recording',
+    );
+    expect(entry(service, 'restored.TextGrid').error).toBe(
+      'workbench.dropzone.transcript_needs_audio',
+    );
+  });
+
+  it('uses one transcript per recording and explains the second', async () => {
+    createSpy = jest
+      .spyOn(AudioManager, 'create')
+      .mockReturnValueOnce(
+        of({ audioManager: manager(1), progress: 1 }) as never,
+      );
+    const service = newService();
+
+    service.add(audioFile('a.wav'));
+    service.add(transcriptFile('a.TextGrid', 'first'));
+    contents.set('a_annot.json', '{not json');
+    service.add(new File(['x'], 'a.textgrid', { type: '' }));
+    contents.set('a.textgrid', textGrid('second'));
+    await flush();
+
+    const used = service.files.filter((f) => f.pairedBasename === 'a');
+    expect(used).toHaveLength(1);
+    expect(entry(service, 'a.textgrid').error).toBe(
+      'workbench.dropzone.transcript_already_used',
+    );
   });
 });

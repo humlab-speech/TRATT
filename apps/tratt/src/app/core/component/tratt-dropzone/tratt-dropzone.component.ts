@@ -21,6 +21,7 @@ import { AutoTranscribeOptionsComponent } from './auto-transcribe-options.compon
 import { AutoTranslateOptionsComponent } from './auto-translate-options.component';
 import {
   DropzoneStatistics,
+  ExternalAudio,
   TrattDropzoneService,
 } from './tratt-dropzone.service';
 
@@ -104,6 +105,18 @@ export class TrattDropzoneComponent
 
   @Input() set allowMultipleAudio(value: boolean) {
     this.trattDropzoneService.allowMultipleAudio = value;
+  }
+
+  /** See TrattDropzoneService.pairTranscriptsByBasename. */
+  @Input() set pairTranscriptsByBasename(value: boolean) {
+    this.trattDropzoneService.pairTranscriptsByBasename = value;
+  }
+
+  /** See TrattDropzoneService.externalAudioFor. */
+  @Input() set externalAudioFor(
+    value: ((basename: string) => ExternalAudio) | undefined,
+  ) {
+    this.trattDropzoneService.externalAudioFor = value;
   }
   @Output() filesAdded = this.trattDropzoneService.filesChange;
 

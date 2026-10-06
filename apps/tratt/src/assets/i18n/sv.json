@@ -814,7 +814,14 @@
       "restored_text": "Filerna från din förra session finns i listan till vänster. Koppla en fils ljud igen med ”Bifoga fil…” för att fortsätta redigera, eller släpp nya filer."
     },
     "dropzone": {
-      "already_loaded": "Finns redan i listan och lades inte till igen: {{names}}"
+      "already_loaded": "Finns redan i listan och lades inte till igen: {{names}}",
+      "transcript_no_recording": "Ingen inspelning heter ”{{name}}”. Släpp transkriptionen tillsammans med ljudfilen, eller döp den som inspelningen.",
+      "transcript_needs_audio": "Bifoga ljudet för ”{{name}}” först och släpp sedan transkriptionen igen.",
+      "transcript_already_used": "En annan transkription för ”{{name}}” i samma släpp används redan."
+    },
+    "transcript_import": {
+      "replace_confirm": "Ersätta transkriptionen för {{name}} med {{file}}? Ändringar i den nuvarande transkriptionen går förlorade.",
+      "applied": "{{file}} laddades in i {{name}}."
     }
   }
 }

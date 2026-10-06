@@ -62,8 +62,7 @@
   }
 }
 
-.bundle-list__item-btn,
-.bundle-list__reattach-label {
+.bundle-list__item-btn {
   flex: 1;
   // Keep a readable stub of the filename even when a running row's status
   // pill ("Transcribing 42%") and stop button take most of the width.
@@ -84,7 +83,12 @@
 }
 
 .bundle-list__reattach-label {
+  flex-shrink: 0;
+  cursor: pointer;
+  font-size: 0.75rem;
+  color: var(--tratt-link, #2a4765);
   text-decoration: underline dotted;
+  white-space: nowrap;
 }
 
 .bundle-list__reattach-input {

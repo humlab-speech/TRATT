@@ -569,7 +569,14 @@
       "audio_not_attached": "未附加音频"
     },
     "dropzone": {
-      "already_loaded": "已在列表中，未重复添加：{{names}}"
+      "already_loaded": "已在列表中，未重复添加：{{names}}",
+      "transcript_no_recording": "没有名为“{{name}}”的录音。请将转写与其音频文件一起拖入，或按录音命名。",
+      "transcript_needs_audio": "请先附加“{{name}}”的音频，然后再次拖入其转写。",
+      "transcript_already_used": "本次拖入中已有另一个“{{name}}”的转写被使用。"
+    },
+    "transcript_import": {
+      "replace_confirm": "用 {{file}} 替换 {{name}} 的转写？对当前转写的修改将丢失。",
+      "applied": "已将 {{file}} 载入 {{name}}。"
     }
   }
 }

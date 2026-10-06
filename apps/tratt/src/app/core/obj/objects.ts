@@ -1,4 +1,4 @@
-import { Converter } from '@tratt/annotation';
+import { Converter, OAnnotJSON } from '@tratt/annotation';
 import { OAudiofile } from '@tratt/media';
 import { AudioManager, FileInfo } from '@tratt/web-media';
 
@@ -16,4 +16,8 @@ export interface FileProgress {
   warning?: string;
   audioManager?: AudioManager;
   oaudiofile?: OAudiofile;
+  /** Pairing mode: this transcript, imported against its recording. */
+  annotation?: OAnnotJSON;
+  /** Pairing mode: basename of the recording `annotation` belongs to. */
+  pairedBasename?: string;
 }

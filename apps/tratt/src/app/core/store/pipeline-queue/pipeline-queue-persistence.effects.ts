@@ -11,6 +11,7 @@ import {
 } from 'rxjs';
 import { AudioService } from '../../shared/service/audio.service';
 import { IDBService } from '../../shared/service/idb.service';
+import { transcriptEnd } from '../../shared/transcript-timing';
 import { buildModeOptions } from '../idb/build-mode-options';
 import { LoginMode, RootState } from '../index';
 import { LoginModeActions } from '../login-mode/login-mode.actions';
@@ -103,7 +104,24 @@ export class PipelineQueuePersistenceEffects {
           const info =
             this.audioService.getMediaInfo(action.bundleId) ??
             this.audioService.getManager(action.bundleId)?.resource.info;
-          if (!modeState || !info) {
+          // A file restored from an earlier visit has neither until its audio
+          // is re-attached; a transcript imported into it (workbench) is
+          // padded to the recording's duration, so its own end serves.
+          const end = info ? undefined : transcriptEnd(action.transcript);
+          const media = info
+            ? {
+                name: info.fullname,
+                sampleRate: info.sampleRate,
+                duration: info.duration,
+              }
+            : end
+              ? {
+                  name: modeState?.sessionFile?.name ?? action.bundleId,
+                  sampleRate: end.sampleRate,
+                  duration: end,
+                }
+              : undefined;
+          if (!modeState || !media) {
             // No sample rate/duration to serialize against. The transcript
             // is still in the store; it just isn't persisted for this bundle
             // until something re-saves it.
@@ -112,9 +130,9 @@ export class PipelineQueuePersistenceEffects {
           let serialized;
           try {
             serialized = action.transcript.serialize(
-              modeState.audio?.fileName ?? info.fullname,
-              info.sampleRate,
-              info.duration,
+              modeState.audio?.fileName ?? media.name,
+              media.sampleRate,
+              media.duration,
             );
           } catch (error) {
             // A synchronous throw inside mergeMap would kill this effect

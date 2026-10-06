@@ -1,16 +1,7 @@
 import { EventEmitter, Injectable } from '@angular/core';
 import { TranslocoService } from '@jsverse/transloco';
 import { Store } from '@ngrx/store';
-import {
-  AnnotationLevelType,
-  Converter,
-  IFile,
-  ImportResult,
-  OAnnotJSON,
-  OLabel,
-  OSegment,
-  OSegmentLevel,
-} from '@tratt/annotation';
+import { Converter, IFile, ImportResult, OAnnotJSON } from '@tratt/annotation';
 import { OAudiofile } from '@tratt/media';
 import { escapeRegex, SubscriptionManager } from '@tratt/utilities';
 import { AudioManager, FileInfo, readFile } from '@tratt/web-media';
@@ -35,6 +26,19 @@ import {
 } from '../../shared/service/local-diarization.service';
 import { LoginMode, RootState } from '../../store';
 import { LoginModeActions } from '../../store/login-mode';
+import {
+  audioBasename,
+  padSegmentLevels,
+  sameBasename,
+  transcriptBasename,
+} from './transcript-pairing';
+
+/** What `externalAudioFor` returns for a basename. */
+export type ExternalAudio =
+  | OAudiofile
+  | 'no-audio'
+  | undefined
+  | Promise<OAudiofile | 'no-audio' | undefined>;
 
 export interface DropzoneStatistics {
   new: number;
@@ -209,6 +213,26 @@ export class TrattDropzoneService {
    */
   public allowMultipleAudio = false;
 
+  /**
+   * Opt-in (workbench): every transcript is paired with the recording of the
+   * same basename — an audio file in the same drop, else one already in the
+   * list via `externalAudioFor` — instead of the single transcript that is
+   * imported against whichever audio decoded last. The result is stored on
+   * the transcript's own entry (`FileProgress.annotation`); `oannotation`
+   * stays unset. Default `false` keeps /local's behaviour.
+   */
+  public pairTranscriptsByBasename = false;
+
+  /**
+   * Pairing mode: the audio of a file already in the list, by basename
+   * (may resolve asynchronously). `'no-audio'`: such a file exists but
+   * nothing about its audio can be resolved.
+   */
+  public externalAudioFor?: (basename: string) => ExternalAudio;
+
+  private pairing = false;
+  private pairAgain = false;
+
   private _audioManager?: AudioManager;
 
   /**
@@ -264,7 +288,10 @@ export class TrattDropzoneService {
         // A new transcript file replacing a previous one is still a singular concern —
         // unlike audio, only one transcript can be paired at a time (see
         // docs/superpowers/specs/2026-09-10-workbench-conversion-design.md).
-        this.dropFiles('transcript');
+        // In pairing mode each transcript has its own recording instead.
+        if (!this.pairTranscriptsByBasename) {
+          this.dropFiles('transcript');
+        }
       } else if (!this.allowMultipleAudio) {
         // Legacy consumers (reload-file, login) never opt into multi-audio
         // ingest, so a new audio file still evicts any previous one — this
@@ -480,6 +507,10 @@ export class TrattDropzoneService {
   }
 
   private async checkForValidFiles() {
+    if (this.pairTranscriptsByBasename) {
+      await this.pairTranscripts();
+      return;
+    }
     for (const fileProgress of this._files) {
       if (fileProgress.status !== 'progress') {
         const isAudioFile = AudioManager.isValidAudioFileName(
@@ -589,6 +620,148 @@ export class TrattDropzoneService {
     this.updateStatistics();
   }
 
+  private isAudioEntry(entry: FileProgress): boolean {
+    return AudioManager.isValidAudioFileName(
+      entry.file.fullname,
+      AppInfo.audioformats,
+    );
+  }
+
+  /**
+   * Pairing mode: resolves every transcript that has been read (`waiting`)
+   * against the recording with its basename. Runs again whenever a file
+   * finishes reading or decoding; a transcript whose audio is still decoding
+   * stays `waiting`. Serialised: an import-options dialog can be awaited
+   * mid-loop, and a second call meanwhile just requests another pass.
+   */
+  private async pairTranscripts(): Promise<void> {
+    if (this.pairing) {
+      this.pairAgain = true;
+      return;
+    }
+    this.pairing = true;
+    try {
+      do {
+        this.pairAgain = false;
+        for (const entry of [...this._files]) {
+          if (
+            entry.status !== 'waiting' ||
+            entry.annotation !== undefined ||
+            this.isAudioEntry(entry)
+          ) {
+            continue;
+          }
+          const basename = transcriptBasename(
+            entry.file.fullname,
+            AppInfo.converters,
+          );
+          const fail = (key: string) => {
+            entry.status = 'invalid';
+            entry.error = this.translocoService.translate(key, {
+              name: basename,
+            });
+          };
+
+          if (
+            this._files.some(
+              (other) =>
+                other !== entry &&
+                other.pairedBasename !== undefined &&
+                sameBasename(other.pairedBasename, basename),
+            )
+          ) {
+            fail('workbench.dropzone.transcript_already_used');
+            continue;
+          }
+
+          const recordings = this._files.filter(
+            (other) =>
+              this.isAudioEntry(other) &&
+              sameBasename(audioBasename(other.file.fullname), basename),
+          );
+          let audio = recordings.find(
+            (other) => other.status === 'valid' && other.oaudiofile,
+          )?.oaudiofile;
+          if (!audio) {
+            if (recordings.some((other) => other.status === 'progress')) {
+              continue; // its recording is still decoding
+            }
+            const listed = await this.externalAudioFor?.(basename);
+            if (entry.status !== 'waiting' || !this._files.includes(entry)) {
+              continue; // removed while the recording was being resolved
+            }
+            if (listed === 'no-audio') {
+              fail('workbench.dropzone.transcript_needs_audio');
+              continue;
+            }
+            if (!listed) {
+              fail('workbench.dropzone.transcript_no_recording');
+              continue;
+            }
+            audio = listed;
+          }
+
+          const annotjson = await this.importPairedTranscript(entry, audio);
+          if (annotjson) {
+            entry.annotation = annotjson;
+            entry.pairedBasename = basename;
+            entry.status = 'valid';
+          } else {
+            entry.status = 'invalid';
+          }
+        }
+      } while (this.pairAgain);
+    } finally {
+      this.pairing = false;
+    }
+    this.updateStatistics();
+  }
+
+  /** Imports one transcript against its recording (pairing mode). */
+  private async importPairedTranscript(
+    entry: FileProgress,
+    audio: OAudiofile,
+  ): Promise<OAnnotJSON | undefined> {
+    const name = entry.file.fullname.toLowerCase();
+    let error: string | undefined;
+    for (const converter of AppInfo.converters) {
+      if (
+        !converter.conversion.import ||
+        !converter.extensions.some((ext) => name.endsWith(ext.toLowerCase()))
+      ) {
+        continue;
+      }
+      const ofile: IFile = {
+        name: entry.file.fullname,
+        type: entry.file.type,
+        content: entry.content as string,
+        encoding: converter.encoding,
+      };
+      entry.converter = converter;
+      entry.needsOptions = converter.needsOptionsForImport(ofile, audio);
+      if (entry.needsOptions) {
+        await this.openImportOptionsModal(entry);
+      }
+      const result = converter.import(ofile, audio, entry.options);
+      if (result?.audiofile !== undefined) {
+        // A bundle file carrying its own audio: not a transcript to pair.
+        error = this.translocoService.translate(
+          'dropzone.file format not supported',
+        );
+        continue;
+      }
+      if (result?.annotjson && !result.error) {
+        padSegmentLevels(result.annotjson, audio.duration!);
+        return result.annotjson;
+      }
+      error = result?.error || error;
+    }
+    entry.error =
+      error ??
+      this.translocoService.translate('dropzone.file format not supported');
+    return undefined;
+  }
+
   private setAnnotation = async (
     fileProgress: FileProgress,
     converter: Converter,
@@ -612,47 +785,7 @@ export class TrattDropzoneService {
           'dropzone.file names not same',
         );
       }
-      for (const lvl of importResult.annotjson.levels) {
-        if (lvl.type === AnnotationLevelType.SEGMENT) {
-          const level = lvl as OSegmentLevel<OSegment>;
-
-          if (level.items[0].sampleStart !== 0) {
-            let temp = [];
-            temp.push(
-              new OSegment(0, 0, level.items[0].sampleStart!, [
-                new OLabel(level.name, ''),
-              ]),
-            );
-            temp = temp.concat(
-              level.items.map(
-                (a) =>
-                  new OSegment(a.id, a.sampleStart!, a.sampleDur!, a.labels),
-              ),
-            );
-            level.items = temp;
-
-            for (let j = 1; j < level.items.length + 1; j++) {
-              level.items[j - 1].id = j;
-            }
-          }
-
-          const last = level.items[level.items.length - 1];
-          if (
-            last.sampleStart! + last.sampleDur! !==
-            this._oaudiofile.duration
-          ) {
-            level.items.push(
-              new OSegment(
-                last.id + 1,
-                last.sampleStart! + last.sampleDur!,
-                this._oaudiofile.duration! -
-                  (last.sampleStart! + last.sampleDur!),
-                [new OLabel(level.name, '')],
-              ),
-            );
-          }
-        }
-      }
+      padSegmentLevels(importResult.annotjson, this._oaudiofile.duration!);
       this._oannotation = importResult.annotjson;
       fileProgress.status = 'valid';
       this.updateStatistics();

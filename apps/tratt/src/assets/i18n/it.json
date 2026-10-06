@@ -569,7 +569,14 @@
       "audio_not_attached": "audio non allegato"
     },
     "dropzone": {
-      "already_loaded": "Già nell'elenco, non aggiunto di nuovo: {{names}}"
+      "already_loaded": "Già nell'elenco, non aggiunto di nuovo: {{names}}",
+      "transcript_no_recording": "Nessuna registrazione chiamata “{{name}}”. Trascina la trascrizione insieme al suo file audio, oppure chiamala come la registrazione.",
+      "transcript_needs_audio": "Allega prima l'audio di “{{name}}”, poi trascina di nuovo la trascrizione.",
+      "transcript_already_used": "Per “{{name}}” è già usata un’altra trascrizione di questo rilascio."
+    },
+    "transcript_import": {
+      "replace_confirm": "Sostituire la trascrizione di {{name}} con {{file}}? Le modifiche alla trascrizione attuale andranno perse.",
+      "applied": "{{file}} caricato in {{name}}."
     }
   }
 }

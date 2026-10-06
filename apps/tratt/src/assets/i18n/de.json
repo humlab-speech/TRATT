@@ -787,7 +787,14 @@
       "audio_not_attached": "Audio nicht angehängt"
     },
     "dropzone": {
-      "already_loaded": "Bereits in der Liste, nicht erneut hinzugefügt: {{names}}"
+      "already_loaded": "Bereits in der Liste, nicht erneut hinzugefügt: {{names}}",
+      "transcript_no_recording": "Keine Aufnahme namens „{{name}}“. Legen Sie die Transkription zusammen mit ihrer Audiodatei ab oder benennen Sie sie wie die Aufnahme.",
+      "transcript_needs_audio": "Hängen Sie zuerst das Audio von „{{name}}“ an und legen Sie dann die Transkription erneut ab.",
+      "transcript_already_used": "Für „{{name}}“ wird bereits eine andere Transkription aus dieser Ablage verwendet."
+    },
+    "transcript_import": {
+      "replace_confirm": "Die Transkription von {{name}} durch {{file}} ersetzen? Änderungen an der aktuellen Transkription gehen verloren.",
+      "applied": "{{file}} wurde in {{name}} geladen."
     }
   }
 }

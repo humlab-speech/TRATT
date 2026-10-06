@@ -170,6 +170,14 @@ describe('BundleListComponent', () => {
     expect(rows.length).toBe(2);
   });
 
+  /** A row's click-to-select button, by file name. */
+  function rowButton(name: string) {
+    return fixture.debugElement
+      .queryAll(By.css('.bundle-list__item'))
+      .find((r) => r.nativeElement.textContent.includes(name))!
+      .query(By.css('button.bundle-list__item-btn'));
+  }
+
   it('dispatches selectBundle with the clicked row bundleId when a non-selected row is clicked', () => {
     // bundle-a (awaiting media, so no click-to-select button) is selected;
     // bundle-b's button is the non-selected row.
@@ -179,10 +187,7 @@ describe('BundleListComponent', () => {
     } as unknown as RootState);
     fixture.detectChanges();
     const dispatchSpy = jest.spyOn(store, 'dispatch');
-    const buttons = fixture.debugElement.queryAll(
-      By.css('.bundle-list__item-btn'),
-    );
-    buttons[0].triggerEventHandler('click', null);
+    rowButton('b.wav').triggerEventHandler('click', null);
 
     expect(dispatchSpy).toHaveBeenCalledWith(
       LoginModeActions.selectBundle({
@@ -206,9 +211,7 @@ describe('BundleListComponent', () => {
       .mockImplementation(((action: { type: string }) =>
         order.push(action.type)) as any);
 
-    fixture.debugElement
-      .queryAll(By.css('.bundle-list__item-btn'))[0]
-      .triggerEventHandler('click', null);
+    rowButton('b.wav').triggerEventHandler('click', null);
 
     expect(order).toEqual(['flush', LoginModeActions.selectBundle.type]);
     unregister();
@@ -216,17 +219,42 @@ describe('BundleListComponent', () => {
 
   it('treats a click on the already-selected row as a no-op', () => {
     const dispatchSpy = jest.spyOn(store, 'dispatch');
-    fixture.debugElement
-      .queryAll(By.css('.bundle-list__item-btn'))[0]
-      .triggerEventHandler('click', null);
+    rowButton('b.wav').triggerEventHandler('click', null);
     expect(dispatchSpy).not.toHaveBeenCalled();
+  });
+
+  // A restored file used to be only an "Attach file…" picker: it could not
+  // be selected, so its transcript could not be exported or replaced before
+  // the audio was found again.
+  it('lets a file waiting for its audio be selected, with attaching as a separate control', () => {
+    const dispatchSpy = jest.spyOn(store, 'dispatch');
+    const row = fixture.debugElement
+      .queryAll(By.css('.bundle-list__item'))
+      .find((r) => r.nativeElement.textContent.includes('a.wav'))!;
+
+    row
+      .query(By.css('button.bundle-list__item-btn'))
+      .triggerEventHandler('click', null);
+
+    expect(dispatchSpy).toHaveBeenCalledWith(
+      LoginModeActions.selectBundle({
+        mode: LoginMode.LOCAL,
+        bundleId: 'bundle-a',
+      }),
+    );
+    const attach = row.query(By.css('label.bundle-list__reattach-label'));
+    expect(attach.nativeElement.getAttribute('for')).toBe(
+      'bundle-reattach-bundle-a',
+    );
+    expect(row.query(By.css('input[type="file"]'))).toBeTruthy();
   });
 
   it('renders each click-to-select row as a focusable, keyboard-activatable button', () => {
     const buttons = fixture.debugElement.queryAll(
       By.css('.bundle-list__item-btn'),
     );
-    expect(buttons.length).toBe(1);
+    // Both rows — a file waiting for its audio is selectable too.
+    expect(buttons.length).toBe(2);
     buttons.forEach((btn) => {
       expect(btn.nativeElement.tagName).toBe('BUTTON');
       expect(btn.nativeElement.type).toBe('button');

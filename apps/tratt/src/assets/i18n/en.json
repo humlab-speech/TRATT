@@ -866,7 +866,14 @@
       "restored_text": "Your files from the last session are listed on the left. Re-attach a file’s audio with “Attach file…” to keep editing it, or drop new files."
     },
     "dropzone": {
-      "already_loaded": "Already in the list, not added again: {{names}}"
+      "already_loaded": "Already in the list, not added again: {{names}}",
+      "transcript_no_recording": "No recording named “{{name}}”. Drop the transcript together with its audio file, or name it like the recording.",
+      "transcript_needs_audio": "Attach the audio of “{{name}}” first, then drop its transcript again.",
+      "transcript_already_used": "Another transcript for “{{name}}” in this drop is already used."
+    },
+    "transcript_import": {
+      "replace_confirm": "Replace the transcript of {{name}} with {{file}}? Changes made to the current transcript will be lost.",
+      "applied": "Loaded {{file}} into {{name}}."
     }
   }
 }

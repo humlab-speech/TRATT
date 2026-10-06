@@ -56,6 +56,8 @@ jest.mock('../../component/tratt-dropzone/tratt-dropzone.component', () => {
     // Kept here until Task 7's template edit actually removes the binding.
     @Input() showAutoTranscribe = false;
     @Input() allowMultipleAudio = false;
+    @Input() pairTranscriptsByBasename = false;
+    @Input() externalAudioFor: unknown;
     @Output() filesAdded = new EventEmitter();
     hasAnnotation = false;
     oannotation = undefined;
@@ -113,16 +115,21 @@ import { TranslocoService } from '@jsverse/transloco';
 import { Store } from '@ngrx/store';
 import { MockStore, provideMockStore } from '@ngrx/store/testing';
 import {
+  OAnnotJSON,
+  OLabel,
+  OSegment,
+  OSegmentLevel,
   TrattAnnotation,
   TrattAnnotationSegmentLevel,
 } from '@tratt/annotation';
-import { SampleUnit } from '@tratt/media';
+import { OAudiofile, SampleUnit } from '@tratt/media';
 import { randomUUID } from 'node:crypto';
 import { BehaviorSubject, of } from 'rxjs';
 import { editorComponents } from '../../../editors/components';
 import { NavbarService } from '../../component/navbar/navbar.service';
 import { ExportFilesModalComponent } from '../../modals/export-files-modal/export-files-modal.component';
 import { TrattModalService } from '../../modals/tratt-modal.service';
+import { YesNoModalComponent } from '../../modals/yes-no-modal/yes-no-modal.component';
 import { SessionFile } from '../../obj/SessionFile';
 import { SettingsService, UserInteractionsService } from '../../shared/service';
 import { AlertService } from '../../shared/service/alert.service';
@@ -1401,6 +1408,47 @@ describe('WorkbenchComponent', () => {
 
     // Restored after a reload: still named, so "Export this transcription"
     // is reachable before the audio is re-attached.
+    // After a reload no session exists yet ("welcome back"); the selected
+    // restored file's header — with its export — is shown anyway.
+    it('shows the selected restored file, with "Export this transcription", before any session', () => {
+      audioService.current = undefined;
+      localModeState = {
+        bundles: {
+          entities: {
+            [DEFAULT_BUNDLE_ID]: {
+              sessionFile: new SessionFile(
+                'restored.wav',
+                1,
+                new Date(),
+                'audio/wav',
+              ),
+            },
+          },
+        },
+      };
+      bundleSummaries = [
+        {
+          bundleId: DEFAULT_BUNDLE_ID,
+          name: 'restored.wav',
+          selected: true,
+          awaitingMedia: true,
+        },
+      ];
+      fixture.detectChanges();
+
+      expect(component.sessionReady).toBe(false);
+      const header = fixture.debugElement.query(
+        By.css('.workbench__empty .workbench__editor-header'),
+      );
+      expect(header.nativeElement.textContent).toContain('restored.wav');
+      expect(header.nativeElement.textContent).toContain(
+        'workbench.editor_header.audio_not_attached',
+      );
+      expect(
+        header.query(By.css('.workbench__editor-header-actions .btn-primary')),
+      ).toBeTruthy();
+    });
+
     it("names a restored file whose audio isn't attached, without media details", () => {
       audioService.current = undefined;
       localModeState = {
@@ -2054,6 +2102,347 @@ describe('WorkbenchComponent', () => {
       });
     });
 
+    // A transcript is paired with the recording of its name in every drop
+    // (it used to be read only in the first drop, paired with whichever
+    // audio decoded last).
+    describe('transcripts paired with their recordings by name', () => {
+      const wav = (name: string) =>
+        new File(['abc'], name, { type: 'audio/wav' });
+      const audio = (id: number, name: string) =>
+        fileProgress(id, wav(name), {
+          status: 'valid',
+          audioManager: { id: `m-${id}`, destroy: jest.fn() },
+          oaudiofile: {},
+        });
+      const annot = (text: string) =>
+        new OAnnotJSON('x.wav', 'x', 16000, [
+          new OSegmentLevel('words', [
+            new OSegment(1, 0, 16000, [new OLabel('words', text)]),
+          ]),
+        ]);
+      const transcript = (
+        id: number,
+        name: string,
+        basename: string,
+        status: 'valid' | 'waiting' | 'progress' = 'valid',
+        text = 'hello',
+      ) => {
+        const fp = fileProgress(id, new File(['x'], name), {
+          status: status as any,
+        });
+        if (status === 'valid') {
+          fp.annotation = annot(text);
+          fp.pairedBasename = basename;
+        }
+        return fp;
+      };
+      const dispatched = (type: string) =>
+        storeDispatch.mock.calls
+          .map(([action]) => action as any)
+          .filter((a) => a.type === type);
+      const transcriptText = (action: any) =>
+        action.transcript.levels[0].items[0].labels[0].value;
+      let showAlert: jest.SpiedFunction<AlertService['showAlert']>;
+
+      beforeEach(() => {
+        showAlert = jest
+          .spyOn(TestBed.inject(AlertService), 'showAlert')
+          .mockResolvedValue({ id: 1, component: undefined });
+        component.dropzone = makeDropzone() as any;
+        component.ngAfterViewInit();
+      });
+
+      it('later drop: creates the file with its own transcript, and does not transcribe it', () => {
+        component.sessionReady = true;
+
+        component.dropzone!.filesAdded.emit({
+          statistics: {} as any,
+          addedFiles: [
+            audio(1, 'b.wav'),
+            transcript(2, 'b.TextGrid', 'b', 'valid', 'text of b'),
+          ],
+        });
+
+        const created = dispatched(LoginModeActions.createBundle.type);
+        expect(created.map((a) => a.sessionFile.name)).toEqual(['b.wav']);
+        const applied = dispatched(LoginModeActions.setBundleTranscript.type);
+        expect(applied.map((a) => a.bundleId)).toEqual([created[0].bundleId]);
+        expect(transcriptText(applied[0])).toBe('text of b');
+        expect(applied[0].transcript.selectedLevelIndex).toBe(0);
+        expect(
+          (component as any).pendingAutoEnqueueIds.has(created[0].bundleId),
+        ).toBe(false);
+        expect(component.dropzone!.consumeEntry).toHaveBeenCalledWith(1);
+        expect(component.dropzone!.consumeEntry).toHaveBeenCalledWith(2);
+      });
+
+      it('holds a recording while a transcript of its name is still being read — not one of another name', () => {
+        component.sessionReady = true;
+
+        component.dropzone!.filesAdded.emit({
+          statistics: {} as any,
+          addedFiles: [
+            audio(1, 'b.wav'),
+            audio(2, 'c.wav'),
+            transcript(3, 'b.TextGrid', 'b', 'waiting'),
+          ],
+        });
+
+        expect(
+          dispatched(LoginModeActions.createBundle.type).map(
+            (a) => a.sessionFile.name,
+          ),
+        ).toEqual(['c.wav']);
+      });
+
+      it('first drop: the first file gets its own transcript via the login chain, later files theirs once created', () => {
+        const a = audio(1, 'a.wav');
+        const b = audio(2, 'b.wav');
+        const tb = transcript(3, 'b.TextGrid', 'b', 'valid', 'text of b');
+        const ta = transcript(4, 'a.TextGrid', 'a', 'valid', 'text of a');
+
+        component.dropzone!.filesAdded.emit({
+          statistics: {} as any,
+          addedFiles: [a, b, tb, ta],
+        });
+
+        const [files, annotation, , ids] = authStoreService.loginLocal.mock
+          .calls[0] as any[];
+        expect(files).toEqual([a.file.file, b.file.file]);
+        expect(annotation).toBe(ta.annotation);
+        expect(
+          dispatched(LoginModeActions.setBundleTranscript.type),
+        ).toHaveLength(0);
+
+        // onLoginLocal$ creates the second bundle later.
+        bundleSummaries = [
+          {
+            bundleId: ids[0],
+            name: 'a.wav',
+            selected: true,
+            awaitingMedia: false,
+          },
+          {
+            bundleId: ids[1],
+            name: 'b.wav',
+            selected: false,
+            awaitingMedia: false,
+          },
+        ];
+        fixture.detectChanges();
+
+        const applied = dispatched(LoginModeActions.setBundleTranscript.type);
+        expect(applied.map((x) => x.bundleId)).toEqual([ids[1]]);
+        expect(transcriptText(applied[0])).toBe('text of b');
+      });
+
+      describe('a transcript dropped for a file already in the list', () => {
+        const listed = (transcript: TrattAnnotation<any>) => {
+          localModeState = {
+            bundles: {
+              entities: {
+                l1: {
+                  sessionFile: new SessionFile(
+                    'b.wav',
+                    3,
+                    new Date(0),
+                    'audio/wav',
+                  ),
+                  transcript,
+                },
+              },
+            },
+          };
+          bundleSummaries = [
+            {
+              bundleId: 'l1',
+              name: 'b.wav',
+              selected: false,
+              awaitingMedia: false,
+            },
+          ];
+          audioService.getMediaInfo.mockImplementation((id: unknown) =>
+            id === 'l1'
+              ? {
+                  fullname: 'b.wav',
+                  size: 3,
+                  sampleRate: 16000,
+                  channels: 1,
+                  duration: { samples: 16000, seconds: 1 },
+                }
+              : undefined,
+          );
+        };
+        const withText = () => {
+          const t = new TrattAnnotation();
+          const level = t.createSegmentLevel('words');
+          level.items.push(
+            t.createSegment(new SampleUnit(16000, 16000), [
+              new OLabel('words', 'typed by hand'),
+            ]),
+          );
+          t.addLevel(level);
+          return t;
+        };
+
+        beforeEach(() => {
+          component.sessionReady = true;
+        });
+
+        it('loads it into that file, with a notice', () => {
+          listed(new TrattAnnotation());
+
+          component.dropzone!.filesAdded.emit({
+            statistics: {} as any,
+            addedFiles: [transcript(1, 'b.TextGrid', 'b')],
+          });
+
+          const applied = dispatched(LoginModeActions.setBundleTranscript.type);
+          expect(applied.map((a) => a.bundleId)).toEqual(['l1']);
+          expect(dispatched(LoginModeActions.createBundle.type)).toHaveLength(
+            0,
+          );
+          expect(component.dropzone!.consumeEntry).toHaveBeenCalledWith(1);
+          expect(showAlert).toHaveBeenCalledWith(
+            'success',
+            'workbench.transcript_import.applied',
+          );
+        });
+
+        it('loads it into a restored file whose audio is not attached', () => {
+          listed(new TrattAnnotation());
+          audioService.getMediaInfo.mockReturnValue(undefined);
+
+          component.dropzone!.filesAdded.emit({
+            statistics: {} as any,
+            addedFiles: [transcript(1, 'b.TextGrid', 'b')],
+          });
+
+          expect(
+            dispatched(LoginModeActions.setBundleTranscript.type).map(
+              (a) => a.bundleId,
+            ),
+          ).toEqual(['l1']);
+          expect(component.dropzone!.consumeEntry).toHaveBeenCalledWith(1);
+        });
+
+        it('keeps the transcript, marked invalid, if its file was removed meanwhile', () => {
+          listed(new TrattAnnotation());
+          bundleSummaries = [];
+          const t = transcript(1, 'b.TextGrid', 'b');
+
+          component.dropzone!.filesAdded.emit({
+            statistics: {} as any,
+            addedFiles: [t],
+          });
+
+          expect(t.status).toBe('invalid');
+          expect(t.error).toBe('workbench.dropzone.transcript_no_recording');
+          expect(component.dropzone!.consumeEntry).not.toHaveBeenCalled();
+          expect(
+            dispatched(LoginModeActions.setBundleTranscript.type),
+          ).toHaveLength(0);
+        });
+
+        it('asks before replacing a transcript that has content, and keeps it on "no"', async () => {
+          listed(withText());
+          const openModal = jest.fn(async () => 'no');
+          (component as any).modService = { openModal };
+
+          component.dropzone!.filesAdded.emit({
+            statistics: {} as any,
+            addedFiles: [transcript(1, 'b.TextGrid', 'b')],
+          });
+          await Promise.resolve();
+          await Promise.resolve();
+
+          expect(openModal).toHaveBeenCalledWith(
+            YesNoModalComponent,
+            YesNoModalComponent.options,
+            { message: 'workbench.transcript_import.replace_confirm' },
+          );
+          expect(
+            dispatched(LoginModeActions.setBundleTranscript.type),
+          ).toHaveLength(0);
+        });
+
+        it('replaces it on "yes"', async () => {
+          listed(withText());
+          (component as any).modService = {
+            openModal: jest.fn(async () => 'yes'),
+          };
+
+          component.dropzone!.filesAdded.emit({
+            statistics: {} as any,
+            addedFiles: [transcript(1, 'b.TextGrid', 'b')],
+          });
+          await Promise.resolve();
+          await Promise.resolve();
+
+          expect(
+            dispatched(LoginModeActions.setBundleTranscript.type).map(
+              (a) => a.bundleId,
+            ),
+          ).toEqual(['l1']);
+        });
+
+        it('gives the dropzone the listed recording to import against (externalAudioFor)', async () => {
+          listed(new TrattAnnotation());
+
+          const found = component.audioForTranscript('B');
+          expect(found).toBeInstanceOf(OAudiofile);
+          expect(found).toMatchObject({
+            name: 'b.wav',
+            sampleRate: 16000,
+            duration: 16000,
+            type: 'audio/wav',
+          });
+
+          // Restored without its audio and nothing to time it by.
+          audioService.getMediaInfo.mockReturnValue(undefined);
+          await expect(component.audioForTranscript('b')).resolves.toBe(
+            'no-audio',
+          );
+          expect(component.audioForTranscript('nothing')).toBeUndefined();
+        });
+
+        it("describes a restored file (audio not attached) by its stored transcript's timing", async () => {
+          listed(new TrattAnnotation());
+          audioService.getMediaInfo.mockReturnValue(undefined);
+          const oAudioFile = new OAudiofile();
+          oAudioFile.name = 'b.wav';
+          oAudioFile.sampleRate = 16000;
+          oAudioFile.duration = 39264;
+          const resolveBundleMedia = jest.fn(async () => ({
+            oAudioFile,
+            sampleRate: 16000,
+            duration: {} as any,
+          }));
+          (component as any).catalogueExport = { resolveBundleMedia };
+
+          await expect(component.audioForTranscript('b')).resolves.toBe(
+            oAudioFile,
+          );
+          expect(resolveBundleMedia).toHaveBeenCalledWith('l1');
+        });
+
+        it('re-renders the dropzone on every dropzone update (OnPush, subscribed in code)', () => {
+          const markForCheck = jest.spyOn(
+            (component as any).cd,
+            'markForCheck',
+          );
+          const t = transcript(1, 'b.TextGrid', 'b');
+          t.status = 'invalid';
+          t.annotation = undefined;
+          component.dropzone!.filesAdded.emit({
+            statistics: {} as any,
+            addedFiles: [t],
+          });
+          expect(markForCheck).toHaveBeenCalled();
+        });
+      });
+    });
+
     // After "Select all -> Remove" the collection falls back to an empty
     // placeholder bundle (no file) and the session stays ready. A drop then
     // goes down the later-wave path; the first new file must be shown
@@ -2283,7 +2672,7 @@ describe('WorkbenchComponent', () => {
       });
       const transcriptFp = fileProgress(
         2,
-        new File(['x'], 'x_annot.json', { type: 'application/json' }),
+        new File(['x'], 'a_annot.json', { type: 'application/json' }),
         { status: 'progress' },
       );
 
@@ -2308,7 +2697,7 @@ describe('WorkbenchComponent', () => {
       });
       const transcriptFp = fileProgress(
         2,
-        new File(['x'], 'x_annot.json', { type: 'application/json' }),
+        new File(['x'], 'a_annot.json', { type: 'application/json' }),
         { status: 'progress' },
       );
       component.dropzone!.filesAdded.emit({
@@ -2317,13 +2706,12 @@ describe('WorkbenchComponent', () => {
       });
       expect(authStoreService.loginLocal).not.toHaveBeenCalled();
 
-      // The dropzone's real pairing has since completed: the transcript
-      // validated too, and the dropzone now exposes it via
-      // hasAnnotation/oannotation.
+      // The dropzone has since paired the transcript with a.wav (by name)
+      // and stored the import on the transcript's own entry.
       const oannotation = { levels: [] } as any;
-      dropzone.hasAnnotation = true;
-      dropzone.oannotation = oannotation;
       transcriptFp.status = 'valid';
+      transcriptFp.annotation = oannotation;
+      transcriptFp.pairedBasename = 'a';
       component.dropzone!.filesAdded.emit({
         statistics: {} as any,
         addedFiles: [audioFp, transcriptFp],
@@ -2335,6 +2723,9 @@ describe('WorkbenchComponent', () => {
         false,
         [DEFAULT_BUNDLE_ID],
       );
+      expect(component.dropzone!.consumeEntry).toHaveBeenCalledWith(2);
+      // It has its transcript: not queued for transcription.
+      expect(pipelineQueueService.enqueue).not.toHaveBeenCalled();
     });
 
     // Regression guard for Task 6's own approved behavior: a sibling AUDIO

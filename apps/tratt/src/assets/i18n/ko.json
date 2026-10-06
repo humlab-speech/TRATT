@@ -569,7 +569,14 @@
       "audio_not_attached": "오디오가 첨부되지 않음"
     },
     "dropzone": {
-      "already_loaded": "이미 목록에 있어 다시 추가하지 않았습니다: {{names}}"
+      "already_loaded": "이미 목록에 있어 다시 추가하지 않았습니다: {{names}}",
+      "transcript_no_recording": "“{{name}}” 녹음이 없습니다. 전사를 오디오 파일과 함께 놓거나 녹음과 같은 이름으로 지정하세요.",
+      "transcript_needs_audio": "먼저 “{{name}}”의 오디오를 첨부한 다음 전사를 다시 놓으세요.",
+      "transcript_already_used": "“{{name}}”에는 이번에 놓은 다른 전사가 이미 사용되었습니다."
+    },
+    "transcript_import": {
+      "replace_confirm": "{{name}}의 전사를 {{file}}(으)로 바꾸시겠습니까? 현재 전사의 변경 내용은 사라집니다.",
+      "applied": "{{file}}을(를) {{name}}에 불러왔습니다."
     }
   }
 }

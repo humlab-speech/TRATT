@@ -24,9 +24,13 @@
                  row from this table the instant it's bundled, so this table
                  only ever shows rows still mid-decode or failed — the
                  bundle list above now owns "the list of files." -->
+            <!-- Each dropped transcript is paired with the recording of its
+                 name (in the same drop or already in the list). -->
             <tratt-dropzone
               height="112px"
               [allowMultipleAudio]="true"
+              [pairTranscriptsByBasename]="true"
+              [externalAudioFor]="audioForTranscript"
               placeholderKey="workbench.dropzone_placeholder"
             ></tratt-dropzone>
           </div>
@@ -114,48 +118,15 @@
     <div class="workbench__right">
       @if (hasAnyBundles()) {
         @if (selectedBundleHeader; as header) {
-          <div class="workbench__editor-header">
-            <span class="workbench__editor-header-name">{{ header.name }}</span>
-            <span class="workbench__editor-header-meta">
-              @if (header.durationText !== undefined) {
-                {{ header.durationText }} · {{ header.sampleRateKhz }} kHz
-                {{
-                  (header.channels === 1
-                    ? 'workbench.editor_header.mono'
-                    : 'workbench.editor_header.stereo'
-                  ) | transloco
-                }}
-                · {{ header.sizeText }}
-              } @else {
-                {{ 'workbench.editor_header.audio_not_attached' | transloco }}
+          <ng-container
+            *ngTemplateOutlet="
+              fileHeader;
+              context: {
+                $implicit: header,
+                showExport: useMode === 'local' && exportEnabled,
               }
-            </span>
-            @if (useMode === 'local' && exportEnabled) {
-              <!-- Per-file actions live with the file they act on; exporting
-                   several files at once is "Export catalogue…" in the list.
-                   Works without the file's audio (see exportSelected()). -->
-              <div class="workbench__editor-header-actions">
-                @if (recordedFileService.recordedFile?.name === header.name) {
-                  <button
-                    (click)="recordedFileService.triggerExport()"
-                    class="btn btn-sm btn-outline-secondary"
-                    type="button"
-                  >
-                    <i class="bi bi-mic-fill me-1" aria-hidden="true"></i>
-                    {{ 'g.export recording' | transloco }}
-                  </button>
-                }
-                <button
-                  (click)="exportSelected()"
-                  class="btn btn-sm btn-primary"
-                  type="button"
-                >
-                  <i class="bi bi-download me-1" aria-hidden="true"></i>
-                  {{ 'workbench.editor_header.export' | transloco }}
-                </button>
-              </div>
-            }
-          </div>
+            "
+          ></ng-container>
         }
         <div class="workbench__editor-tabs">
           @for (entry of editorComponentsList; track entry.name) {
@@ -352,6 +323,18 @@
   } @else {
     <!-- No session yet: say what to do instead of an empty pane. -->
     <div class="workbench__right workbench__empty">
+      @if (hasAnyBundles() && selectedBundleHeader; as header) {
+        <!-- No session yet: the project config isn't loaded, but the
+             workbench is LOCAL-only, whose config allows export. -->
+        <div class="workbench__empty-header">
+          <ng-container
+            *ngTemplateOutlet="
+              fileHeader;
+              context: { $implicit: header, showExport: true }
+            "
+          ></ng-container>
+        </div>
+      }
       <div class="workbench__empty-card">
         <i class="bi bi-soundwave workbench__empty-icon" aria-hidden="true"></i>
         @if (hasAnyBundles()) {
@@ -373,3 +356,51 @@
     </div>
   }
 </div>
+
+<!-- The selected file's name, media details and per-file actions. Also
+     shown before a session exists (welcome back), so a restored file can be
+     exported before its audio is re-attached. -->
+<ng-template #fileHeader let-header let-showExport="showExport">
+  <div class="workbench__editor-header">
+    <span class="workbench__editor-header-name">{{ header.name }}</span>
+    <span class="workbench__editor-header-meta">
+      @if (header.durationText !== undefined) {
+        {{ header.durationText }} · {{ header.sampleRateKhz }} kHz
+        {{
+          (header.channels === 1
+            ? 'workbench.editor_header.mono'
+            : 'workbench.editor_header.stereo'
+          ) | transloco
+        }}
+        · {{ header.sizeText }}
+      } @else {
+        {{ 'workbench.editor_header.audio_not_attached' | transloco }}
+      }
+    </span>
+    @if (showExport) {
+      <!-- Per-file actions live with the file they act on; exporting
+           several files at once is "Export catalogue…" in the list.
+           Works without the file's audio (see exportSelected()). -->
+      <div class="workbench__editor-header-actions">
+        @if (recordedFileService.recordedFile?.name === header.name) {
+          <button
+            (click)="recordedFileService.triggerExport()"
+            class="btn btn-sm btn-outline-secondary"
+            type="button"
+          >
+            <i class="bi bi-mic-fill me-1" aria-hidden="true"></i>
+            {{ 'g.export recording' | transloco }}
+          </button>
+        }
+        <button
+          (click)="exportSelected()"
+          class="btn btn-sm btn-primary"
+          type="button"
+        >
+          <i class="bi bi-download me-1" aria-hidden="true"></i>
+          {{ 'workbench.editor_header.export' | transloco }}
+        </button>
+      </div>
+    }
+  </div>
+</ng-template>

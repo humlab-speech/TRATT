@@ -2,6 +2,8 @@ import { TestBed } from '@angular/core/testing';
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { provideMockActions } from '@ngrx/effects/testing';
 import { MockStore, provideMockStore } from '@ngrx/store/testing';
+import { OLabel, TrattAnnotation } from '@tratt/annotation';
+import { SampleUnit } from '@tratt/media';
 import { Observable, of, Subject } from 'rxjs';
 import { SessionFile } from '../../obj/SessionFile';
 import { AudioService } from '../../shared/service/audio.service';
@@ -202,7 +204,7 @@ describe('PipelineQueuePersistenceEffects', () => {
     expect(bundleId).toBe('a');
   });
 
-  it('persists nothing when that bundle has no resident audio manager', () => {
+  it('persists nothing when there is neither audio nor a timed transcript', () => {
     effects.saveBundleTranscript$.subscribe();
     audioService.getManager.mockReturnValue(undefined);
 
@@ -238,6 +240,38 @@ describe('PipelineQueuePersistenceEffects', () => {
     );
 
     expect(serialize).toHaveBeenCalled();
+    expect(idbService.saveAnnotation).toHaveBeenCalledTimes(1);
+  });
+
+  it("persists a transcript imported into a restored file (no audio) by the transcript's own end", () => {
+    effects.saveBundleTranscript$.subscribe();
+    audioService.getManager.mockReturnValue(undefined);
+    const transcript = new TrattAnnotation<any>();
+    const level = transcript.createSegmentLevel('words');
+    level.items.push(
+      transcript.createSegment(new SampleUnit(20000, 16000), [
+        new OLabel('words', 'first'),
+      ]),
+      transcript.createSegment(new SampleUnit(39264, 16000), [
+        new OLabel('words', 'second'),
+      ]),
+    );
+    transcript.addLevel(level);
+    const serialize = jest.spyOn(transcript, 'serialize');
+
+    actions$.next(
+      LoginModeActions.setBundleTranscript({
+        mode: LoginMode.LOCAL,
+        bundleId: 'a',
+        transcript,
+      }),
+    );
+
+    expect(serialize).toHaveBeenCalledTimes(1);
+    const [name, sampleRate, duration] = serialize.mock.calls[0] as any[];
+    expect(name).toBe('a.wav');
+    expect(sampleRate).toBe(16000);
+    expect(duration.samples).toBe(39264);
     expect(idbService.saveAnnotation).toHaveBeenCalledTimes(1);
   });
 });

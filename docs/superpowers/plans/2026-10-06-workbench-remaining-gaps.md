@@ -4,6 +4,18 @@ Follow-up to `2026-10-03-workbench-stability-assessment.md` (rows 1–35,
 committed as `75c8f6b` on `fix/workbench-stability`). Four gaps were left
 open; this plan fixes them, plus one bug found while planning.
 
+**Status: done** — G1, G2, G4, G5 in `de29ec1`; G3 and the follow-ups in the
+next commit. Recorded as rows 36–43 of the assessment. Deviations from the
+plan, found while verifying in the browser:
+
+- A restored file (audio not attached) *can* take a dropped transcript: its
+  timing comes from the stored transcript, as for export (row 41), instead
+  of "Attach …'s audio first", which now shows only when neither exists.
+- Restored files' rows became selectable and the "Welcome back" pane shows
+  the selected file's header, so G2's export is reachable after a reload.
+- Two bugs fixed on the way: dropzone rows not re-rendering (row 42) and
+  imported transcripts of restored files not persisted (row 43).
+
 | Gap | User-visible problem | Section |
 |---|---|---|
 | G1 | Dropping a file that is already in the list (with its audio) adds an identical row. | [G1](#g1-duplicate-drops) |
