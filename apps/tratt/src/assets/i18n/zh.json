@@ -36,7 +36,16 @@
     }
   },
   "dropzone": {
-    "file selected": "{{file_label}} 已选中"
+    "file selected": "{{file_label}} 已选中",
+    "delete file": "删除文件",
+    "open import options": "打开导入选项",
+    "file format not supported": "不支持该文件格式。",
+    "file names not same": "转写文件名与音频文件名不一致。",
+    "file too large": "文件超过允许的最大大小 {{maxSize}} MB。",
+    "invalid file type": "不支持此文件类型。",
+    "validation error": "验证错误",
+    "validation warning": "验证警告",
+    "waiting for audio": "正在等待音频文件——请同时放入音频文件"
   },
   "recording": {
     "title": "直接在浏览器中录制",
@@ -87,7 +96,8 @@
       "request access": "请求访问",
       "selection cleared": "所选设备已断开 — 使用默认设备。",
       "default": "系统默认"
-    }
+    },
+    "level meter": "录音电平表"
   },
   "export": {
     "meta data": {
@@ -98,7 +108,10 @@
       "add timestamps": "通过可读时间戳分割标注单元（HH:MM:SS.s）",
       "mark speaker id": "在句子开头标记说话人 ID",
       "timestamp notice": "如果同时选择两个选项，两种时间格式都会被插入："
-    }
+    },
+    "category general": "通用输出格式（若要继续工作，只有 SRT 可以重新上传到此应用）",
+    "category linguistic": "语言学格式（均可重新上传到此应用）",
+    "category specialist": "专业技术格式（均可重新上传到此应用）"
   },
   "feedback": {
     "a lot of noises": "信号的噪音很大",
@@ -250,7 +263,10 @@
         "initializing": "Loading model — this can take up to a minute…",
         "translating": "Translating segments…",
         "finalizing": "Translation complete — preparing editor…"
-      }
+      },
+      "stall init": "模型加载卡住了。请尝试刷新页面。",
+      "stall translating": "翻译卡住了——60 秒内没有进展。请取消后重试。",
+      "stall download": "下载卡住了——可能是浏览器存储空间限制。请取消，并在启用“跳过浏览器缓存”后重试。"
     },
     "auto-transcription": {
       "downloading model": "正在下载模型…",
@@ -307,7 +323,13 @@
       "finnish fine-tuned hint": "芬兰语使用针对芬兰语语音优化的模型。",
       "norwegian fine-tuned hint": "挪威语使用针对挪威语语音优化的模型。",
       "diarizingLabel": "正在识别发言人…",
-      "initializing speaker segmentation": "加载说话人分割模型"
+      "initializing speaker segmentation": "加载说话人分割模型",
+      "diarization failed": "说话人分离失败：{{message}}",
+      "speaker count auto": "自动",
+      "speaker count help": "典型访谈请设为 2。留空则自动检测。",
+      "speaker count label": "预计说话人数",
+      "speaker separation help": "在浏览器中本地运行，可能会增加处理时间。",
+      "speaker separation label": "说话人分离"
     },
     "app description": "TRATT是一款免费的网络应用程序，用于将语音录音转录为纯文本（正字法）。它提供三种不同的编辑器以满足不同的转录需求，您可以在同一会话中自由切换。",
     "funding support and development": "资助方与合作",
@@ -398,7 +420,8 @@
     }
   },
   "p": {
-    "language selector label": "本页面显示的语言"
+    "language selector label": "本页面显示的语言",
+    "language selector short label": "语言："
   },
   "reload-file": {
     "another file selected": "已选中另一个文件。请选择与之前相同的文件，或者开始新的标注。需要：'{{file}}'",
@@ -486,80 +509,80 @@
     "tagline": "将语音转写为文本"
   },
   "workbench": {
-    "start session": "Start session",
+    "start session": "开始会话",
     "tabs": {
-      "upload": "Upload file",
-      "record": "Record now"
+      "upload": "上传文件",
+      "record": "立即录音"
     },
     "bundle_list": {
-      "title": "Files",
-      "reattach": "Attach file…",
-      "select_all": "Select all",
-      "clear_finished": "Clear finished",
-      "remove": "Remove",
-      "export_catalogue": "Export all",
-      "retry": "Retry",
+      "title": "文件",
+      "reattach": "关联文件…",
+      "select_all": "全选",
+      "clear_finished": "清除已完成",
+      "remove": "移除",
+      "export_catalogue": "全部导出",
+      "retry": "重试",
       "status": {
-        "queued": "Queued",
-        "running": "Running",
-        "done": "Done",
-        "failed": "Failed",
-        "interrupted": "Interrupted"
+        "queued": "排队中",
+        "running": "运行中",
+        "done": "已完成",
+        "failed": "失败",
+        "interrupted": "已中断"
       },
       "error": {
-        "decode": "Could not read the audio",
-        "model-load": "Could not load the model",
-        "oom": "Ran out of memory",
-        "cancelled": "Cancelled",
-        "unknown": "Failed"
+        "decode": "无法读取音频",
+        "model-load": "无法加载模型",
+        "oom": "内存不足",
+        "cancelled": "已取消",
+        "unknown": "失败"
       },
-      "cancel": "Stop transcribing this file",
+      "cancel": "停止转写此文件",
       "stage": {
-        "decode": "Preparing",
-        "download": "Loading model",
-        "asr": "Transcribing",
-        "diarization": "Separating speakers",
-        "translation": "Translating"
+        "decode": "准备中",
+        "download": "正在加载模型",
+        "asr": "转写中",
+        "diarization": "正在分离说话人",
+        "translation": "翻译中"
       }
     },
     "queue": {
-      "run": "Transcribe {{count}} file(s)",
-      "pause": "Pause queue",
-      "options_title": "Pipeline settings",
-      "no_options_hint": "No transcription options configured — enable auto transcription first."
+      "run": "转写 {{count}} 个文件",
+      "pause": "暂停队列",
+      "options_title": "流程设置",
+      "no_options_hint": "尚未配置转写选项——请先启用自动转写。"
     },
     "capacity": {
-      "storage_label": "Browser storage",
-      "storage_text": "{{used}} of {{quota}}",
-      "storage_note": "Models {{models}} cached + annotations {{annotations}}. Media is never written to storage.",
-      "storage_unavailable": "This browser does not report storage usage.",
-      "storage_breakdown_unavailable": "Storage breakdown unavailable until a pipeline is configured.",
-      "memory_label": "Working memory (est.)",
-      "memory_text": "{{used}} of ~{{budget}}",
-      "memory_note": "Decoded audio for {{count}} resident file(s). This, not storage, is what limits how much media you can hold at once."
+      "storage_label": "浏览器存储",
+      "storage_text": "已用 {{used}}，共 {{quota}}",
+      "storage_note": "估算：当前流程的模型约 {{models}} + 标注约 {{annotations}}。媒体文件不会写入存储。",
+      "storage_unavailable": "此浏览器不报告存储使用情况。",
+      "storage_breakdown_unavailable": "配置流程后才能显示存储明细。",
+      "memory_label": "工作内存（估算）",
+      "memory_text": "已用 {{used}}，约共 {{budget}}",
+      "memory_note": "{{count}} 个驻留文件的已解码音频。限制您能同时保留多少媒体的是它，而不是存储空间。"
     },
     "catalogue_export": {
-      "title": "Export catalogue",
-      "formats_label": "Formats",
-      "bundles_label": "{{count}} file(s) selected",
-      "all_bundles_hint": "No files checked — exporting all {{count}}.",
-      "export": "Export",
-      "cancel": "Cancel",
-      "progress": "Exporting {{current}} of {{total}}…",
-      "warnings_title": "Completed with warnings",
-      "done": "Done — {{count}} file(s) archived.",
-      "failed": "Export failed: {{message}}"
+      "title": "导出目录",
+      "formats_label": "格式",
+      "bundles_label": "已选择 {{count}} 个文件",
+      "all_bundles_hint": "未勾选任何文件——将导出全部 {{count}} 个。",
+      "export": "导出",
+      "cancel": "取消",
+      "progress": "正在导出第 {{current}} 个，共 {{total}} 个…",
+      "warnings_title": "已完成，但有警告",
+      "done": "完成——已归档 {{count}} 个文件。",
+      "failed": "导出失败：{{message}}"
     },
-    "dropzone_placeholder": "Drop audio files here, or click to browse. Several at once is fine.",
+    "dropzone_placeholder": "将音频文件拖放到此处，或点击浏览。可以一次放入多个。",
     "editor": {
-      "loading_audio": "Loading audio…",
-      "awaiting_media": "This file’s audio isn’t loaded in this session. Use “Attach file…” in the list to re-attach it."
+      "loading_audio": "正在加载音频…",
+      "awaiting_media": "此文件的音频未在本次会话中加载。请使用列表中的“关联文件…”重新关联。"
     },
     "empty": {
-      "title": "No files yet",
-      "text": "Drop one or more audio files on the left, or record directly. Every file gets its own transcript, and with Auto-transcribe switched on new files are transcribed automatically.",
-      "restored_title": "Welcome back",
-      "restored_text": "Your files from the last session are listed on the left. Re-attach a file’s audio with “Attach file…” to keep editing it, or drop new files."
+      "title": "还没有文件",
+      "text": "将一个或多个音频文件拖放到左侧，或直接录音。每个文件都有各自的转写；开启自动转写后，新文件会自动转写。",
+      "restored_title": "欢迎回来",
+      "restored_text": "上次会话的文件列在左侧。使用“关联文件…”重新关联文件的音频以继续编辑，或拖入新文件。"
     },
     "editor_header": {
       "mono": "单声道",
@@ -579,17 +602,17 @@
       "applied": "已将 {{file}} 载入 {{name}}。"
     },
     "pipeline": {
-      "on": "Auto-transcribe on",
-      "off": "Auto-transcribe off",
-      "off_detail": "New files are not transcribed automatically.",
-      "speakers_one": "1 speaker",
-      "speakers_other": "{{count}} speakers",
-      "speakers_auto": "Speakers: auto",
+      "on": "自动转写已开启",
+      "off": "自动转写已关闭",
+      "off_detail": "新文件不会自动转写。",
+      "speakers_one": "1 位说话人",
+      "speakers_other": "{{count}} 位说话人",
+      "speakers_auto": "说话人：自动",
       "translate_to": "→ {{language}}",
-      "edit": "Pipeline settings",
-      "dialog_title": "Pipeline settings",
-      "done": "Done",
-      "close": "Close"
+      "edit": "流程设置",
+      "dialog_title": "流程设置",
+      "done": "完成",
+      "close": "关闭"
     }
   }
 }

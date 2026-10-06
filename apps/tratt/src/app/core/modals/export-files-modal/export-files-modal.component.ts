@@ -423,14 +423,6 @@ export class ExportFilesModalComponent extends TrattModal implements OnInit {
     }
   }
 
-  readonly categoryLabels: Record<ExportCategory, string> = {
-    general:
-      'General output formats (Only SRT support re-uploading to this app when you want to continue your work)',
-    linguistic: 'Linguistic formats (All support re-uploading to this app)',
-    specialist:
-      'Specialist technical formats (All support re-uploading to this app)',
-  };
-
   readonly categoryOrder: ExportCategory[] = [
     'general',
     'linguistic',

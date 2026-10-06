@@ -7,15 +7,17 @@ import {
   OnDestroy,
   ViewChild,
 } from '@angular/core';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 @Component({
   selector: 'tratt-vu-meter',
   standalone: true,
+  imports: [TranslocoPipe],
   template: `<canvas
     #cv
     [width]="width"
     [height]="height"
-    [attr.aria-label]="'Recording level meter'"
+    [attr.aria-label]="'recording.level meter' | transloco"
   ></canvas>`,
   styles: [':host { display: inline-block; line-height: 0; }'],
   changeDetection: ChangeDetectionStrategy.OnPush,

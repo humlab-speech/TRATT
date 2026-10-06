@@ -383,12 +383,13 @@ export class PipelineRunnerService {
       if (this._activeStage !== 'translation') {
         return;
       }
-      const message =
+      const message = this.transloco.translate(
         phase === 'initializing'
-          ? 'Model load stalled. Try refreshing the page.'
+          ? 'login.translation.stall init'
           : phase === 'translating'
-            ? 'Translation stalled — no progress for 60 seconds. Cancel and retry.'
-            : 'Download stalled — likely a browser storage limit. Cancel and retry with "Skip browser cache" enabled.';
+            ? 'login.translation.stall translating'
+            : 'login.translation.stall download',
+      );
       subscriber.next({ stage: 'pipeline', type: 'stalled', phase, message });
     }, budget);
   }

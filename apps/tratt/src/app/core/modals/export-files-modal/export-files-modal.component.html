@@ -28,7 +28,7 @@
       <tbody>
         @for (cat of categoryOrder; track cat) {
           <tr class="category-header">
-            <td colspan="4">{{ categoryLabels[cat] }}</td>
+            <td colspan="4">{{ 'export.category ' + cat | transloco }}</td>
           </tr>
           @for (item of convertersByCategory.get(cat)!; track item.index) {
             <tr class="top-tr">

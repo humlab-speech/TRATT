@@ -36,7 +36,16 @@
     }
   },
   "dropzone": {
-    "file selected": "{{file_label}} geselecteerd"
+    "file selected": "{{file_label}} geselecteerd",
+    "delete file": "Bestand verwijderen",
+    "open import options": "Importopties openen",
+    "file format not supported": "Bestandsformaat wordt niet ondersteund.",
+    "file names not same": "De bestandsnaam van het transcript komt niet overeen met die van het audiobestand.",
+    "file too large": "Het bestand overschrijdt de maximaal toegestane grootte van {{maxSize}} MB.",
+    "invalid file type": "Dit bestandstype wordt niet ondersteund.",
+    "validation error": "Validatiefout",
+    "validation warning": "Validatiewaarschuwing",
+    "waiting for audio": "Wachten op audiobestand – zet ook een audiobestand neer"
   },
   "recording": {
     "title": "Direct in browser opnemen",
@@ -87,7 +96,8 @@
       "request access": "Toegang aanvragen",
       "selection cleared": "Geselecteerd apparaat losgekoppeld — standaard wordt gebruikt.",
       "default": "Systeemstandaard"
-    }
+    },
+    "level meter": "Niveaumeter van de opname"
   },
   "export": {
     "meta data": {
@@ -98,7 +108,10 @@
       "add timestamps": "Scheid transcriptie-eenheden op leesbare tijdstempels (HH:MM:SS.s)",
       "mark speaker id": "Sprekers-ID aan het begin van zinnen markeren",
       "timestamp notice": "Als u beide opties aanvinkt, worden beide tijdformaten ingevoegd:"
-    }
+    },
+    "category general": "Algemene uitvoerformaten (alleen SRT kan opnieuw in deze app worden geüpload als je je werk wilt voortzetten)",
+    "category linguistic": "Taalkundige formaten (alle kunnen opnieuw in deze app worden geüpload)",
+    "category specialist": "Gespecialiseerde technische formaten (alle kunnen opnieuw in deze app worden geüpload)"
   },
   "feedback": {
     "a lot of noises": "signaal met veel ruis",
@@ -250,7 +263,10 @@
         "initializing": "Loading model — this can take up to a minute…",
         "translating": "Translating segments…",
         "finalizing": "Translation complete — preparing editor…"
-      }
+      },
+      "stall init": "Het laden van het model is vastgelopen. Probeer de pagina te vernieuwen.",
+      "stall translating": "De vertaling is vastgelopen – al 60 seconden geen voortgang. Annuleer en probeer opnieuw.",
+      "stall download": "De download is vastgelopen – waarschijnlijk een opslaglimiet van de browser. Annuleer en probeer opnieuw met “Browsercache overslaan” ingeschakeld."
     },
     "auto-transcription": {
       "downloading model": "Model wordt gedownload…",
@@ -307,7 +323,13 @@
       "finnish fine-tuned hint": "Fins gebruikt een model dat geoptimaliseerd is voor Finse spraak.",
       "norwegian fine-tuned hint": "Noors gebruikt een model dat geoptimaliseerd is voor Noorse spraak.",
       "diarizingLabel": "Spreker identificatie…",
-      "initializing speaker segmentation": "Sprekerherkenningsmodel wordt geladen"
+      "initializing speaker segmentation": "Sprekerherkenningsmodel wordt geladen",
+      "diarization failed": "Sprekerscheiding mislukt: {{message}}",
+      "speaker count auto": "Automatisch",
+      "speaker count help": "Stel in op 2 voor een typisch interview. Laat leeg voor automatische detectie.",
+      "speaker count label": "Verwacht aantal sprekers",
+      "speaker separation help": "Draait lokaal in je browser en kan de verwerkingstijd verlengen.",
+      "speaker separation label": "Sprekerscheiding"
     },
     "app description": "TRATT is een gratis webapplicatie voor transcriptie van spraakopnamen in platte tekst (orthografisch). Het beschikt over drie verschillende editors die tegemoetkomen aan uiteenlopende behoeften bij het transcriberen, en u kunt er tijdens een sessie vrij tussen wisselen.",
     "funding support and development": "Financiers en samenwerkingen",
@@ -398,7 +420,8 @@
     }
   },
   "p": {
-    "language selector label": "Taal waarin deze pagina wordt weergegeven"
+    "language selector label": "Taal waarin deze pagina wordt weergegeven",
+    "language selector short label": "Taal: "
   },
   "reload-file": {
     "another file selected": "Een ander bestand geselecteerd. Selecteer hetzelfde bestand als voorheen of start een nieuwe transcriptie. Gezocht: '{{file}}'",
@@ -486,80 +509,80 @@
     "tagline": "transcriptie van spraak naar tekst"
   },
   "workbench": {
-    "start session": "Start session",
+    "start session": "Sessie starten",
     "tabs": {
-      "upload": "Upload file",
-      "record": "Record now"
+      "upload": "Bestand uploaden",
+      "record": "Nu opnemen"
     },
     "bundle_list": {
-      "title": "Files",
-      "reattach": "Attach file…",
-      "select_all": "Select all",
-      "clear_finished": "Clear finished",
-      "remove": "Remove",
-      "export_catalogue": "Export all",
-      "retry": "Retry",
+      "title": "Bestanden",
+      "reattach": "Bestand koppelen…",
+      "select_all": "Alles selecteren",
+      "clear_finished": "Voltooide wissen",
+      "remove": "Verwijderen",
+      "export_catalogue": "Alles exporteren",
+      "retry": "Opnieuw proberen",
       "status": {
-        "queued": "Queued",
-        "running": "Running",
-        "done": "Done",
-        "failed": "Failed",
-        "interrupted": "Interrupted"
+        "queued": "In wachtrij",
+        "running": "Bezig",
+        "done": "Klaar",
+        "failed": "Mislukt",
+        "interrupted": "Onderbroken"
       },
       "error": {
-        "decode": "Could not read the audio",
-        "model-load": "Could not load the model",
-        "oom": "Ran out of memory",
-        "cancelled": "Cancelled",
-        "unknown": "Failed"
+        "decode": "Kan de audio niet lezen",
+        "model-load": "Kan het model niet laden",
+        "oom": "Onvoldoende geheugen",
+        "cancelled": "Geannuleerd",
+        "unknown": "Mislukt"
       },
-      "cancel": "Stop transcribing this file",
+      "cancel": "Transcriberen van dit bestand stoppen",
       "stage": {
-        "decode": "Preparing",
-        "download": "Loading model",
-        "asr": "Transcribing",
-        "diarization": "Separating speakers",
-        "translation": "Translating"
+        "decode": "Voorbereiden",
+        "download": "Model laden",
+        "asr": "Transcriberen",
+        "diarization": "Sprekers scheiden",
+        "translation": "Vertalen"
       }
     },
     "queue": {
-      "run": "Transcribe {{count}} file(s)",
-      "pause": "Pause queue",
-      "options_title": "Pipeline settings",
-      "no_options_hint": "No transcription options configured — enable auto transcription first."
+      "run": "{{count}} bestand(en) transcriberen",
+      "pause": "Wachtrij pauzeren",
+      "options_title": "Pipeline-instellingen",
+      "no_options_hint": "Geen transcriptieopties ingesteld – schakel eerst automatische transcriptie in."
     },
     "capacity": {
-      "storage_label": "Browser storage",
-      "storage_text": "{{used}} of {{quota}}",
-      "storage_note": "Models {{models}} cached + annotations {{annotations}}. Media is never written to storage.",
-      "storage_unavailable": "This browser does not report storage usage.",
-      "storage_breakdown_unavailable": "Storage breakdown unavailable until a pipeline is configured.",
-      "memory_label": "Working memory (est.)",
-      "memory_text": "{{used}} of ~{{budget}}",
-      "memory_note": "Decoded audio for {{count}} resident file(s). This, not storage, is what limits how much media you can hold at once."
+      "storage_label": "Browseropslag",
+      "storage_text": "{{used}} van {{quota}}",
+      "storage_note": "Schatting: modellen ca. {{models}} voor de huidige pipeline + annotaties ca. {{annotations}}. Media worden nooit in de opslag geschreven.",
+      "storage_unavailable": "Deze browser meldt het opslaggebruik niet.",
+      "storage_breakdown_unavailable": "De opslagverdeling is pas beschikbaar als een pipeline is ingesteld.",
+      "memory_label": "Werkgeheugen (geschat)",
+      "memory_text": "{{used}} van ca. {{budget}}",
+      "memory_note": "Gedecodeerde audio voor {{count}} geladen bestand(en). Dit, en niet de opslag, bepaalt hoeveel media je tegelijk kunt vasthouden."
     },
     "catalogue_export": {
-      "title": "Export catalogue",
-      "formats_label": "Formats",
-      "bundles_label": "{{count}} file(s) selected",
-      "all_bundles_hint": "No files checked — exporting all {{count}}.",
-      "export": "Export",
-      "cancel": "Cancel",
-      "progress": "Exporting {{current}} of {{total}}…",
-      "warnings_title": "Completed with warnings",
-      "done": "Done — {{count}} file(s) archived.",
-      "failed": "Export failed: {{message}}"
+      "title": "Catalogus exporteren",
+      "formats_label": "Formaten",
+      "bundles_label": "{{count}} bestand(en) geselecteerd",
+      "all_bundles_hint": "Geen bestanden aangevinkt – alle {{count}} worden geëxporteerd.",
+      "export": "Exporteren",
+      "cancel": "Annuleren",
+      "progress": "{{current}} van {{total}} exporteren…",
+      "warnings_title": "Voltooid met waarschuwingen",
+      "done": "Klaar – {{count}} bestand(en) gearchiveerd.",
+      "failed": "Export mislukt: {{message}}"
     },
-    "dropzone_placeholder": "Drop audio files here, or click to browse. Several at once is fine.",
+    "dropzone_placeholder": "Zet audiobestanden hier neer of klik om te bladeren. Meerdere tegelijk is prima.",
     "editor": {
-      "loading_audio": "Loading audio…",
-      "awaiting_media": "This file’s audio isn’t loaded in this session. Use “Attach file…” in the list to re-attach it."
+      "loading_audio": "Audio laden…",
+      "awaiting_media": "De audio van dit bestand is in deze sessie niet geladen. Gebruik “Bestand koppelen…” in de lijst om het opnieuw te koppelen."
     },
     "empty": {
-      "title": "No files yet",
-      "text": "Drop one or more audio files on the left, or record directly. Every file gets its own transcript, and with Auto-transcribe switched on new files are transcribed automatically.",
-      "restored_title": "Welcome back",
-      "restored_text": "Your files from the last session are listed on the left. Re-attach a file’s audio with “Attach file…” to keep editing it, or drop new files."
+      "title": "Nog geen bestanden",
+      "text": "Zet links een of meer audiobestanden neer, of neem direct op. Elk bestand krijgt een eigen transcript en met automatische transcriptie ingeschakeld worden nieuwe bestanden automatisch getranscribeerd.",
+      "restored_title": "Welkom terug",
+      "restored_text": "Je bestanden van de vorige sessie staan links in de lijst. Koppel de audio van een bestand opnieuw met “Bestand koppelen…” om verder te bewerken, of zet nieuwe bestanden neer."
     },
     "editor_header": {
       "mono": "mono",
@@ -579,17 +602,17 @@
       "applied": "{{file}} geladen in {{name}}."
     },
     "pipeline": {
-      "on": "Auto-transcribe on",
-      "off": "Auto-transcribe off",
-      "off_detail": "New files are not transcribed automatically.",
-      "speakers_one": "1 speaker",
-      "speakers_other": "{{count}} speakers",
-      "speakers_auto": "Speakers: auto",
+      "on": "Automatisch transcriberen aan",
+      "off": "Automatisch transcriberen uit",
+      "off_detail": "Nieuwe bestanden worden niet automatisch getranscribeerd.",
+      "speakers_one": "1 spreker",
+      "speakers_other": "{{count}} sprekers",
+      "speakers_auto": "Sprekers: automatisch",
       "translate_to": "→ {{language}}",
-      "edit": "Pipeline settings",
-      "dialog_title": "Pipeline settings",
-      "done": "Done",
-      "close": "Close"
+      "edit": "Pipeline-instellingen",
+      "dialog_title": "Pipeline-instellingen",
+      "done": "Klaar",
+      "close": "Sluiten"
     }
   }
 }

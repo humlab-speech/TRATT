@@ -82,7 +82,9 @@
     "invalid file type": "This file type is not supported.",
     "file format not supported": "File format not supported.",
     "file names not same": "Transcript filename does not match the audio filename.",
-    "file too large": "File exceeds the maximum allowed size of {{maxSize}} MB."
+    "file too large": "File exceeds the maximum allowed size of {{maxSize}} MB.",
+    "delete file": "Delete file",
+    "open import options": "Open import options"
   },
   "recording": {
     "title": "Record directly in browser",
@@ -133,7 +135,8 @@
       "title": "Unsaved recording",
       "body": "You have a recording that has not been exported yet. If you leave now, the recording will be lost.",
       "leave": "Leave without exporting"
-    }
+    },
+    "level meter": "Recording level meter"
   },
   "export": {
     "meta data": {
@@ -145,7 +148,10 @@
       "add timestamps": "Separate transcription units by readable timestamps (HH:MM:SS.s)",
       "mark speaker id": "Mark speaker ID at the beginning of sentences",
       "timestamp notice": "If you check both options, both time formats will be inserted:"
-    }
+    },
+    "category general": "General output formats (only SRT supports re-uploading to this app when you want to continue your work)",
+    "category linguistic": "Linguistic formats (all support re-uploading to this app)",
+    "category specialist": "Specialist technical formats (all support re-uploading to this app)"
   },
   "feedback": {
     "a lot of noises": "very noisy signal",
@@ -350,7 +356,10 @@
         "initializing": "Loading model — this can take up to a minute…",
         "translating": "Translating segments…",
         "finalizing": "Translation complete — preparing editor…"
-      }
+      },
+      "stall init": "Model load stalled. Try refreshing the page.",
+      "stall translating": "Translation stalled — no progress for 60 seconds. Cancel and retry.",
+      "stall download": "Download stalled — likely a browser storage limit. Cancel and retry with “Skip browser cache” enabled."
     },
     "auto-transcription": {
       "downloading model": "Downloading model…",
@@ -835,7 +844,7 @@
     "capacity": {
       "storage_label": "Browser storage",
       "storage_text": "{{used}} of {{quota}}",
-      "storage_note": "Models {{models}} cached + annotations {{annotations}}. Media is never written to storage.",
+      "storage_note": "Estimate: models ~{{models}} for the current pipeline + annotations ~{{annotations}}. Media is never written to storage.",
       "storage_unavailable": "This browser does not report storage usage.",
       "storage_breakdown_unavailable": "Storage breakdown unavailable until a pipeline is configured.",
       "memory_label": "Working memory (est.)",

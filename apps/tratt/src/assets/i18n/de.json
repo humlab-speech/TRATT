@@ -75,7 +75,16 @@
   },
   "dropzone": {
     "drag&drop here": "Eine Audiodatei + eine Transkript Datei (optional) hier hineinziehen oder hier klicken.",
-    "file selected": "{{file_label}} ausgewählt"
+    "file selected": "{{file_label}} ausgewählt",
+    "delete file": "Datei löschen",
+    "open import options": "Importoptionen öffnen",
+    "file format not supported": "Dateiformat wird nicht unterstützt.",
+    "file names not same": "Der Dateiname des Transkripts stimmt nicht mit dem der Audiodatei überein.",
+    "file too large": "Die Datei überschreitet die maximal zulässige Größe von {{maxSize}} MB.",
+    "invalid file type": "Dieser Dateityp wird nicht unterstützt.",
+    "validation error": "Validierungsfehler",
+    "validation warning": "Validierungswarnung",
+    "waiting for audio": "Warte auf Audiodatei – bitte legen Sie auch eine Audiodatei ab"
   },
   "recording": {
     "title": "Direkt im Browser aufnehmen",
@@ -126,7 +135,8 @@
       "request access": "Zugriff anfordern",
       "selection cleared": "Ausgewähltes Gerät wurde getrennt – verwende Standard.",
       "default": "Systemstandard"
-    }
+    },
+    "level meter": "Pegelanzeige der Aufnahme"
   },
   "export": {
     "meta data": {
@@ -138,7 +148,10 @@
       "add timestamps": "Trenne Transkriptionseinheiten durch Zeitstempel im lesbaren Format (HH:MM:SS.s)",
       "mark speaker id": "Sprecher-ID am Anfang von Sätzen markieren",
       "timestamp notice": "Wenn Du beide Optionen aktivierst, werden beide Formate eingefügt:"
-    }
+    },
+    "category general": "Allgemeine Ausgabeformate (nur SRT kann wieder in diese App hochgeladen werden, wenn Sie Ihre Arbeit fortsetzen möchten)",
+    "category linguistic": "Linguistische Formate (alle können wieder in diese App hochgeladen werden)",
+    "category specialist": "Spezielle technische Formate (alle können wieder in diese App hochgeladen werden)"
   },
   "feedback": {
     "a lot of noises": "viele Störgeräusche",
@@ -336,7 +349,10 @@
         "initializing": "Modell wird initialisiert — das kann bis zu einer Minute dauern…",
         "translating": "Segmente werden übersetzt…",
         "finalizing": "Übersetzung abgeschlossen — Editor wird vorbereitet…"
-      }
+      },
+      "stall init": "Das Laden des Modells hängt. Versuchen Sie, die Seite neu zu laden.",
+      "stall translating": "Die Übersetzung hängt – seit 60 Sekunden kein Fortschritt. Abbrechen und erneut versuchen.",
+      "stall download": "Der Download hängt – wahrscheinlich ein Speicherlimit des Browsers. Abbrechen und mit aktivierter Option „Browser-Cache überspringen“ erneut versuchen."
     },
     "auto-transcription": {
       "downloading model": "Modell wird heruntergeladen…",
@@ -393,7 +409,13 @@
       "language label": "Transkriptionssprache",
       "swedish kb-whisper hint": "Schwedisch verwendet KB-Whisper, optimiert für schwedische Sprache.",
       "finnish fine-tuned hint": "Für Finnisch wird ein für finnische Sprache optimiertes Modell verwendet.",
-      "norwegian fine-tuned hint": "Für Norwegisch wird ein für norwegische Sprache optimiertes Modell verwendet."
+      "norwegian fine-tuned hint": "Für Norwegisch wird ein für norwegische Sprache optimiertes Modell verwendet.",
+      "diarization failed": "Sprechertrennung fehlgeschlagen: {{message}}",
+      "speaker count auto": "Automatisch",
+      "speaker count help": "Für ein typisches Interview auf 2 setzen. Für automatische Erkennung leer lassen.",
+      "speaker count label": "Erwartete Anzahl an Sprechern",
+      "speaker separation help": "Läuft lokal in Ihrem Browser und kann die Verarbeitungszeit verlängern.",
+      "speaker separation label": "Sprechertrennung"
     },
     "app description": "TRATT ist eine kostenlose Web-Anwendung für die Klartexttranskription (Orthografie) von Sprachaufnahmen. Sie bietet drei verschiedene Editoren für unterschiedliche Bedürfnisse beim Transkribieren, und Sie können während einer Sitzung frei zwischen ihnen wechseln.",
     "funding support and development": "Förderer und Kooperationen",
@@ -571,7 +593,8 @@
     "selected level": "Ausgewähltes level",
     "send email": "E-Mail senden",
     "sign up": "Neu registrieren",
-    "username or email": "Nutzername oder E-Mail"
+    "username or email": "Nutzername oder E-Mail",
+    "language selector short label": "Sprache: "
   },
   "projects-list": {
     "introduction": "Wähle ein Projekt, für das Du transkribieren möchtest und klicke auf \"START\".",
@@ -704,84 +727,84 @@
     "tagline": "Transkription von Sprache zu Text"
   },
   "workbench": {
-    "start session": "Start session",
+    "start session": "Sitzung starten",
     "tabs": {
-      "upload": "Upload file",
-      "record": "Record now"
+      "upload": "Datei hochladen",
+      "record": "Jetzt aufnehmen"
     },
     "bundle_list": {
-      "title": "Files",
-      "reattach": "Attach file…",
-      "select_all": "Select all",
-      "clear_finished": "Clear finished",
-      "remove": "Remove",
-      "export_catalogue": "Export all",
-      "retry": "Retry",
+      "title": "Dateien",
+      "reattach": "Datei anhängen…",
+      "select_all": "Alle auswählen",
+      "clear_finished": "Fertige entfernen",
+      "remove": "Entfernen",
+      "export_catalogue": "Alle exportieren",
+      "retry": "Erneut versuchen",
       "status": {
-        "queued": "Queued",
-        "running": "Running",
-        "done": "Done",
-        "failed": "Failed",
-        "interrupted": "Interrupted"
+        "queued": "In Warteschlange",
+        "running": "Läuft",
+        "done": "Fertig",
+        "failed": "Fehlgeschlagen",
+        "interrupted": "Unterbrochen"
       },
       "error": {
-        "decode": "Could not read the audio",
-        "model-load": "Could not load the model",
-        "oom": "Ran out of memory",
-        "cancelled": "Cancelled",
-        "unknown": "Failed"
+        "decode": "Audio konnte nicht gelesen werden",
+        "model-load": "Modell konnte nicht geladen werden",
+        "oom": "Nicht genügend Arbeitsspeicher",
+        "cancelled": "Abgebrochen",
+        "unknown": "Fehlgeschlagen"
       },
-      "cancel": "Stop transcribing this file",
+      "cancel": "Transkription dieser Datei stoppen",
       "stage": {
-        "decode": "Preparing",
-        "download": "Loading model",
-        "asr": "Transcribing",
-        "diarization": "Separating speakers",
-        "translation": "Translating"
+        "decode": "Vorbereitung",
+        "download": "Modell wird geladen",
+        "asr": "Transkription",
+        "diarization": "Sprechertrennung",
+        "translation": "Übersetzung"
       }
     },
     "queue": {
-      "run": "Transcribe {{count}} file(s)",
-      "pause": "Pause queue",
-      "options_title": "Pipeline settings",
+      "run": "{{count}} Datei(en) transkribieren",
+      "pause": "Warteschlange pausieren",
+      "options_title": "Pipeline-Einstellungen",
       "no_options_hint": "Keine Transkriptionsoptionen festgelegt — aktivieren Sie zuerst die automatische Transkription."
     },
     "capacity": {
-      "storage_label": "Browser storage",
-      "storage_text": "{{used}} of {{quota}}",
-      "storage_note": "Models {{models}} cached + annotations {{annotations}}. Media is never written to storage.",
-      "storage_unavailable": "This browser does not report storage usage.",
-      "storage_breakdown_unavailable": "Storage breakdown unavailable until a pipeline is configured.",
-      "memory_label": "Working memory (est.)",
-      "memory_text": "{{used}} of ~{{budget}}",
-      "memory_note": "Decoded audio for {{count}} resident file(s). This, not storage, is what limits how much media you can hold at once."
+      "storage_label": "Browser-Speicher",
+      "storage_text": "{{used}} von {{quota}}",
+      "storage_note": "Schätzung: Modelle ca. {{models}} für die aktuelle Pipeline + Annotationen ca. {{annotations}}. Medien werden nie im Speicher abgelegt.",
+      "storage_unavailable": "Dieser Browser meldet keine Speichernutzung.",
+      "storage_breakdown_unavailable": "Die Speicheraufschlüsselung ist erst verfügbar, wenn eine Pipeline konfiguriert ist.",
+      "memory_label": "Arbeitsspeicher (geschätzt)",
+      "memory_text": "{{used}} von ca. {{budget}}",
+      "memory_note": "Dekodiertes Audio für {{count}} geladene Datei(en). Dieser Wert, nicht der Speicher, begrenzt, wie viele Medien Sie gleichzeitig halten können."
     },
     "catalogue_export": {
-      "title": "Export catalogue",
-      "formats_label": "Formats",
-      "bundles_label": "{{count}} file(s) selected",
-      "all_bundles_hint": "No files checked — exporting all {{count}}.",
-      "export": "Export",
-      "cancel": "Cancel",
-      "progress": "Exporting {{current}} of {{total}}…",
-      "warnings_title": "Completed with warnings",
-      "done": "Done — {{count}} file(s) archived.",
-      "failed": "Export failed: {{message}}"
+      "title": "Katalog exportieren",
+      "formats_label": "Formate",
+      "bundles_label": "{{count}} Datei(en) ausgewählt",
+      "all_bundles_hint": "Keine Dateien markiert – alle {{count}} werden exportiert.",
+      "export": "Exportieren",
+      "cancel": "Abbrechen",
+      "progress": "Exportiere {{current}} von {{total}}…",
+      "warnings_title": "Mit Warnungen abgeschlossen",
+      "done": "Fertig – {{count}} Datei(en) archiviert.",
+      "failed": "Export fehlgeschlagen: {{message}}"
     },
-    "dropzone_placeholder": "Drop audio files here, or click to browse. Several at once is fine.",
+    "dropzone_placeholder": "Audiodateien hier ablegen oder zum Durchsuchen klicken. Mehrere gleichzeitig sind möglich.",
     "editor": {
-      "loading_audio": "Loading audio…",
-      "awaiting_media": "This file’s audio isn’t loaded in this session. Use “Attach file…” in the list to re-attach it."
+      "loading_audio": "Audio wird geladen…",
+      "awaiting_media": "Das Audio dieser Datei ist in dieser Sitzung nicht geladen. Verwenden Sie „Datei anhängen…“ in der Liste, um es erneut anzuhängen."
     },
     "empty": {
-      "title": "No files yet",
-      "text": "Drop one or more audio files on the left, or record directly. Every file gets its own transcript, and with Auto-transcribe switched on new files are transcribed automatically.",
-      "restored_title": "Welcome back",
-      "restored_text": "Your files from the last session are listed on the left. Re-attach a file’s audio with “Attach file…” to keep editing it, or drop new files."
+      "title": "Noch keine Dateien",
+      "text": "Legen Sie links eine oder mehrere Audiodateien ab oder nehmen Sie direkt auf. Jede Datei erhält ein eigenes Transkript, und bei aktivierter automatischer Transkription werden neue Dateien automatisch transkribiert.",
+      "restored_title": "Willkommen zurück",
+      "restored_text": "Ihre Dateien aus der letzten Sitzung sind links aufgelistet. Hängen Sie das Audio einer Datei mit „Datei anhängen…“ wieder an, um sie weiter zu bearbeiten, oder legen Sie neue Dateien ab."
     },
     "editor_header": {
-      "mono": "mono",
-      "stereo": "stereo",
+      "mono": "Mono",
+      "stereo": "Stereo",
       "export": "Diese Transkription exportieren",
       "export_unavailable": "Noch nichts zu exportieren: Diese Datei hat keine Transkription und ihr Audio ist nicht angehängt.",
       "audio_not_attached": "Audio nicht angehängt"
@@ -797,17 +820,17 @@
       "applied": "{{file}} wurde in {{name}} geladen."
     },
     "pipeline": {
-      "on": "Auto-transcribe on",
-      "off": "Auto-transcribe off",
-      "off_detail": "New files are not transcribed automatically.",
-      "speakers_one": "1 speaker",
-      "speakers_other": "{{count}} speakers",
-      "speakers_auto": "Speakers: auto",
+      "on": "Automatische Transkription an",
+      "off": "Automatische Transkription aus",
+      "off_detail": "Neue Dateien werden nicht automatisch transkribiert.",
+      "speakers_one": "1 Sprecher",
+      "speakers_other": "{{count}} Sprecher",
+      "speakers_auto": "Sprecher: automatisch",
       "translate_to": "→ {{language}}",
-      "edit": "Pipeline settings",
-      "dialog_title": "Pipeline settings",
-      "done": "Done",
-      "close": "Close"
+      "edit": "Pipeline-Einstellungen",
+      "dialog_title": "Pipeline-Einstellungen",
+      "done": "Fertig",
+      "close": "Schließen"
     }
   }
 }

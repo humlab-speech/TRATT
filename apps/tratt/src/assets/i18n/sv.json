@@ -82,7 +82,9 @@
     "invalid file type": "Den här filtypen stöds inte.",
     "file format not supported": "Filformatet stöds inte.",
     "file names not same": "Transkriptfilens namn matchar inte ljudfilens namn.",
-    "file too large": "Filen överskrider den maximalt tillåtna storleken på {{maxSize}} MB."
+    "file too large": "Filen överskrider den maximalt tillåtna storleken på {{maxSize}} MB.",
+    "delete file": "Ta bort fil",
+    "open import options": "Öppna importalternativ"
   },
   "recording": {
     "title": "Spela in direkt i webbläsaren",
@@ -133,7 +135,8 @@
       "request access": "Begär åtkomst",
       "selection cleared": "Vald enhet kopplades bort — använder standard.",
       "default": "Systemstandard"
-    }
+    },
+    "level meter": "Nivåmätare för inspelning"
   },
   "export": {
     "meta data": {
@@ -145,7 +148,10 @@
       "add timestamps": "Separera transkriptionsenheter med läsbara tidsstämplar (HH:MM:SS.s)",
       "mark speaker id": "Markera talar-ID i början av meningar",
       "timestamp notice": "Om du markerar båda alternativen kommer båda tidsformaten att infogas:"
-    }
+    },
+    "category general": "Allmänna utdataformat (endast SRT kan laddas upp igen i den här appen när du vill fortsätta ditt arbete)",
+    "category linguistic": "Språkvetenskapliga format (alla kan laddas upp igen i den här appen)",
+    "category specialist": "Specialiserade tekniska format (alla kan laddas upp igen i den här appen)"
   },
   "feedback": {
     "a lot of noises": "mycket bullrig signal",
@@ -344,7 +350,10 @@
         "initializing": "Initierar modell — kan ta upp till en minut…",
         "translating": "Översätter segment…",
         "finalizing": "Översättningen klar — förbereder editorn…"
-      }
+      },
+      "stall init": "Modellen har fastnat vid inläsning. Försök uppdatera sidan.",
+      "stall translating": "Översättningen har stannat – inga framsteg på 60 sekunder. Avbryt och försök igen.",
+      "stall download": "Nedladdningen har stannat – troligen en lagringsgräns i webbläsaren. Avbryt och försök igen med ”Hoppa över webbläsarcache” aktiverat."
     },
     "auto-transcription": {
       "downloading model": "Laddar ned modell…",
@@ -783,7 +792,7 @@
     "capacity": {
       "storage_label": "Webbläsarlagring",
       "storage_text": "{{used}} av {{quota}}",
-      "storage_note": "Modeller {{models}} cachade + annotationer {{annotations}}. Media skrivs aldrig till lagringen.",
+      "storage_note": "Uppskattning: modeller ca {{models}} för nuvarande pipeline + annoteringar ca {{annotations}}. Media skrivs aldrig till lagringen.",
       "storage_unavailable": "Den här webbläsaren rapporterar inte lagringsanvändning.",
       "storage_breakdown_unavailable": "Lagringsfördelning otillgänglig tills en pipeline är konfigurerad.",
       "memory_label": "Arbetsminne (uppskattat)",

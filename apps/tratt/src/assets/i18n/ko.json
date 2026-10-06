@@ -36,7 +36,16 @@
     }
   },
   "dropzone": {
-    "file selected": "{{file_label}} 선택됨"
+    "file selected": "{{file_label}} 선택됨",
+    "delete file": "파일 삭제",
+    "open import options": "가져오기 옵션 열기",
+    "file format not supported": "지원되지 않는 파일 형식입니다.",
+    "file names not same": "전사 파일 이름이 오디오 파일 이름과 일치하지 않습니다.",
+    "file too large": "파일이 허용된 최대 크기 {{maxSize}} MB를 초과합니다.",
+    "invalid file type": "이 파일 형식은 지원되지 않습니다.",
+    "validation error": "검증 오류",
+    "validation warning": "검증 경고",
+    "waiting for audio": "오디오 파일을 기다리는 중입니다. 오디오 파일도 함께 놓아 주세요"
   },
   "recording": {
     "title": "브라우저에서 직접 녹음",
@@ -87,7 +96,8 @@
       "request access": "접근 요청",
       "selection cleared": "선택한 장치 연결 해제됨 — 기본값을 사용합니다.",
       "default": "시스템 기본값"
-    }
+    },
+    "level meter": "녹음 레벨 미터"
   },
   "export": {
     "meta data": {
@@ -98,7 +108,10 @@
       "add timestamps": "판독 가능한 타임스탬프로 전사 단위를 구분합니다(HH:MM:SS.s)",
       "mark speaker id": "문장 시작 부분에 화자 ID 표시",
       "timestamp notice": "두 옵션을 모두 선택하면 두 시간 형식이 모두 삽입됩니다."
-    }
+    },
+    "category general": "일반 출력 형식 (작업을 이어서 하려는 경우 SRT만 이 앱에 다시 업로드할 수 있습니다)",
+    "category linguistic": "언어학 형식 (모두 이 앱에 다시 업로드할 수 있습니다)",
+    "category specialist": "전문 기술 형식 (모두 이 앱에 다시 업로드할 수 있습니다)"
   },
   "feedback": {
     "a lot of noises": "노이즈가 심한 신호",
@@ -250,7 +263,10 @@
         "initializing": "Loading model — this can take up to a minute…",
         "translating": "Translating segments…",
         "finalizing": "Translation complete — preparing editor…"
-      }
+      },
+      "stall init": "모델 로드가 멈췄습니다. 페이지를 새로고침해 보세요.",
+      "stall translating": "번역이 멈췄습니다. 60초 동안 진행되지 않았습니다. 취소한 후 다시 시도하세요.",
+      "stall download": "다운로드가 멈췄습니다. 브라우저 저장 공간 제한 때문일 수 있습니다. 취소한 후 “브라우저 캐시 건너뛰기”를 켜고 다시 시도하세요."
     },
     "auto-transcription": {
       "downloading model": "모델 다운로드 중…",
@@ -307,7 +323,13 @@
       "finnish fine-tuned hint": "핀란드어는 핀란드어 음성에 최적화된 모델을 사용합니다.",
       "norwegian fine-tuned hint": "노르웨이어는 노르웨이어 음성에 최적화된 모델을 사용합니다.",
       "diarizingLabel": "화자 식별 중…",
-      "initializing speaker segmentation": "화자 세분화 모델 로드 중"
+      "initializing speaker segmentation": "화자 세분화 모델 로드 중",
+      "diarization failed": "화자 분리에 실패했습니다: {{message}}",
+      "speaker count auto": "자동",
+      "speaker count help": "일반적인 인터뷰는 2로 설정하세요. 자동 감지하려면 비워 두세요.",
+      "speaker count label": "예상 화자 수",
+      "speaker separation help": "브라우저에서 로컬로 실행되며 처리 시간이 늘어날 수 있습니다.",
+      "speaker separation label": "화자 분리"
     },
     "app description": "TRATT는 음성 녹음을 일반 텍스트(정자법)로 전사하기 위한 무료 웹 애플리케이션입니다. 전사 시 다양한 요구에 맞는 세 가지 편집기를 제공하며, 세션 중에 자유롭게 전환할 수 있습니다.",
     "funding support and development": "후원자 및 협력",
@@ -398,7 +420,8 @@
     }
   },
   "p": {
-    "language selector label": "이 페이지가 표시되는 언어"
+    "language selector label": "이 페이지가 표시되는 언어",
+    "language selector short label": "언어: "
   },
   "reload-file": {
     "another file selected": "다른 파일을 선택했습니다. 이전과 동일한 파일을 선택하거나 새 기록을 시작하십시오. '{file}'을(를) 원합니다.",
@@ -486,80 +509,80 @@
     "tagline": "말을 텍스트로 전사"
   },
   "workbench": {
-    "start session": "Start session",
+    "start session": "세션 시작",
     "tabs": {
-      "upload": "Upload file",
-      "record": "Record now"
+      "upload": "파일 업로드",
+      "record": "지금 녹음"
     },
     "bundle_list": {
-      "title": "Files",
-      "reattach": "Attach file…",
-      "select_all": "Select all",
-      "clear_finished": "Clear finished",
-      "remove": "Remove",
-      "export_catalogue": "Export all",
-      "retry": "Retry",
+      "title": "파일",
+      "reattach": "파일 연결…",
+      "select_all": "모두 선택",
+      "clear_finished": "완료 항목 지우기",
+      "remove": "제거",
+      "export_catalogue": "모두 내보내기",
+      "retry": "다시 시도",
       "status": {
-        "queued": "Queued",
-        "running": "Running",
-        "done": "Done",
-        "failed": "Failed",
-        "interrupted": "Interrupted"
+        "queued": "대기 중",
+        "running": "실행 중",
+        "done": "완료",
+        "failed": "실패",
+        "interrupted": "중단됨"
       },
       "error": {
-        "decode": "Could not read the audio",
-        "model-load": "Could not load the model",
-        "oom": "Ran out of memory",
-        "cancelled": "Cancelled",
-        "unknown": "Failed"
+        "decode": "오디오를 읽을 수 없습니다",
+        "model-load": "모델을 불러올 수 없습니다",
+        "oom": "메모리가 부족합니다",
+        "cancelled": "취소됨",
+        "unknown": "실패"
       },
-      "cancel": "Stop transcribing this file",
+      "cancel": "이 파일 전사 중지",
       "stage": {
-        "decode": "Preparing",
-        "download": "Loading model",
-        "asr": "Transcribing",
-        "diarization": "Separating speakers",
-        "translation": "Translating"
+        "decode": "준비 중",
+        "download": "모델 불러오는 중",
+        "asr": "전사 중",
+        "diarization": "화자 분리 중",
+        "translation": "번역 중"
       }
     },
     "queue": {
-      "run": "Transcribe {{count}} file(s)",
-      "pause": "Pause queue",
-      "options_title": "Pipeline settings",
-      "no_options_hint": "No transcription options configured — enable auto transcription first."
+      "run": "파일 {{count}}개 전사",
+      "pause": "대기열 일시 중지",
+      "options_title": "파이프라인 설정",
+      "no_options_hint": "구성된 전사 옵션이 없습니다. 먼저 자동 전사를 켜세요."
     },
     "capacity": {
-      "storage_label": "Browser storage",
-      "storage_text": "{{used}} of {{quota}}",
-      "storage_note": "Models {{models}} cached + annotations {{annotations}}. Media is never written to storage.",
-      "storage_unavailable": "This browser does not report storage usage.",
-      "storage_breakdown_unavailable": "Storage breakdown unavailable until a pipeline is configured.",
-      "memory_label": "Working memory (est.)",
-      "memory_text": "{{used}} of ~{{budget}}",
-      "memory_note": "Decoded audio for {{count}} resident file(s). This, not storage, is what limits how much media you can hold at once."
+      "storage_label": "브라우저 저장소",
+      "storage_text": "{{quota}} 중 {{used}}",
+      "storage_note": "추정치: 현재 파이프라인의 모델 약 {{models}} + 주석 약 {{annotations}}. 미디어는 저장소에 기록되지 않습니다.",
+      "storage_unavailable": "이 브라우저는 저장소 사용량을 보고하지 않습니다.",
+      "storage_breakdown_unavailable": "파이프라인을 구성하기 전에는 저장소 내역을 볼 수 없습니다.",
+      "memory_label": "작업 메모리(추정)",
+      "memory_text": "~{{budget}} 중 {{used}}",
+      "memory_note": "메모리에 올라와 있는 파일 {{count}}개의 디코딩된 오디오입니다. 한 번에 보유할 수 있는 미디어 양을 제한하는 것은 저장소가 아니라 이 값입니다."
     },
     "catalogue_export": {
-      "title": "Export catalogue",
-      "formats_label": "Formats",
-      "bundles_label": "{{count}} file(s) selected",
-      "all_bundles_hint": "No files checked — exporting all {{count}}.",
-      "export": "Export",
-      "cancel": "Cancel",
-      "progress": "Exporting {{current}} of {{total}}…",
-      "warnings_title": "Completed with warnings",
-      "done": "Done — {{count}} file(s) archived.",
-      "failed": "Export failed: {{message}}"
+      "title": "카탈로그 내보내기",
+      "formats_label": "형식",
+      "bundles_label": "파일 {{count}}개 선택됨",
+      "all_bundles_hint": "선택된 파일이 없어 {{count}}개 전체를 내보냅니다.",
+      "export": "내보내기",
+      "cancel": "취소",
+      "progress": "{{total}}개 중 {{current}}번째 내보내는 중…",
+      "warnings_title": "경고와 함께 완료됨",
+      "done": "완료: 파일 {{count}}개를 보관했습니다.",
+      "failed": "내보내기 실패: {{message}}"
     },
-    "dropzone_placeholder": "Drop audio files here, or click to browse. Several at once is fine.",
+    "dropzone_placeholder": "오디오 파일을 여기에 놓거나 클릭하여 찾아보세요. 여러 개를 한꺼번에 놓아도 됩니다.",
     "editor": {
-      "loading_audio": "Loading audio…",
-      "awaiting_media": "This file’s audio isn’t loaded in this session. Use “Attach file…” in the list to re-attach it."
+      "loading_audio": "오디오 불러오는 중…",
+      "awaiting_media": "이 파일의 오디오가 이 세션에 로드되어 있지 않습니다. 목록의 “파일 연결…”로 다시 연결하세요."
     },
     "empty": {
-      "title": "No files yet",
-      "text": "Drop one or more audio files on the left, or record directly. Every file gets its own transcript, and with Auto-transcribe switched on new files are transcribed automatically.",
-      "restored_title": "Welcome back",
-      "restored_text": "Your files from the last session are listed on the left. Re-attach a file’s audio with “Attach file…” to keep editing it, or drop new files."
+      "title": "아직 파일이 없습니다",
+      "text": "왼쪽에 오디오 파일을 하나 이상 놓거나 바로 녹음하세요. 파일마다 별도의 전사가 만들어지며, 자동 전사를 켜 두면 새 파일이 자동으로 전사됩니다.",
+      "restored_title": "다시 오신 것을 환영합니다",
+      "restored_text": "지난 세션의 파일이 왼쪽에 나열되어 있습니다. 계속 편집하려면 “파일 연결…”로 파일의 오디오를 다시 연결하거나 새 파일을 놓으세요."
     },
     "editor_header": {
       "mono": "모노",
@@ -579,17 +602,17 @@
       "applied": "{{file}}을(를) {{name}}에 불러왔습니다."
     },
     "pipeline": {
-      "on": "Auto-transcribe on",
-      "off": "Auto-transcribe off",
-      "off_detail": "New files are not transcribed automatically.",
-      "speakers_one": "1 speaker",
-      "speakers_other": "{{count}} speakers",
-      "speakers_auto": "Speakers: auto",
+      "on": "자동 전사 켜짐",
+      "off": "자동 전사 꺼짐",
+      "off_detail": "새 파일은 자동으로 전사되지 않습니다.",
+      "speakers_one": "화자 1명",
+      "speakers_other": "화자 {{count}}명",
+      "speakers_auto": "화자: 자동",
       "translate_to": "→ {{language}}",
-      "edit": "Pipeline settings",
-      "dialog_title": "Pipeline settings",
-      "done": "Done",
-      "close": "Close"
+      "edit": "파이프라인 설정",
+      "dialog_title": "파이프라인 설정",
+      "done": "완료",
+      "close": "닫기"
     }
   }
 }
