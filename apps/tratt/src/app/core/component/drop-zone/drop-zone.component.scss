@@ -5,6 +5,12 @@
   min-height: 100px;
   text-align: center;
   width: 100%;
+  // A fixed `height` (the workbench passes one) must not let the content
+  // spill over the dashed border: scroll instead, and keep the content
+  // centred only while it fits (see `.inner`).
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
 }
 
 .dropzone:hover {
@@ -17,7 +23,11 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-  height: 100%;
+  // `margin-block: auto` centres when there is room and top-aligns when the
+  // content is taller than the box (justify-content: center would clip the
+  // top rows out of reach of the scrollbar).
+  margin-block: auto;
+  width: 100%;
 }
 
 .dropzone .dragndrop {

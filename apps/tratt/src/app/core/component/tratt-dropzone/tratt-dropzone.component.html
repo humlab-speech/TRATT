@@ -86,7 +86,12 @@
             }
           }
         </td>
-        <td>{{ getDropzoneFileString(fileProgress.file.file!) }}</td>
+        <td>
+          {{ getDropzoneFileString(fileProgress.file.file!) }}
+          @if (fileProgress.status === 'invalid' && fileProgress.error) {
+            <div class="dropzone-error">{{ fileProgress.error }}</div>
+          }
+        </td>
         <td>
           <button
             type="button"

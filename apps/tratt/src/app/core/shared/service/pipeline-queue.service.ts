@@ -287,6 +287,17 @@ export class PipelineQueueService {
       return;
     }
 
+    // A header-only / fully truncated file decodes "fine" but holds no
+    // audio: report it as a decode failure instead of an empty "Done".
+    const samples = manager.resource.info?.duration?.samples;
+    if (samples !== undefined && samples <= 0) {
+      this.fail(bundleId, token, {
+        kind: 'decode',
+        message: 'The audio file contains no audio data.',
+      });
+      return;
+    }
+
     const sub = dispatchPipelineActions(
       this.pipelineRunnerService
         .run({

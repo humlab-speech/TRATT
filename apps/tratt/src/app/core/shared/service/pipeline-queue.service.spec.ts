@@ -181,6 +181,26 @@ describe('PipelineQueueService', () => {
     expect(queueState().runs['a'].error.kind).toBe('decode');
   });
 
+  it('fails a bundle whose audio holds no samples as a decode error, without calling the runner', async () => {
+    audio.getManager.mockReturnValue({
+      resource: {
+        getOAudioFile: () => ({ name: 'a.wav', sampleRate: 16000 }),
+        info: {
+          fullname: 'a.wav',
+          sampleRate: 16000,
+          duration: { samples: 0, seconds: 0 },
+        },
+      },
+    } as never);
+    service.enqueue(['a']);
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(runner.run).not.toHaveBeenCalled();
+    expect(queueState().runs['a'].state).toBe('failed');
+    expect(queueState().runs['a'].error.kind).toBe('decode');
+  });
+
   it('records a queue-initiated cancel as the cancelled error kind and continues', async () => {
     service.enqueue(['a', 'b']);
     await Promise.resolve();

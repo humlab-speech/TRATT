@@ -202,17 +202,26 @@ export class WavFormat extends AudioFormat {
     return buffer.slice(44, buffer.byteLength);
   }
 
+  /**
+   * The data chunk size from the header, capped to the bytes the file really
+   * contains. A truncated file (or one whose header claims more than is
+   * present) would otherwise report the declared length, not what can play.
+   */
+  protected getAvailableDataSize(buffer: ArrayBuffer): number {
+    if (this.dataStart < 0 || buffer.byteLength < this.dataStart + 4) {
+      return 0;
+    }
+    const declared = this.getDataChunkSize(buffer);
+    const available = Math.max(0, buffer.byteLength - (this.dataStart + 4));
+    return Math.min(declared, available);
+  }
+
   protected setDuration(buffer: ArrayBuffer) {
+    const dataSize = this.getAvailableDataSize(buffer);
+    const samples = (dataSize / (this._channels * this._bitsPerSample)) * 8;
     this._duration = {
-      samples:
-        (this.getDataChunkSize(buffer) /
-          (this._channels * this._bitsPerSample)) *
-        8,
-      seconds:
-        ((this.getDataChunkSize(buffer) /
-          (this._channels * this._bitsPerSample)) *
-          8) /
-        this._sampleRate,
+      samples,
+      seconds: samples / this._sampleRate,
     };
   }
 

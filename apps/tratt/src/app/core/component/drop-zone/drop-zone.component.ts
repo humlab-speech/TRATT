@@ -70,6 +70,10 @@ export class DropZoneComponent implements OnInit {
 
   onFileChange($event: any) {
     this._files = this.filterFiles($event.target.files);
+    // Reset the input so choosing the same file again (e.g. after removing
+    // it from the list) fires `change` again instead of being a silent no-op.
+    // filterFiles() has already copied the FileList into an array.
+    $event.target.value = '';
     this.afterdrop.emit(this._files);
   }
 
