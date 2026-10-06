@@ -31,7 +31,13 @@ export class CatalogueExportModalComponent implements OnDestroy {
   readonly exportableConverters = AppInfo.converters.filter(
     (c) => c.conversion.export,
   );
-  checkedConverters = signal<Set<string>>(new Set(['AnnotJSON']));
+  /** Ticked when the dialog opens: a document to read, subtitles, and
+   * ELAN, which keeps everything — every level (transcript, translations)
+   * as a tier, with speakers in dependent tiers. */
+  static readonly DEFAULT_FORMATS: readonly string[] = ['DOCX', 'SRT', 'ELAN'];
+  checkedConverters = signal<Set<string>>(
+    new Set(CatalogueExportModalComponent.DEFAULT_FORMATS),
+  );
 
   progress = signal<{ completed: number; total: number } | null>(null);
   warnings = signal<string[]>([]);

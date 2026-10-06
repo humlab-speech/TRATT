@@ -479,12 +479,14 @@
         {{ 'workbench.editor_header.audio_not_attached' | transloco }}
       }
     </span>
-    @if (showExport) {
+    @let ownRecording = recordedFileService.recordedFile?.name === header.name;
+    @if ((showExport && hasTranscriptToExport) || ownRecording) {
       <!-- Per-file actions live with the file they act on; exporting
-           several files at once is "Export all" in the list.
-           Works without the file's audio (see exportSelected()). -->
+           several files at once is "Export all" in the list. -->
       <div class="workbench__editor-header-actions">
-        @if (recordedFileService.recordedFile?.name === header.name) {
+        @if (ownRecording) {
+          <!-- Media is never stored, so a fresh recording stays exportable
+               before it has a transcript. -->
           <button
             (click)="recordedFileService.triggerExport()"
             class="btn btn-sm btn-outline-secondary"
@@ -494,14 +496,19 @@
             {{ 'g.export recording' | transloco }}
           </button>
         }
-        <button
-          (click)="exportSelected()"
-          class="btn btn-sm btn-primary"
-          type="button"
-        >
-          <i class="bi bi-download me-1" aria-hidden="true"></i>
-          {{ 'workbench.editor_header.export' | transloco }}
-        </button>
+        @if (showExport && hasTranscriptToExport) {
+          <!-- Only once there is something to export: not for audio alone
+               (a fresh file, or one still being transcribed). Works without
+               the file's audio (see exportSelected()). -->
+          <button
+            (click)="exportSelected()"
+            class="btn btn-sm btn-primary"
+            type="button"
+          >
+            <i class="bi bi-download me-1" aria-hidden="true"></i>
+            {{ 'workbench.editor_header.export' | transloco }}
+          </button>
+        }
       </div>
     }
   </div>

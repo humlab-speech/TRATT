@@ -1,6 +1,13 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
-import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
+import {
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  jest,
+} from '@jest/globals';
 
 // Same workaround as catalogue-export.service.spec.ts / pipeline-queue.service.spec.ts:
 // CatalogueExportService is imported below only for its DI token/type (it's
@@ -89,8 +96,21 @@ describe('CatalogueExportModalComponent', () => {
 
     expect(exportService.exportBundles).toHaveBeenCalledWith(
       ['bundle-1'],
-      expect.arrayContaining(['AnnotJSON']),
+      expect.arrayContaining(['DOCX', 'SRT', 'ELAN']),
     );
+  });
+
+  it('ticks DOCX, SRT and ELAN by default, and they exist as export formats', () => {
+    const component = fixture.componentInstance;
+    expect([...component.checkedConverters()].sort()).toEqual([
+      'DOCX',
+      'ELAN',
+      'SRT',
+    ]);
+    const exportable = component.exportableConverters.map((c) => c.name);
+    for (const name of ['DOCX', 'SRT', 'ELAN']) {
+      expect(exportable).toContain(name);
+    }
   });
 
   it('triggers a download once the archive is produced', () => {
@@ -201,7 +221,9 @@ describe('CatalogueExportModalComponent', () => {
   // double-clicking starting two concurrent exports/downloads).
   describe('Export button disabled states', () => {
     it('is disabled once every converter is unchecked', () => {
-      fixture.componentInstance.toggleConverter('AnnotJSON');
+      for (const name of ['DOCX', 'SRT', 'ELAN']) {
+        fixture.componentInstance.toggleConverter(name);
+      }
       fixture.detectChanges();
 
       const button = fixture.debugElement.query(

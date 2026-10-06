@@ -195,6 +195,17 @@ if (
   ).randomUUID = randomUUID;
 }
 
+/** A transcript with text: what "Export this transcription" needs. */
+function transcriptWithText(text = 'typed by hand'): TrattAnnotation<any> {
+  const t = new TrattAnnotation<any>();
+  const level = t.createSegmentLevel('words');
+  level.items.push(
+    t.createSegment(new SampleUnit(16000, 16000), [new OLabel('words', text)]),
+  );
+  t.addLevel(level);
+  return t;
+}
+
 describe('WorkbenchComponent', () => {
   let fixture: ComponentFixture<WorkbenchComponent>;
   let component: WorkbenchComponent;
@@ -1008,8 +1019,19 @@ describe('WorkbenchComponent', () => {
 
     // The Store stub's selectAllBundleSummaries is a plain function, so the
     // list has to be in place before the first change detection.
-    function startLocalSession(summaries: any[]) {
+    function startLocalSession(
+      summaries: any[],
+      // null: the file has no transcript at all.
+      transcript: TrattAnnotation<any> | null = transcriptWithText(),
+    ) {
       bundleSummaries = summaries;
+      localModeState = {
+        bundles: {
+          entities: {
+            [DEFAULT_BUNDLE_ID]: { transcript: transcript ?? undefined },
+          },
+        },
+      };
       audioService.current = undefined;
       audioService.getMediaInfo.mockReturnValue({
         fullname: 'a.wav',
@@ -1041,6 +1063,13 @@ describe('WorkbenchComponent', () => {
 
     it('shows "Export this transcription" next to the editor even when the project config loads after the session is ready', () => {
       bundleSummaries = [named];
+      localModeState = {
+        bundles: {
+          entities: {
+            [DEFAULT_BUNDLE_ID]: { transcript: transcriptWithText() },
+          },
+        },
+      };
       audioService.current = undefined;
       audioService.getMediaInfo.mockReturnValue({
         fullname: 'a.wav',
@@ -1104,6 +1133,57 @@ describe('WorkbenchComponent', () => {
 
     // Used to be disabled until the audio was re-attached: after a reload
     // nothing could be exported per file.
+    it('is not offered for audio alone: a blank level, or no transcript yet', () => {
+      const blank = new TrattAnnotation<any>();
+      const level = blank.createSegmentLevel('words');
+      level.items.push(
+        blank.createSegment(new SampleUnit(32000, 16000), [
+          new OLabel('words', ''),
+        ]),
+      );
+      blank.addLevel(level);
+      startLocalSession([named], blank);
+      component.editorPlaceholder.set('none');
+      fixture.detectChanges();
+
+      const exportButton = () =>
+        fixture.debugElement.query(
+          By.css('.workbench__editor-header-actions .btn-primary'),
+        );
+      expect(component.selectedBundleHeader?.name).toBe('a.wav');
+      expect(exportButton()).toBeNull();
+
+      // The transcription arrives (or the user types): now it is offered.
+      localModeState = {
+        bundles: {
+          entities: {
+            [DEFAULT_BUNDLE_ID]: { transcript: transcriptWithText() },
+          },
+        },
+      };
+      (component as any).cd.markForCheck();
+      fixture.detectChanges();
+      expect(exportButton()).toBeTruthy();
+    });
+
+    it('keeps "Export recording" for a fresh recording without a transcript', () => {
+      startLocalSession([named], null);
+      (component as any).recordedFileService = {
+        recordedFile: { name: 'a.wav' },
+        triggerExport: jest.fn(),
+      };
+      component.editorPlaceholder.set('none');
+      (component as any).cd.markForCheck();
+      fixture.detectChanges();
+
+      const actions = fixture.debugElement.query(
+        By.css('.workbench__editor-header-actions'),
+      );
+      expect(actions).toBeTruthy();
+      expect(actions.nativeElement.textContent).toContain('g.export recording');
+      expect(actions.query(By.css('.btn-primary'))).toBeNull();
+    });
+
     it('stays available while the file has no audio, exporting from the transcript', async () => {
       startLocalSession([named]);
       component.editorPlaceholder.set('awaiting-media');
@@ -1456,6 +1536,7 @@ describe('WorkbenchComponent', () => {
                 new Date(),
                 'audio/wav',
               ),
+              transcript: transcriptWithText(),
             },
           },
         },

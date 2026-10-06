@@ -455,6 +455,24 @@ export class WorkbenchComponent
   }
 
   /**
+   * Whether the selected file has a transcription worth exporting: text, or
+   * segment boundaries placed by hand (`transcriptHasContent`, the same rule
+   * auto-transcription uses). False for audio alone — a fresh file's blank
+   * level, or one still waiting for its transcription. A getter, like
+   * `selectedBundleHeader`, so it follows every store change.
+   */
+  get hasTranscriptToExport(): boolean {
+    const entity = this.localMode()?.bundles.entities[this.selectedBundleId()];
+    return (
+      !!entity &&
+      transcriptHasContent(
+        entity.transcript,
+        breakMarkerCodeOf(entity.guidelines),
+      )
+    );
+  }
+
+  /**
    * "Export this transcription". Resolves the selected file's media the way
    * the catalogue export does — registration-time info, a resident or
    * re-decodable manager, else the transcript's own timing — so a file can

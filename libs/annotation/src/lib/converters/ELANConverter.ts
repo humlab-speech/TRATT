@@ -16,6 +16,13 @@ import {
   OctraApplication,
 } from './SupportedApplications';
 
+/** Label that carries a segment's speaker (diarization). */
+const SPEAKER_LABEL = 'Speaker';
+/** Linguistic type of the speaker tiers (symbolic association). */
+const SPEAKER_TYPE = 'speaker';
+/** The dependent tier holding the speakers of `tierId`'s annotations. */
+const speakerTierId = (tierId: string) => `${tierId} - ${SPEAKER_LABEL}`;
+
 export class ELANConverter extends Converter {
   override _name: TrattAnnotationFormatType = 'ELAN';
 
@@ -92,14 +99,18 @@ export class ELANConverter extends Converter {
 
     let tsidCounter = 1;
     let aidCounter = 1;
+    let hasSpeakerTier = false;
     for (let i = 0; i < annotation.levels.length; i++) {
       const level = annotation.levels[i];
 
-      jsonObj.ANNOTATION_DOCUMENT.TIER.push({
+      const tier = {
         ANNOTATION: [] as any,
         _TIER_ID: level.name,
         _LINGUISTIC_TYPE_REF: 'default',
-      });
+      };
+      jsonObj.ANNOTATION_DOCUMENT.TIER.push(tier);
+      // Speaker per annotation (diarization), kept as a dependent tier.
+      const speakers: { parentId: string; value: string }[] = [];
 
       if (level.type === 'SEGMENT') {
         // time slot on position 0 needed
@@ -123,19 +134,60 @@ export class ELANConverter extends Converter {
           });
 
           // add alignable annotation
-          jsonObj.ANNOTATION_DOCUMENT.TIER[i].ANNOTATION.push({
+          const annotationId = `a${aidCounter}`;
+          tier.ANNOTATION.push({
             ALIGNABLE_ANNOTATION: {
-              _ANNOTATION_ID: `a${aidCounter}`,
+              _ANNOTATION_ID: annotationId,
               ANNOTATION_VALUE:
-                segment.getFirstLabelWithoutName('Speaker')?.value ?? '',
+                segment.labels?.find((a) => a.name !== SPEAKER_LABEL)?.value ??
+                '',
               _TIME_SLOT_REF1: `ts${tsidCounter - 1}`,
               _TIME_SLOT_REF2: `ts${tsidCounter}`,
             },
           });
+          const speaker = segment.labels?.find(
+            (a) => a.name === SPEAKER_LABEL,
+          )?.value;
+          if (speaker) {
+            speakers.push({ parentId: annotationId, value: speaker });
+          }
           aidCounter++;
           tsidCounter++;
         }
       }
+
+      if (speakers.length > 0) {
+        hasSpeakerTier = true;
+        jsonObj.ANNOTATION_DOCUMENT.TIER.push({
+          ANNOTATION: speakers.map(({ parentId, value }) => ({
+            REF_ANNOTATION: {
+              _ANNOTATION_ID: `a${aidCounter++}`,
+              _ANNOTATION_REF: parentId,
+              ANNOTATION_VALUE: value,
+            },
+          })),
+          _TIER_ID: speakerTierId(level.name),
+          _LINGUISTIC_TYPE_REF: SPEAKER_TYPE,
+          _PARENT_REF: level.name,
+        });
+      }
+    }
+
+    if (hasSpeakerTier) {
+      // Schema order: TIER*, LINGUISTIC_TYPE*, …, CONSTRAINT*.
+      const doc = jsonObj.ANNOTATION_DOCUMENT as any;
+      doc.LINGUISTIC_TYPE = [
+        doc.LINGUISTIC_TYPE,
+        {
+          _LINGUISTIC_TYPE_ID: SPEAKER_TYPE,
+          _TIME_ALIGNABLE: 'false',
+          _CONSTRAINTS: 'Symbolic_Association',
+        },
+      ];
+      doc.CONSTRAINT = {
+        _STEREOTYPE: 'Symbolic_Association',
+        _DESCRIPTION: '1-1 association with a parent annotation',
+      };
     }
 
     filename = `${annotation.name}${this._extensions[0]}`;
@@ -195,11 +247,24 @@ export class ELANConverter extends Converter {
         const tiers = Array.isArray(jsonXML.ANNOTATION_DOCUMENT.TIER)
           ? jsonXML.ANNOTATION_DOCUMENT.TIER
           : [jsonXML.ANNOTATION_DOCUMENT.TIER];
+        // Time-aligned annotations by id, so dependent (reference) tiers can
+        // attach to them; reference annotations are applied afterwards.
+        const segmentsById = new Map<string, OSegment>();
+        const references: { tier: (typeof tiers)[number]; ref: any }[] = [];
         for (const tier of tiers) {
           const level: OSegmentLevel<OSegment> = new OSegmentLevel<OSegment>(
             tier._TIER_ID,
           );
           const readTier = (annotationElement: any) => {
+            if (!annotationElement?.ALIGNABLE_ANNOTATION) {
+              if (annotationElement?.REF_ANNOTATION) {
+                references.push({
+                  tier,
+                  ref: annotationElement.REF_ANNOTATION,
+                });
+              }
+              return;
+            }
             const t1 = this.getSamplesFromTimeSlot(
               jsonXML,
               annotationElement.ALIGNABLE_ANNOTATION._TIME_SLOT_REF1,
@@ -224,13 +289,16 @@ export class ELANConverter extends Converter {
               }
 
               // correct segment
-              (level.items as OSegment[]).push(
-                new OSegment(counter++, t1, t2 - t1, [
-                  new OLabel(
-                    tier._TIER_ID,
-                    annotationElement.ALIGNABLE_ANNOTATION.ANNOTATION_VALUE,
-                  ),
-                ]),
+              const segment = new OSegment(counter++, t1, t2 - t1, [
+                new OLabel(
+                  tier._TIER_ID,
+                  annotationElement.ALIGNABLE_ANNOTATION.ANNOTATION_VALUE,
+                ),
+              ]);
+              (level.items as OSegment[]).push(segment);
+              segmentsById.set(
+                annotationElement.ALIGNABLE_ANNOTATION._ANNOTATION_ID,
+                segment,
               );
             }
             lastSample = t2;
@@ -262,6 +330,24 @@ export class ELANConverter extends Converter {
             }
 
             result.annotjson.levels.push(level);
+          }
+        }
+
+        // Speaker tiers (written by export, see speakerTierId) become the
+        // Speaker label of their parent's segments. Other reference tiers
+        // have no counterpart here and are skipped.
+        for (const { tier, ref } of references) {
+          const isSpeakerTier =
+            tier._LINGUISTIC_TYPE_REF === SPEAKER_TYPE ||
+            (!!tier._PARENT_REF &&
+              tier._TIER_ID === speakerTierId(tier._PARENT_REF));
+          const parent = segmentsById.get(ref._ANNOTATION_REF);
+          const value = ref.ANNOTATION_VALUE;
+          if (isSpeakerTier && parent && typeof value === 'string' && value) {
+            parent.labels = parent.labels.filter(
+              (a) => a.name !== SPEAKER_LABEL,
+            );
+            parent.labels.push(new OLabel(SPEAKER_LABEL, value));
           }
         }
       } else {
