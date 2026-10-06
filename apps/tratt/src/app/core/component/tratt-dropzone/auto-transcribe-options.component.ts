@@ -629,6 +629,13 @@ export class AutoTranscribeOptionsComponent implements OnInit {
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe((lang: string) => {
+        // A panel that remembers its choices (/workbench's persistKey) holds
+        // an explicit user decision. Switching the interface language must
+        // not rewrite it: it would silently change the transcription
+        // language and model of every file queued afterwards.
+        if (this.persistKey()) {
+          return;
+        }
         const exists = this.languages.some((l) => l.code === lang);
         if (exists && this.selectedLanguage !== lang) {
           this.selectedLanguage = lang;

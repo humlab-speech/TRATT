@@ -2,7 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { beforeEach, describe, expect, it } from '@jest/globals';
 import { TranslocoService } from '@jsverse/transloco';
-import { of } from 'rxjs';
+import { of, startWith, Subject } from 'rxjs';
 import {
   AutoTranscribeOptionsComponent,
   KB_WHISPER_MODELS,
@@ -245,6 +245,39 @@ describe('AutoTranscribeOptionsComponent persistKey', () => {
     expect(next.selectedModelId).toBe(KB_WHISPER_MODELS[0].modelId);
     expect(next.speakerSegmentationEnabled).toBe(true);
     expect(next.numSpeakers).toBe(3);
+  });
+
+  it('keeps the remembered language and model when the interface language changes', async () => {
+    const lang$ = new Subject<string>();
+    TestBed.resetTestingModule();
+    await TestBed.configureTestingModule({
+      imports: [AutoTranscribeOptionsComponent],
+      providers: [
+        {
+          provide: TranslocoService,
+          useValue: {
+            getActiveLang: () => 'en',
+            langChanges$: lang$.pipe(startWith('en')),
+            translate: (key: string) => key,
+            config: { reRenderOnLangChange: false },
+            _loadDependencies: () => of({}),
+          },
+        },
+      ],
+    }).compileComponents();
+    const fixture = TestBed.createComponent(AutoTranscribeOptionsComponent);
+    fixture.componentRef.setInput('audioLoaded', true);
+    fixture.componentRef.setInput('persistKey', KEY);
+    const component = fixture.componentInstance;
+    await component.ngOnInit();
+    const language = component.selectedLanguage;
+    const modelId = component.selectedModelId;
+
+    lang$.next('sv');
+
+    expect(component.selectedLanguage).toBe(language);
+    expect(component.selectedModelId).toBe(modelId);
+    expect(JSON.parse(localStorage.getItem(KEY)!).language).toBe(language);
   });
 
   it('does not overwrite the stored choices with defaults before restoring them', async () => {
