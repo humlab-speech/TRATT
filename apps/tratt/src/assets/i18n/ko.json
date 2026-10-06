@@ -577,6 +577,19 @@
     "transcript_import": {
       "replace_confirm": "{{name}}의 전사를 {{file}}(으)로 바꾸시겠습니까? 현재 전사의 변경 내용은 사라집니다.",
       "applied": "{{file}}을(를) {{name}}에 불러왔습니다."
+    },
+    "pipeline": {
+      "on": "Auto-transcribe on",
+      "off": "Auto-transcribe off",
+      "off_detail": "New files are not transcribed automatically.",
+      "speakers_one": "1 speaker",
+      "speakers_other": "{{count}} speakers",
+      "speakers_auto": "Speakers: auto",
+      "translate_to": "→ {{language}}",
+      "edit": "Pipeline settings",
+      "dialog_title": "Pipeline settings",
+      "done": "Done",
+      "close": "Close"
     }
   }
 }

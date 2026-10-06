@@ -52,33 +52,131 @@
     </ul>
     <div [ngbNavOutlet]="workbenchNav"></div>
 
-    <!-- One persistent pipeline-settings panel (step 6), visible even
-         pre-first-file — replaces both the dropzone's own pre-session
-         [showAutoTranscribe] mount (removed above) and the old
-         sessionReady-gated post-session mount. Changing it only affects
-         bundles added/run after the change. -->
+    <!-- One persistent pipeline configuration for the queue (step 6). The
+         rail shows only a summary of it; the settings open in a dialog from
+         the icon. Changing them only affects files added/run afterwards. -->
     <div class="workbench__queue">
       <h6 class="workbench__queue-title">
         {{ 'workbench.queue.options_title' | transloco }}
       </h6>
-      <!-- Choices are remembered per browser (persistKey), so a reload
-           doesn't switch auto-transcription off again. -->
-      <tratt-auto-transcribe-options
-        idPrefix="queue-"
-        persistKey="tratt.workbench.pipeline.transcribe"
-        [audioLoaded]="true"
-        [annotationAlreadyLoaded]="false"
-        [compact]="true"
-        (optionsChange)="onQueueOptionsChange($event)"
-      ></tratt-auto-transcribe-options>
-      <tratt-auto-translate-options
-        persistKey="tratt.workbench.pipeline.translate"
-        [annotationAlreadyLoaded]="false"
-        [transcribeWillRun]="queueOptions() !== null"
-        [sourceLanguageHint]="queueOptions()?.language"
-        [compact]="true"
-        (optionsChange)="onQueueTranslateOptionsChange($event)"
-      ></tratt-auto-translate-options>
+      @let summary = pipelineSummary();
+      <div
+        class="workbench__pipeline"
+        [class.workbench__pipeline--off]="!summary.on"
+      >
+        <span class="workbench__pipeline-dot" aria-hidden="true"></span>
+        <div class="workbench__pipeline-text">
+          <div class="workbench__pipeline-state">
+            {{
+              (summary.on ? 'workbench.pipeline.on' : 'workbench.pipeline.off')
+                | transloco
+            }}
+          </div>
+          @if (summary.on) {
+            <ul class="workbench__pipeline-chips">
+              <li>{{ summary.model }}</li>
+              @if (summary.language) {
+                <li>{{ summary.language }}</li>
+              }
+              @if (summary.speakers === 'auto') {
+                <li>{{ 'workbench.pipeline.speakers_auto' | transloco }}</li>
+              } @else if (summary.speakers === 1) {
+                <li>{{ 'workbench.pipeline.speakers_one' | transloco }}</li>
+              } @else if (summary.speakers) {
+                <li>
+                  {{
+                    'workbench.pipeline.speakers_other'
+                      | transloco: { count: summary.speakers }
+                  }}
+                </li>
+              }
+              @if (summary.translateTo) {
+                <li>
+                  {{
+                    'workbench.pipeline.translate_to'
+                      | transloco: { language: summary.translateTo }
+                  }}
+                </li>
+              }
+            </ul>
+          } @else {
+            <div class="workbench__pipeline-detail">
+              {{ 'workbench.pipeline.off_detail' | transloco }}
+            </div>
+          }
+        </div>
+        <button
+          #pipelineButton
+          type="button"
+          class="btn btn-sm btn-outline-secondary workbench__pipeline-edit"
+          aria-haspopup="dialog"
+          aria-controls="workbench-pipeline-dialog"
+          [attr.aria-label]="'workbench.pipeline.edit' | transloco"
+          [attr.title]="'workbench.pipeline.edit' | transloco"
+          (click)="openPipelineSettings()"
+        >
+          <i class="bi bi-sliders" aria-hidden="true"></i>
+        </button>
+      </div>
+
+      <!-- A native dialog, not NgbModal: its content exists while it is
+           closed, and the two settings components must stay mounted — they
+           restore the remembered choices (persistKey) and hand them to the
+           queue in their own ngOnInit. Created only on open, the queue would
+           have no options (auto-transcription off) until it was opened. -->
+      <dialog
+        #pipelineDialog
+        id="workbench-pipeline-dialog"
+        class="workbench__pipeline-dialog"
+        aria-labelledby="workbench-pipeline-dialog-title"
+        (click)="onPipelineDialogClick($event)"
+        (close)="onPipelineDialogClosed()"
+      >
+        <div class="workbench__pipeline-dialog-header">
+          <h2
+            id="workbench-pipeline-dialog-title"
+            class="workbench__pipeline-dialog-title"
+          >
+            {{ 'workbench.pipeline.dialog_title' | transloco }}
+          </h2>
+          <button
+            type="button"
+            class="btn-close"
+            [attr.aria-label]="'workbench.pipeline.close' | transloco"
+            (click)="closePipelineSettings()"
+          ></button>
+        </div>
+        <div class="workbench__pipeline-dialog-body">
+          <!-- Choices are remembered per browser (persistKey), so a reload
+               doesn't switch auto-transcription off again. -->
+          <tratt-auto-transcribe-options
+            idPrefix="queue-"
+            persistKey="tratt.workbench.pipeline.transcribe"
+            [audioLoaded]="true"
+            [annotationAlreadyLoaded]="false"
+            [compact]="true"
+            (optionsChange)="onQueueOptionsChange($event)"
+          ></tratt-auto-transcribe-options>
+          <tratt-auto-translate-options
+            persistKey="tratt.workbench.pipeline.translate"
+            [annotationAlreadyLoaded]="false"
+            [transcribeWillRun]="queueOptions() !== null"
+            [sourceLanguageHint]="queueOptions()?.language"
+            [compact]="true"
+            (optionsChange)="onQueueTranslateOptionsChange($event)"
+          ></tratt-auto-translate-options>
+        </div>
+        <div class="workbench__pipeline-dialog-footer">
+          <button
+            type="button"
+            class="btn btn-primary btn-sm"
+            (click)="closePipelineSettings()"
+          >
+            {{ 'workbench.pipeline.done' | transloco }}
+          </button>
+        </div>
+      </dialog>
+
       <button
         type="button"
         class="btn btn-outline-primary workbench__queue-run"

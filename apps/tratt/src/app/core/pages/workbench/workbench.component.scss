@@ -27,7 +27,7 @@
   overflow-y: auto;
   padding: 0.75rem 0.75rem 1rem;
   border-right: 1px solid #d4d9e0;
-  background: var(--tratt-surface-background, #fff);
+  background: var(--bs-body-bg, #fff);
 
   // The dropzone component carries its own 20px bottom margin for /local's
   // full-page layout; the rail's flex gap already spaces sections here.
@@ -125,6 +125,123 @@
 .workbench__queue-run {
   width: 100%;
   margin-top: 0.25rem;
+}
+
+// Pipeline summary: what new files go through, at a glance. The settings
+// themselves open in .workbench__pipeline-dialog.
+.workbench__pipeline {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  padding: 0.5rem 0.6rem;
+  border: 1px solid #d4d9e0;
+  border-radius: 6px;
+  background: var(--bs-body-bg, #fff);
+}
+
+.workbench__pipeline-dot {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  margin-top: 0.35rem;
+  border-radius: 50%;
+  background: #198754;
+}
+
+.workbench__pipeline--off .workbench__pipeline-dot {
+  background: #adb5bd;
+}
+
+.workbench__pipeline-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.workbench__pipeline-state {
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.workbench__pipeline-detail {
+  margin-top: 0.15rem;
+  font-size: 0.78rem;
+  color: #667a90;
+}
+
+.workbench__pipeline-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  margin: 0.3rem 0 0;
+  padding: 0;
+  list-style: none;
+
+  li {
+    padding: 0.05rem 0.5rem;
+    border: 1px solid #d4d9e0;
+    border-radius: 999px;
+    background: #f5f7fa;
+    font-size: 0.75rem;
+    line-height: 1.5;
+    white-space: nowrap;
+  }
+}
+
+.workbench__pipeline-edit {
+  flex: none;
+}
+
+.workbench__pipeline-dialog {
+  width: min(440px, calc(100vw - 32px));
+  max-height: 86vh;
+  // Anchored near the top rather than centred: the content grows and
+  // shrinks as options are ticked, and a centred dialog jumps each time.
+  margin: 8vh auto auto;
+  padding: 0;
+  border: none;
+  border-radius: 8px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.3);
+  background: var(--bs-body-bg, #fff);
+  color: inherit;
+
+  &[open] {
+    display: flex;
+    flex-direction: column;
+  }
+
+  &::backdrop {
+    background: rgba(0, 0, 0, 0.4);
+  }
+}
+
+.workbench__pipeline-dialog-header,
+.workbench__pipeline-dialog-footer {
+  display: flex;
+  align-items: center;
+  padding: 0.75rem 1rem;
+}
+
+.workbench__pipeline-dialog-header {
+  justify-content: space-between;
+  border-bottom: 1px solid #d4d9e0;
+}
+
+.workbench__pipeline-dialog-title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.workbench__pipeline-dialog-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 0.25rem 1rem 0.75rem;
+}
+
+.workbench__pipeline-dialog-footer {
+  justify-content: flex-end;
+  border-top: 1px solid #d4d9e0;
 }
 
 .workbench__editor-header {

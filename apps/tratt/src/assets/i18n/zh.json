@@ -577,6 +577,19 @@
     "transcript_import": {
       "replace_confirm": "用 {{file}} 替换 {{name}} 的转写？对当前转写的修改将丢失。",
       "applied": "已将 {{file}} 载入 {{name}}。"
+    },
+    "pipeline": {
+      "on": "Auto-transcribe on",
+      "off": "Auto-transcribe off",
+      "off_detail": "New files are not transcribed automatically.",
+      "speakers_one": "1 speaker",
+      "speakers_other": "{{count}} speakers",
+      "speakers_auto": "Speakers: auto",
+      "translate_to": "→ {{language}}",
+      "edit": "Pipeline settings",
+      "dialog_title": "Pipeline settings",
+      "done": "Done",
+      "close": "Close"
     }
   }
 }

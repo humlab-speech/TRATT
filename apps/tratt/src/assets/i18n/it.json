@@ -577,6 +577,19 @@
     "transcript_import": {
       "replace_confirm": "Sostituire la trascrizione di {{name}} con {{file}}? Le modifiche alla trascrizione attuale andranno perse.",
       "applied": "{{file}} caricato in {{name}}."
+    },
+    "pipeline": {
+      "on": "Auto-transcribe on",
+      "off": "Auto-transcribe off",
+      "off_detail": "New files are not transcribed automatically.",
+      "speakers_one": "1 speaker",
+      "speakers_other": "{{count}} speakers",
+      "speakers_auto": "Speakers: auto",
+      "translate_to": "→ {{language}}",
+      "edit": "Pipeline settings",
+      "dialog_title": "Pipeline settings",
+      "done": "Done",
+      "close": "Close"
     }
   }
 }

@@ -3038,6 +3038,107 @@ describe('WorkbenchComponent with real default LOCAL store state', () => {
   // describe block's real provideMockStore DOES produce reactive signals,
   // so these three tests assert on the rendered DOM (not component
   // methods) for each state, closing that coverage gap.
+  describe('pipeline summary and settings dialog', () => {
+    const oneFile = () => ({
+      bundles: bundlesState([
+        { bundleId: DEFAULT_BUNDLE_ID, sessionFile: undefined },
+        { bundleId: 'bundle-a', sessionFile: { name: 'a.wav' } },
+      ]),
+      selectedBundleId: DEFAULT_BUNDLE_ID,
+    });
+    const q = (fx: ComponentFixture<WorkbenchComponent>, css: string) =>
+      fx.debugElement.query(By.css(css))?.nativeElement as
+        | HTMLElement
+        | undefined;
+    const chips = (fx: ComponentFixture<WorkbenchComponent>) =>
+      fx.debugElement
+        .queryAll(By.css('.workbench__pipeline-chips li'))
+        .map((li) => (li.nativeElement as HTMLElement).textContent!.trim());
+
+    it('keeps the settings mounted while the dialog is closed, so remembered choices still reach the queue', async () => {
+      const fx = await createWithLocalMode(oneFile());
+      const dialog = q(fx, 'dialog.workbench__pipeline-dialog')!;
+
+      expect(dialog.hasAttribute('open')).toBe(false);
+      expect(
+        dialog.querySelector('tratt-auto-transcribe-options'),
+      ).toBeTruthy();
+      expect(dialog.querySelector('tratt-auto-translate-options')).toBeTruthy();
+      // Not in the rail any more.
+      expect(
+        q(fx, '.workbench__queue > tratt-auto-transcribe-options'),
+      ).toBeFalsy();
+    });
+
+    it('says auto-transcription is off when no options are set', async () => {
+      const fx = await createWithLocalMode(oneFile());
+
+      expect(q(fx, '.workbench__pipeline-state')!.textContent!.trim()).toBe(
+        'workbench.pipeline.off',
+      );
+      expect(q(fx, '.workbench__pipeline--off')).toBeTruthy();
+      expect(chips(fx)).toEqual([]);
+    });
+
+    it('summarises model, language, speakers and translation', async () => {
+      const fx = await createWithLocalMode(oneFile());
+      fx.componentInstance.onQueueOptionsChange({
+        modelId: 'onnx-community/whisper-tiny-ONNX',
+        useWebGPU: true,
+        language: 'en',
+        diarization: { modelId: 'd', useWebGPU: false, numSpeakers: 2 },
+      } as any);
+      // The real translation panel re-emits (off) when the transcribe
+      // options reach it; set the translation after that. (This fixture's
+      // queue-service stub has no setTranslateOptions.)
+      fx.detectChanges();
+      fx.componentInstance.queueTranslateOptions.set({
+        sourceLanguage: 'en',
+        targetLanguage: 'de',
+      });
+      fx.detectChanges();
+
+      expect(q(fx, '.workbench__pipeline-state')!.textContent!.trim()).toBe(
+        'workbench.pipeline.on',
+      );
+      expect(chips(fx)).toEqual([
+        'Whisper Tiny',
+        'English',
+        'workbench.pipeline.speakers_other',
+        'workbench.pipeline.translate_to',
+      ]);
+    });
+
+    it('opens from the icon and closes with Done, back on the icon', async () => {
+      const fx = await createWithLocalMode(oneFile());
+      const dialog = q(fx, 'dialog.workbench__pipeline-dialog')!;
+      const icon = q(fx, '.workbench__pipeline-edit') as HTMLButtonElement;
+
+      icon.click();
+      expect(dialog.hasAttribute('open')).toBe(true);
+
+      const done = q(
+        fx,
+        '.workbench__pipeline-dialog-footer .btn-primary',
+      ) as HTMLButtonElement;
+      done.click();
+      expect(dialog.hasAttribute('open')).toBe(false);
+      expect(document.activeElement).toBe(icon);
+    });
+
+    it('closes on a backdrop click but not on a click inside', async () => {
+      const fx = await createWithLocalMode(oneFile());
+      const dialog = q(fx, 'dialog.workbench__pipeline-dialog')!;
+      fx.componentInstance.openPipelineSettings();
+
+      q(fx, '.workbench__pipeline-dialog-body')!.click();
+      expect(dialog.hasAttribute('open')).toBe(true);
+
+      dialog.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+      expect(dialog.hasAttribute('open')).toBe(false);
+    });
+  });
+
   describe('run/pause button rendering (Task 7 review Q1)', () => {
     function runButton(fx: ComponentFixture<WorkbenchComponent>) {
       return fx.debugElement.query(By.css('.workbench__queue-run'))

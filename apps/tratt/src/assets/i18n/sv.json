@@ -822,6 +822,19 @@
     "transcript_import": {
       "replace_confirm": "Ersätta transkriptionen för {{name}} med {{file}}? Ändringar i den nuvarande transkriptionen går förlorade.",
       "applied": "{{file}} laddades in i {{name}}."
+    },
+    "pipeline": {
+      "on": "Automatisk transkribering på",
+      "off": "Automatisk transkribering av",
+      "off_detail": "Nya filer transkriberas inte automatiskt.",
+      "speakers_one": "1 talare",
+      "speakers_other": "{{count}} talare",
+      "speakers_auto": "Talare: automatiskt",
+      "translate_to": "→ {{language}}",
+      "edit": "Pipelineinställningar",
+      "dialog_title": "Pipelineinställningar",
+      "done": "Klar",
+      "close": "Stäng"
     }
   }
 }

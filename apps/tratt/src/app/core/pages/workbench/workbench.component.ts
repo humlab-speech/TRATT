@@ -7,6 +7,7 @@ import {
   ComponentRef,
   computed,
   effect,
+  ElementRef,
   HostListener,
   inject,
   NgZone,
@@ -17,6 +18,7 @@ import {
   untracked,
   ViewChild,
 } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { NgbModalRef, NgbNavModule } from '@ng-bootstrap/ng-bootstrap';
@@ -113,6 +115,7 @@ import {
   selectAllRunStatuses,
   selectQueueMode,
 } from '../../store/pipeline-queue/pipeline-queue.selectors';
+import { describePipeline } from './pipeline-summary';
 
 @Component({
   selector: 'tratt-workbench',
@@ -327,6 +330,68 @@ export class WorkbenchComponent
   onQueueTranslateOptionsChange(options: TranslationOptions | null): void {
     this.queueTranslateOptions.set(options);
     this.pipelineQueueService.setTranslateOptions(options);
+  }
+
+  /** UI language, for naming languages in the pipeline summary. */
+  private readonly uiLang = toSignal(inject(TranslocoService).langChanges$, {
+    initialValue: inject(TranslocoService).getActiveLang(),
+  });
+
+  /**
+   * What the rail shows about the pipeline: whether new files are
+   * transcribed, and with what. The settings themselves are in a dialog.
+   */
+  readonly pipelineSummary = computed(() =>
+    describePipeline(
+      this.queueOptions(),
+      this.queueTranslateOptions(),
+      this.uiLang(),
+    ),
+  );
+
+  @ViewChild('pipelineDialog')
+  private pipelineDialog?: ElementRef<HTMLDialogElement>;
+  @ViewChild('pipelineButton')
+  private pipelineButton?: ElementRef<HTMLButtonElement>;
+
+  /** Opens the pipeline settings as a modal dialog (top layer, Esc). */
+  openPipelineSettings(): void {
+    const dialog = this.pipelineDialog?.nativeElement;
+    if (!dialog || dialog.open) {
+      return;
+    }
+    if (typeof dialog.showModal === 'function') {
+      dialog.showModal();
+    } else {
+      // No <dialog> support (jsdom): just show it.
+      dialog.setAttribute('open', '');
+    }
+  }
+
+  closePipelineSettings(): void {
+    const dialog = this.pipelineDialog?.nativeElement;
+    if (!dialog) {
+      return;
+    }
+    if (typeof dialog.close === 'function') {
+      dialog.close(); // fires `close` → onPipelineDialogClosed()
+    } else {
+      dialog.removeAttribute('open');
+      this.onPipelineDialogClosed();
+    }
+  }
+
+  /** A click on the dialog element itself, not its content, is the
+   * backdrop. */
+  onPipelineDialogClick(event: MouseEvent): void {
+    if (event.target === this.pipelineDialog?.nativeElement) {
+      this.closePipelineSettings();
+    }
+  }
+
+  /** Done, ×, Esc or the backdrop: back to the icon that opened it. */
+  onPipelineDialogClosed(): void {
+    this.pipelineButton?.nativeElement.focus();
   }
 
   // Step 6 continuous ingestion bookkeeping.
