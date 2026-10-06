@@ -95,6 +95,73 @@ function writeOptionToStore(
 }
 
 /**
+ * The parts of an `AnnotationState` that describe the SESSION — project,
+ * task, project configuration, transcription guidelines and the guideline
+ * validation methods — as opposed to one recording's transcript, audio and
+ * logs.
+ *
+ * The login chain (`loadProjectAndTaskInformation` -> `startAnnotation`)
+ * writes these into whichever bundle is selected at that moment. Every other
+ * bundle must carry the same values: a bundle that wasn't selected then
+ * (every file after the first in a multi-file drop, every file dropped later)
+ * otherwise opened without guidelines — no markers in the 2D editor's segment
+ * popup, an empty overview, no validation.
+ */
+function sessionScopeChanged(
+  before: AnnotationState,
+  after: AnnotationState,
+): boolean {
+  return (
+    before.guidelines !== after.guidelines ||
+    before.projectConfig !== after.projectConfig ||
+    before.methods !== after.methods ||
+    before.currentSession?.currentProject !==
+      after.currentSession?.currentProject ||
+    before.currentSession?.task !== after.currentSession?.task
+  );
+}
+
+function hasSessionScope(state: AnnotationState | undefined): boolean {
+  return !!(state?.guidelines || state?.projectConfig);
+}
+
+/**
+ * Where the session's scope currently lives: the selected bundle when it has
+ * it, otherwise any bundle that does. The selected bundle can legitimately
+ * lack it — e.g. the empty placeholder bundle the collection falls back to
+ * once every file was removed — and copying from it alone handed every file
+ * dropped afterwards no guidelines and no project config.
+ */
+function sessionScopeSource(
+  state: LocalBundleCollectionState,
+): AnnotationState | undefined {
+  const selected = resolveLocalBundleState(state);
+  if (hasSessionScope(selected)) {
+    return selected;
+  }
+  return (state.bundles.ids as string[])
+    .map((id) => state.bundles.entities[id])
+    .find((entity) => hasSessionScope(entity));
+}
+
+function withSessionScopeOf<T extends AnnotationState>(
+  target: T,
+  source: AnnotationState,
+): T {
+  return {
+    ...target,
+    guidelines: source.guidelines,
+    projectConfig: source.projectConfig,
+    methods: source.methods,
+    currentSession: {
+      ...target.currentSession,
+      currentProject: source.currentSession?.currentProject,
+      task: source.currentSession?.task,
+    },
+  };
+}
+
+/**
  * Wraps an `AnnotationState` reducer so its output is stored as the single
  * entity of a `LocalBundleCollectionState`, keyed by `DEFAULT_BUNDLE_ID`.
  * Used only for LOCAL mode; ONLINE/DEMO/URL keep the flat `AnnotationState`.
@@ -124,12 +191,26 @@ function wrapAsLocalBundleCollectionReducer(
         restoredOptions,
         restoredAnnotation,
         selectAfterCreate = true,
+        audioLoaded = false,
       } = action as ReturnType<typeof LoginModeActions.createBundle>;
       let entity: IdentifiedAnnotationState = {
         ...initialInner,
         bundleId,
         sessionFile,
+        // Per-recording, but only ever set by loadAudio.success for the
+        // bundle selected during the login chain; without it IDB saves of
+        // this bundle's annotation were written with an empty media name.
+        audio: {
+          ...initialInner.audio,
+          fileName: sessionFile?.name ?? initialInner.audio.fileName,
+          loaded: audioLoaded || initialInner.audio.loaded,
+        },
       };
+      // A bundle created into a running session joins that session.
+      const sessionSource = sessionScopeSource(state);
+      if (sessionSource) {
+        entity = withSessionScopeOf(entity, sessionSource);
+      }
       if (restoredOptions) {
         for (const [name, value] of getProperties(restoredOptions)) {
           entity = {
@@ -143,10 +224,17 @@ function wrapAsLocalBundleCollectionReducer(
         const deserializedAnnotation =
           OAnnotJSON.deserialize(restoredAnnotation);
         if (deserializedAnnotation) {
-          entity = {
-            ...entity,
-            transcript: TrattAnnotation.deserialize(deserializedAnnotation),
-          };
+          const transcript = TrattAnnotation.deserialize(
+            deserializedAnnotation,
+          );
+          // deserialize() selects no level; editors render the current one.
+          if (
+            transcript.levels.length > 0 &&
+            transcript.selectedLevelIndex === undefined
+          ) {
+            transcript.changeCurrentLevelIndex(0);
+          }
+          entity = { ...entity, transcript };
         }
       }
       return {
@@ -159,10 +247,43 @@ function wrapAsLocalBundleCollectionReducer(
       const { bundleId } = action as ReturnType<
         typeof LoginModeActions.selectBundle
       >;
-      if (!state.bundles.entities[bundleId]) {
+      const target = state.bundles.entities[bundleId];
+      if (!target) {
         return state;
       }
-      return { ...state, selectedBundleId: bundleId };
+      // Self-heal a bundle that missed the session scope (created before
+      // this reducer shared it, or restored from IndexedDB and selected
+      // before any login chain ran): without guidelines the text editors
+      // and the overview render nothing and the segment popup throws.
+      const sessionSource = hasSessionScope(target)
+        ? undefined
+        : sessionScopeSource(state);
+      return {
+        ...state,
+        bundles: sessionSource
+          ? localBundleAdapter.setOne(
+              withSessionScopeOf(target, sessionSource),
+              state.bundles,
+            )
+          : state.bundles,
+        selectedBundleId: bundleId,
+      };
+    }
+    if (action.type === LoginModeActions.bundleAudioAttached.type) {
+      const { bundleId } = action as ReturnType<
+        typeof LoginModeActions.bundleAudioAttached
+      >;
+      const existing = state.bundles.entities[bundleId];
+      if (!existing || existing.audio.loaded) {
+        return state;
+      }
+      return {
+        ...state,
+        bundles: localBundleAdapter.setOne(
+          { ...existing, audio: { ...existing.audio, loaded: true } },
+          state.bundles,
+        ),
+      };
     }
     if (action.type === LoginModeActions.setBundleTranscript.type) {
       const { bundleId, transcript } = action as ReturnType<
@@ -197,10 +318,19 @@ function wrapAsLocalBundleCollectionReducer(
         // Never leave the collection empty — hasAnyBundles() and the rest
         // of the shell assume at least one entity always exists (the
         // DEFAULT_BUNDLE_ID sentinel this same function seeds on init).
+        // The session itself is still running, so the sentinel keeps its
+        // scope: files dropped next are created from it.
+        const sessionSource = sessionScopeSource(state);
+        const sentinel: IdentifiedAnnotationState = {
+          ...initialInner,
+          bundleId: DEFAULT_BUNDLE_ID,
+        };
         return {
           ...state,
           bundles: localBundleAdapter.setOne(
-            { ...initialInner, bundleId: DEFAULT_BUNDLE_ID },
+            sessionSource
+              ? withSessionScopeOf(sentinel, sessionSource)
+              : sentinel,
             localBundleAdapter.removeMany(bundleIds, state.bundles),
           ),
           selectedBundleId: DEFAULT_BUNDLE_ID,
@@ -219,13 +349,21 @@ function wrapAsLocalBundleCollectionReducer(
     if (nextInner === currentInner) {
       return state;
     }
-    return {
-      ...state,
-      bundles: localBundleAdapter.setOne(
-        { ...nextInner, bundleId: state.selectedBundleId },
-        state.bundles,
-      ),
-    };
+    let bundles = localBundleAdapter.setOne(
+      { ...nextInner, bundleId: state.selectedBundleId },
+      state.bundles,
+    );
+    if (sessionScopeChanged(currentInner, nextInner)) {
+      // Session-wide data changed on the selected bundle: share it with
+      // every other bundle (see sessionScopeChanged()).
+      const others = (bundles.ids as string[])
+        .filter((id) => id !== state.selectedBundleId)
+        .map((id) => bundles.entities[id])
+        .filter((e): e is IdentifiedAnnotationState => e !== undefined)
+        .map((e) => withSessionScopeOf(e, nextInner));
+      bundles = localBundleAdapter.setMany(others, bundles);
+    }
+    return { ...state, bundles };
   };
 }
 

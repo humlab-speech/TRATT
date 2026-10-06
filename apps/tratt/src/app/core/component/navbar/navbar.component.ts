@@ -57,6 +57,7 @@ import {
   ConsoleGroupEntry,
   ConsoleType,
 } from '../../shared/service/bug-report.service';
+import { PendingEditsService } from '../../shared/service/pending-edits.service';
 import { RecordedFileService } from '../../shared/service/recorded-file.service';
 import { LoginMode } from '../../store';
 import { ApplicationStoreService } from '../../store/application/application-store.service';
@@ -181,6 +182,7 @@ export class NavigationComponent extends DefaultComponent implements OnInit {
     private router: Router,
     public recordedFileService: RecordedFileService,
     private cdr: ChangeDetectorRef,
+    private pendingEdits: PendingEditsService,
   ) {
     super();
   }
@@ -405,6 +407,12 @@ export class NavigationComponent extends DefaultComponent implements OnInit {
   }
 
   public selectLevel(tiernum: number) {
+    if (this.annotationStoreService.currentLevelIndex === tiernum) {
+      return;
+    }
+    // Commit the editor's debounced typing first: saved after the switch,
+    // it would be written into the newly selected level.
+    this.pendingEdits.flush();
     this.annotationStoreService.setLevelIndex(tiernum);
   }
 

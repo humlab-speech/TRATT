@@ -439,7 +439,9 @@
       "expected": "Förväntad:",
       "header": "Det här verkar inte vara samma fil",
       "text": "Filen du valde matchar inte det som ursprungligen spelades in för det här paketet. Vill du använda den ändå?",
-      "use anyway": "Använd ändå"
+      "use anyway": "Använd ändå",
+      "modified": "ändrad {{date}}",
+      "only modified differs": "Samma namn och storlek, men filen ändrades vid en annan tidpunkt – till exempel en kopia eller nyexporterat ljud."
     },
     "feedback-notice": {
       "body": "För att ytterligare förbättra TRATT eller åtgärda buggar behöver vi din återkoppling. Du kan enkelt och snabbt skicka oss din återkoppling genom att använda återkopplingsfunktionen. Du kan enkelt och snabbt berätta din åsikt genom att klicka på frågetecknet i det övre högra hörnet och fylla i formuläret. <b>Om det är ett tekniskt problem är det mycket viktigt att skicka återkopplingen tillsammans med protokollet till oss så snart som möjligt.</b> Protokollet hjälper oss att snabbt diagnostisera och felsöka problem på ett lämpligt sätt.<br/><br/>Tack.<br/><br/><i>TRATT-teamet</i>",
@@ -736,7 +738,9 @@
     },
     "editor_header": {
       "mono": "mono",
-      "stereo": "stereo"
+      "stereo": "stereo",
+      "export": "Exportera den här transkriptionen",
+      "export_needs_audio": "Bifoga filens ljud för att exportera transkriptionen."
     },
     "bundle_list": {
       "title": "Filer",
@@ -759,6 +763,14 @@
         "oom": "Minnet tog slut",
         "cancelled": "Avbruten",
         "unknown": "Misslyckades"
+      },
+      "cancel": "Avbryt transkriberingen av den här filen",
+      "stage": {
+        "decode": "Förbereder",
+        "download": "Laddar modell",
+        "asr": "Transkriberar",
+        "diarization": "Separerar talare",
+        "translation": "Översätter"
       }
     },
     "queue": {
@@ -786,7 +798,19 @@
       "cancel": "Avbryt",
       "progress": "Exporterar {{current}} av {{total}}…",
       "warnings_title": "Klar med varningar",
-      "done": "Klar — {{count}} fil(er) arkiverade."
+      "done": "Klar — {{count}} fil(er) arkiverade.",
+      "failed": "Exporten misslyckades: {{message}}"
+    },
+    "dropzone_placeholder": "Släpp ljudfiler här, eller klicka för att välja. Flera filer samtidigt går bra.",
+    "editor": {
+      "loading_audio": "Läser in ljud…",
+      "awaiting_media": "Ljudet för den här filen är inte inläst i den här sessionen. Använd ”Bifoga fil…” i listan för att koppla det igen."
+    },
+    "empty": {
+      "title": "Inga filer ännu",
+      "text": "Släpp en eller flera ljudfiler till vänster, eller spela in direkt. Varje fil får en egen transkription, och med automatisk transkribering påslagen transkriberas nya filer automatiskt.",
+      "restored_title": "Välkommen tillbaka",
+      "restored_text": "Filerna från din förra session finns i listan till vänster. Koppla en fils ljud igen med ”Bifoga fil…” för att fortsätta redigera, eller släpp nya filer."
     }
   }
 }

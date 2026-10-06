@@ -491,7 +491,9 @@
       "expected": "Expected:",
       "header": "This doesn't look like the same file",
       "text": "The file you picked doesn't match what was originally recorded for this bundle. Use it anyway?",
-      "use anyway": "Use anyway"
+      "use anyway": "Use anyway",
+      "modified": "modified {{date}}",
+      "only modified differs": "Same name and size, but the file was modified at a different time — e.g. a copy, or re-exported audio."
     },
     "feedback-notice": {
       "body": "To further improve TRATT or fix bugs, we need your feedback. You can send us your feedback easy and fast using the feedback feature. You can easily and quickly tell us your opinion by clicking on the question mark in the upper right corner and filling in the form. <b>If there is a technical problem, it is very important to send the feedback including the protocol to us as soon as possible.</b> The protocol helps us to quickly diagnose and troubleshoot problems in a timely manner.<br/><br/>Thank you.<br/><br/><i>The TRATT team</i>",
@@ -788,7 +790,9 @@
     },
     "editor_header": {
       "mono": "mono",
-      "stereo": "stereo"
+      "stereo": "stereo",
+      "export": "Export this transcription",
+      "export_needs_audio": "Attach this file's audio to export its transcription."
     },
     "bundle_list": {
       "title": "Files",
@@ -811,6 +815,14 @@
         "oom": "Ran out of memory",
         "cancelled": "Cancelled",
         "unknown": "Failed"
+      },
+      "cancel": "Stop transcribing this file",
+      "stage": {
+        "decode": "Preparing",
+        "download": "Loading model",
+        "asr": "Transcribing",
+        "diarization": "Separating speakers",
+        "translation": "Translating"
       }
     },
     "queue": {
@@ -838,7 +850,19 @@
       "cancel": "Cancel",
       "progress": "Exporting {{current}} of {{total}}…",
       "warnings_title": "Completed with warnings",
-      "done": "Done — {{count}} file(s) archived."
+      "done": "Done — {{count}} file(s) archived.",
+      "failed": "Export failed: {{message}}"
+    },
+    "dropzone_placeholder": "Drop audio files here, or click to browse. Several at once is fine.",
+    "editor": {
+      "loading_audio": "Loading audio…",
+      "awaiting_media": "This file’s audio isn’t loaded in this session. Use “Attach file…” in the list to re-attach it."
+    },
+    "empty": {
+      "title": "No files yet",
+      "text": "Drop one or more audio files on the left, or record directly. Every file gets its own transcript, and with Auto-transcribe switched on new files are transcribed automatically.",
+      "restored_title": "Welcome back",
+      "restored_text": "Your files from the last session are listed on the left. Re-attach a file’s audio with “Attach file…” to keep editing it, or drop new files."
     }
   }
 }

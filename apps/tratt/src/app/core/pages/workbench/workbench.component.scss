@@ -1,21 +1,106 @@
-.workbench {
-  display: grid;
-  grid-template-columns: 340px 1fr;
-  height: 100%;
+// The routed host sits in the app shell's column flex chain
+// (body > tratt-app > main > .container-fluid.flex). As a plain block it
+// took its content's height (the left rail's), so the editor pane jumped in
+// height whenever a settings section opened and left the lower part of the
+// viewport empty. flex-basis 0 + min-height 0 makes it take exactly the
+// remaining viewport height; the two panes then scroll independently.
+:host {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 0;
   min-height: 0;
 }
-.workbench__left {
-  overflow-y: auto;
-  border-right: 1px solid #d4d9e0;
+
+.workbench {
+  display: grid;
+  grid-template-columns: 340px minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
+  flex: 1 1 0;
+  min-height: 0;
 }
+
+.workbench__left {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 0.75rem 0.75rem 1rem;
+  border-right: 1px solid #d4d9e0;
+  background: var(--tratt-surface-background, #fff);
+
+  // The dropzone component carries its own 20px bottom margin for /local's
+  // full-page layout; the rail's flex gap already spaces sections here.
+  ::ng-deep tratt-dropzone {
+    margin-bottom: 0;
+  }
+}
+
 .workbench__right {
   display: flex;
   flex-direction: column;
-  overflow-y: auto;
+  min-height: 0;
+  min-width: 0;
+  overflow: hidden;
+}
+
+// The editor container must be allowed to shrink, or a tall editor pushes
+// the bottom navigation off-screen instead of scrolling inside itself.
+.workbench__editor {
+  position: relative;
+  flex: 1 1 0;
+  min-height: 0;
+  overflow: auto;
+}
+
+.workbench__placeholder {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  color: #667a90;
+  font-size: 0.9rem;
+  text-align: center;
+  padding: 1rem;
+}
+
+.workbench__empty {
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+
+.workbench__empty-card {
+  max-width: 28rem;
+  text-align: center;
+  color: #4a5a6c;
+}
+
+.workbench__empty-icon {
+  display: block;
+  font-size: 2.5rem;
+  color: #9aa8b8;
+  margin-bottom: 0.5rem;
+}
+
+.workbench__empty-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 0.35rem;
+}
+
+.workbench__empty-text {
+  font-size: 0.9rem;
+  margin: 0;
 }
 
 .workbench__queue {
-  margin-top: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
 }
 
 .workbench__queue-title {
@@ -29,26 +114,38 @@
 
 .workbench__queue-run {
   width: 100%;
-  margin-top: 0.5rem;
-}
-
-.workbench__capacity {
-  margin-top: 0.75rem;
+  margin-top: 0.25rem;
 }
 
 .workbench__editor-header {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   gap: 0.75rem;
-  padding: 0.5rem 0.75rem;
+  min-width: 0;
+  padding: 0.4rem 0.75rem;
   border-bottom: 1px solid #d4d9e0;
+}
+
+.workbench__editor-header-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-left: auto;
+  flex-shrink: 0;
+
+  .btn {
+    white-space: nowrap;
+  }
 }
 
 .workbench__editor-header-name {
   font-weight: 600;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 .workbench__editor-header-meta {
+  flex-shrink: 0;
   font-size: 0.8rem;
   color: #667a90;
 }

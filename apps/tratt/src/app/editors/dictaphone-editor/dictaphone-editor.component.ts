@@ -11,7 +11,6 @@ import {
 import { TranscrEditorComponent } from '../../core/component';
 
 import {
-  OLabel,
   TrattAnnotationSegment,
   TrattAnnotationSegmentLevel,
 } from '@tratt/annotation';
@@ -39,6 +38,7 @@ import { AppStorageService } from '../../core/shared/service/appstorage.service'
 import { ShortcutService } from '../../core/shared/service/shortcut.service';
 import { AnnotationStoreService } from '../../core/store/login-mode/annotation/annotation.store.service';
 import { TRATTEditor, TrattEditorRequirements } from '../tratt-editor';
+import { EditedSegment, mergeEditedSegments } from './merge-edited-segments';
 
 @Component({
   selector: 'tratt-audioplayer-gui',
@@ -237,7 +237,10 @@ export class DictaphoneEditorComponent
 
   override ngOnDestroy() {
     super.ngOnDestroy();
-    this.audioManager.stopPlayback().catch(() => {
+    // `?.`: a host can destroy an editor before its ngOnInit ran (the
+    // workbench remounting twice within one change detection) — throwing
+    // here would abort the host's remount and leave no editor at all.
+    this.audioManager?.stopPlayback().catch(() => {
       console.error(`could not stop audio on editor switched`);
     });
     this.shortcutService.unregisterShortcutGroup(this.shortcuts.name);
@@ -408,7 +411,11 @@ export class DictaphoneEditorComponent
     const transcript = this.annotationStoreService.transcript!.clone();
 
     if (transcript.currentLevel && transcript.currentLevel.type === 'SEGMENT') {
-      transcript.currentLevel.clear();
+      const previous = [
+        ...(
+          transcript.currentLevel as TrattAnnotationSegmentLevel<TrattAnnotationSegment>
+        ).items,
+      ];
       const rawText = this.editor.rawText;
       // split text at the position of every boundary marker
       let segTexts: string[] = rawText.split(/\s*{[0-9]+}\s*/g);
@@ -442,19 +449,25 @@ export class DictaphoneEditorComponent
         return a.replace(/(^\s+)|(\s+$)/g, '');
       });
 
-      const items: TrattAnnotationSegment[] = [];
-
-      for (let i = 0; i < segTexts.length; i++) {
-        const time =
+      const edited: EditedSegment[] = segTexts.map((text, i) => ({
+        time:
           i < samplesArray.length
             ? new SampleUnit(samplesArray[i], this.audioManager.sampleRate)
-            : this.audioManager.resource.info.duration;
+            : this.audioManager.resource.info.duration,
+        text,
+      }));
 
-        items.push(
-          transcript.createSegment(time, [
-            new OLabel(transcript.currentLevel!.name, segTexts[i]),
-          ]),
-        );
+      // Keeps each segment's id and its labels this editor doesn't show
+      // (diarization speakers); `undefined` = nothing changed, so a flush
+      // on switching files/editors doesn't rewrite the transcript.
+      const items = mergeEditedSegments(
+        previous,
+        edited,
+        transcript.currentLevel.name,
+        (time, labels) => transcript.createSegment(time, labels),
+      );
+      if (!items) {
+        return;
       }
       transcript.currentLevel.overwriteItems(items as any);
       this.annotationStoreService.overwriteTranscript(transcript);

@@ -6,18 +6,30 @@ import {
   ComponentRef,
   computed,
   effect,
+  NgZone,
   OnDestroy,
   OnInit,
   signal,
   Type,
+  untracked,
   ViewChild,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { TranslocoPipe } from '@jsverse/transloco';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { NgbModalRef, NgbNavModule } from '@ng-bootstrap/ng-bootstrap';
 import { Store } from '@ngrx/store';
-import { AnnotJSONConverter, Converter } from '@tratt/annotation';
-import { formatMinutesSeconds, getFileSize } from '@tratt/utilities';
+import {
+  AnnotJSONConverter,
+  Converter,
+  OLabel,
+  TrattAnnotation,
+  TrattAnnotationSegment,
+} from '@tratt/annotation';
+import {
+  formatMinutesSeconds,
+  getFileSize,
+  pickInitialLevelName,
+} from '@tratt/utilities';
 import { AudioManager, normalizeMimeType } from '@tratt/web-media';
 import { timer } from 'rxjs';
 import { AppInfo } from '../../../app.info';
@@ -49,8 +61,8 @@ import {
 } from '../../modals/transcription-stop-modal/transcription-stop-modal.component';
 import { TrattModalService } from '../../modals/tratt-modal.service';
 import { FileProgress } from '../../obj/objects';
-import { ProjectSettings } from '../../obj/Settings';
 import { SessionFile } from '../../obj/SessionFile';
+import { ProjectSettings } from '../../obj/Settings';
 import { LoadeditorDirective } from '../../shared/directive/loadeditor.directive';
 import { SettingsService, UserInteractionsService } from '../../shared/service';
 import { AppStorageService } from '../../shared/service/appstorage.service';
@@ -58,6 +70,7 @@ import { AudioService } from '../../shared/service/audio.service';
 import { CapacityService } from '../../shared/service/capacity.service';
 import { TranscriptionOptions } from '../../shared/service/local-transcription.service';
 import { TranslationOptions } from '../../shared/service/local-translation.service';
+import { PendingEditsService } from '../../shared/service/pending-edits.service';
 import { PipelineQueueService } from '../../shared/service/pipeline-queue.service';
 import { RecordedFileService } from '../../shared/service/recorded-file.service';
 import { RoutingService } from '../../shared/service/routing.service';
@@ -65,7 +78,13 @@ import { LoadingStatus, LoginMode, RootState } from '../../store';
 import { ApplicationState } from '../../store/application';
 import { ApplicationStoreService } from '../../store/application/application-store.service';
 import { AuthenticationStoreService } from '../../store/authentication/authentication-store.service';
-import { selectAllBundleSummaries } from '../../store/login-mode/annotation/annotation.selectors';
+import { AuthenticationActions } from '../../store/authentication/authentication.actions';
+import { AnnotationActions } from '../../store/login-mode/annotation/annotation.actions';
+import {
+  selectAllBundleSummaries,
+  selectLocalMode,
+  selectSelectedBundleId,
+} from '../../store/login-mode/annotation/annotation.selectors';
 import { AnnotationStoreService } from '../../store/login-mode/annotation/annotation.store.service';
 import {
   DEFAULT_BUNDLE_ID,
@@ -130,6 +149,36 @@ export class WorkbenchComponent
   // names the last-attempted editor — see changeEditor()'s F6 handling).
   private currentEditorRef?: ComponentRef<TRATTEditor>;
 
+  /**
+   * Which bundle / AudioManager the mounted editor was created for. Every
+   * editor captures `AudioService.current` once in its ngOnInit and never
+   * looks again, so the editor has to be remounted whenever the selected
+   * bundle (or that bundle's resident manager) changes — otherwise it keeps
+   * playing and drawing the PREVIOUS bundle's audio while every edit is
+   * routed to the newly selected bundle's transcript.
+   */
+  private mountedBundleId?: string;
+  private mountedManager?: AudioManager;
+  // The level the mounted editor shows. Text editors read the current level
+  // once, when they mount; picking another level (navbar) must remount them.
+  private mountedLevelIndex?: number;
+
+  /**
+   * What the editor pane shows instead of an editor when the selected bundle
+   * has no resident audio: 'loading' while an evicted bundle re-decodes from
+   * its retained file, 'awaiting-media' when the file must be re-attached.
+   */
+  editorPlaceholder = signal<'none' | 'loading' | 'awaiting-media'>('none');
+
+  private selectedBundleId = this.store.selectSignal(selectSelectedBundleId);
+  private localMode = this.store.selectSignal(selectLocalMode);
+  private selectedLevelIndex = computed(
+    () =>
+      this.localMode()?.bundles.entities[this.selectedBundleId()]?.transcript
+        ?.selectedLevelIndex,
+  );
+  private unregisterPendingEdits?: () => void;
+
   // The editor-switcher tab row's entries, filtered against the project's
   // configured interfaces (final whole-branch review, F3) — mirrors
   // mountDefaultEditor()'s own validation and the navbar's own
@@ -151,6 +200,8 @@ export class WorkbenchComponent
   }
 
   showCommentSection = false;
+  /** The project allows exporting (projectconfig navigation.export). */
+  exportEnabled = false;
   modalOverview?: NgbModalRef;
   modalShortcutsDialogue?: NgbModalRef;
   transcrSendingModal?: NgbModalRef;
@@ -210,7 +261,7 @@ export class WorkbenchComponent
     computeReadyBundleIds(
       this.bundleSummaries(),
       this.runStatuses(),
-      (bundleId) => this.audioService.hasResident(bundleId),
+      (bundleId) => this.audioService.canRestore(bundleId),
     ),
   );
 
@@ -244,17 +295,17 @@ export class WorkbenchComponent
   }
 
   /**
-   * Step 6: one-shot queueing for a brand-new translation config panel —
-   * captured for UI consistency with the dropzone's pre-step-6 pairing, but
-   * NOT forwarded to PipelineQueueService: PipelineRunnerService.run() has
-   * no entry point that accepts translateOptions yet (see the step 4 design
-   * note in the spec — "/workbench has no translation configuration UI").
-   * Wiring translation into the queue itself is separate, future work.
+   * Translation config from the persistent settings panel, forwarded to the
+   * queue: `PipelineRunnerService.run()` chains translation after ASR (and
+   * optional diarization) when `translateOptions` is set, exactly as /local
+   * does. (Previously the panel was rendered but its value was dropped, so
+   * ticking "Translate transcript locally" silently did nothing.)
    */
   queueTranslateOptions = signal<TranslationOptions | null>(null);
 
   onQueueTranslateOptionsChange(options: TranslationOptions | null): void {
     this.queueTranslateOptions.set(options);
+    this.pipelineQueueService.setTranslateOptions(options);
   }
 
   // Step 6 continuous ingestion bookkeeping.
@@ -290,11 +341,14 @@ export class WorkbenchComponent
         sizeText: string;
       }
     | undefined {
-    const manager = this.audioService.current;
-    if (!manager) {
+    // Media info is captured at registration and survives LRU eviction, so
+    // the header stays put while an evicted bundle re-decodes.
+    const info =
+      this.audioService.getMediaInfo(this.selectedBundleId()) ??
+      this.audioService.current?.resource?.info;
+    if (!info) {
       return undefined;
     }
-    const info = manager.resource.info;
     const fileSize = getFileSize(info.size);
     return {
       name: info.fullname,
@@ -345,8 +399,25 @@ export class WorkbenchComponent
     private store: Store<RootState>,
     private pipelineQueueService: PipelineQueueService,
     private capacityService: CapacityService,
+    private pendingEdits: PendingEditsService,
+    private ngZone: NgZone,
+    private transloco: TranslocoService,
   ) {
     super();
+
+    // Keep the mounted editor in lock-step with the selected bundle. Reads
+    // are reactive: `getManager()`/`canRestore()` track AudioService's
+    // registry version, so this also fires when the selected bundle's audio
+    // finishes re-decoding after an LRU eviction.
+    effect(() => {
+      const bundleId = this.selectedBundleId();
+      const manager = this.audioService.getManager(bundleId);
+      const restorable = this.audioService.canRestore(bundleId);
+      const levelIndex = this.selectedLevelIndex();
+      untracked(() =>
+        this.syncEditorToSelection(bundleId, manager, restorable, levelIndex),
+      );
+    });
 
     // Step 6: fires once per pending bundle id, exactly when that bundle's
     // sessionFile (and, in the same reducer case, its transcript) have
@@ -408,11 +479,55 @@ export class WorkbenchComponent
     // transcription-end.component.ts.
     this.navbarServ.showInterfaces = false;
 
+    this.unregisterPendingEdits = this.pendingEdits.register(() =>
+      this.flushMountedEditor(),
+    );
+
+    // A pipeline result replaced the transcript of the bundle on screen:
+    // editors only read the transcript when they mount, so remount to show
+    // it (otherwise the editor kept showing the empty pre-run transcript
+    // until the user clicked away and back).
+    const transcriptReplaced$ = this.pipelineQueueService.transcriptReplaced$;
+    if (transcriptReplaced$) {
+      this.subscribe(transcriptReplaced$, (bundleId: string) => {
+        // The result arrives from the ASR worker's callback, which can run
+        // outside Angular's zone; an editor created there never gets its
+        // async initialisation change-detected (the 2D editor stayed an
+        // empty canvas). Re-enter the zone and defer past the current
+        // dispatch.
+        this.ngZone.run(() =>
+          setTimeout(() => {
+            if (
+              this.sessionReady &&
+              this.currentEditorRef &&
+              bundleId === this.mountedBundleId
+            ) {
+              this.mountEditor(
+                this.activeEditorName() ?? this.appStorage.interface ?? '',
+                { flush: false },
+              );
+              this.cd.markForCheck();
+            }
+          }),
+        );
+      });
+    }
+
     this.subscribe(
       this.appStoreService.loading$,
       (loading: ApplicationState['loading']) => {
         const wasReady = this.sessionReady;
         this.sessionReady = loading?.status === LoadingStatus.FINISHED;
+        if (wasReady && !this.sessionReady) {
+          // `@if (sessionReady)` is about to destroy the right pane together
+          // with the mounted editor's view. Forget the stale ComponentRef so
+          // the next mountDefaultEditor() really mounts instead of hitting
+          // changeEditor()'s "already mounted" no-op guard and leaving the
+          // pane empty.
+          this.currentEditorRef = undefined;
+          this.mountedBundleId = undefined;
+          this.mountedManager = undefined;
+        }
         if (loading?.status === LoadingStatus.FAILED) {
           // A failed login/bootstrap chain (e.g. HTTP config fetch failure)
           // must not permanently strand the workbench in the background-only
@@ -436,8 +551,13 @@ export class WorkbenchComponent
           this.showCommentSection =
             this.settingsService.isTheme('shortAudioFiles') &&
             (this._useMode === 'online' || this._useMode === 'demo');
-          this.navbarServ.showExport =
+          this.exportEnabled =
             this.settingsService.projectsettings?.navigation?.export === true;
+          // LOCAL: exporting is a per-file action in the file header
+          // ("Export this transcription"); a second, unlabelled "Export" in
+          // the top bar read as exporting everything.
+          this.navbarServ.showExport =
+            this.exportEnabled && this._useMode !== 'local';
 
           // The right pane (and its `trattLoadeditor` ViewChild) only exists in
           // the DOM once `sessionReady` is true, and that's gated behind
@@ -461,19 +581,35 @@ export class WorkbenchComponent
     }
     this.subscribe(
       this.dropzone.filesAdded,
-      (event: { statistics: DropzoneStatistics; addedFiles: FileProgress[] }) => {
+      (event: {
+        statistics: DropzoneStatistics;
+        addedFiles: FileProgress[];
+      }) => {
         this.onFilesChanged(event.addedFiles);
       },
     );
   }
 
   private onFilesChanged(addedFiles: FileProgress[]): void {
+    if (!this.visitBootstrapped && this.sessionReady) {
+      // A LOCAL session already exists although no file was dropped on this
+      // visit yet — e.g. the user re-attached audio to a bundle restored from
+      // IndexedDB (BundleListComponent.completeReattach() runs the login
+      // chain itself), or came back to /workbench mid-session. Treat this
+      // visit as bootstrapped: re-running loginLocal() here would re-fire the
+      // one-shot login chain and write the new file's session into whichever
+      // bundle is selected.
+      this.visitBootstrapped = true;
+    }
     if (
       !this.visitBootstrapped &&
       addedFiles.some(
         (f) =>
           f.status === 'progress' &&
-          !AudioManager.isValidAudioFileName(f.file.fullname, AppInfo.audioformats),
+          !AudioManager.isValidAudioFileName(
+            f.file.fullname,
+            AppInfo.audioformats,
+          ),
       )
     ) {
       // A transcript file dropped alongside the first audio file may still be
@@ -501,12 +637,117 @@ export class WorkbenchComponent
     for (const f of newlyValid) {
       this.ingestedIds.add(f.id);
     }
+    const { reattach, fresh } = this.matchAwaitingBundles(newlyValid);
+    if (reattach.length > 0) {
+      this.reattachDropped(reattach);
+    }
+    if (fresh.length === 0) {
+      return;
+    }
     if (!this.visitBootstrapped) {
       this.visitBootstrapped = true;
-      this.runFirstWave(newlyValid);
+      this.runFirstWave(fresh);
     } else {
-      this.runLaterWave(newlyValid);
+      this.runLaterWave(fresh);
     }
+  }
+
+  /**
+   * After a reload every file in the list waits for its audio. Dropping the
+   * same files again used to add a second row per file (with an empty
+   * transcript) next to each waiting one. A dropped file whose name, size
+   * and type match a waiting bundle now goes to that bundle; only the rest
+   * become new files. Each bundle takes at most one file.
+   */
+  private matchAwaitingBundles(entries: FileProgress[]): {
+    reattach: { entry: FileProgress; bundleId: string }[];
+    fresh: FileProgress[];
+  } {
+    const entities = this.localMode()?.bundles.entities ?? {};
+    const waiting = this.bundleSummaries()
+      .filter(
+        (b) =>
+          b.name !== undefined && !this.audioService.canRestore(b.bundleId),
+      )
+      .map((b) => ({
+        bundleId: b.bundleId,
+        file: entities[b.bundleId]?.sessionFile,
+      }))
+      .filter(
+        (b): b is { bundleId: string; file: SessionFile } =>
+          b.file !== undefined,
+      );
+    const taken = new Set<string>();
+    const reattach: { entry: FileProgress; bundleId: string }[] = [];
+    const fresh: FileProgress[] = [];
+    for (const entry of entries) {
+      const file = entry.file.file;
+      const match = file
+        ? waiting.find(
+            (b) =>
+              !taken.has(b.bundleId) &&
+              b.file.name === file.name &&
+              b.file.size === file.size &&
+              b.file.type === normalizeMimeType(file.type),
+          )
+        : undefined;
+      if (match) {
+        taken.add(match.bundleId);
+        reattach.push({ entry, bundleId: match.bundleId });
+      } else {
+        fresh.push(entry);
+      }
+    }
+    return { reattach, fresh };
+  }
+
+  /**
+   * Gives dropped audio to the waiting bundles it matched. With no session
+   * yet (first drop after a reload), the first of them goes through the
+   * same login chain as "Attach file…" in the list
+   * (BundleListComponent.completeReattach) and becomes the selected file;
+   * the others just get their audio. Mid-session nothing changes focus.
+   */
+  private reattachDropped(
+    pairs: { entry: FileProgress; bundleId: string }[],
+  ): void {
+    for (const { entry, bundleId } of pairs) {
+      this.audioService.registerAudioManager(
+        bundleId,
+        entry.audioManager!,
+        entry.file.file!,
+      );
+      this.store.dispatch(
+        LoginModeActions.bundleAudioAttached({
+          mode: LoginMode.LOCAL,
+          bundleId,
+        }),
+      );
+      // Files restored without a transcript get transcribed like new ones
+      // (the queue skips bundles that already have content).
+      this.pendingAutoEnqueueIds.add(bundleId);
+      this.dropzone!.consumeEntry(entry.id);
+    }
+    if (this.visitBootstrapped || this.sessionReady) {
+      this.visitBootstrapped = true;
+      return;
+    }
+    this.visitBootstrapped = true;
+    const { entry, bundleId } = pairs[0];
+    this.pendingEdits.flush();
+    this.store.dispatch(
+      LoginModeActions.selectBundle({ mode: LoginMode.LOCAL, bundleId }),
+    );
+    this.store.dispatch(
+      AuthenticationActions.loginLocal.success({
+        mode: LoginMode.LOCAL,
+        files: [entry.file.file!],
+        sessionFile: this.localMode()!.bundles.entities[bundleId]!
+          .sessionFile as SessionFile,
+        removeData: false,
+        audioAlreadyLoaded: true,
+      }),
+    );
   }
 
   /**
@@ -522,7 +763,107 @@ export class WorkbenchComponent
    */
   override ngOnDestroy(): void {
     this.capacityService.setConfiguredOptions(null);
+    this.unregisterPendingEdits?.();
     super.ngOnDestroy();
+  }
+
+  /**
+   * Commits the mounted editor's debounced typing to the store. Only while
+   * the mounted editor still belongs to the selected bundle — flushing a
+   * stale editor would write its text into whatever bundle is selected now.
+   */
+  private flushMountedEditor(): void {
+    if (
+      !this.currentEditorRef ||
+      this.mountedBundleId !== this.selectedBundleId()
+    ) {
+      return;
+    }
+    (
+      this.currentEditorRef.instance as unknown as
+        | TrattEditorRequirements
+        | undefined
+    )?.flushPendingEdits?.();
+  }
+
+  /**
+   * Gives the selected bundle the same starting transcript the session
+   * bootstrap gives the first file — one level with one empty segment
+   * spanning the recording — if it has no level at all.
+   *
+   * Only the bundle that is selected while the login chain runs gets that
+   * seed (AnnotationLoadEffects.loadSegments). Every other bundle — the
+   * second and later files of a multi-file drop, every file dropped later —
+   * started with zero levels: nothing to type into in the text editors, no
+   * segment to open in the 2D editor, until a pipeline run produced one.
+   * A single blank segment is not "content" (transcriptHasContent), so this
+   * never stops the bundle from being auto-transcribed.
+   */
+  private seedEmptyTranscript(manager: AudioManager): void {
+    const bundleId = this.selectedBundleId();
+    const transcript = this.localMode()?.bundles.entities[bundleId]?.transcript;
+    if (!transcript || transcript.levels.length > 0) {
+      return;
+    }
+    const levelName = pickInitialLevelName({
+      uiLanguage: this.transloco.getActiveLang(),
+    });
+    const seeded = new TrattAnnotation<TrattAnnotationSegment>();
+    const level = seeded.createSegmentLevel(levelName);
+    level.items.push(
+      seeded.createSegment(manager.resource.info.duration, [
+        new OLabel(levelName, ''),
+      ]),
+    );
+    seeded.addLevel(level);
+    seeded.changeLevelIndex(0);
+    this.store.dispatch(
+      AnnotationActions.overwriteTranscript.do({
+        transcript: seeded,
+        mode: LoginMode.LOCAL,
+        saveToDB: true,
+      }),
+    );
+  }
+
+  /**
+   * Remounts (or unmounts) the editor so it always shows the selected
+   * bundle's audio — see `mountedBundleId`. Never flushes: by the time the
+   * selection has changed, a flush would target the wrong bundle (callers
+   * that change the selection flush beforehand via PendingEditsService).
+   */
+  private syncEditorToSelection(
+    bundleId: string,
+    manager: AudioManager | undefined,
+    restorable: boolean,
+    levelIndex?: number,
+  ): void {
+    if (!this.sessionReady || !this.showEditor) {
+      return;
+    }
+    if (!manager) {
+      if (this.currentEditorRef) {
+        this.showEditor.viewContainerRef.clear();
+        this.currentEditorRef = undefined;
+      }
+      this.mountedBundleId = undefined;
+      this.mountedManager = undefined;
+      this.editorPlaceholder.set(restorable ? 'loading' : 'awaiting-media');
+      this.cd.markForCheck();
+      return;
+    }
+    this.editorPlaceholder.set('none');
+    if (
+      this.currentEditorRef &&
+      this.mountedBundleId === bundleId &&
+      this.mountedManager === manager &&
+      this.mountedLevelIndex === levelIndex
+    ) {
+      return;
+    }
+    const name = this.activeEditorName() ?? this.appStorage.interface ?? '';
+    this.mountEditor(name, { flush: false });
+    this.cd.markForCheck();
   }
 
   private mountDefaultEditor(): void {
@@ -532,9 +873,12 @@ export class WorkbenchComponent
     if (valid === undefined && interfaces.length > 0) {
       this.appStorage.interface = interfaces[0];
     }
-    if (this.appStorage.interface) {
-      this.changeEditor(this.appStorage.interface);
-    }
+    // Always mount SOMETHING. With no stored editor preference (fresh
+    // profile, cleared storage) and the project's interface list not
+    // available yet, this used to mount nothing at all — an empty editor
+    // pane with no tab highlighted. changeEditor('') falls back to the
+    // default editor.
+    this.changeEditor(this.appStorage.interface ?? '');
   }
 
   /**
@@ -558,10 +902,22 @@ export class WorkbenchComponent
       ? this.dropzone!.oannotation
       : undefined;
 
+    // DEFAULT_BUNDLE_ID may already hold a real bundle restored from
+    // IndexedDB (the user's previous session). It must not be reused for the
+    // first new file: onLoginLocal$ selects the first id and
+    // loginLocal.prepare then writes this file's sessionFile (and, with a
+    // paired transcript, its annotation) into the SELECTED bundle — silently
+    // re-binding the restored transcript to a different recording, or
+    // overwriting it outright.
+    const bundle1Occupied = this.bundleSummaries().some(
+      (b) => b.bundleId === DEFAULT_BUNDLE_ID && b.name !== undefined,
+    );
+
     const audioBundleIds: string[] = [];
     const files: File[] = [];
     entries.forEach((entry, i) => {
-      const bundleId = i === 0 ? DEFAULT_BUNDLE_ID : generateBundleId();
+      const bundleId =
+        i === 0 && !bundle1Occupied ? DEFAULT_BUNDLE_ID : generateBundleId();
       const nativeFile = entry.file.file!;
       this.audioService.registerAudioManager(
         bundleId,
@@ -571,6 +927,28 @@ export class WorkbenchComponent
       audioBundleIds.push(bundleId);
       files.push(nativeFile);
     });
+
+    if (bundle1Occupied) {
+      // Create the first file's fresh bundle up front (and select it) so
+      // onLoginLocal$'s selectBundle(firstBundleId) finds an entity — for an
+      // unknown id that action is a no-op, and prepare would land on the
+      // restored bundle again.
+      const first = files[0];
+      this.store.dispatch(
+        LoginModeActions.createBundle({
+          mode: LoginMode.LOCAL,
+          bundleId: audioBundleIds[0],
+          sessionFile: new SessionFile(
+            first.name,
+            first.size,
+            new Date(first.lastModified),
+            normalizeMimeType(first.type),
+          ),
+          selectAfterCreate: true,
+          audioLoaded: true,
+        }),
+      );
+    }
 
     this.authStoreService.loginLocal(files, annotation, false, audioBundleIds);
     for (const id of audioBundleIds) {
@@ -596,6 +974,19 @@ export class WorkbenchComponent
    * bootstrap call (see the spec's step 2.7 finding of the same name).
    */
   private runLaterWave(entries: FileProgress[]): void {
+    // Background files never steal focus from a file being edited — but
+    // when the selection is the empty placeholder bundle (every file was
+    // removed), there is nothing to steal from: show the first new file
+    // instead of a pane asking to attach audio to a file that isn't there.
+    // Only once the session is ready: while the first wave's login chain is
+    // still running, the selected bundle has no file YET and that chain
+    // writes into whatever is selected.
+    const selected =
+      this.localMode()?.bundles.entities[this.selectedBundleId()];
+    let selectNext =
+      this.sessionReady &&
+      selected !== undefined &&
+      selected.sessionFile === undefined;
     for (const entry of entries) {
       const bundleId = generateBundleId();
       const nativeFile = entry.file.file!;
@@ -614,9 +1005,11 @@ export class WorkbenchComponent
             new Date(nativeFile.lastModified),
             normalizeMimeType(nativeFile.type),
           ),
-          selectAfterCreate: false,
+          selectAfterCreate: selectNext,
+          audioLoaded: true,
         }),
       );
+      selectNext = false;
       this.pendingAutoEnqueueIds.add(bundleId);
       this.dropzone!.consumeEntry(entry.id);
     }
@@ -652,6 +1045,20 @@ export class WorkbenchComponent
       return;
     }
 
+    this.mountEditor(name, { flush: true });
+  }
+
+  /**
+   * Disposes whatever editor is mounted and mounts `name` for the currently
+   * selected bundle. `flush` must only be true when the selection has NOT
+   * changed since the old editor was mounted (an editor-tab switch) — see
+   * `syncEditorToSelection()`.
+   */
+  private mountEditor(name: string, opts: { flush: boolean }): void {
+    if (name === undefined || name === '') {
+      name = editorComponents[editorComponents.length - 1].name;
+    }
+
     let comp: Type<TRATTEditor> | undefined;
     for (const editorComponent of editorComponents) {
       if (name === editorComponent.name) {
@@ -681,12 +1088,37 @@ export class WorkbenchComponent
     // narrows to call this one optional member, matching this codebase's
     // existing convention for dynamically-created editor instances (see
     // TranscriptionComponent.changeEditor()'s own `as any` for `openModal`).
-    (
-      this.currentEditorRef?.instance as TrattEditorRequirements | undefined
-    )?.flushPendingEdits?.();
+    if (opts.flush) {
+      this.flushMountedEditor();
+    }
 
     const viewContainerRef = this.showEditor.viewContainerRef;
-    viewContainerRef.clear();
+    try {
+      viewContainerRef.clear();
+    } catch (error) {
+      // A failing teardown of the previous editor must not leave the pane
+      // empty: carry on and mount the new one.
+      console.error('ERROR while unmounting the previous editor', error);
+    }
+    this.currentEditorRef = undefined;
+    this.mountedBundleId = undefined;
+    this.mountedManager = undefined;
+
+    const manager = this.audioService.current;
+    if (!manager) {
+      // Every editor dereferences `AudioService.current` in ngOnInit; with
+      // the selected bundle's audio not resident (re-decoding, or awaiting a
+      // re-attach) mounting would throw. Remember the choice and let
+      // syncEditorToSelection() mount it once the audio is back.
+      this.appStorage.interface = name;
+      this.activeEditorName.set(name);
+      this.editorPlaceholder.set(
+        this.audioService.canRestore(this.selectedBundleId())
+          ? 'loading'
+          : 'awaiting-media',
+      );
+      return;
+    }
 
     // F6 (final whole-branch review): a throw during mount must not leave
     // appStorage.interface/activeEditorName claiming a switch that didn't
@@ -696,16 +1128,21 @@ export class WorkbenchComponent
     // the tab row's highlight still matches the caller's last real
     // intent — a click on that same tab retries the mount (see the guard
     // above).
+    this.seedEmptyTranscript(manager);
+
     try {
-      this.currentEditorRef = viewContainerRef.createComponent<TRATTEditor>(
-        comp,
-      );
+      this.currentEditorRef =
+        viewContainerRef.createComponent<TRATTEditor>(comp);
     } catch (error) {
       this.currentEditorRef = undefined;
       console.error('ERROR failed to mount editor component', error);
       return;
     }
 
+    this.mountedBundleId = this.selectedBundleId();
+    this.mountedManager = manager;
+    this.mountedLevelIndex = this.selectedLevelIndex();
+    this.editorPlaceholder.set('none');
     this.appStorage.interface = name;
     this.activeEditorName.set(name);
   }

@@ -1,21 +1,28 @@
 import { TestBed } from '@angular/core/testing';
+import {
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  jest,
+} from '@jest/globals';
+import { TranslocoService } from '@jsverse/transloco';
 import { provideMockActions } from '@ngrx/effects/testing';
 import { MockStore, provideMockStore } from '@ngrx/store/testing';
-import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
-import { TranslocoService } from '@jsverse/transloco';
 import { OctraAPIService } from '@octra/ngx-octra-api';
+import { AudioManager } from '@tratt/web-media';
 import { SessionStorageService } from 'ngx-webstorage';
 import { randomUUID } from 'node:crypto';
 import { BroadcastChannel as NodeBroadcastChannel } from 'node:worker_threads';
 import { of, ReplaySubject } from 'rxjs';
-import { AudioManager } from '@tratt/web-media';
+import { TrattModalService } from '../../modals/tratt-modal.service';
 import { AlertService } from '../../shared/service';
 import { RoutingService } from '../../shared/service/routing.service';
-import { TrattModalService } from '../../modals/tratt-modal.service';
+import { IDBActions } from '../idb/idb.actions';
 import { LoginMode, RootState } from '../index';
 import { DEFAULT_BUNDLE_ID } from '../login-mode/annotation/local-bundle-collection';
 import { LoginModeActions } from '../login-mode/login-mode.actions';
-import { IDBActions } from '../idb/idb.actions';
 import { AuthenticationActions } from './authentication.actions';
 import { AuthenticationEffects } from './authentication.effects';
 
@@ -23,7 +30,10 @@ import { AuthenticationEffects } from './authentication.effects';
 // Node's worker_threads implementation has an equivalent same-process pub/sub
 // surface (addEventListener('message', ...), postMessage, close), so it's a
 // suitable polyfill for exercising the real handshake code in this spec.
-if (typeof (globalThis as { BroadcastChannel?: unknown }).BroadcastChannel === 'undefined') {
+if (
+  typeof (globalThis as { BroadcastChannel?: unknown }).BroadcastChannel ===
+  'undefined'
+) {
   (
     globalThis as unknown as { BroadcastChannel: typeof NodeBroadcastChannel }
   ).BroadcastChannel = NodeBroadcastChannel;
@@ -34,7 +44,10 @@ if (typeof (globalThis as { BroadcastChannel?: unknown }).BroadcastChannel === '
 // browsers, which have supported it since 2022). Polyfill it with Node's
 // implementation so the effect under test can call it as it would in
 // production.
-if (typeof (globalThis.crypto as { randomUUID?: unknown })?.randomUUID !== 'function') {
+if (
+  typeof (globalThis.crypto as { randomUUID?: unknown })?.randomUUID !==
+  'function'
+) {
   (
     globalThis.crypto as unknown as { randomUUID: typeof randomUUID }
   ).randomUUID = randomUUID;
@@ -80,7 +93,10 @@ describe('AuthenticationEffects', () => {
         { provide: TranslocoService, useValue: {} },
         {
           provide: RoutingService,
-          useValue: { navigate: () => undefined, addStaticParams: () => undefined },
+          useValue: {
+            navigate: () => undefined,
+            addStaticParams: () => undefined,
+          },
         },
         {
           provide: TrattModalService,
@@ -169,7 +185,7 @@ describe('AuthenticationEffects', () => {
       jest.restoreAllMocks();
     });
 
-    it('creates a bundle for every extra valid audio file (after bundle #1\'s save-gate resolves) and selects the first up front', (done) => {
+    it("creates a bundle for every extra valid audio file (after bundle #1's save-gate resolves) and selects the first up front", (done) => {
       jest.spyOn(AudioManager, 'isValidAudioFileName').mockReturnValue(true);
 
       const dispatchSpy = jest.spyOn(store, 'dispatch');
@@ -217,12 +233,25 @@ describe('AuthenticationEffects', () => {
 
         setTimeout(() => {
           const createBundleCalls = dispatchSpy.mock.calls
-            .map(([a]) => a as unknown as { type: string; bundleId?: string })
+            .map(
+              ([a]) =>
+                a as unknown as {
+                  type: string;
+                  bundleId?: string;
+                  audioLoaded?: boolean;
+                },
+            )
             .filter((a) => a.type === LoginModeActions.createBundle.type);
 
           expect(createBundleCalls.map((c) => c.bundleId)).toEqual([
             'bundle-two',
             'bundle-three',
+          ]);
+          // Their audio was registered under these ids by the caller, so
+          // they are as "loaded" as the first file (navbar items, list).
+          expect(createBundleCalls.map((c) => c.audioLoaded)).toEqual([
+            true,
+            true,
           ]);
 
           subscription.unsubscribe();
@@ -266,7 +295,9 @@ describe('AuthenticationEffects', () => {
 
         const prepareCall = dispatchSpy.mock.calls
           .map(([a]) => a as unknown as { type: string; sessionFile?: any })
-          .find((a) => a.type === AuthenticationActions.loginLocal.prepare.type);
+          .find(
+            (a) => a.type === AuthenticationActions.loginLocal.prepare.type,
+          );
         expect(prepareCall).toBeDefined();
         expect(prepareCall!.sessionFile.name).toEqual('only.wav');
 

@@ -470,7 +470,10 @@ export class TwoDEditorComponent
 
   override ngOnDestroy() {
     super.ngOnDestroy();
-    this.audioManager.stopPlayback().catch(() => {
+    // `?.`: a host can destroy an editor before its ngOnInit ran (the
+    // workbench remounting twice within one change detection) — throwing
+    // here would abort the host's remount and leave no editor at all.
+    this.audioManager?.stopPlayback().catch(() => {
       console.error(`could not stop audio on editor switched`);
     });
 
@@ -481,7 +484,9 @@ export class TwoDEditorComponent
 
     this.shortcutService.unregisterShortcutGroup('2D-Editor viewer');
     this.shortcutService.unregisterShortcutGroup('2D-Editor audio');
-    this.shortcutService.unregisterShortcutGroup(this.miniMagnifierShortcuts.name);
+    this.shortcutService.unregisterShortcutGroup(
+      this.miniMagnifierShortcuts.name,
+    );
     this.shortcutService.unregisterShortcutGroup(this.windowShortcuts.name);
   }
 
@@ -510,9 +515,7 @@ export class TwoDEditorComponent
         const start: SampleUnit =
           selected.index > 0
             ? (
-                currentLevel.items[
-                  selected.index - 1
-                ] as TrattAnnotationSegment
+                currentLevel.items[selected.index - 1] as TrattAnnotationSegment
               ).time.clone()
             : this.audioManager.createSampleUnit(0);
         this.selectedIndex = selected.index;
@@ -863,9 +866,7 @@ export class TwoDEditorComponent
     // this.viewer.height = this.linesViewHeight;
   }
 
-  onEntriesChange(
-    annotation: TrattAnnotation<TrattAnnotationSegment>,
-  ) {
+  onEntriesChange(annotation: TrattAnnotation<TrattAnnotationSegment>) {
     // this.annotationStoreService.saveSegments();
     this.annotationStoreService.overwriteTranscript(annotation);
   }

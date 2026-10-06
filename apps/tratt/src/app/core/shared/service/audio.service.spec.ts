@@ -635,3 +635,162 @@ describe('AudioService missingPermission notifier (C8)', () => {
     expect(count).toBe(2);
   });
 });
+
+describe('AudioService — selection-safe eviction and bundle lifecycle', () => {
+  let service: AudioService;
+  let store: MockStore<RootState>;
+
+  const stateWithSelected = (selectedBundleId: string) =>
+    ({
+      application: { mode: LoginMode.LOCAL },
+      localMode: {
+        bundles: localBundleAdapter.getInitialState(),
+        selectedBundleId,
+      },
+    }) as unknown as RootState;
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      providers: [
+        AudioService,
+        { provide: HttpClient, useValue: {} },
+        provideMockStore({ initialState: stateWithSelected('b1') }),
+      ],
+    });
+    service = TestBed.inject(AudioService);
+    store = TestBed.inject(MockStore);
+    TestBed.flushEffects();
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  const fakeManager = (name: string) =>
+    ({
+      resource: {
+        name,
+        info: {
+          fullname: `${name}.wav`,
+          sampleRate: 16000,
+          duration: { samples: 16000, seconds: 1 },
+          channels: 1,
+          size: 100,
+        },
+      },
+      audioMechanism: { missingPermission: { subscribe: jest.fn() } },
+      destroy: jest.fn(async () => undefined),
+    }) as any;
+
+  const fakeFile = (name: string) =>
+    ({
+      name,
+      size: 8,
+      type: 'audio/wav',
+      lastModified: 1,
+      arrayBuffer: jest.fn(async () => new ArrayBuffer(8)),
+    }) as unknown as File;
+
+  // Regression: dropping more files while the user edits bundle b1 used to
+  // LRU-evict b1 itself, destroying the AudioManager the open editor was
+  // still playing from.
+  it('never evicts the selected bundle when other bundles are registered in the background', () => {
+    const managers: Record<string, any> = {};
+    for (const id of ['b1', 'b2', 'b3', 'b4', 'b5']) {
+      managers[id] = fakeManager(id);
+      service.registerAudioManager(id, managers[id], fakeFile(`${id}.wav`));
+    }
+
+    expect(service.current).toBe(managers['b1']);
+    expect(managers['b1'].destroy).not.toHaveBeenCalled();
+    expect(service.hasResident('b1')).toBe(true);
+    // The cap still holds for everything that isn't protected.
+    expect(service.audiomanagers.length).toBe(3);
+  });
+
+  it('never evicts a pinned bundle (the one the pipeline is running) until unpinned', () => {
+    const running = fakeManager('run');
+    service.registerAudioManager('run', running);
+    service.pin('run');
+    for (const id of ['x', 'y', 'z']) {
+      service.registerAudioManager(id, fakeManager(id));
+    }
+    expect(running.destroy).not.toHaveBeenCalled();
+
+    service.unpin('run');
+    service.registerAudioManager('w', fakeManager('w'));
+    expect(running.destroy).toHaveBeenCalled();
+  });
+
+  it('canRestore() is true for an evicted bundle whose source file is retained, false once forgotten', () => {
+    for (const id of ['b2', 'b3', 'b4', 'b5']) {
+      service.registerAudioManager(id, fakeManager(id), fakeFile(`${id}.wav`));
+    }
+    expect(service.hasResident('b2')).toBe(false);
+    expect(service.canRestore('b2')).toBe(true);
+
+    service.forget('b2');
+    expect(service.canRestore('b2')).toBe(false);
+    expect(service.getMediaInfo('b2')).toBeUndefined();
+  });
+
+  it('keeps media info after eviction', () => {
+    for (const id of ['b2', 'b3', 'b4', 'b5']) {
+      service.registerAudioManager(id, fakeManager(id), fakeFile(`${id}.wav`));
+    }
+    expect(service.hasResident('b2')).toBe(false);
+    expect(service.getMediaInfo('b2')).toEqual(
+      expect.objectContaining({ fullname: 'b2.wav', sampleRate: 16000 }),
+    );
+  });
+
+  it('forget() destroys a resident manager and drops it from the registry', () => {
+    const manager = fakeManager('b2');
+    service.registerAudioManager('b2', manager, fakeFile('b2.wav'));
+    service.forget('b2');
+    expect(manager.destroy).toHaveBeenCalled();
+    expect(service.hasResident('b2')).toBe(false);
+  });
+
+  // Regression: a second caller (the pipeline queue) asking while the
+  // selection effect's decode was in flight got `false` and failed a
+  // perfectly decodable bundle with a 'decode' error.
+  it('concurrent ensureResident() calls share one decode and both see its outcome', async () => {
+    for (const id of ['b2', 'b3', 'b4', 'b5']) {
+      service.registerAudioManager(id, fakeManager(id), fakeFile(`${id}.wav`));
+    }
+    expect(service.hasResident('b2')).toBe(false);
+    const redecoded = fakeManager('b2-again');
+    const createSpy = jest
+      .spyOn(AudioManager, 'create')
+      .mockReturnValue(of({ audioManager: redecoded, progress: 1 }) as any);
+
+    const [first, second] = await Promise.all([
+      service.ensureResident('b2'),
+      service.ensureResident('b2'),
+    ]);
+
+    expect(first).toBe(true);
+    expect(second).toBe(true);
+    expect(createSpy).toHaveBeenCalledTimes(1);
+    expect(service.getManager('b2')).toBe(redecoded);
+  });
+
+  it('does not resurrect a bundle forgotten while its re-decode was in flight', async () => {
+    for (const id of ['b2', 'b3', 'b4', 'b5']) {
+      service.registerAudioManager(id, fakeManager(id), fakeFile(`${id}.wav`));
+    }
+    const redecoded = fakeManager('b2-again');
+    const result$ = new Subject<any>();
+    jest.spyOn(AudioManager, 'create').mockReturnValue(result$ as any);
+
+    const pending = service.ensureResident('b2');
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    service.forget('b2');
+    result$.next({ audioManager: redecoded, progress: 1 });
+
+    expect(await pending).toBe(false);
+    expect(service.hasResident('b2')).toBe(false);
+    expect(redecoded.destroy).toHaveBeenCalled();
+  });
+});

@@ -1,48 +1,60 @@
 <!--
-  Switches between bundles created by the single startSession() call at
-  session start. Does NOT support dropping more files into an
-  already-active session — see BundleListComponent's doc comment.
+  Switches between the session's bundles (see BundleListComponent's doc
+  comment — bundles are created continuously as files are dropped).
 
   A bundle restored from IndexedDB with no audio resident this session
   (`awaitingMedia`, step 2.8 Task 4) renders a re-attach file input instead
   of the click-to-select button (step 2.8 Task 5).
 -->
 @if (bundles().length > 0) {
-  <div class="bundle-list__bulk-bar">
+  <div class="bundle-list__header">
     <label class="bundle-list__select-all-label">
       <input
         type="checkbox"
         class="bundle-list__select-all"
         [checked]="allSelected()"
+        [attr.aria-label]="'workbench.bundle_list.select_all' | transloco"
         (change)="toggleSelectAll()"
       />
-      {{ 'workbench.bundle_list.select_all' | transloco }}
+      <span class="bundle-list__title">
+        {{ 'workbench.bundle_list.title' | transloco }}
+        <span class="bundle-list__count">{{ bundles().length }}</span>
+      </span>
     </label>
     <button
       type="button"
-      class="bundle-list__clear-finished"
+      class="bundle-list__bulk-btn bundle-list__export-catalogue"
+      [attr.title]="'workbench.bundle_list.export_catalogue' | transloco"
+      (click)="onExportCatalogue()"
+    >
+      <i class="bi bi-file-earmark-zip" aria-hidden="true"></i>
+      {{ 'workbench.bundle_list.export_catalogue' | transloco }}
+    </button>
+  </div>
+  <div class="bundle-list__bulk-bar" role="toolbar">
+    <button
+      type="button"
+      class="bundle-list__bulk-btn bundle-list__clear-finished"
+      [attr.title]="'workbench.bundle_list.clear_finished' | transloco"
       (click)="onClearFinished()"
     >
+      <i class="bi bi-check2-all" aria-hidden="true"></i>
       {{ 'workbench.bundle_list.clear_finished' | transloco }}
     </button>
     <button
       type="button"
-      class="bundle-list__remove"
+      class="bundle-list__bulk-btn bundle-list__remove"
+      [disabled]="selectedCount() === 0"
+      [attr.title]="'workbench.bundle_list.remove' | transloco"
       (click)="onRemoveSelected()"
     >
+      <i class="bi bi-trash3" aria-hidden="true"></i>
       {{ 'workbench.bundle_list.remove' | transloco }}
-    </button>
-    <button
-      type="button"
-      class="bundle-list__export-catalogue"
-      (click)="onExportCatalogue()"
-    >
-      {{ 'workbench.bundle_list.export_catalogue' | transloco }}
+      @if (selectedCount() > 0) {
+        ({{ selectedCount() }})
+      }
     </button>
   </div>
-  <h6 class="bundle-list__title">
-    {{ 'workbench.bundle_list.title' | transloco }}
-  </h6>
 }
 <ul class="bundle-list" (keydown)="onListKeydown($event)">
   @for (bundle of bundles(); track bundle.bundleId; let i = $index) {
@@ -51,6 +63,7 @@
         type="checkbox"
         class="bundle-list__item-checkbox"
         [checked]="isSelected(bundle.bundleId)"
+        [attr.aria-label]="bundle.name"
         (change)="toggleSelected(bundle.bundleId)"
       />
       @if (bundle.awaitingMedia) {
@@ -98,10 +111,54 @@
            status block scoped to the non-awaitingMedia branch never rendered
            the 'interrupted' badge exactly when it matters most — right after
            the reload that caused it. Renders in BOTH branches now. -->
-      @if (bundle.run.state !== 'idle') {
+      @if (bundle.run.state === 'running') {
+        <!-- Running rows say WHAT is happening (downloading the model on a
+             first run can take minutes; a bare "Running" looked stuck) and
+             can be stopped. -->
+        <span
+          class="bundle-list__status bundle-list__status--running"
+          [attr.title]="
+            'workbench.bundle_list.stage.' +
+              (bundle.run.downloading
+                ? 'download'
+                : (bundle.run.stage ?? 'decode')) | transloco
+          "
+        >
+          {{
+            'workbench.bundle_list.stage.' +
+              (bundle.run.downloading
+                ? 'download'
+                : (bundle.run.stage ?? 'decode')) | transloco
+          }}
+          @if (bundle.run.progress !== undefined) {
+            {{ progressPercent(bundle.run.progress) }}%
+          }
+        </span>
+        <button
+          type="button"
+          class="bundle-list__cancel"
+          [attr.title]="'workbench.bundle_list.cancel' | transloco"
+          [attr.aria-label]="'workbench.bundle_list.cancel' | transloco"
+          (click)="onCancelRun()"
+        >
+          <i class="bi bi-stop-fill" aria-hidden="true"></i>
+        </button>
+        <span
+          class="bundle-list__progress"
+          [class.bundle-list__progress--indeterminate]="
+            bundle.run.progress === undefined
+          "
+          [style.width.%]="
+            bundle.run.progress === undefined
+              ? 100
+              : progressPercent(bundle.run.progress)
+          "
+          aria-hidden="true"
+        ></span>
+      } @else if (bundle.run.state !== 'idle') {
         <span
           class="bundle-list__status"
-          [class.bundle-list__status--running]="bundle.run.state === 'running'"
+          [class.bundle-list__status--queued]="bundle.run.state === 'queued'"
           [class.bundle-list__status--done]="bundle.run.state === 'done'"
           [class.bundle-list__status--error]="
             bundle.run.state === 'failed' || bundle.run.state === 'interrupted'

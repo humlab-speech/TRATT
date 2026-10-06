@@ -68,26 +68,21 @@ export class AuthenticationEffects {
 
           const bc = new BroadcastChannel('ocb_authentication');
           let settled = false;
-          const timeoutId = window.setTimeout(
-            () => {
-              if (!settled) {
-                settled = true;
-                bc.close();
-                this.store.dispatch(
-                  AuthenticationActions.reauthenticate.fail({
-                    error:
-                      'Re-authentication window timed out. Please try again.',
-                  }),
-                );
-              }
-            },
-            AuthenticationEffects.REAUTHENTICATION_TIMEOUT_MS,
-          );
+          const timeoutId = window.setTimeout(() => {
+            if (!settled) {
+              settled = true;
+              bc.close();
+              this.store.dispatch(
+                AuthenticationActions.reauthenticate.fail({
+                  error:
+                    'Re-authentication window timed out. Please try again.',
+                }),
+              );
+            }
+          }, AuthenticationEffects.REAUTHENTICATION_TIMEOUT_MS);
 
           bc.addEventListener('message', (e) => {
-            const data = e.data as
-              | { ok?: boolean; nonce?: string }
-              | undefined;
+            const data = e.data as { ok?: boolean; nonce?: string } | undefined;
             if (data?.ok === true && data.nonce === nonce && !settled) {
               settled = true;
               window.clearTimeout(timeoutId);
@@ -312,6 +307,9 @@ export class AuthenticationEffects {
                       mode: a.mode,
                       bundleId,
                       sessionFile: this.getSessionFile(extraFile),
+                      // Callers passing audioBundleIds registered each
+                      // file's decoded audio under these ids beforehand.
+                      audioLoaded: a.audioBundleIds?.[idx] !== undefined,
                     }),
                   );
                 }

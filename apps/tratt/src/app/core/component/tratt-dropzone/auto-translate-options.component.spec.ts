@@ -1,17 +1,10 @@
-import {
-  beforeEach,
-  describe,
-  expect,
-  it,
-  jest,
-} from '@jest/globals';
+import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 
 jest.mock('../../shared/service/local-translation.service', () => ({
   LocalTranslationService: class LocalTranslationService {},
 }));
 
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { By } from '@angular/platform-browser';
 import { TranslocoService } from '@jsverse/transloco';
 import { of } from 'rxjs';
 import { LocalTranslationService } from '../../shared/service/local-translation.service';
@@ -62,7 +55,9 @@ describe('AutoTranslateOptionsComponent', () => {
       fixture.detectChanges();
 
       const text = fixture.nativeElement.textContent as string;
-      expect(text).not.toContain('login.translation.model cached after download');
+      expect(text).not.toContain(
+        'login.translation.model cached after download',
+      );
       expect(text).toContain('login.translation.path direct');
     });
 
@@ -85,7 +80,9 @@ describe('AutoTranslateOptionsComponent', () => {
       fixture.detectChanges();
 
       const text = fixture.nativeElement.textContent as string;
-      expect(text).not.toContain('login.translation.model cached after download');
+      expect(text).not.toContain(
+        'login.translation.model cached after download',
+      );
       expect(text).toContain('login.translation.path pivot');
     });
 
@@ -97,7 +94,9 @@ describe('AutoTranslateOptionsComponent', () => {
       fixture.detectChanges();
 
       const text = fixture.nativeElement.textContent as string;
-      expect(text).not.toContain('login.translation.model cached after download');
+      expect(text).not.toContain(
+        'login.translation.model cached after download',
+      );
       expect(text).toContain('login.translation.path unavailable');
     });
 
@@ -109,8 +108,81 @@ describe('AutoTranslateOptionsComponent', () => {
       fixture.detectChanges();
 
       const text = fixture.nativeElement.textContent as string;
-      expect(text).not.toContain('login.translation.model cached after download');
+      expect(text).not.toContain(
+        'login.translation.model cached after download',
+      );
       expect(text).toContain('login.translation.path probing');
     });
+  });
+});
+
+describe('AutoTranslateOptionsComponent persistKey', () => {
+  const KEY = 'test.pipeline.translate';
+
+  async function create() {
+    TestBed.resetTestingModule();
+    await TestBed.configureTestingModule({
+      imports: [AutoTranslateOptionsComponent],
+      providers: [
+        {
+          provide: TranslocoService,
+          useValue: {
+            getActiveLang: () => 'en',
+            langChanges$: of('en'),
+            translate: (key: string) => key,
+            config: { reRenderOnLangChange: false },
+            _loadDependencies: () => of({}),
+          },
+        },
+        {
+          provide: LocalTranslationService,
+          useValue: {
+            resolveReachableTargets: async (_src: string, codes: string[]) =>
+              new Map(codes.map((c) => [c, 'direct'])),
+            resolveAvailability: async () => ({
+              kind: 'direct',
+              estimatedBytes: 0,
+            }),
+          },
+        },
+      ],
+    }).compileComponents();
+    const fixture = TestBed.createComponent(AutoTranslateOptionsComponent);
+    fixture.componentRef.setInput('transcribeWillRun', true);
+    fixture.componentRef.setInput('persistKey', KEY);
+    return fixture.componentInstance;
+  }
+
+  beforeEach(() => localStorage.clear());
+
+  it('restores enabled, the picked target and skip-cache on the next visit', async () => {
+    const first = await create();
+    await first.ngOnInit();
+    first.enabled.set(true);
+    first.onEnabledChange();
+    first.targetLanguage = 'fr';
+    first.onTargetChange();
+    first.skipBrowserCache.set(true);
+    first.emitChange();
+
+    const next = await create();
+    await next.ngOnInit();
+
+    expect(next.enabled()).toBe(true);
+    expect(next.targetLanguage).toBe('fr');
+    expect(next.skipBrowserCache()).toBe(true);
+  });
+
+  it('remembers switching translation off', async () => {
+    localStorage.setItem(
+      KEY,
+      JSON.stringify({ enabled: true, targetLanguage: 'de' }),
+    );
+    const component = await create();
+    await component.ngOnInit();
+    component.enabled.set(false);
+    component.onEnabledChange();
+
+    expect(JSON.parse(localStorage.getItem(KEY)!).enabled).toBe(false);
   });
 });

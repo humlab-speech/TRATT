@@ -1,15 +1,17 @@
 import { describe, expect, it } from '@jest/globals';
+import { SessionFile } from '../../../obj/SessionFile';
 import { LoginMode } from '../../index';
 import {
+  breakMarkerCodeOf,
   selectActiveAnnotation,
   selectAllBundleSummaries,
   selectSelectedBundleId,
+  transcriptHasContent,
 } from './annotation.selectors';
 import {
   DEFAULT_BUNDLE_ID,
   localBundleAdapter,
 } from './local-bundle-collection';
-import { SessionFile } from '../../../obj/SessionFile';
 
 describe('selectActiveAnnotation', () => {
   it('LOCAL mode: resolves through the bundle collection to the flat AnnotationState', () => {
@@ -89,12 +91,14 @@ describe('selectAllBundleSummaries', () => {
       audio: { loaded: false },
     } as any;
     // bundleB: audio decoded this session -> awaitingMedia false; has a
-    // non-empty transcript level -> hasAnnotationContent true.
+    // transcribed segment -> hasAnnotationContent true.
     const bundleB = {
       bundleId: 'bundle-b',
       sessionFile: new SessionFile('b.wav', 2, new Date(), 'audio/wav'),
       audio: { loaded: true },
-      transcript: { levels: [{ items: [{}] }] },
+      transcript: {
+        levels: [{ items: [{ labels: [{ name: 'L', value: 'hej' }] }] }],
+      },
     } as any;
     const local = {
       bundles: localBundleAdapter.setAll(
@@ -120,5 +124,89 @@ describe('selectAllBundleSummaries', () => {
         hasAnnotationContent: true,
       },
     ]);
+  });
+});
+
+describe('transcriptHasContent', () => {
+  it('is false for no transcript, no levels, or empty levels', () => {
+    expect(transcriptHasContent(undefined)).toBe(false);
+    expect(transcriptHasContent({ levels: [] })).toBe(false);
+    expect(transcriptHasContent({ levels: [{ items: [] }] })).toBe(false);
+  });
+
+  // The session bootstrap seeds every new bundle with ONE empty segment
+  // spanning the file; that must still count as "empty", or the first file
+  // of a session is never auto-transcribed.
+  it('is false for the single blank segment a new bundle is seeded with', () => {
+    expect(
+      transcriptHasContent({
+        levels: [{ items: [{ labels: [{ name: 'L', value: '' }] }] }],
+      }),
+    ).toBe(false);
+    expect(
+      transcriptHasContent({
+        levels: [{ items: [{ labels: [{ name: 'L', value: '   ' }] }] }],
+      }),
+    ).toBe(false);
+  });
+
+  it('is true once any label carries text', () => {
+    expect(
+      transcriptHasContent({
+        levels: [{ items: [{ labels: [{ name: 'L', value: 'hej' }] }] }],
+      }),
+    ).toBe(true);
+  });
+
+  it('is true for hand-placed boundaries even without text', () => {
+    expect(
+      transcriptHasContent({
+        levels: [{ items: [{ labels: [] }, { labels: [] }] }],
+      }),
+    ).toBe(true);
+  });
+
+  // startAnnotation.success normalises the empty seed segment to the
+  // guidelines' break marker; that must still count as "nothing typed",
+  // otherwise the first file's ASR result was discarded as an edit.
+  it('treats a segment holding only the break marker as empty', () => {
+    const seeded = {
+      levels: [{ items: [{ labels: [{ name: 'L', value: '<P>' }] }] }],
+    };
+    expect(transcriptHasContent(seeded, '<P>')).toBe(false);
+    // Without knowing the marker it is ordinary text.
+    expect(transcriptHasContent(seeded)).toBe(true);
+    expect(
+      transcriptHasContent(
+        {
+          levels: [{ items: [{ labels: [{ name: 'L', value: '<P> hej' }] }] }],
+        },
+        '<P>',
+      ),
+    ).toBe(true);
+  });
+});
+
+describe('breakMarkerCodeOf', () => {
+  it("returns the code of the selected guidelines' break marker", () => {
+    expect(
+      breakMarkerCodeOf({
+        selected: {
+          json: {
+            markers: [
+              { type: 'other', code: '[X]' },
+              { type: 'break', code: '<P>' },
+            ],
+          },
+        },
+      } as any),
+    ).toBe('<P>');
+  });
+
+  it('is undefined without guidelines or a break marker', () => {
+    expect(breakMarkerCodeOf(undefined)).toBeUndefined();
+    expect(
+      breakMarkerCodeOf({ selected: { json: { markers: [] } } } as any),
+    ).toBeUndefined();
   });
 });

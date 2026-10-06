@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Action, Store } from '@ngrx/store';
 import { TrattAnnotation } from '@tratt/annotation';
-import { map, Subscription, tap } from 'rxjs';
+import { map, Observable, Subject, Subscription, tap } from 'rxjs';
 import { LoginMode, RootState } from '../../store/index';
 import { selectAllBundleSummaries } from '../../store/login-mode/annotation/annotation.selectors';
 import { LoginModeActions } from '../../store/login-mode/login-mode.actions';
@@ -26,6 +26,8 @@ import {
 } from '../../store/pipeline/pipeline-event-mapping';
 import { AudioService } from './audio.service';
 import { TranscriptionOptions } from './local-transcription.service';
+import { TranslationOptions } from './local-translation.service';
+import { PendingEditsService } from './pending-edits.service';
 import type { PipelineEvent } from './pipeline-runner.service';
 import { PipelineRunnerService } from './pipeline-runner.service';
 
@@ -51,6 +53,14 @@ const NO_OPTIONS_MESSAGE =
 export class PipelineQueueService {
   private runSub: Subscription | null = null;
   private transcribeOptions: TranscriptionOptions | null = null;
+  /**
+   * Optional translation stage, chained after transcription (+ optional
+   * diarization) by `PipelineRunnerService.run()` exactly as on /local.
+   * `null` = transcription only.
+   */
+  private translateOptions: TranslationOptions | null = null;
+  /** The bundle currently protected from LRU eviction while it runs. */
+  private pinnedBundleId: string | null = null;
   /** Carried across progress ticks within one run — see QueueProgressResult. */
   private audioDurationS = 0;
   /**
@@ -82,6 +92,15 @@ export class PipelineQueueService {
    */
   private cancelRequestedToken: number | null = null;
 
+  private _transcriptReplaced = new Subject<string>();
+  /**
+   * Emits a bundle id right after a pipeline result replaced that bundle's
+   * transcript. Editors read the transcript when they mount, so a host
+   * showing that bundle must remount its editor to show the result.
+   */
+  readonly transcriptReplaced$: Observable<string> =
+    this._transcriptReplaced.asObservable();
+
   private queueState = this.store.selectSignal(selectPipelineQueueFeature);
   private runs = this.store.selectSignal(selectAllRunStatuses);
   private summaries = this.store.selectSignal(selectAllBundleSummaries);
@@ -90,6 +109,7 @@ export class PipelineQueueService {
     private store: Store<RootState>,
     private pipelineRunnerService: PipelineRunnerService,
     private audioService: AudioService,
+    private pendingEdits: PendingEditsService,
   ) {}
 
   /**
@@ -106,10 +126,41 @@ export class PipelineQueueService {
     return this.transcribeOptions;
   }
 
+  /**
+   * Translation configuration for bundles run from now on. Like
+   * `setTranscribeOptions()`, a change only affects bundles that start
+   * running after it.
+   */
+  setTranslateOptions(options: TranslationOptions | null): void {
+    this.translateOptions = options;
+  }
+
+  getTranslateOptions(): TranslationOptions | null {
+    return this.translateOptions;
+  }
+
+  /**
+   * Called before bundles are removed from the collection: cancels the
+   * in-flight run if it belongs to one of them (otherwise the model keeps
+   * transcribing a file nobody can see any more, and its result is
+   * discarded). Queued ids are dropped by the queue reducer itself.
+   */
+  cancelIfActive(bundleIds: string[]): void {
+    const activeId = this.queueState().activeId;
+    if (activeId !== null && bundleIds.includes(activeId)) {
+      this.cancelActive();
+    }
+  }
+
+  /** The bundle currently running, or null. */
+  activeBundleId(): string | null {
+    return this.queueState().activeId;
+  }
+
   /** The ids `enqueue()` would actually accept right now. */
   readyBundleIds(): string[] {
     return computeReadyBundleIds(this.summaries(), this.runs(), (bundleId) =>
-      this.audioService.hasResident(bundleId),
+      this.audioService.canRestore(bundleId),
     );
   }
 
@@ -194,6 +245,11 @@ export class PipelineQueueService {
     // "finalized" boolean.
     const token = ++this.currentRunToken;
     this.audioDurationS = 0;
+    // Protect this bundle's AudioManager from LRU eviction for the whole
+    // run: files dropped meanwhile, or the user browsing other bundles,
+    // must not destroy the audio being transcribed. Released in advance().
+    this.pinnedBundleId = bundleId;
+    this.audioService.pin(bundleId);
 
     const options = this.transcribeOptions;
     if (!options) {
@@ -237,9 +293,9 @@ export class PipelineQueueService {
           audioManager: manager,
           oaudiofile: manager.resource.getOAudioFile(),
           transcribeOptions: options,
-          // No translateOptions: /workbench has no translation
-          // configuration UI in step 3b-i, so the queue runs
-          // transcription + optional diarization only.
+          // Optional; when set the runner chains translation after ASR
+          // (+ diarization) and the 'result' carries the merged annotation.
+          translateOptions: this.translateOptions ?? undefined,
         })
         .pipe(
           tap((event: PipelineEvent) =>
@@ -357,6 +413,38 @@ export class PipelineQueueService {
       return;
     }
 
+    // TrattAnnotation.deserialize() leaves no level selected, and every
+    // editor renders the CURRENT level — without this the 2D editor showed
+    // a blank canvas for a freshly transcribed bundle.
+    if (
+      transcript.levels.length > 0 &&
+      transcript.selectedLevelIndex === undefined
+    ) {
+      transcript.changeCurrentLevelIndex(0);
+    }
+
+    // The bundle was empty when it was enqueued, but the user may have
+    // started transcribing it by hand while it waited or ran. Never replace
+    // human work with a machine result. Commit any typing still inside the
+    // editor's debounce window first so the check below sees it (a no-op
+    // unless this bundle is the one open in the workbench editor).
+    this.pendingEdits.flush();
+    const current = this.summaries().find((b) => b.bundleId === bundleId);
+    if (current?.hasAnnotationContent) {
+      this.store.dispatch(
+        PipelineQueueActions.bundleFailed({
+          bundleId,
+          error: {
+            kind: 'unknown',
+            message:
+              'The transcript was edited while it was being transcribed; the automatic result was discarded to keep your edits.',
+          },
+        }),
+      );
+      this.advance();
+      return;
+    }
+
     // Explicitly bundle-scoped: AnnotationActions.overwriteTranscript.do
     // would land on whatever bundle the user currently has selected.
     this.store.dispatch(
@@ -366,6 +454,7 @@ export class PipelineQueueService {
         transcript,
       }),
     );
+    this._transcriptReplaced.next(bundleId);
 
     this.store.dispatch(PipelineQueueActions.bundleDone({ bundleId }));
     this.advance();
@@ -402,6 +491,10 @@ export class PipelineQueueService {
     // must happen BEFORE activateNext() below.
     this.runSub?.unsubscribe();
     this.runSub = null;
+    if (this.pinnedBundleId !== null) {
+      this.audioService.unpin(this.pinnedBundleId);
+      this.pinnedBundleId = null;
+    }
     if (this.queueState().mode === 'pausing') {
       this.store.dispatch(PipelineQueueActions.stopped());
       return;

@@ -27,7 +27,11 @@ export class PipelineQueueActions {
   /** Stage/progress tick for whichever bundle is currently active. */
   static progress = createAction(
     '[PipelineQueue] progress',
-    props<{ stage: BundleRunStage; progress?: number }>(),
+    props<{
+      stage: BundleRunStage;
+      progress?: number;
+      downloading?: boolean;
+    }>(),
   );
 
   static bundleDone = createAction(

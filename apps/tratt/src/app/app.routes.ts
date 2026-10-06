@@ -8,6 +8,7 @@ import {
 } from './core/shared/guard/appconfig-load.guard';
 import { IDB_LOADED_GUARD } from './core/shared/guard/idb.activateguard';
 import { WORKBENCH_ENABLED_GUARD } from './core/shared/guard/workbench-enabled.guard';
+import { WORKBENCH_SESSION_GUARD } from './core/shared/guard/workbench-session.guard';
 
 export const APP_ROUTES: Routes = [
   { path: 'load', component: LoadingComponent },
@@ -29,7 +30,11 @@ export const APP_ROUTES: Routes = [
       import('./core/pages/workbench/workbench.component').then(
         (m) => m.WorkbenchComponent,
       ),
-    canActivate: [APP_INITIALIZED_GUARD, ALoginGuard, WORKBENCH_ENABLED_GUARD],
+    canActivate: [
+      APP_INITIALIZED_GUARD,
+      WORKBENCH_SESSION_GUARD,
+      WORKBENCH_ENABLED_GUARD,
+    ],
     data: { localOnly: true },
   },
   {

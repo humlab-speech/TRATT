@@ -1,5 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
+import { OAnnotJSON, TrattAnnotationSegmentLevel } from '@tratt/annotation';
+import { OAudiofile, SampleUnit } from '@tratt/media';
 import { AppInfo } from '../../../app.info';
 import { Observable } from 'rxjs';
 import { strToU8, zipSync } from 'fflate';
@@ -18,6 +20,12 @@ export interface CatalogueExportProgress {
   archive?: Uint8Array;
   /** Per-bundle/per-file problems that didn't abort the export. */
   warnings: string[];
+}
+
+interface ResolvedMedia {
+  oAudioFile: OAudiofile;
+  sampleRate: number;
+  duration: SampleUnit;
 }
 
 interface ManifestRow {
@@ -101,13 +109,28 @@ export class CatalogueExportService {
         continue;
       }
 
-      const resident = await this.audioService.ensureResident(bundleId);
-      const manager = resident
-        ? this.audioService.getManager(bundleId)
-        : undefined;
-      if (!manager) {
+      let media: ResolvedMedia | undefined;
+      let oannotjson: OAnnotJSON | undefined;
+      let skipReason = 'audio could not be made resident';
+      try {
+        media = await this.resolveMedia(bundleId, entity);
+        if (media) {
+          oannotjson = entity.transcript.serialize(
+            entity.audio.fileName || media.oAudioFile.name,
+            media.sampleRate,
+            media.duration,
+          );
+        }
+      } catch (error) {
+        // One unreadable bundle must not abort (or, as before, silently
+        // hang) the whole catalogue: record it and carry on.
+        skipReason = error instanceof Error ? error.message : String(error);
+        media = undefined;
+        oannotjson = undefined;
+      }
+      if (!media || !oannotjson) {
         warnings.push(
-          `Skipped ${bundleId} (${entity.sessionFile?.name ?? 'unknown file'}): audio could not be made resident.`,
+          `Skipped ${bundleId} (${entity.sessionFile?.name ?? 'unknown file'}): ${skipReason}.`,
         );
         if (!isLast) {
           subscriber.next({
@@ -124,12 +147,7 @@ export class CatalogueExportService {
         entity.sessionFile?.name ?? bundleId,
         usedSlugs,
       );
-      const oAudioFile = manager.resource.getOAudioFile();
-      const oannotjson = entity.transcript.serialize(
-        entity.audio.fileName,
-        manager.sampleRate,
-        manager.resource.info.duration,
-      );
+      const oAudioFile = media.oAudioFile;
 
       let unitCounts = 0;
       for (const level of oannotjson.levels) {
@@ -141,7 +159,15 @@ export class CatalogueExportService {
         // level number — the same default ExportFilesModalComponent applies
         // for its single-bundle export (`updateParentFormat()`).
         const levelnum = converter.multitiers ? undefined : 0;
-        const result = converter.export(oannotjson, oAudioFile, levelnum);
+        let result;
+        try {
+          result = converter.export(oannotjson, oAudioFile, levelnum);
+        } catch (error) {
+          result = {
+            error: error instanceof Error ? error.message : String(error),
+            file: undefined,
+          };
+        }
         if (result.error || !result.file) {
           warnings.push(
             `${entity.sessionFile?.name ?? bundleId}: ${converter.name} export failed — ${result.error ?? 'no file produced'}.`,
@@ -162,12 +188,15 @@ export class CatalogueExportService {
         if (options.diarization) {
           stagesRun.push('diarization');
         }
+        if (this.pipelineQueueService.getTranslateOptions()) {
+          stagesRun.push('translation');
+        }
       }
       manifestRows.push({
         bundleId,
         sourceFilename: entity.sessionFile?.name ?? '',
-        durationSamples: manager.resource.info.duration.samples,
-        sampleRate: manager.sampleRate,
+        durationSamples: media.duration.samples,
+        sampleRate: media.sampleRate,
         model: options?.modelId ?? null,
         language: options?.language ?? null,
         stagesRun,
@@ -201,6 +230,86 @@ export class CatalogueExportService {
       warnings: [...warnings],
     });
     subscriber.complete();
+  }
+
+  /**
+   * Everything an export needs from a bundle's media — sample rate, duration
+   * and an `OAudiofile` description — resolved as cheaply as possible:
+   *
+   * 1. Media info captured when the audio was registered this session (no
+   *    decode at all; none of the catalogue's converters reads audio bytes).
+   * 2. A resident / re-decodable manager (`ensureResident()`).
+   * 3. For a bundle restored from IndexedDB whose audio was never re-attached
+   *    this session: the transcript itself — segment times carry their
+   *    sample rate and the last segment ends at the audio's end (ASR results
+   *    are padded to the full duration). Without this, every restored bundle
+   *    was skipped until its file was re-attached by hand.
+   */
+  private async resolveMedia(
+    bundleId: string,
+    entity: IdentifiedAnnotationState,
+  ): Promise<ResolvedMedia | undefined> {
+    const describe = (
+      name: string,
+      type: string | undefined,
+      size: number,
+      sampleRate: number,
+      duration: SampleUnit,
+    ): ResolvedMedia => {
+      const oAudioFile = new OAudiofile();
+      oAudioFile.name = name;
+      oAudioFile.type = type ?? '';
+      oAudioFile.size = size;
+      oAudioFile.sampleRate = sampleRate;
+      oAudioFile.duration = duration.samples;
+      return { oAudioFile, sampleRate, duration };
+    };
+
+    const info = this.audioService.getMediaInfo(bundleId);
+    if (info) {
+      return describe(
+        info.fullname,
+        entity.sessionFile?.type,
+        info.size,
+        info.sampleRate,
+        info.duration,
+      );
+    }
+
+    if (this.audioService.canRestore(bundleId)) {
+      const resident = await this.audioService.ensureResident(bundleId);
+      const manager = resident
+        ? this.audioService.getManager(bundleId)
+        : undefined;
+      if (manager) {
+        return {
+          oAudioFile: manager.resource.getOAudioFile(),
+          sampleRate: manager.sampleRate,
+          duration: manager.resource.info.duration,
+        };
+      }
+      return undefined;
+    }
+
+    let end: SampleUnit | undefined;
+    for (const level of entity.transcript?.levels ?? []) {
+      if (level instanceof TrattAnnotationSegmentLevel) {
+        const last = level.items[level.items.length - 1];
+        if (last?.time && (!end || last.time.samples > end.samples)) {
+          end = last.time;
+        }
+      }
+    }
+    if (!end || !(end.sampleRate > 0)) {
+      return undefined;
+    }
+    return describe(
+      entity.sessionFile?.name ?? entity.audio.fileName ?? bundleId,
+      entity.sessionFile?.type,
+      entity.sessionFile?.size ?? 0,
+      end.sampleRate,
+      end,
+    );
   }
 
   /** Matches step 2.7's basename-collision handling: first writer keeps the

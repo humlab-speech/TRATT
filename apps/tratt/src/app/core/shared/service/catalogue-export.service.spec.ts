@@ -16,14 +16,20 @@ jest.mock('./local-translation.service', () => ({
 }));
 
 import { provideMockStore } from '@ngrx/store/testing';
-import { unzipSync } from 'fflate';
+import { strFromU8, unzipSync } from 'fflate';
 import { firstValueFrom, lastValueFrom, toArray } from 'rxjs';
 import { AudioService } from './audio.service';
 import { CatalogueExportService } from './catalogue-export.service';
 import { PipelineQueueService } from './pipeline-queue.service';
 import { RootState } from '../../store/index';
 import { localBundleAdapter } from '../../store/login-mode/annotation/local-bundle-collection';
-import { TrattAnnotation, TrattAnnotationSegmentLevel } from '@tratt/annotation';
+import {
+  OLabel,
+  TrattAnnotation,
+  TrattAnnotationSegment,
+  TrattAnnotationSegmentLevel,
+} from '@tratt/annotation';
+import { SampleUnit } from '@tratt/media';
 import { SessionFile } from '../../obj/SessionFile';
 import { AppInfo } from '../../../app.info';
 
@@ -71,9 +77,14 @@ describe('CatalogueExportService', () => {
     const audioService = {
       ensureResident: jest.fn(async () => true),
       getManager: jest.fn(() => makeManager(16000, 16000)),
+      // No registration-time media info by default, so these tests exercise
+      // the ensureResident() path; individual tests override it.
+      getMediaInfo: jest.fn((): any => undefined),
+      canRestore: jest.fn(() => true),
     };
     const pipelineQueueService = {
       getTranscribeOptions: jest.fn(() => ({ modelId: 'm1', language: 'en' })),
+      getTranslateOptions: jest.fn((): any => null),
     };
 
     TestBed.configureTestingModule({
@@ -199,15 +210,33 @@ describe('CatalogueExportService', () => {
     expect(interviewDirs.size).toBe(2);
   });
 
-  it('surfaces a rejection thrown inside run() as an Observable error, not a silent hang', async () => {
+  // A failure while preparing ONE bundle is now isolated to that bundle (a
+  // warning, the rest of the catalogue still exported) instead of erroring
+  // the whole export — see 'records a warning instead of hanging when
+  // serializing one bundle throws' below. The Observable still completes,
+  // never hangs.
+  it('turns a rejection while making one bundle resident into a warning, and still completes', async () => {
     const { service, audioService } = setup([makeBundle('bundle-1', 'a.wav')]);
     audioService.ensureResident.mockImplementationOnce(async () => {
       throw new Error('boom');
     });
 
+    const last = await lastValueFrom(
+      service.exportBundles(['bundle-1'], ['AnnotJSON']),
+    );
+    expect(last.archive).toBeDefined();
+    expect(last.warnings).toEqual(['Skipped bundle-1 (a.wav): boom.']);
+  });
+
+  it('surfaces a failure outside the per-bundle loop as an Observable error, not a silent hang', async () => {
+    const { service } = setup([makeBundle('bundle-1', 'a.wav')]);
+    jest.spyOn(service as any, 'toCsv').mockImplementation(() => {
+      throw new Error('csv boom');
+    });
+
     await expect(
       lastValueFrom(service.exportBundles(['bundle-1'], ['AnnotJSON'])),
-    ).rejects.toThrow('boom');
+    ).rejects.toThrow('csv boom');
   });
 
   it('builds a manifest.json entry with model/language from the queue config and no translation stage', async () => {
@@ -223,5 +252,86 @@ describe('CatalogueExportService', () => {
     expect(manifest[0].model).toBe('m1');
     expect(manifest[0].language).toBe('en');
     expect(manifest[0].stagesRun).toEqual(['asr']);
+  });
+
+  it('uses media info captured at registration instead of re-decoding the audio', async () => {
+    const { service, audioService } = setup([makeBundle('bundle-1', 'a.wav')]);
+    audioService.getMediaInfo.mockReturnValue({
+      fullname: 'a.wav',
+      sampleRate: 16000,
+      duration: new SampleUnit(32000, 16000),
+      channels: 1,
+      size: 10,
+    });
+
+    const last = await lastValueFrom(
+      service.exportBundles(['bundle-1'], ['AnnotJSON']),
+    );
+
+    expect(audioService.ensureResident).not.toHaveBeenCalled();
+    expect(last.warnings).toEqual([]);
+    const manifest = JSON.parse(
+      strFromU8(unzipSync(last.archive!)['manifest.json']),
+    );
+    expect(manifest[0].durationSamples).toBe(32000);
+  });
+
+  it('exports a restored bundle whose audio was never re-attached, deriving timing from its transcript', async () => {
+    const restored = makeBundle('bundle-1', 'a.wav');
+    restored.transcript = new TrattAnnotation([
+      new TrattAnnotationSegmentLevel(1, 'OCTRA_1', [
+        new TrattAnnotationSegment(1, new SampleUnit(48000, 16000), [
+          new OLabel('OCTRA_1', 'hello'),
+        ]),
+      ]),
+    ]);
+    const { service, audioService } = setup([restored]);
+    audioService.canRestore.mockReturnValue(false);
+
+    const last = await lastValueFrom(
+      service.exportBundles(['bundle-1'], ['AnnotJSON']),
+    );
+
+    expect(audioService.ensureResident).not.toHaveBeenCalled();
+    expect(last.warnings).toEqual([]);
+    const manifest = JSON.parse(
+      strFromU8(unzipSync(last.archive!)['manifest.json']),
+    );
+    expect(manifest[0].durationSamples).toBe(48000);
+    expect(manifest[0].sampleRate).toBe(16000);
+  });
+
+  it('records a warning instead of hanging when serializing one bundle throws', async () => {
+    const broken = makeBundle('bundle-1', 'a.wav');
+    broken.transcript = {
+      levels: [],
+      serialize: () => {
+        throw new Error('boom');
+      },
+    };
+    const { service } = setup([broken, makeBundle('bundle-2', 'b.wav')]);
+
+    const last = await lastValueFrom(
+      service.exportBundles(['bundle-1', 'bundle-2'], ['AnnotJSON']),
+    );
+
+    expect(last.archive).toBeDefined();
+    expect(last.warnings.some((w) => w.includes('boom'))).toBe(true);
+    const entries = Object.keys(unzipSync(last.archive!));
+    expect(entries.some((e) => e.startsWith('bundles/b/'))).toBe(true);
+  });
+
+  it('lists translation among the stages run when the queue is configured to translate', async () => {
+    const { service } = setup([makeBundle('bundle-1', 'a.wav')]);
+    const queue = TestBed.inject(PipelineQueueService) as any;
+    queue.getTranslateOptions.mockReturnValue({ targetLanguage: 'en' });
+
+    const last = await lastValueFrom(
+      service.exportBundles(['bundle-1'], ['AnnotJSON']),
+    );
+    const manifest = JSON.parse(
+      strFromU8(unzipSync(last.archive!)['manifest.json']),
+    );
+    expect(manifest[0].stagesRun).toEqual(['asr', 'translation']);
   });
 });

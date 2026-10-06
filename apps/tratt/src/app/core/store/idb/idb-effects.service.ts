@@ -515,16 +515,26 @@ export class IDBEffects {
       ),
       withLatestFrom(this.store),
       mergeMap(([action, appState]) => {
-        const modeState = this.getModeStateFromString(
-          appState,
-          (action as any).mode,
-        );
+        // createBundle must persist the bundle it CREATED, not whichever one
+        // is selected: background-created bundles (selectAfterCreate: false
+        // — every file after the first) otherwise never got an options row,
+        // and BundleRestoreEffects skips bundles without a persisted
+        // sessionfile — so after a reload they vanished from the list, even
+        // with transcript work saved in their annotation row.
+        const createdBundleId =
+          action.type === LoginModeActions.createBundle.type &&
+          (action as any).mode === LoginMode.LOCAL
+            ? ((action as any).bundleId as string)
+            : undefined;
+        const modeState =
+          createdBundleId !== undefined
+            ? appState.localMode.bundles.entities[createdBundleId]
+            : this.getModeStateFromString(appState, (action as any).mode);
 
         if (modeState) {
-          const bundleId = this.resolveLocalBundleId(
-            (action as any).mode,
-            appState,
-          );
+          const bundleId =
+            createdBundleId ??
+            this.resolveLocalBundleId((action as any).mode, appState);
           // Always re-write the CURRENT runState, never omit it: this write
           // replaces the whole stored options object (see buildModeOptions'
           // doc comment), so omitting it would erase a finished run's state.
@@ -1019,7 +1029,11 @@ export class IDBEffects {
     () =>
       this.actions$.pipe(
         ofType(LoginModeActions.removeBundles),
-        exhaustMap((action) =>
+        // mergeMap, not exhaustMap: exhaustMap silently DROPPED a second
+        // removal (e.g. "Clear finished" then "Remove" in quick succession)
+        // while the first delete was still in flight, so those bundles
+        // resurrected on the next reload.
+        mergeMap((action) =>
           this.idbService.deleteLocalBundles(action.bundleIds).pipe(
             catchError((error) => {
               console.error('Failed to delete bundles from IndexedDB', error);

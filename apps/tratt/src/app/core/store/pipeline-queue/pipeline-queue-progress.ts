@@ -5,6 +5,12 @@ import { BundleRunStage } from './index';
 export interface QueueProgressUpdate {
   stage: BundleRunStage;
   progress?: number;
+  /**
+   * True while the stage is still downloading its model (first run of a
+   * model) rather than processing audio — lets the bundle list say
+   * "Downloading model 40%" instead of a misleading "Transcribing 40%".
+   */
+  downloading?: boolean;
 }
 
 export interface QueueProgressResult {
@@ -28,8 +34,14 @@ function fraction(loaded: number, total: number): number | undefined {
 function update(
   stage: BundleRunStage,
   progress: number | undefined,
+  downloading = false,
 ): QueueProgressUpdate {
-  return progress === undefined ? { stage } : { stage, progress };
+  const result: QueueProgressUpdate =
+    progress === undefined ? { stage } : { stage, progress };
+  if (downloading) {
+    result.downloading = true;
+  }
+  return result;
 }
 
 /**
@@ -57,7 +69,7 @@ export function mapPipelineActionToQueueProgress(
     switch (event.type) {
       case 'download-progress':
         return {
-          update: update('asr', fraction(event.loaded, event.total)),
+          update: update('asr', fraction(event.loaded, event.total), true),
           audioDurationS,
         };
       case 'transcribe-start':
@@ -87,7 +99,11 @@ export function mapPipelineActionToQueueProgress(
     ).event;
     if (event.type === 'download-progress') {
       return {
-        update: update('diarization', fraction(event.loaded, event.total)),
+        update: update(
+          'diarization',
+          fraction(event.loaded, event.total),
+          true,
+        ),
         audioDurationS,
       };
     }
@@ -104,7 +120,11 @@ export function mapPipelineActionToQueueProgress(
     ).event;
     if (event.type === 'download-progress') {
       return {
-        update: update('translation', fraction(event.loaded, event.total)),
+        update: update(
+          'translation',
+          fraction(event.loaded, event.total),
+          true,
+        ),
         audioDurationS,
       };
     }

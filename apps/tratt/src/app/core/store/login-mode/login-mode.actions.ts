@@ -43,7 +43,25 @@ export class LoginModeActions extends AnnotationActions {
        * steals focus from whatever bundle the user is actively editing.
        */
       selectAfterCreate?: boolean;
+      /**
+       * The caller has already registered this bundle's decoded audio with
+       * AudioService (a dropped file). Marks it `audio.loaded` like
+       * `loadAudio.success` does for the bundle the login chain loads —
+       * otherwise the navbar's level/speaker/info/export items stayed hidden
+       * for every other dropped file. Restored bundles leave it unset.
+       */
+      audioLoaded?: boolean;
     }>(),
+  );
+
+  /**
+   * A restored bundle got its audio back without going through the login
+   * chain (a dropped file matched it by name, size and type): marks it
+   * `audio.loaded`, as `loadAudio.success` does for the selected bundle.
+   */
+  static bundleAudioAttached = createAction(
+    'annotation Bundle audio attached',
+    props<{ mode: LoginMode; bundleId: string }>(),
   );
 
   static selectBundle = createAction(

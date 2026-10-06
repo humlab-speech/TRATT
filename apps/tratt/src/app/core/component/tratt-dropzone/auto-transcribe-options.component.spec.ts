@@ -193,3 +193,87 @@ describe('AutoTranscribeOptionsComponent', () => {
     });
   });
 });
+
+// /workbench's settings panel used to come back from every reload with
+// auto-transcription off and the defaults selected.
+describe('AutoTranscribeOptionsComponent persistKey', () => {
+  const KEY = 'test.pipeline.transcribe';
+
+  async function create(persistKey?: string) {
+    TestBed.resetTestingModule();
+    await TestBed.configureTestingModule({
+      imports: [AutoTranscribeOptionsComponent],
+      providers: [
+        {
+          provide: TranslocoService,
+          useValue: {
+            getActiveLang: () => 'en',
+            langChanges$: of('en'),
+            translate: (key: string) => key,
+            config: { reRenderOnLangChange: false },
+            _loadDependencies: () => of({}),
+          },
+        },
+      ],
+    }).compileComponents();
+    const fixture = TestBed.createComponent(AutoTranscribeOptionsComponent);
+    fixture.componentRef.setInput('audioLoaded', true);
+    if (persistKey) {
+      fixture.componentRef.setInput('persistKey', persistKey);
+    }
+    return fixture.componentInstance;
+  }
+
+  beforeEach(() => localStorage.clear());
+
+  it('restores the remembered choices on the next visit', async () => {
+    const first = await create(KEY);
+    await first.ngOnInit();
+    first.enabled.set(true);
+    first.selectedLanguage = 'sv';
+    first.onLanguageChange();
+    first.selectedModelId = KB_WHISPER_MODELS[0].modelId;
+    first.speakerSegmentationEnabled = true;
+    first.numSpeakers = 3;
+    first.emitChange();
+
+    const next = await create(KEY);
+    await next.ngOnInit();
+
+    expect(next.enabled()).toBe(true);
+    expect(next.selectedLanguage).toBe('sv');
+    expect(next.selectedModelId).toBe(KB_WHISPER_MODELS[0].modelId);
+    expect(next.speakerSegmentationEnabled).toBe(true);
+    expect(next.numSpeakers).toBe(3);
+  });
+
+  it('does not overwrite the stored choices with defaults before restoring them', async () => {
+    localStorage.setItem(
+      KEY,
+      JSON.stringify({ enabled: true, language: 'sv', numSpeakers: 4 }),
+    );
+    const component = await create(KEY);
+    component.emitChange(); // e.g. the constructor effect firing first
+    await component.ngOnInit();
+
+    expect(component.enabled()).toBe(true);
+    expect(component.numSpeakers).toBe(4);
+  });
+
+  it('remembers nothing without a persistKey (/local)', async () => {
+    const component = await create();
+    await component.ngOnInit();
+    component.enabled.set(true);
+    component.emitChange();
+
+    expect(localStorage.length).toBe(0);
+  });
+
+  it('starts from the defaults when the stored value is unreadable', async () => {
+    localStorage.setItem(KEY, '{not json');
+    const component = await create(KEY);
+    await component.ngOnInit();
+
+    expect(component.enabled()).toBe(false);
+  });
+});

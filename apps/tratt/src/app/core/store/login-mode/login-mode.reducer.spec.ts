@@ -357,7 +357,9 @@ describe('LoginModeReducers — createBundle / selectBundle', () => {
 
   it('createBundle leaves selectedBundleId unchanged when selectAfterCreate is false', () => {
     const reducer = new LoginModeReducers(LoginMode.LOCAL).create();
-    const seeded = reducer(undefined, { type: '@ngrx/store/init' } as any) as unknown as LocalBundleCollectionState;
+    const seeded = reducer(undefined, {
+      type: '@ngrx/store/init',
+    } as any) as unknown as LocalBundleCollectionState;
 
     const result = reducer(
       seeded as any,
@@ -375,7 +377,9 @@ describe('LoginModeReducers — createBundle / selectBundle', () => {
 
   it('createBundle still selects the new bundle when selectAfterCreate is omitted (existing behaviour)', () => {
     const reducer = new LoginModeReducers(LoginMode.LOCAL).create();
-    const seeded = reducer(undefined, { type: '@ngrx/store/init' } as any) as unknown as LocalBundleCollectionState;
+    const seeded = reducer(undefined, {
+      type: '@ngrx/store/init',
+    } as any) as unknown as LocalBundleCollectionState;
 
     const result = reducer(
       seeded as any,
@@ -462,7 +466,9 @@ describe('LoginModeReducers — removeBundles', () => {
 
     expect(next.bundles.ids.length).toBe(1);
     expect(next.selectedBundleId).toBe(DEFAULT_BUNDLE_ID);
-    expect(next.bundles.entities[DEFAULT_BUNDLE_ID]?.sessionFile).toBeUndefined();
+    expect(
+      next.bundles.entities[DEFAULT_BUNDLE_ID]?.sessionFile,
+    ).toBeUndefined();
   });
 
   it('removing a non-selected bundle leaves selectedBundleId untouched', () => {
@@ -626,5 +632,305 @@ describe('LoginModeReducers — createBundle with restored content (step 2.8)', 
       initial.bundles.entities[DEFAULT_BUNDLE_ID],
     );
     expect(next.selectedBundleId).toBe('b2');
+  });
+});
+
+// Regression (workbench, manual testing): the login chain writes guidelines,
+// project config and task into the bundle selected at that moment only. A
+// second file opened without them — the 2D editor's segment popup threw on
+// `guidelines!.selected!` and the overview listed no transcription units.
+describe('LoginModeReducers — session scope is shared across bundles', () => {
+  const sessionFile = new SessionFile('b2.wav', 123, new Date(), 'audio/wav');
+  const selectedGuidelines = {
+    filename: 'guidelines_en.json',
+    json: { markers: [{ type: 'break', code: '<P>' }] },
+  };
+  const startSuccess = () =>
+    LoginModeActions.startAnnotation.success({
+      mode: LoginMode.LOCAL,
+      project: { id: '7329', name: 'Local' } as any,
+      task: { id: '1', status: 'BUSY' } as any,
+      projectSettings: { logging: {} } as any,
+      guidelines: [selectedGuidelines] as any,
+      selectedGuidelines: selectedGuidelines as any,
+    });
+  const init = () => {
+    const reducer = new LoginModeReducers(LoginMode.LOCAL).create();
+    const initial = reducer(undefined, {
+      type: '@@INIT',
+    } as any) as unknown as LocalBundleCollectionState;
+    return { reducer, initial };
+  };
+
+  it('startAnnotation.success on the selected bundle propagates guidelines, project config and task to every other bundle', () => {
+    const { reducer, initial } = init();
+    const withB2 = reducer(
+      initial as any,
+      LoginModeActions.createBundle({
+        mode: LoginMode.LOCAL,
+        bundleId: 'b2',
+        sessionFile,
+        selectAfterCreate: false,
+      }),
+    ) as unknown as LocalBundleCollectionState;
+
+    const next = reducer(
+      withB2 as any,
+      startSuccess(),
+    ) as unknown as LocalBundleCollectionState;
+
+    const selected = next.bundles.entities[DEFAULT_BUNDLE_ID]!;
+    const sibling = next.bundles.entities['b2']!;
+    expect(selected.guidelines?.selected).toBe(selectedGuidelines);
+    expect(sibling.guidelines).toBe(selected.guidelines);
+    expect(sibling.projectConfig).toBe(selected.projectConfig);
+    expect(sibling.currentSession.task).toBe(selected.currentSession.task);
+    expect(sibling.currentSession.currentProject).toBe(
+      selected.currentSession.currentProject,
+    );
+    // Per-recording state stays the sibling's own.
+    expect(sibling.sessionFile).toBe(sessionFile);
+    expect(sibling.transcript).toBe(withB2.bundles.entities['b2']!.transcript);
+    expect(sibling.logging).toBe(withB2.bundles.entities['b2']!.logging);
+  });
+
+  it('a bundle created into a running session joins it (guidelines, project config, task)', () => {
+    const { reducer, initial } = init();
+    const inSession = reducer(
+      initial as any,
+      startSuccess(),
+    ) as unknown as LocalBundleCollectionState;
+
+    const next = reducer(
+      inSession as any,
+      LoginModeActions.createBundle({
+        mode: LoginMode.LOCAL,
+        bundleId: 'b2',
+        sessionFile,
+      }),
+    ) as unknown as LocalBundleCollectionState;
+
+    const source = inSession.bundles.entities[DEFAULT_BUNDLE_ID]!;
+    const created = next.bundles.entities['b2']!;
+    expect(created.guidelines).toBe(source.guidelines);
+    expect(created.projectConfig).toBe(source.projectConfig);
+    expect(created.currentSession.task).toBe(source.currentSession.task);
+    // The source bundle itself is not rewritten.
+    expect(next.bundles.entities[DEFAULT_BUNDLE_ID]).toBe(source);
+  });
+
+  it('createBundle records the media file name used for IDB saves', () => {
+    const { reducer, initial } = init();
+    const next = reducer(
+      initial as any,
+      LoginModeActions.createBundle({
+        mode: LoginMode.LOCAL,
+        bundleId: 'b2',
+        sessionFile,
+      }),
+    ) as unknown as LocalBundleCollectionState;
+
+    expect(next.bundles.entities['b2']?.audio.fileName).toBe('b2.wav');
+  });
+
+  // Regression (manual testing): "Select all -> Remove" fell back to an
+  // empty placeholder bundle WITHOUT the session scope, and every file
+  // dropped afterwards copied its (missing) scope: the Dictaphone editor and
+  // the overview showed no transcript, the segment popup had no markers.
+  it('removing every bundle keeps the session scope on the placeholder, so files dropped next still get it', () => {
+    const { reducer, initial } = init();
+    const inSession = reducer(
+      reducer(
+        initial as any,
+        LoginModeActions.createBundle({
+          mode: LoginMode.LOCAL,
+          bundleId: 'b2',
+          sessionFile,
+        }),
+      ) as any,
+      startSuccess(),
+    ) as unknown as LocalBundleCollectionState;
+    const source = inSession.bundles.entities['b2']!;
+
+    const emptied = reducer(
+      inSession as any,
+      LoginModeActions.removeBundles({
+        mode: LoginMode.LOCAL,
+        bundleIds: [DEFAULT_BUNDLE_ID, 'b2'],
+      }),
+    ) as unknown as LocalBundleCollectionState;
+    const placeholder = emptied.bundles.entities[DEFAULT_BUNDLE_ID]!;
+    expect(placeholder.guidelines).toBe(source.guidelines);
+    expect(placeholder.projectConfig).toBe(source.projectConfig);
+    expect(placeholder.transcript?.levels ?? []).toHaveLength(0);
+
+    const next = reducer(
+      emptied as any,
+      LoginModeActions.createBundle({
+        mode: LoginMode.LOCAL,
+        bundleId: 'b3',
+        sessionFile,
+        selectAfterCreate: false,
+      }),
+    ) as unknown as LocalBundleCollectionState;
+    expect(next.bundles.entities['b3']?.guidelines).toBe(source.guidelines);
+    expect(next.bundles.entities['b3']?.projectConfig).toBe(
+      source.projectConfig,
+    );
+  });
+
+  it('createBundle takes the scope from another bundle when the selected one has none', () => {
+    const { reducer, initial } = init();
+    // bundle-1 (selected) gets the scope, then b2 is created and selected,
+    // then b2 is stripped of it (a bundle created before scope sharing).
+    const inSession = reducer(
+      initial as any,
+      startSuccess(),
+    ) as unknown as LocalBundleCollectionState;
+    const stripped: LocalBundleCollectionState = {
+      ...inSession,
+      bundles: localBundleAdapter.addOne(
+        {
+          ...inSession.bundles.entities[DEFAULT_BUNDLE_ID]!,
+          bundleId: 'bare',
+          guidelines: undefined,
+          projectConfig: undefined,
+        } as any,
+        inSession.bundles,
+      ),
+      selectedBundleId: 'bare',
+    };
+
+    const next = reducer(
+      stripped as any,
+      LoginModeActions.createBundle({
+        mode: LoginMode.LOCAL,
+        bundleId: 'b3',
+        sessionFile,
+      }),
+    ) as unknown as LocalBundleCollectionState;
+
+    expect(next.bundles.entities['b3']?.guidelines).toBe(
+      inSession.bundles.entities[DEFAULT_BUNDLE_ID]!.guidelines,
+    );
+  });
+
+  it('selecting a bundle that missed the session scope heals it', () => {
+    const { reducer, initial } = init();
+    const inSession = reducer(
+      initial as any,
+      startSuccess(),
+    ) as unknown as LocalBundleCollectionState;
+    const withBare: LocalBundleCollectionState = {
+      ...inSession,
+      bundles: localBundleAdapter.addOne(
+        {
+          ...inSession.bundles.entities[DEFAULT_BUNDLE_ID]!,
+          bundleId: 'bare',
+          guidelines: undefined,
+          projectConfig: undefined,
+        } as any,
+        inSession.bundles,
+      ),
+    };
+
+    const next = reducer(
+      withBare as any,
+      LoginModeActions.selectBundle({
+        mode: LoginMode.LOCAL,
+        bundleId: 'bare',
+      }),
+    ) as unknown as LocalBundleCollectionState;
+
+    expect(next.selectedBundleId).toBe('bare');
+    expect(next.bundles.entities['bare']?.guidelines).toBe(
+      inSession.bundles.entities[DEFAULT_BUNDLE_ID]!.guidelines,
+    );
+    expect(next.bundles.entities['bare']?.projectConfig).toBe(
+      inSession.bundles.entities[DEFAULT_BUNDLE_ID]!.projectConfig,
+    );
+  });
+
+  it('createBundle marks the audio loaded only when the caller registered it', () => {
+    const { reducer, initial } = init();
+    const dropped = reducer(
+      initial as any,
+      LoginModeActions.createBundle({
+        mode: LoginMode.LOCAL,
+        bundleId: 'dropped',
+        sessionFile,
+        audioLoaded: true,
+      }),
+    ) as unknown as LocalBundleCollectionState;
+    const restored = reducer(
+      dropped as any,
+      LoginModeActions.createBundle({
+        mode: LoginMode.LOCAL,
+        bundleId: 'restored',
+        sessionFile,
+      }),
+    ) as unknown as LocalBundleCollectionState;
+
+    expect(restored.bundles.entities['dropped']?.audio.loaded).toBe(true);
+    expect(restored.bundles.entities['restored']?.audio.loaded).toBe(false);
+  });
+
+  it('bundleAudioAttached marks that bundle loaded and nothing else', () => {
+    const { reducer, initial } = init();
+    const withRestored = reducer(
+      initial as any,
+      LoginModeActions.createBundle({
+        mode: LoginMode.LOCAL,
+        bundleId: 'r1',
+        sessionFile,
+        selectAfterCreate: false,
+      }),
+    ) as unknown as LocalBundleCollectionState;
+
+    const next = reducer(
+      withRestored as any,
+      LoginModeActions.bundleAudioAttached({
+        mode: LoginMode.LOCAL,
+        bundleId: 'r1',
+      }),
+    ) as unknown as LocalBundleCollectionState;
+
+    expect(next.bundles.entities['r1']?.audio.loaded).toBe(true);
+    expect(next.bundles.entities['r1']?.transcript).toBe(
+      withRestored.bundles.entities['r1']?.transcript,
+    );
+    expect(next.selectedBundleId).toBe(withRestored.selectedBundleId);
+    expect(next.bundles.entities[DEFAULT_BUNDLE_ID]).toBe(
+      withRestored.bundles.entities[DEFAULT_BUNDLE_ID],
+    );
+  });
+
+  it('an ordinary edit on the selected bundle leaves sibling entities untouched', () => {
+    const { reducer, initial } = init();
+    const inSession = reducer(
+      reducer(
+        initial as any,
+        LoginModeActions.createBundle({
+          mode: LoginMode.LOCAL,
+          bundleId: 'b2',
+          sessionFile,
+          selectAfterCreate: false,
+        }),
+      ) as any,
+      startSuccess(),
+    ) as unknown as LocalBundleCollectionState;
+
+    const next = reducer(
+      inSession as any,
+      LoginModeActions.changeComment.do({
+        comment: 'only here',
+        mode: LoginMode.LOCAL,
+      }),
+    ) as unknown as LocalBundleCollectionState;
+
+    expect(next.bundles.entities['b2']).toBe(inSession.bundles.entities['b2']);
+    expect(
+      next.bundles.entities[DEFAULT_BUNDLE_ID]?.currentSession.comment,
+    ).toBe('only here');
   });
 });

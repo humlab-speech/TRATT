@@ -16,6 +16,7 @@ import { CatalogueExportModalComponent } from '../../modals/catalogue-export-mod
 import { TrattModalService } from '../../modals/tratt-modal.service';
 import { SessionFile } from '../../obj/SessionFile';
 import { AudioService } from '../../shared/service/audio.service';
+import { PendingEditsService } from '../../shared/service/pending-edits.service';
 import { PipelineQueueService } from '../../shared/service/pipeline-queue.service';
 import { AuthenticationActions } from '../../store/authentication';
 import { LoginMode, RootState } from '../../store/index';
@@ -81,12 +82,18 @@ export class BundleListComponent {
       .map((b) => ({
         ...b,
         awaitingMedia:
-          b.awaitingMedia && !this.audioService.hasResident(b.bundleId),
+          b.awaitingMedia && !this.audioService.canRestore(b.bundleId),
         run: runStatusOf(runs, b.bundleId),
       }));
   });
 
   private _selected = signal<Set<string>>(new Set());
+
+  /** Checked rows that still exist (the Remove button is disabled at 0). */
+  selectedCount = computed(() => {
+    const live = new Set(this.bundles().map((b) => b.bundleId));
+    return [...this._selected()].filter((id) => live.has(id)).length;
+  });
 
   isSelected(bundleId: string): boolean {
     return this._selected().has(bundleId);
@@ -121,10 +128,36 @@ export class BundleListComponent {
     if (ids.length === 0) {
       return;
     }
+    this.removeBundles(ids);
+    this._selected.set(new Set());
+  }
+
+  /**
+   * The one removal path: commit the mounted editor's pending typing while
+   * the selection still points at its bundle, stop a run that belongs to a
+   * removed bundle, drop the bundles from the store (IDB rows follow via
+   * `IDBEffects.removeBundles$`), then release their audio — resident PCM
+   * and the retained source File would otherwise stay in memory for the rest
+   * of the session.
+   */
+  private removeBundles(ids: string[]): void {
+    this.pendingEdits.flush();
+    this.pipelineQueueService.cancelIfActive(ids);
     this.store.dispatch(
       LoginModeActions.removeBundles({ mode: LoginMode.LOCAL, bundleIds: ids }),
     );
-    this._selected.set(new Set());
+    for (const id of ids) {
+      this.audioService.forget(id);
+    }
+  }
+
+  progressPercent(progress: number): number {
+    return Math.round(Math.min(1, Math.max(0, progress)) * 100);
+  }
+
+  /** Stops the bundle that is currently being transcribed. */
+  onCancelRun(): void {
+    this.pipelineQueueService.cancelActive();
   }
 
   onClearFinished(): void {
@@ -134,9 +167,7 @@ export class BundleListComponent {
     if (ids.length === 0) {
       return;
     }
-    this.store.dispatch(
-      LoginModeActions.removeBundles({ mode: LoginMode.LOCAL, bundleIds: ids }),
-    );
+    this.removeBundles(ids);
     // Final whole-branch review fix: unlike onRemoveSelected(), this used to
     // leave `_selected` holding ids that no longer exist — a stale id could
     // then leak into onExportCatalogue()'s "no selection = all" fallback
@@ -275,9 +306,16 @@ export class BundleListComponent {
     private audioService: AudioService,
     private modService: TrattModalService,
     private pipelineQueueService: PipelineQueueService,
+    private pendingEdits: PendingEditsService,
   ) {}
 
   selectBundle(bundleId: string): void {
+    if (this.localMode().selectedBundleId === bundleId) {
+      return;
+    }
+    // Commit the editor's debounced typing BEFORE the selection moves —
+    // afterwards it would be routed into the newly selected bundle.
+    this.pendingEdits.flush();
     this.store.dispatch(
       LoginModeActions.selectBundle({ mode: LoginMode.LOCAL, bundleId }),
     );
@@ -336,6 +374,8 @@ export class BundleListComponent {
           expectedSize: sessionFile?.size,
           actualName: file.name,
           actualSize: file.size,
+          expectedModified: sessionFile?.timestamp,
+          actualModified: new Date(file.lastModified),
         },
       );
 
@@ -343,6 +383,9 @@ export class BundleListComponent {
         this.completeReattach(bundleId, manager, file);
         completed = true;
       }
+    } catch {
+      // Dismissed by clicking outside the dialog: same as "Abort". (Left
+      // uncaught, the rejection surfaced as a bare "ERROR 0" in the console.)
     } finally {
       if (!completed) {
         manager.destroy();
@@ -417,6 +460,7 @@ export class BundleListComponent {
     manager: AudioManager,
     file: File,
   ): void {
+    this.pendingEdits.flush();
     this.audioService.registerAudioManager(bundleId, manager, file);
     this.store.dispatch(
       LoginModeActions.selectBundle({ mode: LoginMode.LOCAL, bundleId }),

@@ -504,10 +504,29 @@ describe('IDBEffects — persists to the real selected bundle (Task 3)', () => {
     });
 
     it('Fix 4 regression: still persists for a fresh createBundle without restoredOptions/restoredAnnotation (step 2.7 shape)', (done) => {
-      setup(buildState(DEFAULT_BUNDLE_ID));
+      // Effects run after the reducer, so the created entity is in the
+      // collection; the selection stays on bundle-1 (selectAfterCreate:
+      // false, the background-ingest shape).
+      const state = buildState(DEFAULT_BUNDLE_ID) as any;
+      state.localMode.bundles = localBundleAdapter.addOne(
+        {
+          ...state.localMode.bundles.entities[DEFAULT_BUNDLE_ID],
+          bundleId: 'bundle-2',
+          audio: { fileName: 'second.wav' },
+        },
+        state.localMode.bundles,
+      );
+      setup(state);
 
       const subscription = effects.savemodeOptions$.subscribe(() => {
-        expect(idbService.saveModeOptions).toHaveBeenCalled();
+        // The CREATED bundle is persisted — not the selected one. Bundles
+        // created in the background otherwise never got an options row and
+        // vanished from the list on reload.
+        expect(idbService.saveModeOptions).toHaveBeenCalledWith(
+          LoginMode.LOCAL,
+          expect.anything(),
+          'bundle-2',
+        );
         subscription.unsubscribe();
         done();
       });

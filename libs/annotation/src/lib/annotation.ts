@@ -672,6 +672,14 @@ export class TrattAnnotation<T extends TrattAnnotationSegment> {
     sampleRate: number,
     lastSegmentTime: SampleUnit,
   ): OAnnotJSON {
+    // Serializing is a read: it must never mutate `this`. Transcripts held in
+    // the NgRx store are deep-frozen in dev builds (strictStateImmutability),
+    // so the old `this.idCounters.item++` below threw "Cannot assign to read
+    // only property 'item'" whenever a padding segment was needed (any
+    // transcript ending before the audio does), which broke IDB annotation
+    // saves and catalogue export. Padding ids come from a local counter
+    // seeded with the next free id instead — unique within this snapshot.
+    let nextPaddingItemId = this.idCounters.item;
     return new OAnnotJSON(
       mediaFileName,
       mediaFileName.replace(/\.[^.]+$/g, ''),
@@ -689,7 +697,7 @@ export class TrattAnnotation<T extends TrattAnnotationSegment> {
               const paddingStart = lastItem.sampleStart + lastItem.sampleDur;
               result.items.push(
                 new OSegment(
-                  this.idCounters.item++,
+                  nextPaddingItemId++,
                   paddingStart,
                   lastSegmentTime.samples - paddingStart,
                   [new OLabel(a.name, '')],

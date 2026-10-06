@@ -19,13 +19,36 @@
       <span class="bundle-reattach-mismatch__file"
         >{{ expectedName ?? '?' }} ({{ expectedSize ?? '?' }} bytes)</span
       >
+      @if (onlyModifiedDiffers) {
+        <span class="bundle-reattach-mismatch__modified">
+          ·
+          {{
+            'modal.bundle reattach mismatch.modified'
+              | transloco: { date: (expectedModified | date: 'medium') }
+          }}
+        </span>
+      }
     </p>
     <p>
       {{ 'modal.bundle reattach mismatch.actual' | transloco }}
       <span class="bundle-reattach-mismatch__file"
         >{{ actualName }} ({{ actualSize }} bytes)</span
       >
+      @if (onlyModifiedDiffers) {
+        <span class="bundle-reattach-mismatch__modified">
+          ·
+          {{
+            'modal.bundle reattach mismatch.modified'
+              | transloco: { date: (actualModified | date: 'medium') }
+          }}
+        </span>
+      }
     </p>
+    @if (onlyModifiedDiffers) {
+      <p class="text-muted small mb-0">
+        {{ 'modal.bundle reattach mismatch.only modified differs' | transloco }}
+      </p>
+    }
   </div>
   <div class="modal-footer">
     <button

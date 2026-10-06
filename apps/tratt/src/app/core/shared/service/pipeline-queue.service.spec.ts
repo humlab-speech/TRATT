@@ -48,7 +48,9 @@ const LOCAL_MODE_STATE = {
         // state) but has non-empty annotation content — I4: enqueue() must
         // never offer this bundle to the runner, the spec's "never overwrite
         // annotation data" guarantee.
-        transcript: { levels: [{ items: [{}] }] },
+        transcript: {
+          levels: [{ items: [{ labels: [{ name: 'L', value: 'hello' }] }] }],
+        },
       },
     },
   },
@@ -71,8 +73,13 @@ describe('PipelineQueueService', () => {
   let audio: {
     ensureResident: jest.Mock<any>;
     hasResident: jest.Mock<any>;
+    canRestore: jest.Mock<any>;
     getManager: jest.Mock<any>;
+    pin: jest.Mock<any>;
+    unpin: jest.Mock<any>;
   };
+  // Swappable so a test can change the bundles' content mid-run.
+  let localModeState: any;
   let events: Subject<PipelineEvent>[];
 
   function queueState() {
@@ -97,8 +104,12 @@ describe('PipelineQueueService', () => {
     audio = {
       ensureResident: jest.fn(async () => true),
       hasResident: jest.fn(() => true),
+      canRestore: jest.fn((id: string) => audio.hasResident(id)),
       getManager: jest.fn(() => fakeManager()),
+      pin: jest.fn(),
+      unpin: jest.fn(),
     };
+    localModeState = LOCAL_MODE_STATE;
 
     TestBed.configureTestingModule({
       providers: [
@@ -107,7 +118,7 @@ describe('PipelineQueueService', () => {
         // has to actually run.
         provideStore({
           pipelineQueue: pipelineQueueReducer,
-          localMode: () => LOCAL_MODE_STATE as any,
+          localMode: () => localModeState,
         }),
         { provide: PipelineRunnerService, useValue: runner },
         { provide: AudioService, useValue: audio },
@@ -447,5 +458,129 @@ describe('PipelineQueueService', () => {
     expect(queueState().mode).toBe('idle');
 
     deserializeSpy.mockRestore();
+  });
+
+  it('pins the running bundle against LRU eviction and releases it afterwards', async () => {
+    service.enqueue(['a']);
+    await Promise.resolve();
+    expect(audio.pin).toHaveBeenCalledWith('a');
+    expect(audio.unpin).not.toHaveBeenCalled();
+
+    events[0].next({
+      stage: 'pipeline',
+      type: 'result',
+      annotJson: new OAnnotJSON('a.wav', 'a', 16000, []),
+      diarizationWarning: null,
+    });
+    await Promise.resolve();
+    expect(audio.unpin).toHaveBeenCalledWith('a');
+  });
+
+  it('passes the configured translation options to the runner', async () => {
+    const translateOptions = { targetLanguage: 'en' } as any;
+    service.setTranslateOptions(translateOptions);
+    service.enqueue(['a']);
+    await Promise.resolve();
+    expect(runner.run).toHaveBeenCalledWith(
+      expect.objectContaining({ translateOptions }),
+    );
+  });
+
+  it('runs transcription only when no translation is configured', async () => {
+    service.enqueue(['a']);
+    await Promise.resolve();
+    expect(
+      (runner.run.mock.calls[0][0] as any).translateOptions,
+    ).toBeUndefined();
+  });
+
+  it('selects the first level of the produced transcript so editors can render it', async () => {
+    const dispatched: any[] = [];
+    store.dispatch = ((action: any) => {
+      dispatched.push(action);
+      return Store.prototype.dispatch.call(store, action);
+    }) as any;
+    service.enqueue(['a']);
+    await Promise.resolve();
+
+    const annotation = new TrattAnnotation();
+    annotation.addLevel(annotation.createSegmentLevel('L1'));
+    const annotJson = annotation.serialize('a.wav', 16000, {
+      samples: 16000,
+    } as any);
+    events[0].next({
+      stage: 'pipeline',
+      type: 'result',
+      annotJson,
+      diarizationWarning: null,
+    });
+    await Promise.resolve();
+
+    const write = dispatched.find(
+      (a) => a.type === LoginModeActions.setBundleTranscript.type,
+    );
+    expect(write.transcript.selectedLevelIndex).toBe(0);
+  });
+
+  it('never overwrites a transcript the user edited while the bundle was running', async () => {
+    const replaced: string[] = [];
+    service.transcriptReplaced$.subscribe((id) => replaced.push(id));
+    service.enqueue(['a']);
+    await Promise.resolve();
+
+    // The user types into bundle 'a' while ASR runs.
+    localModeState = {
+      ...LOCAL_MODE_STATE,
+      bundles: {
+        ...LOCAL_MODE_STATE.bundles,
+        entities: {
+          ...LOCAL_MODE_STATE.bundles.entities,
+          a: {
+            ...LOCAL_MODE_STATE.bundles.entities.a,
+            transcript: {
+              levels: [{ items: [{ labels: [{ name: 'L', value: 'mine' }] }] }],
+            },
+          },
+        },
+      },
+    };
+    store.dispatch({ type: '[test] refresh' });
+
+    events[0].next({
+      stage: 'pipeline',
+      type: 'result',
+      annotJson: new OAnnotJSON('a.wav', 'a', 16000, []),
+      diarizationWarning: null,
+    });
+    await Promise.resolve();
+
+    expect(queueState().runs['a'].state).toBe('failed');
+    expect(replaced).toEqual([]);
+  });
+
+  it('announces a replaced transcript so a host can remount its editor', async () => {
+    const replaced: string[] = [];
+    service.transcriptReplaced$.subscribe((id) => replaced.push(id));
+    service.enqueue(['a']);
+    await Promise.resolve();
+    events[0].next({
+      stage: 'pipeline',
+      type: 'result',
+      annotJson: new OAnnotJSON('a.wav', 'a', 16000, []),
+      diarizationWarning: null,
+    });
+    await Promise.resolve();
+    expect(replaced).toEqual(['a']);
+  });
+
+  it('cancelIfActive() cancels only when the running bundle is among the ids', async () => {
+    service.enqueue(['a']);
+    await Promise.resolve();
+
+    service.cancelIfActive(['b']);
+    expect(runner.cancel).not.toHaveBeenCalled();
+
+    service.cancelIfActive(['a', 'b']);
+    expect(runner.cancel).toHaveBeenCalledTimes(1);
   });
 });

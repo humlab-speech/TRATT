@@ -35,15 +35,65 @@ export const selectAllBundleSummaries = createSelector(
       name: b.sessionFile?.name,
       selected: b.bundleId === local.selectedBundleId,
       awaitingMedia: !b.audio.loaded,
-      // Step 6: a bundle with any non-empty level is excluded from
-      // auto-enqueue and "run all" — a fresh level's items default to an
-      // empty array (TrattAnnotationSegmentLevel -> OLevel never seeds a
-      // placeholder segment), so "zero items across every level" is an
-      // exact, already-precedented definition of "empty".
-      hasAnnotationContent:
-        b.transcript?.levels?.some((l) => l.items.length > 0) ?? false,
+      // Step 6: a bundle with real annotation content is excluded from
+      // auto-enqueue and "run all" — see transcriptHasContent().
+      hasAnnotationContent: transcriptHasContent(
+        b.transcript,
+        breakMarkerCodeOf(b.guidelines),
+      ),
     })),
 );
+
+/** The guidelines' break ("silence") marker code, e.g. `<P>`, if any. */
+export function breakMarkerCodeOf(
+  guidelines: { selected?: { json?: unknown } } | undefined,
+): string | undefined {
+  const markers = (
+    guidelines?.selected?.json as
+      | { markers?: { type?: string; code?: string }[] }
+      | undefined
+  )?.markers;
+  return markers?.find((m) => m.type === 'break')?.code;
+}
+
+/**
+ * Whether a transcript holds anything a pipeline run could overwrite.
+ *
+ * NOT simply "any level has items": the session bootstrap
+ * (AnnotationLoadEffects.loadSegments) seeds a brand-new bundle with ONE
+ * empty segment spanning the whole file, so the first file of every session
+ * looked "already transcribed" and was silently excluded from auto-run and
+ * from the "Transcribe N file(s)" button. Content = any label with text, or
+ * more than one item in a level (boundaries the user placed by hand).
+ *
+ * `breakMarkerCode`: once guidelines are loaded, empty segments are
+ * normalised to the break marker (startAnnotation.success), so a lone
+ * segment holding only that marker is just as empty.
+ */
+export function transcriptHasContent(
+  transcript:
+    | {
+        levels?: {
+          items: { labels?: { name?: string; value?: string }[] }[];
+        }[];
+      }
+    | undefined,
+  breakMarkerCode?: string,
+): boolean {
+  const isEmptyValue = (value: string | undefined) => {
+    const trimmed = (value ?? '').trim();
+    return trimmed.length === 0 || trimmed === breakMarkerCode;
+  };
+  return (
+    transcript?.levels?.some(
+      (level) =>
+        level.items.length > 1 ||
+        level.items.some((item) =>
+          (item.labels ?? []).some((label) => !isEmptyValue(label.value)),
+        ),
+    ) ?? false
+  );
+}
 
 /** Returns the active mode's AnnotationState based on application.mode. */
 export const selectActiveAnnotation = createSelector(

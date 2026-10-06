@@ -512,6 +512,14 @@
         "oom": "Ran out of memory",
         "cancelled": "Cancelled",
         "unknown": "Failed"
+      },
+      "cancel": "Stop transcribing this file",
+      "stage": {
+        "decode": "Preparing",
+        "download": "Loading model",
+        "asr": "Transcribing",
+        "diarization": "Separating speakers",
+        "translation": "Translating"
       }
     },
     "queue": {
@@ -539,7 +547,25 @@
       "cancel": "Cancel",
       "progress": "Exporting {{current}} of {{total}}…",
       "warnings_title": "Completed with warnings",
-      "done": "Done — {{count}} file(s) archived."
+      "done": "Done — {{count}} file(s) archived.",
+      "failed": "Export failed: {{message}}"
+    },
+    "dropzone_placeholder": "Drop audio files here, or click to browse. Several at once is fine.",
+    "editor": {
+      "loading_audio": "Loading audio…",
+      "awaiting_media": "This file’s audio isn’t loaded in this session. Use “Attach file…” in the list to re-attach it."
+    },
+    "empty": {
+      "title": "No files yet",
+      "text": "Drop one or more audio files on the left, or record directly. Every file gets its own transcript, and with Auto-transcribe switched on new files are transcribed automatically.",
+      "restored_title": "Welcome back",
+      "restored_text": "Your files from the last session are listed on the left. Re-attach a file’s audio with “Attach file…” to keep editing it, or drop new files."
+    },
+    "editor_header": {
+      "mono": "모노",
+      "stereo": "스테레오",
+      "export": "이 전사 내보내기",
+      "export_needs_audio": "전사를 내보내려면 이 파일의 오디오를 첨부하세요."
     }
   }
 }

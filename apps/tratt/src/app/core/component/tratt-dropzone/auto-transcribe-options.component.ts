@@ -17,6 +17,10 @@ import { isSafariOrWebKit } from '@tratt/web-media';
 import { skip } from 'rxjs';
 import { TranscriptionOptions } from '../../shared/service/local-transcription.service';
 import { buildTranscriptionOptions } from './auto-transcribe-options.helpers';
+import {
+  loadPipelineSettings,
+  savePipelineSettings,
+} from './pipeline-settings-storage';
 
 export interface KbWhisperModel {
   /** Translation key suffix for i18n, e.g. 'tiny', 'small', 'medium', 'large'. */
@@ -332,6 +336,14 @@ const DEFAULT_KEY_FOR_FAMILY: Record<string, string> = {
   nn: 'medium',
 };
 
+interface SavedTranscribeSettings {
+  enabled: boolean;
+  language: string;
+  modelId: string;
+  speakerSegmentationEnabled: boolean;
+  numSpeakers: number | null;
+}
+
 @Component({
   selector: 'tratt-auto-transcribe-options',
   standalone: true,
@@ -579,6 +591,13 @@ export class AutoTranscribeOptionsComponent implements OnInit {
    */
   readonly compact = input<boolean>(false);
 
+  /**
+   * When set, the user's choices are remembered under this localStorage key
+   * and restored on the next visit (/workbench's persistent panel). Unset
+   * (default) keeps /local starting from the defaults every time.
+   */
+  readonly persistKey = input<string | undefined>(undefined);
+
   private readonly transloco = inject(TranslocoService);
   private readonly destroyRef = inject(DestroyRef);
 
@@ -623,8 +642,40 @@ export class AutoTranscribeOptionsComponent implements OnInit {
     return this.languages.some((l) => l.code === uiLang) ? uiLang : 'sv';
   }
 
+  // Nothing is saved before the stored choices were applied: an early
+  // emit with the defaults would overwrite them.
+  private settingsRestored = false;
+
   async ngOnInit(): Promise<void> {
+    const saved = loadPipelineSettings<SavedTranscribeSettings>(
+      this.persistKey(),
+    );
+    this.settingsRestored = true;
+    if (
+      saved?.language &&
+      this.languages.some((l) => l.code === saved.language)
+    ) {
+      this.selectedLanguage = saved.language;
+    }
     this.onLanguageChange(); // sync model list to the initial language
+    if (saved) {
+      if (
+        saved.modelId &&
+        this.models.some((m) => m.modelId === saved.modelId)
+      ) {
+        this.selectedModelId = saved.modelId;
+      }
+      if (typeof saved.speakerSegmentationEnabled === 'boolean') {
+        this.speakerSegmentationEnabled = saved.speakerSegmentationEnabled;
+      }
+      if (saved.numSpeakers === null || typeof saved.numSpeakers === 'number') {
+        this.numSpeakers = saved.numSpeakers;
+      }
+      if (typeof saved.enabled === 'boolean') {
+        this.enabled.set(saved.enabled);
+      }
+      this.emitChange();
+    }
     this.isSafari.set(isSafariOrWebKit());
     try {
       const nav = navigator as Navigator & {
@@ -684,6 +735,15 @@ export class AutoTranscribeOptionsComponent implements OnInit {
   }
 
   emitChange(): void {
+    if (this.settingsRestored) {
+      savePipelineSettings<SavedTranscribeSettings>(this.persistKey(), {
+        enabled: this.enabled(),
+        language: this.selectedLanguage,
+        modelId: this.selectedModelId,
+        speakerSegmentationEnabled: this.speakerSegmentationEnabled,
+        numSpeakers: this.numSpeakers,
+      });
+    }
     const model = this.models.find((m) => m.modelId === this.selectedModelId);
     const dtype = this.hasWebGpu() ? model?.dtypeWebgpu : model?.dtypeWasm;
     const opts = buildTranscriptionOptions({

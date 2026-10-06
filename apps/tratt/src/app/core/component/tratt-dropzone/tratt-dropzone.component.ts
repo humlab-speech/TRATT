@@ -45,6 +45,12 @@ export class TrattDropzoneComponent
 {
   @ViewChild('dropzone', { static: true }) dropzone!: DropZoneComponent;
   @Input() height = '250px';
+  /**
+   * i18n key for the empty-state text. The default promises "one audio file
+   * (+ one optional transcript file)", which is wrong for hosts that accept
+   * many files at once (the workbench).
+   */
+  @Input() placeholderKey = 'dropzone.drag&drop here';
   @Input() showAutoTranscribe = false;
   transcribeOptions: TranscriptionOptions | null = null;
   translateOptions: TranslationOptions | null = null;

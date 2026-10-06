@@ -94,23 +94,36 @@ export class PipelineQueuePersistenceEffects {
         mergeMap(([action, appState]) => {
           const modeState =
             appState.localMode.bundles.entities[action.bundleId];
-          const manager = this.audioService.getManager(action.bundleId);
-          if (!modeState || !manager) {
-            // No resident audio means no sample rate/duration to serialize
-            // against. The transcript is still in the store; it just isn't
-            // persisted for this bundle until something re-saves it.
+          // Media info is captured at registration and survives LRU
+          // eviction; the live manager is only a fallback. Requiring a
+          // RESIDENT manager here used to drop the pipeline result's
+          // persistence whenever the bundle had been evicted by the time
+          // its transcription finished — the transcript then vanished on
+          // the next reload.
+          const info =
+            this.audioService.getMediaInfo(action.bundleId) ??
+            this.audioService.getManager(action.bundleId)?.resource.info;
+          if (!modeState || !info) {
+            // No sample rate/duration to serialize against. The transcript
+            // is still in the store; it just isn't persisted for this bundle
+            // until something re-saves it.
+            return EMPTY;
+          }
+          let serialized;
+          try {
+            serialized = action.transcript.serialize(
+              modeState.audio?.fileName ?? info.fullname,
+              info.sampleRate,
+              info.duration,
+            );
+          } catch (error) {
+            // A synchronous throw inside mergeMap would kill this effect
+            // for the rest of the session (after NgRx's resubscribe budget).
+            console.error('Failed to serialize bundle transcript', error);
             return EMPTY;
           }
           return this.idbService
-            .saveAnnotation(
-              LoginMode.LOCAL,
-              action.transcript.serialize(
-                modeState.audio?.fileName ?? manager.resource.info.fullname,
-                manager.resource.info.sampleRate,
-                manager.resource.info.duration,
-              ),
-              action.bundleId,
-            )
+            .saveAnnotation(LoginMode.LOCAL, serialized, action.bundleId)
             .pipe(
               mergeMap(() => of(undefined)),
               catchError(() => of(undefined)),

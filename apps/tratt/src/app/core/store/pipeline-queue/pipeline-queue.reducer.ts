@@ -67,22 +67,28 @@ export const reducer = createReducer(
 
   on(
     PipelineQueueActions.progress,
-    (state, { stage, progress }): PipelineQueueState => {
+    (state, { stage, progress, downloading }): PipelineQueueState => {
       const activeId = state.activeId;
       if (activeId === null) {
         return state;
       }
       const previous = state.runs[activeId] ?? { state: 'running' };
+      const next: BundleRunStatus = {
+        ...previous,
+        state: 'running',
+        stage,
+        ...(progress !== undefined ? { progress } : {}),
+      };
+      if (downloading) {
+        next.downloading = true;
+      } else {
+        delete next.downloading;
+      }
       return {
         ...state,
         runs: {
           ...state.runs,
-          [activeId]: {
-            ...previous,
-            state: 'running',
-            stage,
-            ...(progress !== undefined ? { progress } : {}),
-          },
+          [activeId]: next,
         },
       };
     },
@@ -136,12 +142,13 @@ export const reducer = createReducer(
   ),
 
   /**
-   * Final whole-branch review fix: a removed bundle's stale `runs` entry
-   * otherwise survives removal, and a phantom/stale row could show an
-   * outdated status badge. Scoped narrowly to the `runs` dictionary only —
-   * `queue`/`activeId` are left untouched; removing a bundle that's
-   * currently mid-flight (queued/running) is a separate, harder edge case
-   * outside this fix's scope.
+   * A removed bundle's stale `runs` entry otherwise survives removal, and a
+   * phantom/stale row could show an outdated status badge. Queued ids are
+   * dropped too — otherwise the queue later re-decodes and transcribes a
+   * file that no longer exists in the list. `activeId` is left alone: the
+   * caller cancels an in-flight removed bundle first
+   * (`PipelineQueueService.cancelIfActive()`), and that run's own
+   * finalization clears `activeId` and advances the queue.
    */
   on(
     LoginModeActions.removeBundles,
@@ -155,7 +162,11 @@ export const reducer = createReducer(
           changed = true;
         }
       }
-      return changed ? { ...state, runs } : state;
+      const queue = state.queue.filter((id) => !removed.has(id));
+      if (queue.length !== state.queue.length) {
+        changed = true;
+      }
+      return changed ? { ...state, runs, queue } : state;
     },
   ),
 );

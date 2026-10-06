@@ -1,5 +1,5 @@
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 import { TranslocoService } from '@jsverse/transloco';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
@@ -22,6 +22,7 @@ import {
   pickInitialLevelName,
   SubscriptionManager,
 } from '@tratt/utilities';
+import { SessionStorageService } from 'ngx-webstorage';
 import {
   catchError,
   exhaustMap,
@@ -73,9 +74,89 @@ export function isWorkbenchRoute(url: string): boolean {
   return /^\/workbench(\/|\?|#|$)/.test(url);
 }
 
+function isLoadRoute(url: string): boolean {
+  return /^\/load(\/|\?|#|$)/.test(url);
+}
+
+/**
+ * Like `isWorkbenchRoute(router.url)`, but also correct while the app is
+ * still booting. On a page reload `router.url` is '/' until the initial
+ * navigation finishes — and the LOCAL boot chain (prepareTaskData ->
+ * loadAudio.fail, because a reload never has audio in memory) runs before
+ * that, so the old check redirected every reload of /workbench to the
+ * legacy /intern/transcr/reload-file page. Checks, in order: the URL of a
+ * navigation in progress, the settled router URL, and — before the first
+ * navigation has completed — the browser location (base-href agnostic).
+ */
+export function isOnWorkbench(
+  router: Router,
+  lastPagePath?: string | null,
+): boolean {
+  // While booting, APP_INITIALIZED_GUARD may park the app on /load; the page
+  // the user actually reloaded is then only known from last_page_path.
+  const onLoadPage =
+    isLoadRoute(router.url) ||
+    (typeof window !== 'undefined' &&
+      /\/load\/?$/.test(window.location.pathname));
+  if (onLoadPage && lastPagePath && isWorkbenchRoute(lastPagePath)) {
+    return true;
+  }
+  const navigation = router.getCurrentNavigation?.();
+  if (navigation) {
+    const target = navigation.finalUrl ?? navigation.extractedUrl;
+    if (target && isWorkbenchRoute(router.serializeUrl(target))) {
+      return true;
+    }
+  }
+  if (isWorkbenchRoute(router.url)) {
+    return true;
+  }
+  if (!router.navigated && typeof window !== 'undefined') {
+    return /\/workbench\/?$/.test(window.location.pathname);
+  }
+  return false;
+}
+
 @Injectable()
 export class AnnotationLoadEffects {
   subscrManager = new SubscriptionManager();
+  // Optional so existing TestBed setups that don't provide ngx-webstorage
+  // keep working; only consulted by isOnWorkbench() while booting.
+  private sessionStorage = inject(SessionStorageService, { optional: true });
+
+  /**
+   * True when the user is working in /workbench, in which case LOCAL-mode
+   * redirects to the legacy /intern/transcr pages must not happen. If the
+   * app is still parked on /load by APP_INITIALIZED_GUARD (page reload), it
+   * is sent back to /workbench here — nothing else would, and the user was
+   * left on a "Please wait…" screen.
+   */
+  private keepOnWorkbench(): boolean {
+    if (!isOnWorkbench(this.router, this.lastPagePath())) {
+      return false;
+    }
+    if (
+      !isWorkbenchRoute(this.router.url) &&
+      !this.router.getCurrentNavigation?.()
+    ) {
+      this.routingService
+        .navigate(
+          'back to workbench',
+          ['/workbench'],
+          AppInfo.queryParamsHandling,
+        )
+        .catch((error) => console.error(error));
+    }
+    return true;
+  }
+
+  private lastPagePath(): string | null {
+    try {
+      return this.sessionStorage?.retrieve('last_page_path') ?? null;
+    } catch {
+      return null;
+    }
+  }
 
   startNewAnnotation$ = createEffect(() =>
     this.actions$.pipe(
@@ -444,7 +525,7 @@ export class AnnotationLoadEffects {
         withLatestFrom(this.store),
         tap(([a, state]) => {
           if (state.application.mode === LoginMode.LOCAL) {
-            if (!isWorkbenchRoute(this.router.url)) {
+            if (!this.keepOnWorkbench()) {
               this.routingService
                 .navigate(
                   'reload audio local',
@@ -481,7 +562,7 @@ export class AnnotationLoadEffects {
         ofType(AnnotationActions.initTranscriptionService.success),
         withLatestFrom(this.store),
         tap(([action, state]) => {
-          if (!isWorkbenchRoute(this.router.url)) {
+          if (!this.keepOnWorkbench()) {
             this.routingService.navigate(
               'transcription initialized',
               ['/intern/transcr'],
@@ -944,7 +1025,7 @@ export class AnnotationLoadEffects {
       this.actions$.pipe(
         ofType(AnnotationActions.redirectToTranscription.do),
         tap((a) => {
-          if (!isWorkbenchRoute(this.router.url)) {
+          if (!this.keepOnWorkbench()) {
             this.routingService.navigate(
               'redirect to transcription loadOnlineInformationAfterIDBLoaded',
               ['/intern/transcr'],

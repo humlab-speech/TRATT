@@ -24,7 +24,11 @@
                  row from this table the instant it's bundled, so this table
                  only ever shows rows still mid-decode or failed — the
                  bundle list above now owns "the list of files." -->
-            <tratt-dropzone height="96px" [allowMultipleAudio]="true"></tratt-dropzone>
+            <tratt-dropzone
+              height="112px"
+              [allowMultipleAudio]="true"
+              placeholderKey="workbench.dropzone_placeholder"
+            ></tratt-dropzone>
           </div>
         </ng-template>
       </li>
@@ -53,14 +57,18 @@
       <h6 class="workbench__queue-title">
         {{ 'workbench.queue.options_title' | transloco }}
       </h6>
+      <!-- Choices are remembered per browser (persistKey), so a reload
+           doesn't switch auto-transcription off again. -->
       <tratt-auto-transcribe-options
         idPrefix="queue-"
+        persistKey="tratt.workbench.pipeline.transcribe"
         [audioLoaded]="true"
         [annotationAlreadyLoaded]="false"
         [compact]="true"
         (optionsChange)="onQueueOptionsChange($event)"
       ></tratt-auto-transcribe-options>
       <tratt-auto-translate-options
+        persistKey="tratt.workbench.pipeline.translate"
         [annotationAlreadyLoaded]="false"
         [transcribeWillRun]="queueOptions() !== null"
         [sourceLanguageHint]="queueOptions()?.language"
@@ -104,52 +112,120 @@
   </div>
   @if (sessionReady) {
     <div class="workbench__right">
-      @if (selectedBundleHeader; as header) {
-        <div class="workbench__editor-header">
-          <span class="workbench__editor-header-name">{{ header.name }}</span>
-          <span class="workbench__editor-header-meta">
-            {{ header.durationText }} · {{ header.sampleRateKhz }} kHz
-            {{
-              (header.channels === 1
-                ? 'workbench.editor_header.mono'
-                : 'workbench.editor_header.stereo'
-              ) | transloco
-            }}
-            · {{ header.sizeText }}
-          </span>
+      @if (hasAnyBundles()) {
+        @if (selectedBundleHeader; as header) {
+          <div class="workbench__editor-header">
+            <span class="workbench__editor-header-name">{{ header.name }}</span>
+            <span class="workbench__editor-header-meta">
+              {{ header.durationText }} · {{ header.sampleRateKhz }} kHz
+              {{
+                (header.channels === 1
+                  ? 'workbench.editor_header.mono'
+                  : 'workbench.editor_header.stereo'
+                ) | transloco
+              }}
+              · {{ header.sizeText }}
+            </span>
+            @if (useMode === 'local' && exportEnabled) {
+              <!-- Per-file actions live with the file they act on; exporting
+                   several files at once is "Export catalogue…" in the list.
+                   The single-file export modal needs the bundle's decoded
+                   audio (it throws in ngOnInit without it). -->
+              <div class="workbench__editor-header-actions">
+                @if (recordedFileService.recordedFile?.name === header.name) {
+                  <button
+                    (click)="recordedFileService.triggerExport()"
+                    class="btn btn-sm btn-outline-secondary"
+                    type="button"
+                  >
+                    <i class="bi bi-mic-fill me-1" aria-hidden="true"></i>
+                    {{ 'g.export recording' | transloco }}
+                  </button>
+                }
+                <button
+                  (click)="navbarServ.doclick('export')"
+                  class="btn btn-sm btn-primary"
+                  [disabled]="editorPlaceholder() !== 'none'"
+                  [attr.title]="
+                    editorPlaceholder() !== 'none'
+                      ? ('workbench.editor_header.export_needs_audio'
+                        | transloco)
+                      : null
+                  "
+                  type="button"
+                >
+                  <i class="bi bi-download me-1" aria-hidden="true"></i>
+                  {{ 'workbench.editor_header.export' | transloco }}
+                </button>
+              </div>
+            }
+          </div>
+        }
+        <div class="workbench__editor-tabs">
+          @for (entry of editorComponentsList; track entry.name) {
+            <button
+              type="button"
+              class="workbench__editor-tab"
+              [class.workbench__editor-tab--active]="
+                activeEditorName() === entry.name
+              "
+              [attr.aria-pressed]="activeEditorName() === entry.name"
+              (click)="changeEditor(entry.name)"
+            >
+              <i [class]="entry.icon" aria-hidden="true"></i>
+              {{ entry.translate | transloco }}
+            </button>
+          }
         </div>
+        <tratt-fastbar
+          (overviewbtnclicked)="openOverview()"
+          (shortcutbtnclicked)="openShortcutsModal()"
+          [buttonLabels]="{
+            shortcuts: 'g.shortcuts' | transloco,
+            overview: 'g.overview' | transloco,
+            help: 'g.help' | transloco,
+          }"
+        ></tratt-fastbar>
       }
-      <div class="workbench__editor-tabs">
-        @for (entry of editorComponentsList; track entry.name) {
-          <button
-            type="button"
-            class="workbench__editor-tab"
-            [class.workbench__editor-tab--active]="
-              activeEditorName() === entry.name
-            "
-            [attr.aria-pressed]="activeEditorName() === entry.name"
-            (click)="changeEditor(entry.name)"
-          >
-            <i [class]="entry.icon" aria-hidden="true"></i>
-            {{ entry.translate | transloco }}
-          </button>
+
+      <!-- The editor host stays in the DOM even with an empty list, so the
+           showEditor ViewChild never has to re-resolve when files arrive. -->
+      <div class="flex workbench__editor">
+        <ng-container trattLoadeditor #showEditor></ng-container>
+        @if (!hasAnyBundles()) {
+          <!-- Every file was removed: the session keeps running, but
+               there is nothing to edit until the next drop. -->
+          <div class="workbench__placeholder">
+            <div class="workbench__empty-card">
+              <i
+                class="bi bi-soundwave workbench__empty-icon"
+                aria-hidden="true"
+              ></i>
+              <h2 class="workbench__empty-title">
+                {{ 'workbench.empty.title' | transloco }}
+              </h2>
+              <p class="workbench__empty-text">
+                {{ 'workbench.empty.text' | transloco }}
+              </p>
+            </div>
+          </div>
+        } @else if (editorPlaceholder() !== 'none') {
+          <div class="workbench__placeholder" role="status">
+            @if (editorPlaceholder() === 'loading') {
+              <div
+                class="spinner-border spinner-border-sm"
+                aria-hidden="true"
+              ></div>
+              <span>{{ 'workbench.editor.loading_audio' | transloco }}</span>
+            } @else {
+              <i class="bi bi-paperclip fs-4" aria-hidden="true"></i>
+              <span>{{ 'workbench.editor.awaiting_media' | transloco }}</span>
+            }
+          </div>
         }
       </div>
-      <tratt-fastbar
-        (overviewbtnclicked)="openOverview()"
-        (shortcutbtnclicked)="openShortcutsModal()"
-        [buttonLabels]="{
-          shortcuts: 'g.shortcuts' | transloco,
-          overview: 'g.overview' | transloco,
-          help: 'g.help' | transloco,
-        }"
-      ></tratt-fastbar>
 
-      <div class="flex">
-        <ng-container trattLoadeditor #showEditor></ng-container>
-      </div>
-
-      @if (showCommentSection) {
+      @if (showCommentSection && hasAnyBundles()) {
         <div class="row">
           <textarea
             [ngModel]="annotationStoreService.comment"
@@ -165,131 +241,138 @@
           ></textarea>
         </div>
       }
-      <div class="row" id="bottom-navigation" role="group">
-        <div class="btn-group w-100">
-          @if (
-            selectedTheme === 'shortAudioFiles' &&
-            (useMode === 'online' || useMode === 'demo')
-          ) {
-            <button
-              (click)="abortTranscription()"
-              class="col-md-3 btn btn-secondary"
-              type="button"
-            >
-              <i class="bi bi-x-circle"></i>
-              <span>
-                {{ 'g.quit' | transloco }}
-              </span>
-            </button>
-            <button
-              (click)="sendTranscriptionForShortAudioFiles('bad')"
-              class="col-md-3 btn btn-danger"
-              type="button"
-            >
-              <i class="bi bi-star-fill"></i>
-            </button>
-            <button
-              (click)="sendTranscriptionForShortAudioFiles('middle')"
-              class="btn btn-raised btn-warning col-md-3 btn btn-warning"
-              type="button"
-              style="background-color: var(--tratt-accent-warning)"
-            >
-              <i class="bi bi-star-fill"></i>
-              <i class="bi bi-star-fill"></i>
-            </button>
-            <button
-              (click)="sendTranscriptionForShortAudioFiles('good')"
-              class="col-md-3 btn btn-primary"
-              type="button"
-            >
-              <i class="bi bi-star-fill"></i>
-              <i class="bi bi-star-fill"></i>
-              <i class="bi bi-star-fill"></i>
-            </button>
-          } @else {
+      <!-- LOCAL mode has no bottom bar on the workbench: "Quit" logged the
+           session out, and export is a per-file action in the header. -->
+      @if (useMode !== 'local') {
+        <div class="row" id="bottom-navigation" role="group">
+          <div class="btn-group w-100">
             @if (
-              useMode !== 'url' || routingService.staticQueryParams.bottomNav
+              selectedTheme === 'shortAudioFiles' &&
+              (useMode === 'online' || useMode === 'demo')
             ) {
               <button
                 (click)="abortTranscription()"
+                class="col-md-3 btn btn-secondary"
                 type="button"
-                class="col-md-6 btn btn-secondary"
               >
                 <i class="bi bi-x-circle"></i>
-                @if (!appStorage.easyMode) {
-                  <span class="d-none d-md-inline">
-                    {{ 'g.quit' | transloco }}
-                  </span>
-                }
+                <span>
+                  {{ 'g.quit' | transloco }}
+                </span>
               </button>
-            }
-            @if (
-              useMode === 'local' ||
-              (useMode === 'url' && routingService.staticQueryParams.bottomNav)
-            ) {
               <button
-                (click)="navbarServ.doclick('export')"
-                class="col-md-6 btn btn-primary"
+                (click)="sendTranscriptionForShortAudioFiles('bad')"
+                class="col-md-3 btn btn-danger"
                 type="button"
               >
-                <i class="bi bi-download"></i>
-                @if (!appStorage.easyMode) {
-                  <span class="d-none d-md-inline">
-                    {{ 'g.export data' | transloco }}</span
-                  >
-                }
+                <i class="bi bi-star-fill"></i>
               </button>
-            }
-            @if (
-              (useMode === 'local' ||
-                (useMode === 'url' &&
-                  routingService.staticQueryParams.bottomNav)) &&
-              recordedFileService.recordedFile
-            ) {
               <button
-                (click)="recordedFileService.triggerExport()"
-                class="col-md-6 btn btn-secondary"
+                (click)="sendTranscriptionForShortAudioFiles('middle')"
+                class="btn btn-raised btn-warning col-md-3 btn btn-warning"
+                type="button"
+                style="background-color: var(--tratt-accent-warning)"
+              >
+                <i class="bi bi-star-fill"></i>
+                <i class="bi bi-star-fill"></i>
+              </button>
+              <button
+                (click)="sendTranscriptionForShortAudioFiles('good')"
+                class="col-md-3 btn btn-primary"
                 type="button"
               >
-                <i class="bi bi-mic-fill"></i>
-                @if (!appStorage.easyMode) {
-                  <span class="d-none d-md-inline">
-                    {{ 'g.export recording' | transloco }}</span
-                  >
-                }
+                <i class="bi bi-star-fill"></i>
+                <i class="bi bi-star-fill"></i>
+                <i class="bi bi-star-fill"></i>
               </button>
-            }
-            @if (useMode === 'online' || useMode === 'demo') {
-              <button
-                (click)="onSendButtonClick()"
-                class="col-md-6 btn btn-primary"
-                type="button"
-              >
-                @if (!appStorage.easyMode) {
-                  <span class="d-none d-md-inline">
-                    {{ 'transcription.send' | transloco }}
-                  </span>
-                }
-                <i class="bi bi-send-fill"></i>
-              </button>
-            }
-            @if (useMode === 'url') {
+            } @else {
               @if (
-                !routingService.staticQueryParams.readonly &&
-                routingService.staticQueryParams.embedded
+                useMode !== 'url' || routingService.staticQueryParams.bottomNav
               ) {
                 <button
-                  (click)="onSaveTranscriptionButtonClicked()"
-                  class="btn btn-primary"
+                  (click)="abortTranscription()"
                   type="button"
+                  class="col-md-6 btn btn-secondary"
                 >
-                  <i class="bi bi-floppy-fill"></i>
-                  <span> {{ 'g.save' | transloco }} </span>
+                  <i class="bi bi-x-circle"></i>
+                  @if (!appStorage.easyMode) {
+                    <span class="d-none d-md-inline">
+                      {{ 'g.quit' | transloco }}
+                    </span>
+                  }
                 </button>
               }
+              @if (
+                useMode === 'url' && routingService.staticQueryParams.bottomNav
+              ) {
+                <button
+                  (click)="navbarServ.doclick('export')"
+                  class="btn btn-primary col-md-6"
+                  [disabled]="editorPlaceholder() !== 'none'"
+                  type="button"
+                >
+                  <i class="bi bi-download"></i>
+                  @if (!appStorage.easyMode) {
+                    <span class="d-none d-md-inline">
+                      {{ 'g.export data' | transloco }}</span
+                    >
+                  }
+                </button>
+              }
+              @if (useMode === 'online' || useMode === 'demo') {
+                <button
+                  (click)="onSendButtonClick()"
+                  class="col-md-6 btn btn-primary"
+                  type="button"
+                >
+                  @if (!appStorage.easyMode) {
+                    <span class="d-none d-md-inline">
+                      {{ 'transcription.send' | transloco }}
+                    </span>
+                  }
+                  <i class="bi bi-send-fill"></i>
+                </button>
+              }
+              @if (useMode === 'url') {
+                @if (
+                  !routingService.staticQueryParams.readonly &&
+                  routingService.staticQueryParams.embedded
+                ) {
+                  <button
+                    (click)="onSaveTranscriptionButtonClicked()"
+                    class="btn btn-primary"
+                    type="button"
+                  >
+                    <i class="bi bi-floppy-fill"></i>
+                    <span> {{ 'g.save' | transloco }} </span>
+                  </button>
+                }
+              }
             }
-          }
+          </div>
         </div>
+      }
+    </div>
+  } @else {
+    <!-- No session yet: say what to do instead of an empty pane. -->
+    <div class="workbench__right workbench__empty">
+      <div class="workbench__empty-card">
+        <i class="bi bi-soundwave workbench__empty-icon" aria-hidden="true"></i>
+        @if (hasAnyBundles()) {
+          <h2 class="workbench__empty-title">
+            {{ 'workbench.empty.restored_title' | transloco }}
+          </h2>
+          <p class="workbench__empty-text">
+            {{ 'workbench.empty.restored_text' | transloco }}
+          </p>
+        } @else {
+          <h2 class="workbench__empty-title">
+            {{ 'workbench.empty.title' | transloco }}
+          </h2>
+          <p class="workbench__empty-text">
+            {{ 'workbench.empty.text' | transloco }}
+          </p>
+        }
       </div>
     </div>
   }

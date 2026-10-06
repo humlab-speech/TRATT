@@ -30,6 +30,7 @@ import { CatalogueExportModalComponent } from '../../modals/catalogue-export-mod
 import { TrattModalService } from '../../modals/tratt-modal.service';
 import { SessionFile } from '../../obj/SessionFile';
 import { AudioService } from '../../shared/service/audio.service';
+import { PendingEditsService } from '../../shared/service/pending-edits.service';
 import { PipelineQueueService } from '../../shared/service/pipeline-queue.service';
 import { AuthenticationActions } from '../../store/authentication';
 import { LoginMode, RootState } from '../../store/index';
@@ -47,9 +48,15 @@ describe('BundleListComponent', () => {
   let audioService: {
     registerAudioManager: jest.Mock;
     hasResident: jest.Mock;
+    canRestore: jest.Mock;
+    forget: jest.Mock;
   };
   let modalService: { openModal: jest.Mock<any> };
-  let pipelineQueueService: { retry: jest.Mock };
+  let pipelineQueueService: {
+    retry: jest.Mock;
+    cancelActive: jest.Mock;
+    cancelIfActive: jest.Mock;
+  };
 
   const matchingSessionFile = new SessionFile(
     'a.wav',
@@ -113,9 +120,16 @@ describe('BundleListComponent', () => {
     audioService = {
       registerAudioManager: jest.fn(),
       hasResident: jest.fn().mockReturnValue(false),
+      // resident OR re-decodable; these fixtures model residency only.
+      canRestore: jest.fn((id: unknown) => audioService.hasResident(id)),
+      forget: jest.fn(),
     };
     modalService = { openModal: jest.fn() };
-    pipelineQueueService = { retry: jest.fn() };
+    pipelineQueueService = {
+      retry: jest.fn(),
+      cancelActive: jest.fn(),
+      cancelIfActive: jest.fn(),
+    };
 
     await TestBed.configureTestingModule({
       imports: [BundleListComponent],
@@ -157,13 +171,17 @@ describe('BundleListComponent', () => {
   });
 
   it('dispatches selectBundle with the clicked row bundleId when a non-selected row is clicked', () => {
+    // bundle-a (awaiting media, so no click-to-select button) is selected;
+    // bundle-b's button is the non-selected row.
+    store.setState({
+      ...initialState,
+      localMode: { ...initialState.localMode, selectedBundleId: 'bundle-a' },
+    } as unknown as RootState);
+    fixture.detectChanges();
     const dispatchSpy = jest.spyOn(store, 'dispatch');
     const buttons = fixture.debugElement.queryAll(
       By.css('.bundle-list__item-btn'),
     );
-    // bundle-b is the non-awaiting-media, non-selected... wait bundle-b IS
-    // selected; bundle-a is awaiting media so it has no click-to-select
-    // button. Use bundle-b's button, deselecting is a no-op-safe dispatch.
     buttons[0].triggerEventHandler('click', null);
 
     expect(dispatchSpy).toHaveBeenCalledWith(
@@ -172,6 +190,36 @@ describe('BundleListComponent', () => {
         bundleId: 'bundle-b',
       }),
     );
+  });
+
+  it('commits pending editor typing before switching bundles', () => {
+    store.setState({
+      ...initialState,
+      localMode: { ...initialState.localMode, selectedBundleId: 'bundle-a' },
+    } as unknown as RootState);
+    fixture.detectChanges();
+    const order: string[] = [];
+    const pendingEdits = TestBed.inject(PendingEditsService);
+    const unregister = pendingEdits.register(() => order.push('flush'));
+    jest
+      .spyOn(store, 'dispatch')
+      .mockImplementation(((action: { type: string }) =>
+        order.push(action.type)) as any);
+
+    fixture.debugElement
+      .queryAll(By.css('.bundle-list__item-btn'))[0]
+      .triggerEventHandler('click', null);
+
+    expect(order).toEqual(['flush', LoginModeActions.selectBundle.type]);
+    unregister();
+  });
+
+  it('treats a click on the already-selected row as a no-op', () => {
+    const dispatchSpy = jest.spyOn(store, 'dispatch');
+    fixture.debugElement
+      .queryAll(By.css('.bundle-list__item-btn'))[0]
+      .triggerEventHandler('click', null);
+    expect(dispatchSpy).not.toHaveBeenCalled();
   });
 
   it('renders each click-to-select row as a focusable, keyboard-activatable button', () => {
@@ -358,11 +406,13 @@ describe('BundleListComponent', () => {
         target: { files: [file], value: '' },
       } as unknown as Event;
 
-      modalService.openModal.mockRejectedValue(new Error('backdrop dismissed'));
+      // ngb rejects with ModalDismissReasons.BACKDROP_CLICK (0).
+      modalService.openModal.mockRejectedValue(0);
 
+      // Treated like "Abort" — not an unhandled rejection ("ERROR 0").
       await expect(
         fixture.componentInstance.onReattachFileSelected('bundle-a', event),
-      ).rejects.toThrow('backdrop dismissed');
+      ).resolves.toBeUndefined();
 
       expect(manager.destroy).toHaveBeenCalled();
       expect(audioService.registerAudioManager).not.toHaveBeenCalled();
@@ -484,8 +534,52 @@ describe('BundleListComponent', () => {
 
       const labels = fixture.debugElement
         .queryAll(By.css('.bundle-list__status'))
-        .map((el) => el.nativeElement.textContent.trim());
-      expect(labels).toContain('workbench.bundle_list.status.running');
+        .map((el) => el.nativeElement.textContent.replace(/\s+/g, ' ').trim());
+      // A running row names its stage and shows its progress.
+      expect(labels).toContain('workbench.bundle_list.stage.asr 50%');
+    });
+
+    it('labels a model download as such, not as transcription', () => {
+      store.setState({
+        ...initialState,
+        pipelineQueue: {
+          queue: [],
+          activeId: 'bundle-b',
+          mode: 'running',
+          runs: {
+            'bundle-b': {
+              state: 'running',
+              stage: 'asr',
+              progress: 0.25,
+              downloading: true,
+            },
+          },
+        },
+      } as unknown as RootState);
+      fixture.detectChanges();
+
+      const labels = fixture.debugElement
+        .queryAll(By.css('.bundle-list__status'))
+        .map((el) => el.nativeElement.textContent.replace(/\s+/g, ' ').trim());
+      expect(labels).toContain('workbench.bundle_list.stage.download 25%');
+    });
+
+    it('offers a stop button on the running row that cancels the active run', () => {
+      store.setState({
+        ...initialState,
+        pipelineQueue: {
+          queue: [],
+          activeId: 'bundle-b',
+          mode: 'running',
+          runs: { 'bundle-b': { state: 'running', stage: 'asr' } },
+        },
+      } as unknown as RootState);
+      fixture.detectChanges();
+
+      const stop = fixture.debugElement.query(By.css('.bundle-list__cancel'));
+      expect(stop).toBeTruthy();
+      stop.nativeElement.click();
+      expect(pipelineQueueService.cancelActive).toHaveBeenCalled();
     });
 
     it('renders no status element for a bundle with no run entry', () => {
@@ -633,6 +727,20 @@ describe('BundleListComponent', () => {
           bundleIds: [bundleA.bundleId],
         }),
       );
+      // A run belonging to a removed bundle is stopped first, and the
+      // bundle's audio (resident PCM + retained source File) is released.
+      expect(pipelineQueueService.cancelIfActive).toHaveBeenCalledWith([
+        bundleA.bundleId,
+      ]);
+      expect(audioService.forget).toHaveBeenCalledWith(bundleA.bundleId);
+    });
+
+    it('disables remove while nothing is checked', () => {
+      fixture.detectChanges();
+      expect(
+        fixture.debugElement.query(By.css('.bundle-list__remove')).nativeElement
+          .disabled,
+      ).toBe(true);
     });
 
     it('remove is a no-op when nothing is checked', () => {

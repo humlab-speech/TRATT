@@ -1,3 +1,4 @@
+import { DatePipe } from '@angular/common';
 import { Component } from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { NgbActiveModal, NgbModalOptions } from '@ng-bootstrap/ng-bootstrap';
@@ -17,7 +18,7 @@ export enum BundleReattachMismatchAnswer {
   selector: 'tratt-bundle-reattach-mismatch-modal',
   templateUrl: './bundle-reattach-mismatch-modal.component.html',
   styleUrls: ['./bundle-reattach-mismatch-modal.component.scss'],
-  imports: [TranslocoPipe],
+  imports: [TranslocoPipe, DatePipe],
 })
 export class BundleReattachMismatchModalComponent extends TrattModal {
   public static options: NgbModalOptions = {
@@ -33,6 +34,21 @@ export class BundleReattachMismatchModalComponent extends TrattModal {
   /** The file the user just picked, for display. */
   actualName = '';
   actualSize = 0;
+
+  /** Modification times, shown when they are what differs. */
+  expectedModified?: Date;
+  actualModified?: Date;
+
+  /** Name and size match: say so, otherwise the two lines look identical. */
+  get onlyModifiedDiffers(): boolean {
+    return (
+      this.expectedName === this.actualName &&
+      this.expectedSize === this.actualSize &&
+      this.expectedModified !== undefined &&
+      this.actualModified !== undefined &&
+      this.expectedModified.getTime() !== this.actualModified.getTime()
+    );
+  }
 
   constructor(protected override activeModal: NgbActiveModal) {
     super('bundleReattachMismatch', activeModal);

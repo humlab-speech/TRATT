@@ -36,6 +36,7 @@ export class CatalogueExportModalComponent implements OnDestroy {
   progress = signal<{ completed: number; total: number } | null>(null);
   warnings = signal<string[]>([]);
   downloadUrl = signal<string | null>(null);
+  errorMessage = signal<string | null>(null);
   // Final whole-branch review fix: distinguishes "final, archive-bearing
   // emission received" from "still running" so the template can show the
   // unambiguous workbench.catalogue_export.done message instead of leaving
@@ -73,6 +74,7 @@ export class CatalogueExportModalComponent implements OnDestroy {
     }
     const names = [...this.checkedConverters()];
     this.warnings.set([]);
+    this.errorMessage.set(null);
     this.exportDone.set(false);
     this.isExporting.set(true);
     this.exportSubscription = this.exportService
@@ -103,8 +105,14 @@ export class CatalogueExportModalComponent implements OnDestroy {
             a.click();
           }
         },
-        error: () => {
+        error: (error: unknown) => {
+          // Previously swallowed: the modal then sat on "Exporting 1 of N…"
+          // forever with no hint that anything had gone wrong.
           this.isExporting.set(false);
+          this.progress.set(null);
+          this.errorMessage.set(
+            error instanceof Error ? error.message : String(error),
+          );
         },
         complete: () => {
           this.isExporting.set(false);

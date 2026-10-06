@@ -18,6 +18,10 @@ import {
   TranslationAvailability,
   TranslationOptions,
 } from '../../shared/service/local-translation.service';
+import {
+  loadPipelineSettings,
+  savePipelineSettings,
+} from './pipeline-settings-storage';
 
 export const HYMT_LANGUAGES: readonly string[] = [
   'en',
@@ -52,6 +56,12 @@ export const HYMT_LANGUAGES: readonly string[] = [
   'id',
   'th',
 ];
+
+interface SavedTranslateSettings {
+  enabled: boolean;
+  targetLanguage: string;
+  skipBrowserCache: boolean;
+}
 
 @Component({
   selector: 'tratt-auto-translate-options',
@@ -185,7 +195,13 @@ export class AutoTranslateOptionsComponent implements OnInit {
    * unchanged.
    */
   readonly compact = input<boolean>(false);
+  /** As AutoTranscribeOptionsComponent.persistKey: remember the choices. */
+  readonly persistKey = input<string | undefined>(undefined);
   readonly optionsChange = output<TranslationOptions | null>();
+
+  /** Target the user picked last; kept when the source language changes. */
+  private preferredTarget?: string;
+  private settingsRestored = false;
 
   readonly enabled = signal(false);
 
@@ -251,6 +267,24 @@ export class AutoTranslateOptionsComponent implements OnInit {
   }
 
   async ngOnInit(): Promise<void> {
+    const saved = loadPipelineSettings<SavedTranslateSettings>(
+      this.persistKey(),
+    );
+    if (saved) {
+      if (
+        saved.targetLanguage &&
+        HYMT_LANGUAGES.includes(saved.targetLanguage)
+      ) {
+        this.preferredTarget = saved.targetLanguage;
+      }
+      if (typeof saved.skipBrowserCache === 'boolean') {
+        this.skipBrowserCache.set(saved.skipBrowserCache);
+      }
+      if (typeof saved.enabled === 'boolean') {
+        this.enabled.set(saved.enabled);
+      }
+    }
+    this.settingsRestored = true;
     this.applySourceHint(
       this.sourceLanguageHint() ?? this.transloco.getActiveLang(),
     );
@@ -305,11 +339,17 @@ export class AutoTranslateOptionsComponent implements OnInit {
   private applySourceHint(hint: string): void {
     const code = hint.split('-')[0].toLowerCase();
     this.sourceLanguage = HYMT_LANGUAGES.includes(code) ? code : 'en';
-    this.targetLanguage = this.sourceLanguage === 'en' ? 'de' : 'en';
+    this.targetLanguage =
+      this.preferredTarget && this.preferredTarget !== this.sourceLanguage
+        ? this.preferredTarget
+        : this.sourceLanguage === 'en'
+          ? 'de'
+          : 'en';
     void this.refreshTargetLanguages();
   }
 
   onEnabledChange(): void {
+    this.persist();
     this.userOverrodeSource = false;
     void this.refreshTargetLanguages();
   }
@@ -320,6 +360,8 @@ export class AutoTranslateOptionsComponent implements OnInit {
   }
 
   onTargetChange(): void {
+    this.preferredTarget = this.targetLanguage;
+    this.persist();
     void this.refreshAvailability();
   }
 
@@ -353,7 +395,18 @@ export class AutoTranslateOptionsComponent implements OnInit {
     this.emitChange();
   }
 
+  private persist(): void {
+    if (this.settingsRestored) {
+      savePipelineSettings<SavedTranslateSettings>(this.persistKey(), {
+        enabled: this.enabled(),
+        targetLanguage: this.preferredTarget ?? this.targetLanguage,
+        skipBrowserCache: this.skipBrowserCache(),
+      });
+    }
+  }
+
   emitChange(): void {
+    this.persist();
     if (!this.visible() || !this.enabled()) {
       this.optionsChange.emit(null);
       return;

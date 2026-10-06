@@ -121,6 +121,11 @@ export class ExportFilesModalComponent extends TrattModal implements OnInit {
 
   converters: Converter[] = [];
 
+  /** The exported recording's file name, for the dialog title. */
+  get audioFileName(): string | undefined {
+    return this.audio.current?.resource?.info?.fullname;
+  }
+
   constructor(
     private sanitizer: DomSanitizer,
     private audio: AudioService,

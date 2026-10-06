@@ -34,6 +34,8 @@ export interface BundleRunStatus {
   stage?: BundleRunStage;
   /** 0-1 within the current stage. */
   progress?: number;
+  /** True while the current stage is downloading its model. */
+  downloading?: boolean;
   error?: BundleRunError;
 }
 

@@ -52,6 +52,12 @@
     }
   }
 
+  @if (errorMessage(); as message) {
+    <div class="alert alert-danger catalogue-export__error" role="alert">
+      {{ 'workbench.catalogue_export.failed' | transloco: { message } }}
+    </div>
+  }
+
   @if (warnings().length > 0) {
     <div class="catalogue-export__warnings">
       <strong>{{ 'workbench.catalogue_export.warnings_title' | transloco }}</strong>

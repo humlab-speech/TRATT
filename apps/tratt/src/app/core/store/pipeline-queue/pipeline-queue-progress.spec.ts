@@ -15,7 +15,11 @@ describe('mapPipelineActionToQueueProgress', () => {
       }),
       0,
     );
-    expect(result.update).toEqual({ stage: 'asr', progress: 0.25 });
+    expect(result.update).toEqual({
+      stage: 'asr',
+      progress: 0.25,
+      downloading: true,
+    });
     expect(result.audioDurationS).toBe(0);
   });
 
@@ -66,7 +70,7 @@ describe('mapPipelineActionToQueueProgress', () => {
         }),
         0,
       ).update,
-    ).toEqual({ stage: 'diarization', progress: 0.25 });
+    ).toEqual({ stage: 'diarization', progress: 0.25, downloading: true });
   });
 
   it('maps translation start and segment progress to the translation stage', () => {
@@ -98,7 +102,7 @@ describe('mapPipelineActionToQueueProgress', () => {
         }),
         0,
       ).update,
-    ).toEqual({ stage: 'asr' });
+    ).toEqual({ stage: 'asr', downloading: true });
   });
 
   it('returns no update for actions that carry no stage progress', () => {

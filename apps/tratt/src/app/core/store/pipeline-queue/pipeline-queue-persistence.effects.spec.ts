@@ -19,7 +19,10 @@ describe('PipelineQueuePersistenceEffects', () => {
     saveModeOptions: jest.Mock<any>;
     saveAnnotation: jest.Mock<any>;
   };
-  let audioService: { getManager: jest.Mock<any> };
+  let audioService: {
+    getManager: jest.Mock<any>;
+    getMediaInfo: jest.Mock<any>;
+  };
   let effects: PipelineQueuePersistenceEffects;
 
   const bundleA = {
@@ -62,6 +65,7 @@ describe('PipelineQueuePersistenceEffects', () => {
           info: { fullname: 'a.wav', sampleRate: 16000, duration: 1 },
         },
       })),
+      getMediaInfo: jest.fn(() => undefined),
     } as any;
 
     TestBed.configureTestingModule({
@@ -211,5 +215,29 @@ describe('PipelineQueuePersistenceEffects', () => {
     );
 
     expect(idbService.saveAnnotation).not.toHaveBeenCalled();
+  });
+
+  it('still persists a result for a bundle whose audio was evicted, from its registration-time media info', () => {
+    effects.saveBundleTranscript$.subscribe();
+    audioService.getManager.mockReturnValue(undefined);
+    audioService.getMediaInfo.mockReturnValue({
+      fullname: 'a.wav',
+      sampleRate: 16000,
+      duration: 1,
+      channels: 1,
+      size: 1,
+    });
+    const serialize = jest.fn(() => ({}));
+
+    actions$.next(
+      LoginModeActions.setBundleTranscript({
+        mode: LoginMode.LOCAL,
+        bundleId: 'a',
+        transcript: { serialize } as any,
+      }),
+    );
+
+    expect(serialize).toHaveBeenCalled();
+    expect(idbService.saveAnnotation).toHaveBeenCalledTimes(1);
   });
 });

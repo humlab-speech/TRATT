@@ -210,23 +210,30 @@ export class AnnotationStoreService {
   textInput$: Observable<TaskInputOutputDto | undefined>;
   transcriptString$: Observable<string>;
 
-  // Value properties for backward compatibility with components
+  // Value properties for backward compatibility with components.
+  //
+  // Read straight from the store signals rather than from the copies the
+  // effects below keep: those copies only catch up on the next effect flush,
+  // so code that dispatched and then read in the same tick — e.g. the
+  // workbench seeding a new bundle's first level and then mounting an editor
+  // — got the previous value (an editor mounted on a stale, level-less
+  // transcript). Reading the signal is synchronous and never stale.
   get transcript(): TrattAnnotation<TrattAnnotationSegment> | undefined {
-    return this._transcript;
+    return this.transcriptSignal();
   }
 
   get currentLevel():
     | TrattAnnotationAnyLevel<TrattAnnotationSegment>
     | undefined {
-    return this._currentLevel;
+    return this.currentLevelSignal();
   }
 
   get currentLevelIndex(): number {
-    return this._currentLevelIndex;
+    return this.currentLevelIndexSignal() ?? 0;
   }
 
   get task(): TaskDto | undefined {
-    return this._task;
+    return this.taskSignal();
   }
 
   get guidelines(): TrattGuidelines | undefined {
@@ -234,7 +241,7 @@ export class AnnotationStoreService {
   }
 
   get guidelinesValue(): TrattGuidelines | undefined {
-    return this._guidelines;
+    return this.guidelinesSignal()?.selected?.json;
   }
 
   get feedback(): FeedbackAssessment {
@@ -512,7 +519,7 @@ export class AnnotationStoreService {
 
   public validateAll() {
     const result = this.textProcessing.validateAll(
-      this._transcript,
+      this.transcript,
       this.guidelinesValue,
     );
     this._validationArray = result.validationArray;
@@ -547,7 +554,7 @@ export class AnnotationStoreService {
 
   public analyse() {
     this._statistics = this.textProcessing.analyse(
-      this._currentLevel,
+      this.currentLevel,
       this.breakMarker,
     );
   }

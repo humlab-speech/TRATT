@@ -109,6 +109,34 @@ describe('TrattAnnotation.serialize() padding of the final segment', () => {
     expect(padding.labels[0].value).toBe('');
   });
 
+  // Regression: padding used `this.idCounters.item++`, mutating the
+  // annotation. Transcripts held in the NgRx store are deep-frozen in dev
+  // builds, so serializing one that needed padding threw "Cannot assign to
+  // read only property 'item'" — breaking IDB saves and catalogue export.
+  it('pads without mutating the annotation (works on a frozen instance)', () => {
+    const annotation = makeAnnotation();
+    const segment = new TrattAnnotationSegment(
+      1,
+      new SampleUnit(1000, 48000),
+      [new OLabel('tier', 'hello')],
+    );
+    annotation.addLevel(annotation.createSegmentLevel('tier', [segment]));
+    annotation.updateIDCounters();
+    const counterBefore = annotation.idCounters.item;
+    Object.freeze(annotation.idCounters);
+
+    const json = annotation.serialize(
+      'audio.wav',
+      48000,
+      new SampleUnit(2000, 48000),
+    );
+
+    const items = (json.levels[0] as ISegmentLevel).items;
+    expect(items).toHaveLength(2);
+    expect(items[1].id).toBe(counterBefore);
+    expect(annotation.idCounters.item).toBe(counterBefore);
+  });
+
   it('does not pad when the last item already reaches lastSegmentTime', () => {
     const annotation = makeAnnotation();
     const segment = new TrattAnnotationSegment(

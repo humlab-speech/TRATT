@@ -495,6 +495,9 @@ export class LinearEditorComponent
     this.signalDisplayTop.settings.justifySignalHeight = true;
     this.signalDisplayTop.settings.roundValues = false;
     this.signalDisplayTop.settings.showTimePerLine = true;
+    // Show each segment's text under the signal, as the 2D editor does;
+    // without it a transcribed file looked empty in this editor.
+    this.signalDisplayTop.settings.showTranscripts = true;
     this.signalDisplayTop.settings.margin.top = 5;
 
     this.magnifierSettings = new AudioviewerConfig();
@@ -513,6 +516,7 @@ export class LinearEditorComponent
     this.magnifierSettings.roundValues = false;
     this.magnifierSettings.boundaries.enabled = true;
     this.magnifierSettings.showTimePerLine = true;
+    this.magnifierSettings.showTranscripts = true;
     this.magnifierSettings.margin.top = 5;
 
     // set settings for mini magnifier
@@ -552,14 +556,19 @@ export class LinearEditorComponent
 
   override ngOnDestroy() {
     super.ngOnDestroy();
-    this.audioManager.stopPlayback().catch(() => {
+    // `?.`: a host can destroy an editor before its ngOnInit ran (the
+    // workbench remounting twice within one change detection) — throwing
+    // here would abort the host's remount and leave no editor at all.
+    this.audioManager?.stopPlayback().catch(() => {
       console.error(`could not stop audio on editor switched`);
     });
     this.shortcutService.unregisterShortcutGroup('signaldisplay_top_audio');
     this.shortcutService.unregisterShortcutGroup('signaldisplay_top');
     this.shortcutService.unregisterShortcutGroup('signaldisplay_down_audio');
     this.shortcutService.unregisterShortcutGroup('signaldisplay_down');
-    this.shortcutService.unregisterShortcutGroup(this.miniMagnifierShortcuts.name);
+    this.shortcutService.unregisterShortcutGroup(
+      this.miniMagnifierShortcuts.name,
+    );
   }
 
   onButtonClick(event: { type: string; timestamp: number }) {
@@ -1095,11 +1104,17 @@ export class LinearEditorComponent
         this.selectedIndex <
           this.annotationStoreService.currentLevel.items.length
       ) {
-        const segment = this.annotationStoreService.currentLevel.items[
-          this.selectedIndex
-        ].clone(
-          this.annotationStoreService.currentLevel.items[this.selectedIndex].id,
-        );
+        const current =
+          this.annotationStoreService.currentLevel.items[this.selectedIndex];
+        // Flushes (switching files or editors) call this too; an untouched
+        // segment must not become a store write and an undo step.
+        if (
+          (current.getFirstLabelWithoutName('Speaker')?.value ?? '') ===
+          this.editor.rawText
+        ) {
+          return;
+        }
+        const segment = current.clone(current.id);
         segment.changeFirstLabelWithoutName('Speaker', this.editor.rawText);
 
         this.annotationStoreService.changeCurrentItemById(
@@ -1122,9 +1137,7 @@ export class LinearEditorComponent
     // this.keyMap.shortcutsManager.enableShortcutGroup(keyGroup);
   }
 
-  onEntriesChange(
-    annotation: TrattAnnotation<TrattAnnotationSegment>,
-  ) {
+  onEntriesChange(annotation: TrattAnnotation<TrattAnnotationSegment>) {
     this.annotationStoreService.overwriteTranscript(annotation);
   }
 

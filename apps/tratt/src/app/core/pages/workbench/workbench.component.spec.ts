@@ -112,11 +112,17 @@ import { By } from '@angular/platform-browser';
 import { TranslocoService } from '@jsverse/transloco';
 import { Store } from '@ngrx/store';
 import { MockStore, provideMockStore } from '@ngrx/store/testing';
+import {
+  TrattAnnotation,
+  TrattAnnotationSegmentLevel,
+} from '@tratt/annotation';
+import { SampleUnit } from '@tratt/media';
 import { randomUUID } from 'node:crypto';
 import { BehaviorSubject, of } from 'rxjs';
 import { editorComponents } from '../../../editors/components';
 import { NavbarService } from '../../component/navbar/navbar.service';
 import { TrattModalService } from '../../modals/tratt-modal.service';
+import { SessionFile } from '../../obj/SessionFile';
 import { SettingsService, UserInteractionsService } from '../../shared/service';
 import { AppStorageService } from '../../shared/service/appstorage.service';
 import { AudioService } from '../../shared/service/audio.service';
@@ -126,14 +132,21 @@ import {
   ResidentMemoryEstimate,
   StorageCapacity,
 } from '../../shared/service/capacity.service';
+import { PendingEditsService } from '../../shared/service/pending-edits.service';
 import { PipelineQueueService } from '../../shared/service/pipeline-queue.service';
 import { RecordedFileService } from '../../shared/service/recorded-file.service';
 import { RoutingService } from '../../shared/service/routing.service';
-import { LoadingStatus } from '../../store';
+import { LoadingStatus, LoginMode } from '../../store';
 import { ApplicationStoreService } from '../../store/application/application-store.service';
 import { AuthenticationStoreService } from '../../store/authentication/authentication-store.service';
+import { AuthenticationActions } from '../../store/authentication/authentication.actions';
+import { AnnotationActions } from '../../store/login-mode/annotation/annotation.actions';
 import { initialState as annotationInitialState } from '../../store/login-mode/annotation/annotation.reducer';
-import { selectAllBundleSummaries } from '../../store/login-mode/annotation/annotation.selectors';
+import {
+  selectAllBundleSummaries,
+  selectLocalMode,
+  selectSelectedBundleId,
+} from '../../store/login-mode/annotation/annotation.selectors';
 import { AnnotationStoreService } from '../../store/login-mode/annotation/annotation.store.service';
 import {
   DEFAULT_BUNDLE_ID,
@@ -177,18 +190,30 @@ describe('WorkbenchComponent', () => {
   let audioService: {
     registerAudioManager: jest.Mock;
     hasResident: jest.Mock;
+    canRestore: jest.Mock;
+    getManager: jest.Mock;
+    getMediaInfo: jest.Mock;
     current: any;
   };
   let authStoreService: { loginLocal: jest.Mock };
   let storeDispatch: jest.Mock;
   let loading$: BehaviorSubject<{ status: LoadingStatus }>;
   let bundleSummaries: any[];
+  // Drives the selection -> editor sync effect (a real signal, like the
+  // store's selectSignal()).
+  let selectedBundleId: WritableSignal<string>;
+  // selectLocalMode, for the blank-level seeding before an editor mounts.
+  // Plain assignment for one-off reads; the signal for tests that need the
+  // component's computed()/effect() reads to react to a change.
+  let localModeState: any;
+  let localModeSig: WritableSignal<any>;
   // Task 7: the queue's own store slice, read through the same
   // selector-routed Store stub as bundleSummaries below.
   let queueMode: 'idle' | 'running' | 'pausing';
   let runStatuses: Record<string, { state: string }>;
   let pipelineQueueService: {
     setTranscribeOptions: jest.Mock;
+    setTranslateOptions: jest.Mock;
     enqueue: jest.Mock;
     stop: jest.Mock;
     retry: jest.Mock;
@@ -209,7 +234,16 @@ describe('WorkbenchComponent', () => {
     audioService = {
       registerAudioManager: jest.fn(),
       hasResident: jest.fn().mockReturnValue(false),
-      current: undefined,
+      // canRestore() = resident OR re-decodable; follows hasResident here.
+      canRestore: jest.fn((id: unknown) => audioService.hasResident(id)),
+      // The selection->editor sync effect reads the selected bundle's
+      // manager; mirror `current` so the two never disagree.
+      getManager: jest.fn(() => audioService.current),
+      getMediaInfo: jest.fn(() => undefined),
+      // Editors can only mount for a selection with resident audio (they
+      // dereference AudioService.current in ngOnInit), so the default is a
+      // resident stand-in; tests about the no-audio case set undefined.
+      current: { fakeResidentManager: true },
     };
     authStoreService = { loginLocal: jest.fn() };
     loading$ = new BehaviorSubject<{ status: LoadingStatus }>({
@@ -218,10 +252,14 @@ describe('WorkbenchComponent', () => {
     // No bundles by default: matches a clean/logged-out profile where
     // nothing has been restored from IndexedDB and no session has started.
     bundleSummaries = [];
+    selectedBundleId = signal<string>(DEFAULT_BUNDLE_ID);
+    localModeState = undefined;
+    localModeSig = signal<any>(undefined);
     queueMode = 'idle';
     runStatuses = {};
     pipelineQueueService = {
       setTranscribeOptions: jest.fn(),
+      setTranslateOptions: jest.fn(),
       enqueue: jest.fn(),
       stop: jest.fn(),
       retry: jest.fn(),
@@ -277,6 +315,12 @@ describe('WorkbenchComponent', () => {
               }
               if (selector === selectAllRunStatuses) {
                 return () => runStatuses;
+              }
+              if (selector === selectSelectedBundleId) {
+                return selectedBundleId;
+              }
+              if (selector === selectLocalMode) {
+                return () => localModeSig() ?? localModeState;
               }
               return () => undefined;
             },
@@ -381,6 +425,75 @@ describe('WorkbenchComponent', () => {
 
     expect(component.showEditor!.viewContainerRef.clear).toHaveBeenCalled();
     expect(createComponentSpy).toHaveBeenCalled();
+  });
+
+  // With auto-transcribe off, only the bootstrap bundle got loadSegments()'s
+  // seed level; every later file opened with nothing to type into.
+  describe('blank level seeding before an editor mounts', () => {
+    const duration = new SampleUnit(48000 * 3, 48000);
+    let order: string[];
+    let createSpy: jest.Mock;
+
+    beforeEach(() => {
+      order = [];
+      audioService.current = { resource: { info: { duration } } };
+      storeDispatch.mockImplementation((action: any) => {
+        order.push(action.type);
+      });
+      createSpy = jest.fn(() => {
+        order.push('createComponent');
+      });
+      component.showEditor = {
+        viewContainerRef: { clear: jest.fn(), createComponent: createSpy },
+      } as any;
+    });
+
+    const overwriteCalls = () =>
+      storeDispatch.mock.calls
+        .map(([action]) => action as any)
+        .filter(
+          (action) =>
+            action.type === AnnotationActions.overwriteTranscript.do.type,
+        );
+
+    it('seeds one empty full-length segment for a level-less bundle, before creating the editor', () => {
+      localModeState = {
+        bundles: {
+          entities: {
+            [DEFAULT_BUNDLE_ID]: { transcript: new TrattAnnotation() },
+          },
+        },
+      };
+
+      component.changeEditor('Dictaphone Editor');
+
+      const calls = overwriteCalls();
+      expect(calls).toHaveLength(1);
+      const seeded = calls[0].transcript as TrattAnnotation<any>;
+      expect(seeded.levels).toHaveLength(1);
+      const level = seeded.levels[0] as TrattAnnotationSegmentLevel<any>;
+      expect(level.items).toHaveLength(1);
+      expect(level.items[0].time.samples).toBe(duration.samples);
+      expect(level.items[0].labels[0].value).toBe('');
+      expect(seeded.selectedLevelIndex).toBe(0);
+      expect(calls[0].mode).toBe(LoginMode.LOCAL);
+      expect(
+        order.indexOf(AnnotationActions.overwriteTranscript.do.type),
+      ).toBeLessThan(order.indexOf('createComponent'));
+    });
+
+    it('leaves a bundle that already has a level alone', () => {
+      const transcript = new TrattAnnotation();
+      transcript.addLevel(transcript.createSegmentLevel('OCTRA_1', []));
+      localModeState = {
+        bundles: { entities: { [DEFAULT_BUNDLE_ID]: { transcript } } },
+      };
+
+      component.changeEditor('Dictaphone Editor');
+
+      expect(overwriteCalls()).toHaveLength(0);
+      expect(createSpy).toHaveBeenCalled();
+    });
   });
 
   describe('changeEditor persistence', () => {
@@ -560,6 +673,20 @@ describe('WorkbenchComponent', () => {
   });
 
   describe('editor switcher tab row', () => {
+    // The tab row belongs to a file: with an empty list the pane shows the
+    // "no files" state instead.
+    beforeEach(() => {
+      bundleSummaries = [
+        {
+          bundleId: DEFAULT_BUNDLE_ID,
+          name: 'a.wav',
+          selected: true,
+          awaitingMedia: false,
+          hasAnnotationContent: false,
+        },
+      ];
+    });
+
     it('renders one tab per editorComponents entry, inside the sessionReady right pane', () => {
       component.showEditor = {
         viewContainerRef: { clear: jest.fn(), createComponent: jest.fn() },
@@ -850,6 +977,99 @@ describe('WorkbenchComponent', () => {
     }
   });
 
+  // The single-file export used to be a full-width "Export transcriptions"
+  // bar under the editor — on the workbench it reads as acting on the whole
+  // list. It now sits in the file header and names what it exports.
+  describe('right pane in LOCAL mode', () => {
+    const named = {
+      bundleId: DEFAULT_BUNDLE_ID,
+      name: 'a.wav',
+      selected: true,
+      awaitingMedia: false,
+      hasAnnotationContent: false,
+    };
+
+    // The Store stub's selectAllBundleSummaries is a plain function, so the
+    // list has to be in place before the first change detection.
+    function startLocalSession(summaries: any[]) {
+      bundleSummaries = summaries;
+      audioService.current = undefined;
+      audioService.getMediaInfo.mockReturnValue({
+        fullname: 'a.wav',
+        duration: { seconds: 2 },
+        sampleRate: 44100,
+        channels: 1,
+        size: 1000,
+      });
+      fixture.detectChanges();
+      component.appStorage = { useMode: 'local', interface: undefined } as any;
+      (component as any).settingsService = {
+        projectsettings: { interfaces: [], navigation: { export: true } },
+        isTheme: jest.fn().mockReturnValue(false),
+      };
+      jest.spyOn(component, 'changeEditor').mockImplementation(() => undefined);
+      loading$.next({ status: LoadingStatus.FINISHED });
+    }
+
+    it('offers "Export this transcription" in the file header and has no bottom bar', () => {
+      startLocalSession([named]);
+      const doclick = jest.fn();
+      component.navbarServ = { doclick, showInterfaces: false } as any;
+      component.editorPlaceholder.set('none');
+      fixture.detectChanges();
+
+      const button = fixture.debugElement.query(
+        By.css(
+          '.workbench__editor-header .workbench__editor-header-actions .btn-primary',
+        ),
+      );
+      expect(button.nativeElement.textContent).toContain(
+        'workbench.editor_header.export',
+      );
+      expect(button.nativeElement.disabled).toBe(false);
+      expect(
+        fixture.debugElement.query(By.css('#bottom-navigation')),
+      ).toBeNull();
+
+      button.nativeElement.click();
+      expect(doclick).toHaveBeenCalledWith('export');
+    });
+
+    it('disables it, with a reason, while the file has no audio', () => {
+      startLocalSession([named]);
+      component.editorPlaceholder.set('awaiting-media');
+      fixture.detectChanges();
+
+      const button = fixture.debugElement.query(
+        By.css('.workbench__editor-header-actions .btn-primary'),
+      );
+      expect(button.nativeElement.disabled).toBe(true);
+      expect(button.nativeElement.getAttribute('title')).toBe(
+        'workbench.editor_header.export_needs_audio',
+      );
+    });
+
+    it('shows the "no files" state, not an attach prompt, once every file was removed', () => {
+      // Only the empty placeholder bundle is left (no file name).
+      startLocalSession([{ ...named, name: undefined, awaitingMedia: true }]);
+      component.editorPlaceholder.set('awaiting-media');
+      fixture.detectChanges();
+
+      const pane = fixture.debugElement.query(By.css('.workbench__right'))
+        .nativeElement as HTMLElement;
+      expect(pane.textContent).toContain('workbench.empty.title');
+      expect(pane.textContent).not.toContain('workbench.editor.awaiting_media');
+      expect(
+        fixture.debugElement.query(By.css('.workbench__editor-tabs')),
+      ).toBeNull();
+      expect(
+        fixture.debugElement.query(By.css('.workbench__editor-header')),
+      ).toBeNull();
+      // The editor host stays, so the ViewChild survives the empty state.
+      expect(component.showEditor).toBeDefined();
+    });
+  });
+
   // Finding 1: `useMode`/`selectedTheme`/`showCommentSection` used to be
   // snapshotted once in ngOnInit, before startSession() had ever run — on a
   // clean/logged-out profile appStorage.useMode is still undefined at that
@@ -880,6 +1100,25 @@ describe('WorkbenchComponent', () => {
 
     expect(component.useMode).toBe('local');
     expect(component.selectedTheme).toBe('someTheme');
+    expect(component.exportEnabled).toBe(true);
+    // LOCAL exports from the file header, not from an unlabelled top-bar
+    // "Export" next to it.
+    expect((component as any).navbarServ.showExport).toBe(false);
+  });
+
+  it('keeps the top-bar Export for non-LOCAL sessions when the project allows it', () => {
+    fixture.detectChanges();
+
+    component.appStorage = { useMode: 'url', interface: undefined } as any;
+    (component as any).settingsService = {
+      projectsettings: { interfaces: [], navigation: { export: true } },
+      isTheme: jest.fn().mockReturnValue(false),
+    };
+    (component as any).navbarServ = {};
+    jest.spyOn(component, 'changeEditor').mockImplementation(() => undefined);
+
+    loading$.next({ status: LoadingStatus.FINISHED });
+
     expect((component as any).navbarServ.showExport).toBe(true);
   });
 
@@ -896,6 +1135,7 @@ describe('WorkbenchComponent', () => {
     loading$.next({ status: LoadingStatus.FINISHED });
 
     expect((component as any).navbarServ.showExport).toBe(false);
+    expect(component.exportEnabled).toBe(false);
   });
 
   // Task 7: run/pause control + queue configuration panel.
@@ -1118,6 +1358,180 @@ describe('WorkbenchComponent', () => {
     } as any;
   }
 
+  describe('editor follows the selected bundle', () => {
+    let realEditor: unknown;
+
+    beforeEach(() => {
+      realEditor = editorComponents[0].editor;
+      (editorComponents[0] as { editor: unknown }).editor = FakeEditorComponent;
+      component.appStorage = { interface: editorComponents[0].name } as any;
+      (component as any).settingsService = {
+        projectsettings: { interfaces: [editorComponents[0].name] },
+        isTheme: jest.fn().mockReturnValue(false),
+      };
+    });
+
+    afterEach(() => {
+      (editorComponents[0] as { editor: unknown }).editor = realEditor;
+      component.showEditor?.viewContainerRef.clear();
+    });
+
+    const managers: Record<string, any> = {
+      a: { id: 'manager-a' },
+      b: { id: 'manager-b' },
+    };
+
+    function startSessionOn(bundleId: string) {
+      selectedBundleId.set(bundleId);
+      audioService.current = managers[bundleId];
+      audioService.getManager.mockImplementation(
+        (id: unknown) => managers[id as string],
+      );
+      fixture.detectChanges();
+      loading$.next({ status: LoadingStatus.FINISHED });
+      fixture.detectChanges();
+    }
+
+    // Regression: editors capture AudioService.current once, in ngOnInit.
+    // Switching bundles used to leave the old editor mounted — still
+    // playing bundle A's audio while edits went to bundle B.
+    it('remounts the editor for the newly selected bundle', () => {
+      startSessionOn('a');
+      const first = (component as any).currentEditorRef;
+      expect(first).toBeDefined();
+      expect((component as any).mountedManager).toBe(managers['a']);
+
+      audioService.current = managers['b'];
+      selectedBundleId.set('b');
+      TestBed.flushEffects();
+      fixture.detectChanges();
+
+      expect((component as any).currentEditorRef).toBeDefined();
+      expect((component as any).currentEditorRef).not.toBe(first);
+      expect((component as any).mountedManager).toBe(managers['b']);
+      expect((component as any).mountedBundleId).toBe('b');
+    });
+
+    // Text editors read the current level once, when they mount: picking
+    // another level in the navbar left them showing the previous level.
+    it('remounts the editor when the shown file switches level', () => {
+      const withLevel = (index: number) => ({
+        bundles: {
+          entities: {
+            a: {
+              transcript: { levels: [{}, {}], selectedLevelIndex: index },
+            },
+          },
+        },
+      });
+      localModeSig.set(withLevel(0));
+      startSessionOn('a');
+      const first = (component as any).currentEditorRef;
+      expect((component as any).mountedLevelIndex).toBe(0);
+
+      localModeSig.set(withLevel(1));
+      TestBed.flushEffects();
+      fixture.detectChanges();
+
+      expect((component as any).currentEditorRef).not.toBe(first);
+      expect((component as any).mountedLevelIndex).toBe(1);
+
+      // Any other store change keeps the mounted editor.
+      const second = (component as any).currentEditorRef;
+      localModeSig.set({ ...withLevel(1) });
+      TestBed.flushEffects();
+      fixture.detectChanges();
+      expect((component as any).currentEditorRef).toBe(second);
+    });
+
+    // Seen live: an editor destroyed before its ngOnInit ran threw in
+    // ngOnDestroy, which aborted the remount and left the pane empty.
+    it('still mounts the new editor when tearing down the old one throws', () => {
+      startSessionOn('a');
+      const vcr = component.showEditor!.viewContainerRef;
+      const realClear = vcr.clear.bind(vcr);
+      jest.spyOn(vcr, 'clear').mockImplementationOnce(() => {
+        realClear();
+        throw new Error('teardown failed');
+      });
+      const consoleError = jest
+        .spyOn(console, 'error')
+        .mockImplementation(() => undefined);
+
+      audioService.current = managers['b'];
+      selectedBundleId.set('b');
+      TestBed.flushEffects();
+      fixture.detectChanges();
+
+      expect((component as any).currentEditorRef).toBeDefined();
+      expect((component as any).mountedBundleId).toBe('b');
+      consoleError.mockRestore();
+    });
+
+    it('does not flush the old editor into the newly selected bundle', () => {
+      startSessionOn('a');
+      const flush = jest.fn();
+      (component as any).currentEditorRef.instance.flushPendingEdits = flush;
+
+      audioService.current = managers['b'];
+      selectedBundleId.set('b');
+      TestBed.flushEffects();
+      fixture.detectChanges();
+
+      expect(flush).not.toHaveBeenCalled();
+    });
+
+    it('shows the re-attach placeholder instead of an editor for a bundle without audio', () => {
+      startSessionOn('a');
+
+      audioService.current = undefined;
+      audioService.canRestore.mockReturnValue(false);
+      selectedBundleId.set('restored');
+      TestBed.flushEffects();
+      fixture.detectChanges();
+
+      expect((component as any).currentEditorRef).toBeUndefined();
+      expect(component.editorPlaceholder()).toBe('awaiting-media');
+      expect(
+        fixture.debugElement.query(By.css('.workbench__placeholder')),
+      ).toBeTruthy();
+    });
+
+    it('shows a loading placeholder while an evicted bundle re-decodes, then mounts', () => {
+      startSessionOn('a');
+
+      audioService.current = undefined;
+      audioService.canRestore.mockReturnValue(true);
+      selectedBundleId.set('b');
+      TestBed.flushEffects();
+      fixture.detectChanges();
+      expect(component.editorPlaceholder()).toBe('loading');
+
+      // Re-decode finished: a registry change re-runs the sync. (In the
+      // real service the registry version signal triggers this.)
+      audioService.current = managers['b'];
+      (component as any).syncEditorToSelection('b', managers['b'], true);
+      fixture.detectChanges();
+      expect(component.editorPlaceholder()).toBe('none');
+      expect((component as any).mountedManager).toBe(managers['b']);
+    });
+
+    it('flushes the mounted editor through PendingEditsService only while it still matches the selection', () => {
+      startSessionOn('a');
+      const flush = jest.fn();
+      (component as any).currentEditorRef.instance.flushPendingEdits = flush;
+      const pendingEdits = TestBed.inject(PendingEditsService);
+
+      pendingEdits.flush();
+      expect(flush).toHaveBeenCalledTimes(1);
+
+      // Selection moved but the editor hasn't been remounted yet.
+      selectedBundleId.set('b');
+      pendingEdits.flush();
+      expect(flush).toHaveBeenCalledTimes(1);
+    });
+  });
+
   describe('continuous ingestion (step 6)', () => {
     function makeDropzone() {
       return {
@@ -1142,7 +1556,10 @@ describe('WorkbenchComponent', () => {
         oaudiofile: {},
       });
 
-      component.dropzone!.filesAdded.emit({ statistics: {} as any, addedFiles: [fp] });
+      component.dropzone!.filesAdded.emit({
+        statistics: {} as any,
+        addedFiles: [fp],
+      });
 
       expect(audioService.registerAudioManager).toHaveBeenCalledWith(
         DEFAULT_BUNDLE_ID,
@@ -1165,7 +1582,9 @@ describe('WorkbenchComponent', () => {
 
       component.dropzone!.filesAdded.emit({
         statistics: {} as any,
-        addedFiles: [fileProgress(1, new File(['a'], 'a.wav'), { status: 'progress' })],
+        addedFiles: [
+          fileProgress(1, new File(['a'], 'a.wav'), { status: 'progress' }),
+        ],
       });
 
       expect(audioService.registerAudioManager).not.toHaveBeenCalled();
@@ -1181,7 +1600,11 @@ describe('WorkbenchComponent', () => {
       component.dropzone!.filesAdded.emit({
         statistics: {} as any,
         addedFiles: [
-          fileProgress(1, file1, { status: 'valid', audioManager: {} as any, oaudiofile: {} }),
+          fileProgress(1, file1, {
+            status: 'valid',
+            audioManager: {} as any,
+            oaudiofile: {},
+          }),
         ],
       });
       authStoreService.loginLocal.mockClear();
@@ -1190,8 +1613,16 @@ describe('WorkbenchComponent', () => {
       component.dropzone!.filesAdded.emit({
         statistics: {} as any,
         addedFiles: [
-          fileProgress(1, file1, { status: 'valid', audioManager: {} as any, oaudiofile: {} }),
-          fileProgress(2, file2, { status: 'valid', audioManager: manager2, oaudiofile: {} }),
+          fileProgress(1, file1, {
+            status: 'valid',
+            audioManager: {} as any,
+            oaudiofile: {},
+          }),
+          fileProgress(2, file2, {
+            status: 'valid',
+            audioManager: manager2,
+            oaudiofile: {},
+          }),
         ],
       });
 
@@ -1210,6 +1641,332 @@ describe('WorkbenchComponent', () => {
       expect(component.dropzone!.consumeEntry).toHaveBeenCalledWith(2);
     });
 
+    // After a reload every file in the list waits for its audio; dropping
+    // the same files again used to add a second row per file.
+    describe('dropping files that match waiting (restored) files', () => {
+      const restored = (name: string, size: number) =>
+        new SessionFile(name, size, new Date(0), 'audio/wav');
+      const wav = (name: string, bytes: string) =>
+        new File([bytes], name, { type: 'audio/wav' });
+      const valid = (id: number, file: File, manager: any) =>
+        fileProgress(id, file, {
+          status: 'valid',
+          audioManager: manager,
+          oaudiofile: {},
+        });
+      const dispatched = (type: string) =>
+        storeDispatch.mock.calls
+          .map(([action]) => action as any)
+          .filter((a) => a.type === type);
+
+      beforeEach(() => {
+        localModeState = {
+          bundles: {
+            entities: {
+              r1: { sessionFile: restored('a.wav', 3) },
+              r2: { sessionFile: restored('b.wav', 3) },
+            },
+          },
+        };
+        bundleSummaries = [
+          {
+            bundleId: 'r1',
+            name: 'a.wav',
+            selected: false,
+            awaitingMedia: true,
+          },
+          {
+            bundleId: 'r2',
+            name: 'b.wav',
+            selected: false,
+            awaitingMedia: true,
+          },
+        ];
+      });
+
+      it('attaches the audio to the waiting bundle and starts the session from it, instead of adding a row', () => {
+        component.dropzone = makeDropzone() as any;
+        component.ngAfterViewInit();
+        const file = wav('a.wav', 'abc');
+        const manager = { id: 'm-a' };
+
+        component.dropzone!.filesAdded.emit({
+          statistics: {} as any,
+          addedFiles: [valid(1, file, manager)],
+        });
+
+        expect(audioService.registerAudioManager).toHaveBeenCalledWith(
+          'r1',
+          manager,
+          file,
+        );
+        expect(
+          dispatched(LoginModeActions.bundleAudioAttached.type).map(
+            (a) => a.bundleId,
+          ),
+        ).toEqual(['r1']);
+        expect(dispatched(LoginModeActions.createBundle.type)).toHaveLength(0);
+        expect(authStoreService.loginLocal).not.toHaveBeenCalled();
+        // The same login chain "Attach file…" runs, on the matched bundle.
+        expect(
+          dispatched(LoginModeActions.selectBundle.type).map((a) => a.bundleId),
+        ).toEqual(['r1']);
+        const login = dispatched(AuthenticationActions.loginLocal.success.type);
+        expect(login).toHaveLength(1);
+        expect(login[0].files).toEqual([file]);
+        expect(login[0].sessionFile.name).toBe('a.wav');
+        expect(component.dropzone!.consumeEntry).toHaveBeenCalledWith(1);
+      });
+
+      it('in a mixed drop, matched files are attached and only the rest become new files', () => {
+        component.dropzone = makeDropzone() as any;
+        component.ngAfterViewInit();
+
+        component.dropzone!.filesAdded.emit({
+          statistics: {} as any,
+          addedFiles: [
+            valid(1, wav('b.wav', 'abc'), { id: 'm-b' }),
+            valid(2, wav('new.wav', 'abcd'), { id: 'm-new' }),
+          ],
+        });
+
+        expect(
+          dispatched(LoginModeActions.bundleAudioAttached.type).map(
+            (a) => a.bundleId,
+          ),
+        ).toEqual(['r2']);
+        const created = dispatched(LoginModeActions.createBundle.type);
+        expect(created.map((a) => a.sessionFile.name)).toEqual(['new.wav']);
+        // One session start only: the re-attach's.
+        expect(authStoreService.loginLocal).not.toHaveBeenCalled();
+        expect(
+          dispatched(AuthenticationActions.loginLocal.success.type),
+        ).toHaveLength(1);
+      });
+
+      it('mid-session, attaches without moving the selection or re-running the login chain', () => {
+        component.sessionReady = true;
+        component.dropzone = makeDropzone() as any;
+        component.ngAfterViewInit();
+
+        component.dropzone!.filesAdded.emit({
+          statistics: {} as any,
+          addedFiles: [valid(1, wav('a.wav', 'abc'), { id: 'm-a' })],
+        });
+
+        expect(
+          dispatched(LoginModeActions.bundleAudioAttached.type),
+        ).toHaveLength(1);
+        expect(dispatched(LoginModeActions.selectBundle.type)).toHaveLength(0);
+        expect(
+          dispatched(AuthenticationActions.loginLocal.success.type),
+        ).toHaveLength(0);
+      });
+
+      it('a file with the same name but a different size is a new file', () => {
+        component.dropzone = makeDropzone() as any;
+        component.ngAfterViewInit();
+
+        component.dropzone!.filesAdded.emit({
+          statistics: {} as any,
+          addedFiles: [valid(1, wav('a.wav', 'abcdef'), { id: 'm-a' })],
+        });
+
+        expect(
+          dispatched(LoginModeActions.bundleAudioAttached.type),
+        ).toHaveLength(0);
+        expect(authStoreService.loginLocal).toHaveBeenCalled();
+      });
+
+      it('never attaches to a bundle whose audio is already available', () => {
+        audioService.canRestore.mockImplementation(
+          (id: unknown) => id === 'r1',
+        );
+        component.sessionReady = true;
+        component.dropzone = makeDropzone() as any;
+        component.ngAfterViewInit();
+
+        component.dropzone!.filesAdded.emit({
+          statistics: {} as any,
+          addedFiles: [valid(1, wav('a.wav', 'abc'), { id: 'm-a' })],
+        });
+
+        expect(
+          dispatched(LoginModeActions.bundleAudioAttached.type),
+        ).toHaveLength(0);
+        expect(dispatched(LoginModeActions.createBundle.type)).toHaveLength(1);
+      });
+    });
+
+    // After "Select all -> Remove" the collection falls back to an empty
+    // placeholder bundle (no file) and the session stays ready. A drop then
+    // goes down the later-wave path; the first new file must be shown
+    // instead of a pane asking to attach audio to a file that isn't there.
+    describe('focus after every file was removed', () => {
+      const valid = (id: number, name: string) =>
+        fileProgress(id, new File([name], name), {
+          status: 'valid',
+          audioManager: { id: name } as any,
+          oaudiofile: {},
+        });
+      const createCalls = () =>
+        storeDispatch.mock.calls
+          .map(([action]) => action as any)
+          .filter((a) => a.type === LoginModeActions.createBundle.type);
+
+      it('selects the first new file when the empty placeholder is selected', () => {
+        localModeState = {
+          bundles: {
+            entities: { [DEFAULT_BUNDLE_ID]: { transcript: undefined } },
+          },
+        };
+        component.sessionReady = true;
+        component.dropzone = makeDropzone() as any;
+        component.ngAfterViewInit();
+
+        component.dropzone!.filesAdded.emit({
+          statistics: {} as any,
+          addedFiles: [valid(1, 'a.wav'), valid(2, 'b.wav')],
+        });
+
+        expect(authStoreService.loginLocal).not.toHaveBeenCalled();
+        expect(createCalls().map((a) => a.selectAfterCreate)).toEqual([
+          true,
+          false,
+        ]);
+        // Their audio is registered right before: navbar items and the
+        // list treat them as loaded.
+        expect(createCalls().map((a) => a.audioLoaded)).toEqual([true, true]);
+      });
+
+      it('never steals focus from a selected file', () => {
+        localModeState = {
+          bundles: {
+            entities: {
+              [DEFAULT_BUNDLE_ID]: {
+                sessionFile: new SessionFile(
+                  'x.wav',
+                  1,
+                  new Date(),
+                  'audio/wav',
+                ),
+              },
+            },
+          },
+        };
+        component.sessionReady = true;
+        component.dropzone = makeDropzone() as any;
+        component.ngAfterViewInit();
+
+        component.dropzone!.filesAdded.emit({
+          statistics: {} as any,
+          addedFiles: [valid(1, 'a.wav')],
+        });
+
+        expect(createCalls().map((a) => a.selectAfterCreate)).toEqual([false]);
+      });
+
+      it('does not move the selection while the first wave is still logging in', () => {
+        // bundle-1 is selected and has no file YET: the login chain writes
+        // into whatever is selected, so it must stay selected.
+        localModeState = {
+          bundles: { entities: { [DEFAULT_BUNDLE_ID]: {} } },
+        };
+        component.dropzone = makeDropzone() as any;
+        component.ngAfterViewInit();
+        component.dropzone!.filesAdded.emit({
+          statistics: {} as any,
+          addedFiles: [valid(1, 'a.wav')],
+        });
+        expect(component.sessionReady).toBe(false);
+
+        component.dropzone!.filesAdded.emit({
+          statistics: {} as any,
+          addedFiles: [valid(2, 'b.wav')],
+        });
+
+        expect(createCalls().map((a) => a.selectAfterCreate)).toEqual([false]);
+      });
+    });
+
+    // Regression: after a reload, DEFAULT_BUNDLE_ID holds the user's
+    // restored bundle. The first new file used to be bootstrapped INTO it,
+    // re-binding the restored transcript to a different recording.
+    it('never bootstraps a new file into bundle-1 when bundle-1 already holds a restored bundle', () => {
+      bundleSummaries = [
+        {
+          bundleId: DEFAULT_BUNDLE_ID,
+          name: 'restored.wav',
+          selected: true,
+          awaitingMedia: true,
+          hasAnnotationContent: true,
+        },
+      ];
+      component.dropzone = makeDropzone() as any;
+      component.ngAfterViewInit();
+
+      const manager = { id: 'm1' } as any;
+      const nativeFile = new File(['a'], 'new.wav');
+      component.dropzone!.filesAdded.emit({
+        statistics: {} as any,
+        addedFiles: [
+          fileProgress(1, nativeFile, {
+            status: 'valid',
+            audioManager: manager,
+            oaudiofile: {},
+          }),
+        ],
+      });
+
+      const [registeredId] = audioService.registerAudioManager.mock
+        .calls[0] as [string, unknown, unknown];
+      expect(registeredId).not.toBe(DEFAULT_BUNDLE_ID);
+      // Created (and selected) up front so onLoginLocal$'s selectBundle()
+      // finds it instead of no-op'ing onto the restored bundle.
+      expect(storeDispatch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: LoginModeActions.createBundle.type,
+          bundleId: registeredId,
+          selectAfterCreate: true,
+        }),
+      );
+      expect(authStoreService.loginLocal).toHaveBeenCalledWith(
+        [nativeFile],
+        undefined,
+        false,
+        [registeredId],
+      );
+    });
+
+    // Regression: re-attaching a restored bundle runs the login chain
+    // itself; a file dropped afterwards must not re-run it.
+    it('routes even the first dropped file through createBundle when a session already exists', () => {
+      component.sessionReady = true;
+      component.dropzone = makeDropzone() as any;
+      component.ngAfterViewInit();
+
+      const manager = { id: 'm1' } as any;
+      const nativeFile = new File(['a'], 'a.wav');
+      component.dropzone!.filesAdded.emit({
+        statistics: {} as any,
+        addedFiles: [
+          fileProgress(1, nativeFile, {
+            status: 'valid',
+            audioManager: manager,
+            oaudiofile: {},
+          }),
+        ],
+      });
+
+      expect(authStoreService.loginLocal).not.toHaveBeenCalled();
+      expect(storeDispatch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: LoginModeActions.createBundle.type,
+          selectAfterCreate: false,
+        }),
+      );
+    });
+
     // Review Focus #1: a file still mid-decode when a DIFFERENT file's
     // first-wave bootstrap fires must not be orphaned.
     it('does not consume or lose an entry that is still decoding when the first wave fires for an earlier entry', () => {
@@ -1223,7 +1980,11 @@ describe('WorkbenchComponent', () => {
       component.dropzone!.filesAdded.emit({
         statistics: {} as any,
         addedFiles: [
-          fileProgress(1, file1, { status: 'valid', audioManager: {} as any, oaudiofile: {} }),
+          fileProgress(1, file1, {
+            status: 'valid',
+            audioManager: {} as any,
+            oaudiofile: {},
+          }),
           stillDecoding,
         ],
       });
@@ -1358,11 +2119,17 @@ describe('WorkbenchComponent', () => {
         audioManager: {} as any,
         oaudiofile: {},
       });
-      component.dropzone!.filesAdded.emit({ statistics: {} as any, addedFiles: [fp] });
+      component.dropzone!.filesAdded.emit({
+        statistics: {} as any,
+        addedFiles: [fp],
+      });
       authStoreService.loginLocal.mockClear();
       audioService.registerAudioManager.mockClear();
 
-      component.dropzone!.filesAdded.emit({ statistics: {} as any, addedFiles: [fp] });
+      component.dropzone!.filesAdded.emit({
+        statistics: {} as any,
+        addedFiles: [fp],
+      });
 
       expect(authStoreService.loginLocal).not.toHaveBeenCalled();
       expect(audioService.registerAudioManager).not.toHaveBeenCalled();
@@ -1413,7 +2180,9 @@ describe('WorkbenchComponent', () => {
       ];
       fixture.detectChanges();
 
-      expect(pipelineQueueService.enqueue).toHaveBeenCalledWith([DEFAULT_BUNDLE_ID]);
+      expect(pipelineQueueService.enqueue).toHaveBeenCalledWith([
+        DEFAULT_BUNDLE_ID,
+      ]);
     });
 
     it('does not auto-enqueue when no pipeline options are configured', () => {
@@ -1490,9 +2259,17 @@ describe('WorkbenchComponent with real default LOCAL store state', () => {
       providers: [
         {
           provide: AudioService,
-          useValue: {
-            hasResident: jest.fn((id: string) => residentIds.includes(id)),
-          },
+          useValue: (() => {
+            const mock: any = {
+              hasResident: jest.fn((id: string) => residentIds.includes(id)),
+              getManager: jest.fn(() => undefined),
+              getMediaInfo: jest.fn(() => undefined),
+            };
+            // resident OR re-decodable — follows hasResident (tests swap
+            // hasResident's implementation to model residency changes).
+            mock.canRestore = jest.fn((id: unknown) => mock.hasResident(id));
+            return mock;
+          })(),
         },
         { provide: AuthenticationStoreService, useValue: {} },
         { provide: AppStorageService, useValue: {} },
@@ -1812,6 +2589,9 @@ describe('WorkbenchComponent with real default LOCAL store state', () => {
           useValue: {
             registerAudioManager: jest.fn(),
             hasResident: jest.fn(() => false),
+            canRestore: jest.fn(() => false),
+            getManager: jest.fn(() => undefined),
+            getMediaInfo: jest.fn(() => undefined),
           },
         },
         { provide: AuthenticationStoreService, useValue: authStoreServiceMock },
@@ -1847,7 +2627,12 @@ describe('WorkbenchComponent with real default LOCAL store state', () => {
         provideMockStore({
           initialState: {
             localMode,
-            pipelineQueue: { queue: [], activeId: null, mode: 'idle', runs: {} },
+            pipelineQueue: {
+              queue: [],
+              activeId: null,
+              mode: 'idle',
+              runs: {},
+            },
           } as any,
         }),
         {
