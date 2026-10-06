@@ -216,12 +216,16 @@
     <div class="workbench__right">
       @if (hasAnyBundles()) {
         @if (selectedBundleHeader; as header) {
+          <!-- Not gated on exportEnabled: that is read once when the session
+               becomes ready, which can be before the project config has
+               loaded — the button then never appeared next to an editor.
+               LOCAL's config always allows export (as in welcome back). -->
           <ng-container
             *ngTemplateOutlet="
               fileHeader;
               context: {
                 $implicit: header,
-                showExport: useMode === 'local' && exportEnabled,
+                showExport: useMode === 'local',
               }
             "
           ></ng-container>
@@ -477,7 +481,7 @@
     </span>
     @if (showExport) {
       <!-- Per-file actions live with the file they act on; exporting
-           several files at once is "Export catalogue…" in the list.
+           several files at once is "Export all" in the list.
            Works without the file's audio (see exportSelected()). -->
       <div class="workbench__editor-header-actions">
         @if (recordedFileService.recordedFile?.name === header.name) {

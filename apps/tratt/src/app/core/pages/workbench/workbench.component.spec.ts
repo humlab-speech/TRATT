@@ -1039,6 +1039,40 @@ describe('WorkbenchComponent', () => {
       return { resolveBundleMedia, openModalRef, showAlert };
     }
 
+    it('shows "Export this transcription" next to the editor even when the project config loads after the session is ready', () => {
+      bundleSummaries = [named];
+      audioService.current = undefined;
+      audioService.getMediaInfo.mockReturnValue({
+        fullname: 'a.wav',
+        duration: { seconds: 2 },
+        sampleRate: 44100,
+        channels: 1,
+        size: 1000,
+      });
+      fixture.detectChanges();
+      component.appStorage = { useMode: 'local', interface: undefined } as any;
+      // Not loaded yet at the moment the session becomes ready.
+      const settings: any = {
+        projectsettings: undefined,
+        isTheme: jest.fn().mockReturnValue(false),
+      };
+      (component as any).settingsService = settings;
+      jest.spyOn(component, 'changeEditor').mockImplementation(() => undefined);
+      loading$.next({ status: LoadingStatus.FINISHED });
+      settings.projectsettings = { navigation: { export: true } };
+      component.editorPlaceholder.set('none');
+      fixture.detectChanges();
+
+      expect(component.sessionReady).toBe(true);
+      expect(
+        fixture.debugElement.query(
+          By.css(
+            '.workbench__right:not(.workbench__empty) .workbench__editor-header-actions .btn-primary',
+          ),
+        ),
+      ).toBeTruthy();
+    });
+
     it('offers "Export this transcription" in the file header and has no bottom bar', async () => {
       startLocalSession([named]);
       component.editorPlaceholder.set('none');

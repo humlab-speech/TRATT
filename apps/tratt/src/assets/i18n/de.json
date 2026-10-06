@@ -715,7 +715,7 @@
       "select_all": "Select all",
       "clear_finished": "Clear finished",
       "remove": "Remove",
-      "export_catalogue": "Export catalogue…",
+      "export_catalogue": "Export all",
       "retry": "Retry",
       "status": {
         "queued": "Queued",
