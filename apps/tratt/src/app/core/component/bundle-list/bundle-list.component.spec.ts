@@ -28,6 +28,7 @@ import { of } from 'rxjs';
 import { BundleReattachMismatchAnswer } from '../../modals/bundle-reattach-mismatch-modal/bundle-reattach-mismatch-modal.component';
 import { CatalogueExportModalComponent } from '../../modals/catalogue-export-modal/catalogue-export-modal.component';
 import { TrattModalService } from '../../modals/tratt-modal.service';
+import { YesNoModalComponent } from '../../modals/yes-no-modal/yes-no-modal.component';
 import { SessionFile } from '../../obj/SessionFile';
 import { AudioService } from '../../shared/service/audio.service';
 import { PendingEditsService } from '../../shared/service/pending-edits.service';
@@ -737,7 +738,8 @@ describe('BundleListComponent', () => {
       ).toBe(true);
     });
 
-    it('remove dispatches removeBundles for the checked ids and clears the selection', () => {
+    it('remove dispatches removeBundles for the checked ids and clears the selection', async () => {
+      modalService.openModal.mockResolvedValue('yes');
       const dispatchSpy = jest.spyOn(store, 'dispatch');
       const rowCheckboxes = fixture.debugElement.queryAll(
         By.css('.bundle-list__item-checkbox'),
@@ -748,6 +750,7 @@ describe('BundleListComponent', () => {
       fixture.debugElement
         .query(By.css('.bundle-list__remove'))
         .nativeElement.click();
+      await fixture.whenStable();
 
       expect(dispatchSpy).toHaveBeenCalledWith(
         LoginModeActions.removeBundles({
@@ -763,6 +766,55 @@ describe('BundleListComponent', () => {
       expect(audioService.forget).toHaveBeenCalledWith(bundleA.bundleId);
     });
 
+    it('remove asks for confirmation and does nothing when declined', async () => {
+      modalService.openModal.mockResolvedValue('no');
+      const dispatchSpy = jest.spyOn(store, 'dispatch');
+      fixture.debugElement
+        .queryAll(By.css('.bundle-list__item-checkbox'))[0]
+        .nativeElement.click();
+      fixture.detectChanges();
+
+      fixture.debugElement
+        .query(By.css('.bundle-list__remove'))
+        .nativeElement.click();
+      await fixture.whenStable();
+
+      expect(modalService.openModal).toHaveBeenCalledWith(
+        YesNoModalComponent,
+        YesNoModalComponent.options,
+        { message: 'workbench.bundle_list.confirm_remove' },
+      );
+      expect(dispatchSpy).not.toHaveBeenCalledWith(
+        expect.objectContaining({ type: LoginModeActions.removeBundles.type }),
+      );
+      expect(audioService.forget).not.toHaveBeenCalled();
+      expect(fixture.componentInstance.isSelected(bundleA.bundleId)).toBe(true);
+    });
+
+    it('clear finished does nothing when the confirmation is dismissed', async () => {
+      modalService.openModal.mockRejectedValue(0);
+      store.setState({
+        ...initialState,
+        pipelineQueue: {
+          queue: [],
+          activeId: null,
+          mode: 'idle',
+          runs: { [bundleA.bundleId]: { state: 'done' } },
+        },
+      } as unknown as RootState);
+      fixture.detectChanges();
+      const dispatchSpy = jest.spyOn(store, 'dispatch');
+
+      fixture.debugElement
+        .query(By.css('.bundle-list__clear-finished'))
+        .nativeElement.click();
+      await fixture.whenStable();
+
+      expect(dispatchSpy).not.toHaveBeenCalledWith(
+        expect.objectContaining({ type: LoginModeActions.removeBundles.type }),
+      );
+    });
+
     it('disables remove while nothing is checked', () => {
       fixture.detectChanges();
       expect(
@@ -771,17 +823,20 @@ describe('BundleListComponent', () => {
       ).toBe(true);
     });
 
-    it('remove is a no-op when nothing is checked', () => {
+    it('remove is a no-op when nothing is checked', async () => {
+      modalService.openModal.mockResolvedValue('yes');
       const dispatchSpy = jest.spyOn(store, 'dispatch');
       fixture.debugElement
         .query(By.css('.bundle-list__remove'))
         .nativeElement.click();
+      await fixture.whenStable();
       expect(dispatchSpy).not.toHaveBeenCalledWith(
         expect.objectContaining({ type: LoginModeActions.removeBundles.type }),
       );
     });
 
-    it('clear finished removes only bundles whose run.state is done', () => {
+    it('clear finished removes only bundles whose run.state is done', async () => {
+      modalService.openModal.mockResolvedValue('yes');
       // bundleA/bundleB fixtures at the top of this file don't carry a run
       // status; override the mock store's runs feature so bundleA reads as
       // 'done' for this one test — mirrors the "pipeline run status and
@@ -803,6 +858,7 @@ describe('BundleListComponent', () => {
       fixture.debugElement
         .query(By.css('.bundle-list__clear-finished'))
         .nativeElement.click();
+      await fixture.whenStable();
 
       expect(dispatchSpy).toHaveBeenCalledWith(
         LoginModeActions.removeBundles({
@@ -812,11 +868,13 @@ describe('BundleListComponent', () => {
       );
     });
 
-    it('clear finished is a no-op when no bundle is done', () => {
+    it('clear finished is a no-op when no bundle is done', async () => {
+      modalService.openModal.mockResolvedValue('yes');
       const dispatchSpy = jest.spyOn(store, 'dispatch');
       fixture.debugElement
         .query(By.css('.bundle-list__clear-finished'))
         .nativeElement.click();
+      await fixture.whenStable();
       expect(dispatchSpy).not.toHaveBeenCalledWith(
         expect.objectContaining({ type: LoginModeActions.removeBundles.type }),
       );
@@ -825,7 +883,8 @@ describe('BundleListComponent', () => {
     // Finding #3 (final whole-branch review fix wave): onClearFinished()
     // used to leave `_selected` holding the now-dead id, which could then
     // leak into onExportCatalogue()'s "no selection = all" fallback.
-    it('clear finished also clears the selection', () => {
+    it('clear finished also clears the selection', async () => {
+      modalService.openModal.mockResolvedValue('yes');
       store.setState({
         ...initialState,
         pipelineQueue: {
@@ -847,6 +906,7 @@ describe('BundleListComponent', () => {
       fixture.debugElement
         .query(By.css('.bundle-list__clear-finished'))
         .nativeElement.click();
+      await fixture.whenStable();
 
       expect(fixture.componentInstance.isSelected(bundleA.bundleId)).toBe(
         false,
@@ -894,7 +954,8 @@ describe('BundleListComponent', () => {
   // this exercises the full round trip through onClearFinished() and
   // onExportCatalogue() together.
   describe("Finding #3: clear-finished doesn't leak a stale id into export", () => {
-    it('opens the export modal with only the live remaining bundle ids and wasAllBundlesDefault true', () => {
+    it('opens the export modal with only the live remaining bundle ids and wasAllBundlesDefault true', async () => {
+      modalService.openModal.mockResolvedValue('yes');
       store.setState({
         ...initialState,
         pipelineQueue: {
@@ -915,6 +976,7 @@ describe('BundleListComponent', () => {
       fixture.debugElement
         .query(By.css('.bundle-list__clear-finished'))
         .nativeElement.click();
+      await fixture.whenStable();
 
       // Reflects what the real removeBundles reducer would have done —
       // this spec drives the component against a mocked store, so the
@@ -943,7 +1005,8 @@ describe('BundleListComponent', () => {
       );
     });
 
-    it('does not fall back to "all" when a live bundle is still genuinely checked after clear-finished', () => {
+    it('does not fall back to "all" when a live bundle is still genuinely checked after clear-finished', async () => {
+      modalService.openModal.mockResolvedValue('yes');
       store.setState({
         ...initialState,
         pipelineQueue: {
@@ -965,6 +1028,7 @@ describe('BundleListComponent', () => {
       fixture.debugElement
         .query(By.css('.bundle-list__clear-finished'))
         .nativeElement.click();
+      await fixture.whenStable();
 
       store.setState({
         application: { mode: LoginMode.LOCAL },

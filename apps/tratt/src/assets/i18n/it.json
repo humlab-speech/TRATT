@@ -402,7 +402,8 @@
       "delete": {
         "delete old": "Elimina trascrizione precedente",
         "header": "Crea una nuova trascrizione?",
-        "text": "Vuoi davvero eliminare la precedente trascrizione e crearne una nuova?<br><br>I tuoi progressi sulla precedente trascrizione saranno eliminati. Quest'azione è irreversibile."
+        "text": "Vuoi davvero eliminare la precedente trascrizione e crearne una nuova?<br><br>I tuoi progressi sulla precedente trascrizione saranno eliminati. Quest'azione è irreversibile.",
+        "workbench note": "Nota: l'elenco file del Workbench condivide questo spazio, quindi anche “{{name}}” verrà sostituito lì."
       },
       "demoEnd": {
         "exportText": "Puoi esportare la tua trascrizione cliccando su \"Indietro\" e poi su \"Esporta\":",
@@ -543,7 +544,8 @@
         "asr": "Trascrizione",
         "diarization": "Separazione dei parlanti",
         "translation": "Traduzione"
-      }
+      },
+      "confirm_remove": "Rimuovere {{count}} file dall'elenco? Le trascrizioni e tutte le modifiche verranno eliminate e non potranno essere ripristinate."
     },
     "queue": {
       "run": "Trascrivi {{count}} file",

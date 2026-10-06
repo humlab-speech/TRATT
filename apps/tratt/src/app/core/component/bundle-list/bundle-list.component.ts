@@ -2,9 +2,10 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
+  inject,
   signal,
 } from '@angular/core';
-import { TranslocoPipe } from '@jsverse/transloco';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { Store } from '@ngrx/store';
 import { AudioManager, normalizeMimeType } from '@tratt/web-media';
 import { filter, firstValueFrom } from 'rxjs';
@@ -14,6 +15,7 @@ import {
 } from '../../modals/bundle-reattach-mismatch-modal/bundle-reattach-mismatch-modal.component';
 import { CatalogueExportModalComponent } from '../../modals/catalogue-export-modal/catalogue-export-modal.component';
 import { TrattModalService } from '../../modals/tratt-modal.service';
+import { YesNoModalComponent } from '../../modals/yes-no-modal/yes-no-modal.component';
 import { SessionFile } from '../../obj/SessionFile';
 import { AudioService } from '../../shared/service/audio.service';
 import { PendingEditsService } from '../../shared/service/pending-edits.service';
@@ -123,9 +125,36 @@ export class BundleListComponent {
     );
   }
 
-  onRemoveSelected(): void {
+  private transloco = inject(TranslocoService);
+
+  /**
+   * Removing a bundle deletes its transcript (and edits) for good, so both
+   * bulk-removal actions ask first. A dismissed dialog counts as "no".
+   */
+  private async confirmRemoval(count: number): Promise<boolean> {
+    try {
+      const answer = await this.modService.openModal(
+        YesNoModalComponent,
+        YesNoModalComponent.options,
+        {
+          message: this.transloco.translate(
+            'workbench.bundle_list.confirm_remove',
+            { count },
+          ),
+        },
+      );
+      return answer === 'yes';
+    } catch {
+      return false;
+    }
+  }
+
+  async onRemoveSelected(): Promise<void> {
     const ids = [...this._selected()];
     if (ids.length === 0) {
+      return;
+    }
+    if (!(await this.confirmRemoval(ids.length))) {
       return;
     }
     this.removeBundles(ids);
@@ -160,11 +189,14 @@ export class BundleListComponent {
     this.pipelineQueueService.cancelActive();
   }
 
-  onClearFinished(): void {
+  async onClearFinished(): Promise<void> {
     const ids = this.bundles()
       .filter((b) => b.run.state === 'done')
       .map((b) => b.bundleId);
     if (ids.length === 0) {
+      return;
+    }
+    if (!(await this.confirmRemoval(ids.length))) {
       return;
     }
     this.removeBundles(ids);

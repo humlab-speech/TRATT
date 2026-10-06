@@ -43,6 +43,7 @@ import {
   DEFAULT_BUNDLE_ID,
   generateBundleId,
 } from '../login-mode/annotation/local-bundle-collection';
+import { selectLocalMode } from '../login-mode/annotation/annotation.selectors';
 import { LoginModeActions } from '../login-mode/login-mode.actions';
 import { AuthenticationActions } from './authentication.actions';
 
@@ -238,7 +239,8 @@ export class AuthenticationEffects {
   onLoginLocal$ = createEffect(() =>
     this.actions$.pipe(
       ofType(AuthenticationActions.loginLocal.do),
-      exhaustMap((a) => {
+      withLatestFrom(this.store),
+      exhaustMap(([a, state]) => {
         const checkInputs = () => {
           if (a.files !== undefined) {
             const validAudioFiles = a.files.filter((file) =>
@@ -340,6 +342,7 @@ export class AuthenticationEffects {
             this.modalsService.openModal(
               TranscriptionDeleteModalComponent,
               TranscriptionDeleteModalComponent.options,
+              { workbenchFileName: this.sharedSlotFileName(state) },
             ),
           ).pipe(
             exhaustMap((value) => {
@@ -354,6 +357,24 @@ export class AuthenticationEffects {
       }),
     ),
   );
+
+  /**
+   * /local and /workbench share one bundle slot (`DEFAULT_BUNDLE_ID`), so
+   * replacing the "previous transcription" can silently drop a file from the
+   * Workbench list. When the list holds several named files, return the name
+   * of the one that will be replaced so the confirmation can say so.
+   */
+  private sharedSlotFileName(state: RootState): string | undefined {
+    const entities = Object.values(
+      selectLocalMode(state)?.bundles.entities ?? {},
+    );
+    const named = entities.filter((b) => b?.sessionFile?.name !== undefined);
+    if (named.length < 2) {
+      return undefined;
+    }
+    return named.find((b) => b?.bundleId === DEFAULT_BUNDLE_ID)?.sessionFile
+      ?.name;
+  }
 
   logout$ = createEffect(() =>
     this.actions$.pipe(

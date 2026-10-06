@@ -402,7 +402,8 @@
       "delete": {
         "delete old": "Verwijder de vorige transcriptie",
         "header": "Maak een nieuwe transcriptie?",
-        "text": "Wilt u werkelijk de vorige transcriptie verwijderen en een nieuwe maken? <br><br> Uw voortgang van de vorige transcriptie  zal verwijderd worden. Deze actie kan niet ongedaan gemaakt worden."
+        "text": "Wilt u werkelijk de vorige transcriptie verwijderen en een nieuwe maken? <br><br> Uw voortgang van de vorige transcriptie  zal verwijderd worden. Deze actie kan niet ongedaan gemaakt worden.",
+        "workbench note": "Let op: de bestandenlijst van de Workbench deelt deze plek, dus “{{name}}” wordt daar ook vervangen."
       },
       "demoEnd": {
         "exportText": "U kunt uw transcript exporteren door op \"Terug\" en vervolgens op \"Exporteren\" te klikken:",
@@ -543,7 +544,8 @@
         "asr": "Transcriberen",
         "diarization": "Sprekers scheiden",
         "translation": "Vertalen"
-      }
+      },
+      "confirm_remove": "{{count}} bestand(en) uit de lijst verwijderen? De transcripten en alle wijzigingen worden gewist en kunnen niet worden hersteld."
     },
     "queue": {
       "run": "{{count}} bestand(en) transcriberen",

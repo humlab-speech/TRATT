@@ -598,7 +598,8 @@
       "delete": {
         "delete old": "Delete previous transcription",
         "header": "Create a new transcription?",
-        "text": "Do you really want to delete the previous transcription and create a new one?<br><br>Your progress on the previous transcription will be deleted. This action can not be reverted."
+        "text": "Do you really want to delete the previous transcription and create a new one?<br><br>Your progress on the previous transcription will be deleted. This action can not be reverted.",
+        "workbench note": "Note: the Workbench file list shares this slot, so “{{name}}” will also be replaced there."
       },
       "demoEnd": {
         "exportText": "You can export your transcript if you click on \"Back\" and then on \"Export\":",
@@ -833,7 +834,8 @@
         "asr": "Transcribing",
         "diarization": "Separating speakers",
         "translation": "Translating"
-      }
+      },
+      "confirm_remove": "Remove {{count}} file(s) from the list? Their transcripts and any edits will be deleted and cannot be restored."
     },
     "queue": {
       "run": "Transcribe {{count}} file(s)",

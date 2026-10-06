@@ -546,7 +546,8 @@
       "delete": {
         "delete old": "Ta bort tidigare transkription",
         "header": "Skapa en ny transkription?",
-        "text": "Vill du verkligen ta bort den tidigare transkriptionen och skapa en ny?<br><br>Din framgång på den tidigare transkriptionen kommer att tas bort. Den här åtgärden kan inte ångras."
+        "text": "Vill du verkligen ta bort den tidigare transkriptionen och skapa en ny?<br><br>Din framgång på den tidigare transkriptionen kommer att tas bort. Den här åtgärden kan inte ångras.",
+        "workbench note": "Obs: filistan i Workbench delar den här platsen, så ”{{name}}” ersätts även där."
       },
       "demoEnd": {
         "exportText": "Du kan exportera din transkript om du klickar på \"Tillbaka\" och sedan på \"Exportera\":",
@@ -781,7 +782,8 @@
         "asr": "Transkriberar",
         "diarization": "Separerar talare",
         "translation": "Översätter"
-      }
+      },
+      "confirm_remove": "Ta bort {{count}} fil(er) från listan? Deras transkriptioner och ändringar raderas och kan inte återställas."
     },
     "queue": {
       "run": "Transkribera {{count}} fil(er)",

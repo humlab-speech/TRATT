@@ -536,7 +536,8 @@
       "delete": {
         "delete old": "Vorherige Transkription entfernen",
         "header": "Neue Transkription erstellen?",
-        "text": "Möchtest Du die alte Transkription wirklich entfernen?<br><br>Dein Fortschritt an der vorherigen Transkription wird dabei gelöscht. Dieser Vorgang kann nicht widerrufen werden."
+        "text": "Möchtest Du die alte Transkription wirklich entfernen?<br><br>Dein Fortschritt an der vorherigen Transkription wird dabei gelöscht. Dieser Vorgang kann nicht widerrufen werden.",
+        "workbench note": "Hinweis: Die Dateiliste der Workbench teilt sich diesen Platz, daher wird „{{name}}“ dort ebenfalls ersetzt."
       },
       "demoEnd": {
         "exportText": "Du kannst Dein Transkript exportieren, indem Du auf \"Zurück\" und dann auf \"Exportieren\" klickst:",
@@ -761,7 +762,8 @@
         "asr": "Transkription",
         "diarization": "Sprechertrennung",
         "translation": "Übersetzung"
-      }
+      },
+      "confirm_remove": "{{count}} Datei(en) aus der Liste entfernen? Die Transkripte und alle Änderungen werden gelöscht und können nicht wiederhergestellt werden."
     },
     "queue": {
       "run": "{{count}} Datei(en) transkribieren",

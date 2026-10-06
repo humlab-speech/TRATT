@@ -23,6 +23,9 @@ export class TranscriptionDeleteModalComponent extends TrattModal {
 
   AppInfo = AppInfo;
 
+  /** Set when the Workbench list shares the slot being replaced. */
+  public workbenchFileName?: string;
+
   constructor(protected override activeModal: NgbActiveModal) {
     super('transcriptionDelete', activeModal);
   }
