@@ -16,13 +16,6 @@ jest.mock('./local-translation.service', () => ({
 }));
 
 import { provideMockStore } from '@ngrx/store/testing';
-import { strFromU8, unzipSync } from 'fflate';
-import { firstValueFrom, lastValueFrom, toArray } from 'rxjs';
-import { AudioService } from './audio.service';
-import { CatalogueExportService } from './catalogue-export.service';
-import { PipelineQueueService } from './pipeline-queue.service';
-import { RootState } from '../../store/index';
-import { localBundleAdapter } from '../../store/login-mode/annotation/local-bundle-collection';
 import {
   OLabel,
   TrattAnnotation,
@@ -30,8 +23,15 @@ import {
   TrattAnnotationSegmentLevel,
 } from '@tratt/annotation';
 import { SampleUnit } from '@tratt/media';
-import { SessionFile } from '../../obj/SessionFile';
+import { strFromU8, unzipSync } from 'fflate';
+import { firstValueFrom, lastValueFrom, toArray } from 'rxjs';
 import { AppInfo } from '../../../app.info';
+import { SessionFile } from '../../obj/SessionFile';
+import { RootState } from '../../store/index';
+import { localBundleAdapter } from '../../store/login-mode/annotation/local-bundle-collection';
+import { AudioService } from './audio.service';
+import { CatalogueExportService } from './catalogue-export.service';
+import { PipelineQueueService } from './pipeline-queue.service';
 
 function makeBundle(bundleId: string, fileName: string) {
   return {
@@ -54,7 +54,11 @@ function makeManager(durationSamples: number, sampleRate: number) {
     sampleRate,
     resource: {
       info: { duration: { samples: durationSamples } },
-      getOAudioFile: () => ({ name: 'x.wav', sampleRate, duration: durationSamples }),
+      getOAudioFile: () => ({
+        name: 'x.wav',
+        sampleRate,
+        duration: durationSamples,
+      }),
     },
   } as any;
 }
@@ -116,8 +120,12 @@ describe('CatalogueExportService', () => {
     const entries = Object.keys(unzipSync(last.archive!));
     expect(entries).toContain('manifest.json');
     expect(entries).toContain('manifest.csv');
-    expect(entries.some((e) => e.startsWith('bundles/a/') && e.endsWith('.json'))).toBe(true);
-    expect(entries.some((e) => e.startsWith('bundles/b/') && e.endsWith('.json'))).toBe(true);
+    expect(
+      entries.some((e) => e.startsWith('bundles/a/') && e.endsWith('.json')),
+    ).toBe(true);
+    expect(
+      entries.some((e) => e.startsWith('bundles/b/') && e.endsWith('.json')),
+    ).toBe(true);
   });
 
   it('emits progress once per bundle, ending at completedBundles === totalBundles', async () => {
@@ -127,7 +135,9 @@ describe('CatalogueExportService', () => {
     ]);
 
     const events = await firstValueFrom(
-      service.exportBundles(['bundle-1', 'bundle-2'], ['AnnotJSON']).pipe(toArray()),
+      service
+        .exportBundles(['bundle-1', 'bundle-2'], ['AnnotJSON'])
+        .pipe(toArray()),
     );
 
     expect(events.length).toBe(2);
@@ -181,9 +191,9 @@ describe('CatalogueExportService', () => {
 
     expect(last.warnings.some((w) => w.includes('AnnotJSON'))).toBe(true);
     const entries = Object.keys(unzipSync(last.archive!));
-    expect(entries.some((e) => e.startsWith('bundles/a/') && e.endsWith('.srt'))).toBe(
-      true,
-    );
+    expect(
+      entries.some((e) => e.startsWith('bundles/a/') && e.endsWith('.srt')),
+    ).toBe(true);
     expect(
       entries.some((e) => e.startsWith('bundles/a/') && e.endsWith('.json')),
     ).toBe(false);
@@ -299,6 +309,37 @@ describe('CatalogueExportService', () => {
     );
     expect(manifest[0].durationSamples).toBe(48000);
     expect(manifest[0].sampleRate).toBe(16000);
+  });
+
+  // Used by the workbench's per-file "Export this transcription".
+  describe('resolveBundleMedia', () => {
+    it("uses the transcript's timing for a file whose audio isn't attached", async () => {
+      const restored = makeBundle('bundle-1', 'a.wav');
+      restored.transcript = new TrattAnnotation([
+        new TrattAnnotationSegmentLevel(1, 'OCTRA_1', [
+          new TrattAnnotationSegment(1, new SampleUnit(48000, 16000), []),
+        ]),
+      ]);
+      const { service, audioService } = setup([restored]);
+      audioService.canRestore.mockReturnValue(false);
+
+      const media = await service.resolveBundleMedia('bundle-1');
+
+      expect(media?.sampleRate).toBe(16000);
+      expect(media?.duration.samples).toBe(48000);
+      expect(media?.oAudioFile.name).toBe('a.wav');
+      expect(audioService.ensureResident).not.toHaveBeenCalled();
+    });
+
+    it('is undefined for an unknown bundle or one with nothing to derive timing from', async () => {
+      const empty = makeBundle('bundle-1', 'a.wav');
+      empty.transcript = new TrattAnnotation([]);
+      const { service, audioService } = setup([empty]);
+      audioService.canRestore.mockReturnValue(false);
+
+      expect(await service.resolveBundleMedia('nope')).toBeUndefined();
+      expect(await service.resolveBundleMedia('bundle-1')).toBeUndefined();
+    });
   });
 
   it('records a warning instead of hanging when serializing one bundle throws', async () => {

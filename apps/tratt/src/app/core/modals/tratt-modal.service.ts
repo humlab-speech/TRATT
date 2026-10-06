@@ -61,13 +61,23 @@ export class TrattModalService implements OnDestroy {
       type: 'open',
       name,
     });
-    ref.result.then((result) => {
-      this.onModalAction.emit({
-        type: 'close',
-        name,
-        result,
-      });
-    });
+    ref.result.then(
+      (result) => {
+        this.onModalAction.emit({
+          type: 'close',
+          name,
+          result,
+        });
+      },
+      // Dismissed (click outside, Esc): still closed. Without a rejection
+      // handler every dismissal was an unhandled rejection ("ERROR 0").
+      () => {
+        this.onModalAction.emit({
+          type: 'close',
+          name,
+        });
+      },
+    );
 
     return ref;
   }

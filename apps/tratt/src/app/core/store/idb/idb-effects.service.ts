@@ -45,6 +45,7 @@ import {
 import { LoginModeActions } from '../login-mode/login-mode.actions';
 import { runStatusOf } from '../pipeline-queue';
 import { UserActions } from '../user/user.actions';
+import { ANNOTATION_SAVE_TRIGGERS } from './annotation-save-triggers';
 import { buildModeOptions } from './build-mode-options';
 import { IDBActions } from './idb.actions';
 
@@ -845,20 +846,7 @@ export class IDBEffects {
 
   saveAnnotation = createEffect(() =>
     this.actions$.pipe(
-      ofType(
-        AnnotationActions.changeAnnotationLevel.do,
-        AnnotationActions.addAnnotationLevel.do,
-        AnnotationActions.removeAnnotationLevel.do,
-        AnnotationActions.overwriteTranscript.do,
-        AnnotationActions.addCurrentLevelItems.do,
-        AnnotationActions.removeCurrentLevelItems.do,
-        AnnotationActions.changeCurrentLevelItems.do,
-        AnnotationActions.changeCurrentItemById.do,
-        AnnotationActions.changeLevelName.do,
-        AnnotationActions.duplicateLevel.do,
-        AuthenticationActions.loginLocal.prepare,
-        AnnotationActions.initTranscriptionService.success,
-      ),
+      ofType(...ANNOTATION_SAVE_TRIGGERS),
       withLatestFrom(this.store),
       mergeMap(([action, appState]) => {
         const subject = new Subject<Action>();

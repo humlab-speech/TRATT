@@ -117,20 +117,23 @@
           <div class="workbench__editor-header">
             <span class="workbench__editor-header-name">{{ header.name }}</span>
             <span class="workbench__editor-header-meta">
-              {{ header.durationText }} · {{ header.sampleRateKhz }} kHz
-              {{
-                (header.channels === 1
-                  ? 'workbench.editor_header.mono'
-                  : 'workbench.editor_header.stereo'
-                ) | transloco
-              }}
-              · {{ header.sizeText }}
+              @if (header.durationText !== undefined) {
+                {{ header.durationText }} · {{ header.sampleRateKhz }} kHz
+                {{
+                  (header.channels === 1
+                    ? 'workbench.editor_header.mono'
+                    : 'workbench.editor_header.stereo'
+                  ) | transloco
+                }}
+                · {{ header.sizeText }}
+              } @else {
+                {{ 'workbench.editor_header.audio_not_attached' | transloco }}
+              }
             </span>
             @if (useMode === 'local' && exportEnabled) {
               <!-- Per-file actions live with the file they act on; exporting
                    several files at once is "Export catalogue…" in the list.
-                   The single-file export modal needs the bundle's decoded
-                   audio (it throws in ngOnInit without it). -->
+                   Works without the file's audio (see exportSelected()). -->
               <div class="workbench__editor-header-actions">
                 @if (recordedFileService.recordedFile?.name === header.name) {
                   <button
@@ -143,15 +146,8 @@
                   </button>
                 }
                 <button
-                  (click)="navbarServ.doclick('export')"
+                  (click)="exportSelected()"
                   class="btn btn-sm btn-primary"
-                  [disabled]="editorPlaceholder() !== 'none'"
-                  [attr.title]="
-                    editorPlaceholder() !== 'none'
-                      ? ('workbench.editor_header.export_needs_audio'
-                        | transloco)
-                      : null
-                  "
                   type="button"
                 >
                   <i class="bi bi-download me-1" aria-hidden="true"></i>

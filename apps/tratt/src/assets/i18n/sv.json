@@ -740,7 +740,8 @@
       "mono": "mono",
       "stereo": "stereo",
       "export": "Exportera den här transkriptionen",
-      "export_needs_audio": "Bifoga filens ljud för att exportera transkriptionen."
+      "export_unavailable": "Inget att exportera än: filen har ingen transkription och dess ljud är inte bifogat.",
+      "audio_not_attached": "ljudet är inte bifogat"
     },
     "bundle_list": {
       "title": "Filer",
@@ -811,6 +812,9 @@
       "text": "Släpp en eller flera ljudfiler till vänster, eller spela in direkt. Varje fil får en egen transkription, och med automatisk transkribering påslagen transkriberas nya filer automatiskt.",
       "restored_title": "Välkommen tillbaka",
       "restored_text": "Filerna från din förra session finns i listan till vänster. Koppla en fils ljud igen med ”Bifoga fil…” för att fortsätta redigera, eller släpp nya filer."
+    },
+    "dropzone": {
+      "already_loaded": "Finns redan i listan och lades inte till igen: {{names}}"
     }
   }
 }

@@ -565,7 +565,11 @@
       "mono": "모노",
       "stereo": "스테레오",
       "export": "이 전사 내보내기",
-      "export_needs_audio": "전사를 내보내려면 이 파일의 오디오를 첨부하세요."
+      "export_unavailable": "아직 내보낼 것이 없습니다: 이 파일에는 전사가 없고 오디오도 첨부되지 않았습니다.",
+      "audio_not_attached": "오디오가 첨부되지 않음"
+    },
+    "dropzone": {
+      "already_loaded": "이미 목록에 있어 다시 추가하지 않았습니다: {{names}}"
     }
   }
 }

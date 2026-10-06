@@ -2,15 +2,15 @@ import { Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { OAnnotJSON, TrattAnnotationSegmentLevel } from '@tratt/annotation';
 import { OAudiofile, SampleUnit } from '@tratt/media';
-import { AppInfo } from '../../../app.info';
-import { Observable } from 'rxjs';
 import { strToU8, zipSync } from 'fflate';
+import { Observable } from 'rxjs';
+import { AppInfo } from '../../../app.info';
+import { BUILD_INFO } from '../../../build-info';
 import { RootState } from '../../store/index';
 import { selectLocalMode } from '../../store/login-mode/annotation/annotation.selectors';
 import { IdentifiedAnnotationState } from '../../store/login-mode/annotation/local-bundle-collection';
 import { AudioService } from './audio.service';
 import { PipelineQueueService } from './pipeline-queue.service';
-import { BUILD_INFO } from '../../../build-info';
 
 export interface CatalogueExportProgress {
   completedBundles: number;
@@ -22,7 +22,7 @@ export interface CatalogueExportProgress {
   warnings: string[];
 }
 
-interface ResolvedMedia {
+export interface ResolvedMedia {
   oAudioFile: OAudiofile;
   sampleRate: number;
   duration: SampleUnit;
@@ -230,6 +230,17 @@ export class CatalogueExportService {
       warnings: [...warnings],
     });
     subscriber.complete();
+  }
+
+  /**
+   * `resolveMedia()` for one bundle by id — what the workbench's per-file
+   * "Export this transcription" uses, so it works without attached audio.
+   */
+  async resolveBundleMedia(
+    bundleId: string,
+  ): Promise<ResolvedMedia | undefined> {
+    const entity = this.localMode()?.bundles.entities[bundleId];
+    return entity ? this.resolveMedia(bundleId, entity) : undefined;
   }
 
   /**

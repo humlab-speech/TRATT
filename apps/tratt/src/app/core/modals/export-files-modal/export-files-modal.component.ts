@@ -19,6 +19,7 @@ import { AppInfo } from '../../../app.info';
 import { NavbarService } from '../../component/navbar/navbar.service';
 import { AudioService, UserInteractionsService } from '../../shared/service';
 import { AppStorageService } from '../../shared/service/appstorage.service';
+import { ResolvedMedia } from '../../shared/service/catalogue-export.service';
 import { RecordedFileService } from '../../shared/service/recorded-file.service';
 import { AnnotationStoreService } from '../../store/login-mode/annotation/annotation.store.service';
 import { NamingDragAndDropComponent } from '../../tools/naming-drag-and-drop/naming-drag-and-drop.component';
@@ -121,9 +122,33 @@ export class ExportFilesModalComponent extends TrattModal implements OnInit {
 
   converters: Converter[] = [];
 
+  /**
+   * Media to export against, passed by the workbench so a file can be
+   * exported without its audio attached (timing from the transcript or the
+   * registration-time media info). Unset: the current audio (navbar, /local).
+   */
+  media?: ResolvedMedia;
+
   /** The exported recording's file name, for the dialog title. */
   get audioFileName(): string | undefined {
-    return this.audio.current?.resource?.info?.fullname;
+    return (
+      this.media?.oAudioFile.name ??
+      this.audio.current?.resource?.info?.fullname
+    );
+  }
+
+  private resolveExportMedia(): ResolvedMedia | undefined {
+    if (this.media) {
+      return this.media;
+    }
+    const manager = this.audio.current;
+    return manager
+      ? {
+          oAudioFile: manager.resource.getOAudioFile(),
+          sampleRate: manager.sampleRate,
+          duration: manager.resource.info.duration,
+        }
+      : undefined;
   }
 
   constructor(
@@ -157,7 +182,7 @@ export class ExportFilesModalComponent extends TrattModal implements OnInit {
         value: 'opened',
       },
       Date.now(),
-      this.audio.current!.playPosition,
+      this.audio.current?.playPosition,
       undefined,
       undefined,
       undefined,
@@ -189,7 +214,7 @@ export class ExportFilesModalComponent extends TrattModal implements OnInit {
         value: 'closed',
       },
       Date.now(),
-      this.audio.current!.playPosition,
+      this.audio.current?.playPosition,
       undefined,
       undefined,
       undefined,
@@ -268,7 +293,11 @@ export class ExportFilesModalComponent extends TrattModal implements OnInit {
   }
 
   updateParentFormat(converter: Converter, levelnum?: number) {
-    const manager = this.audio.current!;
+    const media = this.resolveExportMedia();
+    if (!media) {
+      console.error('export: no media to export against');
+      return;
+    }
     if (levelnum === undefined && !converter.multitiers) {
       levelnum = 0;
     }
@@ -282,9 +311,9 @@ export class ExportFilesModalComponent extends TrattModal implements OnInit {
         return;
       }
       const oannotjson = this.annotationStoreService.transcript?.serialize(
-        manager.resource.info.fullname,
-        manager.sampleRate,
-        manager.resource.info.duration,
+        media.oAudioFile.name,
+        media.sampleRate,
+        media.duration,
       );
       this.preparing = {
         name: converter.name,
@@ -299,10 +328,9 @@ export class ExportFilesModalComponent extends TrattModal implements OnInit {
              */
         }
 
-        const oAudioFile = this.audio.current!.resource.getOAudioFile();
         const result: ExportResult = converter.export(
           oannotjson,
-          oAudioFile,
+          media.oAudioFile,
           levelnum,
           levelnums,
         );
@@ -342,7 +370,7 @@ export class ExportFilesModalComponent extends TrattModal implements OnInit {
       preparing: true,
     };
     this.parentformat.download =
-      this.audio.current!.resource.info.name + '.json';
+      (this.audioFileName ?? 'transcript').replace(/\.[^.]+$/, '') + '.json';
 
     if (this.parentformat.uri !== undefined) {
       window.URL.revokeObjectURL(this.parentformat.uri.toString());

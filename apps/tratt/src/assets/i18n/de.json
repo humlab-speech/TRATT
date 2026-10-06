@@ -783,7 +783,11 @@
       "mono": "mono",
       "stereo": "stereo",
       "export": "Diese Transkription exportieren",
-      "export_needs_audio": "Hängen Sie die Audiodatei an, um die Transkription zu exportieren."
+      "export_unavailable": "Noch nichts zu exportieren: Diese Datei hat keine Transkription und ihr Audio ist nicht angehängt.",
+      "audio_not_attached": "Audio nicht angehängt"
+    },
+    "dropzone": {
+      "already_loaded": "Bereits in der Liste, nicht erneut hinzugefügt: {{names}}"
     }
   }
 }

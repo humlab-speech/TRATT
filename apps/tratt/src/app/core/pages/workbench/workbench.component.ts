@@ -6,6 +6,8 @@ import {
   ComponentRef,
   computed,
   effect,
+  HostListener,
+  inject,
   NgZone,
   OnDestroy,
   OnInit,
@@ -48,6 +50,7 @@ import { AutoTranscribeOptionsComponent } from '../../component/tratt-dropzone/a
 import { AutoTranslateOptionsComponent } from '../../component/tratt-dropzone/auto-translate-options.component';
 import { TrattDropzoneComponent } from '../../component/tratt-dropzone/tratt-dropzone.component';
 import { DropzoneStatistics } from '../../component/tratt-dropzone/tratt-dropzone.service';
+import { ExportFilesModalComponent } from '../../modals/export-files-modal/export-files-modal.component';
 import { OverviewModalComponent } from '../../modals/overview-modal/overview-modal.component';
 import { ShortcutsModalComponent } from '../../modals/shortcuts-modal/shortcuts-modal.component';
 import {
@@ -65,9 +68,12 @@ import { SessionFile } from '../../obj/SessionFile';
 import { ProjectSettings } from '../../obj/Settings';
 import { LoadeditorDirective } from '../../shared/directive/loadeditor.directive';
 import { SettingsService, UserInteractionsService } from '../../shared/service';
+import { AlertService } from '../../shared/service/alert.service';
+import { AnnotationSaveTracker } from '../../shared/service/annotation-save-tracker.service';
 import { AppStorageService } from '../../shared/service/appstorage.service';
 import { AudioService } from '../../shared/service/audio.service';
 import { CapacityService } from '../../shared/service/capacity.service';
+import { CatalogueExportService } from '../../shared/service/catalogue-export.service';
 import { TranscriptionOptions } from '../../shared/service/local-transcription.service';
 import { TranslationOptions } from '../../shared/service/local-translation.service';
 import { PendingEditsService } from '../../shared/service/pending-edits.service';
@@ -172,6 +178,9 @@ export class WorkbenchComponent
 
   private selectedBundleId = this.store.selectSignal(selectSelectedBundleId);
   private localMode = this.store.selectSignal(selectLocalMode);
+  private alertService = inject(AlertService);
+  private saveTracker = inject(AnnotationSaveTracker);
+  private catalogueExport = inject(CatalogueExportService);
   private selectedLevelIndex = computed(
     () =>
       this.localMode()?.bundles.entities[this.selectedBundleId()]?.transcript
@@ -335,10 +344,11 @@ export class WorkbenchComponent
   get selectedBundleHeader():
     | {
         name: string;
-        durationText: string;
-        sampleRateKhz: number;
-        channels: number;
-        sizeText: string;
+        /** Unset while the file's audio isn't available this session. */
+        durationText?: string;
+        sampleRateKhz?: number;
+        channels?: number;
+        sizeText?: string;
       }
     | undefined {
     // Media info is captured at registration and survives LRU eviction, so
@@ -347,7 +357,12 @@ export class WorkbenchComponent
       this.audioService.getMediaInfo(this.selectedBundleId()) ??
       this.audioService.current?.resource?.info;
     if (!info) {
-      return undefined;
+      // A file restored after a reload: still name it, so its per-file
+      // actions (export) are reachable before the audio is re-attached.
+      const name =
+        this.localMode()?.bundles.entities[this.selectedBundleId()]?.sessionFile
+          ?.name;
+      return name ? { name } : undefined;
     }
     const fileSize = getFileSize(info.size);
     return {
@@ -357,6 +372,36 @@ export class WorkbenchComponent
       channels: info.channels,
       sizeText: `${fileSize.size} ${fileSize.label}`,
     };
+  }
+
+  /**
+   * "Export this transcription". Resolves the selected file's media the way
+   * the catalogue export does — registration-time info, a resident or
+   * re-decodable manager, else the transcript's own timing — so a file can
+   * be exported before (or without) re-attaching its audio.
+   */
+  async exportSelected(): Promise<void> {
+    // Export what is on screen, including typing still in the debounce.
+    this.pendingEdits.flush();
+    const media = await this.catalogueExport.resolveBundleMedia(
+      this.selectedBundleId(),
+    );
+    if (!media) {
+      this.alertService
+        .showAlert(
+          'warning',
+          this.transloco.translate(
+            'workbench.editor_header.export_unavailable',
+          ),
+        )
+        .catch((error) => console.error(error));
+      return;
+    }
+    this.modService.openModalRef(
+      ExportFilesModalComponent,
+      ExportFilesModalComponent.options,
+      { uiService: this.uiService, media },
+    );
   }
 
   onRunPauseClick(): void {
@@ -637,9 +682,16 @@ export class WorkbenchComponent
     for (const f of newlyValid) {
       this.ingestedIds.add(f.id);
     }
-    const { reattach, fresh } = this.matchAwaitingBundles(newlyValid);
+    const { reattach, duplicates, fresh } =
+      this.matchAwaitingBundles(newlyValid);
     if (reattach.length > 0) {
       this.reattachDropped(reattach);
+    }
+    if (duplicates.length > 0) {
+      this.skipDuplicates(
+        duplicates,
+        reattach.length === 0 && fresh.length === 0,
+      );
     }
     if (fresh.length === 0) {
       return;
@@ -653,52 +705,122 @@ export class WorkbenchComponent
   }
 
   /**
-   * After a reload every file in the list waits for its audio. Dropping the
-   * same files again used to add a second row per file (with an empty
-   * transcript) next to each waiting one. A dropped file whose name, size
-   * and type match a waiting bundle now goes to that bundle; only the rest
-   * become new files. Each bundle takes at most one file.
+   * Splits a drop by what each file means for the list (fingerprint: name,
+   * size and type):
+   *
+   * - `reattach` — the file of a bundle that is waiting for its audio (after
+   *   a reload). Dropping the same files again used to add a second row per
+   *   file; it now goes to the waiting bundle. Each bundle takes one file.
+   * - `duplicates` — a file already in the list with its audio, or one
+   *   dropped twice in the same drop. Used to add an identical row.
+   * - `fresh` — everything else: new bundles.
    */
   private matchAwaitingBundles(entries: FileProgress[]): {
     reattach: { entry: FileProgress; bundleId: string }[];
+    duplicates: { entry: FileProgress; bundleId?: string }[];
     fresh: FileProgress[];
   } {
     const entities = this.localMode()?.bundles.entities ?? {};
-    const waiting = this.bundleSummaries()
-      .filter(
-        (b) =>
-          b.name !== undefined && !this.audioService.canRestore(b.bundleId),
-      )
+    const listed = this.bundleSummaries()
+      .filter((b) => b.name !== undefined)
       .map((b) => ({
         bundleId: b.bundleId,
         file: entities[b.bundleId]?.sessionFile,
+        hasAudio: this.audioService.canRestore(b.bundleId),
       }))
       .filter(
-        (b): b is { bundleId: string; file: SessionFile } =>
+        (b): b is { bundleId: string; file: SessionFile; hasAudio: boolean } =>
           b.file !== undefined,
       );
+    const sameFile = (
+      a: { name: string; size: number; type: string },
+      file: File,
+    ) =>
+      a.name === file.name &&
+      a.size === file.size &&
+      a.type === normalizeMimeType(file.type);
+
     const taken = new Set<string>();
     const reattach: { entry: FileProgress; bundleId: string }[] = [];
+    const duplicates: { entry: FileProgress; bundleId?: string }[] = [];
     const fresh: FileProgress[] = [];
     for (const entry of entries) {
       const file = entry.file.file;
-      const match = file
-        ? waiting.find(
-            (b) =>
-              !taken.has(b.bundleId) &&
-              b.file.name === file.name &&
-              b.file.size === file.size &&
-              b.file.type === normalizeMimeType(file.type),
-          )
-        : undefined;
-      if (match) {
-        taken.add(match.bundleId);
-        reattach.push({ entry, bundleId: match.bundleId });
+      if (!file) {
+        fresh.push(entry);
+        continue;
+      }
+      const waiting = listed.find(
+        (b) => !b.hasAudio && !taken.has(b.bundleId) && sameFile(b.file, file),
+      );
+      if (waiting) {
+        taken.add(waiting.bundleId);
+        reattach.push({ entry, bundleId: waiting.bundleId });
+        continue;
+      }
+      const loaded = listed.find((b) => b.hasAudio && sameFile(b.file, file));
+      const earlier = [...fresh, ...reattach.map((r) => r.entry)].some(
+        (other) =>
+          other.file.file !== undefined &&
+          sameFile(
+            {
+              name: other.file.file.name,
+              size: other.file.file.size,
+              type: normalizeMimeType(other.file.file.type),
+            },
+            file,
+          ),
+      );
+      if (loaded || earlier) {
+        duplicates.push({ entry, bundleId: loaded?.bundleId });
       } else {
         fresh.push(entry);
       }
     }
-    return { reattach, fresh };
+    return { reattach, duplicates, fresh };
+  }
+
+  /**
+   * Drops files that are already in the list: their decoded audio is
+   * released (it was never registered) and one notice names them. A drop of
+   * nothing but already-listed files selects the first of them — dropping a
+   * file again "opens" it.
+   */
+  private skipDuplicates(
+    duplicates: { entry: FileProgress; bundleId?: string }[],
+    onlyDuplicates: boolean,
+  ): void {
+    for (const { entry } of duplicates) {
+      entry.audioManager?.destroy();
+      this.dropzone!.consumeEntry(entry.id);
+    }
+    const names = [
+      ...new Set(duplicates.map(({ entry }) => entry.file.fullname)),
+    ].join(', ');
+    this.alertService
+      .showAlert(
+        'info',
+        this.transloco.translate('workbench.dropzone.already_loaded', {
+          names,
+        }),
+      )
+      .catch((error) => console.error(error));
+
+    const target = duplicates[0].bundleId;
+    if (
+      onlyDuplicates &&
+      target !== undefined &&
+      this.sessionReady &&
+      target !== this.selectedBundleId()
+    ) {
+      this.pendingEdits.flush();
+      this.store.dispatch(
+        LoginModeActions.selectBundle({
+          mode: LoginMode.LOCAL,
+          bundleId: target,
+        }),
+      );
+    }
   }
 
   /**
@@ -747,6 +869,40 @@ export class WorkbenchComponent
         removeData: false,
         audioAlreadyLoaded: true,
       }),
+    );
+  }
+
+  /**
+   * Closing or reloading the tab while work is in flight loses it: a
+   * running transcription, files still decoding, a recording that was never
+   * exported (media is never stored, so it can't be re-attached later), or
+   * transcript writes to IndexedDB that haven't finished. Typing still in
+   * an editor's debounce is committed first. Browsers show their own
+   * "Leave site?" text; a custom message is not supported.
+   */
+  @HostListener('window:beforeunload', ['$event'])
+  onBeforeUnload(event: BeforeUnloadEvent): void {
+    this.pendingEdits.flush();
+    if (this.hasWorkInFlight()) {
+      event.preventDefault();
+      // Legacy browsers only show the dialog when returnValue is set.
+      event.returnValue = '';
+    }
+  }
+
+  /** Last chance on mobile / bfcache, where beforeunload doesn't fire. */
+  @HostListener('window:pagehide')
+  onPageHide(): void {
+    this.pendingEdits.flush();
+  }
+
+  hasWorkInFlight(): boolean {
+    return (
+      this.queueRunning() ||
+      (this.dropzone?.files ?? []).some((f) => f.status !== 'invalid') ||
+      (!!this.recordedFileService.recordedFile &&
+        !this.recordedFileService.exported) ||
+      this.saveTracker.inFlight > 0
     );
   }
 

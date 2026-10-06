@@ -565,7 +565,11 @@
       "mono": "单声道",
       "stereo": "立体声",
       "export": "导出此转写",
-      "export_needs_audio": "请附加此文件的音频以导出其转写。"
+      "export_unavailable": "暂无可导出内容：此文件没有转写，且未附加音频。",
+      "audio_not_attached": "未附加音频"
+    },
+    "dropzone": {
+      "already_loaded": "已在列表中，未重复添加：{{names}}"
     }
   }
 }

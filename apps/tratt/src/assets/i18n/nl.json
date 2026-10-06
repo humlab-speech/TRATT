@@ -565,7 +565,11 @@
       "mono": "mono",
       "stereo": "stereo",
       "export": "Deze transcriptie exporteren",
-      "export_needs_audio": "Koppel de audio van dit bestand om de transcriptie te exporteren."
+      "export_unavailable": "Nog niets te exporteren: dit bestand heeft geen transcriptie en de audio is niet gekoppeld.",
+      "audio_not_attached": "audio niet gekoppeld"
+    },
+    "dropzone": {
+      "already_loaded": "Staat al in de lijst, niet opnieuw toegevoegd: {{names}}"
     }
   }
 }

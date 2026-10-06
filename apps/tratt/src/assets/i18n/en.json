@@ -792,7 +792,8 @@
       "mono": "mono",
       "stereo": "stereo",
       "export": "Export this transcription",
-      "export_needs_audio": "Attach this file's audio to export its transcription."
+      "export_unavailable": "Nothing to export yet: this file has no transcript and its audio isn't attached.",
+      "audio_not_attached": "audio not attached"
     },
     "bundle_list": {
       "title": "Files",
@@ -863,6 +864,9 @@
       "text": "Drop one or more audio files on the left, or record directly. Every file gets its own transcript, and with Auto-transcribe switched on new files are transcribed automatically.",
       "restored_title": "Welcome back",
       "restored_text": "Your files from the last session are listed on the left. Re-attach a file’s audio with “Attach file…” to keep editing it, or drop new files."
+    },
+    "dropzone": {
+      "already_loaded": "Already in the list, not added again: {{names}}"
     }
   }
 }

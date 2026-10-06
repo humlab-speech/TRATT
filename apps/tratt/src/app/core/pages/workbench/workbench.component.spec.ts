@@ -121,9 +121,12 @@ import { randomUUID } from 'node:crypto';
 import { BehaviorSubject, of } from 'rxjs';
 import { editorComponents } from '../../../editors/components';
 import { NavbarService } from '../../component/navbar/navbar.service';
+import { ExportFilesModalComponent } from '../../modals/export-files-modal/export-files-modal.component';
 import { TrattModalService } from '../../modals/tratt-modal.service';
 import { SessionFile } from '../../obj/SessionFile';
 import { SettingsService, UserInteractionsService } from '../../shared/service';
+import { AlertService } from '../../shared/service/alert.service';
+import { AnnotationSaveTracker } from '../../shared/service/annotation-save-tracker.service';
 import { AppStorageService } from '../../shared/service/appstorage.service';
 import { AudioService } from '../../shared/service/audio.service';
 import {
@@ -132,6 +135,7 @@ import {
   ResidentMemoryEstimate,
   StorageCapacity,
 } from '../../shared/service/capacity.service';
+import { CatalogueExportService } from '../../shared/service/catalogue-export.service';
 import { PendingEditsService } from '../../shared/service/pending-edits.service';
 import { PipelineQueueService } from '../../shared/service/pipeline-queue.service';
 import { RecordedFileService } from '../../shared/service/recorded-file.service';
@@ -288,6 +292,12 @@ describe('WorkbenchComponent', () => {
         { provide: RoutingService, useValue: { staticQueryParams: {} } },
         { provide: NavbarService, useValue: {} },
         { provide: RecordedFileService, useValue: {} },
+        // The real tracker listens to NgRx Actions (not provided here).
+        { provide: AnnotationSaveTracker, useValue: { inFlight: 0 } },
+        {
+          provide: CatalogueExportService,
+          useValue: { resolveBundleMedia: jest.fn(async () => undefined) },
+        },
         { provide: AnnotationStoreService, useValue: {} },
         { provide: SettingsService, useValue: { isTheme: () => false } },
         { provide: TrattModalService, useValue: {} },
@@ -1011,12 +1021,23 @@ describe('WorkbenchComponent', () => {
       loading$.next({ status: LoadingStatus.FINISHED });
     }
 
-    it('offers "Export this transcription" in the file header and has no bottom bar', () => {
+    function exportStubs(media: unknown) {
+      const resolveBundleMedia = jest.fn(async () => media);
+      (component as any).catalogueExport = { resolveBundleMedia };
+      const openModalRef = jest.fn();
+      (component as any).modService = { openModalRef };
+      const showAlert = jest
+        .spyOn(TestBed.inject(AlertService), 'showAlert')
+        .mockResolvedValue({ id: 1, component: undefined });
+      return { resolveBundleMedia, openModalRef, showAlert };
+    }
+
+    it('offers "Export this transcription" in the file header and has no bottom bar', async () => {
       startLocalSession([named]);
-      const doclick = jest.fn();
-      component.navbarServ = { doclick, showInterfaces: false } as any;
       component.editorPlaceholder.set('none');
       fixture.detectChanges();
+      const media = { sampleRate: 44100 };
+      const { resolveBundleMedia, openModalRef } = exportStubs(media);
 
       const button = fixture.debugElement.query(
         By.css(
@@ -1031,22 +1052,53 @@ describe('WorkbenchComponent', () => {
         fixture.debugElement.query(By.css('#bottom-navigation')),
       ).toBeNull();
 
-      button.nativeElement.click();
-      expect(doclick).toHaveBeenCalledWith('export');
+      await component.exportSelected();
+      expect(resolveBundleMedia).toHaveBeenCalledWith(DEFAULT_BUNDLE_ID);
+      expect(openModalRef).toHaveBeenCalledWith(
+        ExportFilesModalComponent,
+        ExportFilesModalComponent.options,
+        expect.objectContaining({ media }),
+      );
     });
 
-    it('disables it, with a reason, while the file has no audio', () => {
+    // Used to be disabled until the audio was re-attached: after a reload
+    // nothing could be exported per file.
+    it('stays available while the file has no audio, exporting from the transcript', async () => {
       startLocalSession([named]);
       component.editorPlaceholder.set('awaiting-media');
       fixture.detectChanges();
+      const { openModalRef } = exportStubs({ sampleRate: 16000 });
 
       const button = fixture.debugElement.query(
         By.css('.workbench__editor-header-actions .btn-primary'),
       );
-      expect(button.nativeElement.disabled).toBe(true);
-      expect(button.nativeElement.getAttribute('title')).toBe(
-        'workbench.editor_header.export_needs_audio',
+      expect(button.nativeElement.disabled).toBe(false);
+
+      await component.exportSelected();
+      expect(openModalRef).toHaveBeenCalled();
+    });
+
+    it('explains instead of opening an empty dialog when there is nothing to export', async () => {
+      startLocalSession([named]);
+      const { openModalRef, showAlert } = exportStubs(undefined);
+
+      await component.exportSelected();
+
+      expect(openModalRef).not.toHaveBeenCalled();
+      expect(showAlert).toHaveBeenCalledWith(
+        'warning',
+        'workbench.editor_header.export_unavailable',
       );
+    });
+
+    it('commits pending typing before exporting', async () => {
+      startLocalSession([named]);
+      exportStubs({ sampleRate: 16000 });
+      const flush = jest.spyOn(TestBed.inject(PendingEditsService), 'flush');
+
+      await component.exportSelected();
+
+      expect(flush).toHaveBeenCalled();
     });
 
     it('shows the "no files" state, not an attach prompt, once every file was removed', () => {
@@ -1067,6 +1119,80 @@ describe('WorkbenchComponent', () => {
       ).toBeNull();
       // The editor host stays, so the ViewChild survives the empty state.
       expect(component.showEditor).toBeDefined();
+    });
+  });
+
+  // Closing/reloading the tab used to drop in-flight work silently.
+  describe('leaving the page with work in flight', () => {
+    const unloadEvent = () =>
+      ({ preventDefault: jest.fn(), returnValue: undefined }) as any;
+    let tracker: { inFlight: number };
+
+    beforeEach(() => {
+      fixture.detectChanges();
+      tracker = TestBed.inject(AnnotationSaveTracker) as any;
+      component.dropzone = { files: [] } as any;
+    });
+
+    it('lets the page go when nothing is in flight', () => {
+      const event = unloadEvent();
+      component.onBeforeUnload(event);
+      expect(event.preventDefault).not.toHaveBeenCalled();
+    });
+
+    it('asks to confirm while the queue is running', () => {
+      queueMode = 'running';
+      // queueRunning is a computed over a plain stub: build a fresh fixture
+      // so it reads the new mode.
+      fixture = TestBed.createComponent(WorkbenchComponent);
+      component = fixture.componentInstance;
+      component.dropzone = { files: [] } as any;
+      const event = unloadEvent();
+      component.onBeforeUnload(event);
+      expect(event.preventDefault).toHaveBeenCalled();
+      expect(event.returnValue).toBe('');
+    });
+
+    it('asks to confirm while dropped files are still being read', () => {
+      component.dropzone = { files: [{ status: 'progress' }] } as any;
+      const event = unloadEvent();
+      component.onBeforeUnload(event);
+      expect(event.preventDefault).toHaveBeenCalled();
+    });
+
+    it('does not count failed (invalid) dropzone rows as work', () => {
+      component.dropzone = { files: [{ status: 'invalid' }] } as any;
+      const event = unloadEvent();
+      component.onBeforeUnload(event);
+      expect(event.preventDefault).not.toHaveBeenCalled();
+    });
+
+    it('asks to confirm with an un-exported recording', () => {
+      const recorded = TestBed.inject(RecordedFileService) as any;
+      recorded.recordedFile = new File(['x'], 'rec.wav');
+      recorded.exported = false;
+      const event = unloadEvent();
+      component.onBeforeUnload(event);
+      expect(event.preventDefault).toHaveBeenCalled();
+
+      recorded.exported = true;
+      const after = unloadEvent();
+      component.onBeforeUnload(after);
+      expect(after.preventDefault).not.toHaveBeenCalled();
+    });
+
+    it('asks to confirm while transcript writes are in flight', () => {
+      tracker.inFlight = 1;
+      const event = unloadEvent();
+      component.onBeforeUnload(event);
+      expect(event.preventDefault).toHaveBeenCalled();
+    });
+
+    it('commits pending typing before deciding (and on pagehide)', () => {
+      const flush = jest.spyOn(TestBed.inject(PendingEditsService), 'flush');
+      component.onBeforeUnload(unloadEvent());
+      component.onPageHide();
+      expect(flush).toHaveBeenCalledTimes(2);
     });
   });
 
@@ -1271,6 +1397,29 @@ describe('WorkbenchComponent', () => {
       fixture.detectChanges();
 
       expect(component.selectedBundleHeader).toBeUndefined();
+    });
+
+    // Restored after a reload: still named, so "Export this transcription"
+    // is reachable before the audio is re-attached.
+    it("names a restored file whose audio isn't attached, without media details", () => {
+      audioService.current = undefined;
+      localModeState = {
+        bundles: {
+          entities: {
+            [DEFAULT_BUNDLE_ID]: {
+              sessionFile: new SessionFile(
+                'restored.wav',
+                1,
+                new Date(),
+                'audio/wav',
+              ),
+            },
+          },
+        },
+      };
+      fixture.detectChanges();
+
+      expect(component.selectedBundleHeader).toEqual({ name: 'restored.wav' });
     });
 
     it('formats name, duration, sample rate, and size from the resident AudioManager', () => {
@@ -1778,7 +1927,7 @@ describe('WorkbenchComponent', () => {
         expect(authStoreService.loginLocal).toHaveBeenCalled();
       });
 
-      it('never attaches to a bundle whose audio is already available', () => {
+      it('never re-attaches to a bundle whose audio is already available (that drop is a duplicate)', () => {
         audioService.canRestore.mockImplementation(
           (id: unknown) => id === 'r1',
         );
@@ -1794,7 +1943,114 @@ describe('WorkbenchComponent', () => {
         expect(
           dispatched(LoginModeActions.bundleAudioAttached.type),
         ).toHaveLength(0);
+        // Neither re-attached nor added again (see the duplicate tests).
+        expect(dispatched(LoginModeActions.createBundle.type)).toHaveLength(0);
+      });
+    });
+
+    // Dropping a file that is already in the list (with its audio) used to
+    // add an identical row.
+    describe('dropping files that are already in the list', () => {
+      const listed = (name: string, size: number) =>
+        new SessionFile(name, size, new Date(0), 'audio/wav');
+      const wav = (name: string, bytes: string) =>
+        new File([bytes], name, { type: 'audio/wav' });
+      const valid = (id: number, file: File) =>
+        fileProgress(id, file, {
+          status: 'valid',
+          audioManager: { id: `m-${id}`, destroy: jest.fn() },
+          oaudiofile: {},
+        });
+      const dispatched = (type: string) =>
+        storeDispatch.mock.calls
+          .map(([action]) => action as any)
+          .filter((a) => a.type === type);
+      let showAlert: jest.SpiedFunction<AlertService['showAlert']>;
+
+      beforeEach(() => {
+        localModeState = {
+          bundles: { entities: { l1: { sessionFile: listed('a.wav', 3) } } },
+        };
+        bundleSummaries = [
+          {
+            bundleId: 'l1',
+            name: 'a.wav',
+            selected: false,
+            awaitingMedia: false,
+          },
+        ];
+        audioService.canRestore.mockImplementation(
+          (id: unknown) => id === 'l1',
+        );
+        showAlert = jest
+          .spyOn(TestBed.inject(AlertService), 'showAlert')
+          .mockResolvedValue({ id: 1, component: undefined });
+        component.sessionReady = true;
+        component.dropzone = makeDropzone() as any;
+        component.ngAfterViewInit();
+      });
+
+      it('skips a file that is already loaded: no new row, decoded audio released, notice shown', () => {
+        const dup = valid(1, wav('a.wav', 'abc'));
+        component.dropzone!.filesAdded.emit({
+          statistics: {} as any,
+          addedFiles: [dup, valid(2, wav('new.wav', 'abcd'))],
+        });
+
+        const created = dispatched(LoginModeActions.createBundle.type);
+        expect(created.map((a) => a.sessionFile.name)).toEqual(['new.wav']);
+        expect(dup.audioManager.destroy).toHaveBeenCalled();
+        expect(audioService.registerAudioManager).not.toHaveBeenCalledWith(
+          expect.anything(),
+          dup.audioManager,
+          expect.anything(),
+        );
+        expect(component.dropzone!.consumeEntry).toHaveBeenCalledWith(1);
+        expect(showAlert).toHaveBeenCalledWith(
+          'info',
+          'workbench.dropzone.already_loaded',
+        );
+        // A mixed drop doesn't move the selection to the duplicate.
+        expect(dispatched(LoginModeActions.selectBundle.type)).toHaveLength(0);
+      });
+
+      it('dropping only an already-loaded file selects it', () => {
+        component.dropzone!.filesAdded.emit({
+          statistics: {} as any,
+          addedFiles: [valid(1, wav('a.wav', 'abc'))],
+        });
+
+        expect(dispatched(LoginModeActions.createBundle.type)).toHaveLength(0);
+        expect(
+          dispatched(LoginModeActions.selectBundle.type).map((a) => a.bundleId),
+        ).toEqual(['l1']);
+      });
+
+      it('the same new file twice in one drop becomes one row', () => {
+        component.dropzone!.filesAdded.emit({
+          statistics: {} as any,
+          addedFiles: [
+            valid(1, wav('b.wav', 'xyz')),
+            valid(2, wav('b.wav', 'xyz')),
+          ],
+        });
+
+        expect(
+          dispatched(LoginModeActions.createBundle.type).map(
+            (a) => a.sessionFile.name,
+          ),
+        ).toEqual(['b.wav']);
+        expect(component.dropzone!.consumeEntry).toHaveBeenCalledWith(2);
+      });
+
+      it('a file with the same name but a different size is added', () => {
+        component.dropzone!.filesAdded.emit({
+          statistics: {} as any,
+          addedFiles: [valid(1, wav('a.wav', 'abcdef'))],
+        });
+
         expect(dispatched(LoginModeActions.createBundle.type)).toHaveLength(1);
+        expect(showAlert).not.toHaveBeenCalled();
       });
     });
 
@@ -2276,6 +2532,12 @@ describe('WorkbenchComponent with real default LOCAL store state', () => {
         { provide: RoutingService, useValue: { staticQueryParams: {} } },
         { provide: NavbarService, useValue: {} },
         { provide: RecordedFileService, useValue: {} },
+        // The real tracker listens to NgRx Actions (not provided here).
+        { provide: AnnotationSaveTracker, useValue: { inFlight: 0 } },
+        {
+          provide: CatalogueExportService,
+          useValue: { resolveBundleMedia: jest.fn(async () => undefined) },
+        },
         { provide: AnnotationStoreService, useValue: {} },
         { provide: SettingsService, useValue: { isTheme: () => false } },
         { provide: TrattModalService, useValue: {} },
@@ -2599,6 +2861,12 @@ describe('WorkbenchComponent with real default LOCAL store state', () => {
         { provide: RoutingService, useValue: { staticQueryParams: {} } },
         { provide: NavbarService, useValue: {} },
         { provide: RecordedFileService, useValue: {} },
+        // The real tracker listens to NgRx Actions (not provided here).
+        { provide: AnnotationSaveTracker, useValue: { inFlight: 0 } },
+        {
+          provide: CatalogueExportService,
+          useValue: { resolveBundleMedia: jest.fn(async () => undefined) },
+        },
         { provide: AnnotationStoreService, useValue: {} },
         { provide: SettingsService, useValue: { isTheme: () => false } },
         { provide: TrattModalService, useValue: {} },

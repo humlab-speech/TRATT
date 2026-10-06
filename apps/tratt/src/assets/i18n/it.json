@@ -565,7 +565,11 @@
       "mono": "mono",
       "stereo": "stereo",
       "export": "Esporta questa trascrizione",
-      "export_needs_audio": "Allega l'audio del file per esportarne la trascrizione."
+      "export_unavailable": "Ancora niente da esportare: questo file non ha una trascrizione e il suo audio non è allegato.",
+      "audio_not_attached": "audio non allegato"
+    },
+    "dropzone": {
+      "already_loaded": "Già nell'elenco, non aggiunto di nuovo: {{names}}"
     }
   }
 }
