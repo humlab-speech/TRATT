@@ -277,6 +277,9 @@ export class AudioService {
     if (manager !== undefined) {
       const existing = this._audiomanagers.get(bundleId);
       if (existing !== manager) {
+        // Replacing a registered manager (re-attach, reload) must release the
+        // old one's AudioContext, blob URL and PCM — the Map no longer holds it.
+        existing?.destroy().catch(() => undefined);
         this._audiomanagers.set(bundleId, manager);
         const info = manager.resource?.info;
         if (info) {

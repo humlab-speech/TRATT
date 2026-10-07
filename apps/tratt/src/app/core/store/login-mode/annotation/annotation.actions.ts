@@ -99,6 +99,8 @@ export class AnnotationActions {
     events: {
       do: props<{
         mode: LoginMode;
+        /** true = also wipe the persisted IndexedDB rows, not just memory */
+        clearSession?: boolean;
       }>(),
     },
   });

@@ -514,13 +514,13 @@ export class AppStorageService {
   }
 
   public disableUndoRedo() {
+    // Only gates undo/redo; the user's history must survive (e.g. while the
+    // bug-report modal is open).
     this._undoRedoDisabled = true;
-    this.clearHistory();
   }
 
   public enableUndoRedo() {
     if (this._undoRedoDisabled) {
-      this.clearHistory();
       this._undoRedoDisabled = false;
     }
   }
@@ -539,6 +539,7 @@ export class AppStorageService {
     this.store.dispatch(
       AnnotationActions.clearAnnotation.do({
         mode: this.useMode,
+        clearSession: true,
       }),
     );
   }

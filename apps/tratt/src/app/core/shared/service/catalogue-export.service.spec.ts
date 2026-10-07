@@ -324,6 +324,18 @@ describe('CatalogueExportService', () => {
   });
 
   // Used by the workbench's per-file "Export this transcription".
+  describe('uniquePath (zip-slip)', () => {
+    it.each(['../../evil.txt', '/etc/passwd', 'a\\..\\b.txt', '..'])(
+      'keeps %s inside the bundle directory',
+      (name) => {
+        const { service } = setup([makeBundle('bundle-1', 'a.wav')]);
+        const path = (service as any).uniquePath({}, 'bundles/x', name);
+        expect(path.startsWith('bundles/x/')).toBe(true);
+        expect(path.slice('bundles/x/'.length)).not.toMatch(/[\\/]|^\.\.$/);
+      },
+    );
+  });
+
   describe('resolveBundleMedia', () => {
     it("uses the transcript's timing for a file whose audio isn't attached", async () => {
       const restored = makeBundle('bundle-1', 'a.wav');

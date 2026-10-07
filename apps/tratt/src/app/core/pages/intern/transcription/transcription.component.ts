@@ -50,6 +50,7 @@ import { NavbarService } from '../../../component/navbar/navbar.service';
 import { FastbarComponent } from '../../../component/taskbar/taskbar.component';
 import { PromptModalComponent } from '../../../modals/prompt-modal/prompt-modal.component';
 import { ShortcutsModalComponent } from '../../../modals/shortcuts-modal/shortcuts-modal.component';
+import { postToParent } from '../../../shared/post-to-parent';
 import {
   AlertService,
   AudioService,
@@ -803,13 +804,10 @@ export class TranscriptionComponent
       converter = AppInfo.converters.find((a) => a.name === aType);
 
       if (!converter) {
-        window.parent.postMessage(
-          {
-            error: `Export Type ${aType} is not supported.`,
-            status: 'error',
-          },
-          '*',
-        );
+        postToParent({
+          error: `Export Type ${aType} is not supported.`,
+          status: 'error',
+        });
         return;
       }
     }
@@ -828,24 +826,18 @@ export class TranscriptionComponent
 
     if (!result.error && result.file) {
       // send result to iframe owner
-      window.parent.postMessage(
-        {
-          data: {
-            annotation: result.file,
-          },
-          status: 'success',
+      postToParent({
+        data: {
+          annotation: result.file,
         },
-        '*',
-      );
+        status: 'success',
+      });
     } else {
       console.error(`Annotation conversion failed: ${result.error}`);
-      window.parent.postMessage(
-        {
-          error: `Annotation conversion failed: ${result.error}`,
-          status: 'error',
-        },
-        '*',
-      );
+      postToParent({
+        error: `Annotation conversion failed: ${result.error}`,
+        status: 'error',
+      });
     }
   }
 

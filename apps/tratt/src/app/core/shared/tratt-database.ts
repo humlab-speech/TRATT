@@ -642,7 +642,18 @@ export class TrattDatabase extends Dexie {
     }
   }
 
-  public clearDataOfMode(mode: LoginMode, name: string) {
+  public clearDataOfMode(
+    mode: LoginMode,
+    name: string,
+    bundleId: string = DEFAULT_BUNDLE_ID,
+  ) {
+    if (mode === LoginMode.LOCAL) {
+      // LOCAL reads/writes live in `bundles` (see saveModeData/loadDataOfMode);
+      // clearing the legacy `local_data` row left the real data in place.
+      return from(
+        this.bundles.put({ bundleId, name, value: null }, [bundleId, name]),
+      ).pipe(map(() => undefined));
+    }
     const table = this.getTableFromString(mode);
     if (table) {
       return from(

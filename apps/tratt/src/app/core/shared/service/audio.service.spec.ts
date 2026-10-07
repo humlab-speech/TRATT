@@ -51,6 +51,22 @@ describe('AudioService — registry', () => {
     expect(service.current).toBe(manager);
   });
 
+  it('registerAudioManager destroys the manager it replaces for the same bundle', () => {
+    const mk = () =>
+      ({
+        resource: { name: 'a.wav' },
+        audioMechanism: { missingPermission: { subscribe: jest.fn() } },
+        destroy: jest.fn().mockResolvedValue(undefined as never),
+      }) as any;
+    const first = mk();
+    const second = mk();
+    service.registerAudioManager('bundle-1', first);
+    service.registerAudioManager('bundle-1', second);
+    expect(first.destroy).toHaveBeenCalled();
+    expect(second.destroy).not.toHaveBeenCalled();
+    expect(service.getManager('bundle-1')).toBe(second);
+  });
+
   it('current returns undefined when no manager is registered for the selected bundle', () => {
     expect(service.current).toBeUndefined();
   });

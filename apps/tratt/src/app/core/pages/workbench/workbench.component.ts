@@ -78,6 +78,7 @@ import { FileProgress } from '../../obj/objects';
 import { SessionFile } from '../../obj/SessionFile';
 import { ProjectSettings } from '../../obj/Settings';
 import { LoadeditorDirective } from '../../shared/directive/loadeditor.directive';
+import { postToParent } from '../../shared/post-to-parent';
 import { SettingsService, UserInteractionsService } from '../../shared/service';
 import { AlertService } from '../../shared/service/alert.service';
 import { AnnotationSaveTracker } from '../../shared/service/annotation-save-tracker.service';
@@ -1824,13 +1825,10 @@ export class WorkbenchComponent
       converter = AppInfo.converters.find((a) => a.name === aType);
 
       if (!converter) {
-        window.parent.postMessage(
-          {
-            error: `Export Type ${aType} is not supported.`,
-            status: 'error',
-          },
-          '*',
-        );
+        postToParent({
+          error: `Export Type ${aType} is not supported.`,
+          status: 'error',
+        });
         return;
       }
     }
@@ -1849,24 +1847,18 @@ export class WorkbenchComponent
 
     if (!result.error && result.file) {
       // send result to iframe owner
-      window.parent.postMessage(
-        {
-          data: {
-            annotation: result.file,
-          },
-          status: 'success',
+      postToParent({
+        data: {
+          annotation: result.file,
         },
-        '*',
-      );
+        status: 'success',
+      });
     } else {
       console.error(`Annotation conversion failed: ${result.error}`);
-      window.parent.postMessage(
-        {
-          error: `Annotation conversion failed: ${result.error}`,
-          status: 'error',
-        },
-        '*',
-      );
+      postToParent({
+        error: `Annotation conversion failed: ${result.error}`,
+        status: 'error',
+      });
     }
   }
 

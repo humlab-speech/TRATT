@@ -341,6 +341,30 @@ describe('LoginModeReducers — createBundle / selectBundle', () => {
     );
   });
 
+  it('setBundleTranscript clears the bundle undo history (no Ctrl+Z to the pre-run transcript)', () => {
+    const reducer = new LoginModeReducers(LoginMode.LOCAL).create();
+    const init = reducer(undefined, { type: '@@INIT' } as any) as any;
+    const seeded = {
+      ...init,
+      bundles: localBundleAdapter.updateOne(
+        {
+          id: DEFAULT_BUNDLE_ID,
+          changes: { histories: { x: { past: [1] } } as any },
+        },
+        init.bundles,
+      ),
+    };
+    const state = reducer(
+      seeded,
+      LoginModeActions.setBundleTranscript({
+        mode: LoginMode.LOCAL,
+        bundleId: DEFAULT_BUNDLE_ID,
+        transcript: { marker: 'rerun' } as any,
+      }),
+    ) as unknown as LocalBundleCollectionState;
+    expect(state.bundles.entities[DEFAULT_BUNDLE_ID]!.histories).toEqual({});
+  });
+
   it('setBundleTranscript is a no-op for a bundle id that does not exist', () => {
     const reducer = new LoginModeReducers(LoginMode.LOCAL).create();
     const before = reducer(undefined, { type: '@@INIT' } as any);

@@ -355,6 +355,9 @@ export class CatalogueExportService {
     dir: string,
     name: string,
   ): string {
+    // Converter file names derive from imported file names: strip directory
+    // parts so `../` or `/` can't escape `dir` inside the zip (zip-slip).
+    name = name.replace(/^.*[\\/]/, '').replace(/^\.+$/, '') || 'file';
     let path = `${dir}/${name}`;
     const dot = name.lastIndexOf('.');
     const stem = dot > 0 ? name.slice(0, dot) : name;

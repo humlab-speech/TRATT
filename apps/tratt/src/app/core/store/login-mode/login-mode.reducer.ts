@@ -301,7 +301,9 @@ function wrapAsLocalBundleCollectionReducer(
       return {
         ...state,
         bundles: localBundleAdapter.setOne(
-          { ...existing, transcript },
+          // histories reset: Ctrl+Z after a re-run must not restore the
+          // pre-run transcript (and persist it via save-after-undo).
+          { ...existing, transcript, histories: {} },
           state.bundles,
         ),
       };
