@@ -33,7 +33,15 @@ import { AudioService } from './audio.service';
 import { CatalogueExportService } from './catalogue-export.service';
 import { PipelineQueueService } from './pipeline-queue.service';
 
-function makeBundle(bundleId: string, fileName: string) {
+function segmentLevel(id: number, name: string, text: string) {
+  return new TrattAnnotationSegmentLevel(id, name, [
+    new TrattAnnotationSegment(1, new SampleUnit(16000, 16000), [
+      new OLabel(name, text),
+    ]),
+  ]);
+}
+
+function makeBundle(bundleId: string, fileName: string, withText = true) {
   return {
     bundleId,
     sessionFile: new SessionFile(fileName, 10, new Date(), 'audio/wav'),
@@ -42,9 +50,13 @@ function makeBundle(bundleId: string, fileName: string) {
     // converters like SRT (which need `levelnum < annotation.levels.length`
     // to produce a named file at all) silently emit an empty filename
     // instead of a real error — one empty SEGMENT level is the minimum
-    // realistic shape a bundle's transcript actually has.
+    // realistic shape a bundle's transcript actually has. It carries one
+    // unit of text by default: bundles with no transcript are skipped by the
+    // export (see the 'no transcript' test).
     transcript: new TrattAnnotation([
-      new TrattAnnotationSegmentLevel(1, 'OCTRA_1', []),
+      withText
+        ? segmentLevel(1, 'OCTRA_1', 'hello')
+        : new TrattAnnotationSegmentLevel(1, 'OCTRA_1', []),
     ]),
   } as any;
 }
@@ -360,6 +372,48 @@ describe('CatalogueExportService', () => {
     expect(last.warnings.some((w) => w.includes('boom'))).toBe(true);
     const entries = Object.keys(unzipSync(last.archive!));
     expect(entries.some((e) => e.startsWith('bundles/b/'))).toBe(true);
+  });
+
+  it('skips a bundle without any transcript text, with a warning', async () => {
+    const { service } = setup([
+      makeBundle('bundle-1', 'empty.wav', false),
+      makeBundle('bundle-2', 'b.wav'),
+    ]);
+
+    const last = await lastValueFrom(
+      service.exportBundles(['bundle-1', 'bundle-2'], ['AnnotJSON']),
+    );
+
+    expect(last.warnings.some((w) => w.includes('empty.wav'))).toBe(true);
+    const entries = Object.keys(unzipSync(last.archive!));
+    expect(entries.some((e) => e.startsWith('bundles/empty/'))).toBe(false);
+    expect(entries.some((e) => e.startsWith('bundles/b/'))).toBe(true);
+    const manifest = JSON.parse(
+      strFromU8(unzipSync(last.archive!)['manifest.json']),
+    );
+    expect(manifest.map((m: any) => m.sourceFilename)).toEqual(['b.wav']);
+  });
+
+  it('writes one single-tier file (e.g. SRT) per segment tier, so a translation tier is not dropped', async () => {
+    const bundle = makeBundle('bundle-1', 'a.wav');
+    bundle.transcript = new TrattAnnotation([
+      segmentLevel(1, 'OCTRA_1', 'hello'),
+      segmentLevel(2, 'Spanish (es)', 'hola'),
+    ]);
+    const { service } = setup([bundle]);
+
+    const last = await lastValueFrom(
+      service.exportBundles(['bundle-1'], ['SRT']),
+    );
+
+    const files = unzipSync(last.archive!);
+    const srts = Object.keys(files).filter(
+      (e) => e.startsWith('bundles/a/') && e.endsWith('.srt'),
+    );
+    expect(srts.length).toBe(2);
+    const spanish = srts.find((e) => e.includes('Spanish'));
+    expect(spanish).toBeDefined();
+    expect(strFromU8(files[spanish!])).toContain('hola');
   });
 
   it('lists translation among the stages run when the queue is configured to translate', async () => {

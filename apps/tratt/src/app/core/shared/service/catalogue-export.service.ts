@@ -155,31 +155,61 @@ export class CatalogueExportService {
         unitCounts += (level as { items?: unknown[] }).items?.length ?? 0;
       }
 
+      // A bundle that never produced a transcript (failed, cancelled, or not
+      // run yet) would only yield empty DOCX/SRT/ELAN files: leave it out and
+      // say so, rather than archiving blank "transcriptions".
+      if (unitCounts === 0) {
+        warnings.push(
+          `Skipped ${entity.sessionFile?.name ?? bundleId}: it has no transcript yet.`,
+        );
+        if (!isLast) {
+          subscriber.next({
+            completedBundles: i + 1,
+            totalBundles: bundleIds.length,
+            currentBundleName: entity.sessionFile?.name ?? null,
+            warnings: [...warnings],
+          });
+        }
+        continue;
+      }
+
+      const slug = this.uniqueSlug(
+        entity.sessionFile?.name ?? bundleId,
+        usedSlugs,
+      );
+      const oAudioFile = media.oAudioFile;
+
       for (const converter of converters) {
-        // Non-multitier converters (SRT, ELAN, ...) require an explicit
-        // level number — the same default ExportFilesModalComponent applies
-        // for its single-bundle export (`updateParentFormat()`).
-        const levelnum = converter.multitiers ? undefined : 0;
-        let result;
-        try {
-          result = converter.export(oannotjson, oAudioFile, levelnum);
-        } catch (error) {
-          result = {
-            error: error instanceof Error ? error.message : String(error),
-            file: undefined,
-          };
+        // Multitier converters (ELAN, JSON, ...) take all levels at once.
+        // Single-tier ones (SRT, DOCX, ...) need an explicit level number —
+        // export every segment tier (e.g. the transcript AND its translation)
+        // so a translated bundle gets translated subtitles too, not just tier 0.
+        const levelnums: (number | undefined)[] = converter.multitiers
+          ? [undefined]
+          : this.segmentLevelNumbers(oannotjson);
+        for (const levelnum of levelnums) {
+          let result;
+          try {
+            result = converter.export(oannotjson, oAudioFile, levelnum);
+          } catch (error) {
+            result = {
+              error: error instanceof Error ? error.message : String(error),
+              file: undefined,
+            };
+          }
+          if (result.error || !result.file) {
+            warnings.push(
+              `${entity.sessionFile?.name ?? bundleId}: ${converter.name} export failed — ${result.error ?? 'no file produced'}.`,
+            );
+            continue;
+          }
+          const bytes =
+            result.file.encoding === 'binary'
+              ? (result.file.content as unknown as Uint8Array)
+              : strToU8(result.file.content);
+          files[this.uniquePath(files, `bundles/${slug}`, result.file.name)] =
+            bytes;
         }
-        if (result.error || !result.file) {
-          warnings.push(
-            `${entity.sessionFile?.name ?? bundleId}: ${converter.name} export failed — ${result.error ?? 'no file produced'}.`,
-          );
-          continue;
-        }
-        const bytes =
-          result.file.encoding === 'binary'
-            ? (result.file.content as unknown as Uint8Array)
-            : strToU8(result.file.content);
-        files[`bundles/${slug}/${result.file.name}`] = bytes;
       }
 
       const options = this.pipelineQueueService.getTranscribeOptions();
@@ -314,6 +344,32 @@ export class CatalogueExportService {
       end.sampleRate,
       end,
     );
+  }
+
+  /** Indices of the levels a single-tier converter can export (segment tiers);
+   * falls back to level 0 so a file without any is still attempted. */
+  private segmentLevelNumbers(annot: OAnnotJSON): number[] {
+    const nums = annot.levels
+      .map((l, idx) => (l.type === 'SEGMENT' ? idx : -1))
+      .filter((idx) => idx >= 0);
+    return nums.length > 0 ? nums : [0];
+  }
+
+  /** `dir/name`, or `dir/name-2.ext`, ... when two tiers map to one name. */
+  private uniquePath(
+    files: Record<string, Uint8Array>,
+    dir: string,
+    name: string,
+  ): string {
+    let path = `${dir}/${name}`;
+    const dot = name.lastIndexOf('.');
+    const stem = dot > 0 ? name.slice(0, dot) : name;
+    const ext = dot > 0 ? name.slice(dot) : '';
+    let n = 2;
+    while (path in files) {
+      path = `${dir}/${stem}-${n++}${ext}`;
+    }
+    return path;
   }
 
   /** Matches step 2.7's basename-collision handling: first writer keeps the
