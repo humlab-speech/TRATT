@@ -241,13 +241,14 @@ export class AnnotationStateReducers {
             return cloned;
           });
 
-          const targetLevel = new TrattAnnotationSegmentLevel<TrattAnnotationSegment>(
-            transcript.idCounters.level++,
-            uniqueName,
-            targetItems as any,
-            source.id,
-            'translation',
-          );
+          const targetLevel =
+            new TrattAnnotationSegmentLevel<TrattAnnotationSegment>(
+              transcript.idCounters.level++,
+              uniqueName,
+              targetItems as any,
+              source.id,
+              'translation',
+            );
           transcript.addLevel(targetLevel as any);
           return { ...state, transcript };
         },
@@ -529,18 +530,21 @@ export class AnnotationStateReducers {
       ),
       on(
         AnnotationActions.setLogging.do,
-        (state: AnnotationState, { logging }) => ({
-          ...state,
-          logging: {
-            ...state.logging,
-            enabled: logging,
-            startTime: Date.now(),
-            startReference:
-              state.logging.logs.length > 0
-                ? state.logging.logs[state.logging.logs.length - 1]
-                : undefined,
-          },
-        }),
+        (state: AnnotationState, { logging, mode }) =>
+          this.mode !== mode
+            ? state
+            : {
+                ...state,
+                logging: {
+                  ...state.logging,
+                  enabled: logging,
+                  startTime: Date.now(),
+                  startReference:
+                    state.logging.logs.length > 0
+                      ? state.logging.logs[state.logging.logs.length - 1]
+                      : undefined,
+                },
+              },
       ),
       on(
         AnnotationActions.setLevelIndex.do,

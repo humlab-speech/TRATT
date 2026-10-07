@@ -11,6 +11,7 @@ import { hasProperty } from '@tratt/utilities';
 import { SessionStorageService } from 'ngx-webstorage';
 import {
   catchError,
+  concatMap,
   exhaustMap,
   filter,
   forkJoin,
@@ -277,11 +278,13 @@ export class IDBEffects {
     ),
   );
 
+  // concatMap (not exhaustMap): a rapid second undo/redo must queue its save
+  // behind the in-flight one instead of being dropped, or the DB keeps a stale state.
   saveAfterUndo$ = createEffect(() =>
     this.actions$.pipe(
       ofType(ApplicationActions.undo),
       withLatestFrom(this.store),
-      exhaustMap(([actionData, appState]) => {
+      concatMap(([actionData, appState]) => {
         // code for saving to the database
         const modeState = getModeState(appState);
 
@@ -331,7 +334,7 @@ export class IDBEffects {
     this.actions$.pipe(
       ofType(ApplicationActions.redo),
       withLatestFrom(this.store),
-      mergeMap(([actionData, appState]: [Action, RootState]) => {
+      concatMap(([actionData, appState]: [Action, RootState]) => {
         // code for saving to the database
         const modeState = getModeState(appState);
 
