@@ -342,6 +342,25 @@ export class NavigationComponent extends DefaultComponent implements OnInit {
       });
   }
 
+  private readonly nativeNames = new Map<string, string>();
+
+  /** A language's own name ("Svenska", "한국어") for the language menu. */
+  nativeLanguageName(code: string): string {
+    let name = this.nativeNames.get(code);
+    if (name === undefined) {
+      try {
+        const own = new Intl.DisplayNames([code], { type: 'language' }).of(
+          code,
+        );
+        name = own ? own.charAt(0).toLocaleUpperCase(code) + own.slice(1) : '';
+      } catch {
+        name = '';
+      }
+      this.nativeNames.set(code, name);
+    }
+    return name;
+  }
+
   onLevelRemoveClick(level: TrattAnnotationAnyLevel<TrattAnnotationSegment>) {
     this.modalService
       .openModal(YesNoModalComponent, YesNoModalComponent.options, {

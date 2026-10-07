@@ -941,6 +941,9 @@
                     class="dropdown-item"
                   >
                     {{ item | uppercase }}
+                    <span class="text-muted ms-1" style="font-size: 0.8rem">{{
+                      nativeLanguageName(item)
+                    }}</span>
                   </button>
                 }
               }

@@ -31,6 +31,11 @@ describe('formatBytes', () => {
     expect(formatBytes(8_000_000_000)).toBe('8.0 GB');
   });
 
+  it('uses the decimal separator of the given locale', () => {
+    expect(formatBytes(11_000_000_000, 'sv')).toBe('11,0 GB');
+    expect(formatBytes(11_000_000_000, 'en')).toBe('11.0 GB');
+  });
+
   it('renders zero as 0 MB rather than an empty string', () => {
     expect(formatBytes(0)).toBe('0 MB');
   });

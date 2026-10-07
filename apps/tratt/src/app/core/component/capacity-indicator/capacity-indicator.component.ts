@@ -4,7 +4,8 @@ import {
   computed,
   inject,
 } from '@angular/core';
-import { TranslocoPipe } from '@jsverse/transloco';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { CapacityService } from '../../shared/service/capacity.service';
 
 /**
@@ -12,11 +13,22 @@ import { CapacityService } from '../../shared/service/capacity.service';
  * megabytes below a gigabyte, one decimal above. Decimal throughout, matching
  * every other size figure in this app (`KbWhisperModel.sizeMb`,
  * `OPUS_MT_BYTES_PER_PAIR`) and `navigator.storage.estimate()`'s own units.
+ * The decimal separator follows `locale` (UI language; "en" when omitted),
+ * so Swedish/German read "11,0 GB".
  */
-export function formatBytes(bytes: number): string {
+export function formatBytes(bytes: number, locale = 'en'): string {
   const safe = Math.max(0, bytes);
   if (safe >= 1_000_000_000) {
-    return `${(safe / 1_000_000_000).toFixed(1)} GB`;
+    let gb: string;
+    try {
+      gb = new Intl.NumberFormat(locale, {
+        minimumFractionDigits: 1,
+        maximumFractionDigits: 1,
+      }).format(safe / 1_000_000_000);
+    } catch {
+      gb = (safe / 1_000_000_000).toFixed(1);
+    }
+    return `${gb} GB`;
   }
   return `${Math.round(safe / 1_000_000)} MB`;
 }
@@ -50,6 +62,9 @@ const MEMORY_DANGER_RATIO = 0.8;
 })
 export class CapacityIndicatorComponent {
   private readonly capacity = inject(CapacityService);
+  private readonly uiLang = toSignal(inject(TranslocoService).langChanges$, {
+    initialValue: 'en',
+  });
 
   private readonly storage = this.capacity.storage;
   private readonly memory = this.capacity.residentMemory;
@@ -105,20 +120,22 @@ export class CapacityIndicatorComponent {
   });
 
   readonly storageUsedText = computed(() =>
-    formatBytes(this.storage().usedBytes),
+    formatBytes(this.storage().usedBytes, this.uiLang()),
   );
   readonly storageQuotaText = computed(() =>
-    formatBytes(this.storage().quotaBytes),
+    formatBytes(this.storage().quotaBytes, this.uiLang()),
   );
-  readonly modelsText = computed(() => formatBytes(this.modelsBytes()));
+  readonly modelsText = computed(() =>
+    formatBytes(this.modelsBytes(), this.uiLang()),
+  );
   readonly annotationsText = computed(() =>
-    formatBytes(this.annotationsBytes()),
+    formatBytes(this.annotationsBytes(), this.uiLang()),
   );
   readonly memoryUsedText = computed(() =>
-    formatBytes(this.memory().estimatedBytes),
+    formatBytes(this.memory().estimatedBytes, this.uiLang()),
   );
   readonly memoryBudgetText = computed(() =>
-    formatBytes(this.memory().budgetBytes),
+    formatBytes(this.memory().budgetBytes, this.uiLang()),
   );
   readonly residentCount = computed(() => this.memory().residentCount);
 

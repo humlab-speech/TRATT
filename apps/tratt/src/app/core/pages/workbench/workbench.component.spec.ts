@@ -3058,6 +3058,7 @@ describe('WorkbenchComponent with real default LOCAL store state', () => {
           provide: PipelineQueueService,
           useValue: {
             setTranscribeOptions: jest.fn(),
+            setTranslateOptions: jest.fn(),
             enqueue: jest.fn(),
             stop: jest.fn(),
             retry: jest.fn(),
@@ -3204,8 +3205,7 @@ describe('WorkbenchComponent with real default LOCAL store state', () => {
         diarization: { modelId: 'd', useWebGPU: false, numSpeakers: 2 },
       } as any);
       // The real translation panel re-emits (off) when the transcribe
-      // options reach it; set the translation after that. (This fixture's
-      // queue-service stub has no setTranslateOptions.)
+      // options reach it; set the translation after that.
       fx.detectChanges();
       fx.componentInstance.queueTranslateOptions.set({
         sourceLanguage: 'en',

@@ -24,6 +24,18 @@
     </p>
   }
 
+  @if (dropzone.statistics && dropzone.statistics.new > 0) {
+    <!-- A different file than the wanted one: say so, instead of silently
+         swapping "Start" for "Start new transcription". -->
+    <p class="text-warning mt-2" style="white-space: pre-line">
+      <i class="bi bi-exclamation-triangle-fill"></i>
+      {{
+        'reload-file.another file selected'
+          | transloco: { file: sessionfile?.name }
+      }}
+    </p>
+  }
+
   <div class="btn-group w-100" role="group">
     <button (click)="askForAbort()" class="btn btn-secondary">
       <i class="bi bi-box-arrow-left"></i>
