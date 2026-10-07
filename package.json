@@ -180,7 +180,7 @@
     "jest-preset-angular": "~14.4.0",
     "jiti": "2.4.2",
     "jsonc-eslint-parser": "^2.1.0",
-    "markdown-it": "^13.0.2",
+    "markdown-it": "^15.0.2",
     "music-metadata": "^10.5.1",
     "ng-packagr": "19.2.0",
     "ngx-deploy-npm": "^8.3.1",
@@ -208,7 +208,10 @@
     "js-yaml@^3.0.0": "3.15.2",
     "js-yaml@^4.0.0": "4.3.2",
     "sharp": "0.35.4",
-    "svgo": "3.3.5"
+    "svgo": "3.3.5",
+    "modernizr": {
+      "markdown-it": "14.3.2"
+    }
   },
   "nx": {
     "includedScripts": []
