@@ -783,7 +783,7 @@ describe('LoginComponent (pipeline runner characterization)', () => {
       // after any earlier throttle window has long since auto-closed, so it
       // lands as a fresh leading edge — synchronous, no flush needed.
       expect(component.translation().error).toBe(
-        'Download stalled — likely a browser storage limit. Cancel and retry with "Skip browser cache" enabled.',
+        'login.translation.stall download::{}',
       );
       expect(component.translation().active).toBe(true);
     });
@@ -806,7 +806,7 @@ describe('LoginComponent (pipeline runner characterization)', () => {
 
       jest.advanceTimersByTime(1);
       expect(component.translation().error).toBe(
-        'Model load stalled. Try refreshing the page.',
+        'login.translation.stall init::{}',
       );
       expect(component.translation().active).toBe(true);
     });
@@ -841,7 +841,7 @@ describe('LoginComponent (pipeline runner characterization)', () => {
 
       jest.advanceTimersByTime(1);
       expect(component.translation().error).toBe(
-        'Download stalled — likely a browser storage limit. Cancel and retry with "Skip browser cache" enabled.',
+        'login.translation.stall download::{}',
       );
     });
 
@@ -858,7 +858,7 @@ describe('LoginComponent (pipeline runner characterization)', () => {
 
       jest.advanceTimersByTime(TRANSLATION_INIT_STALL_MS);
       expect(component.translation().error).toBe(
-        'Translation stalled — no progress for 60 seconds. Cancel and retry.',
+        'login.translation.stall translating::{}',
       );
     });
   });

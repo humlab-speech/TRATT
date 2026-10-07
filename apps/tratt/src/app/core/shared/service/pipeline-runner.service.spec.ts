@@ -453,7 +453,7 @@ describe('PipelineRunnerService', () => {
         (e) => e.stage === 'pipeline' && e.type === 'stalled',
       ) as Extract<PipelineEvent, { stage: 'pipeline'; type: 'stalled' }>;
       expect(stalled.message).toBe(
-        'Download stalled — likely a browser storage limit. Cancel and retry with "Skip browser cache" enabled.',
+        'login.translation.stall download::{}',
       );
 
       // still active: cancel() must still route to the translation service.
@@ -477,7 +477,7 @@ describe('PipelineRunnerService', () => {
         (e) => e.stage === 'pipeline' && e.type === 'stalled',
       ) as Extract<PipelineEvent, { stage: 'pipeline'; type: 'stalled' }>;
       expect(stalled.message).toBe(
-        'Model load stalled. Try refreshing the page.',
+        'login.translation.stall init::{}',
       );
     });
 
@@ -516,7 +516,7 @@ describe('PipelineRunnerService', () => {
         (e) => e.stage === 'pipeline' && e.type === 'stalled',
       ) as Extract<PipelineEvent, { stage: 'pipeline'; type: 'stalled' }>;
       expect(stalled.message).toBe(
-        'Translation stalled — no progress for 60 seconds. Cancel and retry.',
+        'login.translation.stall translating::{}',
       );
     });
 
