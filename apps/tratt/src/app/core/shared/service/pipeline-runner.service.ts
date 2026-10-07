@@ -215,12 +215,18 @@ export class PipelineRunnerService {
         next: (event: TranscriptionEvent) => {
           subscriber.next({ stage: 'transcription', event });
           if (event.type === 'result') {
-            void this._handleTranscriptionResult(
+            this._handleTranscriptionResult(
               input,
               opts,
               event.annotJson,
               subscriber,
-            );
+            ).catch((err) => {
+              // A rejection here used to leave the run non-terminal forever:
+              // the queue never advanced and `pausing` never resolved.
+              this._activeStage = null;
+              this._subscriber = null;
+              subscriber.error(err);
+            });
           }
         },
         error: (err) => {

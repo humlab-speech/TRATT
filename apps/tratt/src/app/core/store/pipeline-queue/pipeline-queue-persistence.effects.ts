@@ -144,7 +144,14 @@ export class PipelineQueuePersistenceEffects {
             .saveAnnotation(LoginMode.LOCAL, serialized, action.bundleId)
             .pipe(
               mergeMap(() => of(undefined)),
-              catchError(() => of(undefined)),
+              catchError((error) => {
+                // Never swallow silently: the transcript is only in memory.
+                console.error(
+                  `Failed to persist transcript of bundle ${action.bundleId}`,
+                  error,
+                );
+                return of(undefined);
+              }),
             );
         }),
       ),

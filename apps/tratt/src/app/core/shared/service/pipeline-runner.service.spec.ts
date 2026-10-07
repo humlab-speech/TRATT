@@ -110,6 +110,29 @@ describe('PipelineRunnerService', () => {
   });
 
   describe('transcription-only sequencing', () => {
+    it('terminates with an error when a later stage throws after the transcription result', async () => {
+      const subject = new Subject<TranscriptionEvent>();
+      transcriptionServiceMock.transcribe.mockReturnValue(subject);
+      translationServiceMock.translate.mockImplementation(() => {
+        throw new Error('translate boom');
+      });
+
+      let errored: unknown = null;
+      service
+        .run({
+          audioManager,
+          oaudiofile,
+          transcribeOptions: makeTranscriptionOptions(),
+          translateOptions: {} as any,
+        })
+        .subscribe({ error: (e) => (errored = e) });
+
+      subject.next({ type: 'result', annotJson: makeAnnotJsonWithSegments() });
+      for (let i = 0; i < 5; i++) await Promise.resolve();
+
+      expect(errored).toEqual(new Error('translate boom'));
+    });
+
     it('emits raw transcription events, a diarization-skipped marker, and a terminal pipeline result, without touching diarization/translation services', async () => {
       const opts = makeTranscriptionOptions();
       const subject = new Subject<TranscriptionEvent>();
@@ -452,9 +475,7 @@ describe('PipelineRunnerService', () => {
       const stalled = events.find(
         (e) => e.stage === 'pipeline' && e.type === 'stalled',
       ) as Extract<PipelineEvent, { stage: 'pipeline'; type: 'stalled' }>;
-      expect(stalled.message).toBe(
-        'login.translation.stall download::{}',
-      );
+      expect(stalled.message).toBe('login.translation.stall download::{}');
 
       // still active: cancel() must still route to the translation service.
       service.cancel();
@@ -476,9 +497,7 @@ describe('PipelineRunnerService', () => {
       const stalled = events.find(
         (e) => e.stage === 'pipeline' && e.type === 'stalled',
       ) as Extract<PipelineEvent, { stage: 'pipeline'; type: 'stalled' }>;
-      expect(stalled.message).toBe(
-        'login.translation.stall init::{}',
-      );
+      expect(stalled.message).toBe('login.translation.stall init::{}');
     });
 
     it('re-arms the stall timer on every non-result event', () => {
@@ -515,9 +534,7 @@ describe('PipelineRunnerService', () => {
       const stalled = events.find(
         (e) => e.stage === 'pipeline' && e.type === 'stalled',
       ) as Extract<PipelineEvent, { stage: 'pipeline'; type: 'stalled' }>;
-      expect(stalled.message).toBe(
-        'login.translation.stall translating::{}',
-      );
+      expect(stalled.message).toBe('login.translation.stall translating::{}');
     });
 
     it('does not arm a new stall timer once result has fired', () => {
