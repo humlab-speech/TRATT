@@ -795,3 +795,21 @@ reason = "@angular/core and @angular/compiler 19.x have no fix: patched only in 
 id = "GHSA-vwc7-r8mq-g2x9"
 reason = "adm-zip has no patched release (last affected 0.6.0); dev-only transitive of @module-federation/dts-plugin in Nx tooling, no untrusted archives are extracted."
 
+
+# Added 2026-10-07 after the Angular 21 / Nx 22.7.12 upgrade: advisories with no
+# patched release upstream. All are reachable only through dev/test tooling.
+
+[[IgnoredVulns]]
+id = "GHSA-vfj7-8cjw-p6xm"
+ignoreUntil = 2027-01-07
+reason = "braces <=3.0.3 is the latest release (no fix). Dev-only glob expansion in Nx/webpack-dev-server/verdaccio tooling; never fed untrusted patterns. Re-check when braces publishes a patch."
+
+[[IgnoredVulns]]
+id = "GHSA-86w9-cpqp-85rv"
+ignoreUntil = 2027-01-07
+reason = "node-forge 1.4.0 is the latest release (no fix). Only via @nx/angular > @nx/rspack > @rspack/dev-server > selfsigned (local dev-server certificates); signature verification is not used."
+
+[[IgnoredVulns]]
+id = "GHSA-hp3w-g68c-fv3c"
+ignoreUntil = 2027-01-07
+reason = "sprintf-js 1.1.3 is the latest release (no fix). Dev/test-only via the Jest istanbul > js-yaml@3 > argparse chain; no untrusted format strings."
