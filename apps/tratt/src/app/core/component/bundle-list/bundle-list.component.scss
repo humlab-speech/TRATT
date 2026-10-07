@@ -250,3 +250,13 @@
   margin: 0;
   flex-shrink: 0;
 }
+
+// A user-initiated stop is not a failure: keep it neutral, not red.
+.bundle-list__status--cancelled {
+  background: #e9e9ec;
+  color: #4a4a55;
+}
+
+.bundle-list__error--neutral {
+  color: #4a4a55;
+}

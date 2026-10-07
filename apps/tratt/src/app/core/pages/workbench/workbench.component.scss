@@ -36,6 +36,21 @@
   }
 }
 
+// Narrow viewports: a fixed 340px rail would squeeze the editor to a sliver
+// (at ~420px wide it collapsed to ~100px). Stack the rail above the editor
+// instead; each part scrolls on its own.
+@media (max-width: 768px) {
+  .workbench {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(0, 45%) minmax(0, 1fr);
+  }
+
+  .workbench__left {
+    border-right: 0;
+    border-bottom: 1px solid #d4d9e0;
+  }
+}
+
 .workbench__right {
   position: relative;
   display: flex;

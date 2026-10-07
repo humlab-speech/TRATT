@@ -144,12 +144,6 @@ export class CatalogueExportService {
         continue;
       }
 
-      const slug = this.uniqueSlug(
-        entity.sessionFile?.name ?? bundleId,
-        usedSlugs,
-      );
-      const oAudioFile = media.oAudioFile;
-
       let unitCounts = 0;
       for (const level of oannotjson.levels) {
         unitCounts += (level as { items?: unknown[] }).items?.length ?? 0;

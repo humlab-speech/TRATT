@@ -172,7 +172,13 @@
           [class.bundle-list__status--queued]="bundle.run.state === 'queued'"
           [class.bundle-list__status--done]="bundle.run.state === 'done'"
           [class.bundle-list__status--error]="
-            bundle.run.state === 'failed' || bundle.run.state === 'interrupted'
+            (bundle.run.state === 'failed' &&
+              bundle.run.error?.kind !== 'cancelled') ||
+            bundle.run.state === 'interrupted'
+          "
+          [class.bundle-list__status--cancelled]="
+            bundle.run.state === 'failed' &&
+            bundle.run.error?.kind === 'cancelled'
           "
         >
           {{ 'workbench.bundle_list.status.' + bundle.run.state | transloco }}
@@ -184,6 +190,9 @@
              the tooltip, so nothing is hidden from the user. -->
         <span
           class="bundle-list__error"
+          [class.bundle-list__error--neutral]="
+            bundle.run.error.kind === 'cancelled'
+          "
           [attr.title]="bundle.run.error.message"
         >
           {{
