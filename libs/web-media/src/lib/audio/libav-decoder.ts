@@ -45,7 +45,9 @@ async function getLibAV(): Promise<any> {
     '/assets/libav/libav-default.mjs',
     window.location.origin,
   ).href;
-  const m = await import(/* webpackIgnore: true */ libavPath as any);
+  const m = await import(
+    /* webpackIgnore: true */ /* @vite-ignore */ libavPath as any
+  );
   libavInstance = await m.LibAV();
   return libavInstance;
 }
@@ -73,7 +75,9 @@ async function getLibAVFat(onStatus?: (msg: string) => void): Promise<any> {
       '/assets/libav/libav-6.0.0-nightly.29.f420ff.ffmpeg.6.1.1-fat.wasm.wasm',
       window.location.origin,
     ).href;
-    const m = await import(/* webpackIgnore: true */ libavPath as any);
+    const m = await import(
+      /* webpackIgnore: true */ /* @vite-ignore */ libavPath as any
+    );
     libavFatInstance = await m.default.LibAV({
       noworker: true,
       wasmurl: wasmUrl,
