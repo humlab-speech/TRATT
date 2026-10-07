@@ -1,4 +1,4 @@
-import { AsyncPipe, NgFor, NgIf } from '@angular/common';
+import { AsyncPipe } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -19,12 +19,10 @@ import { RecordingDevicesService } from '../../shared/service/recording-devices.
   styleUrls: ['./device-picker.component.scss'],
   imports: [
     AsyncPipe,
-    NgFor,
-    NgIf,
     NgbDropdownModule,
     NgbTooltipModule,
-    TranslocoPipe,
-  ],
+    TranslocoPipe
+],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DevicePickerComponent implements OnInit {

@@ -3,6 +3,7 @@
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
   "sourceRoot": "libs/annotation/src",
   "projectType": "library",
+  "tags": [],
   "targets": {
     "build": {
       "executor": "@nx/vite:build",
@@ -14,7 +15,7 @@
       }
     },
     "test": {
-      "executor": "@nx/vite:test",
+      "executor": "@nx/vitest:test",
       "options": {
         "config": "libs/annotation/vite.config.ts"
       }
@@ -53,6 +54,5 @@
         "distFolderPath": "dist/libs/annotation"
       }
     }
-  },
-  "tags": []
+  }
 }

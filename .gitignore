@@ -68,3 +68,7 @@ vitest.config.*.timestamp*
 /apps/translations/config.php
 Skärmavbild*.png
 .gstack/
+
+.claude/worktrees
+.nx/polygraph
+.nx/self-healing

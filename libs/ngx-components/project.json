@@ -10,20 +10,19 @@
       "executor": "@nx/angular:package",
       "outputs": ["{workspaceRoot}/dist/{projectRoot}"],
       "options": {
-        "project": "libs/ngx-components/ng-package.json"
+        "project": "libs/ngx-components/ng-package.json",
+        "tsConfig": "libs/ngx-components/tsconfig.lib.json"
       },
       "configurations": {
         "production": {
           "tsConfig": "libs/ngx-components/tsconfig.lib.prod.json"
         },
-        "development": {
-          "tsConfig": "libs/ngx-components/tsconfig.lib.json"
-        }
+        "development": {}
       },
       "defaultConfiguration": "production"
     },
     "test": {
-      "executor": "@nx/vite:test",
+      "executor": "@nx/vitest:test",
       "options": {
         "config": "libs/ngx-components/vite.config.ts"
       }
