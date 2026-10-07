@@ -30,7 +30,9 @@ export default {
   moduleNameMapper: {
     '^canvas$': '<rootDir>/__mocks__/canvas.js',
   },
-  transformIgnorePatterns: ['node_modules/(?!.*\\.mjs$|jodit|ngx-jodit|konva)'],
+  transformIgnorePatterns: [
+    'node_modules/(?!.*\\.mjs$|jodit|ngx-jodit|konva|music-metadata|file-type|strtok3|token-types|uint8array-extras|@borewit|@tokenizer|media-typer|content-type|win-guid)',
+  ],
   snapshotSerializers: [
     'jest-preset-angular/build/serializers/no-ng-attributes',
     'jest-preset-angular/build/serializers/ng-snapshot',
