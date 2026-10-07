@@ -136,7 +136,6 @@
     "zone.js": "0.16.3"
   },
   "devDependencies": {
-    "@angular-devkit/build-angular": "21.2.26",
     "@angular-devkit/core": "21.2.26",
     "@angular-devkit/schematics": "21.2.26",
     "@angular/cli": "21.2.26",
@@ -202,7 +201,8 @@
     "vite": "7.3.7",
     "vite-plugin-dts": "5.1.2",
     "vitest": "4.1.11",
-    "yargs": "^17.7.2"
+    "yargs": "^17.7.2",
+    "@angular/build": "21.2.26"
   },
   "overrides": {
     "@xmldom/xmldom": "0.8.15",

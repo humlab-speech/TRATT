@@ -7,15 +7,16 @@
   "tags": [],
   "targets": {
     "build": {
-      "executor": "@angular-devkit/build-angular:browser",
+      "executor": "@angular/build:application",
       "outputs": ["{options.outputPath}"],
       "options": {
-        "outputPath": "dist/apps/tratt",
+        "outputPath": {
+          "base": "dist/apps/tratt",
+          "browser": ""
+        },
         "index": "apps/tratt/src/index.html",
-        "main": "apps/tratt/src/main.ts",
-        "polyfills": ["zone.js"],
+        "polyfills": ["zone.js", "@angular/localize/init"],
         "tsConfig": "apps/tratt/tsconfig.app.json",
-        "webWorkerTsConfig": "apps/tratt/tsconfig.worker.json",
         "allowedCommonJsDependencies": [
           "jodit-angular",
           "ajv",
@@ -73,13 +74,12 @@
         ],
         "scripts": ["apps/tratt/src/assets/js/modernizr.js"],
         "extractLicenses": true,
-        "serviceWorker": true,
-        "ngswConfigPath": "apps/tratt/ngsw-config.json"
+        "serviceWorker": "apps/tratt/ngsw-config.json",
+        "browser": "apps/tratt/src/main.ts"
       },
       "configurations": {
         "production": {
           "optimization": true,
-          "buildOptimizer": true,
           "budgets": [
             {
               "type": "initial",
@@ -101,7 +101,6 @@
           "outputHashing": "all"
         },
         "beta": {
-          "buildOptimizer": true,
           "optimization": true,
           "budgets": [
             {
@@ -124,7 +123,6 @@
           "outputHashing": "all"
         },
         "beta-dev": {
-          "buildOptimizer": false,
           "optimization": false,
           "sourceMap": true,
           "fileReplacements": [
@@ -136,9 +134,7 @@
           "outputHashing": "none"
         },
         "development": {
-          "buildOptimizer": false,
           "optimization": false,
-          "vendorChunk": true,
           "extractLicenses": false,
           "sourceMap": true,
           "namedChunks": true,
@@ -151,9 +147,7 @@
         },
         "public-development": {
           "outputHashing": "none",
-          "buildOptimizer": false,
           "optimization": false,
-          "vendorChunk": true,
           "extractLicenses": false,
           "sourceMap": true,
           "namedChunks": true,
@@ -168,7 +162,7 @@
       "defaultConfiguration": "production"
     },
     "serve": {
-      "executor": "@angular-devkit/build-angular:dev-server",
+      "executor": "@angular/build:dev-server",
       "options": {
         "allowedHosts": ["all"],
         "headers": {
@@ -190,7 +184,7 @@
       "continuous": true
     },
     "extract-i18n": {
-      "executor": "@angular-devkit/build-angular:extract-i18n",
+      "executor": "@angular/build:extract-i18n",
       "options": {
         "buildTarget": "tratt:build"
       }
