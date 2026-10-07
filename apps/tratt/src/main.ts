@@ -4,9 +4,8 @@ import {
   provideHttpClient,
   withInterceptorsFromDi,
 } from '@angular/common/http';
-import { importProvidersFrom } from '@angular/core';
+import { importProvidersFrom, provideZoneChangeDetection } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import '@angular/localize/init';
 import { bootstrapApplication } from '@angular/platform-browser';
 import { provideAnimations } from '@angular/platform-browser/animations';
 import {
@@ -105,7 +104,7 @@ import { environment } from './environments/environment';
 bootstrapApplication(AppComponent, {
   providers: [
     // Routing
-    provideRouter(APP_ROUTES, withEnabledBlockingInitialNavigation()),
+    provideZoneChangeDetection(),provideRouter(APP_ROUTES, withEnabledBlockingInitialNavigation()),
 
     // Forms
     FormsModule,

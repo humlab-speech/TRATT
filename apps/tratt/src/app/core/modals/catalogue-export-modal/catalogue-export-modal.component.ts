@@ -100,7 +100,7 @@ export class CatalogueExportModalComponent implements OnDestroy {
             if (previousUrl) {
               URL.revokeObjectURL(previousUrl);
             }
-            const blob = new Blob([event.archive], {
+            const blob = new Blob([event.archive as BlobPart], {
               type: 'application/zip',
             });
             const url = URL.createObjectURL(blob);

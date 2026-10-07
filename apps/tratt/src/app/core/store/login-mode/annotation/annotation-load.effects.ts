@@ -101,7 +101,7 @@ export function isOnWorkbench(
   if (onLoadPage && lastPagePath && isWorkbenchRoute(lastPagePath)) {
     return true;
   }
-  const navigation = router.getCurrentNavigation?.();
+  const navigation = router.currentNavigation?.();
   if (navigation) {
     const target = navigation.finalUrl ?? navigation.extractedUrl;
     if (target && isWorkbenchRoute(router.serializeUrl(target))) {
@@ -137,7 +137,7 @@ export class AnnotationLoadEffects {
     }
     if (
       !isWorkbenchRoute(this.router.url) &&
-      !this.router.getCurrentNavigation?.()
+      !this.router.currentNavigation?.()
     ) {
       this.routingService
         .navigate(

@@ -11,6 +11,7 @@ module.exports = [
   {
     files: ['**/*.ts'],
     rules: {
+      '@angular-eslint/prefer-inject': 'warn',
       '@angular-eslint/directive-selector': [
         'error',
         {
@@ -32,6 +33,10 @@ module.exports = [
   {
     files: ['**/*.html'],
     // Override or add rules here
-    rules: {},
+    // angular-eslint 21 enables these by default; downgraded to keep the dependency upgrade scoped
+    rules: {
+      '@angular-eslint/template/interactive-supports-focus': 'warn',
+      '@angular-eslint/template/elements-content': 'warn',
+    },
   },
 ];

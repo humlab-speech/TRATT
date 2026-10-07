@@ -1,4 +1,4 @@
-import { AsyncPipe, DecimalPipe, NgIf } from '@angular/common';
+import { AsyncPipe, DecimalPipe } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
@@ -37,13 +37,12 @@ type StagedResult = RecordingResult;
   imports: [
     AsyncPipe,
     DecimalPipe,
-    NgIf,
     NgbTooltipModule,
     TranslocoPipe,
     DevicePickerComponent,
     RecordingRecoveryBannerComponent,
-    VuMeterComponent,
-  ],
+    VuMeterComponent
+],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class RecordingPanelComponent implements OnInit, OnDestroy {

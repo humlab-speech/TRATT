@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+
 import { Component, DestroyRef, OnInit } from '@angular/core';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -14,7 +14,7 @@ import { AuthenticationStoreService } from '../../../store/authentication';
 
 @Component({
   selector: 'tratt-visp-task',
-  imports: [CommonModule],
+  imports: [],
   templateUrl: './visp-task.component.html',
   styleUrl: './visp-task.component.scss',
 })

@@ -442,7 +442,7 @@ export class AudioViewerComponent
     this.av.onSecondsPerLineChanged(secondsPerLine);
   }
 
-  @HostListener('window:resize', ['$event'])
+  @HostListener('window:resize')
   onWindowResize() {
     const wait = 100;
     this.lastResize = Date.now();

@@ -6,38 +6,39 @@
     [attr.aria-label]="'recording.devices.aria label' | transloco"
     [ngbTooltip]="'recording.devices.tooltip' | transloco"
     container="body"
-  >
+    >
     <i class="bi bi-caret-down-fill"></i>
   </button>
   <div ngbDropdownMenu class="device-picker__menu">
-    <ng-container *ngIf="devicesSvc.hasPermission$ | async; else needPerm">
+    @if (devicesSvc.hasPermission$ | async) {
       <h6 class="dropdown-header">
         {{ 'recording.devices.mic' | transloco }}
       </h6>
-      <button
-        *ngFor="let d of (devicesSvc.devices$ | async)?.audio ?? []"
-        type="button"
-        ngbDropdownItem
-        class="d-flex align-items-center gap-2"
-        (click)="devicesSvc.selectAudio(d.deviceId)"
-      >
-        <i
-          class="bi"
+      @for (d of (devicesSvc.devices$ | async)?.audio ?? []; track d) {
+        <button
+          type="button"
+          ngbDropdownItem
+          class="d-flex align-items-center gap-2"
+          (click)="devicesSvc.selectAudio(d.deviceId)"
+          >
+          <i
+            class="bi"
           [class.bi-check2]="
             (devicesSvc.selectedAudioId$ | async) === d.deviceId
           "
-          [class.bi-dot]="(devicesSvc.selectedAudioId$ | async) !== d.deviceId"
-        ></i>
-        <span class="text-truncate">{{
-          d.label || ('recording.devices.unnamed' | transloco)
-        }}</span>
-      </button>
+            [class.bi-dot]="(devicesSvc.selectedAudioId$ | async) !== d.deviceId"
+          ></i>
+          <span class="text-truncate">{{
+            d.label || ('recording.devices.unnamed' | transloco)
+          }}</span>
+        </button>
+      }
       <button
         type="button"
         ngbDropdownItem
         class="d-flex align-items-center gap-2"
         (click)="devicesSvc.selectAudio(null)"
-      >
+        >
         <i
           class="bi"
           [class.bi-check2]="(devicesSvc.selectedAudioId$ | async) === null"
@@ -47,37 +48,38 @@
           'recording.devices.default' | transloco
         }}</span>
       </button>
-      <ng-container *ngIf="mode === 'audio+video'">
+      @if (mode === 'audio+video') {
         <div class="dropdown-divider"></div>
         <h6 class="dropdown-header">
           {{ 'recording.devices.camera' | transloco }}
         </h6>
-        <button
-          *ngFor="let d of (devicesSvc.devices$ | async)?.video ?? []"
-          type="button"
-          ngbDropdownItem
-          class="d-flex align-items-center gap-2"
-          (click)="devicesSvc.selectVideo(d.deviceId)"
-        >
-          <i
-            class="bi"
+        @for (d of (devicesSvc.devices$ | async)?.video ?? []; track d) {
+          <button
+            type="button"
+            ngbDropdownItem
+            class="d-flex align-items-center gap-2"
+            (click)="devicesSvc.selectVideo(d.deviceId)"
+            >
+            <i
+              class="bi"
             [class.bi-check2]="
               (devicesSvc.selectedVideoId$ | async) === d.deviceId
             "
             [class.bi-dot]="
               (devicesSvc.selectedVideoId$ | async) !== d.deviceId
             "
-          ></i>
-          <span class="text-truncate">{{
-            d.label || ('recording.devices.unnamed' | transloco)
-          }}</span>
-        </button>
+            ></i>
+            <span class="text-truncate">{{
+              d.label || ('recording.devices.unnamed' | transloco)
+            }}</span>
+          </button>
+        }
         <button
           type="button"
           ngbDropdownItem
           class="d-flex align-items-center gap-2"
           (click)="devicesSvc.selectVideo(null)"
-        >
+          >
           <i
             class="bi"
             [class.bi-check2]="(devicesSvc.selectedVideoId$ | async) === null"
@@ -87,19 +89,18 @@
             'recording.devices.default' | transloco
           }}</span>
         </button>
-      </ng-container>
+      }
       <div class="dropdown-divider"></div>
       <button
         type="button"
         ngbDropdownItem
         class="d-flex align-items-center gap-2"
         (click)="devicesSvc.refresh()"
-      >
+        >
         <i class="bi bi-arrow-clockwise"></i>
         {{ 'recording.devices.refresh' | transloco }}
       </button>
-    </ng-container>
-    <ng-template #needPerm>
+    } @else {
       <div class="px-3 py-2 small text-muted">
         {{ 'recording.devices.no permission' | transloco }}
       </div>
@@ -108,10 +109,10 @@
         ngbDropdownItem
         class="d-flex align-items-center gap-2"
         (click)="onRequestPermission()"
-      >
+        >
         <i class="bi bi-shield-check"></i>
         {{ 'recording.devices.request access' | transloco }}
       </button>
-    </ng-template>
+    }
   </div>
 </div>
