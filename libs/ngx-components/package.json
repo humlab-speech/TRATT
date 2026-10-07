@@ -1,7 +1,7 @@
 {
   "name": "@tratt/ngx-components",
   "description": "library with a list of components created for OCTRA",
-  "version": "1.2.0",
+  "version": "2.0.0",
   "license": "MIT",
   "private": false,
   "author": {
@@ -19,11 +19,11 @@
     "@angular/common": ">18.0.0",
     "@angular/core": ">18.0.0",
     "@angular/forms": ">18.0.0",
-    "@tratt/utilities": "^1.1.0",
-    "@tratt/annotation": "^1.1.0",
-    "@tratt/media": "^1.0.0",
-    "@tratt/web-media": "^1.0.0",
-    "@tratt/ngx-utilities": "^1.0.1",
+    "@tratt/utilities": "^1.2.0",
+    "@tratt/annotation": "^2.0.0",
+    "@tratt/media": "^1.0.1",
+    "@tratt/web-media": "^1.0.2",
+    "@tratt/ngx-utilities": "^1.0.2",
     "konva": "^9.0.0",
     "rxjs": ">=7.5.0"
   },

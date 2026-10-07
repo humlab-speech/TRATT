@@ -1,7 +1,7 @@
 {
   "name": "@tratt/annotation",
   "description": "library containing annotation related classes and functions used by OCTRA (e.g. file converters)",
-  "version": "1.2.0",
+  "version": "2.0.0",
   "license": "MIT",
   "private": false,
   "author": {
@@ -12,8 +12,8 @@
   },
   "homepage": "https://github.com/IPS-LMU/octra",
   "peerDependencies": {
-    "@tratt/media": "^1.0.0",
-    "@tratt/utilities": "^1.1.0"
+    "@tratt/media": "^1.0.1",
+    "@tratt/utilities": "^1.2.0"
   },
   "repository": {
     "type": "git",
