@@ -101,7 +101,7 @@ export class WavFormat extends AudioFormat {
       if ([32, 16, 8].includes(this._bitsPerSample)) {
         dataChunkLength = Math.round(dataChunkLength / divider);
         result = new this.formatConstructor(dataChunkLength);
-        convertedData = new this.formatConstructor(uint8Array.buffer);
+        convertedData = new this.formatConstructor(uint8Array.buffer as ArrayBuffer);
         start = Math.round(start / divider);
         startPos = 44 / divider + Math.round(start);
       }
