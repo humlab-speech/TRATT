@@ -875,45 +875,50 @@ export class IDBEffects {
       ofType(...ANNOTATION_SAVE_TRIGGERS),
       withLatestFrom(this.store),
       mergeMap(([action, appState]) => {
-        const subject = new Subject<Action>();
         const modeState = this.getModeStateFromString(appState, action.mode);
 
-        if (modeState) {
-          if (!this.audio.current) {
-            // Audio not yet loaded (e.g. loginLocal.prepare fires before audio is registered).
-            // Skip annotation save — it will be saved once audio loads successfully.
-            return of(IDBActions.saveAnnotation.success());
-          }
-          return this.idbService
-            .saveAnnotation(
-              action.mode,
-              modeState.transcript.serialize(
-                modeState.audio.fileName,
-                this.audio.current.resource.info.sampleRate,
-                this.audio.current.resource.info.duration,
-              ),
-              this.resolveLocalBundleId(action.mode, appState),
-            )
-            .pipe(
-              map(() => IDBActions.saveAnnotation.success()),
-              catchError((error) => {
-                return of(
-                  IDBActions.saveAnnotation.fail({
-                    error,
-                  }),
-                );
-              }),
-            );
-        } else {
-          subject.next(
+        if (!modeState) {
+          // Every trigger must be answered, or AnnotationSaveTracker never
+          // releases its count and "Leave site?" sticks for the session.
+          return of(
             IDBActions.saveAnnotation.fail({
               error: "Can't find modeState",
             }),
           );
-          subject.complete();
         }
-
-        return subject;
+        if (!this.audio.current) {
+          // Audio not yet loaded (e.g. loginLocal.prepare fires before audio is registered).
+          // Skip annotation save — it will be saved once audio loads successfully.
+          return of(IDBActions.saveAnnotation.success());
+        }
+        let serialized;
+        try {
+          serialized = modeState.transcript.serialize(
+            modeState.audio.fileName,
+            this.audio.current.resource.info.sampleRate,
+            this.audio.current.resource.info.duration,
+          );
+        } catch (error) {
+          // A synchronous throw here would kill the effect and leave the
+          // tracker's count unanswered.
+          return of(IDBActions.saveAnnotation.fail({ error }));
+        }
+        return this.idbService
+          .saveAnnotation(
+            action.mode,
+            serialized,
+            this.resolveLocalBundleId(action.mode, appState),
+          )
+          .pipe(
+            map(() => IDBActions.saveAnnotation.success()),
+            catchError((error) => {
+              return of(
+                IDBActions.saveAnnotation.fail({
+                  error,
+                }),
+              );
+            }),
+          );
       }),
     ),
   );
