@@ -11,6 +11,7 @@
   (afterdrop)="afterDrop()"
   [height]="height"
   [showIcon]="files.length === 0"
+  [allowZip]="acceptExportArchive"
 >
   <table [hidden]="files.length === 0" class="dropzone-table position-relative">
     @for (fileProgress of files; track fileProgress.id) {

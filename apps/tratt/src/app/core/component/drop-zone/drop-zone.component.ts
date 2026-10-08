@@ -10,6 +10,11 @@ import {
 } from '@angular/core';
 import { SessionFile } from '../../obj/SessionFile';
 
+/** Browsers report a zip as application/zip, application/x-zip-compressed, or nothing at all. */
+export function isZipFile(file: Pick<File, 'name' | 'type'>): boolean {
+  return /zip/i.test(file.type) || /\.zip$/i.test(file.name);
+}
+
 @Component({
   selector: 'tratt-drop-zone',
   templateUrl: './drop-zone.component.html',
@@ -25,6 +30,8 @@ export class DropZoneComponent implements OnInit {
    * `<ng-content>` regardless, overlapping whatever text/table was
    * projected in. Defaults to true so existing bare usages are unchanged. */
   @Input() showIcon = true;
+  /** Lets `.zip` files through (they are filtered out by default). */
+  @Input() allowZip = false;
   @Output() public afterdrop: EventEmitter<File[]> = new EventEmitter<File[]>();
   @ViewChild('fileinput', { static: true }) fileinput!: ElementRef;
   private fileAPIsupported = false;
@@ -78,6 +85,6 @@ export class DropZoneComponent implements OnInit {
   }
 
   private filterFiles(files: FileList): File[] {
-    return Array.from(files).filter((a) => /.*zip.*/g.exec(a.type) === null);
+    return Array.from(files).filter((a) => this.allowZip || !isZipFile(a));
   }
 }

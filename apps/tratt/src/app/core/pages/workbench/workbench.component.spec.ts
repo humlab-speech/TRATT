@@ -58,6 +58,8 @@ jest.mock('../../component/tratt-dropzone/tratt-dropzone.component', () => {
     @Input() allowMultipleAudio = false;
     @Input() pairTranscriptsByBasename = false;
     @Input() externalAudioFor: unknown;
+    @Input() acceptExportArchive = false;
+    @Output() archiveLoaded = new EventEmitter();
     @Output() filesAdded = new EventEmitter();
     hasAnnotation = false;
     oannotation = undefined;
@@ -1449,6 +1451,15 @@ describe('WorkbenchComponent', () => {
       component.onRunPauseClick();
       expect(pipelineQueueService.stop).toHaveBeenCalledTimes(1);
       expect(pipelineQueueService.enqueue).not.toHaveBeenCalled();
+    });
+
+    it('switches the pipeline off and pauses the queue when an export archive is loaded', () => {
+      fixture.detectChanges();
+      const transcribe = (component as any).transcribeOptions;
+      transcribe.enabled.set(true);
+      component.onArchiveLoaded();
+      expect(transcribe.enabled()).toBe(false);
+      expect(pipelineQueueService.stop).toHaveBeenCalledTimes(1);
     });
 
     it('excludes already-done bundles from the ready set', () => {

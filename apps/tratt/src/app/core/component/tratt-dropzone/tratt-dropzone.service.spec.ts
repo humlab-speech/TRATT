@@ -606,3 +606,57 @@ item []:
     );
   });
 });
+
+describe('TrattDropzoneService export archives', () => {
+  const zipFile = (bytes: Uint8Array) =>
+    ({
+      name: 'tratt_1_20261008@1910.zip',
+      type: 'application/zip',
+      size: bytes.length,
+      arrayBuffer: async () => bytes.buffer,
+    }) as unknown as File;
+  const newService = () => {
+    const service = new TrattDropzoneService(
+      {} as never,
+      {} as never,
+      { translate: (key: string) => key } as never,
+    );
+    service.acceptExportArchive = true;
+    return service;
+  };
+
+  it('unpacks an archive: announces it, then adds audio before its annotation', async () => {
+    const service = newService();
+    const loaded = jest.fn();
+    service.archiveLoaded.subscribe(loaded);
+    const added: string[] = [];
+    jest
+      .spyOn(service, 'add')
+      .mockImplementationOnce(service.add.bind(service))
+      .mockImplementation(((f: File) => added.push(f.name)) as never);
+    const { strToU8, zipSync } = await import('fflate');
+    await (
+      service as unknown as { addArchive(f: File): Promise<void> }
+    ).addArchive(
+      zipFile(
+        zipSync({
+          'bundles/a/a_annot.json': strToU8('{}'),
+          'bundles/a/a.wav': strToU8('RIFF'),
+        }),
+      ),
+    );
+    expect(loaded).toHaveBeenCalledTimes(1);
+    expect(added).toEqual(['a.wav', 'a_annot.json']);
+  });
+
+  it('lists an unreadable archive as invalid without announcing it', async () => {
+    const service = newService();
+    const loaded = jest.fn();
+    service.archiveLoaded.subscribe(loaded);
+    service.add(zipFile(new Uint8Array([1, 2, 3])));
+    await new Promise((r) => setTimeout(r));
+    expect(loaded).not.toHaveBeenCalled();
+    expect(service.files).toHaveLength(1);
+    expect(service.files[0].status).toBe('invalid');
+  });
+});

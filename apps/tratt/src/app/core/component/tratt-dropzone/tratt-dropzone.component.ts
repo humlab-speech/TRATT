@@ -118,6 +118,14 @@ export class TrattDropzoneComponent
   ) {
     this.trattDropzoneService.externalAudioFor = value;
   }
+  /** See TrattDropzoneService.acceptExportArchive. */
+  @Input() set acceptExportArchive(value: boolean) {
+    this.trattDropzoneService.acceptExportArchive = value;
+  }
+  get acceptExportArchive(): boolean {
+    return this.trattDropzoneService.acceptExportArchive;
+  }
+  @Output() archiveLoaded = this.trattDropzoneService.archiveLoaded;
   @Output() filesAdded = this.trattDropzoneService.filesChange;
 
   get AppInfo(): AppInfo {

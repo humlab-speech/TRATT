@@ -79,6 +79,8 @@
     "waiting for audio": "Väntar på ljudfil — vänligen lägg även till en ljudfil",
     "validation error": "Valideringsfel",
     "validation warning": "Valideringsvarning",
+    "empty archive": "Det innehåller inga inspelningar.",
+    "invalid archive": "Kunde inte läsa arkivet: {{error}}",
     "invalid file type": "Den här filtypen stöds inte.",
     "file format not supported": "Filformatet stöds inte.",
     "file names not same": "Transkriptfilens namn matchar inte ljudfilens namn.",
@@ -813,9 +815,7 @@
       "done": "Klar — {{count}} fil(er) arkiverade.",
       "failed": "Exporten misslyckades: {{message}}"
     },
-    "load_export": "Läs in export (.zip)",
-    "load_export_failed": "Kunde inte läsa arkivet: {{error}}",
-    "dropzone_placeholder": "Släpp ljudfiler här, eller klicka för att välja. Flera filer samtidigt går bra.",
+    "dropzone_placeholder": "Släpp ljudfiler eller tidigare exporterat arkiv här",
     "editor": {
       "loading_audio": "Läser in ljud…",
       "awaiting_media": "Ljudet för den här filen är inte inläst i den här sessionen. Använd ”Bifoga fil…” i listan för att koppla det igen."

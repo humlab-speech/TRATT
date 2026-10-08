@@ -20,12 +20,14 @@ import { AppInfo } from '../../../app.info';
 import { ImportOptionsModalComponent } from '../../modals/import-options-modal/import-options-modal.component';
 import { TrattModalService } from '../../modals/tratt-modal.service';
 import { FileProgress } from '../../obj/objects';
+import { filesFromExportZip } from '../../shared/service/catalogue-import';
 import {
   applySpeakerTurnsToAnnotJson,
   SpeakerTurn,
 } from '../../shared/service/local-diarization.service';
 import { LoginMode, RootState } from '../../store';
 import { LoginModeActions } from '../../store/login-mode';
+import { isZipFile } from '../drop-zone/drop-zone.component';
 import {
   audioBasename,
   padSegmentLevels,
@@ -230,6 +232,15 @@ export class TrattDropzoneService {
    */
   public externalAudioFor?: (basename: string) => ExternalAudio;
 
+  /**
+   * Opt-in (workbench): a `.zip` made by the catalogue export is unpacked into
+   * its recordings and transcripts, which are then added as if dropped one by
+   * one (so each transcript pairs with its recording). `archiveLoaded` fires
+   * first, so the host can switch its pipeline off before anything is ingested.
+   */
+  public acceptExportArchive = false;
+  archiveLoaded = new EventEmitter<void>();
+
   private pairing = false;
   private pairAgain = false;
 
@@ -269,7 +280,43 @@ export class TrattDropzoneService {
     );
   }
 
+  private async addArchive(zip: File): Promise<void> {
+    try {
+      const files = filesFromExportZip(new Uint8Array(await zip.arrayBuffer()));
+      if (files.length === 0) {
+        throw new Error(
+          this.translocoService.translate('dropzone.empty archive'),
+        );
+      }
+      this.archiveLoaded.emit();
+      files.forEach((file) => this.add(file));
+    } catch (error) {
+      this.addInvalid(
+        zip,
+        this.translocoService.translate('dropzone.invalid archive', {
+          error: error instanceof Error ? error.message : String(error),
+        }),
+      );
+    }
+  }
+
+  private addInvalid(file: File, error: string): void {
+    this._files.push({
+      id: TrattDropzoneService.id++,
+      status: 'invalid',
+      progress: 0,
+      checked_converters: 0,
+      file: new FileInfo(file.name, file.type, file.size, file),
+      error,
+    });
+    this.updateStatistics();
+  }
+
   add(file: File) {
+    if (this.acceptExportArchive && isZipFile(file)) {
+      void this.addArchive(file);
+      return;
+    }
     const progressFile: FileProgress = {
       id: TrattDropzoneService.id++,
       status: 'progress',

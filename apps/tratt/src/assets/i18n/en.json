@@ -79,6 +79,8 @@
     "waiting for audio": "Waiting for audio file — please also drop an audio file",
     "validation error": "Validation Error",
     "validation warning": "Validation Warning",
+    "empty archive": "It contains no recordings.",
+    "invalid archive": "Could not read the archive: {{error}}",
     "invalid file type": "This file type is not supported.",
     "file format not supported": "File format not supported.",
     "file names not same": "Transcript filename does not match the audio filename.",
@@ -865,9 +867,7 @@
       "done": "Done — {{count}} file(s) archived.",
       "failed": "Export failed: {{message}}"
     },
-    "load_export": "Load export (.zip)",
-    "load_export_failed": "Could not read the archive: {{error}}",
-    "dropzone_placeholder": "Drop audio files here, or click to browse. Several at once is fine.",
+    "dropzone_placeholder": "Drop audio files or a previously exported archive here",
     "editor": {
       "loading_audio": "Loading audio…",
       "awaiting_media": "This file’s audio isn’t loaded in this session. Use “Attach file…” in the list to re-attach it."
