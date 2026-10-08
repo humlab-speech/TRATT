@@ -16,6 +16,24 @@ import { IDBActions } from '../../store/idb/idb.actions';
 export class AnnotationSaveTracker {
   private pending = 0;
 
+  /**
+   * Counts one write that is NOT driven by ANNOTATION_SAVE_TRIGGERS (today: the
+   * queue's `setBundleTranscript` write, which IDBEffects must never also perform).
+   * Call the returned release from every exit path of the write — success,
+   * rejection and any early return — or the leave-page guard sticks forever.
+   */
+  beginWrite(): () => void {
+    this.pending++;
+    let released = false;
+    return () => {
+      if (released) {
+        return;
+      }
+      released = true;
+      this.pending = Math.max(0, this.pending - 1);
+    };
+  }
+
   get inFlight(): number {
     return this.pending;
   }

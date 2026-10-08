@@ -4,11 +4,13 @@ import { Action, Store } from '@ngrx/store';
 import {
   catchError,
   EMPTY,
+  finalize,
   forkJoin,
   mergeMap,
   of,
   withLatestFrom,
 } from 'rxjs';
+import { AnnotationSaveTracker } from '../../shared/service/annotation-save-tracker.service';
 import { AudioService } from '../../shared/service/audio.service';
 import { IDBService } from '../../shared/service/idb.service';
 import { transcriptEnd } from '../../shared/transcript-timing';
@@ -140,9 +142,13 @@ export class PipelineQueuePersistenceEffects {
             console.error('Failed to serialize bundle transcript', error);
             return EMPTY;
           }
+          // Bracket AFTER the two early returns above: a write that was never
+          // issued must not be counted, or the leave-page guard sticks forever.
+          const releaseWrite = this.saveTracker.beginWrite();
           return this.idbService
             .saveAnnotation(LoginMode.LOCAL, serialized, action.bundleId)
             .pipe(
+              finalize(releaseWrite),
               mergeMap(() => of(undefined)),
               catchError((error) => {
                 // Never swallow silently: the transcript is only in memory.
@@ -163,6 +169,7 @@ export class PipelineQueuePersistenceEffects {
     private store: Store<RootState>,
     private idbService: IDBService,
     private audioService: AudioService,
+    private saveTracker: AnnotationSaveTracker,
   ) {}
 
   /**
