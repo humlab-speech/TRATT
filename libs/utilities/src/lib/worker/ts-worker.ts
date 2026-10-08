@@ -54,7 +54,8 @@ export class TsWorker {
       .replace(/(\/\*+[^**/]+\*+\/)|(\/\/.*)\n*/g, '')
       .replace(/(function)([^(]*)([^{\n]+)/g, '$3 => ');
 
-    if (eval(`${scriptString}`) === undefined) {
+    // indirect eval: no local scope capture, avoids bundler direct-eval warning
+    if ((0, eval)(`${scriptString}`) === undefined) {
       throw new Error("Can't eval function.");
     }
 
@@ -234,7 +235,9 @@ onmessage = (msg) => {
     this.status = TsWorkerStatus.INITIALIZED;
 
     if (id !== undefined && id > -1) {
-      const index = this._queue.findIndex((a) => a !== undefined && a.id === id);
+      const index = this._queue.findIndex(
+        (a) => a !== undefined && a.id === id,
+      );
       if (index > -1) {
         this._queue.splice(index, 1);
       }

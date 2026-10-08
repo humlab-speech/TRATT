@@ -56,7 +56,7 @@ export class MultiThreadingService {
           try {
             const doFunction =
               typeof job.doFunction === 'string'
-                ? eval(job.doFunction)
+                ? (0, eval)(job.doFunction)
                 : job.doFunction;
             const result = await doFunction(...job.args);
             finish(() => {

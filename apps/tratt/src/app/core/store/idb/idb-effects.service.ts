@@ -901,7 +901,11 @@ export class IDBEffects {
         } catch (error) {
           // A synchronous throw here would kill the effect and leave the
           // tracker's count unanswered.
-          return of(IDBActions.saveAnnotation.fail({ error }));
+          return of(
+            IDBActions.saveAnnotation.fail({
+              error: error instanceof Error ? error.message : String(error),
+            }),
+          );
         }
         return this.idbService
           .saveAnnotation(
