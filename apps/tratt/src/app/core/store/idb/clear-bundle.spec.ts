@@ -130,4 +130,16 @@ describe('clear-permanently with a non-default bundle selected (R1)', () => {
       'other doc',
     );
   });
+
+  it('answers a logout without a mode instead of hanging', async () => {
+    actions$.next(AuthenticationActions.logout.success({ clearSession: true }));
+    const outcome = await Promise.race([
+      firstValueFrom(effects.clearAnnotation$ as any).then(() => 'answered'),
+      new Promise((r) => setTimeout(() => r('hung'), 400)),
+    ]);
+    expect(outcome).toBe('answered');
+    expect(await row(OTHER, 'annotation')).toMatchObject({
+      value: doc('other doc'),
+    });
+  });
 });

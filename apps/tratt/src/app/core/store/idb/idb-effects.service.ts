@@ -445,7 +445,10 @@ export class IDBEffects {
       exhaustMap(([action, appState]) => {
         if (
           hasProperty(action, 'clearSession') &&
-          (action as any).clearSession
+          (action as any).clearSession &&
+          // logout actions may carry no mode; without one there is no table
+          // to wipe and forkJoin would never complete.
+          (action as any).mode
         ) {
           // Clear the bundle the user is looking at. Without an explicit id,
           // clearDataOfMode falls back to DEFAULT_BUNDLE_ID ('bundle-1'),
