@@ -60,7 +60,11 @@ modellen. Detaljer och rekommendationer:
 
 ## 4. Starta
 
-Klicka på knappen under rutan: **Starta ny transkription**.
+Klicka på knappen under rutan. För en fil TRATT inte sett förut står det
+**Starta ny transkription**. Texten ändrar sig efter vad du valt: **Manuell
+transkription** när du skriver allt själv, **Kör automatisk bearbetning** när en
+modell ska köras, och **Ersätt de lagrade annoteringarna** när det skulle skriva
+över en transkription TRATT redan har.
 
 Har du bett om ett utkast ser du nu förloppet: först modellnedladdningen, sedan
 *Transkriberar ljud…* med en tidräknare, och därefter *Identifierar talare…* om
@@ -124,6 +128,16 @@ Om du är osäker på vilket du vill ha:
 Export till Word och OpenDocument kan lägga varje yttrande på egen rad eller köra
 det som löpande text, och kan sätta talarnamn och tidsstämplar först. Alla
 alternativ beskrivs under [Exportera](exporting.md).
+
+---
+
+## Om du har fler än en inspelning
+
+Den här sidan beskriver enfilsvägen, och den är rätt väg för en enskild intervju.
+För en mapp med inspelningar finns en andra väg:
+[Arbetsbänken](workbench.md) håller många filer i en lista, transkriberar dem
+genom en kö medan du gör något annat, och exporterar hela omgången som ett arkiv.
+Vyerna och genvägarna är identiska, så läs vidare oavsett.
 
 ---
 

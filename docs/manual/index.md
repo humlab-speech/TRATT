@@ -16,30 +16,48 @@ see [What leaves your computer](privacy.md) for exactly what does.
 | --- | --- |
 | **New here.** You have a recording and want text out of it, today. | [Quick start: your first transcription](quick-start.md) *(about 5 minutes of reading, plus model download time)* |
 | **Transcribing for real.** You work in TRATT regularly and want to be fast and correct. | [How transcribing works](transcribing.md), then [Keyboard shortcuts](shortcuts.md) |
+| **Holding a folder of recordings**, not one file. | [The Workbench](workbench.md) |
 | **Looking one thing up.** | The reference list below |
+
+---
+
+## Two ways of working
+
+Most of TRATT is about one recording at a time: you load a file on the start page,
+transcribe it, export it. That is what the next two sections describe, and it is
+where to start.
+
+If you have a batch, the **Workbench** at `/workbench` holds many recordings in one
+list, transcribes them through a queue, and lets you click between the results. It
+is a preview and not in every build. The editors, shortcuts and formats are the
+same either way, so nothing you learn below is wasted.
 
 ---
 
 ## Contents
 
-**Getting your material in**
+**Getting started**
 
 - [Quick start: your first transcription](quick-start.md)
-- [Loading a recording](loading-media.md): upload, record in the browser, supported formats, resuming a session
-- [Automatic draft transcription](automatic-transcription.md): speech-recognition models, languages, speaker separation, translation
 - [What leaves your computer](privacy.md)
 
-**Doing the work**
+**One recording at a time**
 
+- [Loading a recording](loading-media.md): upload, record in the browser, supported formats, resuming a session
+- [Automatic draft transcription](automatic-transcription.md): speech-recognition models, languages, speaker separation, translation
 - [How transcribing works](transcribing.md): transcription units, boundaries, markers, speakers
 - [The editors](the-editors.md): 2D, Dictaphone, Linear
 - [Tiers and speakers](tiers-and-speakers.md)
 - [Checking your work](checking-your-work.md): the Overview window, statistics, guidelines
-- [Tools](using-tools.md): combining units, cutting audio, custom tables
 
-**Getting your work out**
+**Many recordings**
+
+- [The Workbench](workbench.md): a file list, a transcription queue, batch export
+
+**Results and tools**
 
 - [Exporting](exporting.md): every format TRATT can write, and what each is good for
+- [Tools](using-tools.md): combining units, cutting audio, custom tables
 
 **Reference**
 

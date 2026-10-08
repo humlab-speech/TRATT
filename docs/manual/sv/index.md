@@ -17,30 +17,48 @@ Se [Vad lämnar din dator](privacy.md) för exakt vad som faktiskt gör det.
 | --- | --- |
 | **Ny här.** Du har en inspelning och vill ha text ur den, idag. | [Snabbstart: din första transkription](quick-start.md) *(ungefär fem minuters läsning, plus tid för modellnedladdning)* |
 | **Transkriberar på riktigt.** Du arbetar i TRATT regelbundet och vill vara snabb och korrekt. | [Så fungerar transkribering](transcribing.md), därefter [Tangentbordsgenvägar](shortcuts.md) |
+| **Har en mapp med inspelningar**, inte en fil. | [Arbetsbänken](workbench.md) |
 | **Slår upp en sak.** | Referenslistan nedan |
+
+---
+
+## Två arbetssätt
+
+Det mesta i TRATT handlar om en inspelning i taget: du laddar en fil på
+startsidan, transkriberar den och exporterar den. Det är vad de två följande
+avsnitten beskriver, och det är där man börjar.
+
+Har du en hel omgång håller **Arbetsbänken** på `/workbench` många inspelningar i
+en lista, transkriberar dem genom en kö och låter dig klicka mellan resultaten.
+Den är en förhandsversion och finns inte i varje bygge. Vyerna, genvägarna och
+formaten är desamma i båda fallen, så ingenting du lär dig nedan går till spillo.
 
 ---
 
 ## Innehåll
 
-**Få in ditt material**
+**Kom igång**
 
 - [Snabbstart: din första transkription](quick-start.md)
-- [Ladda in en inspelning](loading-media.md): ladda upp, spela in i webbläsaren, filformat som stöds, återuppta en session
-- [Automatisk utkasttranskription](automatic-transcription.md): taligenkänningsmodeller, språk, talarseparation, översättning
 - [Vad lämnar din dator](privacy.md)
 
-**Arbetet**
+**En inspelning i taget**
 
+- [Ladda in en inspelning](loading-media.md): ladda upp, spela in i webbläsaren, filformat som stöds, återuppta en session
+- [Automatisk utkasttranskription](automatic-transcription.md): taligenkänningsmodeller, språk, talarseparation, översättning
 - [Så fungerar transkribering](transcribing.md): transkriptionsenheter, gränser, markörer, talare
 - [Vyerna](the-editors.md): 2D Vy, Diktafon-vy, Linjär vy
 - [Nivåer och talare](tiers-and-speakers.md)
 - [Kontrollera ditt arbete](checking-your-work.md): Översikt, statistik, riktlinjer
-- [Verktyg](using-tools.md): slå ihop enheter, klippa ljud, egna tabeller
 
-**Få ut ditt arbete**
+**Många inspelningar**
+
+- [Arbetsbänken](workbench.md): en fillista, en transkriptionskö, export av hela omgången
+
+**Resultat och verktyg**
 
 - [Exportera](exporting.md): alla format TRATT kan skriva, och vad de passar till
+- [Verktyg](using-tools.md): slå ihop enheter, klippa ljud, egna tabeller
 
 **Referens**
 

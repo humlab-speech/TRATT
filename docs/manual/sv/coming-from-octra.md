@@ -15,6 +15,7 @@ fortfarande det du ser. Arbetsflödet runtomkring är inte alls detsamma.
 | Funktion | Var |
 | --- | --- |
 | **Lokal taligenkänning.** Whisper-modeller som körs i din webbläsare, med finjusteringar för svenska, finska och norska. | [Automatisk utkasttranskription](automatic-transcription.md) |
+| **Arbete i omgångar.** Arbetsbänken: många inspelningar i en lista, en transkriptionskö, och ett enda arkiv för hela omgången. | [Arbetsbänken](workbench.md) |
 | **Talarseparation.** Lokal diarisering, med talaretiketter, färger, namnbyte och växling. | [Nivåer och talare](tiers-and-speakers.md) |
 | **Lokal maskinöversättning.** Översatta nivåer länkade till en källnivå. | [Automatisk utkasttranskription](automatic-transcription.md#translating-the-transcript) |
 | **Inspelning i webbläsaren.** Mikrofon- och kamerainspelning med enhetsval, nivåmätning och krascháterställning. | [Ladda in en inspelning](loading-media.md#recording-in-the-browser) |

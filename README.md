@@ -48,6 +48,7 @@ TRATT has its own manual in [`docs/manual/`](docs/manual/index.md).
 
 - **New here?** [Quick start — your first transcription](docs/manual/quick-start.md)
 - **Transcribing every day?** [How transcribing works](docs/manual/transcribing.md) and the [keyboard shortcuts](docs/manual/shortcuts.md)
+- **A folder of recordings, not one file?** [The Workbench](docs/manual/workbench.md)
 - **Handling sensitive recordings?** [What leaves your computer](docs/manual/privacy.md)
 - **Arriving from the upstream docs?** [Coming from the OCTRA manual](docs/manual/coming-from-octra.md)
 

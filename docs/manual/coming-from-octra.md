@@ -14,6 +14,7 @@ surrounding workflow is not the same at all.
 | Feature | Where |
 | --- | --- |
 | **Local speech recognition.** Whisper models running in your browser, with Swedish, Finnish and Norwegian fine-tunes. | [Automatic draft transcription](automatic-transcription.md) |
+| **Batch work.** The Workbench: many recordings in one list, a transcription queue, and a single archive export for the lot. | [The Workbench](workbench.md) |
 | **Speaker separation.** Local diarization, with speaker labels, colours, renaming and cycling. | [Tiers and speakers](tiers-and-speakers.md) |
 | **Local machine translation.** Translated tiers linked to a source tier. | [Automatic draft transcription](automatic-transcription.md#translating-the-transcript) |
 | **Recording in the browser.** Microphone and camera capture with device selection, level metering and crash recovery. | [Loading a recording](loading-media.md#recording-in-the-browser) |

@@ -32,6 +32,13 @@ mixing them in is what makes the OCTRA manual hard for a first-time user.
   grep this directory for the old text.
 - **Reference material is tables.** Shortcuts, formats and options are looked up,
   not read.
+- **No em dashes in the prose.** Use a comma, a colon or a full stop. The only
+  exception is text quoted from the application, which keeps whatever the
+  interface says.
+- **The sidebar sections mean something.** "One recording at a time" and "Many
+  recordings" are the two ways of working, and a new page belongs in whichever
+  one its reader is in. `NAV` in `scripts/build-manual.mjs` is the source of
+  truth for the order.
 - **Say when something does not work.** This version of TRATT has an unfinished
   TRN-Editor and an unreachable Tools dialog. Documenting them as working costs
   more trust than the features are worth. When one is fixed, delete the caveat.
@@ -123,6 +130,48 @@ Swedish also documents two app bugs as facts of life: several Whisper model labe
 in `sv.json` read "Liten" regardless of size, so the manual tells readers to go by
 the MB figure. Remove that note when the strings are fixed.
 
+## Verification status
+
+Checked against TRATT running at `localhost:5321` on 2026-10-08, after the
+Workbench landed: the start page and its state-dependent submit button, the
+Workbench (file list, drop area, pipeline settings and summary, capacity meters,
+restored-session state with "Attach file…", remove-with-confirmation), the editor
+toolbar in both places, and the export dialog. The Workbench chapter's statuses,
+stages and error wordings come from `en.json` and `sv.json` rather than from a
+forced failure of each kind.
+
+Not exercised live, and therefore still source-derived only:
+
+- a real queue run: model download, the stage sequence, cancel and retry;
+- writing and re-loading an export archive;
+- browser recording (microphone permissions, level meter, crash recovery);
+- the Linear Editor's two-display shortcuts;
+- boundary refusal messages;
+- the Cut-audio and Combine-units tools, which have no UI entry point to reach.
+
+The Workbench has no screenshot yet. `docs/assets/` is where one belongs, and the
+page is written so that adding one is a one-line change.
+
+## Caveats to delete when the app changes
+
+Each of these is documented as a limitation. When the underlying issue is
+resolved, remove the caveat in the same commit:
+
+| Issue | Where the manual says so |
+| --- | --- |
+| Workbench gated to development builds (`environment.*.ts: workbenchEnabled`) and reachable by URL only | `workbench.md`, `index.md`, `troubleshooting.md` |
+| Workbench has no name of its own in the interface, so the manual supplies one | `workbench.md` (Swedish: "Arbetsbänken") |
+| TRN-Editor unfinished and not offered | `the-editors.md`, `shortcuts.md`, `coming-from-octra.md` |
+| Tools dialog has no UI entry point (`openToolsModal()` has no caller) | `using-tools.md`, `coming-from-octra.md` |
+| Guidelines window absent from the Workbench toolbar | `workbench.md`, `shortcuts.md` |
+| `/help-tools` not linked from anywhere | `troubleshooting.md`, `privacy.md` |
+| Swedish marker labels still English (`guidelines_sv.json`) | `sv/transcribing.md`, `sv/shortcuts.md` |
+| Swedish Whisper model labels mis-sized in `sv.json` ("Liten" regardless of size) | `sv/automatic-transcription.md` |
+
+Fixed since the manual was first written, and no longer mentioned: the cloud
+ASR/MAUS feature (removed from the app), the raw `modal.shortcuts.cycle_speaker`
+key in the Shortcuts window, and the navbar GitHub link.
+
 ## Facts that will go out of date
 
 Check these against the source when TRATT is updated:
@@ -136,3 +185,8 @@ Check these against the source when TRATT is updated:
 | Keyboard shortcuts | `editors/*/*.component.ts`, `libs/ngx-components/.../audio-viewer.config.ts`, `pages/intern/transcription/transcription.component.ts` |
 | Markers | `apps/tratt/src/config/localmode/guidelines/guidelines_*.json` |
 | Which editors and tools are enabled | `apps/tratt/src/config/localmode/projectconfig.json`, `editors/components.ts` |
+| Workbench statuses, stages, errors and capacity wording | `workbench.*` in `apps/tratt/src/assets/i18n/en.json` |
+| Whether the Workbench is reachable | `workbenchEnabled` in `apps/tratt/src/environments/*.ts`, `shared/guard/workbench-enabled.guard.ts` |
+| Pipeline summary line | `core/pages/workbench/pipeline-summary.ts` |
+| Archive name and contents | `core/shared/service/catalogue-export.service.ts`, `catalogue-import.ts` |
+| Start-page submit button wording | `core/pages/login/offline-submit-label.helper.ts` |

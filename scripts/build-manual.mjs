@@ -69,9 +69,9 @@ const UI = {
     untranslated: null,
     sections: {
       start: 'Getting started',
-      material: 'Your material',
-      work: 'Doing the work',
-      results: 'Results',
+      one: 'One recording at a time',
+      many: 'Many recordings',
+      results: 'Results and tools',
       reference: 'Reference',
     },
   },
@@ -89,9 +89,9 @@ const UI = {
       'Den här sidan är ännu inte översatt till svenska och visas på engelska.',
     sections: {
       start: 'Kom igång',
-      material: 'Ditt material',
-      work: 'Arbetet',
-      results: 'Resultat',
+      one: 'En inspelning i taget',
+      many: 'Många inspelningar',
+      results: 'Resultat och verktyg',
       reference: 'Referens',
     },
   },
@@ -103,22 +103,20 @@ const UI = {
  * dropping it out of the navigation.
  */
 const NAV = [
-  { section: 'start', pages: ['index', 'quick-start'] },
+  { section: 'start', pages: ['index', 'quick-start', 'privacy'] },
   {
-    section: 'material',
-    pages: ['loading-media', 'automatic-transcription', 'privacy'],
-  },
-  {
-    section: 'work',
+    section: 'one',
     pages: [
+      'loading-media',
+      'automatic-transcription',
       'transcribing',
       'the-editors',
       'tiers-and-speakers',
       'checking-your-work',
-      'using-tools',
     ],
   },
-  { section: 'results', pages: ['exporting'] },
+  { section: 'many', pages: ['workbench'] },
+  { section: 'results', pages: ['exporting', 'using-tools'] },
   {
     section: 'reference',
     pages: ['shortcuts', 'troubleshooting', 'glossary', 'coming-from-octra'],
@@ -135,12 +133,16 @@ const NAV_LABELS = {
     'quick-start': 'Quick start',
     'automatic-transcription': 'Automatic transcription',
     'coming-from-octra': 'Coming from OCTRA',
+    privacy: 'Privacy',
+    workbench: 'The Workbench',
   },
   sv: {
     index: 'Översikt',
     'quick-start': 'Snabbstart',
     'automatic-transcription': 'Automatisk transkription',
     'coming-from-octra': 'Från OCTRA-manualen',
+    privacy: 'Integritet',
+    workbench: 'Arbetsbänken',
   },
 };
 

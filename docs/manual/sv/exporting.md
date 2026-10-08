@@ -105,6 +105,43 @@ transkriptet.
 
 ---
 
+<a id="exporting-an-archive"></a>
+
+## Att exportera ett arkiv
+
+En enda export täcker en hel omgång, och det är den enda export som kan läsas in
+igen i sin helhet. **Exportera alla** i [Arbetsbänkens](workbench.md) fillista
+öppnar **Exportera katalog**: markera de format du vill ha så skriver TRATT en
+enda `.zip`.
+
+Filen namnges efter vad den innehåller och när den gjordes, till exempel
+`tratt_12_20261008@1923.zip`: tolv inspelningar, 8 oktober 2026, klockan 19:23 i
+lokal tid.
+
+Inuti har varje inspelning en egen mapp under `bundles/` som innehåller
+
+- **källjudet** som du angav det,
+- en förlustfri **`_annot.json`** av dess transkription, och
+- de övriga format du markerat.
+
+Två manifest i roten, **`manifest.json`** och **`manifest.csv`**, listar varje
+inspelning med sökvägar och uppgifter. CSV-filen öppnas i ett kalkylprogram,
+vilket gör den till ett behändigt register över en korpus.
+
+Eftersom ljudet och AnnotJSON följs åt återställer ett släpp av arkivet på
+släppytan hela omgången, med ljudet bifogat och transkriptionerna på plats. Att
+läsa in det stänger av automatisk transkribering så att dina rättelser inte
+skrivs över. Se [Arbetsbänken](workbench.md#loading-an-archive).
+
+En inspelning vars ljud inte var bifogat vid exporten kan inte återställas ur
+arkivet. TRATT talar om vilka under *Klar med varningar* i stället för att låta
+hela exporten misslyckas.
+
+> Det här är säkerhetskopian värd att ta. En mapp med DOCX-filer är en leverans;
+> arkivet är det som gör att du kan ta upp arbetet igen.
+
+---
+
 <a id="formats-tratt-can-read"></a>
 
 ## Format TRATT kan läsa
@@ -114,7 +151,8 @@ befintligt arbete.
 
 | Format | Anmärkning |
 | --- | --- |
-| **AnnotJSON** (`_annot.json`) | Fullständig rundtur. Föredra detta. |
+| **TRATT-arkiv** (`.zip`) | En hel omgång, ljud och transkriptioner tillsammans. Se [Att exportera ett arkiv](#exporting-an-archive). |
+| **AnnotJSON** (`_annot.json`) | Fullständig rundtur för en inspelning. Föredra detta. |
 | **WhisperJSON** (`.json`) | Utdata från Whisper / WhisperX kört någon annanstans. Bara tidsstämplar och text läses; allt annat ignoreras. |
 | **SubRip** (`.srt`) | Med alternativ för talarextraktion, se [Nivåer och talare](tiers-and-speakers.md#importing-material-that-already-has-speakers) |
 | **WebVTT** (`.vtt`) | Läser `<v Namn>`-taggar. STYLE-, REGION- och NOTE-block ignoreras; flerradiga textblock slås ihop. |

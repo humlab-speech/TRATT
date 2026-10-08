@@ -28,6 +28,17 @@ While a file is being read you see a progress bar (for `.wav`) or a turning gear
 Common rejections: an unsupported extension, a file over the size limit, or a
 transcript whose name does not match the audio file's name.
 
+<a id="dropping-an-archive"></a>
+
+### Dropping an exported archive
+
+A `.zip` that TRATT exported can be dropped straight back in. This is the one way
+to get audio *and* transcripts back in a single step, because the archive carries
+both. It is most useful in the [Workbench](workbench.md#loading-an-archive), where
+a whole batch is restored at once; see
+[Exporting an archive](exporting.md#exporting-an-archive) for what the archive
+holds.
+
 ### The transcript file
 
 If you already have a transcript, from an earlier TRATT session, from another
@@ -107,11 +118,15 @@ available* together with the name, size and date of the file you were working on
 Drag that same file in again and click **Continue transcription** to carry on where
 you stopped.
 
-The button below the drop zone tells you which of the two is about to happen:
+The button below the drop zone tells you which of the two is about to happen. The
+blue one is safe and its wording follows what you have chosen; the red one is not.
 
 | Button | What it does |
 | --- | --- |
-| **Continue transcription** (blue) | The file you supplied matches the stored session. Your stored transcript is reopened. |
+| **Continue transcription** (blue) | The file matches the stored session. Your stored transcript is reopened. |
+| **Manual transcription** (blue) | Same, with no model selected: it opens the editor for you to type in. |
+| **Run automatic processing** (blue) | Same, with auto-transcription or translation ticked: the model runs first. |
+| **Replace the stored annotations** (blue) | You have ticked auto-transcription for a recording that already has a transcript. Running it overwrites that transcript. |
 | **Start new transcription** (red) | The file does not match the stored session, or there is none. Clicking it **discards the stored transcript** and starts fresh, with no further confirmation and no undo. |
 
 TRATT decides which button to show by comparing the file you dropped with the one
@@ -121,7 +136,12 @@ recording in a different format still counts as a match). If you expected
 it before clicking.
 
 If the media file you supply is not the one the transcript was made from, the
-boundaries will not line up with the sound. TRATT cannot detect this for you.
+boundaries will not line up with the sound.
+
+A page refresh mid-session lands you on a **Reload audio file** page instead,
+which names the file it wants (*Wanted: interview.mp3*) and restores your
+annotation from local storage once you supply it. **Stop transcription** there
+takes you back to the start page.
 
 > Export a file before you stop for the day. Browser storage is a convenience, not
 > an archive; see [What leaves your computer](privacy.md).

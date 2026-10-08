@@ -28,6 +28,17 @@ kugghjul (för allt annat, som först måste avkodas). Sedan:
 Vanliga avvisningar: ett filformat som inte stöds, en fil över storleksgränsen,
 eller ett transkript vars namn inte matchar ljudfilens namn.
 
+<a id="dropping-an-archive"></a>
+
+### Att släppa ett exporterat arkiv
+
+En `.zip` som TRATT exporterat kan släppas rakt in igen. Det är det enda sättet
+att få tillbaka ljud *och* transkriptioner i ett steg, eftersom arkivet bär båda.
+Den är mest användbar i [Arbetsbänken](workbench.md#loading-an-archive), där en
+hel omgång återställs på en gång; se
+[Att exportera ett arkiv](exporting.md#exporting-an-archive) för vad arkivet
+innehåller.
+
 ### Transkriptfilen
 
 Har du redan ett transkript (från en tidigare TRATT-session, från ett annat
@@ -109,11 +120,15 @@ transkription, tillsammans med namn, storlek och datum för filen du arbetade me
 Dra in samma fil igen och klicka **Fortsätt transkription** för att fortsätta där
 du slutade.
 
-Knappen under släppytan talar om vilket av de två som är på väg att hända:
+Knappen under släppytan talar om vilket av de två som är på väg att hända. Den blå
+är ofarlig och dess text följer vad du valt; den röda är det inte.
 
 | Knapp | Vad den gör |
 | --- | --- |
-| **Fortsätt transkription** (blå) | Filen du angav matchar den sparade sessionen. Ditt sparade transkript öppnas igen. |
+| **Fortsätt transkription** (blå) | Filen matchar den sparade sessionen. Ditt sparade transkript öppnas igen. |
+| **Manuell transkription** (blå) | Detsamma, utan vald modell: vyn öppnas för dig att skriva i. |
+| **Kör automatisk bearbetning** (blå) | Detsamma, med automatisk transkribering eller översättning markerad: modellen körs först. |
+| **Ersätt de lagrade annoteringarna** (blå) | Du har markerat automatisk transkribering för en inspelning som redan har en transkription. Körningen skriver över den. |
 | **Starta ny transkription** (röd) | Filen matchar inte den sparade sessionen, eller så finns ingen. Klickar du **kastas det sparade transkriptet** och du börjar om, utan ytterligare bekräftelse och utan möjlighet att ångra. |
 
 TRATT avgör vilken knapp som ska visas genom att jämföra filen du släppte med den

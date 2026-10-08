@@ -27,4 +27,12 @@ into ordinary language.
 | **Magnifier** | The zoomed strip of waveform around the cursor, for placing boundaries precisely. |
 | **Playcursor** | The line showing where playback has reached. *Follow playcursor* keeps it on screen. |
 | **Easy Mode** | A preference that strips button labels and keyboard hints for a compact interface. |
+| **Workbench** | The `/workbench` page: one list holding many recordings, with a transcription queue. A preview, not in every build. See [The Workbench](workbench.md). |
+| **Bundle** | One recording in the Workbench list together with its transcript. The word shows up in a few messages and in exported file paths. |
+| **Pipeline** | What runs on a recording automatically: speech recognition, then optionally speaker separation and translation. The Workbench's **Pipeline settings** are the same controls as the start page's. |
+| **Queue** | The order the Workbench works through recordings in. One runs at a time. |
+| **Archive** | A `.zip` written by **Export all**, holding every recording's audio and transcript plus the formats you ticked. The only export that can be loaded back complete. |
+| **Catalogue export** | The dialog that writes that archive. |
+| **Manifest** | `manifest.json` and `manifest.csv` at the root of an archive: one row per recording, with paths and details. |
+| **Working memory** | Decoded audio held in the browser tab. The Workbench meters it, because it, and not disk storage, limits how many recordings you can have attached at once. |
 | **OCTRA** | The upstream project TRATT is forked from, at LMU Munich. |

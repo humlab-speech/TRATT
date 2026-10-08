@@ -125,6 +125,54 @@ kassera.
 
 ---
 
+<a id="the-workbench"></a>
+
+## Arbetsbänken
+
+**`/workbench` skickar mig till startsidan**
+Arbetsbänken är avstängd i det här bygget. Den är en förhandsversion som bara är
+påslagen i utvecklingsbyggen. Se [Arbetsbänken](workbench.md).
+
+**En fil misslyckades med "Minnet tog slut"**
+För mycket avkodat ljud är bifogat samtidigt. Mätaren **Arbetsminne (uppskattat)**
+visar hur mycket; disklagringen är inte begränsningen. Exportera det som är klart,
+**Rensa klara** för att frigöra minnet, och bifoga sedan de nästkommande
+inspelningarna. En mindre modell hjälper också.
+
+**En fil misslyckades med "Kunde inte läsa ljudet"**
+Samma avkodningsproblem som på andra håll: en fil i ett format som inte stöds,
+eller en skadad fil. Prova den ensam på startsidan, och konvertera den till `.wav`
+eller `.mp3` om den fortfarande fallerar.
+
+**En fil misslyckades med "Kunde inte ladda modellen"**
+Modellnedladdningen blev inte klar. Kontrollera nätverket och tryck **Försök
+igen** på den raden. Resten av kön påverkas inte.
+
+**Allt står som "Avbruten"**
+Sidan stängdes eller laddades om medan kön körde. Ingenting är förlorat: bifoga
+ljudet igen och kör kön på nytt. Bara filer utan transkription tas med.
+
+**Transkribera-knappen är gråmarkerad**
+Ingen pipeline är inställd. Öppna **Pipelineinställningar** och markera
+**Automatisk transkribering med Whisper** först.
+
+**Alla filer säger "Bifoga fil…"**
+Normalt efter en omladdning. TRATT behåller transkriptioner men aldrig media, så
+varje inspelning behöver få sitt ljud utpekat igen. Ett
+[exporterat arkiv](exporting.md#exporting-an-archive) återställer båda på en gång.
+
+**"Det här ser inte ut att vara samma fil"**
+Filen du valde skiljer sig från den posten skapades av. Dialogen visar båda, så
+jämför dem. När bara ändringstiden skiljer sig rör det sig oftast om en kopia
+eller omexporterat ljud och **Använd ändå** är tryggt; en annan längd eller
+storlek betyder att gränserna inte kommer att stämma.
+
+**Startsidan ersatte en inspelning som låg i Arbetsbänkens lista**
+De delar en sparad sessionsplats, och TRATT varnar innan det sker. Använd den ena
+eller den andra vägen för ett givet material.
+
+---
+
 ## Att förlora arbete
 
 **Mitt transkript är borta**

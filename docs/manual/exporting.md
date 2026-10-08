@@ -104,6 +104,41 @@ and playback history), not part of the transcript.
 
 ---
 
+<a id="exporting-an-archive"></a>
+
+## Exporting an archive
+
+One export covers a whole batch, and it is the only export that can be loaded
+back complete. **Export all** in the [Workbench](workbench.md) file list opens
+**Export catalogue**: tick the formats you want and TRATT writes a single `.zip`.
+
+The file is named after what is in it and when it was made, for example
+`tratt_12_20261008@1923.zip`: twelve recordings, 8 October 2026, 19:23 local time.
+
+Inside, each recording has its own folder under `bundles/` holding
+
+- the **source audio** as you supplied it,
+- a lossless **`_annot.json`** of its transcript, and
+- whatever other formats you ticked.
+
+Two manifests at the root, **`manifest.json`** and **`manifest.csv`**, list every
+recording with its paths and details. The CSV opens in a spreadsheet, which makes
+it a convenient index for a corpus.
+
+Because the audio and the AnnotJSON travel together, dropping the archive back on
+the drop zone restores the whole batch, audio attached and transcripts in place.
+Loading it switches automatic transcription off so your corrections are not
+overwritten. See [The Workbench](workbench.md#loading-an-archive).
+
+A recording whose audio was not attached at export time cannot be restored from
+the archive. TRATT says which ones under *Completed with warnings* rather than
+failing the whole export.
+
+> This is the backup worth taking. A folder of DOCX files is a deliverable; the
+> archive is what lets you pick the work up again.
+
+---
+
 <a id="formats-tratt-can-read"></a>
 
 ## Formats TRATT can read
@@ -112,7 +147,8 @@ Drop these alongside your audio on the start page to continue existing work.
 
 | Format | Notes |
 | --- | --- |
-| **AnnotJSON** (`_annot.json`) | Complete round trip. Prefer this. |
+| **TRATT archive** (`.zip`) | A whole batch, audio and transcripts together. See [Exporting an archive](#exporting-an-archive). |
+| **AnnotJSON** (`_annot.json`) | Complete round trip for one recording. Prefer this. |
 | **WhisperJSON** (`.json`) | Output from Whisper / WhisperX run elsewhere. Only timestamps and text are read; everything else is ignored. |
 | **SubRip** (`.srt`) | With speaker-extraction options; see [Tiers and speakers](tiers-and-speakers.md#importing-material-that-already-has-speakers) |
 | **WebVTT** (`.vtt`) | Reads `<v Name>` voice tags. STYLE, REGION and NOTE blocks are ignored; multi-line cues are merged. |

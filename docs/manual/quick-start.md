@@ -58,7 +58,11 @@ model itself. Details and model recommendations:
 
 ## 4. Start
 
-Click the button below the box: **Start new transcription**.
+Click the button below the box. On a file TRATT has not seen before it reads
+**Start new transcription**. Its wording changes with what you have chosen:
+**Manual transcription** when you are typing everything yourself, **Run automatic
+processing** when a model is going to run, and **Replace the stored annotations**
+when that would overwrite a transcript TRATT already has.
 
 If you asked for a draft, you now see progress: first the model download, then
 *Transcribing audio…* with a time counter, then *Identifying speakers…* if you
@@ -121,6 +125,16 @@ If you are not sure which one you want:
 Word and OpenDocument export can put each utterance on its own line or run it as
 continuous text, and can prefix speaker names and timestamps. All the options are
 described in [Exporting](exporting.md).
+
+---
+
+## If you have more than one recording
+
+This page is the one-file route, and it is the right one for a single interview.
+For a folder of recordings there is a second route: the
+[Workbench](workbench.md) holds many files in one list, transcribes them through a
+queue while you do something else, and exports the lot as one archive. The editors
+and shortcuts are identical, so read on either way.
 
 ---
 

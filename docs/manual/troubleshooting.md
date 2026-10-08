@@ -122,6 +122,55 @@ option to continue, download the partial file, or discard it.
 
 ---
 
+<a id="the-workbench"></a>
+
+## The Workbench
+
+**`/workbench` sends me to the start page**
+The Workbench is switched off in this build. It is a preview, enabled in
+development builds only. See [The Workbench](workbench.md).
+
+**A file failed with "Ran out of memory"**
+Too much decoded audio is attached at once. The **Working memory (est.)** meter
+shows how much; disk storage is not the constraint. Export what is finished,
+**Clear finished** to release it, then attach the next few recordings. A smaller
+model also helps.
+
+**A file failed with "Could not read the audio"**
+The same decoding problem as anywhere else: an unsupported or damaged file. Try it
+on the start page on its own, and convert it to `.wav` or `.mp3` if it still
+fails.
+
+**A file failed with "Could not load the model"**
+The model download did not complete. Check the network, then **Retry** on that
+row. The rest of the queue is unaffected.
+
+**Everything says "Interrupted"**
+The page was closed or reloaded while the queue was running. Nothing is lost:
+re-attach the audio and run the queue again. Only files without a transcript are
+picked up.
+
+**The Transcribe button is greyed out**
+No pipeline is configured. Open **Pipeline settings** and tick
+**Auto-transcribe with Whisper** first.
+
+**Every file says "Attach file…"**
+Normal after a reload. TRATT keeps transcripts but never media, so each recording
+needs its audio pointed at again. An
+[exported archive](exporting.md#exporting-an-archive) restores both at once.
+
+**"This doesn't look like the same file"**
+The file you picked differs from the one the entry was made from. The dialog shows
+both, so compare them. When only the modification time differs it is usually a
+copy or re-exported audio and **Use anyway** is safe; a different length or size
+means the boundaries will not line up.
+
+**The start page replaced a recording that was in the Workbench list**
+They share one stored session slot, and TRATT warns about this before it happens.
+Use one route or the other for a given piece of material.
+
+---
+
 ## Losing work
 
 **My transcript is gone**

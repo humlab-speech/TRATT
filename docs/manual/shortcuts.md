@@ -16,6 +16,9 @@ differ and both are given.
 | **Alt + 9** | Open the Guidelines window |
 | **Alt + 0** | Open the Overview window |
 
+In the [Workbench](workbench.md) the toolbar offers Shortcuts and Overview but no
+Guidelines window. Every other key on this page works there unchanged.
+
 ---
 
 ## Audio playback

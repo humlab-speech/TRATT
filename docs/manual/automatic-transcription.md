@@ -16,6 +16,10 @@ be prepared to make revisions to the draft annotation later.
 Load your media file first. The options only appear once TRATT has audio and you
 have **not** supplied a transcript file of your own.
 
+> In the [Workbench](workbench.md) the same controls live behind **Pipeline
+> settings**, where they apply to every recording in the list rather than to one
+> file. Everything on this page applies there too.
+
 Under the drop zone, tick **Auto-transcribe with Whisper**, then set:
 
 1. **Transcription language**: the language actually spoken on the recording.
@@ -66,7 +70,8 @@ Noticeably better than the general model for Swedish.
 
 ### Finnish and Norwegian
 
-Also fine-tuned models. Finnish offers Tiny / Medium / Large; Norwegian (both
+Also fine-tuned models, from Tiny (about 110 MB) up to Large (about 1.2 GB).
+Finnish offers Tiny / Medium / Large; Norwegian (both
 Bokmål and Nynorsk) offers Tiny / Small / Medium / Large. Medium is labelled the
 reference model in both. Medium and Large need WebGPU.
 
@@ -128,13 +133,17 @@ locally** box appears. Pick **From** (about thirty languages) and **To**. The
 routes that have to go through English as *(two steps)*. TRATT then tells you which
 path it will use:
 
-- *Direct opus-mt model*: one model, one step.
-- *Pivot via English (two steps)*: no direct model exists, so it goes through
-  English. Slower, and quality suffers a little.
+- *One-step download*: one model, straight from your language to the target.
+- *Two-step download (via English)*: no direct model exists, so it goes through
+  English. Two models to fetch, slower to run, and quality suffers a little.
 - *No local translation model found for this language pair*: that pair is not
   possible.
 
-Translation runs on your machine and can take several minutes.
+Translation runs on your machine and can take several minutes. If it stops making
+progress TRATT says so rather than leaving you guessing: *Model load stalled*,
+*Translation stalled, no progress for 60 seconds*, or *Download stalled, likely a
+browser storage limit*, which is the one to retry with **Skip browser cache**
+ticked.
 
 **While working.** In the editor, the tier menu offers **Add translated tier…**,
 which creates a linked tier whose boundaries stay in sync with the source tier, and

@@ -17,6 +17,10 @@ lyssnandet.
 Ladda in mediefilen först. Alternativen dyker upp när TRATT har ljud och du
 **inte** har lämnat in en egen transkriptfil.
 
+> I [Arbetsbänken](workbench.md) ligger samma kontroller bakom
+> **Pipelineinställningar**, där de gäller varje inspelning i listan i stället för
+> en enskild fil. Allt på den här sidan gäller även där.
+
 Under släppytan markerar du **Automatisk transkribering med Whisper** och ställer
 sedan in:
 
@@ -72,7 +76,8 @@ bättre än den allmänna modellen för svenska.
 
 ### Finska och norska
 
-Också finjusterade modeller. Finska erbjuder Tiny / Medium / Large; norska (både
+Också finjusterade modeller, från Tiny (ca 110 MB) upp till Large (ca 1,2 GB).
+Finska erbjuder Tiny / Medium / Large; norska (både
 bokmål och nynorsk) erbjuder Tiny / Small / Medium / Large. Medium är märkt som
 referensmodell i båda. Medium och Large kräver WebGPU. Beskrivningarna av dessa
 modeller visas på engelska även i det svenska gränssnittet.
@@ -136,13 +141,18 @@ språk) och **Till**. Listan **Till** erbjuder bara språk som faktiskt går att
 från din källa, och märker vägar som måste gå via engelska med *(två steg)*. TRATT
 talar sedan om vilken väg som används:
 
-- *Direkt opus-mt-modell*: en modell, ett steg.
-- *Pivot via engelska (två opus-mt-modeller)*: ingen direktmodell finns, så det
-  går via engelska. Långsammare, och kvaliteten blir något sämre.
+- *Direkt opus-mt-modell*: en modell, rakt från ditt språk till målspråket.
+- *Pivot via engelska (två steg)*: ingen direktmodell finns, så det går via
+  engelska. Två modeller att hämta, långsammare att köra, och kvaliteten blir
+  något sämre.
 - *Ingen lokal översättningsmodell hittades för detta språkpar*: det paret är
   inte möjligt.
 
-Översättningen körs på din dator och kan ta flera minuter.
+Översättningen körs på din dator och kan ta flera minuter. Står den stilla säger
+TRATT det i stället för att lämna dig i ovisshet: *Modellinläsningen har fastnat*,
+*Översättningen har fastnat, inga framsteg på 60 sekunder*, eller *Nedladdningen
+har fastnat, troligen en lagringsgräns i webbläsaren*, som är den att försöka igen
+med **Hoppa över webbläsarcache** markerat.
 
 **Under arbetet.** I redigeraren erbjuder nivåmenyn **Add translated tier…**, som
 skapar en länkad nivå vars gränser hålls i takt med källnivån, och
