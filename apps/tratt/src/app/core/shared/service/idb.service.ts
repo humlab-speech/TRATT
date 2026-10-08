@@ -51,9 +51,10 @@ export class IDBService {
 
   /**
    * clears all annotaiton data
+   * @param bundleId LOCAL bundle whose annotation row is wiped
    */
-  public clearAnnotationData(mode: LoginMode) {
-    return this.database.clearDataOfMode(mode, 'annotation');
+  public clearAnnotationData(mode: LoginMode, bundleId?: string) {
+    return this.database.clearDataOfMode(mode, 'annotation', bundleId);
   }
 
   /**
@@ -257,8 +258,8 @@ export class IDBService {
   /**
    * clears logging data
    */
-  public clearLoggingData(mode: LoginMode) {
-    return this.database.clearDataOfMode(mode, 'logs');
+  public clearLoggingData(mode: LoginMode, bundleId?: string) {
+    return this.database.clearDataOfMode(mode, 'logs', bundleId);
   }
 
   /**

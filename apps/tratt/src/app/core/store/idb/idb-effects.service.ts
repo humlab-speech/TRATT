@@ -385,17 +385,23 @@ export class IDBEffects {
           a.type === AnnotationActions.clearLogs.do.type ||
           a.type === LoginModeActions.clearOnlineSession.do.type,
       ),
-      exhaustMap((action) =>
-        this.idbService.clearLoggingData((action as any).mode).pipe(
-          map(() => IDBActions.clearLogs.success((action as any).mode)),
-          catchError((error) => {
-            return of(
-              IDBActions.clearLogs.fail({
-                error,
-              }),
-            );
-          }),
-        ),
+      withLatestFrom(this.store),
+      exhaustMap(([action, appState]) =>
+        this.idbService
+          .clearLoggingData(
+            (action as any).mode,
+            this.resolveLocalBundleId((action as any).mode, appState),
+          )
+          .pipe(
+            map(() => IDBActions.clearLogs.success((action as any).mode)),
+            catchError((error) => {
+              return of(
+                IDBActions.clearLogs.fail({
+                  error,
+                }),
+              );
+            }),
+          ),
       ),
     ),
   );
@@ -435,19 +441,33 @@ export class IDBEffects {
           action.type === AuthenticationActions.logout.success.type ||
           action.type === LoginModeActions.endTranscription.do.type,
       ),
-      exhaustMap((action) => {
+      withLatestFrom(this.store),
+      exhaustMap(([action, appState]) => {
         if (
           hasProperty(action, 'clearSession') &&
           (action as any).clearSession
         ) {
+          // Clear the bundle the user is looking at. Without an explicit id,
+          // clearDataOfMode falls back to DEFAULT_BUNDLE_ID ('bundle-1'),
+          // which is a different file as soon as more than one bundle exists:
+          // the selected transcript survived while an untouched bundle's
+          // annotation and logs were destroyed instead.
+          const bundleId = this.resolveLocalBundleId(
+            (action as any).mode,
+            appState,
+          );
           return forkJoin<{
             annotation: Observable<void>;
             logs: Observable<void>;
           }>({
             annotation: this.idbService.clearAnnotationData(
               (action as any).mode,
+              bundleId,
             ),
-            logs: this.idbService.clearLoggingData((action as any).mode),
+            logs: this.idbService.clearLoggingData(
+              (action as any).mode,
+              bundleId,
+            ),
           }).pipe(
             map(() => {
               return IDBActions.clearAnnotation.success();
