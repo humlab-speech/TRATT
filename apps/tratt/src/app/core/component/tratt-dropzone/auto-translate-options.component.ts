@@ -348,6 +348,12 @@ export class AutoTranslateOptionsComponent implements OnInit {
     void this.refreshTargetLanguages();
   }
 
+  /** Switch auto-translation off (and remember it), e.g. while loading an archive. */
+  disable(): void {
+    this.enabled.set(false);
+    this.onEnabledChange();
+  }
+
   onEnabledChange(): void {
     this.persist();
     this.userOverrodeSource = false;

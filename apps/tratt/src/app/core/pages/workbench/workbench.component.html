@@ -33,6 +33,16 @@
               [externalAudioFor]="audioForTranscript"
               placeholderKey="workbench.dropzone_placeholder"
             ></tratt-dropzone>
+            <label class="btn btn-sm btn-outline-secondary mt-2 mb-0">
+              <i class="fa-solid fa-file-zipper me-1" aria-hidden="true"></i>
+              {{ 'workbench.load_export' | transloco }}
+              <input
+                type="file"
+                accept=".zip,application/zip"
+                class="visually-hidden"
+                (change)="loadExportZip($event)"
+              />
+            </label>
           </div>
         </ng-template>
       </li>

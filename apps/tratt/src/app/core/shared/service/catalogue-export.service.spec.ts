@@ -30,7 +30,10 @@ import { SessionFile } from '../../obj/SessionFile';
 import { RootState } from '../../store/index';
 import { localBundleAdapter } from '../../store/login-mode/annotation/local-bundle-collection';
 import { AudioService } from './audio.service';
-import { CatalogueExportService } from './catalogue-export.service';
+import {
+  archiveFileName,
+  CatalogueExportService,
+} from './catalogue-export.service';
 import { PipelineQueueService } from './pipeline-queue.service';
 
 function segmentLevel(id: number, name: string, text: string) {
@@ -97,6 +100,7 @@ describe('CatalogueExportService', () => {
       // the ensureResident() path; individual tests override it.
       getMediaInfo: jest.fn((): any => undefined),
       canRestore: jest.fn(() => true),
+      getSourceFile: jest.fn((): any => undefined),
     };
     const pipelineQueueService = {
       getTranscribeOptions: jest.fn(() => ({ modelId: 'm1', language: 'en' })),
@@ -117,6 +121,21 @@ describe('CatalogueExportService', () => {
       audioService,
     };
   }
+
+  it('archives the source audio and a native annotation next to it', async () => {
+    const { service, audioService } = setup([makeBundle('bundle-1', 'a.wav')]);
+    // jsdom's File has no arrayBuffer().
+    audioService.getSourceFile.mockReturnValue({
+      name: 'a.wav',
+      type: 'audio/wav',
+      arrayBuffer: async () => new Uint8Array([1, 2, 3]).buffer,
+    });
+    const last = await lastValueFrom(service.exportBundles(['bundle-1'], []));
+    const entries = unzipSync(last.archive!);
+    expect(Array.from(entries['bundles/a/a.wav'])).toEqual([1, 2, 3]);
+    expect(Object.keys(entries)).toContain('bundles/a/a_annot.json');
+    expect(last.exportedCount).toBe(1);
+  });
 
   it('produces one archive entry per bundle per requested converter, plus both manifests', async () => {
     const { service } = setup([
@@ -291,7 +310,9 @@ describe('CatalogueExportService', () => {
     );
 
     expect(audioService.ensureResident).not.toHaveBeenCalled();
-    expect(last.warnings).toEqual([]);
+    expect(last.warnings).toEqual([
+      expect.stringContaining('audio not attached'),
+    ]);
     const manifest = JSON.parse(
       strFromU8(unzipSync(last.archive!)['manifest.json']),
     );
@@ -315,7 +336,9 @@ describe('CatalogueExportService', () => {
     );
 
     expect(audioService.ensureResident).not.toHaveBeenCalled();
-    expect(last.warnings).toEqual([]);
+    expect(last.warnings).toEqual([
+      expect.stringContaining('audio not attached'),
+    ]);
     const manifest = JSON.parse(
       strFromU8(unzipSync(last.archive!)['manifest.json']),
     );
@@ -440,5 +463,16 @@ describe('CatalogueExportService', () => {
       strFromU8(unzipSync(last.archive!)['manifest.json']),
     );
     expect(manifest[0].stagesRun).toEqual(['asr', 'translation']);
+  });
+});
+
+describe('archiveFileName', () => {
+  it('encodes name, recording count and local date@time', () => {
+    expect(archiveFileName(2, new Date(2026, 9, 8, 19, 10))).toBe(
+      'tratt_2_20261008@1910.zip',
+    );
+    expect(archiveFileName(12, new Date(2026, 0, 3, 4, 5))).toBe(
+      'tratt_12_20260103@0405.zip',
+    );
   });
 });

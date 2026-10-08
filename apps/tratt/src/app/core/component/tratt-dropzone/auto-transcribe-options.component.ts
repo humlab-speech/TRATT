@@ -741,6 +741,12 @@ export class AutoTranscribeOptionsComponent implements OnInit {
     return `${titlecased} (~${model.sizeMb} MB)`;
   }
 
+  /** Switch auto-transcription off (and remember it), e.g. while loading an archive. */
+  disable(): void {
+    this.enabled.set(false);
+    this.emitChange();
+  }
+
   emitChange(): void {
     if (this.settingsRestored) {
       savePipelineSettings<SavedTranscribeSettings>(this.persistKey(), {

@@ -813,6 +813,8 @@
       "done": "Klar — {{count}} fil(er) arkiverade.",
       "failed": "Exporten misslyckades: {{message}}"
     },
+    "load_export": "Läs in export (.zip)",
+    "load_export_failed": "Kunde inte läsa arkivet: {{error}}",
     "dropzone_placeholder": "Släpp ljudfiler här, eller klicka för att välja. Flera filer samtidigt går bra.",
     "editor": {
       "loading_audio": "Läser in ljud…",

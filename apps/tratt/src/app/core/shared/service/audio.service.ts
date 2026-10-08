@@ -128,6 +128,11 @@ export class AudioService {
   }
 
   /** Media metadata captured at registration; survives LRU eviction. */
+  /** The `File` the bundle's audio was registered from, if still retained. */
+  public getSourceFile(bundleId: string): File | undefined {
+    return this._sourceFiles.get(bundleId);
+  }
+
   public getMediaInfo(bundleId: string): BundleMediaInfo | undefined {
     this._registryVersion();
     return this._mediaInfo.get(bundleId);

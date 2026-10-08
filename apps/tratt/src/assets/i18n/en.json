@@ -865,6 +865,8 @@
       "done": "Done — {{count}} file(s) archived.",
       "failed": "Export failed: {{message}}"
     },
+    "load_export": "Load export (.zip)",
+    "load_export_failed": "Could not read the archive: {{error}}",
     "dropzone_placeholder": "Drop audio files here, or click to browse. Several at once is fine.",
     "editor": {
       "loading_audio": "Loading audio…",

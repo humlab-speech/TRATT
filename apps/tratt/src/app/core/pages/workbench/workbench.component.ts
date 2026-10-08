@@ -86,6 +86,7 @@ import { AppStorageService } from '../../shared/service/appstorage.service';
 import { AudioService } from '../../shared/service/audio.service';
 import { CapacityService } from '../../shared/service/capacity.service';
 import { CatalogueExportService } from '../../shared/service/catalogue-export.service';
+import { filesFromExportZip } from '../../shared/service/catalogue-import';
 import { TranscriptionOptions } from '../../shared/service/local-transcription.service';
 import { TranslationOptions } from '../../shared/service/local-translation.service';
 import { PendingEditsService } from '../../shared/service/pending-edits.service';
@@ -143,6 +144,10 @@ export class WorkbenchComponent
   implements OnInit, AfterViewInit, OnDestroy
 {
   @ViewChild(TrattDropzoneComponent) dropzone?: TrattDropzoneComponent;
+  @ViewChild(AutoTranscribeOptionsComponent)
+  private transcribeOptions?: AutoTranscribeOptionsComponent;
+  @ViewChild(AutoTranslateOptionsComponent)
+  private translateOptions?: AutoTranslateOptionsComponent;
   @ViewChild(LoadeditorDirective) showEditor?: LoadeditorDirective;
 
   // Toggles which left-rail pane (drop-zone file list vs. recording panel) is
@@ -195,6 +200,7 @@ export class WorkbenchComponent
   private selectedBundleId = this.store.selectSignal(selectSelectedBundleId);
   private localMode = this.store.selectSignal(selectLocalMode);
   private alertService = inject(AlertService);
+  private cdr = inject(ChangeDetectorRef);
   private saveTracker = inject(AnnotationSaveTracker);
   private catalogueExport = inject(CatalogueExportService);
   private selectedLevelIndex = computed(
@@ -501,6 +507,39 @@ export class WorkbenchComponent
       ExportFilesModalComponent.options,
       { uiService: this.uiService, media },
     );
+  }
+
+  /**
+   * Restores an archive made by the catalogue export. The pipeline is switched
+   * off first (and the queue paused): the archive's transcripts are final and
+   * must not be re-transcribed or re-translated. The files then go through the
+   * normal dropzone path, which pairs each transcript with its recording.
+   */
+  async loadExportZip(event: Event): Promise<void> {
+    const input = event.target as HTMLInputElement;
+    const zip = input.files?.[0];
+    input.value = '';
+    if (!zip) {
+      return;
+    }
+    try {
+      const files = filesFromExportZip(new Uint8Array(await zip.arrayBuffer()));
+      this.pipelineQueueService.stop();
+      this.transcribeOptions?.disable();
+      this.translateOptions?.disable();
+      this.activeTab = 'upload';
+      this.cdr.detectChanges();
+      files.forEach((file) => this.dropzone?.addFile(file));
+    } catch (error) {
+      this.alertService
+        .showAlert(
+          'danger',
+          this.transloco.translate('workbench.load_export_failed', {
+            error: error instanceof Error ? error.message : String(error),
+          }),
+        )
+        .catch((e) => console.error(e));
+    }
   }
 
   onRunPauseClick(): void {
@@ -1253,8 +1292,7 @@ export class WorkbenchComponent
     }
     (
       this.currentEditorRef.instance as unknown as
-        | TrattEditorRequirements
-        | undefined
+        TrattEditorRequirements | undefined
     )?.flushPendingEdits?.();
   }
 

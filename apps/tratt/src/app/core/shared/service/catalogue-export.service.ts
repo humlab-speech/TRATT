@@ -2,10 +2,11 @@ import { Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { OAnnotJSON } from '@tratt/annotation';
 import { OAudiofile, SampleUnit } from '@tratt/media';
-import { strToU8, zipSync } from 'fflate';
+import { strToU8, Zippable, zipSync } from 'fflate';
 import { Observable } from 'rxjs';
 import { AppInfo } from '../../../app.info';
 import { BUILD_INFO } from '../../../build-info';
+import { audioBasename } from '../../component/tratt-dropzone/transcript-pairing';
 import { RootState } from '../../store/index';
 import { selectLocalMode } from '../../store/login-mode/annotation/annotation.selectors';
 import { IdentifiedAnnotationState } from '../../store/login-mode/annotation/local-bundle-collection';
@@ -19,6 +20,8 @@ export interface CatalogueExportProgress {
   currentBundleName: string | null;
   /** Set only on the final emission. */
   archive?: Uint8Array;
+  /** Recordings actually in the archive (skipped bundles excluded); set with `archive`. */
+  exportedCount?: number;
   /** Per-bundle/per-file problems that didn't abort the export. */
   warnings: string[];
 }
@@ -27,6 +30,13 @@ export interface ResolvedMedia {
   oAudioFile: OAudiofile;
   sampleRate: number;
   duration: SampleUnit;
+}
+
+/** `tratt_<recordings>_<yyyymmdd>@<hhmm>.zip`, in local time. */
+export function archiveFileName(count: number, when = new Date()): string {
+  const p = (n: number) => String(n).padStart(2, '0');
+  const date = `${when.getFullYear()}${p(when.getMonth() + 1)}${p(when.getDate())}`;
+  return `tratt_${count}_${date}@${p(when.getHours())}${p(when.getMinutes())}.zip`;
 }
 
 interface ManifestRow {
@@ -39,6 +49,9 @@ interface ManifestRow {
   stagesRun: string[];
   unitCounts: number;
   appVersion: string;
+  /** Archive path of the bundled audio ('' if its source file is gone). */
+  audioPath: string;
+  audioType: string;
 }
 
 /**
@@ -88,7 +101,7 @@ export class CatalogueExportService {
     const converters = AppInfo.converters.filter((c) =>
       converterNames.includes(c.name),
     );
-    const files: Record<string, Uint8Array> = {};
+    const files: Zippable = {};
     const manifestRows: ManifestRow[] = [];
     const warnings: string[] = [];
     const usedSlugs = new Set<string>();
@@ -206,6 +219,33 @@ export class CatalogueExportService {
         }
       }
 
+      // Audio + a native annotation next to it make the archive re-loadable
+      // (see filesFromExportZip). The annotation is written whatever formats
+      // were ticked: it is the lossless one. Audio is already compressed, so
+      // it is stored, not deflated.
+      let audioPath = '';
+      let audioType = '';
+      const source = this.audioService.getSourceFile(bundleId);
+      if (source) {
+        audioPath = this.uniquePath(files, `bundles/${slug}`, source.name);
+        audioType = source.type;
+        files[audioPath] = [
+          new Uint8Array(await source.arrayBuffer()),
+          { level: 0 },
+        ];
+        files[
+          this.uniquePath(
+            files,
+            `bundles/${slug}`,
+            audioBasename(source.name) + '_annot.json',
+          )
+        ] = strToU8(JSON.stringify(oannotjson));
+      } else {
+        warnings.push(
+          `${entity.sessionFile?.name ?? bundleId}: audio not attached, so it is not in the archive and cannot be re-loaded from it.`,
+        );
+      }
+
       const options = this.pipelineQueueService.getTranscribeOptions();
       const stagesRun: string[] = [];
       if (options) {
@@ -227,6 +267,8 @@ export class CatalogueExportService {
         stagesRun,
         unitCounts,
         appVersion: BUILD_INFO.version,
+        audioPath,
+        audioType,
       });
 
       if (!isLast) {
@@ -252,6 +294,7 @@ export class CatalogueExportService {
       totalBundles: bundleIds.length,
       currentBundleName: null,
       archive,
+      exportedCount: manifestRows.length,
       warnings: [...warnings],
     });
     subscriber.complete();
@@ -350,11 +393,7 @@ export class CatalogueExportService {
   }
 
   /** `dir/name`, or `dir/name-2.ext`, ... when two tiers map to one name. */
-  private uniquePath(
-    files: Record<string, Uint8Array>,
-    dir: string,
-    name: string,
-  ): string {
+  private uniquePath(files: Zippable, dir: string, name: string): string {
     // Converter file names derive from imported file names: strip directory
     // parts so `../` or `/` can't escape `dir` inside the zip (zip-slip).
     name = name.replace(/^.*[\\/]/, '').replace(/^\.+$/, '') || 'file';
@@ -395,6 +434,8 @@ export class CatalogueExportService {
       'stagesRun',
       'unitCounts',
       'appVersion',
+      'audioPath',
+      'audioType',
     ];
     const lines = [headers.join(',')];
     for (const row of rows) {

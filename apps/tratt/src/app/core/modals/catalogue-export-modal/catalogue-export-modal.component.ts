@@ -4,7 +4,10 @@ import { TranslocoPipe } from '@jsverse/transloco';
 import { NgbActiveModal, NgbModalOptions } from '@ng-bootstrap/ng-bootstrap';
 import { Subscription } from 'rxjs';
 import { AppInfo } from '../../../app.info';
-import { CatalogueExportService } from '../../shared/service/catalogue-export.service';
+import {
+  archiveFileName,
+  CatalogueExportService,
+} from '../../shared/service/catalogue-export.service';
 
 @Component({
   selector: 'tratt-catalogue-export-modal',
@@ -107,7 +110,7 @@ export class CatalogueExportModalComponent implements OnDestroy {
             this.downloadUrl.set(url);
             const a = document.createElement('a');
             a.href = url;
-            a.download = 'catalogue-export.zip';
+            a.download = archiveFileName(event.exportedCount ?? 0);
             a.click();
           }
         },
