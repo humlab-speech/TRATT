@@ -2,8 +2,8 @@ import { Type } from '@angular/core';
 import { TwoDEditorComponent } from './2D-editor';
 import { DictaphoneEditorComponent } from './dictaphone-editor';
 import { LinearEditorComponent } from './linear-editor';
-import { TrnEditorComponent } from './trn-editor';
 import { TRATTEditor } from './tratt-editor';
+import { TrnEditorComponent } from './trn-editor';
 
 export const editorComponents: {
   name: string;
@@ -15,24 +15,24 @@ export const editorComponents: {
     name: DictaphoneEditorComponent.editorname,
     editor: DictaphoneEditorComponent,
     translate: 'interfaces.simple editor',
-    icon: 'bi bi-dash-lg',
+    icon: 'fa-solid fa-minus',
   },
   {
     name: LinearEditorComponent.editorname,
     editor: LinearEditorComponent,
     translate: 'interfaces.linear editor',
-    icon: 'bi bi-window-desktop',
+    icon: 'fa-solid fa-window-maximize',
   },
   {
     name: TrnEditorComponent.editorname,
     editor: TrnEditorComponent,
     translate: 'interfaces.TRN editor',
-    icon: 'bi bi-table',
+    icon: 'fa-solid fa-table',
   },
   {
     name: TwoDEditorComponent.editorname,
     editor: TwoDEditorComponent,
     translate: 'interfaces.2D editor',
-    icon: 'bi bi-justify',
+    icon: 'fa-solid fa-align-justify',
   },
 ];

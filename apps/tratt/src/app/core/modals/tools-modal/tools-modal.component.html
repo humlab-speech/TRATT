@@ -32,11 +32,11 @@
               "
             >
               <i
-                class="bi"
+                class="fa-solid"
                 style="color: gray"
                 [ngClass]="{
-                  'bi-chevron-up': tools.combinePhrases.opened,
-                  'bi-chevron-down': !tools.combinePhrases.opened,
+                  'fa-chevron-down': tools.combinePhrases.opened,
+                  'fa-chevron-right': !tools.combinePhrases.opened,
                 }"
               ></i>
             </td>
@@ -59,7 +59,7 @@
                 >{{ 'tools.combine phrases.description' | transloco }}
               </span>
               <a [href]="combineUnitsManualURL" target="_blank">
-                <i class="bi bi-question-circle text-info"></i>
+                <i class="fa-solid fa-circle-question text-info"></i>
               </a>
             </td>
           </tr>
@@ -94,7 +94,7 @@
                             </td>
                             <td>
                               <i
-                                class="bi bi-question-circle"
+                                class="fa-solid fa-circle-question"
                                 [ngbTooltip]="
                                   transloco.translate(
                                     'tools.combine phrases.minimal silence desc'
@@ -125,7 +125,7 @@
                             </td>
                             <td>
                               <i
-                                class="bi bi-question-circle"
+                                class="fa-solid fa-circle-question"
                                 [ngbTooltip]="
                                   transloco.translate(
                                     'tools.combine phrases.maximal words desc'
@@ -160,11 +160,11 @@
               (click)="tools.audioCutting.opened = !tools.audioCutting.opened"
             >
               <i
-                class="bi"
+                class="fa-solid"
                 style="color: gray"
                 [ngClass]="{
-                  'bi-chevron-up': tools.audioCutting.opened,
-                  'bi-chevron-down': !tools.audioCutting.opened,
+                  'fa-chevron-down': tools.audioCutting.opened,
+                  'fa-chevron-right': !tools.audioCutting.opened,
                 }"
               ></i>
             </td>
@@ -181,7 +181,7 @@
             >
               <span>{{ 'tools.cut audio.description' | transloco }} </span>
               <a [href]="cutAudioManualURL" target="_blank">
-                <i class="bi bi-question-circle text-info"></i>
+                <i class="fa-solid fa-circle-question text-info"></i>
               </a>
             </td>
           </tr>
@@ -211,11 +211,17 @@
                     class="show-configurator-link"
                   >
                     @if (tools.audioCutting.showConfigurator) {
-                      <i class="bi bi-chevron-up" style="color: gray"></i>
+                      <i
+                        class="fa-solid fa-chevron-down"
+                        style="color: gray"
+                      ></i>
                       {{ 'tools.cut audio.hide configurator' | transloco }}
                     }
                     @if (!tools.audioCutting.showConfigurator) {
-                      <i class="bi bi-chevron-down" style="color: gray"></i>
+                      <i
+                        class="fa-solid fa-chevron-right"
+                        style="color: gray"
+                      ></i>
                       {{ 'tools.cut audio.show configurator' | transloco }}
                     }
                   </button>
@@ -322,7 +328,7 @@
                         download="{{ tools.audioCutting.result.filename }}"
                         style="margin-left: 10px"
                       >
-                        <i class="bi bi-save-fill"></i>
+                        <i class="fa-solid fa-floppy-disk"></i>
                         {{ 'g.download' | transloco }}
                       </a>
                     }

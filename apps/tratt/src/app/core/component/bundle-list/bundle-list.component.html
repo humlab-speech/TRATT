@@ -27,7 +27,7 @@
       [attr.title]="'workbench.bundle_list.export_catalogue' | transloco"
       (click)="onExportCatalogue()"
     >
-      <i class="bi bi-file-earmark-zip" aria-hidden="true"></i>
+      <i class="fa-solid fa-file-zipper" aria-hidden="true"></i>
       {{ 'workbench.bundle_list.export_catalogue' | transloco }}
     </button>
   </div>
@@ -38,7 +38,7 @@
       [attr.title]="'workbench.bundle_list.clear_finished' | transloco"
       (click)="onClearFinished()"
     >
-      <i class="bi bi-check2-all" aria-hidden="true"></i>
+      <i class="fa-solid fa-check-double" aria-hidden="true"></i>
       {{ 'workbench.bundle_list.clear_finished' | transloco }}
     </button>
     <button
@@ -48,7 +48,7 @@
       [attr.title]="'workbench.bundle_list.remove' | transloco"
       (click)="onRemoveSelected()"
     >
-      <i class="bi bi-trash3" aria-hidden="true"></i>
+      <i class="fa-solid fa-trash" aria-hidden="true"></i>
       {{ 'workbench.bundle_list.remove' | transloco }}
       @if (selectedCount() > 0) {
         ({{ selectedCount() }})
@@ -85,7 +85,7 @@
           [attr.for]="'bundle-reattach-' + bundle.bundleId"
           [attr.title]="bundle.name"
         >
-          <i class="bi bi-paperclip" aria-hidden="true"></i>
+          <i class="fa-solid fa-paperclip" aria-hidden="true"></i>
           {{ 'workbench.bundle_list.reattach' | transloco }}
         </label>
         <!-- Visually hidden; reached through the label above, and by Tab on
@@ -152,7 +152,7 @@
           [attr.aria-label]="'workbench.bundle_list.cancel' | transloco"
           (click)="onCancelRun()"
         >
-          <i class="bi bi-stop-fill" aria-hidden="true"></i>
+          <i class="fa-solid fa-stop" aria-hidden="true"></i>
         </button>
         <span
           class="bundle-list__progress"

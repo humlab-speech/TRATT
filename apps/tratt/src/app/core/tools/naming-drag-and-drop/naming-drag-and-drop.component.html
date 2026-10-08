@@ -9,7 +9,7 @@
         type="button"
       >
         {{ 'tools.cut audio.add placeholder' | transloco }}
-        <i class="bi bi-plus-lg"></i>
+        <i class="fa-solid fa-plus"></i>
       </button>
       <div ngbDropdownMenu aria-labelledby="button-basic">
         @for (item of namingConventionArray; track item; let i = $index) {
@@ -44,7 +44,7 @@
           <div class="naming-content">
             <span class="value">{{ item.value }}</span>
             <button type="button" class="btn btn-link p-0" (click)="remove(i)">
-              <i class="bi bi-x-circle"></i>
+              <i class="fa-solid fa-circle-xmark"></i>
               <span class="visually-hidden">Remove item</span>
             </button>
           </div>
@@ -60,7 +60,7 @@
               [innerText]="item.value"
             ></span>
             <button type="button" class="btn btn-link p-0" (click)="remove(i)">
-              <i class="bi bi-x-circle"></i>
+              <i class="fa-solid fa-circle-xmark"></i>
               <span class="visually-hidden">Remove item</span>
             </button>
           </div>

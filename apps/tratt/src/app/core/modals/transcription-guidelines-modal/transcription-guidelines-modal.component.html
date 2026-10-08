@@ -27,7 +27,7 @@
             class="btn btn-sm btn-danger"
             style="border: 1px solid red"
           >
-            <i class="bi bi-printer-fill"></i>
+            <i class="fa-solid fa-print"></i>
             PDF
           </a>
         }
@@ -42,7 +42,7 @@
         <div class="form-group">
           <div class="input-group">
             <span class="input-group-text">
-              <i class="bi bi-search"></i>
+              <i class="fa-solid fa-magnifying-glass"></i>
             </span>
             <input
               #input
@@ -87,10 +87,10 @@
                           (click)="toggle(j, k)"
                         >
                           <i
-                            class="bi"
+                            class="fa-solid"
                             [ngClass]="{
-                              'bi-chevron-down': collapsed[j][k],
-                              'bi-chevron-up': !collapsed[j][k],
+                              'fa-chevron-right': collapsed[j][k],
+                              'fa-chevron-down': !collapsed[j][k],
                             }"
                           ></i>
                           <span class="visually-hidden">Toggle guideline</span>

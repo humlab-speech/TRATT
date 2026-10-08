@@ -34,11 +34,11 @@
             <tr class="top-tr">
               <td (click)="onLineClick(item.converter, item.index)">
                 <i
-                  class="bi"
+                  class="fa-solid"
                   style="color: gray"
                   [ngClass]="{
-                    'bi-chevron-up': exportStates[item.index] === 'active',
-                    'bi-chevron-down': exportStates[item.index] !== 'active',
+                    'fa-chevron-down': exportStates[item.index] === 'active',
+                    'fa-chevron-right': exportStates[item.index] !== 'active',
                   }"
                 ></i>
               </td>
@@ -78,7 +78,7 @@
                     }}</a>
                     @if (app.recommended) {
                       <i
-                        class="bi bi-patch-check-fill text-success recommended"
+                        class="fa-solid fa-certificate text-success recommended"
                         [ngbPopover]="'g.recommended' | transloco"
                         triggers="mouseenter:mouseleave"
                       ></i>
@@ -87,7 +87,7 @@
                     <span>{{ app.application.name }}</span>
                     @if (app.recommended) {
                       <i
-                        class="bi bi-patch-check-fill text-success recommended"
+                        class="fa-solid fa-certificate text-success recommended"
                         [ngbPopover]="'g.recommended' | transloco"
                         triggers="mouseenter:mouseleave"
                       ></i>
@@ -101,7 +101,7 @@
               <td (click)="onLineClick(item.converter, item.index)">
                 @if (item.converter.notice !== '') {
                   <i
-                    class="bi bi-info-circle"
+                    class="fa-solid fa-circle-info"
                     [ngbTooltip]="item.converter.notice"
                   ></i>
                 }
@@ -631,7 +631,7 @@
                       class="link"
                       (click)="onDownloadClick(item.index)"
                     >
-                      <i class="bi bi-save-fill"></i>
+                      <i class="fa-solid fa-floppy-disk"></i>
                       Download
                     </a>
                   }
@@ -661,11 +661,11 @@
             "
           >
             <i
-              class="bi"
+              class="fa-solid"
               style="color: gray"
               [ngClass]="{
-                'bi-chevron-up': tools.tableConfigurator.opened,
-                'bi-chevron-down': !tools.tableConfigurator.opened,
+                'fa-chevron-down': tools.tableConfigurator.opened,
+                'fa-chevron-right': !tools.tableConfigurator.opened,
               }"
             ></i>
           </td>
@@ -716,11 +716,11 @@
         <tr>
           <td (click)="getProtocol()">
             <i
-              class="bi"
+              class="fa-solid"
               style="color: gray"
               [ngClass]="{
-                'bi-chevron-up': preparing.name === 'Protocol',
-                'bi-chevron-down': preparing.name !== 'Protocol',
+                'fa-chevron-down': preparing.name === 'Protocol',
+                'fa-chevron-right': preparing.name !== 'Protocol',
               }"
             ></i>
           </td>
@@ -746,7 +746,7 @@
                   [href]="parentformat.uri"
                   class="link"
                 >
-                  <i class="bi bi-save-fill"></i>
+                  <i class="fa-solid fa-floppy-disk"></i>
                   Download
                 </a>
               }
@@ -763,7 +763,7 @@
         class="btn btn-secondary"
         (click)="recordedFileService.triggerExport()"
       >
-        <i class="bi bi-mic-fill"></i>
+        <i class="fa-solid fa-microphone"></i>
         {{ 'g.export recording' | transloco }}
       </button>
     }

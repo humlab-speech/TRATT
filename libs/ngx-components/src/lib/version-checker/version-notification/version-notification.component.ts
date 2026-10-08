@@ -37,8 +37,9 @@ export class VersionNotificationComponent
   };
 
   @Input() icons = {
-    'new update': '<i class="bi bi-bell-fill" style="color: #ffca00;"></i>',
-    reload: '<i class="bi bi-arrow-clockwise" style="color: white;"></i>',
+    'new update': '<i class="fa-solid fa-bell" style="color: #ffca00;"></i>',
+    reload:
+      '<i class="fa-solid fa-arrow-rotate-right" style="color: white;"></i>',
   };
 
   @ViewChild('toast', { static: true }) toast?: NgbToast;

@@ -15,7 +15,7 @@
           @if (action.status !== 'inactive') {
             <tr (click)="doAction(action.func)">
               <td class="icon-column">
-                <i [classList]="['bi', action.icon]"></i>
+                <i [classList]="['fa-solid', action.icon]"></i>
               </td>
               <td class="action-column">
                 {{ action.label }}

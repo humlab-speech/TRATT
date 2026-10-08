@@ -38,10 +38,13 @@
 <div class="flex">
   <span id="saving">
     @if (saving === 'saving') {
-      <i class="bi bi-save-fill" style="color: #333333"></i>
+      <i class="fa-solid fa-floppy-disk" style="color: #333333"></i>
     }
     @if (saving === 'error') {
-      <i class="bi bi-save-fill" style="color: var(--tratt-accent-error)"></i>
+      <i
+        class="fa-solid fa-floppy-disk"
+        style="color: var(--tratt-accent-error)"
+      ></i>
     }
   </span>
   <tratt-fastbar
@@ -105,7 +108,7 @@
           class="col-md-3 btn btn-secondary"
           type="button"
         >
-          <i class="bi bi-x-circle"></i>
+          <i class="fa-solid fa-circle-xmark"></i>
           <span>
             {{ 'g.quit' | transloco }}
           </span>
@@ -115,7 +118,7 @@
           class="col-md-3 btn btn-danger"
           type="button"
         >
-          <i class="bi bi-star-fill"></i>
+          <i class="fa-solid fa-star"></i>
         </button>
         <button
           (click)="sendTranscriptionForShortAudioFiles('middle')"
@@ -123,17 +126,17 @@
           type="button"
           style="background-color: var(--tratt-accent-warning)"
         >
-          <i class="bi bi-star-fill"></i>
-          <i class="bi bi-star-fill"></i>
+          <i class="fa-solid fa-star"></i>
+          <i class="fa-solid fa-star"></i>
         </button>
         <button
           (click)="sendTranscriptionForShortAudioFiles('good')"
           class="col-md-3 btn btn-primary"
           type="button"
         >
-          <i class="bi bi-star-fill"></i>
-          <i class="bi bi-star-fill"></i>
-          <i class="bi bi-star-fill"></i>
+          <i class="fa-solid fa-star"></i>
+          <i class="fa-solid fa-star"></i>
+          <i class="fa-solid fa-star"></i>
         </button>
       } @else {
         @if (useMode !== 'url' || routingService.staticQueryParams.bottomNav) {
@@ -142,7 +145,7 @@
             type="button"
             class="col-md-6 btn btn-secondary"
           >
-            <i class="bi bi-x-circle"></i>
+            <i class="fa-solid fa-circle-xmark"></i>
             @if (!appStorage.easyMode) {
               <span class="d-none d-md-inline">
                 {{ 'g.quit' | transloco }}
@@ -159,7 +162,7 @@
             class="col-md-6 btn btn-primary"
             type="button"
           >
-            <i class="bi bi-download"></i>
+            <i class="fa-solid fa-download"></i>
             @if (!appStorage.easyMode) {
               <span class="d-none d-md-inline">
                 {{ 'g.export data' | transloco }}</span
@@ -178,7 +181,7 @@
             class="col-md-6 btn btn-secondary"
             type="button"
           >
-            <i class="bi bi-mic-fill"></i>
+            <i class="fa-solid fa-microphone"></i>
             @if (!appStorage.easyMode) {
               <span class="d-none d-md-inline">
                 {{ 'g.export recording' | transloco }}</span
@@ -197,7 +200,7 @@
                 {{ 'transcription.send' | transloco }}
               </span>
             }
-            <i class="bi bi-send-fill"></i>
+            <i class="fa-solid fa-paper-plane"></i>
           </button>
         }
         @if (useMode === 'url') {
@@ -210,7 +213,7 @@
               class="btn btn-primary"
               type="button"
             >
-              <i class="bi bi-floppy-fill"></i>
+              <i class="fa-solid fa-floppy-disk"></i>
               <span> {{ 'g.save' | transloco }} </span>
             </button>
           }

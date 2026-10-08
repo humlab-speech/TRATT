@@ -28,7 +28,7 @@
         </th>
         <th style="text-align: center; vertical-align: middle">
           <i
-            [classList]="['bi', playAllState.icon]"
+            [classList]="['fa-solid', playAllState.icon]"
             style="margin-right: 5px"
           ></i>
           <input
@@ -62,8 +62,7 @@
                 <tbody>
                   <tr (click)="mergeAllWithSameLabel()" class="dropdown-row">
                     <td class="dropdown-icon">
-                      <i class="bi bi"></i>
-                      <i class="bi bi-grid-1x2-fill"></i>
+                      <i class="fa-solid fa-table-columns"></i>
                     </td>
                     <td class="dropdown-option">
                       {{
@@ -77,7 +76,7 @@
                     class="dropdown-row"
                   >
                     <td class="dropdown-icon">
-                      <i class="bi bi-arrow-left-right"></i>
+                      <i class="fa-solid fa-arrow-right-arrow-left"></i>
                     </td>
                     <td class="dropdown-option">
                       {{
@@ -121,10 +120,13 @@
             (click)="onTableLineClick($event, i)"
           >
             @if (i === textEditor.selectedSegment) {
-              <i class="bi bi-circle" style="color: green; font-size: 10px"></i>
+              <i
+                class="fa-solid fa-circle"
+                style="color: green; font-size: 10px"
+              ></i>
             } @else {
               <i
-                class="bi bi-exclamation-triangle segment-warning"
+                class="fa-solid fa-triangle-exclamation segment-warning"
                 [ngStyle]="{
                   color: 'red',
                   display:
@@ -196,13 +198,13 @@
                   class="btn btn-sm btn-primary btn-info btn-raised w-50"
                   (click)="navigateBetweenCells('up', i)"
                 >
-                  <i class="bi bi-arrow-up"></i> SAVE & UP
+                  <i class="fa-solid fa-arrow-up"></i> SAVE & UP
                 </button>
                 <button
                   class="btn btn-sm btn-primary btn-info btn-raised w-50"
                   (click)="navigateBetweenCells('down', i)"
                 >
-                  <i class="bi bi-arrow-down"></i> SAVE & DOWN
+                  <i class="fa-solid fa-arrow-down"></i> SAVE & DOWN
                 </button>
               </div>
             </td>
@@ -225,7 +227,7 @@
               class="btn btn-link p-0"
               (click)="onTableLineClick($event, i); playSelectedSegment(i)"
             >
-              <i [classList]="['bi', playStateSegments[i].icon]"></i>
+              <i [classList]="['fa-solid', playStateSegments[i].icon]"></i>
               <span class="visually-hidden">Play segment</span>
             </button>
           </td>

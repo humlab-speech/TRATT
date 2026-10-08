@@ -66,7 +66,7 @@
               class="btn btn-primary btn-outline btn-success"
               id="transcr-send-btn"
             >
-              <i class="bi bi-send-fill"></i>
+              <i class="fa-solid fa-paper-plane"></i>
               {{ 'transcription.send' | transloco }}
             </button>
           } @else {
@@ -76,23 +76,23 @@
                   (click)="sendTranscriptionForShortAudioFiles('good')"
                   class="btn btn-raised btn-primary w-100"
                 >
-                  <i class="bi bi-star-fill"></i>
-                  <i class="bi bi-star-fill"></i>
-                  <i class="bi bi-star-fill"></i>
+                  <i class="fa-solid fa-star"></i>
+                  <i class="fa-solid fa-star"></i>
+                  <i class="fa-solid fa-star"></i>
                 </button>
                 <button
                   (click)="sendTranscriptionForShortAudioFiles('middle')"
                   class="btn btn-raised btn-warning w-100"
                   style="background-color: var(--tratt-accent-warning)"
                 >
-                  <i class="bi bi-star-fill"></i>
-                  <i class="bi bi-star-fill"></i>
+                  <i class="fa-solid fa-star"></i>
+                  <i class="fa-solid fa-star"></i>
                 </button>
                 <button
                   (click)="sendTranscriptionForShortAudioFiles('bad')"
                   class="btn btn-raised btn-danger w-100"
                 >
-                  <i class="bi bi-star-fill"></i>
+                  <i class="fa-solid fa-star"></i>
                 </button>
               </div>
             }

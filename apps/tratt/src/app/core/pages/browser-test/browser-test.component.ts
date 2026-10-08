@@ -24,11 +24,11 @@ export class BrowserTestComponent {
   getStateIcon(rule: any) {
     switch (rule.state) {
       case 'processing':
-        return 'bi bi-spinner';
+        return 'fa-solid fa-spinner';
       case 'failed':
-        return 'bi bi-x-lg';
+        return 'fa-solid fa-xmark';
       case 'ok':
-        return 'bi bi-check-lg';
+        return 'fa-solid fa-check';
     }
     return 'spinner';
   }

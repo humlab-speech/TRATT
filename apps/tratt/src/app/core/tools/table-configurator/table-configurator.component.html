@@ -7,7 +7,7 @@
       ngbDropdownToggle
       style="width: 100%; margin-left: 5px"
     >
-      <i class="bi bi-plus-lg"></i>
+      <i class="fa-solid fa-plus"></i>
       {{ 'custom.table configurator.add column' | transloco }}
     </button>
     <div ngbDropdownMenu style="cursor: pointer">
@@ -78,14 +78,14 @@
     @for (column of columns; track column; let i = $index) {
       <div class="column" cdkDrag>
         <div class="grip">
-          <i class="bi bi-grip-vertical"></i>
+          <i class="fa-solid fa-grip-vertical"></i>
         </div>
         <button
           type="button"
           (click)="onDeleteColumnClick(i)"
           class="delete-column btn btn-link p-0"
         >
-          <i class="bi bi-x-lg"></i>
+          <i class="fa-solid fa-xmark"></i>
           <span class="visually-hidden">Delete column</span>
         </button>
         <div class="header">

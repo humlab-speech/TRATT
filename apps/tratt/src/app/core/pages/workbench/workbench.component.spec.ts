@@ -3164,8 +3164,7 @@ describe('WorkbenchComponent with real default LOCAL store state', () => {
     });
     const q = (fx: ComponentFixture<WorkbenchComponent>, css: string) =>
       fx.debugElement.query(By.css(css))?.nativeElement as
-        | HTMLElement
-        | undefined;
+        HTMLElement | undefined;
     const chips = (fx: ComponentFixture<WorkbenchComponent>) =>
       fx.debugElement
         .queryAll(By.css('.workbench__pipeline-chips li'))
@@ -3277,8 +3276,8 @@ describe('WorkbenchComponent with real default LOCAL store state', () => {
       const button = runButton(fx);
 
       expect(button.disabled).toBe(true);
-      expect(button.querySelector('.bi-play-fill')).toBeTruthy();
-      expect(button.querySelector('.bi-pause-fill')).toBeFalsy();
+      expect(button.querySelector('.fa-play')).toBeTruthy();
+      expect(button.querySelector('.fa-pause')).toBeFalsy();
     });
 
     it('is enabled with the play icon when a bundle is ready and the queue is idle', async () => {
@@ -3307,8 +3306,8 @@ describe('WorkbenchComponent with real default LOCAL store state', () => {
       const button = runButton(fx);
 
       expect(button.disabled).toBe(false);
-      expect(button.querySelector('.bi-play-fill')).toBeTruthy();
-      expect(button.querySelector('.bi-pause-fill')).toBeFalsy();
+      expect(button.querySelector('.fa-play')).toBeTruthy();
+      expect(button.querySelector('.fa-pause')).toBeFalsy();
     });
 
     // F1 (final whole-branch review fix wave): the run button must stay
@@ -3352,8 +3351,8 @@ describe('WorkbenchComponent with real default LOCAL store state', () => {
       const button = runButton(fx);
 
       expect(button.disabled).toBe(false);
-      expect(button.querySelector('.bi-pause-fill')).toBeTruthy();
-      expect(button.querySelector('.bi-play-fill')).toBeFalsy();
+      expect(button.querySelector('.fa-pause')).toBeTruthy();
+      expect(button.querySelector('.fa-play')).toBeFalsy();
     });
 
     it('flips from disabled to enabled when the store transitions from not-ready to ready', async () => {

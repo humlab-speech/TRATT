@@ -4,7 +4,7 @@
   class="btn btn-link link p-0"
   style="z-index: 20; width: 100%; text-align: right; font-size: 0.85rem"
 >
-  <i class="bi bi-info-circle"></i> {{ 'g.supported files' | transloco }}
+  <i class="fa-solid fa-circle-info"></i> {{ 'g.supported files' | transloco }}
 </button>
 <tratt-drop-zone
   #dropzone
@@ -18,7 +18,7 @@
         <td class="text-center">
           @if (fileProgress.status === 'invalid') {
             <i
-              class="bi bi-x-lg icon-invalid"
+              class="fa-solid fa-xmark icon-invalid"
               [popoverTitle]="'dropzone.validation error' | transloco"
               [ngbPopover]="fileProgress.error ?? ''"
               [triggers]="'hover'"
@@ -27,11 +27,11 @@
             ></i>
           }
           @if (fileProgress.status === 'valid' && !fileProgress.warning) {
-            <i class="bi bi-check-lg" style="font-size: 16px"></i>
+            <i class="fa-solid fa-check" style="font-size: 16px"></i>
           }
           @if (fileProgress.status === 'valid' && fileProgress.warning) {
             <i
-              class="bi bi-exclamation-triangle-fill"
+              class="fa-solid fa-triangle-exclamation"
               [popoverTitle]="'dropzone.validation warning' | transloco"
               [triggers]="'hover'"
               [ngbPopover]="fileProgress.warning"
@@ -82,7 +82,7 @@
                 </div>
               </div>
             } @else {
-              <i class="bi bi-gear-fill spin"></i>
+              <i class="fa-solid fa-gear spin"></i>
             }
           }
         </td>
@@ -99,7 +99,7 @@
             (click)="onDeleteEntry($event, fileProgress.id)"
             style="font-size: 14px; color: dimgray"
           >
-            <i class="bi bi-trash3-fill"></i>
+            <i class="fa-solid fa-trash"></i>
             <span class="visually-hidden">{{
               'dropzone.delete file' | transloco
             }}</span>
@@ -119,7 +119,7 @@
             "
             style="font-size: 14px; color: dimgray"
           >
-            <i class="bi bi-gear-wide-connected"></i>
+            <i class="fa-solid fa-gear"></i>
             <span class="visually-hidden">{{
               'dropzone.open import options' | transloco
             }}</span>

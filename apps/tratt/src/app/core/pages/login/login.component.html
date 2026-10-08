@@ -103,7 +103,7 @@
     <div class="row">
       <div class="col">
         <div class="alert mb-0 py-1" style="font-size: 0.8rem">
-          <i class="bi bi-info-circle"></i>
+          <i class="fa-solid fa-circle-info"></i>
           {{ 'login.old version.notice' | transloco }}
           <a [href]="settingsService.appSettings.tratt.oldVersion?.url">{{
             'login.old version.click here' | transloco
@@ -140,7 +140,7 @@
                       align-content: center;
                     "
                   >
-                    <i class="bi bi-wifi-off fs-1"></i><br />
+                    <i class="fa-solid fa-plug-circle-xmark fs-1"></i><br />
                     {{ 'login.online mode disabled' | transloco }}
                   </div>
                 } @else if (
@@ -162,7 +162,7 @@
                     class="text-center justify-content-center d-flex flex-column flex-fill h-100 p-3 opacity-75"
                   >
                     <i
-                      class="bi bi-exclamation-triangle-fill text-warning fs-1"
+                      class="fa-solid fa-triangle-exclamation text-warning fs-1"
                     ></i>
                     <div
                       [innerHTML]="
@@ -228,7 +228,7 @@
                   >
                     <li [ngbNavItem]="'upload'">
                       <button ngbNavLink type="button" style="color: #000">
-                        <i class="bi bi-folder2-open me-1"></i>
+                        <i class="fa-solid fa-folder-open me-1"></i>
                         {{ 'login.tabs.upload' | transloco }}
                       </button>
                       <ng-template ngbNavContent>
@@ -244,7 +244,7 @@
                     </li>
                     <li [ngbNavItem]="'record'">
                       <button ngbNavLink type="button" style="color: #000">
-                        <i class="bi bi-mic-fill me-1"></i>
+                        <i class="fa-solid fa-microphone me-1"></i>
                         {{ 'login.tabs.record' | transloco }}
                       </button>
                       <ng-template ngbNavContent>

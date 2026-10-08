@@ -77,9 +77,7 @@ export class TrnEditorComponent
     return this._textEditor;
   }
 
-  private currentLevel!: TrattAnnotationAnyLevel<
-    TrattAnnotationSegment
-  >;
+  private currentLevel!: TrattAnnotationAnyLevel<TrattAnnotationSegment>;
   private guidelines!: TrattGuidelines;
   private breakMarkerCode?: string;
   private idCounter = 1;
@@ -411,7 +409,7 @@ export class TrnEditorComponent
       {
         name: 'merge selected lines',
         status: 'active',
-        icon: 'bi-intersect',
+        icon: 'fa-object-group',
         label: this.translocoService.translate(
           'trn-editor.context menu.merge selected lines',
         ),
@@ -420,7 +418,7 @@ export class TrnEditorComponent
       {
         name: 'remove transcripts of selected lines',
         status: 'active',
-        icon: 'bi-eraser-fill',
+        icon: 'fa-eraser',
         label: this.translocoService.translate(
           'trn-editor.context menu.remove transcripts of selected lines',
         ),
@@ -429,7 +427,7 @@ export class TrnEditorComponent
       {
         name: 'remove selected lines completely',
         status: 'active',
-        icon: 'bi bi-trash',
+        icon: 'fa-solid fa-trash',
         label: this.translocoService.translate(
           'trn-editor.context menu.remove selected lines completely',
         ),
@@ -553,11 +551,7 @@ export class TrnEditorComponent
 
   getStartPoint(index: number) {
     return index > 0 && this.currentLevel.type === AnnotationLevelType.SEGMENT
-      ? (
-          this.currentLevel.items[
-            index - 1
-          ] as TrattAnnotationSegment
-        ).time.unix
+      ? (this.currentLevel.items[index - 1] as TrattAnnotationSegment).time.unix
       : 0;
   }
 

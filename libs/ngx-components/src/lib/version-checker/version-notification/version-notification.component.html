@@ -12,7 +12,7 @@
         <h5 [innerHTML]="preparedI18n['new update'].header"></h5>
       </div>
       <div class="col-auto align-items-start" (click)="close()">
-        <i class="bi bi-x-lg" style="font-size: 1.2rem"></i>
+        <i class="fa-solid fa-xmark" style="font-size: 1.2rem"></i>
       </div>
     </div>
   </div>
@@ -29,7 +29,8 @@
         class="btn btn-primary btn-sm mt-3"
         (click)="versionCheckerService.applyUpdate()"
       >
-        <span [innerHTML]="preparedIcons.reload"></span> {{ preparedI18n['reload now'] }}
+        <span [innerHTML]="preparedIcons.reload"></span>
+        {{ preparedI18n['reload now'] }}
       </button>
     </div>
   </div>

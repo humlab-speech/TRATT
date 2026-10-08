@@ -79,9 +79,7 @@ export class TranscrOverviewComponent implements OnInit, OnDestroy, OnChanges {
   }[] = [];
   public transcript = '';
 
-  @Input() currentLevel?: TrattAnnotationAnyLevel<
-    TrattAnnotationSegment
-  >;
+  @Input() currentLevel?: TrattAnnotationAnyLevel<TrattAnnotationSegment>;
   _internLevel?: TrattAnnotationAnyLevel<TrattAnnotationSegment>;
 
   get hasSpeakerIds(): boolean {
@@ -106,19 +104,19 @@ export class TranscrOverviewComponent implements OnInit, OnDestroy, OnChanges {
 
   public playAllState: {
     state: 'started' | 'stopped';
-    icon: 'bi bi-play-fill' | 'bi bi-stop-fill';
+    icon: 'fa-solid fa-play' | 'fa-solid fa-stop';
     currentSegment: number;
     skipSilence: boolean;
   } = {
     state: 'stopped',
-    icon: 'bi bi-play-fill',
+    icon: 'fa-solid fa-play',
     currentSegment: -1,
     skipSilence: false,
   };
 
   public playStateSegments: {
     state: 'started' | 'stopped';
-    icon: 'bi bi-play-fill' | 'bi bi-stop-fill';
+    icon: 'fa-solid fa-play' | 'fa-solid fa-stop';
   }[] = [];
 
   public popovers = {
@@ -499,7 +497,7 @@ export class TranscrOverviewComponent implements OnInit, OnDestroy, OnChanges {
 
           this.playStateSegments = level.items.map(() => ({
             state: 'stopped' as const,
-            icon: 'bi bi-play-fill' as const,
+            icon: 'fa-solid fa-play' as const,
           }));
 
           this.shownSegments = result;
@@ -664,7 +662,7 @@ export class TranscrOverviewComponent implements OnInit, OnDestroy, OnChanges {
     } else if (nextSegment < this._internLevel.items.length) {
       // last segment reached
       this.playAllState.state = 'stopped';
-      this.playAllState.icon = 'bi bi-play-fill';
+      this.playAllState.icon = 'fa-solid fa-play';
 
       this.cd.markForCheck();
     }
@@ -672,14 +670,14 @@ export class TranscrOverviewComponent implements OnInit, OnDestroy, OnChanges {
 
   togglePlayAll() {
     this.playAllState.icon =
-      this.playAllState.icon === 'bi bi-play-fill'
-        ? 'bi bi-stop-fill'
-        : 'bi bi-play-fill';
+      this.playAllState.icon === 'fa-solid fa-play'
+        ? 'fa-solid fa-stop'
+        : 'fa-solid fa-play';
     this.cd.markForCheck();
 
     const playpos = this.audio.current!.createSampleUnit(0);
 
-    if (this.playAllState.icon === 'bi bi-stop-fill') {
+    if (this.playAllState.icon === 'fa-solid fa-stop') {
       // start
       this.stopPlayback()
         .then(() => {
@@ -710,7 +708,7 @@ export class TranscrOverviewComponent implements OnInit, OnDestroy, OnChanges {
             this.playStateSegments[this.playAllState.currentSegment].state =
               'stopped';
             this.playStateSegments[this.playAllState.currentSegment].icon =
-              'bi bi-play-fill';
+              'fa-solid fa-play';
           }
           this.playAllState.currentSegment = -1;
 
@@ -749,7 +747,7 @@ export class TranscrOverviewComponent implements OnInit, OnDestroy, OnChanges {
         const segment: TrattAnnotationSegment = level.items[segmentNumber];
 
         this.playStateSegments[segmentNumber].state = 'started';
-        this.playStateSegments[segmentNumber].icon = 'bi bi-stop-fill';
+        this.playStateSegments[segmentNumber].icon = 'fa-solid fa-stop';
         this.cd.markForCheck();
 
         const startSample =
@@ -770,7 +768,7 @@ export class TranscrOverviewComponent implements OnInit, OnDestroy, OnChanges {
           )
           .then(() => {
             this.playStateSegments[segmentNumber].state = 'stopped';
-            this.playStateSegments[segmentNumber].icon = 'bi bi-play-fill';
+            this.playStateSegments[segmentNumber].icon = 'fa-solid fa-play';
             this.playAllState.currentSegment = -1;
             this.cd.markForCheck();
 
@@ -793,7 +791,7 @@ export class TranscrOverviewComponent implements OnInit, OnDestroy, OnChanges {
           .stopPlayback()
           .then(() => {
             this.playStateSegments[segmentNumber].state = 'stopped';
-            this.playStateSegments[segmentNumber].icon = 'bi bi-play-fill';
+            this.playStateSegments[segmentNumber].icon = 'fa-solid fa-play';
             this.playAllState.currentSegment = -1;
 
             this.cd.markForCheck();
@@ -890,7 +888,7 @@ export class TranscrOverviewComponent implements OnInit, OnDestroy, OnChanges {
 
       this.stopPlayback()
         .then(() => {
-          this.playAllState.icon = 'bi bi-play-fill';
+          this.playAllState.icon = 'fa-solid fa-play';
           this.playAllState.currentSegment = -1;
           this.cd.markForCheck();
           this.playAllState.currentSegment = -1;
@@ -932,7 +930,7 @@ export class TranscrOverviewComponent implements OnInit, OnDestroy, OnChanges {
         this.playStateSegments[this.playAllState.currentSegment].state =
           'stopped';
         this.playStateSegments[this.playAllState.currentSegment].icon =
-          'bi bi-play-fill';
+          'fa-solid fa-play';
         this.cd.markForCheck();
       }
       this.audio.current!.stopPlayback().then(resolve).catch(reject);

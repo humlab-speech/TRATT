@@ -6,8 +6,8 @@
     [attr.aria-label]="'recording.devices.aria label' | transloco"
     [ngbTooltip]="'recording.devices.tooltip' | transloco"
     container="body"
-    >
-    <i class="bi bi-caret-down-fill"></i>
+  >
+    <i class="fa-solid fa-caret-down"></i>
   </button>
   <div ngbDropdownMenu class="device-picker__menu">
     @if (devicesSvc.hasPermission$ | async) {
@@ -20,13 +20,18 @@
           ngbDropdownItem
           class="d-flex align-items-center gap-2"
           (click)="devicesSvc.selectAudio(d.deviceId)"
-          >
+        >
           <i
-            class="bi"
-          [class.bi-check2]="
-            (devicesSvc.selectedAudioId$ | async) === d.deviceId
-          "
-            [class.bi-dot]="(devicesSvc.selectedAudioId$ | async) !== d.deviceId"
+            class="fa-solid"
+            [class.fa-check]="
+              (devicesSvc.selectedAudioId$ | async) === d.deviceId
+            "
+            [class.fa-circle]="
+              (devicesSvc.selectedAudioId$ | async) !== d.deviceId
+            "
+            [class.fa-2xs]="
+              (devicesSvc.selectedAudioId$ | async) !== d.deviceId
+            "
           ></i>
           <span class="text-truncate">{{
             d.label || ('recording.devices.unnamed' | transloco)
@@ -38,11 +43,12 @@
         ngbDropdownItem
         class="d-flex align-items-center gap-2"
         (click)="devicesSvc.selectAudio(null)"
-        >
+      >
         <i
-          class="bi"
-          [class.bi-check2]="(devicesSvc.selectedAudioId$ | async) === null"
-          [class.bi-dot]="(devicesSvc.selectedAudioId$ | async) !== null"
+          class="fa-solid"
+          [class.fa-check]="(devicesSvc.selectedAudioId$ | async) === null"
+          [class.fa-circle]="(devicesSvc.selectedAudioId$ | async) !== null"
+          [class.fa-2xs]="(devicesSvc.selectedAudioId$ | async) !== null"
         ></i>
         <span class="fst-italic">{{
           'recording.devices.default' | transloco
@@ -59,15 +65,18 @@
             ngbDropdownItem
             class="d-flex align-items-center gap-2"
             (click)="devicesSvc.selectVideo(d.deviceId)"
-            >
+          >
             <i
-              class="bi"
-            [class.bi-check2]="
-              (devicesSvc.selectedVideoId$ | async) === d.deviceId
-            "
-            [class.bi-dot]="
-              (devicesSvc.selectedVideoId$ | async) !== d.deviceId
-            "
+              class="fa-solid"
+              [class.fa-check]="
+                (devicesSvc.selectedVideoId$ | async) === d.deviceId
+              "
+              [class.fa-circle]="
+                (devicesSvc.selectedVideoId$ | async) !== d.deviceId
+              "
+              [class.fa-2xs]="
+                (devicesSvc.selectedVideoId$ | async) !== d.deviceId
+              "
             ></i>
             <span class="text-truncate">{{
               d.label || ('recording.devices.unnamed' | transloco)
@@ -79,11 +88,12 @@
           ngbDropdownItem
           class="d-flex align-items-center gap-2"
           (click)="devicesSvc.selectVideo(null)"
-          >
+        >
           <i
-            class="bi"
-            [class.bi-check2]="(devicesSvc.selectedVideoId$ | async) === null"
-            [class.bi-dot]="(devicesSvc.selectedVideoId$ | async) !== null"
+            class="fa-solid"
+            [class.fa-check]="(devicesSvc.selectedVideoId$ | async) === null"
+            [class.fa-circle]="(devicesSvc.selectedVideoId$ | async) !== null"
+            [class.fa-2xs]="(devicesSvc.selectedVideoId$ | async) !== null"
           ></i>
           <span class="fst-italic">{{
             'recording.devices.default' | transloco
@@ -96,8 +106,8 @@
         ngbDropdownItem
         class="d-flex align-items-center gap-2"
         (click)="devicesSvc.refresh()"
-        >
-        <i class="bi bi-arrow-clockwise"></i>
+      >
+        <i class="fa-solid fa-arrow-rotate-right"></i>
         {{ 'recording.devices.refresh' | transloco }}
       </button>
     } @else {
@@ -109,8 +119,8 @@
         ngbDropdownItem
         class="d-flex align-items-center gap-2"
         (click)="onRequestPermission()"
-        >
-        <i class="bi bi-shield-check"></i>
+      >
+        <i class="fa-solid fa-shield-halved"></i>
         {{ 'recording.devices.request access' | transloco }}
       </button>
     }

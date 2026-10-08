@@ -353,7 +353,7 @@ interface SavedTranscribeSettings {
       <div class="auto-transcribe-options mt-2 p-2 border rounded">
         @if (isSafari()) {
           <div class="alert alert-warning mb-2">
-            <i class="bi bi-exclamation-triangle"></i>
+            <i class="fa-solid fa-triangle-exclamation"></i>
             {{ 'login.auto-transcription.safari warning' | transloco }}
           </div>
         }
@@ -376,7 +376,7 @@ interface SavedTranscribeSettings {
         </div>
         @if (!isSafari() && !compact()) {
           <small class="text-muted d-block mb-2">
-            <i class="bi bi-cloud-download"></i>
+            <i class="fa-solid fa-cloud-arrow-down"></i>
             {{ 'login.auto-transcription.requires internet' | transloco }}
           </small>
         }
@@ -438,7 +438,7 @@ interface SavedTranscribeSettings {
             @if (!compact()) {
               @if (selectedLanguage === 'sv') {
                 <small class="text-muted d-block mt-1">
-                  <i class="bi bi-info-circle"></i>
+                  <i class="fa-solid fa-circle-info"></i>
                   {{
                     'login.auto-transcription.swedish kb-whisper hint'
                       | transloco
@@ -447,7 +447,7 @@ interface SavedTranscribeSettings {
               }
               @if (selectedLanguage === 'fi') {
                 <small class="text-muted d-block mt-1">
-                  <i class="bi bi-info-circle"></i>
+                  <i class="fa-solid fa-circle-info"></i>
                   {{
                     'login.auto-transcription.finnish fine-tuned hint'
                       | transloco
@@ -456,7 +456,7 @@ interface SavedTranscribeSettings {
               }
               @if (selectedLanguage === 'no' || selectedLanguage === 'nn') {
                 <small class="text-muted d-block mt-1">
-                  <i class="bi bi-info-circle"></i>
+                  <i class="fa-solid fa-circle-info"></i>
                   {{
                     'login.auto-transcription.norwegian fine-tuned hint'
                       | transloco
@@ -466,14 +466,14 @@ interface SavedTranscribeSettings {
 
               @if (!hasWebGpu()) {
                 <small class="text-muted">
-                  <i class="bi bi-exclamation-triangle"></i>
+                  <i class="fa-solid fa-triangle-exclamation"></i>
                   {{ 'login.auto-transcription.no webgpu' | transloco }}
                 </small>
               }
             }
 
             <small class="text-muted mt-1">
-              <i class="bi bi-info-circle"></i>
+              <i class="fa-solid fa-circle-info"></i>
               {{
                 'login.auto-transcription.model cached after download'
                   | transloco

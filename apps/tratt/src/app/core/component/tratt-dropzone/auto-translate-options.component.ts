@@ -140,31 +140,31 @@ interface SavedTranslateSettings {
 
           @if (availabilityKind() === 'direct') {
             <small class="text-muted d-block mb-1">
-              <i class="bi bi-cloud-download"></i>
+              <i class="fa-solid fa-cloud-arrow-down"></i>
               {{ 'login.translation.path direct' | transloco }} —
               {{ formatBytes(estimatedBytes()) }}
             </small>
           } @else if (availabilityKind() === 'pivot') {
             <small class="text-muted d-block mb-1">
-              <i class="bi bi-arrow-left-right"></i>
+              <i class="fa-solid fa-arrow-right-arrow-left"></i>
               {{ 'login.translation.path pivot' | transloco }} —
               {{ formatBytes(estimatedBytes()) }}
             </small>
           } @else if (availabilityKind() === 'unavailable') {
             <small class="text-danger d-block mb-1">
-              <i class="bi bi-exclamation-triangle"></i>
+              <i class="fa-solid fa-triangle-exclamation"></i>
               {{ 'login.translation.path unavailable' | transloco }}
             </small>
           } @else if (availabilityKind() === 'probing') {
             <small class="text-muted d-block mb-1">
-              <i class="bi bi-hourglass-split"></i>
+              <i class="fa-solid fa-hourglass-half"></i>
               {{ 'login.translation.path probing' | transloco }}
             </small>
           }
 
           @if (!compact()) {
             <small class="text-muted mt-1 d-block">
-              <i class="bi bi-info-circle"></i>
+              <i class="fa-solid fa-circle-info"></i>
               {{ 'login.translation.model cached after download' | transloco }}
             </small>
           }

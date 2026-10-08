@@ -15,7 +15,7 @@
     >
       <li [ngbNavItem]="'upload'">
         <button ngbNavLink type="button">
-          <i class="bi bi-folder2-open me-1"></i>
+          <i class="fa-solid fa-folder-open me-1"></i>
           {{ 'workbench.tabs.upload' | transloco }}
         </button>
         <ng-template ngbNavContent>
@@ -38,7 +38,7 @@
       </li>
       <li [ngbNavItem]="'record'">
         <button ngbNavLink type="button">
-          <i class="bi bi-mic-fill me-1"></i>
+          <i class="fa-solid fa-microphone me-1"></i>
           {{ 'workbench.tabs.record' | transloco }}
         </button>
         <ng-template ngbNavContent>
@@ -115,7 +115,7 @@
           [attr.title]="'workbench.pipeline.edit' | transloco"
           (click)="openPipelineSettings()"
         >
-          <i class="bi bi-sliders" aria-hidden="true"></i>
+          <i class="fa-solid fa-sliders" aria-hidden="true"></i>
         </button>
       </div>
 
@@ -192,10 +192,10 @@
         (click)="onRunPauseClick()"
       >
         @if (queueRunning()) {
-          <i class="bi bi-pause-fill me-1"></i>
+          <i class="fa-solid fa-pause me-1"></i>
           {{ 'workbench.queue.pause' | transloco }}
         } @else {
-          <i class="bi bi-play-fill me-1"></i>
+          <i class="fa-solid fa-play me-1"></i>
           {{
             'workbench.queue.run'
               | transloco: { count: readyBundleIds().length }
@@ -267,7 +267,7 @@
           <div class="workbench__placeholder">
             <div class="workbench__empty-card">
               <i
-                class="bi bi-soundwave workbench__empty-icon"
+                class="fa-solid fa-wave-square workbench__empty-icon"
                 aria-hidden="true"
               ></i>
               <h2 class="workbench__empty-title">
@@ -287,7 +287,7 @@
               ></div>
               <span>{{ 'workbench.editor.loading_audio' | transloco }}</span>
             } @else {
-              <i class="bi bi-paperclip fs-4" aria-hidden="true"></i>
+              <i class="fa-solid fa-paperclip fs-4" aria-hidden="true"></i>
               <span>{{ 'workbench.editor.awaiting_media' | transloco }}</span>
             }
           </div>
@@ -324,7 +324,7 @@
                 class="col-md-3 btn btn-secondary"
                 type="button"
               >
-                <i class="bi bi-x-circle"></i>
+                <i class="fa-solid fa-circle-xmark"></i>
                 <span>
                   {{ 'g.quit' | transloco }}
                 </span>
@@ -334,7 +334,7 @@
                 class="col-md-3 btn btn-danger"
                 type="button"
               >
-                <i class="bi bi-star-fill"></i>
+                <i class="fa-solid fa-star"></i>
               </button>
               <button
                 (click)="sendTranscriptionForShortAudioFiles('middle')"
@@ -342,17 +342,17 @@
                 type="button"
                 style="background-color: var(--tratt-accent-warning)"
               >
-                <i class="bi bi-star-fill"></i>
-                <i class="bi bi-star-fill"></i>
+                <i class="fa-solid fa-star"></i>
+                <i class="fa-solid fa-star"></i>
               </button>
               <button
                 (click)="sendTranscriptionForShortAudioFiles('good')"
                 class="col-md-3 btn btn-primary"
                 type="button"
               >
-                <i class="bi bi-star-fill"></i>
-                <i class="bi bi-star-fill"></i>
-                <i class="bi bi-star-fill"></i>
+                <i class="fa-solid fa-star"></i>
+                <i class="fa-solid fa-star"></i>
+                <i class="fa-solid fa-star"></i>
               </button>
             } @else {
               @if (
@@ -363,7 +363,7 @@
                   type="button"
                   class="col-md-6 btn btn-secondary"
                 >
-                  <i class="bi bi-x-circle"></i>
+                  <i class="fa-solid fa-circle-xmark"></i>
                   @if (!appStorage.easyMode) {
                     <span class="d-none d-md-inline">
                       {{ 'g.quit' | transloco }}
@@ -380,7 +380,7 @@
                   [disabled]="editorPlaceholder() !== 'none'"
                   type="button"
                 >
-                  <i class="bi bi-download"></i>
+                  <i class="fa-solid fa-download"></i>
                   @if (!appStorage.easyMode) {
                     <span class="d-none d-md-inline">
                       {{ 'g.export data' | transloco }}</span
@@ -399,7 +399,7 @@
                       {{ 'transcription.send' | transloco }}
                     </span>
                   }
-                  <i class="bi bi-send-fill"></i>
+                  <i class="fa-solid fa-paper-plane"></i>
                 </button>
               }
               @if (useMode === 'url') {
@@ -412,7 +412,7 @@
                     class="btn btn-primary"
                     type="button"
                   >
-                    <i class="bi bi-floppy-fill"></i>
+                    <i class="fa-solid fa-floppy-disk"></i>
                     <span> {{ 'g.save' | transloco }} </span>
                   </button>
                 }
@@ -438,7 +438,10 @@
         </div>
       }
       <div class="workbench__empty-card">
-        <i class="bi bi-soundwave workbench__empty-icon" aria-hidden="true"></i>
+        <i
+          class="fa-solid fa-wave-square workbench__empty-icon"
+          aria-hidden="true"
+        ></i>
         @if (hasAnyBundles()) {
           <h2 class="workbench__empty-title">
             {{ 'workbench.empty.restored_title' | transloco }}
@@ -492,7 +495,7 @@
             class="btn btn-sm btn-outline-secondary"
             type="button"
           >
-            <i class="bi bi-mic-fill me-1" aria-hidden="true"></i>
+            <i class="fa-solid fa-microphone me-1" aria-hidden="true"></i>
             {{ 'g.export recording' | transloco }}
           </button>
         }
@@ -505,7 +508,7 @@
             class="btn btn-sm btn-primary"
             type="button"
           >
-            <i class="bi bi-download me-1" aria-hidden="true"></i>
+            <i class="fa-solid fa-download me-1" aria-hidden="true"></i>
             {{ 'workbench.editor_header.export' | transloco }}
           </button>
         }

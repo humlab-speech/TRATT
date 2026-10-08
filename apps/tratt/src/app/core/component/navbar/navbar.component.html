@@ -100,7 +100,7 @@
                 target="_blank"
                 (click)="isCollapsed = true"
               >
-                <i class="bi bi-github"></i>
+                <i class="fa-brands fa-github"></i>
                 Github
               </a>
             </li>
@@ -132,7 +132,7 @@
                     (click)="setInterface(editor.name); isCollapsed = true"
                   >
                     <span>
-                      <i [classList]="['bi', editor.icon]"></i>
+                      <i [classList]="['fa-solid', editor.icon]"></i>
                       <span class="d-md-none d-xxl-inline">
                         {{ editor.translate | transloco }}
                       </span>
@@ -152,7 +152,7 @@
                   (click)="isCollapsed = true; openStatisticsModal()"
                   class="nav-link btn btn-link"
                 >
-                  <i class="bi bi-pie-chart-fill"></i>
+                  <i class="fa-solid fa-chart-pie"></i>
                   <span class="d-md-none d-xxl-inline"> Statistics</span>
                 </button>
               </li>
@@ -195,7 +195,7 @@
                       ) + '...'
                     : annotationStoreService.currentLevel!.name!
                 }}
-                <i class="bi bi-book-half navbar-icon"></i>
+                <i class="fa-solid fa-book-open navbar-icon"></i>
               </a>
               <div
                 ngbDropdownMenu
@@ -261,7 +261,7 @@
                               "
                               title="linked tier — boundaries follow source"
                             >
-                              <i class="bi bi-link-45deg"></i> linked
+                              <i class="fa-solid fa-link"></i> linked
                             </span>
                           }
                         </td>
@@ -278,20 +278,20 @@
                               class="btn btn-link p-0"
                               (click)="onLevelRemoveClick(level)"
                             >
-                              <i class="bi bi-trash"></i>
+                              <i class="fa-solid fa-trash"></i>
                               <span class="visually-hidden">Remove level</span>
                             </button>
                           }
                           @if (level.type === annotJSONType.SEGMENT) {
                             <i
-                              class="bi bi-back"
+                              class="fa-solid fa-clone"
                               (mousedown)="onLevelDuplicateClick(i)"
                               style="margin-left: 3px; cursor: pointer"
                             ></i>
                           }
                           @if ($any(level).linkedToLevelId) {
                             <i
-                              class="bi bi-translate"
+                              class="fa-solid fa-language"
                               (mousedown)="onTranslateLinkedClick(level)"
                               style="margin-left: 3px; cursor: pointer"
                               [title]="
@@ -300,7 +300,7 @@
                               "
                             ></i>
                             <i
-                              class="bi bi-link-45deg"
+                              class="fa-solid fa-link"
                               (mousedown)="onDetachLinkedClick(level)"
                               style="margin-left: 3px; cursor: pointer"
                               title="detach — make this tier standalone"
@@ -320,7 +320,7 @@
                             class="btn btn-link w-100 p-0"
                             ngbDropdownToggle
                           >
-                            <i class="bi bi-plus-lg"></i>
+                            <i class="fa-solid fa-plus"></i>
                             <span class="visually-hidden">Add level</span>
                           </button>
                           <div ngbDropdownMenu>
@@ -366,7 +366,7 @@
                 type="button"
                 class="nav-link dropdown-toggle"
               >
-                <i class="bi bi-people-fill me-1"></i>
+                <i class="fa-solid fa-users me-1"></i>
                 <span class="d-inline d-md-none mt-2">Speakers</span>
               </a>
               <div
@@ -416,7 +416,7 @@
                               class="btn btn-link p-0"
                               (click)="onSpeakerRemoveClick(spk)"
                             >
-                              <i class="bi bi-trash"></i>
+                              <i class="fa-solid fa-trash"></i>
                               <span class="visually-hidden"
                                 >Remove speaker</span
                               >
@@ -435,7 +435,7 @@
                           class="btn btn-link w-100 p-0"
                           (click)="onSpeakerAddClick()"
                         >
-                          <i class="bi bi-plus-lg"></i>
+                          <i class="fa-solid fa-plus"></i>
                           <span class="visually-hidden">Add speaker</span>
                         </button>
                       </td>
@@ -463,7 +463,7 @@
                 placement="bottom-end"
               >
                 <a ngbDropdownToggle type="button" class="nav-link">
-                  <i class="bi bi-info-circle-fill navbar-icon"></i>
+                  <i class="fa-solid fa-circle-info navbar-icon"></i>
                   <span class="d-inline d-md-none">
                     {{ 'g.information' | transloco }}
                   </span>
@@ -546,10 +546,7 @@
                         <span>{{ 'g.bitspersecond' | transloco }}:</span>
                       </td>
                       <td>
-                        <span
-                          >{{ manager.resource!.info.bitrate }}
-                          Bit/s</span
-                        >
+                        <span>{{ manager.resource!.info.bitrate }} Bit/s</span>
                       </td>
                     </tr>
                     <tr>
@@ -593,7 +590,7 @@
                 (click)="openExportModal()"
                 class="nav-link btn btn-link"
               >
-                <i class="bi bi-download navbar-icon"></i>
+                <i class="fa-solid fa-download navbar-icon"></i>
                 <span class="d-md-none d-xxl-inline">
                   {{ 'g.export' | transloco }}</span
                 >
@@ -809,7 +806,7 @@
               class="nav-link btn btn-link"
               (click)="openEnd()"
             >
-              <i class="bi bi-gear-wide-connected"></i>
+              <i class="fa-solid fa-gear"></i>
               <span class="d-inline d-md-none">
                 {{ 'g.settings' | transloco }}
               </span>
@@ -828,7 +825,7 @@
               placement="bottom-end"
             >
               <a ngbDropdownToggle type="button" class="nav-link">
-                <i class="bi bi-person-circle"></i>
+                <i class="fa-solid fa-circle-user"></i>
                 <span class="d-inline d-md-none">
                   {{ 'g.account' | transloco }}
                 </span>
@@ -839,7 +836,7 @@
                 role="menu"
               >
                 <a class="dropdown-item">
-                  <i class="bi bi-person-circle"></i>
+                  <i class="fa-solid fa-circle-user"></i>
                   {{ authStoreService.me()?.username }}
                 </a>
                 @if (
@@ -857,7 +854,7 @@
                     "
                     target="_blank"
                   >
-                    <i class="bi bi-tools"></i>
+                    <i class="fa-solid fa-screwdriver-wrench"></i>
                     {{ 'p.manage account' | transloco }}
                   </a>
                 }
@@ -868,12 +865,12 @@
                     class="dropdown-item"
                     (click)="backToProjectsList()"
                   >
-                    <i class="bi bi-arrow-left"></i>
+                    <i class="fa-solid fa-arrow-left"></i>
                     {{ 'p.back to projects' | transloco }}
                   </button>
                 }
                 <button type="button" class="dropdown-item" (click)="logout()">
-                  <i class="bi bi-door-open-fill"></i>
+                  <i class="fa-solid fa-door-open"></i>
                   Logout
                 </button>
               </div>
@@ -890,7 +887,7 @@
                 class="nav-link btn btn-link"
               >
                 <i
-                  class="bi bi-question-circle-fill navbar-icon"
+                  class="fa-solid fa-circle-question navbar-icon"
                   style="color: #fcffba"
                   [ngStyle]="{
                     color: errorsFound ? 'red' : '#fcffba',
@@ -922,6 +919,7 @@
               class="nav-link dropdown-toggle"
               [attr.aria-label]="'p.language selector label' | transloco"
             >
+              <i class="fa-solid fa-globe me-1" aria-hidden="true"></i>
               {{ langService.getActiveLang() | uppercase }}
               <span class="caret"></span>
             </a>
@@ -952,7 +950,7 @@
                 <a
                   href="https://clarin.phonetik.uni-muenchen.de/apps/octra/translation/start.php"
                   target="_blank"
-                  ><i class="bi bi-translate"></i>
+                  ><i class="fa-solid fa-language"></i>
                   {{ 'p.contribute translations' | transloco }}</a
                 >
               </div>

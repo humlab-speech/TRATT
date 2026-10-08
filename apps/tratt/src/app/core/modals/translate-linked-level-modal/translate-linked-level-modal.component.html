@@ -56,7 +56,7 @@
 
     @if (availabilityKind === 'direct' || availabilityKind === 'pivot') {
       <small class="text-muted d-block mb-2">
-        <i class="bi bi-cloud-download"></i>
+        <i class="fa-solid fa-cloud-arrow-down"></i>
         {{
           availabilityKind === 'direct'
             ? ('login.translation.path direct' | transloco)
@@ -66,19 +66,19 @@
       </small>
     } @else if (availabilityKind === 'unavailable') {
       <small class="text-danger d-block mb-2">
-        <i class="bi bi-exclamation-triangle"></i>
+        <i class="fa-solid fa-triangle-exclamation"></i>
         {{ 'login.translation.path unavailable' | transloco }}
       </small>
     } @else if (availabilityKind === 'probing') {
       <small class="text-muted d-block mb-2">
-        <i class="bi bi-hourglass-split"></i>
+        <i class="fa-solid fa-hourglass-half"></i>
         {{ 'login.translation.path probing' | transloco }}
       </small>
     }
 
     @if (phase === 'downloading') {
       <div class="alert alert-info py-2 mb-0">
-        <i class="bi bi-cloud-download"></i>
+        <i class="fa-solid fa-cloud-arrow-down"></i>
         {{
           'modal.translate linked level.downloading'
             | transloco
@@ -91,12 +91,12 @@
       </div>
     } @else if (phase === 'initializing') {
       <div class="alert alert-info py-2 mb-0">
-        <i class="bi bi-hourglass-split"></i>
+        <i class="fa-solid fa-hourglass-half"></i>
         {{ 'modal.translate linked level.initializing' | transloco }}
       </div>
     } @else if (phase === 'translating') {
       <div class="alert alert-info py-2 mb-0">
-        <i class="bi bi-translate"></i>
+        <i class="fa-solid fa-language"></i>
         {{
           'modal.translate linked level.translating'
             | transloco: { index: segmentIndex, total: segmentTotal }
@@ -104,7 +104,7 @@
       </div>
     } @else if (phase === 'done') {
       <div class="alert alert-success py-2 mb-0">
-        <i class="bi bi-check-circle"></i>
+        <i class="fa-solid fa-circle-check"></i>
         {{
           'modal.translate linked level.done'
             | transloco: { filled: filledCount }
@@ -112,12 +112,12 @@
       </div>
     } @else if (phase === 'error') {
       <div class="alert alert-danger py-2 mb-0">
-        <i class="bi bi-exclamation-triangle"></i>
+        <i class="fa-solid fa-triangle-exclamation"></i>
         {{ errorMessage }}
       </div>
     } @else if (phase === 'cancelled') {
       <div class="alert alert-warning py-2 mb-0">
-        <i class="bi bi-x-circle"></i>
+        <i class="fa-solid fa-circle-xmark"></i>
         {{ 'modal.translate linked level.cancelled' | transloco }}
       </div>
     }
@@ -137,7 +137,7 @@
         [disabled]="!canTranslate"
         (click)="translate()"
       >
-        <i class="bi bi-translate"></i>
+        <i class="fa-solid fa-language"></i>
         {{ 'modal.translate linked level.translate' | transloco }}
       </button>
     }

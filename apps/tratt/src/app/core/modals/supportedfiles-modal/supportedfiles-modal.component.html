@@ -23,7 +23,7 @@
                 *{{ extension.extension }}
                 @if (extension.extension === '.wav') {
                   <i
-                    class="bi bi-patch-check-fill text-success recommended"
+                    class="fa-solid fa-certificate text-success recommended"
                     [ngbPopover]="'g.recommended' | transloco"
                     triggers="mouseenter:mouseleave"
                   ></i>
@@ -32,7 +32,7 @@
               <td>
                 @if (extension.info) {
                   <i
-                    class="bi bi-info-circle"
+                    class="fa-solid fa-circle-info"
                     [ngbTooltip]="extension.info"
                   ></i>
                 }
@@ -76,7 +76,7 @@
                     }}</a>
                     @if (app.recommended) {
                       <i
-                        class="bi bi-patch-check-fill text-success recommended"
+                        class="fa-solid fa-certificate text-success recommended"
                         [ngbPopover]="'g.recommended' | transloco"
                         triggers="mouseenter:mouseleave"
                       ></i>
@@ -85,7 +85,7 @@
                     <span>{{ app.application.name }}</span>
                     @if (app.recommended) {
                       <i
-                        class="bi bi-patch-check-fill text-success recommended"
+                        class="fa-solid fa-certificate text-success recommended"
                         [ngbPopover]="'g.recommended' | transloco"
                         triggers="mouseenter:mouseleave"
                       ></i>
@@ -98,7 +98,10 @@
               </td>
               <td>
                 @if (elem.notice !== '') {
-                  <i class="bi bi-info-circle" [ngbTooltip]="elem.notice"></i>
+                  <i
+                    class="fa-solid fa-circle-info"
+                    [ngbTooltip]="elem.notice"
+                  ></i>
                 }
               </td>
             </tr>

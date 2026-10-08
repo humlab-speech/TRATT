@@ -9,7 +9,7 @@
           name="play"
           [title]="'g.play' | transloco"
         >
-          <i class="bi bi-play-fill"></i>
+          <i class="fa-solid fa-play"></i>
         </button>
       }
       @if (isAudioPlaying) {
@@ -19,7 +19,7 @@
           name="pause"
           [title]="'g.pause' | transloco"
         >
-          <i class="bi bi-pause-fill"></i>
+          <i class="fa-solid fa-pause"></i>
         </button>
       }
       <button
@@ -28,7 +28,7 @@
         name="stop"
         [title]="'g.stop' | transloco"
       >
-        <i class="bi bi-stop-fill"></i>
+        <i class="fa-solid fa-stop"></i>
       </button>
       <button
         (mousedown)="onButtonClick('replay')"
@@ -37,7 +37,7 @@
         name="replay"
         [title]="'g.replay' | transloco"
       >
-        <i class="bi bi-rewind-fill"></i>
+        <i class="fa-solid fa-backward"></i>
       </button>
       <button
         class="btn btn-info"
@@ -45,7 +45,7 @@
         name="step_back"
         [title]="'g.backward' | transloco"
       >
-        <i class="bi bi-reply-fill"></i>
+        <i class="fa-solid fa-reply"></i>
       </button>
       <button
         class="btn btn-info"
@@ -53,14 +53,14 @@
         name="step_back"
         [title]="'g.backwardtime' | transloco"
       >
-        <i class="bi bi-arrow-counterclockwise"></i> - 2s
+        <i class="fa-solid fa-arrow-rotate-left"></i> - 2s
       </button>
     </div>
     <div class="btn-group col-lg-5">
       <div class="col-6 audio-nav-panel">
         <div class="row h-100 align-items-center">
           <div class="col-1 col-sm-4 col-md-3 text-center">
-            <i class="bi bi-volume-down-fill"></i>
+            <i class="fa-solid fa-volume-low"></i>
           </div>
           <div class="col-10 col-sm-4 col-md-6">
             <input
@@ -78,7 +78,7 @@
             />
           </div>
           <div class="col-1 col-sm-4 col-md-3">
-            <i class="bi bi-volume-up"></i>
+            <i class="fa-solid fa-volume-high"></i>
             <div class="d-none d-sm-inline slider-descr">
               {{ volume | procent }}%
             </div>

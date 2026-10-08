@@ -40,7 +40,7 @@ export class ShortcutComponent implements OnInit {
       if (i < splitted.length - 1) {
         this.parts.push({
           type: 'separator',
-          content: '<i class="bi bi-plus-lg"></i>',
+          content: '<i class="fa-solid fa-plus"></i>',
         });
       }
     }
@@ -57,28 +57,28 @@ export class ShortcutComponent implements OnInit {
       switch (g1) {
         case 'ARROWUP':
         case 'UP':
-          return '<i class="bi bi-arrow-up"></i>';
+          return '<i class="fa-solid fa-arrow-up"></i>';
         case 'ARROWLEFT':
         case 'LEFT':
-          return '<i class="bi bi-arrow-left"></i>';
+          return '<i class="fa-solid fa-arrow-left"></i>';
         case 'ARROWRIGHT':
         case 'RIGHT':
-          return '<i class="bi bi-arrow-right"></i>';
+          return '<i class="fa-solid fa-arrow-right"></i>';
         case 'ARROWDOWN':
         case 'DOWN':
-          return '<i class="bi bi-arrow-down"></i>';
+          return '<i class="fa-solid fa-arrow-down"></i>';
         case 'STRG':
           return 'strg';
         case 'CMD':
-          return '<i class="bi bi-command"></i>';
+          return '⌘';
         case 'ENTER':
-          return '<i class="bi bi-arrow-return-left"></i>';
+          return '<i class="fa-solid fa-rotate-left"></i>';
         case 'BACKSPACE':
-          return '<i class="bi bi-backspace"></i>';
+          return '<i class="fa-solid fa-delete-left"></i>';
         case 'TAB':
-          return '<i class="bi bi-indent"></i>';
+          return '<i class="fa-solid fa-indent"></i>';
         case 'SHIFT':
-          return '<i class="bi bi-shift"></i>';
+          return '<i class="fa-solid fa-arrow-up"></i>';
         default:
           return g1.toLowerCase();
       }
