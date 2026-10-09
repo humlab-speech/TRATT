@@ -27,7 +27,7 @@ into ordinary language.
 | **Magnifier** | The zoomed strip of waveform around the cursor, for placing boundaries precisely. |
 | **Playcursor** | The line showing where playback has reached. *Follow playcursor* keeps it on screen. |
 | **Easy Mode** | A preference that strips button labels and keyboard hints for a compact interface. |
-| **Workbench** | The `/workbench` page: one list holding many recordings, with a transcription queue. A preview, not in every build. See [The Workbench](workbench.md). |
+| **Workbench** | The `/workbench` page: one list holding many recordings, with a transcription queue. It has no entry in the navigation bar; you reach it by typing the address. See [The Workbench](workbench.md). |
 | **Bundle** | One recording in the Workbench list together with its transcript. The word shows up in a few messages and in exported file paths. |
 | **Pipeline** | What runs on a recording automatically: speech recognition, then optionally speaker separation and translation. The Workbench's **Pipeline settings** are the same controls as the start page's. |
 | **Queue** | The order the Workbench works through recordings in. One runs at a time. |

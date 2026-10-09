@@ -130,8 +130,8 @@ kassera.
 ## Arbetsbänken
 
 **`/workbench` skickar mig till startsidan**
-Arbetsbänken är avstängd i det här bygget. Den är en förhandsversion som bara är
-påslagen i utvecklingsbyggen. Se [Arbetsbänken](workbench.md).
+Det här bygget är äldre än Arbetsbänken. Uppdatera TRATT, eller ladda om sidan om
+den redan har uppdaterats i bakgrunden. Se [Arbetsbänken](workbench.md).
 
 **En fil misslyckades med "Minnet tog slut"**
 För mycket avkodat ljud är bifogat samtidigt. Mätaren **Arbetsminne (uppskattat)**

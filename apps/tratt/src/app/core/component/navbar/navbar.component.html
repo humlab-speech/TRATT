@@ -85,7 +85,7 @@
             <li class="nav-item">
               <a
                 class="nav-link"
-                [href]="AppInfo.manualURL"
+                [href]="manualHref"
                 target="_blank"
                 rel="noopener"
                 (click)="isCollapsed = true"
@@ -155,6 +155,27 @@
                   <i class="fa-solid fa-chart-pie"></i>
                   <span class="d-md-none d-xxl-inline"> Statistics</span>
                 </button>
+              </li>
+            }
+            <!--
+                    The workbench keeps working in this logged-in navbar once a
+                    file is loaded, so without this the Manual entry would
+                    disappear the moment the user has something to read about.
+                    -->
+            @if (showManualEntry) {
+              <li class="nav-item">
+                <a
+                  class="nav-link"
+                  [href]="manualHref"
+                  target="_blank"
+                  rel="noopener"
+                  (click)="isCollapsed = true"
+                >
+                  <i class="fa-solid fa-book me-1"></i>
+                  <span class="d-md-none d-xxl-inline">{{
+                    'g.manual' | transloco
+                  }}</span>
+                </a>
               </li>
             }
           </ul>

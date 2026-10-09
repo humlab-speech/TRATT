@@ -46,6 +46,7 @@ import { TrattModalService } from '../../modals/tratt-modal.service';
 import { YesNoModalComponent } from '../../modals/yes-no-modal/yes-no-modal.component';
 import {
   AudioService,
+  ManualLinkService,
   SettingsService,
   SpeakerManagementService,
   UserInteractionsService,
@@ -57,6 +58,7 @@ import {
   ConsoleGroupEntry,
   ConsoleType,
 } from '../../shared/service/bug-report.service';
+import { manualPageForUrl } from '../../shared/service/manual-link.service';
 import { PendingEditsService } from '../../shared/service/pending-edits.service';
 import { RecordedFileService } from '../../shared/service/recorded-file.service';
 import { LoginMode } from '../../store';
@@ -115,6 +117,25 @@ export class NavigationComponent extends DefaultComponent implements OnInit {
 
   public get AppInfo(): any {
     return AppInfo;
+  }
+
+  /**
+   * Where the navigation bar's "Manual" entry points: the chapter for the page
+   * the user is on, in the interface language, falling back to the manual's
+   * front page.
+   */
+  public get manualHref(): string {
+    return this.manualLink.href;
+  }
+
+  /**
+   * The logged-out navigation bar always carries a Manual entry. The logged-in
+   * one is shared by the transcription page, which offers the manual through
+   * its own Help button, and by the workbench, which would otherwise lose the
+   * entry as soon as a file is loaded.
+   */
+  public get showManualEntry(): boolean {
+    return manualPageForUrl(this.router.url) !== undefined;
   }
 
   public get uiService(): UserInteractionsService {
@@ -180,6 +201,7 @@ export class NavigationComponent extends DefaultComponent implements OnInit {
     public api: OctraAPIService,
     private offcanvasService: NgbOffcanvas,
     private router: Router,
+    private manualLink: ManualLinkService,
     public recordedFileService: RecordedFileService,
     private cdr: ChangeDetectorRef,
     private pendingEdits: PendingEditsService,
@@ -392,8 +414,7 @@ export class NavigationComponent extends DefaultComponent implements OnInit {
     level: TrattAnnotationAnyLevel<TrattAnnotationSegment>,
   ) {
     const linkedToLevelId = (level as any).linkedToLevelId as
-      | number
-      | undefined;
+      number | undefined;
     if (linkedToLevelId === undefined) return;
     const sourceLevel = this.annotationStoreService.transcript?.levels.find(
       (l) => l.id === linkedToLevelId,

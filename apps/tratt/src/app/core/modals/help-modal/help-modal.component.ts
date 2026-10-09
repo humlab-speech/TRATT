@@ -1,7 +1,7 @@
-import { Component, ElementRef, ViewChild } from '@angular/core';
+import { Component, ElementRef, ViewChild, inject } from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { NgbActiveModal, NgbModalOptions } from '@ng-bootstrap/ng-bootstrap';
-import { AppInfo } from '../../../app.info';
+import { ManualLinkService } from '../../shared/service';
 import { TrattModal } from '../types';
 
 @Component({
@@ -17,14 +17,20 @@ export class HelpModalComponent extends TrattModal {
   };
   public visible = false;
 
-  /** Landing page of the TRATT manual. */
+  private manualLink = inject(ManualLinkService);
+
+  /**
+   * The manual chapter for the page behind this dialog, so that Help opened in
+   * the workbench lands on the workbench chapter rather than the front page.
+   * Shares its route table with the navigation bar's Manual entry.
+   */
   get manualURL(): string {
-    return AppInfo.manualURL;
+    return this.manualLink.href;
   }
 
-  /** Keyboard-shortcut reference — the page most often wanted mid-task. */
+  /** Keyboard-shortcut reference: the page most often wanted mid-task. */
   get shortcutsURL(): string {
-    return AppInfo.manualLink('shortcuts');
+    return this.manualLink.shortcutsHref;
   }
 
   @ViewChild('modal', { static: true }) modal!: any;

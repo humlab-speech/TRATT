@@ -127,8 +127,8 @@ option to continue, download the partial file, or discard it.
 ## The Workbench
 
 **`/workbench` sends me to the start page**
-The Workbench is switched off in this build. It is a preview, enabled in
-development builds only. See [The Workbench](workbench.md).
+This build predates the Workbench. Update TRATT, or reload the page if it has
+updated in the background. See [The Workbench](workbench.md).
 
 **A file failed with "Ran out of memory"**
 Too much decoded audio is attached at once. The **Working memory (est.)** meter

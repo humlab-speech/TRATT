@@ -4,12 +4,14 @@
 Arbetsbänken transkriberar en hel omgång utan tillsyn och låter dig redigera varje
 resultat utan att ladda in filerna en i taget.
 
-> **Tillgänglighet.** Arbetsbänken (*Workbench*) är en förhandsversion. Den är
-> påslagen bara i utvecklingsbyggen, och den har ingen länk i navigeringslisten:
-> du kommer dit genom att skriva `/workbench` i TRATT:s adress, till exempel
-> `http://localhost:5321/workbench`. I ett släppt bygge leder adressen tillbaka
-> till den vanliga startsidan. Hamnar du på startsidan har ditt bygge inte
-> funktionen.
+> **Så kommer du dit.** Arbetsbänken (*Workbench*) har ingen egen post i
+> navigeringslisten. Du kommer dit genom att skriva `/workbench` i TRATT:s
+> adress, till exempel `http://localhost:5321/workbench`, och adressen är värd
+> att bokmärka. Den ingår i släppta byggen; ett bygge från innan den kom leder
+> adressen till den vanliga startsidan i stället.
+>
+> Väl där öppnar både **Manual** i navigeringslisten och **Hjälp** i
+> verktygsraden det här kapitlet i stället för manualens förstasida.
 >
 > Gränssnittet i Arbetsbänken är översatt till svenska, men sidan har inget eget
 > namn i gränssnittet. Manualen kallar den Arbetsbänken; adressen är engelsk.

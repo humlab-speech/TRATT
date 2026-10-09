@@ -9,7 +9,10 @@
  *  3. every image referenced from the manual exists;
  *  4. every AppInfo.manualLink('page', 'anchor') call in the application
  *     resolves in *every* language, since the app links to the manual in the
- *     interface language.
+ *     interface language;
+ *  5. every page named in the route table that decides which chapter the
+ *     "Manual" entry and the Help dialog open (ROUTE_PAGES in
+ *     manual-link.service.ts) exists.
  *
  * Point 4 is the contract between the app and the manual: renaming a page or an
  * anchor — or translating a page without carrying its explicit anchors over —
@@ -168,10 +171,30 @@ function* walk(dir) {
 
 const callPattern = /manualLink\(\s*'([^']+)'\s*(?:,\s*'([^']+)'\s*)?\)/g;
 
+/**
+ * Entries of the route table in manual-link.service.ts. Those page names reach
+ * the manual through a variable, so the manualLink() scan above cannot see
+ * them; without this check, renaming a page would quietly break the "Manual"
+ * entry on the route it belongs to.
+ */
+const routePagePattern = /\bpage:\s*'([^']+)'/g;
+
 if (existsSync(appDir)) {
   for (const file of walk(appDir)) {
     const source = readFileSync(file, 'utf8');
-    if (!source.includes('manualLink(')) continue;
+    if (!source.includes('manualLink(') && !source.includes('ROUTE_PAGES')) {
+      continue;
+    }
+    if (source.includes('ROUTE_PAGES')) {
+      for (const m of source.matchAll(routePagePattern)) {
+        if (!pages.includes(m[1])) {
+          fail(
+            relative(repoRoot, file),
+            `the route table names '${m[1]}', which has no page docs/manual/${m[1]}.md`,
+          );
+        }
+      }
+    }
     for (const m of source.matchAll(callPattern)) {
       const [, page, anchor] = m;
       const where = relative(repoRoot, file);

@@ -30,8 +30,9 @@ avsnitten beskriver, och det är där man börjar.
 
 Har du en hel omgång håller **Arbetsbänken** på `/workbench` många inspelningar i
 en lista, transkriberar dem genom en kö och låter dig klicka mellan resultaten.
-Den är en förhandsversion och finns inte i varje bygge. Vyerna, genvägarna och
-formaten är desamma i båda fallen, så ingenting du lär dig nedan går till spillo.
+Den har ingen post i navigeringslisten, så du kommer dit genom att skriva
+adressen. Vyerna, genvägarna och formaten är desamma i båda fallen, så ingenting
+du lär dig nedan går till spillo.
 
 ---
 

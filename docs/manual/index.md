@@ -29,8 +29,9 @@ where to start.
 
 If you have a batch, the **Workbench** at `/workbench` holds many recordings in one
 list, transcribes them through a queue, and lets you click between the results. It
-is a preview and not in every build. The editors, shortcuts and formats are the
-same either way, so nothing you learn below is wasted.
+has no entry in the navigation bar, so you get there by typing the address. The
+editors, shortcuts and formats are the same either way, so nothing you learn below
+is wasted.
 
 ---
 

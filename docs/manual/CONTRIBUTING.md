@@ -52,8 +52,16 @@ The application deep-links into the manual. These targets must keep working:
 
 | Linked from | Target |
 | --- | --- |
-| `modals/tools-modal/tools-modal.component.html:62` | `using-tools.html#tratt-combine-units` |
-| `modals/tools-modal/tools-modal.component.html:187` | `using-tools.html#cutting-audio-files` |
+| `modals/tools-modal/tools-modal.component.html` | `using-tools.html#tratt-combine-units` |
+| `modals/tools-modal/tools-modal.component.html` | `using-tools.html#cutting-audio-files` |
+| `modals/help-modal/help-modal.component.ts` | `shortcuts.html` |
+| `shared/service/manual-link.service.ts` (`ROUTE_PAGES`) | one chapter per application route |
+
+`ROUTE_PAGES` is the second half of the contract. It decides which chapter the
+navigation bar's **Manual** entry and the Help dialog open from a given route:
+`/workbench` opens `workbench`, and a route with no entry opens the manual's
+front page. Both doors read the same table, so they cannot disagree. Add a route
+there and the page it names must exist; the link check fails if it does not.
 
 Both anchors are declared explicitly as `<a id="…">` in
 [`using-tools.md`](using-tools.md) so that they survive a heading rewrite. Do not
@@ -159,7 +167,7 @@ resolved, remove the caveat in the same commit:
 
 | Issue | Where the manual says so |
 | --- | --- |
-| Workbench gated to development builds (`environment.*.ts: workbenchEnabled`) and reachable by URL only | `workbench.md`, `index.md`, `troubleshooting.md` |
+| Workbench reachable by URL only, with no entry of its own in the navigation bar | `workbench.md`, `index.md`, `glossary.md` |
 | Workbench has no name of its own in the interface, so the manual supplies one | `workbench.md` (Swedish: "Arbetsbänken") |
 | TRN-Editor unfinished and not offered | `the-editors.md`, `shortcuts.md`, `coming-from-octra.md` |
 | Tools dialog has no UI entry point (`openToolsModal()` has no caller) | `using-tools.md`, `coming-from-octra.md` |
@@ -170,7 +178,8 @@ resolved, remove the caveat in the same commit:
 
 Fixed since the manual was first written, and no longer mentioned: the cloud
 ASR/MAUS feature (removed from the app), the raw `modal.shortcuts.cycle_speaker`
-key in the Shortcuts window, and the navbar GitHub link.
+key in the Shortcuts window, the navbar GitHub link, and the Workbench being
+gated to development builds.
 
 ## Facts that will go out of date
 
@@ -187,6 +196,7 @@ Check these against the source when TRATT is updated:
 | Which editors and tools are enabled | `apps/tratt/src/config/localmode/projectconfig.json`, `editors/components.ts` |
 | Workbench statuses, stages, errors and capacity wording | `workbench.*` in `apps/tratt/src/assets/i18n/en.json` |
 | Whether the Workbench is reachable | `workbenchEnabled` in `apps/tratt/src/environments/*.ts`, `shared/guard/workbench-enabled.guard.ts` |
+| Which chapter "Manual" and Help open from a given route | `shared/service/manual-link.service.ts` |
 | Pipeline summary line | `core/pages/workbench/pipeline-summary.ts` |
 | Archive name and contents | `core/shared/service/catalogue-export.service.ts`, `catalogue-import.ts` |
 | Start-page submit button wording | `core/pages/login/offline-submit-label.helper.ts` |

@@ -4,12 +4,14 @@
 Workbench transcribes a batch unattended and lets you edit each result without
 loading files one at a time.
 
-> **Availability.** The Workbench is a preview. It is switched on in development
-> builds only, and it has no link in the navigation bar: you reach it by putting
-> `/workbench` in TRATT's address, for example
-> `http://localhost:5321/workbench`. In a released build the address redirects to
-> the ordinary start page. If `/workbench` sends you to the start page, your build
-> does not have it.
+> **How to get there.** The Workbench has no entry of its own in the navigation
+> bar. You reach it by putting `/workbench` in TRATT's address, for example
+> `http://localhost:5321/workbench`, and it is worth bookmarking. It is part of
+> released builds; a build from before it shipped sends that address to the
+> ordinary start page instead.
+>
+> Once you are there, **Manual** in the navigation bar and **Help** in the
+> toolbar both open this chapter rather than the manual's front page.
 
 ---
 
