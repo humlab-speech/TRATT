@@ -371,7 +371,7 @@
       "auto-transcribe label": "Automatisk transkribering med Whisper",
       "requires internet": "Kräver internetåtkomst — den valda modellen laddas ned från en extern server (150 MB – 3 GB). Nedladdade modeller sparas i din webbläsare för senare anvädning.",
       "requires webgpu": "Kräver WebGPU som tyvärr inte stödjs av din dator eller av denna webläsare",
-      "no webgpu": "WebGPU inte detekterat — Medelstora och stora modeller kan inte köras tillförlitligt och har inaktiverats",
+      "no webgpu": "WebGPU inte detekterat — modellerna som kräver WebGPU kan inte köras tillförlitligt och har inaktiverats",
       "model cached after download": "Modellen sparas i din webläsare efter första nedladdning",
       "models": {
         "tiny": {

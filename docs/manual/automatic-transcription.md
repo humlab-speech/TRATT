@@ -169,8 +169,9 @@ models are large enough to make Safari reload the tab mid-download, which loses 
 work. Use Chrome, Edge or Firefox for automatic transcription. Manual transcription
 in Safari is fine.
 
-**No WebGPU.** The Medium and Large models are greyed out with the note *Requires
-WebGPU*. The smaller models still work.
+**No WebGPU.** The models that need it are greyed out with the note *Requires
+WebGPU*; which ones those are depends on the language. The smaller models still
+work.
 
 **Errors.** If transcription fails while running on WebGPU, the error box suggests
 retrying without it. TRATT detects WebGPU automatically and has no switch of its

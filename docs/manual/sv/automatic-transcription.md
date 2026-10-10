@@ -178,8 +178,9 @@ Modellerna är stora nog att få Safari att ladda om fliken mitt i nedladdningen
 vilket förstör ditt arbete. Använd Chrome, Edge eller Firefox för automatisk
 transkription. Manuell transkribering i Safari påverkas inte.
 
-**Ingen WebGPU.** Modellerna Medium och Large gråmarkeras med texten
-*Kräver WebGPU…*. De mindre modellerna fungerar fortfarande.
+**Ingen WebGPU.** De modeller som kräver det gråmarkeras med texten
+*Kräver WebGPU…*; vilka det är beror på språket. De mindre modellerna fungerar
+fortfarande.
 
 **Fel.** Misslyckas transkriptionen medan den körs på WebGPU föreslår
 felmeddelandet att du försöker igen utan. TRATT upptäcker WebGPU automatiskt och

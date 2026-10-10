@@ -40,8 +40,9 @@ or Firefox. Manual transcription in Safari is unaffected.
 It only appears once audio has loaded *and* no transcript file has been supplied.
 There is nothing to draft if you already brought a transcript.
 
-**Medium and Large models are greyed out, "Requires WebGPU"**
-Your browser or graphics hardware does not expose WebGPU. Use Tiny or Small, or run
+**The largest models are greyed out, "Requires WebGPU"**
+Your browser or graphics hardware does not expose WebGPU. Which models that affects
+depends on the language you picked. Use Tiny or Small, or run
 TRATT on a machine with a discrete graphics card. In Chrome and Edge you can check
 at `chrome://gpu`.
 

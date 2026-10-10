@@ -40,8 +40,9 @@ Använd Chrome, Edge eller Firefox. Manuell transkribering i Safari påverkas in
 Den visas först när ljud har lästs in *och* ingen transkriptfil har lämnats in.
 Det finns inget utkast att skriva om du redan tagit med ett transkript.
 
-**Modellerna Medium och Large är gråmarkerade: "Kräver WebGPU"**
-Din webbläsare eller ditt grafikkort erbjuder inte WebGPU. Använd Tiny eller
+**De största modellerna är gråmarkerade: "Kräver WebGPU"**
+Din webbläsare eller ditt grafikkort erbjuder inte WebGPU. Vilka modeller det gäller
+beror på vilket språk du valt. Använd Tiny eller
 Small, eller kör TRATT på en dator med ett separat grafikkort. I Chrome och Edge
 kan du kontrollera på `chrome://gpu`.
 

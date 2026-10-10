@@ -385,7 +385,7 @@
       "auto-transcribe label": "Auto-transcribe with Whisper",
       "requires internet": "Requires internet access — the selected model will be downloaded from an external server (150 MB – 3 GB). Downloaded models are cached in the browser.",
       "requires webgpu": "Requires WebGPU — not available in this browser",
-      "no webgpu": "WebGPU not detected — Medium and Large models cannot be run reliably and have been disabled",
+      "no webgpu": "WebGPU not detected — the models that require it cannot be run reliably and have been disabled",
       "model cached after download": "Model will be cached after first download",
       "models": {
         "tiny": {
