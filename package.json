@@ -217,6 +217,7 @@
     "axios": "^1.20.0",
     "smol-toml": "^1.9.0",
     "brace-expansion@^5": "5.0.12",
+    "handlebars@4.7.9": "4.7.10",
     "compression": "^1.8.2",
     "qs": "^6.16.0",
     "sockjs": {
