@@ -120,10 +120,10 @@ Om du är osäker på vilket du vill ha:
 
 | Du vill… | Välj |
 | --- | --- |
-| Läsa eller redigera transkriptet i Word eller LibreOffice | **Word (.docx)** eller **OpenDocument (.odt)** |
-| Göra undertexter | **SubRip (.srt)** eller **WebVTT (.vtt)** |
-| Kunna arbeta vidare i TRATT senare utan att förlora något | **AnnotJSON (`_annot.json`)** |
-| Analysera i Praat eller ELAN | **TextGrid** eller **ELAN (.eaf)** |
+| Läsa eller redigera transkriptet i Word eller LibreOffice | **DOCX** eller **ODT** |
+| Göra undertexter | **SRT** eller **WebVTT** |
+| Kunna arbeta vidare i TRATT senare utan att förlora något | **AnnotJSON** |
+| Analysera i Praat eller ELAN | **TextGrid** eller **ELAN** |
 
 Export till Word och OpenDocument kan lägga varje yttrande på egen rad eller köra
 det som löpande text, och kan sätta talarnamn och tidsstämplar först. Alla

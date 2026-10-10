@@ -33,6 +33,8 @@ sedan in:
 3. **Speaker separation** (talarseparation, valfritt): se
    [Talarseparation](#speaker-separation).
 
+![Inställningarna för automatisk transkription, här i en webbläsare utan WebGPU](../../assets/visp_tratt_auto_transcription_options.png)
+
 Klicka sedan **Starta ny transkription**. Du ser i tur och ordning:
 modellnedladdningen med förloppsfält, *Transkriberar ljud…* med förfluten tid och
 ett förloppsfält mot inspelningens längd, sedan *Identifierar talare…* om du bad

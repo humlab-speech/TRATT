@@ -26,8 +26,8 @@ For reading, sharing and publishing. **Only SRT can be loaded back into TRATT.**
 | --- | --- | --- |
 | **DOCX** | `.docx` | Word. The format most people actually want the transcript in. |
 | **ODT** | `.odt` | LibreOffice / OpenOffice. Same options as DOCX. |
-| **SubRip** | `.srt` | Subtitles, video players, and the one format in this group you can re-import |
-| **Plain text** | `.txt` | Anything that reads text |
+| **SRT** | `.srt` | Subtitles, video players, and the one format in this group you can re-import |
+| **PlainText** | `.txt` | Anything that reads text |
 
 ### Linguistic formats
 
@@ -38,14 +38,14 @@ All of these can be loaded back into TRATT.
 | **AnnotJSON** | `_annot.json` | **TRATT's own format.** Keeps everything: tiers, boundaries, speakers, markers. Export this alongside whatever else you need. |
 | **TextGrid** | `.TextGrid` | Praat |
 | **ELAN** | `.eaf` | ELAN. Put the `.eaf` in the same folder as the audio or ELAN will not find the media. |
-| **Praat Table** | `.Table` | Praat's table format |
+| **PraatTextTable** | `.Table` | Praat's table format |
 
 ### Specialist technical formats
 
 | Format | File | Good for |
 | --- | --- | --- |
 | **WebVTT** | `.vtt` | Web video subtitles |
-| **BAS Partitur** | `.par` | BAS web services. Export writes ORT and TRN lines from the transcription. |
+| **BASPartitur** | `.par` | BAS web services. Export writes ORT and TRN lines from the transcription. |
 | **CTM** | `.ctm` | Speech-recognition scoring tools. Confidence is always written as 1; TRATT does not track it. |
 
 > **Always take an AnnotJSON copy.** DOCX and ODT are one-way: they read well and

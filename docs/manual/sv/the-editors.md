@@ -16,7 +16,7 @@ Standard är **2D Vy**.
 Arbetshästen. Inspelningen ritas som en vågform uppdelad på rader (som text som
 radbryts), med varje transkriptionsenhet skuggad och sin text tryckt under.
 
-![2D Vy med transkriptionsfönstret öppet](../../assets/visp_tratt_popup_editor_audio_only.png)
+![2D Vy](../../assets/visp_tratt_2d_editor.png)
 
 **Använd den när** du behöver se och ändra var enheter börjar och slutar, vilket
 är det mesta av tiden.
@@ -34,6 +34,8 @@ radbryts), med varje transkriptionsenhet skuggad och sin text tryckt under.
 Rutan du får med **Enter**. Den visar en enhet: dess egen vågform, en spelare,
 markörraden och ett textfält.
 
+![Transkriptionsfönstret över 2D Vy](../../assets/visp_tratt_popup_editor_audio_only.png)
+
 - **Tabb** / **Esc** spelar, pausar och stoppar.
 - **Alt + ←** och **Alt + →** sparar och stegar till föregående eller nästa
   enhet, snabbaste vägen genom en fil.
@@ -47,6 +49,8 @@ markörraden och ett textfält.
 ## Diktafon-vy
 
 En spelare och ett enda textfält. Ingen vågform, inga gränser.
+
+![Diktafon-vyn](../../assets/visp_tratt_dictaphone_editor.png)
 
 **Använd den när** inspelningen är kort, eller när gränserna redan är rätt och du
 bara vill skriva. Den är också den mildaste starten för någon som aldrig använt
@@ -62,6 +66,8 @@ tillbaka i tid.
 
 Två signalvisningar staplade: hela inspelningen överst, och en förstorad vy av det
 aktuella läget under.
+
+![Linjär vy](../../assets/visp_tratt_linear_editor.png)
 
 **Använd den när** du behöver fin kontroll över gränslägen men samtidigt vill
 behålla överblicken över filen som helhet.

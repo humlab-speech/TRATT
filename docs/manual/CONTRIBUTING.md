@@ -42,9 +42,11 @@ mixing them in is what makes the OCTRA manual hard for a first-time user.
 - **Say when something does not work.** This version of TRATT has an unfinished
   TRN-Editor and an unreachable Tools dialog. Documenting them as working costs
   more trust than the features are worth. When one is fixed, delete the caveat.
-- **Screenshots** live in `docs/assets/` and are referenced as `../assets/…`, so the
-  pages render correctly on GitHub as well as in a generated site. Re-shoot them
-  when the interface changes; a stale screenshot is worse than none.
+- **Screenshots** live in `docs/assets/` and are referenced as `../assets/…` from
+  the English pages and `../../assets/…` from the Swedish ones, so the pages render
+  correctly on GitHub as well as in a generated site. Re-shoot them when the
+  interface changes; a stale screenshot is worse than none. How they are made is
+  described under **Screenshots** below.
 
 ## The anchor contract
 
@@ -157,8 +159,41 @@ Not exercised live, and therefore still source-derived only:
 - boundary refusal messages;
 - the Cut-audio and Combine-units tools, which have no UI entry point to reach.
 
-The Workbench has no screenshot yet. `docs/assets/` is where one belongs, and the
-page is written so that adding one is a one-line change.
+## Screenshots
+
+The nine screenshots in `docs/assets/` were all taken from the same build, in the
+same session, so the chrome matches from page to page:
+
+| File | Shows | Used by |
+| --- | --- | --- |
+| `visp_tratt_main.png` | The start page down to the start button | `quick-start.md` |
+| `visp_tratt_auto_transcription_options.png` | The **Auto-transcribe with Whisper** panel | `automatic-transcription.md` |
+| `visp_tratt_2d_editor.png` | The 2D-Editor with speaker badges | `the-editors.md` |
+| `visp_tratt_popup_editor_audio_only.png` | The transcription window over the 2D-Editor | `quick-start.md`, `the-editors.md` |
+| `visp_tratt_dictaphone_editor.png` | The Dictaphone Editor | `the-editors.md` |
+| `visp_tratt_linear_editor.png` | The Linear Editor, both displays, one unit open | `the-editors.md` |
+| `visp_tratt_overview_edit.png` | The Overview window | `quick-start.md`, `checking-your-work.md` |
+| `visp_tratt_export_formats.png` | The export dialog | `quick-start.md`, `exporting.md` |
+| `visp_tratt_workbench.png` | The Workbench with four recordings | `workbench.md` |
+
+How to reproduce them:
+
+- The material is synthetic. Four short two-speaker recordings were generated with
+  `espeak-ng` and paired with SRT files written from the same script, so the text
+  in the pictures is exactly what the audio says and no real person appears in the
+  manual. The SRT units are contiguous, which is why no `<P>` pause units clutter
+  the Overview.
+- The files are imported with **Regular expression for speaker identification**
+  ticked and its default value, and with **Move units with speaker label to
+  separate levels** left off, which is what puts the coloured `Interviewer` and
+  `Respondent` badges on the units instead of splitting them into two tiers.
+- The imported tier is renamed from `OCTRA_1` to `Transcription` before shooting.
+- Viewport 1440 × 820 at a device pixel ratio of 2 for the editor pages, 1480 × 900
+  for the Workbench, 1360 wide for the start page. **Below 1400 px the editor
+  switcher collapses to icons**, so do not shoot the editor narrower than that.
+- The browser had no WebGPU, so the two largest Whisper models are greyed out in
+  `visp_tratt_auto_transcription_options.png`. The caption says so. Re-shoot it on
+  a WebGPU machine if you would rather show the other state.
 
 ## Caveats to delete when the app changes
 

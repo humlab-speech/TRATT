@@ -16,7 +16,7 @@ The default is the **2D-Editor**.
 The workhorse. The recording is drawn as a waveform broken into lines, like text
 wrapping, with each transcription unit shaded and its text printed underneath.
 
-![The 2D-Editor with the transcription window open](../assets/visp_tratt_popup_editor_audio_only.png)
+![The 2D-Editor](../assets/visp_tratt_2d_editor.png)
 
 **Use it when** you need to see and change where units begin and end, which is most
 of the time.
@@ -33,6 +33,8 @@ of the time.
 The pop-up you get with **Enter**. It shows one unit: its own waveform, a player,
 the marker toolbar, and a text field.
 
+![The transcription window over the 2D-Editor](../assets/visp_tratt_popup_editor_audio_only.png)
+
 - **Tab** / **Esc** play, pause and stop.
 - **Alt + ←** and **Alt + →** save and step to the previous or next unit; this is
   the fastest way through a file.
@@ -46,6 +48,8 @@ the marker toolbar, and a text field.
 ## Dictaphone Editor
 
 A player and a single text field. No waveform, no boundaries.
+
+![The Dictaphone Editor](../assets/visp_tratt_dictaphone_editor.png)
 
 **Use it when** the recording is short, or the boundaries are already right and you
 only want to type. It is also the gentlest starting point for someone who has never
@@ -61,6 +65,8 @@ time.
 
 Two signal displays stacked: the whole recording on top, and a magnified view of the
 current position below.
+
+![The Linear Editor](../assets/visp_tratt_linear_editor.png)
 
 **Use it when** you need fine control over boundary positions while keeping your
 bearings in the file as a whole.

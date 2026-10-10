@@ -30,6 +30,8 @@ Under the drop zone, tick **Auto-transcribe with Whisper**, then set:
 2. **Model**: see the tables below.
 3. **Speaker separation** (optional): see [Speaker separation](#speaker-separation).
 
+![The automatic transcription options, here in a browser without WebGPU](../assets/visp_tratt_auto_transcription_options.png)
+
 Then click **Start new transcription**. You will see, in order: the model download
 with a progress bar, *Transcribing audio…* with elapsed time and a progress bar
 against the recording's length, then *Identifying speakers…* if you asked for it,
