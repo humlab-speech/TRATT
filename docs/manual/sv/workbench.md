@@ -50,13 +50,15 @@ Fyra saker ligger till vänster, uppifrån och ned:
 1. **Filer** med antalet inspelningar, och knapparna **Exportera alla**,
    **Rensa klara** och **Ta bort**.
 2. Flikarna **Ladda upp fil** och **Spela in nu** över en släppyta:
-   *Släpp ljudfiler eller tidigare exporterat arkiv här*.
+   *Släpp ljudfiler här, eller klicka för att välja. Flera filer samtidigt går bra.*
 3. **Pipelineinställningar**: vad som händer med en fil automatiskt, och knappen
    som startar kön.
 4. Två kapacitetsmätare: **Webbläsarlagring** och **Arbetsminne (uppskattat)**.
 
 Resten av fönstret är den inspelning du valt: namn och uppgifter, vyväljaren,
 verktygsraden med **Genvägar**, **Översikt** och **Hjälp**, och själva vyn.
+
+![Arbetsbänken med fyra inspelningar inlästa](../../assets/visp_tratt_workbench.png)
 
 ---
 

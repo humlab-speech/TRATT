@@ -27,7 +27,7 @@ För att läsa, dela och publicera. **Bara SRT kan läsas tillbaka in i TRATT.**
 | --- | --- | --- |
 | **DOCX** | `.docx` | Word. Det format de flesta faktiskt vill ha transkriptet i. |
 | **ODT** | `.odt` | LibreOffice / OpenOffice. Samma alternativ som DOCX. |
-| **SubRip** | `.srt` | Undertexter, videospelare, och det enda formatet i gruppen som går att importera igen |
+| **SRT** | `.srt` | Undertexter, videospelare, och det enda formatet i gruppen som går att importera igen |
 | **PlainText** | `.txt` | Allt som läser text |
 
 ### Lingvistiska format

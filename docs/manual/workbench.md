@@ -47,7 +47,7 @@ Four things sit on the left, from top to bottom:
 1. **Files** with the number of recordings, and the buttons **Export all**,
    **Clear finished** and **Remove**.
 2. The **Upload file** and **Record now** tabs over a drop area:
-   *Drop audio files or a previously exported archive here*.
+   *Drop audio files here, or click to browse. Several at once is fine.*
 3. **Pipeline settings**: what happens to a file automatically, and the button
    that starts the queue.
 4. Two capacity meters: **Browser storage** and **Working memory (est.)**.
@@ -55,6 +55,8 @@ Four things sit on the left, from top to bottom:
 The rest of the window is the recording you have selected: its name and details,
 the editor switcher, the toolbar with **Shortcuts**, **Overview** and **Help**,
 and the editor itself.
+
+![The Workbench with four recordings loaded](../assets/visp_tratt_workbench.png)
 
 ---
 

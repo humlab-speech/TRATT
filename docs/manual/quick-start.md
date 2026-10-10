@@ -117,10 +117,10 @@ If you are not sure which one you want:
 
 | You want to… | Choose |
 | --- | --- |
-| Read or edit the transcript in Word or LibreOffice | **Word (.docx)** or **OpenDocument (.odt)** |
-| Make subtitles | **SubRip (.srt)** or **WebVTT (.vtt)** |
-| Keep working in TRATT later, losing nothing | **AnnotJSON (`_annot.json`)** |
-| Analyse it in Praat or ELAN | **TextGrid** or **ELAN (.eaf)** |
+| Read or edit the transcript in Word or LibreOffice | **DOCX** or **ODT** |
+| Make subtitles | **SRT** or **WebVTT** |
+| Keep working in TRATT later, losing nothing | **AnnotJSON** |
+| Analyse it in Praat or ELAN | **TextGrid** or **ELAN** |
 
 Word and OpenDocument export can put each utterance on its own line or run it as
 continuous text, and can prefix speaker names and timestamps. All the options are
