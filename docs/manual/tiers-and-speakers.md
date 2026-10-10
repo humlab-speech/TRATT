@@ -25,9 +25,9 @@ The tier menu sits in the top bar and shows the current tier's name.
 | --- | --- |
 | Switch tier | Open the menu and click the tier's number |
 | Rename a tier | Type in its name field and click away |
-| Add an empty tier | **Add empty level** at the bottom of the menu |
-| Add a translation tier | **Add translated tier…**, see below |
-| Delete a tier | The bin icon on its row. TRATT asks for confirmation; the tier and its text are gone permanently. |
+| Add an empty tier | **+** at the bottom of the menu, then **Add empty level** |
+| Add a translation tier | **+**, then **Add translated tier…**; see below |
+| Delete a tier | The bin icon on its row, which only appears once there is more than one tier. TRATT asks for confirmation; the tier and its text are gone permanently. |
 
 Only tiers of type SEGMENT can be selected for editing; others are shown greyed out.
 

@@ -191,9 +191,11 @@ How to reproduce them:
 - Viewport 1440 × 820 at a device pixel ratio of 2 for the editor pages, 1480 × 900
   for the Workbench, 1360 wide for the start page. **Below 1400 px the editor
   switcher collapses to icons**, so do not shoot the editor narrower than that.
-- The browser had no WebGPU, so the two largest Whisper models are greyed out in
-  `visp_tratt_auto_transcription_options.png`. The caption says so. Re-shoot it on
-  a WebGPU machine if you would rather show the other state.
+- `visp_tratt_auto_transcription_options.png` is the exception: the headless
+  browser has no WebGPU, which greys out the two largest Whisper models and
+  changes every model description, so that one was taken in a real Chrome with
+  WebGPU and cropped to the panel. It shows the English model list; the Nordic
+  languages get a different one.
 
 ## Caveats to delete when the app changes
 

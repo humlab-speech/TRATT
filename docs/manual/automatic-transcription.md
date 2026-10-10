@@ -30,7 +30,7 @@ Under the drop zone, tick **Auto-transcribe with Whisper**, then set:
 2. **Model**: see the tables below.
 3. **Speaker separation** (optional): see [Speaker separation](#speaker-separation).
 
-![The automatic transcription options, here in a browser without WebGPU](../assets/visp_tratt_auto_transcription_options.png)
+![The automatic transcription options, with a model list for English](../assets/visp_tratt_auto_transcription_options.png)
 
 Then click **Start new transcription**. You will see, in order: the model download
 with a progress bar, *Transcribing audio…* with elapsed time and a progress bar
@@ -54,9 +54,11 @@ models for the Nordic languages.
 
 **If your machine has WebGPU** (recent Chrome, Edge or Firefox with a reasonable
 graphics card), all models are available and the larger ones are much faster.
-**Without WebGPU** the models run on the CPU instead: the biggest ones are
-disabled, and the rest are slow but usable. TRATT tells you which situation you are
-in under the model list.
+**Without WebGPU** the models run on the CPU instead: the biggest ones are greyed
+out, and the rest are slow but usable. TRATT says *WebGPU not detected* under the
+model list when that is the case, and says nothing when WebGPU is there. The model
+descriptions change with it: without WebGPU the reference model falls back to the
+largest one your machine can run.
 
 ### Swedish
 

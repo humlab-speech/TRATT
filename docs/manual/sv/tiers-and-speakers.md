@@ -26,9 +26,9 @@ Nivåmenyn sitter i den övre listen och visar den aktuella nivåns namn.
 | --- | --- |
 | Byta nivå | Öppna menyn och klicka på nivåns nummer |
 | Byta namn på en nivå | Skriv i dess namnfält och klicka utanför |
-| Lägga till en tom nivå | **Add empty level** längst ned i menyn |
-| Lägga till en översättningsnivå | **Add translated tier…**: se nedan |
-| Ta bort en nivå | Papperskorgsikonen på dess rad. TRATT frågar först; nivån och dess text försvinner permanent. |
+| Lägga till en tom nivå | **+** längst ned i menyn, sedan **Add empty level** |
+| Lägga till en översättningsnivå | **+**, sedan **Add translated tier…**: se nedan |
+| Ta bort en nivå | Papperskorgsikonen på dess rad, som bara syns när det finns mer än en nivå. TRATT frågar först; nivån och dess text försvinner permanent. |
 
 Bara nivåer av typen SEGMENT kan väljas för redigering; övriga visas gråmarkerade.
 

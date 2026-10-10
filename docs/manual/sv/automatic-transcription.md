@@ -33,7 +33,7 @@ sedan in:
 3. **Speaker separation** (talarseparation, valfritt): se
    [Talarseparation](#speaker-separation).
 
-![Inställningarna för automatisk transkription, här i en webbläsare utan WebGPU](../../assets/visp_tratt_auto_transcription_options.png)
+![Inställningarna för automatisk transkription, med modellistan för engelska](../../assets/visp_tratt_auto_transcription_options.png)
 
 Klicka sedan **Starta ny transkription**. Du ser i tur och ordning:
 modellnedladdningen med förloppsfält, *Transkriberar ljud…* med förfluten tid och
@@ -57,9 +57,11 @@ modeller för de nordiska språken.
 
 **Om din dator har WebGPU** (aktuell Chrome, Edge eller Firefox med ett hyggligt
 grafikkort) är alla modeller tillgängliga och de större är mycket snabbare.
-**Utan WebGPU** körs modellerna på processorn i stället: de största inaktiveras,
-och resten är långsamma men användbara. TRATT talar om vilket läge du är i under
-modellistan.
+**Utan WebGPU** körs modellerna på processorn i stället: de största gråmarkeras,
+och resten är långsamma men användbara. TRATT skriver *WebGPU not detected* under
+modellistan när det är så, och skriver ingenting när WebGPU finns.
+Modellbeskrivningarna ändras med detta: utan WebGPU blir jämförelsemodellen den
+största din dator klarar.
 
 ### Svenska
 
