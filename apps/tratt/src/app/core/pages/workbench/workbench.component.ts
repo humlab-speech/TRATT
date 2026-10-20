@@ -92,6 +92,7 @@ import { PendingEditsService } from '../../shared/service/pending-edits.service'
 import { PipelineQueueService } from '../../shared/service/pipeline-queue.service';
 import { RecordedFileService } from '../../shared/service/recorded-file.service';
 import { RoutingService } from '../../shared/service/routing.service';
+import { SegmentVerificationService } from '../../shared/service/segment-verification.service';
 import { LoadingStatus, LoginMode, RootState } from '../../store';
 import { ApplicationState } from '../../store/application';
 import { ApplicationStoreService } from '../../store/application/application-store.service';
@@ -561,6 +562,9 @@ export class WorkbenchComponent
     private pendingEdits: PendingEditsService,
     private ngZone: NgZone,
     private transloco: TranslocoService,
+    // Injected for its side effect: while the workbench is alive, playback
+    // marks the played segments' transcriptions as verified.
+    segmentVerificationService: SegmentVerificationService,
   ) {
     super();
 

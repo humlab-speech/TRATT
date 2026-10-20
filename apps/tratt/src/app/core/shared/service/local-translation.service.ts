@@ -477,7 +477,13 @@ export class LocalTranslationService implements OnDestroy {
         ? [new OLabel(uniqueSourceName, label.value)]
         : [];
       labels.push(...extraLabelsOf(item));
-      return new OSegment(idx + 1, item.sampleStart, item.sampleDur, labels);
+      return new OSegment(
+        idx + 1,
+        item.sampleStart,
+        item.sampleDur,
+        labels,
+        item.verified,
+      );
     });
 
     const targetItems = sourceLevel.items.map((item, idx) => {
@@ -485,7 +491,15 @@ export class LocalTranslationService implements OnDestroy {
       const text = tr?.text ?? '';
       const labels: OLabel[] = [new OLabel(uniqueTargetName, text)];
       labels.push(...extraLabelsOf(item));
-      return new OSegment(idx + 1, item.sampleStart, item.sampleDur, labels);
+      // Machine translation is automatically produced text: non-verified
+      // until a human listens to or edits it.
+      return new OSegment(
+        idx + 1,
+        item.sampleStart,
+        item.sampleDur,
+        labels,
+        false,
+      );
     });
 
     const sourceLevel_ = new OSegmentLevel<OSegment>(

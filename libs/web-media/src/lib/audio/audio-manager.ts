@@ -52,7 +52,7 @@ export class AudioManager {
   }
 
   get playOnHover(): boolean {
-    return this._playOnHover;
+    return this._audioMechanism?.playOnHover ?? false;
   }
 
   get gainNode(): any {
@@ -85,7 +85,6 @@ export class AudioManager {
   // variables needed for initializing audio
   private chunks: AudioChunk[] = [];
   private _mainchunk!: AudioChunk;
-  private _playOnHover = false;
   private _gainNode?: GainNode;
 
   /**

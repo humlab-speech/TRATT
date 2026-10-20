@@ -6,11 +6,18 @@ export interface SegmentWithContext {
   id: number;
   labels: OLabel[];
   time: SampleUnit;
+  /**
+   * Whether a human has verified the transcription of this segment (listened
+   * to its part of the recording, or edited the text). Missing on legacy
+   * state = treated as verified.
+   */
+  verified?: boolean;
 }
 
-export class TrattAnnotationEvent
-  implements Serializable<TrattAnnotationEvent, TrattAnnotationEvent>
-{
+export class TrattAnnotationEvent implements Serializable<
+  TrattAnnotationEvent,
+  TrattAnnotationEvent
+> {
   public readonly type: 'segment' | 'event' | 'item' = 'event';
   id!: number;
   samplePoint!: SampleUnit;
@@ -87,11 +94,23 @@ export class TrattAnnotationSegment
 
   private _id: number;
   public labels: OLabel[];
+  /**
+   * Whether a human has verified this segment's transcription: listened to
+   * this part of the recording, or edited the text. Automatically produced
+   * transcription starts `false`; manual text and legacy data default `true`.
+   */
+  public verified: boolean;
 
-  constructor(id: number, time: SampleUnit, labels?: OLabel[]) {
+  constructor(
+    id: number,
+    time: SampleUnit,
+    labels?: OLabel[],
+    verified = true,
+  ) {
     this.time = time;
     this._id = id;
     this.labels = labels ?? [];
+    this.verified = verified;
   }
 
   serialize(): SegmentWithContext {
@@ -99,6 +118,7 @@ export class TrattAnnotationSegment
       id: this.id,
       time: this.time,
       labels: this.labels,
+      verified: this.verified,
     };
   }
 
@@ -108,6 +128,7 @@ export class TrattAnnotationSegment
       sampleStart,
       this.time.samples - sampleStart,
       this.labels,
+      this.verified,
     );
   }
 
@@ -154,6 +175,7 @@ export class TrattAnnotationSegment
       jsonObject.id,
       jsonObject.time,
       jsonObject.labels.map((a) => OLabel.deserialize(a)),
+      jsonObject.verified ?? true,
     );
     return result;
   }
@@ -166,13 +188,17 @@ export class TrattAnnotationSegment
       jsonObject.id,
       new SampleUnit(jsonObject.sampleStart + jsonObject.sampleDur, sampleRate),
       jsonObject.labels.map((a) => OLabel.deserialize(a)),
+      jsonObject.verified ?? true,
     );
   }
 
   clone(id?: number): TrattAnnotationSegment {
-    return new TrattAnnotationSegment(id ?? this._id, this.time, [
-      ...this.labels,
-    ]);
+    return new TrattAnnotationSegment(
+      id ?? this._id,
+      this.time,
+      [...this.labels],
+      this.verified,
+    );
   }
 
   isEqualWith(other: TrattAnnotationSegment) {
@@ -191,12 +217,13 @@ export class TrattAnnotationSegment
     }
 
     return (
-      this._id === other.id && this.time.equals(other.time) && labelsEqual
+      this._id === other.id &&
+      this.time.equals(other.time) &&
+      this.verified === other.verified &&
+      labelsEqual
     );
   }
 }
 
 export type AnnotationAnySegment =
-  | TrattAnnotationSegment
-  | OItem
-  | TrattAnnotationEvent;
+  TrattAnnotationSegment | OItem | TrattAnnotationEvent;

@@ -469,6 +469,11 @@ export class DictaphoneEditorComponent
       if (!items) {
         return;
       }
+      // The dictaphone's text is what the user typed for the whole
+      // transcript: every resulting segment is verified by the edit.
+      for (const item of items) {
+        item.verified = true;
+      }
       transcript.currentLevel.overwriteItems(items as any);
       this.annotationStoreService.overwriteTranscript(transcript);
     }

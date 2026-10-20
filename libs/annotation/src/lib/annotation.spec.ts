@@ -22,7 +22,12 @@ import {
   TrattAnnotationEventLevel,
   TrattAnnotationSegmentLevel,
 } from './annotation';
-import { ISegmentLevel, OLabel } from './annotjson';
+import {
+  AnnotationLevelType,
+  ISegmentLevel,
+  OAnnotJSON,
+  OLabel,
+} from './annotjson';
 import {
   TrattAnnotationEvent,
   TrattAnnotationSegment,
@@ -84,11 +89,9 @@ describe('TrattAnnotation.addItemToCurrentLevel on an EVENT level', () => {
 describe('TrattAnnotation.serialize() padding of the final segment', () => {
   it('appends an ISegment-shaped item (sampleStart/sampleDur) when the last item ends before lastSegmentTime', () => {
     const annotation = makeAnnotation();
-    const segment = new TrattAnnotationSegment(
-      1,
-      new SampleUnit(1000, 48000),
-      [new OLabel('tier', 'hello')],
-    );
+    const segment = new TrattAnnotationSegment(1, new SampleUnit(1000, 48000), [
+      new OLabel('tier', 'hello'),
+    ]);
     const level = annotation.createSegmentLevel('tier', [segment]);
     annotation.addLevel(level);
     annotation.updateIDCounters();
@@ -115,11 +118,9 @@ describe('TrattAnnotation.serialize() padding of the final segment', () => {
   // read only property 'item'" — breaking IDB saves and catalogue export.
   it('pads without mutating the annotation (works on a frozen instance)', () => {
     const annotation = makeAnnotation();
-    const segment = new TrattAnnotationSegment(
-      1,
-      new SampleUnit(1000, 48000),
-      [new OLabel('tier', 'hello')],
-    );
+    const segment = new TrattAnnotationSegment(1, new SampleUnit(1000, 48000), [
+      new OLabel('tier', 'hello'),
+    ]);
     annotation.addLevel(annotation.createSegmentLevel('tier', [segment]));
     annotation.updateIDCounters();
     const counterBefore = annotation.idCounters.item;
@@ -139,11 +140,9 @@ describe('TrattAnnotation.serialize() padding of the final segment', () => {
 
   it('does not pad when the last item already reaches lastSegmentTime', () => {
     const annotation = makeAnnotation();
-    const segment = new TrattAnnotationSegment(
-      1,
-      new SampleUnit(2000, 48000),
-      [new OLabel('tier', 'hello')],
-    );
+    const segment = new TrattAnnotationSegment(1, new SampleUnit(2000, 48000), [
+      new OLabel('tier', 'hello'),
+    ]);
     const level = annotation.createSegmentLevel('tier', [segment]);
     annotation.addLevel(level);
     annotation.updateIDCounters();
@@ -183,11 +182,9 @@ describe('TrattAnnotation.serialize() on an empty SEGMENT level', () => {
 describe('TrattAnnotation.changeCurrentItemByIndex on a SEGMENT level', () => {
   it('replaces the item in place', () => {
     const annotation = makeAnnotation();
-    const segment = new TrattAnnotationSegment(
-      1,
-      new SampleUnit(1000, 48000),
-      [new OLabel('tier', 'hello')],
-    );
+    const segment = new TrattAnnotationSegment(1, new SampleUnit(1000, 48000), [
+      new OLabel('tier', 'hello'),
+    ]);
     const level = annotation.createSegmentLevel('tier', [segment]);
     annotation.addLevel(level);
     annotation.changeCurrentLevelIndex(0);
@@ -196,9 +193,70 @@ describe('TrattAnnotation.changeCurrentItemByIndex on a SEGMENT level', () => {
     updated.changeLabel('tier', 'world');
     annotation.changeCurrentItemByIndex(0, updated);
 
-    const current = annotation.currentLevel as TrattAnnotationSegmentLevel<
-      TrattAnnotationSegment
-    >;
+    const current =
+      annotation.currentLevel as TrattAnnotationSegmentLevel<TrattAnnotationSegment>;
     expect(current.items[0].getLabel('tier')?.value).toBe('world');
+  });
+});
+
+describe('verified flag round-trip', () => {
+  it('survives serialize → deserialize and clone', () => {
+    const annotation = makeAnnotation();
+    const level = annotation.createSegmentLevel('tier', [
+      new TrattAnnotationSegment(
+        1,
+        new SampleUnit(1000, 48000),
+        [new OLabel('tier', 'auto')],
+        false,
+      ),
+      new TrattAnnotationSegment(
+        2,
+        new SampleUnit(2000, 48000),
+        [new OLabel('tier', 'manual')],
+        true,
+      ),
+    ]);
+    annotation.addLevel(level);
+    annotation.changeCurrentLevelIndex(0);
+
+    const json = annotation.serialize(
+      'audio.wav',
+      48000,
+      new SampleUnit(2000, 48000),
+    );
+    const restored = TrattAnnotation.deserialize<TrattAnnotationSegment>(json);
+    const items = (
+      restored.levels[0] as TrattAnnotationSegmentLevel<TrattAnnotationSegment>
+    ).items;
+
+    expect(items.map((item) => item.verified)).toEqual([false, true]);
+
+    const cloned = annotation.clone();
+    const clonedItems = (
+      cloned.levels[0] as TrattAnnotationSegmentLevel<TrattAnnotationSegment>
+    ).items;
+    expect(clonedItems.map((item) => item.verified)).toEqual([false, true]);
+  });
+
+  it('treats legacy segments without the field as verified', () => {
+    const json = new OAnnotJSON('audio.wav', 'audio', 48000, [
+      {
+        type: AnnotationLevelType.SEGMENT,
+        name: 'tier',
+        items: [
+          {
+            id: 1,
+            sampleStart: 0,
+            sampleDur: 1000,
+            labels: [{ name: 'tier', value: 'old' }],
+          },
+        ],
+      },
+    ]);
+    const restored = TrattAnnotation.deserialize<TrattAnnotationSegment>(json);
+    const items = (
+      restored.levels[0] as TrattAnnotationSegmentLevel<TrattAnnotationSegment>
+    ).items;
+    expect(items[0].verified).toBe(true);
   });
 });

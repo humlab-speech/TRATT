@@ -65,6 +65,11 @@ All of these can be loaded back into TRATT.
 | **Add timestamp at beginning of each sentence** | Prefixes each unit with its start time |
 | **Collect annotations according to transcription tier in the output** | Shown when you have selected more than one tier: groups the output tier by tier instead of interleaving |
 
+Each sentence starts with a coloured bar in the exported DOCX: a **green**
+`|` marks a transcription you have verified (listened to its part of the
+recording, or edited the text), an **orange** `|` marks one that still only
+holds the automatic transcription.
+
 ### Plain text
 
 | Option | Effect |

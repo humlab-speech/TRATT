@@ -63,7 +63,13 @@ export function applySpeakerTurnsToAnnotJson(
           ]
         : [...item.labels, new OLabel('Speaker', normalizedSpeaker)];
 
-    return new OSegment(item.id, item.sampleStart, item.sampleDur, newLabels);
+    return new OSegment(
+      item.id,
+      item.sampleStart,
+      item.sampleDur,
+      newLabels,
+      item.verified,
+    );
   });
 
   const newLevel = new OSegmentLevel(sourceLevel.name, newItems);

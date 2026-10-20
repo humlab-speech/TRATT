@@ -76,6 +76,7 @@ export class TranscrOverviewComponent implements OnInit, OnDestroy, OnChanges {
     };
     validationMessages: string[];
     speakerId: string;
+    verified: boolean;
   }[] = [];
   public transcript = '';
 
@@ -354,10 +355,15 @@ export class TranscrOverviewComponent implements OnInit, OnDestroy, OnChanges {
     // Capture data before resetting state
     this.transcrEditor.updateRawText();
     const rawText = this.transcrEditor.rawText;
+    const segment = this._internLevel.items[i] as TrattAnnotationSegment;
+    const previousText = segment.getFirstLabelWithoutName('Speaker')?.value;
+    if (rawText !== previousText) {
+      // The user just edited this transcription: verified by the edit itself.
+      segment.verified = true;
+    }
     (
       this._internLevel.items[i] as TrattAnnotationSegment
     ).changeFirstLabelWithoutName('Speaker', rawText);
-    const segment = this._internLevel.items[i] as TrattAnnotationSegment;
 
     // Close editor UI immediately — no await before markForCheck
     this.textEditor.state = 'inactive';
@@ -489,6 +495,7 @@ export class TranscrOverviewComponent implements OnInit, OnDestroy, OnChanges {
                 (segment as TrattAnnotationSegment).labels.find(
                   (l) => l.name === 'Speaker',
                 )?.value ?? '',
+                (segment as TrattAnnotationSegment).verified,
               ),
             ),
           );
@@ -527,6 +534,7 @@ export class TranscrOverviewComponent implements OnInit, OnDestroy, OnChanges {
       validationArray,
       rawText,
       speakerId,
+      segment.verified,
     );
 
     // New array reference required for OnPush change detection
@@ -555,6 +563,7 @@ export class TranscrOverviewComponent implements OnInit, OnDestroy, OnChanges {
     validation: any[],
     rawText?: string,
     speakerId?: string,
+    verified = true,
   ): Promise<{
     start: number;
     end: number;
@@ -565,6 +574,7 @@ export class TranscrOverviewComponent implements OnInit, OnDestroy, OnChanges {
     validation: string;
     validationMessages: string[];
     speakerId: string;
+    verified: boolean;
   }> {
     const obj = {
       start: startSamples,
@@ -576,6 +586,7 @@ export class TranscrOverviewComponent implements OnInit, OnDestroy, OnChanges {
       validation: '',
       validationMessages: [] as string[],
       speakerId: speakerId ?? '',
+      verified,
     };
 
     if (this.appStorage.useMode !== 'url') {

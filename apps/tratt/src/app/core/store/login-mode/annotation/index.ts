@@ -29,6 +29,7 @@ export class AnnotationStateSegment extends TrattAnnotationSegment {
       jsonObject.id,
       jsonObject.time,
       jsonObject.labels,
+      jsonObject.verified ?? true,
     );
   }
 
@@ -38,6 +39,7 @@ export class AnnotationStateSegment extends TrattAnnotationSegment {
       sampleStart,
       this.time.samples - sampleStart,
       this.labels,
+      this.verified,
     );
   }
 }

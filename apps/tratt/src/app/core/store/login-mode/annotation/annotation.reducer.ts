@@ -169,8 +169,8 @@ export class AnnotationStateReducers {
           if (this.mode === mode) {
             const transcript = state.transcript.clone();
             let level:
-              | TrattAnnotationAnyLevel<TrattAnnotationSegment>
-              | undefined = undefined;
+              TrattAnnotationAnyLevel<TrattAnnotationSegment> | undefined =
+              undefined;
 
             if (levelType === AnnotationLevelType.SEGMENT) {
               level = transcript.createSegmentLevel(
@@ -291,6 +291,7 @@ export class AnnotationStateReducers {
             if (targetIdx < 0) {
               const cloned = (item as TrattAnnotationSegment).clone();
               cloned.labels = [new OLabel(level.name, tr.text), ...item.labels];
+              cloned.verified = false;
               return cloned;
             }
 
@@ -305,6 +306,7 @@ export class AnnotationStateReducers {
               new OLabel(existing.name, tr.text),
               ...item.labels.slice(targetIdx + 1),
             ];
+            cloned.verified = false;
             return cloned;
           });
 

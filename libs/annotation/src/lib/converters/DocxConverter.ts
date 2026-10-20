@@ -11,6 +11,14 @@ import {
 import { WordApplication } from './SupportedApplications';
 import { buildZip } from './zip-builder';
 
+/**
+ * Språkbanken graphic profile colours
+ * (https://sprakbanken.se/internt/teknik/grafisk-profil): "Grön" for
+ * verified transcriptions, "sborange" for non-verified ones.
+ */
+const VERIFIED_COLOR = '5AA018';
+const NON_VERIFIED_COLOR = 'F0581A';
+
 export class DocxConverter extends Converter {
   override _name: TrattAnnotationFormatType = 'DOCX';
   override _category: ExportCategory = 'general';
@@ -64,9 +72,10 @@ export class DocxConverter extends Converter {
 
     const multi = indices.length > 1;
     const paragraphs: {
-      text: string;
+      text?: string;
       heading?: boolean;
       separator?: boolean;
+      runs?: { text: string; verified?: boolean }[];
     }[] = [];
 
     const isSwedish =
@@ -106,7 +115,10 @@ export class DocxConverter extends Converter {
       const speakerId = seg.labels?.find((l) => l.name === 'Speaker')?.value;
       const speakerPrefix =
         this.options.addSpeakerId && speakerId ? `[${speakerId}] ` : '';
-      return (prefix ?? '') + tsPrefix + speakerPrefix + text.trim();
+      return {
+        text: (prefix ?? '') + tsPrefix + speakerPrefix + text.trim(),
+        verified: seg.verified,
+      };
     };
 
     if (multi && !this.options.groupByTier) {
@@ -123,7 +135,7 @@ export class DocxConverter extends Converter {
               `[${level.name}] `,
             );
             if (line !== undefined) {
-              paragraphs.push({ text: line });
+              paragraphs.push({ runs: [line] });
               emitted++;
             }
           }
@@ -131,7 +143,7 @@ export class DocxConverter extends Converter {
             paragraphs.push({ text: '' });
           }
         } else {
-          const parts: string[] = [];
+          const parts: { text: string; verified: boolean }[] = [];
           for (const level of levels) {
             if (j >= level.items.length) continue;
             const line = lineFor(
@@ -141,7 +153,7 @@ export class DocxConverter extends Converter {
             if (line !== undefined) parts.push(line);
           }
           if (parts.length > 0) {
-            paragraphs.push({ text: parts.join(' ') });
+            paragraphs.push({ runs: this.joinedRuns(parts) });
           }
         }
       }
@@ -156,16 +168,16 @@ export class DocxConverter extends Converter {
         if (this.options.mode === 'separate') {
           for (const seg of segments) {
             const line = lineFor(seg);
-            if (line !== undefined) paragraphs.push({ text: line });
+            if (line !== undefined) paragraphs.push({ runs: [line] });
           }
         } else {
-          const parts: string[] = [];
+          const parts: { text: string; verified: boolean }[] = [];
           for (const seg of segments) {
             const line = lineFor(seg);
             if (line !== undefined) parts.push(line);
           }
           if (parts.length > 0) {
-            paragraphs.push({ text: parts.join(' ') });
+            paragraphs.push({ runs: this.joinedRuns(parts) });
           }
         }
       }
@@ -191,8 +203,27 @@ export class DocxConverter extends Converter {
     return undefined;
   }
 
+  private joinedRuns(
+    parts: { text: string; verified: boolean }[],
+  ): { text: string; verified?: boolean }[] {
+    const runs: { text: string; verified?: boolean }[] = [];
+    for (let i = 0; i < parts.length; i++) {
+      if (i > 0) {
+        // Plain separator run: no verification marker before a mere space.
+        runs.push({ text: ' ' });
+      }
+      runs.push(parts[i]);
+    }
+    return runs;
+  }
+
   private buildDocx(
-    paragraphs: { text: string; heading?: boolean; separator?: boolean }[],
+    paragraphs: {
+      text?: string;
+      heading?: boolean;
+      separator?: boolean;
+      runs?: { text: string; verified?: boolean }[];
+    }[],
   ): Uint8Array {
     const enc = new TextEncoder();
 
@@ -231,7 +262,20 @@ export class DocxConverter extends Converter {
         if (p.separator) {
           return `<w:p><w:pPr><w:pBdr><w:bottom w:val="single" w:sz="6" w:space="1" w:color="auto"/></w:pBdr></w:pPr><w:r><w:t></w:t></w:r></w:p>`;
         }
-        const text = `<w:t xml:space="preserve">${this.escapeXml(p.text)}</w:t>`;
+        if (p.runs) {
+          const runsXml = p.runs
+            .map((r) => {
+              const textRun = `<w:r><w:t xml:space="preserve">${this.escapeXml(r.text)}</w:t></w:r>`;
+              if (r.verified === undefined) {
+                return textRun;
+              }
+              const markerRun = `<w:r><w:rPr><w:color w:val="${r.verified ? VERIFIED_COLOR : NON_VERIFIED_COLOR}"/></w:rPr><w:t xml:space="preserve">| </w:t></w:r>`;
+              return markerRun + textRun;
+            })
+            .join('');
+          return `<w:p>${runsXml}</w:p>`;
+        }
+        const text = `<w:t xml:space="preserve">${this.escapeXml(p.text ?? '')}</w:t>`;
         if (p.heading) {
           return `<w:p><w:pPr><w:pStyle w:val="Heading1"/></w:pPr><w:r><w:rPr><w:b/></w:rPr>${text}</w:r></w:p>`;
         }

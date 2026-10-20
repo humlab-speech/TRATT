@@ -46,6 +46,14 @@ export interface IItem {
 export interface ISegment extends IItem {
   sampleStart: number;
   sampleDur: number;
+  /**
+   * Whether a human has verified the transcription of this segment (listened
+   * to its part of the recording, or edited the text). Automatically
+   * produced transcriptions start as `false`. Missing on legacy data =
+   * treated as `true` (verified) so existing transcripts are not suddenly
+   * flagged as unverified.
+   */
+  verified?: boolean;
 }
 
 export interface IEvent extends IItem {
@@ -303,9 +311,7 @@ export class OEventLevel
 }
 
 export type OAnyLevel<T extends OSegment> =
-  | OSegmentLevel<T>
-  | OItemLevel
-  | OEventLevel;
+  OSegmentLevel<T> | OItemLevel | OEventLevel;
 
 export class OItem implements IItem, Serializable<IItem, OItem> {
   public readonly type: 'segment' | 'event' | 'item' = 'item';
@@ -370,16 +376,19 @@ export class OSegment
 {
   sampleStart = 0;
   sampleDur = 0;
+  verified: boolean;
 
   constructor(
     id: number,
     sampleStart: number,
     sampleDur: number,
     labels?: OLabel[],
+    verified = true,
   ) {
     super(id, labels);
     this.sampleStart = sampleStart;
     this.sampleDur = sampleDur;
+    this.verified = verified;
   }
 
   override serialize(): ISegment {
@@ -388,6 +397,7 @@ export class OSegment
       labels: this.labels.map((a) => OLabel.deserialize(a)),
       sampleDur: this.sampleDur,
       sampleStart: this.sampleStart,
+      verified: this.verified,
     };
   }
 
@@ -404,13 +414,18 @@ export class OSegment
       jsonObject.sampleStart,
       jsonObject.sampleDur,
       jsonObject.labels.map((a) => OLabel.deserialize(a)),
+      jsonObject.verified ?? true,
     );
   }
 
   override clone(id?: number) {
-    return new OSegment(id ?? this.id, this.sampleStart, this.sampleDur, [
-      ...this.labels,
-    ]);
+    return new OSegment(
+      id ?? this.id,
+      this.sampleStart,
+      this.sampleDur,
+      [...this.labels],
+      this.verified,
+    );
   }
 }
 

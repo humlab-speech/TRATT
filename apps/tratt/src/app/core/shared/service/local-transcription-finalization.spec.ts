@@ -40,4 +40,39 @@ describe('finalizeTranscriptionAnnotJson', () => {
       level.items[1].labels.find((label) => label.name === 'Speaker')?.value,
     ).toBe('Speaker 2');
   });
+
+  it('marks every ASR-produced segment as non-verified', () => {
+    const annotJson = new OAnnotJSON('audio.wav', 'audio', 16000, []);
+    annotJson.levels = [
+      new OSegmentLevel('OCTRA_1', [
+        new OSegment(1, 0, 16000, [new OLabel('OCTRA_1', 'Hello')]),
+        new OSegment(2, 16000, 16000, [new OLabel('OCTRA_1', 'World')]),
+      ]),
+    ];
+
+    const result = finalizeTranscriptionAnnotJson(annotJson, {
+      language: 'en',
+    });
+    const level = result.levels[0] as OSegmentLevel<OSegment>;
+
+    expect(level.items.map((item) => item.verified)).toEqual([false, false]);
+  });
+
+  it('keeps segments non-verified when diarization rebuilds them', () => {
+    const annotJson = new OAnnotJSON('audio.wav', 'audio', 16000, []);
+    annotJson.levels = [
+      new OSegmentLevel('OCTRA_1', [
+        new OSegment(1, 0, 16000, [new OLabel('OCTRA_1', 'Hello')]),
+        new OSegment(2, 16000, 16000, [new OLabel('OCTRA_1', 'World')]),
+      ]),
+    ];
+
+    const result = finalizeTranscriptionAnnotJson(annotJson, {
+      language: 'en',
+      speakerTurns: [{ startS: 0, endS: 2, speakerId: 'SPEAKER_00' }],
+    });
+    const level = result.levels[0] as OSegmentLevel<OSegment>;
+
+    expect(level.items.map((item) => item.verified)).toEqual([false, false]);
+  });
 });

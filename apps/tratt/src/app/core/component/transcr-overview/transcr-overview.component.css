@@ -111,3 +111,8 @@
   border: 1px solid var(--tratt-accent-error) !important;
   color: black;
 }
+
+.verification-marker {
+  font-weight: bold;
+  margin-right: 4px;
+}

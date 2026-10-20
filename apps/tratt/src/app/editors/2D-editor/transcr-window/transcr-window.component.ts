@@ -22,10 +22,7 @@ import { TranscrEditorComponent } from '../../../core/component';
 import { AsyncPipe, NgClass, NgStyle } from '@angular/common';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
-import {
-  NgbActiveModal,
-  NgbModalOptions,
-} from '@ng-bootstrap/ng-bootstrap';
+import { NgbActiveModal, NgbModalOptions } from '@ng-bootstrap/ng-bootstrap';
 import {
   addSegment,
   getSegmentBySamplePosition,
@@ -438,7 +435,6 @@ export class TranscrWindowComponent
         this._videoBlobUrl = undefined;
       }
     });
-
   }
 
   public doDirectionAction = async (direction: string) => {
@@ -733,6 +729,8 @@ export class TranscrWindowComponent
           if (this.currentLevel.type === 'SEGMENT') {
             const seg = segment as TrattAnnotationSegment;
             seg.changeFirstLabelWithoutName('Speaker', this.editor.rawText);
+            // The user just typed this text: it is verified by the edit.
+            seg.verified = true;
             this.annotationStoreService.changeCurrentLevelItems([seg]);
           }
         }
@@ -1331,6 +1329,14 @@ export class TranscrWindowComponent
       this.tempSegments[
         segStart + segTexts.length - 1
       ].changeFirstLabelWithoutName('Speaker', segTexts[segTexts.length - 1]);
+    }
+
+    // Every segment of the edited range now holds user-typed text: verified.
+    for (let i = 0; i < segTexts.length; i++) {
+      const editedSegment = this.tempSegments[segStart + i];
+      if (editedSegment) {
+        (editedSegment as TrattAnnotationSegment).verified = true;
+      }
     }
   }
 

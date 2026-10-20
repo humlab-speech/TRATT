@@ -226,7 +226,22 @@
                       'margin-top': popovers.validation.location.y + 'px',
                     }"
                   ></tratt-validation-popover>
-                  <p [innerHTML]="sanitizeHTML(segment.transcription.html)"></p>
+                  <p>
+                    @if (
+                      segment.transcription.text.trim() !== '' &&
+                      segment.transcription.text.trim() !==
+                        annotationStoreService.breakMarker?.code
+                    ) {
+                      <span
+                        class="verification-marker"
+                        [style.color]="segment.verified ? '#5AA018' : '#F0581A'"
+                        >|
+                      </span>
+                    }
+                    <span
+                      [innerHTML]="sanitizeHTML(segment.transcription.html)"
+                    ></span>
+                  </p>
                 </td>
               }
               @if (hasSpeakerIds) {

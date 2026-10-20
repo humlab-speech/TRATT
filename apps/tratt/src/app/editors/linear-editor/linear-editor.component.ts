@@ -752,12 +752,10 @@ export class LinearEditorComponent
         $event.value === undefined ||
         !(
           // cursor move by keyboard events are note saved because this would be too much
-          (
-            contains($event.value, 'cursor') ||
-            // disable logging for user test phase, because it would be too much
-            contains($event.value, 'segment_enter') ||
-            contains($event.value, 'playonhover')
-          )
+          contains($event.value, 'cursor') ||
+          // disable logging for user test phase, because it would be too much
+          contains($event.value, 'segment_enter') ||
+          contains($event.value, 'playonhover')
         )
       ) {
         const textSelection = this.editor.textSelection;
@@ -1116,6 +1114,8 @@ export class LinearEditorComponent
         }
         const segment = current.clone(current.id);
         segment.changeFirstLabelWithoutName('Speaker', this.editor.rawText);
+        // The user just typed this text: it is verified by the edit itself.
+        segment.verified = true;
 
         this.annotationStoreService.changeCurrentItemById(
           this.annotationStoreService.currentLevel.items[this.selectedIndex].id,

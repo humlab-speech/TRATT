@@ -60,6 +60,7 @@ import {
 import { AppStorageService } from '../../../shared/service/appstorage.service';
 import { RecordedFileService } from '../../../shared/service/recorded-file.service';
 import { RoutingService } from '../../../shared/service/routing.service';
+import { SegmentVerificationService } from '../../../shared/service/segment-verification.service';
 import { ShortcutService } from '../../../shared/service/shortcut.service';
 import { LoginMode } from '../../../store';
 import { ApplicationStoreService } from '../../../store/application/application-store.service';
@@ -330,6 +331,9 @@ export class TranscriptionComponent
     public annotationStoreService: AnnotationStoreService,
     private authService: AuthenticationStoreService,
     public recordedFileService: RecordedFileService,
+    // Injected for its side effect: while this page is alive, playback marks
+    // the played segments' transcriptions as verified.
+    segmentVerificationService: SegmentVerificationService,
   ) {
     super();
     this.audioManager = this.audio.current!;

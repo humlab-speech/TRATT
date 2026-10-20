@@ -44,6 +44,20 @@ the marker toolbar. For a final read-through this is often faster than stepping
 through the waveform, because you can read continuously and only stop where
 something looks wrong. Click ▶ on the suspicious row, fix it, move on.
 
+### Verified transcriptions
+
+Automatic transcription starts out **unverified**. Each sentence carries a coloured
+bar at the start of its line: **orange** until a human has checked it, **green**
+once it is verified. A transcription becomes verified when you
+
+- listen to its part of the recording (playing the segment — in any editor, or
+  via **Toggle play all** in the Overview — counts after roughly a quarter
+  second of actual playback), or
+- edit its text yourself.
+
+Manually typed transcriptions count as verified from the start. The same green
+and orange bars prefix every sentence in the exported [Word document](exporting.md).
+
 ---
 
 ## Guidelines

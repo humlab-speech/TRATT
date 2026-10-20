@@ -36,7 +36,7 @@ export abstract class AudioMechanism {
   protected audioSelection?: AudioSelection;
   protected volume?: number;
   protected _playbackRate = 2;
-  protected playOnHover?: boolean;
+  protected _playOnHover?: boolean;
   protected stepBackward = false;
   protected _gainNode?: GainNode;
   protected _source?: AudioBufferSourceNode | MediaElementAudioSourceNode;
@@ -70,6 +70,15 @@ export abstract class AudioMechanism {
   abstract set playPosition(value: SampleUnit | undefined);
   abstract get playBackRate(): number;
   abstract set playBackRate(value: number);
+
+  /**
+   * True while the currently playing audio was started as a hover preview
+   * (a ~100 ms scrub chunk), false for real playback. Consumers tracking
+   * playback position use this to ignore hover noise.
+   */
+  get playOnHover(): boolean {
+    return this._playOnHover ?? false;
+  }
 
   public prepare(options: AudioMechanismPrepareOptions): Observable<{
     progress: number;
@@ -116,9 +125,9 @@ export abstract class AudioMechanism {
   ) {
     this.audioSelection = audioSelection;
     this.volume = volume;
-    this.playOnHover = playOnHover;
+    this._playOnHover = playOnHover;
     this._playbackRate = playbackRate;
-    this.playOnHover = playOnHover;
+    this._playOnHover = playOnHover;
     this.stepBackward = false;
 
     if (

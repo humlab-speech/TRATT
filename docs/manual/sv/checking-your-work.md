@@ -45,6 +45,21 @@ komplett med markörraden. För en sista genomläsning är det ofta snabbare än
 stega genom vågformen, eftersom du kan läsa sammanhängande och bara stanna där
 något ser fel ut. Klicka ▶ på den misstänkta raden, rätta, gå vidare.
 
+### Verifierade transkriptioner
+
+Automatisk transkription börjar som **overifierad**. Varje mening bär ett färgat
+streck i början av sin rad: **orange** tills en människa kontrollerat den,
+**grönt** när den är verifierad. En transkription blir verifierad när du
+
+- lyssnar på dess del av inspelningen (uppspelning av segmentet — i vilken
+  redigerare som helst, eller via **Toggle play all** i Översikt — räknas
+  efter ungefär en kvarts sekunds faktisk uppspelning), eller
+- redigerar texten själv.
+
+Manuellt skriven transkription räknas som verifierad från början. Samma gröna
+och orangea streck inleder varje mening i det exporterade
+[Word-dokumentet](exporting.md).
+
 ---
 
 ## Riktlinjer
