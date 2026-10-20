@@ -9,7 +9,7 @@ export interface SegmentWithContext {
   /**
    * Whether a human has verified the transcription of this segment (listened
    * to its part of the recording, or edited the text). Missing on legacy
-   * state = treated as verified.
+   * state = treated as non-verified.
    */
   verified?: boolean;
 }
@@ -97,7 +97,8 @@ export class TrattAnnotationSegment
   /**
    * Whether a human has verified this segment's transcription: listened to
    * this part of the recording, or edited the text. Automatically produced
-   * transcription starts `false`; manual text and legacy data default `true`.
+   * transcription starts `false`; human verification (edit or listen) flips
+   * it to `true`.
    */
   public verified: boolean;
 
@@ -105,7 +106,7 @@ export class TrattAnnotationSegment
     id: number,
     time: SampleUnit,
     labels?: OLabel[],
-    verified = true,
+    verified = false,
   ) {
     this.time = time;
     this._id = id;
@@ -175,7 +176,7 @@ export class TrattAnnotationSegment
       jsonObject.id,
       jsonObject.time,
       jsonObject.labels.map((a) => OLabel.deserialize(a)),
-      jsonObject.verified ?? true,
+      jsonObject.verified ?? false,
     );
     return result;
   }
@@ -188,7 +189,7 @@ export class TrattAnnotationSegment
       jsonObject.id,
       new SampleUnit(jsonObject.sampleStart + jsonObject.sampleDur, sampleRate),
       jsonObject.labels.map((a) => OLabel.deserialize(a)),
-      jsonObject.verified ?? true,
+      jsonObject.verified ?? false,
     );
   }
 

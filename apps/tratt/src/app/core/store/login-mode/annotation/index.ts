@@ -29,7 +29,7 @@ export class AnnotationStateSegment extends TrattAnnotationSegment {
       jsonObject.id,
       jsonObject.time,
       jsonObject.labels,
-      jsonObject.verified ?? true,
+      jsonObject.verified ?? false,
     );
   }
 

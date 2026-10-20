@@ -238,7 +238,7 @@ describe('verified flag round-trip', () => {
     expect(clonedItems.map((item) => item.verified)).toEqual([false, true]);
   });
 
-  it('treats legacy segments without the field as verified', () => {
+  it('treats legacy segments without the field as non-verified', () => {
     const json = new OAnnotJSON('audio.wav', 'audio', 48000, [
       {
         type: AnnotationLevelType.SEGMENT,
@@ -257,6 +257,6 @@ describe('verified flag round-trip', () => {
     const items = (
       restored.levels[0] as TrattAnnotationSegmentLevel<TrattAnnotationSegment>
     ).items;
-    expect(items[0].verified).toBe(true);
+    expect(items[0].verified).toBe(false);
   });
 });

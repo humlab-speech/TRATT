@@ -43,7 +43,13 @@ describe('applySpeakerTurnsToAnnotJson', () => {
     annotJson.levels = [
       new OSegmentLevel('Transcript', [
         new OSegment(1, 0, 16000, [new OLabel('Transcript', 'Hello')], false),
-        new OSegment(2, 16000, 16000, [new OLabel('Transcript', 'World')]),
+        new OSegment(
+          2,
+          16000,
+          16000,
+          [new OLabel('Transcript', 'World')],
+          true,
+        ),
       ]),
     ];
 

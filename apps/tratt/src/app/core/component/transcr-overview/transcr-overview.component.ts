@@ -563,7 +563,7 @@ export class TranscrOverviewComponent implements OnInit, OnDestroy, OnChanges {
     validation: any[],
     rawText?: string,
     speakerId?: string,
-    verified = true,
+    verified = false,
   ): Promise<{
     start: number;
     end: number;

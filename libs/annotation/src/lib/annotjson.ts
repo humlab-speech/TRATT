@@ -49,9 +49,9 @@ export interface ISegment extends IItem {
   /**
    * Whether a human has verified the transcription of this segment (listened
    * to its part of the recording, or edited the text). Automatically
-   * produced transcriptions start as `false`. Missing on legacy data =
-   * treated as `true` (verified) so existing transcripts are not suddenly
-   * flagged as unverified.
+   * produced transcriptions start as `false`. Missing on legacy data is
+   * treated as `false` (non-verified) so unverified text is never silently
+   * shown as checked.
    */
   verified?: boolean;
 }
@@ -383,7 +383,7 @@ export class OSegment
     sampleStart: number,
     sampleDur: number,
     labels?: OLabel[],
-    verified = true,
+    verified = false,
   ) {
     super(id, labels);
     this.sampleStart = sampleStart;
@@ -414,7 +414,7 @@ export class OSegment
       jsonObject.sampleStart,
       jsonObject.sampleDur,
       jsonObject.labels.map((a) => OLabel.deserialize(a)),
-      jsonObject.verified ?? true,
+      jsonObject.verified ?? false,
     );
   }
 
