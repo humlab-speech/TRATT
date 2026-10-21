@@ -549,9 +549,8 @@ export class TrattAnnotation<T extends TrattAnnotationSegment> {
 
     if (index < level.items.length - 1) {
       const nextSegment = level.items[index + 1];
-      let transcript = level.items[index].getFirstLabelWithoutName(
-        'Speaker',
-      )?.value;
+      let transcript =
+        level.items[index].getFirstLabelWithoutName('Speaker')?.value;
 
       if (
         !silenceValue ||
@@ -638,6 +637,7 @@ export class TrattAnnotation<T extends TrattAnnotationSegment> {
                 a.id,
                 new SampleUnit(a.time.samples, sampleRate),
                 a.labels,
+                a.verified,
               ),
           ),
         );
@@ -969,6 +969,7 @@ export class TrattAnnotationSegmentLevel<
             itemIDCounter++,
             a.time,
             [...a.labels],
+            a.verified,
           ) as T,
       ),
     );

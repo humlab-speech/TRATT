@@ -238,6 +238,34 @@ describe('verified flag round-trip', () => {
     expect(clonedItems.map((item) => item.verified)).toEqual([false, true]);
   });
 
+  it('preserves verified through changeSampleRate', () => {
+    const annotation = makeAnnotation();
+    const level = annotation.createSegmentLevel('tier', [
+      new TrattAnnotationSegment(
+        1,
+        new SampleUnit(1000, 48000),
+        [new OLabel('tier', 'a')],
+        false,
+      ),
+      new TrattAnnotationSegment(
+        2,
+        new SampleUnit(2000, 48000),
+        [new OLabel('tier', 'b')],
+        true,
+      ),
+    ]);
+    annotation.addLevel(level);
+    annotation.changeCurrentLevelIndex(0);
+
+    const resampled = annotation.changeSampleRate(16000);
+    const items = (
+      resampled.levels[0] as TrattAnnotationSegmentLevel<TrattAnnotationSegment>
+    ).items;
+
+    expect(items.map((item) => item.verified)).toEqual([false, true]);
+    expect(items[0].time.sampleRate).toBe(16000);
+  });
+
   it('treats legacy segments without the field as non-verified', () => {
     const json = new OAnnotJSON('audio.wav', 'audio', 48000, [
       {

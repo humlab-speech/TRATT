@@ -61,7 +61,14 @@ export function padSegmentLevels(
           new OLabel(level.name, ''),
         ]),
         ...level.items.map(
-          (a) => new OSegment(a.id, a.sampleStart!, a.sampleDur!, a.labels),
+          (a) =>
+            new OSegment(
+              a.id,
+              a.sampleStart!,
+              a.sampleDur!,
+              a.labels,
+              a.verified,
+            ),
         ),
       ];
       level.items.forEach((item, i) => (item.id = i + 1));
