@@ -71,6 +71,15 @@ Varje mening börjar med ett färgat streck i den exporterade DOCX-filen: ett
 inspelningen, eller redigerat texten), ett **orange** `|` markerar en som
 fortfarande bara innehåller den automatiska transkriptionen.
 
+### Verifieringsmarkörer i tidsanpassade format
+
+De tidsanpassade exportformaten (SRT, WebVTT, ELAN, TextGrid, PraatTable,
+CTM, BAS Partitur, Whisper JSON) bär verifieringsstatusen i själva texten:
+varje overifierad transkription slutar med ett **not-check-märke** (`⍻`,
+U+237B). Verifierade meningar skrivs utan det. När du senare laddar en sådan
+fil tillsammans med dess ljud läser TRATT tillbaka märket: markerade meningar
+kommer in som overifierade, omarkerade som verifierade.
+
 ### PlainText
 
 | Alternativ | Effekt |

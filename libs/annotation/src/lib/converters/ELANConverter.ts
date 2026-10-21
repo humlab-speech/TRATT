@@ -10,6 +10,7 @@ import {
   ImportResult,
   TrattAnnotationFormatType,
 } from './Converter';
+import { appendNotCheckMark, stripNotCheckMark } from './not-check-mark';
 import {
   BASWebservicesApplication,
   ELANApplication,
@@ -135,12 +136,15 @@ export class ELANConverter extends Converter {
 
           // add alignable annotation
           const annotationId = `a${aidCounter}`;
+          const transcriptionValue =
+            segment.labels?.find((a) => a.name !== SPEAKER_LABEL)?.value ?? '';
           tier.ANNOTATION.push({
             ALIGNABLE_ANNOTATION: {
               _ANNOTATION_ID: annotationId,
-              ANNOTATION_VALUE:
-                segment.labels?.find((a) => a.name !== SPEAKER_LABEL)?.value ??
-                '',
+              ANNOTATION_VALUE: appendNotCheckMark(
+                transcriptionValue,
+                segment.verified,
+              ),
               _TIME_SLOT_REF1: `ts${tsidCounter - 1}`,
               _TIME_SLOT_REF2: `ts${tsidCounter}`,
             },
@@ -282,19 +286,27 @@ export class ELANConverter extends Converter {
               if (t1 > lastSample) {
                 // empty segment space before
                 (level.items as OSegment[]).push(
-                  new OSegment(counter++, lastSample, t1 - lastSample, [
-                    new OLabel(tier._TIER_ID, ''),
-                  ]),
+                  new OSegment(
+                    counter++,
+                    lastSample,
+                    t1 - lastSample,
+                    [new OLabel(tier._TIER_ID, '')],
+                    true,
+                  ),
                 );
               }
 
               // correct segment
-              const segment = new OSegment(counter++, t1, t2 - t1, [
-                new OLabel(
-                  tier._TIER_ID,
-                  annotationElement.ALIGNABLE_ANNOTATION.ANNOTATION_VALUE,
-                ),
-              ]);
+              const { text: annotationText, verified } = stripNotCheckMark(
+                annotationElement.ALIGNABLE_ANNOTATION.ANNOTATION_VALUE,
+              );
+              const segment = new OSegment(
+                counter++,
+                t1,
+                t2 - t1,
+                [new OLabel(tier._TIER_ID, annotationText)],
+                verified,
+              );
               (level.items as OSegment[]).push(segment);
               segmentsById.set(
                 annotationElement.ALIGNABLE_ANNOTATION._ANNOTATION_ID,
@@ -325,6 +337,7 @@ export class ELANConverter extends Converter {
                   lastSample,
                   audiofile.duration - lastSample,
                   [new OLabel(tier._TIER_ID, '')],
+                  true,
                 ),
               );
             }

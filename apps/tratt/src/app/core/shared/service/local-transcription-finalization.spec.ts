@@ -75,4 +75,21 @@ describe('finalizeTranscriptionAnnotJson', () => {
 
     expect(level.items.map((item) => item.verified)).toEqual([false, false]);
   });
+
+  it('overrides verified segments: the SRT intermediate imports unmarked chunks as verified, but ASR output must still be non-verified', () => {
+    const annotJson = new OAnnotJSON('audio.wav', 'audio', 16000, []);
+    annotJson.levels = [
+      new OSegmentLevel('OCTRA_1', [
+        new OSegment(1, 0, 16000, [new OLabel('OCTRA_1', 'Hello')], true),
+        new OSegment(2, 16000, 16000, [new OLabel('OCTRA_1', 'World')], true),
+      ]),
+    ];
+
+    const result = finalizeTranscriptionAnnotJson(annotJson, {
+      language: 'en',
+    });
+    const level = result.levels[0] as OSegmentLevel<OSegment>;
+
+    expect(level.items.map((item) => item.verified)).toEqual([false, false]);
+  });
 });

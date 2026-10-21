@@ -15,6 +15,7 @@ import {
   ImportResult,
   TrattAnnotationFormatType,
 } from './Converter';
+import { stripNotCheckMark } from './not-check-mark';
 import { OctraApplication, WhisperXApplication } from './SupportedApplications';
 
 export class WhisperJSONConverter extends Converter {
@@ -108,11 +109,13 @@ export class WhisperJSONConverter extends Converter {
         }
 
         let speaker = segment.speaker ?? 'OCTRA_1';
+        const { text: cleanedText, verified } = stripNotCheckMark(segment.text);
         const oSegment = new OSegment(
           id++,
           convertSecondsToSamples(segment.start),
           convertSecondsToSamples(segment.end - segment.start),
-          [new OLabel(speaker, segment.text)],
+          [new OLabel(speaker, cleanedText)],
+          verified,
         );
 
         if (segment.speaker) {
@@ -147,6 +150,7 @@ export class WhisperJSONConverter extends Converter {
               convertSecondsToSamples(word.start),
               convertSecondsToSamples(word.end - word.start),
               [new OLabel(speaker, word.word)],
+              true,
             );
 
             if (word.speaker) {

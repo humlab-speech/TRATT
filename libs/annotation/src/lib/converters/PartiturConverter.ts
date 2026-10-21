@@ -15,6 +15,7 @@ import {
   ImportResult,
   TrattAnnotationFormatType,
 } from './Converter';
+import { appendNotCheckMark, stripNotCheckMark } from './not-check-mark';
 import {
   BASWebservicesApplication,
   OctraApplication,
@@ -91,9 +92,10 @@ LBD:\n`;
           }
         }
         ortCounter += words.length;
-        trnLine += ` ${
-          item.getFirstLabelWithoutName('Speaker')?.value ?? ''
-        }\n`;
+        trnLine += ` ${appendNotCheckMark(
+          item.getFirstLabelWithoutName('Speaker')?.value ?? '',
+          item.verified,
+        )}\n`;
         trn.push(trnLine);
       }
 
@@ -209,12 +211,16 @@ LBD:\n`;
             }
 
             if (transcriptArray) {
+              const { text: cleanedText, verified } = stripNotCheckMark(
+                transcriptArray[4],
+              );
               level.items.push(
                 new OSegment(
                   counter,
                   Number(transcriptArray[1]),
                   Number(transcriptArray[2]),
-                  [new OLabel(previousTier, transcriptArray[4])],
+                  [new OLabel(previousTier, cleanedText)],
+                  verified,
                 ),
               );
             }

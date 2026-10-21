@@ -14,6 +14,7 @@ import {
   ImportResult,
   TrattAnnotationFormatType,
 } from './Converter';
+import { appendNotCheckMark, stripNotCheckMark } from './not-check-mark';
 import {
   AnyTextEditor,
   AnyVideoPlayer,
@@ -100,7 +101,9 @@ export class WebVTTConverter extends Converter {
           if (rawText === '') continue;
 
           const speaker = item.labels.find((l) => l.name === 'Speaker')?.value;
-          const escapedText = this.escapeXml(rawText);
+          const escapedText = this.escapeXml(
+            appendNotCheckMark(rawText, item.verified),
+          );
           const speakerPrefix =
             this.options.addSpeakerId && speaker ? `[${speaker}] ` : '';
           const prefixedText = speakerPrefix + escapedText;
@@ -198,6 +201,7 @@ export class WebVTTConverter extends Converter {
       timeEnd: number;
       text: string;
       speaker?: string;
+      verified: boolean;
     }> = [];
 
     for (const block of blocks) {
@@ -254,10 +258,17 @@ export class WebVTTConverter extends Converter {
         .slice(tsLineIdx + 1)
         .join(' ')
         .trim();
-      const { text, speaker } = this.parseVttCueText(rawText);
+      const parsed = this.parseVttCueText(rawText);
+      const { text, verified } = stripNotCheckMark(parsed.text);
 
       if (text !== '') {
-        parsedCues.push({ timeStart, timeEnd, text, speaker });
+        parsedCues.push({
+          timeStart,
+          timeEnd,
+          text,
+          speaker: parsed.speaker,
+          verified,
+        });
       }
     }
 
@@ -277,7 +288,12 @@ export class WebVTTConverter extends Converter {
       // Build one level per unique speaker
       const cuesBySpeaker = new Map<
         string,
-        Array<{ timeStart: number; timeEnd: number; text: string }>
+        Array<{
+          timeStart: number;
+          timeEnd: number;
+          text: string;
+          verified: boolean;
+        }>
       >();
       for (const cue of parsedCues) {
         const key = cue.speaker ?? 'OCTRA_1';
@@ -292,9 +308,13 @@ export class WebVTTConverter extends Converter {
         for (const cue of cues) {
           if (cue.timeStart > lastEnd) {
             level.items.push(
-              new OSegment(counterID++, lastEnd, cue.timeStart - lastEnd, [
-                new OLabel(speakerName, ''),
-              ]),
+              new OSegment(
+                counterID++,
+                lastEnd,
+                cue.timeStart - lastEnd,
+                [new OLabel(speakerName, '')],
+                true,
+              ),
             );
           }
           level.items.push(
@@ -303,6 +323,7 @@ export class WebVTTConverter extends Converter {
               cue.timeStart,
               cue.timeEnd - cue.timeStart,
               [new OLabel(speakerName, cue.text)],
+              cue.verified,
             ),
           );
           lastEnd = cue.timeEnd;
@@ -323,9 +344,13 @@ export class WebVTTConverter extends Converter {
       for (const cue of parsedCues) {
         if (cue.timeStart > lastEnd) {
           level.items.push(
-            new OSegment(counterID++, lastEnd, cue.timeStart - lastEnd, [
-              new OLabel('OCTRA_1', ''),
-            ]),
+            new OSegment(
+              counterID++,
+              lastEnd,
+              cue.timeStart - lastEnd,
+              [new OLabel('OCTRA_1', '')],
+              true,
+            ),
           );
         }
         const labels: OLabel[] = [new OLabel('OCTRA_1', cue.text)];
@@ -338,6 +363,7 @@ export class WebVTTConverter extends Converter {
             cue.timeStart,
             cue.timeEnd - cue.timeStart,
             labels,
+            cue.verified,
           ),
         );
         lastEnd = cue.timeEnd;
@@ -408,6 +434,7 @@ export class WebVTTConverter extends Converter {
           lastItem.sampleStart + lastItem.sampleDur,
           restSamples,
           [new OLabel(labelName, '')],
+          true,
         ),
       );
     } else {

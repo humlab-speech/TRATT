@@ -9,6 +9,7 @@ import {
   ImportResult,
   TrattAnnotationFormatType,
 } from './Converter';
+import { appendNotCheckMark, stripNotCheckMark } from './not-check-mark';
 import {
   AnyTextEditor,
   AnyVideoPlayer,
@@ -138,7 +139,10 @@ export class SRTConverter extends Converter {
               this.options.addSpeakerId && speaker ? `[${speaker}] ` : '';
             result += `${counter}\n`;
             result += `${start} --> ${end}\n`;
-            result += `${speakerPrefix}${transcript}\n\n`;
+            result += `${speakerPrefix}${appendNotCheckMark(
+              transcript,
+              item.verified,
+            )}\n\n`;
             counter++;
           }
         }
@@ -259,6 +263,7 @@ export class SRTConverter extends Converter {
               transcript = transcript.slice(sm[0].length);
             }
           }
+          const { text: cleanedText, verified } = stripNotCheckMark(transcript);
 
           const timeStart = SRTConverter.getSamplesFromTimeString(
             matches[2],
@@ -273,19 +278,35 @@ export class SRTConverter extends Converter {
             if (timeStart > lastEnd) {
               // add additional segment
               olevel.items.push(
-                new OSegment(counterID++, lastEnd, timeStart - lastEnd, [
-                  ...(speakerName ? [new OLabel('Speaker', speakerName)] : []),
-                  new OLabel(olevel.name, ''),
-                ]),
+                new OSegment(
+                  counterID++,
+                  lastEnd,
+                  timeStart - lastEnd,
+                  [
+                    ...(speakerName
+                      ? [new OLabel('Speaker', speakerName)]
+                      : []),
+                    new OLabel(olevel.name, ''),
+                  ],
+                  true,
+                ),
               );
             }
 
             if (timeEnd >= timeStart) {
               olevel.items.push(
-                new OSegment(counterID++, timeStart, timeEnd - timeStart, [
-                  ...(speakerName ? [new OLabel('Speaker', speakerName)] : []),
-                  new OLabel(olevel.name, transcript),
-                ]),
+                new OSegment(
+                  counterID++,
+                  timeStart,
+                  timeEnd - timeStart,
+                  [
+                    ...(speakerName
+                      ? [new OLabel('Speaker', speakerName)]
+                      : []),
+                    new OLabel(olevel.name, cleanedText),
+                  ],
+                  verified,
+                ),
               );
             } else {
               return {
@@ -396,9 +417,13 @@ export class SRTConverter extends Converter {
             if (item.sampleStart > lastEnd + 1) {
               a.items = [
                 ...a.items.slice(0, j),
-                new OSegment(counterID++, lastEnd, item.sampleStart - lastEnd, [
-                  new OLabel(a.name, ''),
-                ]),
+                new OSegment(
+                  counterID++,
+                  lastEnd,
+                  item.sampleStart - lastEnd,
+                  [new OLabel(a.name, '')],
+                  true,
+                ),
                 ...a.items.slice(j),
               ];
             }
@@ -418,6 +443,7 @@ export class SRTConverter extends Converter {
                   Number(audiofile.duration) -
                     (item.sampleStart + item.sampleDur),
                   [new OLabel(a.name, '')],
+                  true,
                 ),
               );
             }

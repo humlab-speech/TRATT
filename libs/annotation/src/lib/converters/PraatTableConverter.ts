@@ -15,6 +15,7 @@ import {
   ImportResult,
   TrattAnnotationFormatType,
 } from './Converter';
+import { appendNotCheckMark, stripNotCheckMark } from './not-check-mark';
 import {
   BASWebservicesApplication,
   OctraApplication,
@@ -70,7 +71,10 @@ export class PraatTableConverter extends Converter {
       const transcript =
         segment.getFirstLabelWithoutName('Speaker')?.value ?? '';
 
-      return `${res}${tmin}\t${level.name}\t${transcript}\t${tmax}\n`;
+      return `${res}${tmin}\t${level.name}\t${appendNotCheckMark(
+        transcript,
+        segment.verified,
+      )}\t${tmax}\n`;
     };
 
     result = addHeader(result);
@@ -203,6 +207,7 @@ export class PraatTableConverter extends Converter {
                             (last.sampleStart + last.sampleDur),
                         ),
                         [new OLabel(tier, '')],
+                        true,
                       ),
                     );
                   } else {
@@ -217,6 +222,7 @@ export class PraatTableConverter extends Converter {
                             tmin * sampleRate,
                         ),
                         [new OLabel(tier, '')],
+                        true,
                       ),
                     );
                   }
@@ -232,6 +238,7 @@ export class PraatTableConverter extends Converter {
                   Math.round(start * sampleRate),
                   Math.round(puffer * sampleRate),
                   [new OLabel(tier, '')],
+                  true,
                 );
                 start = start + puffer;
                 olevel.items.push(pufferItem);
@@ -239,12 +246,14 @@ export class PraatTableConverter extends Converter {
                 id++;
               }
               const olabels: OLabel[] = [];
-              olabels.push(new OLabel(tier, text));
+              const { text: cleanedText, verified } = stripNotCheckMark(text);
+              olabels.push(new OLabel(tier, cleanedText));
               const osegment = new OSegment(
                 id,
                 Math.round(start * sampleRate),
                 Math.round((rightBoundary - start) * sampleRate),
                 olabels,
+                verified,
               );
 
               olevel.items.push(osegment);

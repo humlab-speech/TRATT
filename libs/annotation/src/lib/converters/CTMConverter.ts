@@ -9,6 +9,7 @@ import {
   ImportResult,
   TrattAnnotationFormatType,
 } from './Converter';
+import { appendNotCheckMark, stripNotCheckMark } from './not-check-mark';
 import { OctraApplication } from './SupportedApplications';
 
 export class CTMConverter extends Converter {
@@ -73,7 +74,10 @@ export class CTMConverter extends Converter {
         Math.round((levelItem.sampleStart! / audiofile.sampleRate) * 100) / 100;
       const duration =
         Math.round((levelItem.sampleDur! / audiofile.sampleRate) * 100) / 100;
-      result += `${annotation.name} 1 ${start} ${duration} ${transcript} 1.00\n`;
+      result += `${annotation.name} 1 ${start} ${duration} ${appendNotCheckMark(
+        transcript,
+        levelItem.verified,
+      )} 1.00\n`;
     }
 
     filename = annotation.name + this._extensions[0];
@@ -152,20 +156,26 @@ export class CTMConverter extends Converter {
 
           if (i === 0 && start > 0) {
             // first segment not set
-            osegment = new OSegment(i + 1, 0, start * sampleRate, [
-              new OLabel('Tier_1', ''),
-            ]);
+            osegment = new OSegment(
+              i + 1,
+              0,
+              start * sampleRate,
+              [new OLabel('Tier_1', '')],
+              true,
+            );
 
             olevel.items.push(osegment);
           }
 
           const olabels: OLabel[] = [];
-          olabels.push(new OLabel('Tier_1', columns[4]));
+          const { text: cleanedText, verified } = stripNotCheckMark(columns[4]);
+          olabels.push(new OLabel('Tier_1', cleanedText));
           osegment = new OSegment(
             i + 1,
             Math.round(start * sampleRate),
             Math.round(length * sampleRate),
             olabels,
+            verified,
           );
 
           olevel.items.push(osegment);
@@ -179,6 +189,7 @@ export class CTMConverter extends Converter {
                   (audiofile.duration - (start + length)) * sampleRate,
                 ),
                 [new OLabel('Tier_1', '')],
+                true,
               );
 
               olevel.items.push(osegmentEnd);

@@ -15,14 +15,26 @@ const audio = {
 function diarized(): OAnnotJSON {
   const level = (name: string, a: string, b: string) =>
     new OSegmentLevel<OSegment>(name, [
-      new OSegment(1, 0, SR, [
-        new OLabel(name, a),
-        new OLabel('Speaker', 'Speaker 1'),
-      ]),
-      new OSegment(2, SR, SR * 2, [
-        new OLabel(name, b),
-        new OLabel('Speaker', 'Speaker 2'),
-      ]),
+      new OSegment(
+        1,
+        0,
+        SR,
+        [
+          new OLabel(name, a),
+          new OLabel('Speaker', 'Speaker 1'),
+        ],
+        true,
+      ),
+      new OSegment(
+        2,
+        SR,
+        SR * 2,
+        [
+          new OLabel(name, b),
+          new OLabel('Speaker', 'Speaker 2'),
+        ],
+        true,
+      ),
     ]);
   const annotation = new OAnnotJSON('talk.wav', 'talk', SR);
   annotation.levels.push(

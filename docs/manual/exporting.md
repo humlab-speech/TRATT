@@ -70,6 +70,15 @@ Each sentence starts with a coloured bar in the exported DOCX: a **green**
 recording, or edited the text), an **orange** `|` marks one that still only
 holds the automatic transcription.
 
+### Verification marks in time-aligned formats
+
+The time-aligned export formats (SRT, WebVTT, ELAN, TextGrid, PraatTable,
+CTM, BAS Partitur, Whisper JSON) carry the verification state in the text
+itself: every non-verified transcription ends with a **not-check mark**
+(`⍻`, U+237B). Verified sentences are written without it. When you load such
+a file together with its audio later, TRATT reads the mark back: marked
+sentences come in as non-verified, unmarked ones as verified.
+
 ### Plain text
 
 | Option | Effect |

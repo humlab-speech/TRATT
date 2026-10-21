@@ -1,4 +1,6 @@
 import { describe, expect, it } from 'vitest';
+import { OAnnotJSON, OLabel, OSegment, OSegmentLevel } from '../annotjson';
+import { NOT_CHECK_MARK } from './not-check-mark';
 import { SRTConverter, SRTConverterImportOptions } from './SRTConverter';
 
 const SR = 48000;
@@ -81,7 +83,6 @@ describe('SRTConverter — multi-line cues (B3)', () => {
   });
 });
 
-
 describe('SRTConverter — same-speaker merge separator (B8)', () => {
   it('joins merged same-speaker segment text with a space, not a bare concatenation', () => {
     const c = new SRTConverter();
@@ -116,5 +117,33 @@ describe('SRTConverter — same-speaker merge separator (B8)', () => {
     expect(merged.labels.find((l: any) => l.name !== 'Speaker')?.value).toBe(
       'Hello world',
     );
+  });
+});
+
+describe('SRTConverter — not-check mark round trip', () => {
+  const c = new SRTConverter();
+  const audio = audiofile(SR * 2); // 2 s
+
+  it('exports the mark for non-verified segments and reads it back', () => {
+    const annotation = new OAnnotJSON('test.wav', 'test', SR);
+    annotation.levels.push(
+      new OSegmentLevel<OSegment>('OCTRA_1', [
+        new OSegment(1, 0, SR, [new OLabel('OCTRA_1', 'Hello')], false),
+        new OSegment(2, SR, SR, [new OLabel('OCTRA_1', 'World')], true),
+      ]),
+    );
+
+    const exported = c.export(annotation, audio as any, 0);
+    const srt = exported.file!.content as string;
+    expect(srt).toContain(`Hello${NOT_CHECK_MARK}`);
+    expect(srt).toContain('World');
+    expect(srt).not.toContain(`World${NOT_CHECK_MARK}`);
+
+    const r = c.import(srtFile(srt), audio as any);
+    expect(r.error).toBe('');
+    const items = r.annotjson!.levels[0].items as OSegment[];
+    expect(items.map((i) => i.verified)).toEqual([false, true]);
+    // The mark is stripped from the transcription text on import.
+    expect(items[0].labels[0].value).toBe('Hello');
   });
 });

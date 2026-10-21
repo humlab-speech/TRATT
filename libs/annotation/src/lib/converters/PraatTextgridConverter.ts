@@ -16,6 +16,7 @@ import {
   ImportResult,
   TrattAnnotationFormatType,
 } from './Converter';
+import { appendNotCheckMark, stripNotCheckMark } from './not-check-mark';
 import {
   BASWebservicesApplication,
   EMUWebAppApplication,
@@ -111,9 +112,10 @@ export class PraatTextgridConverter extends Converter {
             `        intervals [${j + 1}]:\n` +
             `            xmin = ${secondsStart} \n` +
             `            xmax = ${secondsEnd} \n` +
-            `            text = "${
-              segment.getFirstLabelWithoutName('Speaker')?.value ?? ''
-            }" \n`;
+            `            text = "${appendNotCheckMark(
+              segment.getFirstLabelWithoutName('Speaker')?.value ?? '',
+              segment.verified,
+            )}" \n`;
         }
       }
     }
@@ -264,13 +266,16 @@ export class PraatTextgridConverter extends Converter {
                     i++;
                     const text = test[1];
 
+                    const { text: cleanedText, verified } =
+                      stripNotCheckMark(text);
                     const olabels: OLabel[] = [];
-                    olabels.push(new OLabel(lvlName, text));
+                    olabels.push(new OLabel(lvlName, cleanedText));
                     const osegment = new OSegment(
                       segNum,
                       Math.round(xmin * audiofile.sampleRate),
                       Math.round((xmax - xmin) * audiofile.sampleRate),
                       olabels,
+                      verified,
                     ) as OSegment;
                     (olevel.items as OSegment[]).push(osegment);
                   } else {
