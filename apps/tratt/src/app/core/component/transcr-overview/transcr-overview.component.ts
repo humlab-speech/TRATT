@@ -70,6 +70,8 @@ export class TranscrOverviewComponent implements OnInit, OnDestroy, OnChanges {
 
   public selectedError: any = '';
   public shownSegments: {
+    start: number;
+    end: number;
     transcription: {
       html: string;
       text: string;
@@ -548,11 +550,55 @@ export class TranscrOverviewComponent implements OnInit, OnDestroy, OnChanges {
   }
 
   ngOnChanges(changes: SimpleChanges) {
-    if (changes['currentLevel'].currentValue) {
-      this._internLevel = (
-        changes['currentLevel']
-          .currentValue as TrattAnnotationAnyLevel<TrattAnnotationSegment>
-      ).clone();
+    const current = changes['currentLevel']?.currentValue as
+      TrattAnnotationAnyLevel<TrattAnnotationSegment> | undefined;
+    if (current) {
+      this._internLevel = current.clone();
+      // Live store updates (e.g. a played segment becoming verified) replace
+      // the current level without remounting this component — refresh the
+      // affected rows now instead of waiting for a modal reopen.
+      void this.syncShownSegments();
+    }
+  }
+
+  /**
+   * Reconciles the rendered rows with the freshly cloned current level.
+   * Verification changes while this modal is open only flip the `verified`
+   * flag, so those rows are patched in place (cheap). A level whose shape
+   * changed (segment added/removed/replaced) triggers a full rebuild.
+   */
+  private async syncShownSegments(): Promise<void> {
+    if (this.showLoading) {
+      // The initial updateView() pass (ngOnInit) is about to run.
+      return;
+    }
+    const level = this._internLevel;
+    if (!(level instanceof TrattAnnotationSegmentLevel)) {
+      return;
+    }
+    const items = level.items as TrattAnnotationSegment[];
+    const shapeChanged =
+      items.length !== this.shownSegments.length ||
+      items.some(
+        (segment, i) => this.shownSegments[i]?.end !== segment.time.samples,
+      );
+    if (shapeChanged) {
+      await this.updateView();
+      return;
+    }
+
+    let changed = false;
+    const updated = this.shownSegments.map((row, i) => {
+      if (row.verified !== items[i].verified) {
+        changed = true;
+        return { ...row, verified: items[i].verified };
+      }
+      return row;
+    });
+    if (changed) {
+      // New array reference required for OnPush change detection.
+      this.shownSegments = updated;
+      this.cd.markForCheck();
     }
   }
 
