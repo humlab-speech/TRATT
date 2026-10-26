@@ -20,7 +20,10 @@ import { AppInfo } from '../../../app.info';
 import { ImportOptionsModalComponent } from '../../modals/import-options-modal/import-options-modal.component';
 import { TrattModalService } from '../../modals/tratt-modal.service';
 import { FileProgress } from '../../obj/objects';
-import { filesFromExportZip } from '../../shared/service/catalogue-import';
+import {
+  archiveGroupOf,
+  filesFromExportZip,
+} from '../../shared/service/catalogue-import';
 import {
   applySpeakerTurnsToAnnotJson,
   SpeakerTurn,
@@ -29,8 +32,8 @@ import { LoginMode, RootState } from '../../store';
 import { LoginModeActions } from '../../store/login-mode';
 import { isZipFile } from '../drop-zone/drop-zone.component';
 import {
-  audioBasename,
   padSegmentLevels,
+  pairingName,
   sameBasename,
   transcriptBasename,
 } from './transcript-pairing';
@@ -323,6 +326,7 @@ export class TrattDropzoneService {
       progress: 0,
       checked_converters: 0,
       file: new FileInfo(file.name, file.type, file.size, file),
+      pairKey: archiveGroupOf(file),
     };
 
     const isValidaAudioFile = AudioManager.isValidAudioFileName(
@@ -702,6 +706,8 @@ export class TrattDropzoneService {
             entry.file.fullname,
             AppInfo.converters,
           );
+          // Archive entries pair by their group, everything else by name.
+          const name = pairingName(entry, false, AppInfo.converters);
           const fail = (key: string) => {
             entry.status = 'invalid';
             entry.error = this.translocoService.translate(key, {
@@ -714,7 +720,7 @@ export class TrattDropzoneService {
               (other) =>
                 other !== entry &&
                 other.pairedBasename !== undefined &&
-                sameBasename(other.pairedBasename, basename),
+                sameBasename(other.pairedBasename, name),
             )
           ) {
             fail('workbench.dropzone.transcript_already_used');
@@ -724,7 +730,7 @@ export class TrattDropzoneService {
           const recordings = this._files.filter(
             (other) =>
               this.isAudioEntry(other) &&
-              sameBasename(audioBasename(other.file.fullname), basename),
+              sameBasename(pairingName(other, true, AppInfo.converters), name),
           );
           let audio = recordings.find(
             (other) => other.status === 'valid' && other.oaudiofile,
@@ -733,7 +739,13 @@ export class TrattDropzoneService {
             if (recordings.some((other) => other.status === 'progress')) {
               continue; // its recording is still decoding
             }
-            const listed = await this.externalAudioFor?.(basename);
+            // An archive's recordings are all in the drop: one that is not
+            // valid by now failed to decode, and a listed file of the same
+            // name is a different recording.
+            const listed =
+              entry.pairKey === undefined
+                ? await this.externalAudioFor?.(basename)
+                : undefined;
             if (entry.status !== 'waiting' || !this._files.includes(entry)) {
               continue; // removed while the recording was being resolved
             }
@@ -751,7 +763,7 @@ export class TrattDropzoneService {
           const annotjson = await this.importPairedTranscript(entry, audio);
           if (annotjson) {
             entry.annotation = annotjson;
-            entry.pairedBasename = basename;
+            entry.pairedBasename = name;
             entry.status = 'valid';
           } else {
             entry.status = 'invalid';

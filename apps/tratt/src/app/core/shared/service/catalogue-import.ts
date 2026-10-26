@@ -8,6 +8,22 @@ const ANNOT_SUFFIX = '_annot.json';
 const dirOf = (path: string) => path.slice(0, path.lastIndexOf('/') + 1);
 const nameOf = (path: string) => path.slice(path.lastIndexOf('/') + 1);
 
+const groups = new WeakMap<File, string>();
+
+/**
+ * The archive recording a file from `filesFromExportZip` belongs to. Names do
+ * not identify it: two recordings may share a basename (`take.wav`,
+ * `take.wma`), so the dropzone pairs by this instead.
+ */
+export function markArchiveGroup(file: File, group: string): File {
+  groups.set(file, group);
+  return file;
+}
+
+export function archiveGroupOf(file: File): string | undefined {
+  return groups.get(file);
+}
+
 /**
  * The files to feed the dropzone to restore an archive made by
  * `CatalogueExportService`: each bundle's audio, then its `_annot.json`
@@ -38,27 +54,45 @@ export function filesFromExportZip(zip: Uint8Array): File[] {
 
   const paths = Object.keys(entries).sort();
   const audio = paths.filter(isAudio);
-  const annots = paths.filter(
-    (p) =>
-      isAnnot(p) &&
-      audio.some(
-        (a) =>
-          dirOf(a) === dirOf(p) &&
-          audioBasename(nameOf(a)) + ANNOT_SUFFIX === nameOf(p),
-      ),
-  );
+  const group = (file: File, path: string) =>
+    markArchiveGroup(file, `archive:${dirOf(path)}`);
+  const annotFor = (audioPath: string) => {
+    const inDir = paths.filter(
+      (p) => isAnnot(p) && dirOf(p) === dirOf(audioPath),
+    );
+    // The exact name first; a folder holds one recording, so a lone other
+    // `_annot.json` (renamed on a name clash) is still its transcript.
+    return (
+      inDir.find(
+        (p) => nameOf(p) === audioBasename(nameOf(audioPath)) + ANNOT_SUFFIX,
+      ) ?? (inDir.length === 1 ? inDir[0] : undefined)
+    );
+  };
+  const claimed = new Set<string>();
+  const annots = audio.flatMap((a) => {
+    const p = annotFor(a);
+    if (!p || claimed.has(p)) {
+      return [];
+    }
+    claimed.add(p);
+    return [{ audio: a, annot: p }];
+  });
   return [
-    ...audio.map(
-      (p) =>
+    ...audio.map((p) =>
+      group(
         new File([entries[p] as BlobPart], nameOf(p), {
           type: types.get(p) ?? '',
         }),
+        p,
+      ),
     ),
-    ...annots.map(
-      (p) =>
+    ...annots.map(({ audio: a, annot: p }) =>
+      group(
         new File([entries[p] as BlobPart], nameOf(p), {
           type: 'application/json',
         }),
+        a,
+      ),
     ),
   ];
 }

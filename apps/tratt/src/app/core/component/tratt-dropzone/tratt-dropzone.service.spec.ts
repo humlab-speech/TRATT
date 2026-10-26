@@ -11,6 +11,7 @@ import { OAudiofile } from '@tratt/media';
 import * as webMedia from '@tratt/web-media';
 import { AudioManager, FileInfo } from '@tratt/web-media';
 import { Observable, of, Subject } from 'rxjs';
+import { markArchiveGroup } from '../../shared/service/catalogue-import';
 import { TrattDropzoneService } from './tratt-dropzone.service';
 
 jest.mock('@tratt/web-media', () => {
@@ -503,6 +504,36 @@ item []:
     // Both kept (a second transcript no longer evicts the first) and the
     // singular legacy transcript stays unset.
     expect(service.oannotation).toBeUndefined();
+  });
+
+  it('pairs archive entries by their group when recordings share a basename', async () => {
+    createSpy = jest
+      .spyOn(AudioManager, 'create')
+      .mockReturnValueOnce(
+        of({ audioManager: manager(1), progress: 1 }) as never,
+      )
+      .mockReturnValueOnce(
+        of({ audioManager: manager(2), progress: 1 }) as never,
+      );
+    const service = newService();
+
+    service.add(markArchiveGroup(audioFile('take.wav'), 'archive:one/'));
+    service.add(markArchiveGroup(audioFile('take.wma'), 'archive:two/'));
+    service.add(
+      markArchiveGroup(transcriptFile('take.TextGrid', 'one'), 'archive:one/'),
+    );
+    service.add(
+      markArchiveGroup(transcriptFile('take.textgrid', 'two'), 'archive:two/'),
+    );
+    await flush();
+
+    expect(entry(service, 'take.TextGrid').status).toBe('valid');
+    expect(entry(service, 'take.textgrid').status).toBe('valid');
+    expect(firstText(service, 'take.TextGrid')).toBe('one');
+    expect(firstText(service, 'take.textgrid')).toBe('two');
+    expect(entry(service, 'take.TextGrid').pairedBasename).not.toBe(
+      entry(service, 'take.textgrid').pairedBasename,
+    );
   });
 
   it('waits while its recording is still decoding', async () => {

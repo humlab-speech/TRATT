@@ -32,6 +32,23 @@ export function audioBasename(fullname: string): string {
   return fullname.replace(/\.[^.]+$/, '');
 }
 
+/**
+ * The name a transcript and its recording pair by: their explicit
+ * `pairKey` (catalogue archive), else the file name's basename.
+ */
+export function pairingName(
+  entry: { pairKey?: string; file: { fullname: string } },
+  isAudio: boolean,
+  converters: readonly Converter[],
+): string {
+  return (
+    entry.pairKey ??
+    (isAudio
+      ? audioBasename(entry.file.fullname)
+      : transcriptBasename(entry.file.fullname, converters))
+  );
+}
+
 /** Basenames compare case-insensitively (`Interview.wav` ↔ `interview.srt`). */
 export function sameBasename(a: string, b: string): boolean {
   return a.toLowerCase() === b.toLowerCase();

@@ -20,4 +20,11 @@ export interface FileProgress {
   annotation?: OAnnotJSON;
   /** Pairing mode: basename of the recording `annotation` belongs to. */
   pairedBasename?: string;
+  /**
+   * Pairing mode: explicit pairing group, set for files unpacked from a
+   * catalogue archive. A transcript pairs with the recordings of its own
+   * group instead of by basename, which the archive cannot guarantee to be
+   * unique (`take.wav` and `take.wma` are two recordings).
+   */
+  pairKey?: string;
 }

@@ -55,6 +55,7 @@ import { AutoTranscribeOptionsComponent } from '../../component/tratt-dropzone/a
 import { AutoTranslateOptionsComponent } from '../../component/tratt-dropzone/auto-translate-options.component';
 import {
   audioBasename,
+  pairingName,
   sameBasename,
   transcriptBasename,
 } from '../../component/tratt-dropzone/transcript-pairing';
@@ -781,7 +782,7 @@ export class WorkbenchComponent
         (f) =>
           !isAudio(f) && (f.status === 'progress' || f.status === 'waiting'),
       )
-      .map((f) => transcriptBasename(f.file.fullname, AppInfo.converters));
+      .map((f) => pairingName(f, false, AppInfo.converters));
     const readyTranscripts = addedFiles.filter(
       (f) =>
         !isAudio(f) &&
@@ -797,7 +798,7 @@ export class WorkbenchComponent
         f.oaudiofile !== undefined &&
         !this.ingestedIds.has(f.id) &&
         !pendingTranscripts.some((name) =>
-          sameBasename(name, audioBasename(f.file.fullname)),
+          sameBasename(name, pairingName(f, true, AppInfo.converters)),
         ),
     );
     if (newlyValid.length === 0 && readyTranscripts.length === 0) {
@@ -814,7 +815,10 @@ export class WorkbenchComponent
       const match = readyTranscripts.find(
         (t) =>
           !used.has(t) &&
-          sameBasename(t.pairedBasename!, audioBasename(audio.file.fullname)),
+          sameBasename(
+            t.pairedBasename!,
+            pairingName(audio, true, AppInfo.converters),
+          ),
       );
       if (match) {
         used.add(match);
@@ -865,15 +869,25 @@ export class WorkbenchComponent
       }
       // Same lookup as audioForTranscript (which paired it): a restored file
       // without its audio counts too.
-      const bundleId = this.listedBundleFor(transcript.pairedBasename!, {
-        anyAudio: true,
-      });
+      // An archive transcript belongs to a recording of its own drop, never
+      // to a listed file that merely shares the name.
+      const bundleId =
+        transcript.pairKey === undefined
+          ? this.listedBundleFor(transcript.pairedBasename!, {
+              anyAudio: true,
+            })
+          : undefined;
       if (bundleId === undefined) {
         // Removed meanwhile — say so instead of dropping it silently.
         transcript.status = 'invalid';
         transcript.error = this.transloco.translate(
           'workbench.dropzone.transcript_no_recording',
-          { name: transcript.pairedBasename },
+          {
+            name: transcriptBasename(
+              transcript.file.fullname,
+              AppInfo.converters,
+            ),
+          },
         );
         continue;
       }
