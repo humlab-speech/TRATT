@@ -161,8 +161,11 @@ Not exercised live, and therefore still source-derived only:
 
 ## Screenshots
 
-The nine screenshots in `docs/assets/` were all taken from the same build, in the
-same session, so the chrome matches from page to page:
+The nine screenshots in `docs/assets/` are taken from a production build served
+locally, so the chrome matches from page to page. Seven of them come from one
+session on the 8 October build; the Overview and the Workbench were re-shot from
+the 22 October build, which is the first to carry the verification markers and the
+current drop-area wording.
 
 | File | Shows | Used by |
 | --- | --- | --- |
@@ -172,7 +175,7 @@ same session, so the chrome matches from page to page:
 | `visp_tratt_popup_editor_audio_only.png` | The transcription window over the 2D-Editor | `quick-start.md`, `the-editors.md` |
 | `visp_tratt_dictaphone_editor.png` | The Dictaphone Editor | `the-editors.md` |
 | `visp_tratt_linear_editor.png` | The Linear Editor, both displays, one unit open | `the-editors.md` |
-| `visp_tratt_overview_edit.png` | The Overview window | `quick-start.md`, `checking-your-work.md` |
+| `visp_tratt_overview_edit.png` | The Overview window, with verified and non-verified markers | `quick-start.md`, `checking-your-work.md` |
 | `visp_tratt_export_formats.png` | The export dialog | `quick-start.md`, `exporting.md` |
 | `visp_tratt_workbench.png` | The Workbench with four recordings | `workbench.md` |
 
@@ -188,6 +191,12 @@ How to reproduce them:
   separate levels** left off, which is what puts the coloured `Interviewer` and
   `Respondent` badges on the units instead of splitting them into two tiers.
 - The imported tier is renamed from `OCTRA_1` to `Transcription` before shooting.
+- The Overview needs a part-checked transcript, or every row is the same colour.
+  An SRT that TRATT itself has imported comes in verified unless the text carries
+  the not-check mark, so `interview-01-mixed.srt` appends `⍻` (U+237B) to every
+  line but the first two. The first two then show the green marker and the rest
+  the orange one, which is what the reader sees after checking the opening of a
+  file. See [Verification marks](exporting.md#verification-marks-in-time-aligned-formats).
 - Viewport 1440 × 820 at a device pixel ratio of 2 for the editor pages, 1480 × 900
   for the Workbench, 1360 wide for the start page. **Below 1400 px the editor
   switcher collapses to icons**, so do not shoot the editor narrower than that.

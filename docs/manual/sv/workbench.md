@@ -50,7 +50,7 @@ Fyra saker ligger till vänster, uppifrån och ned:
 1. **Filer** med antalet inspelningar, och knapparna **Exportera alla**,
    **Rensa klara** och **Ta bort**.
 2. Flikarna **Ladda upp fil** och **Spela in nu** över en släppyta:
-   *Släpp ljudfiler här, eller klicka för att välja. Flera filer samtidigt går bra.*
+   *Släpp ljudfiler eller tidigare exporterat arkiv här*.
 3. **Pipelineinställningar**: vad som händer med en fil automatiskt, och knappen
    som startar kön.
 4. Två kapacitetsmätare: **Webbläsarlagring** och **Arbetsminne (uppskattat)**.

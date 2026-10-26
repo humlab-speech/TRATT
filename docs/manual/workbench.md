@@ -47,7 +47,7 @@ Four things sit on the left, from top to bottom:
 1. **Files** with the number of recordings, and the buttons **Export all**,
    **Clear finished** and **Remove**.
 2. The **Upload file** and **Record now** tabs over a drop area:
-   *Drop audio files here, or click to browse. Several at once is fine.*
+   *Drop audio files or a previously exported archive here*.
 3. **Pipeline settings**: what happens to a file automatically, and the button
    that starts the queue.
 4. Two capacity meters: **Browser storage** and **Working memory (est.)**.
