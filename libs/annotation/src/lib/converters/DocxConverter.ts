@@ -9,15 +9,12 @@ import {
   TrattAnnotationFormatType,
 } from './Converter';
 import { WordApplication } from './SupportedApplications';
+import {
+  NON_VERIFIED_COLOR,
+  VERIFIED_COLOR,
+  verificationLegend,
+} from './verification-legend';
 import { buildZip } from './zip-builder';
-
-/**
- * Språkbanken graphic profile colours
- * (https://sprakbanken.se/internt/teknik/grafisk-profil): "Grön" for
- * verified transcriptions, "sborange" for non-verified ones.
- */
-const VERIFIED_COLOR = '5AA018';
-const NON_VERIFIED_COLOR = 'F0581A';
 
 export class DocxConverter extends Converter {
   override _name: TrattAnnotationFormatType = 'DOCX';
@@ -75,7 +72,7 @@ export class DocxConverter extends Converter {
       text?: string;
       heading?: boolean;
       separator?: boolean;
-      runs?: { text: string; verified?: boolean }[];
+      runs?: { text: string; verified?: boolean; color?: string }[];
     }[] = [];
 
     const isSwedish =
@@ -103,6 +100,7 @@ export class DocxConverter extends Converter {
     for (const ackText of ackTexts) {
       paragraphs.push({ text: ackText });
     }
+    const legendAt = paragraphs.length;
     paragraphs.push({ text: '', separator: true });
 
     const lineFor = (seg: OSegment, prefix?: string) => {
@@ -183,6 +181,10 @@ export class DocxConverter extends Converter {
       }
     }
 
+    if (paragraphs.some((p) => p.runs?.some((r) => r.verified !== undefined))) {
+      paragraphs.splice(legendAt, 0, { runs: verificationLegend(isSwedish) });
+    }
+
     const docxBytes = this.buildDocx(paragraphs);
     const baseName = audiofile.name.replace(/\.[^.]+$/, '');
 
@@ -205,8 +207,8 @@ export class DocxConverter extends Converter {
 
   private joinedRuns(
     parts: { text: string; verified: boolean }[],
-  ): { text: string; verified?: boolean }[] {
-    const runs: { text: string; verified?: boolean }[] = [];
+  ): { text: string; verified?: boolean; color?: string }[] {
+    const runs: { text: string; verified?: boolean; color?: string }[] = [];
     for (let i = 0; i < parts.length; i++) {
       if (i > 0) {
         // Plain separator run: no verification marker before a mere space.
@@ -222,7 +224,7 @@ export class DocxConverter extends Converter {
       text?: string;
       heading?: boolean;
       separator?: boolean;
-      runs?: { text: string; verified?: boolean }[];
+      runs?: { text: string; verified?: boolean; color?: string }[];
     }[],
   ): Uint8Array {
     const enc = new TextEncoder();
@@ -266,6 +268,9 @@ export class DocxConverter extends Converter {
           const runsXml = p.runs
             .map((r) => {
               const textRun = `<w:r><w:t xml:space="preserve">${this.escapeXml(r.text)}</w:t></w:r>`;
+              if (r.color) {
+                return `<w:r><w:rPr><w:color w:val="${r.color}"/></w:rPr><w:t xml:space="preserve">${this.escapeXml(r.text)}</w:t></w:r>`;
+              }
               if (r.verified === undefined) {
                 return textRun;
               }

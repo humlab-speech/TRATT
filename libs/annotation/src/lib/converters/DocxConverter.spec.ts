@@ -94,8 +94,9 @@ describe('DocxConverter verification markers', () => {
     const xml = documentXml(converter, annot);
 
     expect(xml).toContain('Real text');
-    // Only the third segment produced a marked sentence line.
-    expect(xml.match(/w:color w:val="(?:5AA018|F0581A)"/g)).toHaveLength(1);
+    // Only the third segment produced a marked sentence line (+2 legend bars).
+    expect(xml.match(/w:color w:val="(?:5AA018|F0581A)"/g)).toHaveLength(3);
+    expect(xml.match(/\| <\/w:t>/g)).toHaveLength(1);
   });
 
   it('keeps acknowledgements and separators unmarked', () => {
@@ -107,5 +108,29 @@ describe('DocxConverter verification markers', () => {
     const firstMarkerIndex = xml.indexOf('<w:color w:val="5AA018"/>');
     expect(firstMarkerIndex).toBeGreaterThan(0);
     expect(xml.indexOf('TRATT tool')).toBeLessThan(firstMarkerIndex);
+  });
+});
+
+describe('DocxConverter verification legend', () => {
+  it('explains the coloured bars after the acknowledgement', () => {
+    const xml = documentXml(new DocxConverter(), makeAnnot([true, false]));
+    const legend = xml.indexOf('= verified transcription');
+    expect(legend).toBeGreaterThan(xml.indexOf('TRATT tool'));
+    expect(legend).toBeLessThan(xml.indexOf('Sentence 1'));
+    expect(xml).toContain(
+      '<w:color w:val="5AA018"/></w:rPr><w:t xml:space="preserve">|</w:t>',
+    );
+  });
+
+  it('writes the legend in Swedish when asked', () => {
+    const converter = new DocxConverter();
+    converter.options.uiLanguage = 'sv';
+    expect(documentXml(converter, makeAnnot([true]))).toContain('= verifierad');
+  });
+
+  it('omits the legend when no line is exported', () => {
+    expect(documentXml(new DocxConverter(), makeAnnot([]))).not.toContain(
+      '= verified transcription',
+    );
   });
 });

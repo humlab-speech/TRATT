@@ -9,7 +9,24 @@ import {
   TrattAnnotationFormatType,
 } from './Converter';
 import { LibreOfficeApplication } from './SupportedApplications';
+import {
+  NON_VERIFIED_COLOR,
+  VERIFIED_COLOR,
+  verificationLegend,
+} from './verification-legend';
 import { buildZip } from './zip-builder';
+
+interface OdtRun {
+  text: string;
+  verified?: boolean;
+  color?: string;
+}
+
+interface OdtParagraph {
+  text?: string;
+  heading?: boolean;
+  runs?: OdtRun[];
+}
 
 export class OdtConverter extends Converter {
   override _name: TrattAnnotationFormatType = 'ODT';
@@ -63,7 +80,7 @@ export class OdtConverter extends Converter {
     }
 
     const multi = indices.length > 1;
-    const paragraphs: { text: string; heading?: boolean }[] = [];
+    const paragraphs: OdtParagraph[] = [];
 
     const isSwedish =
       this.options.uiLanguage === 'sv' ||
@@ -90,6 +107,7 @@ export class OdtConverter extends Converter {
     for (const ackText of ackTexts) {
       paragraphs.push({ text: ackText });
     }
+    const legendAt = paragraphs.length;
     paragraphs.push({ text: '─'.repeat(64) });
 
     const lineFor = (seg: OSegment, prefix?: string) => {
@@ -102,7 +120,10 @@ export class OdtConverter extends Converter {
       const speakerId = seg.labels?.find((l) => l.name === 'Speaker')?.value;
       const speakerPrefix =
         this.options.addSpeakerId && speakerId ? `[${speakerId}] ` : '';
-      return (prefix ?? '') + tsPrefix + speakerPrefix + text.trim();
+      return {
+        text: (prefix ?? '') + tsPrefix + speakerPrefix + text.trim(),
+        verified: seg.verified,
+      };
     };
 
     if (multi && !this.options.groupByTier) {
@@ -118,7 +139,7 @@ export class OdtConverter extends Converter {
               `[${level.name}] `,
             );
             if (line !== undefined) {
-              paragraphs.push({ text: line });
+              paragraphs.push({ runs: [line] });
               emitted++;
             }
           }
@@ -126,7 +147,7 @@ export class OdtConverter extends Converter {
             paragraphs.push({ text: '' });
           }
         } else {
-          const parts: string[] = [];
+          const parts: { text: string; verified: boolean }[] = [];
           for (const level of levels) {
             if (j >= level.items.length) continue;
             const line = lineFor(
@@ -136,7 +157,7 @@ export class OdtConverter extends Converter {
             if (line !== undefined) parts.push(line);
           }
           if (parts.length > 0) {
-            paragraphs.push({ text: parts.join(' ') });
+            paragraphs.push({ runs: this.joinedRuns(parts) });
           }
         }
       }
@@ -151,19 +172,23 @@ export class OdtConverter extends Converter {
         if (this.options.mode === 'separate') {
           for (const seg of segments) {
             const line = lineFor(seg);
-            if (line !== undefined) paragraphs.push({ text: line });
+            if (line !== undefined) paragraphs.push({ runs: [line] });
           }
         } else {
-          const parts: string[] = [];
+          const parts: { text: string; verified: boolean }[] = [];
           for (const seg of segments) {
             const line = lineFor(seg);
             if (line !== undefined) parts.push(line);
           }
           if (parts.length > 0) {
-            paragraphs.push({ text: parts.join(' ') });
+            paragraphs.push({ runs: this.joinedRuns(parts) });
           }
         }
       }
+    }
+
+    if (paragraphs.some((p) => p.runs?.some((r) => r.verified !== undefined))) {
+      paragraphs.splice(legendAt, 0, { runs: verificationLegend(isSwedish) });
     }
 
     const odtBytes = this.buildOdt(paragraphs);
@@ -186,9 +211,17 @@ export class OdtConverter extends Converter {
     return undefined;
   }
 
-  private buildOdt(
-    paragraphs: { text: string; heading?: boolean }[],
-  ): Uint8Array {
+  private joinedRuns(parts: { text: string; verified: boolean }[]): OdtRun[] {
+    const runs: OdtRun[] = [];
+    parts.forEach((part, i) => {
+      // Plain separator run: no verification marker before a mere space.
+      if (i > 0) runs.push({ text: ' ' });
+      runs.push(part);
+    });
+    return runs;
+  }
+
+  private buildOdt(paragraphs: OdtParagraph[]): Uint8Array {
     const enc = new TextEncoder();
 
     // mimetype MUST be the first entry per ODF spec, STORED (no compression)
@@ -208,8 +241,23 @@ export class OdtConverter extends Converter {
 
     const paras = paragraphs
       .map((p) => {
+        if (p.runs) {
+          const spans = p.runs
+            .map((r) => {
+              const text = this.escapeXml(r.text);
+              if (r.color) {
+                const style = r.color === VERIFIED_COLOR ? 'Tver' : 'Tnon';
+                return `<text:span text:style-name="${style}">${text}</text:span>`;
+              }
+              if (r.verified === undefined) return text;
+              const style = r.verified ? 'Tver' : 'Tnon';
+              return `<text:span text:style-name="${style}">| </text:span>${text}`;
+            })
+            .join('');
+          return `<text:p text:style-name="Standard">${spans}</text:p>`;
+        }
         const style = p.heading ? 'Heading_20_1' : 'Standard';
-        return `<text:p text:style-name="${style}">${this.escapeXml(p.text)}</text:p>`;
+        return `<text:p text:style-name="${style}">${this.escapeXml(p.text ?? '')}</text:p>`;
       })
       .join('');
 
@@ -218,7 +266,13 @@ export class OdtConverter extends Converter {
         '<office:document-content' +
         ' xmlns:office="urn:oasis:names:tc:opendocument:xmlns:office:1.0"' +
         ' xmlns:text="urn:oasis:names:tc:opendocument:xmlns:text:1.0"' +
+        ' xmlns:style="urn:oasis:names:tc:opendocument:xmlns:style:1.0"' +
+        ' xmlns:fo="urn:oasis:names:tc:opendocument:xmlns:xsl-fo-compatible:1.0"' +
         ' office:version="1.2">' +
+        '<office:automatic-styles>' +
+        `<style:style style:name="Tver" style:family="text"><style:text-properties fo:color="#${VERIFIED_COLOR}"/></style:style>` +
+        `<style:style style:name="Tnon" style:family="text"><style:text-properties fo:color="#${NON_VERIFIED_COLOR}"/></style:style>` +
+        '</office:automatic-styles>' +
         '<office:body><office:text>' +
         paras +
         '</office:text></office:body>' +
