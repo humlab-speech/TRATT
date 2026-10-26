@@ -32,6 +32,11 @@
       </label>
     }
   </fieldset>
+  @if (!hasTimeAligned()) {
+    <p class="text-danger catalogue-export__time-hint">
+      {{ 'workbench.catalogue_export.time_aligned_required' | transloco }}
+    </p>
+  }
 
   @if (progress()) {
     @if (exportDone()) {
@@ -76,7 +81,7 @@
   <button
     type="button"
     class="btn btn-primary catalogue-export__export"
-    [disabled]="checkedConverters().size === 0 || isExporting()"
+    [disabled]="!hasTimeAligned() || isExporting()"
     (click)="onExport()"
   >
     {{ 'workbench.catalogue_export.export' | transloco }}

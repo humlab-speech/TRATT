@@ -138,12 +138,8 @@ describe('CatalogueExportModalComponent', () => {
     expect(createObjectURLSpy).toHaveBeenCalled();
   });
 
-  // Finding #4 (final whole-branch review fix wave): Cancel used to leave a
-  // running export subscribed in the background, still writing to signals
-  // on a (soon-to-be) destroyed component. A manually-controlled Subject
-  // (rather than of(...)) lets this test emit AFTER close() is called.
-  describe('Finding #4: close() unsubscribes the in-flight export', () => {
-    it('a next emission from the source observable after close() has no effect', () => {
+  describe('Export dismisses the dialog', () => {
+    it('closes the modal on Export while the export keeps running', () => {
       const source = new Subject<{
         completedBundles: number;
         totalBundles: number;
@@ -156,47 +152,37 @@ describe('CatalogueExportModalComponent', () => {
       fixture.debugElement
         .query(By.css('.catalogue-export__export'))
         .nativeElement.click();
-      fixture.detectChanges();
-
-      fixture.componentInstance.close();
       expect(activeModal.close).toHaveBeenCalled();
 
-      source.next({
-        completedBundles: 1,
-        totalBundles: 2,
-        currentBundleName: 'a.wav',
-        warnings: [],
-      });
-
-      expect(fixture.componentInstance.progress()).toBeNull();
-      expect(fixture.componentInstance.downloadUrl()).toBeNull();
-    });
-
-    it('ngOnDestroy (Esc/backdrop dismiss) also unsubscribes, even when close() was never called', () => {
-      const source = new Subject<{
-        completedBundles: number;
-        totalBundles: number;
-        currentBundleName: string | null;
-        archive?: Uint8Array;
-        warnings: string[];
-      }>();
-      exportService.exportBundles.mockReturnValue(source.asObservable());
-
-      fixture.debugElement
-        .query(By.css('.catalogue-export__export'))
-        .nativeElement.click();
       fixture.componentInstance.ngOnDestroy();
-
       source.next({
         completedBundles: 1,
         totalBundles: 2,
         currentBundleName: 'a.wav',
         warnings: [],
       });
-
-      expect(fixture.componentInstance.progress()).toBeNull();
+      expect(fixture.componentInstance.progress()).toEqual({
+        completed: 1,
+        total: 2,
+      });
     });
 
+    it('requires a time-aligned format', () => {
+      const c = fixture.componentInstance;
+      c.toggleConverter('SRT');
+      c.toggleConverter('ELAN');
+      fixture.detectChanges();
+      expect(c.hasTimeAligned()).toBe(false);
+      expect(
+        fixture.debugElement.query(By.css('.catalogue-export__export'))
+          .nativeElement.disabled,
+      ).toBe(true);
+      c.toggleConverter('WebVTT');
+      expect(c.hasTimeAligned()).toBe(true);
+    });
+  });
+
+  describe('object URLs', () => {
     it('revokes a prior object URL before setting a new one', () => {
       jest.spyOn(URL, 'createObjectURL').mockReturnValue('blob:first');
       const revokeSpy = jest.spyOn(URL, 'revokeObjectURL');
