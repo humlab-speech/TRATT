@@ -6,9 +6,9 @@ import { ELANConverter } from './ELANConverter';
 import { SRTConverter } from './SRTConverter';
 import { WebVTTConverter } from './WebVTTConverter';
 import { AnnotJSONConverter } from './AnnotJSONConverter';
-import { BASE, readFile, audiofile } from './spec-helpers';
+import { BASE, HAS_FIXTURES, readFile, audiofile } from './spec-helpers';
 
-describe('annotation import fixes', () => {
+describe.skipIf(!HAS_FIXTURES)('annotation import fixes', () => {
   it('TextConverter: imports <ts="..."> timestamps (Bug #1)', () => {
     const converter = new TextConverter();
     const content = readFile(`${BASE}.txt`);

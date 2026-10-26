@@ -11,7 +11,7 @@ import { SRTConverter } from './SRTConverter';
 import { WebVTTConverter } from './WebVTTConverter';
 import { AnnotJSONConverter } from './AnnotJSONConverter';
 import { OAnnotJSON } from '../annotjson';
-import { BASE, readFile, audiofile, segmentCount } from './spec-helpers';
+import { BASE, HAS_FIXTURES, readFile, audiofile, segmentCount } from './spec-helpers';
 
 // Round-trip tests use a clean ms-boundary duration (2692 s × 48000 = 129216000)
 // so ELAN ms-rounding doesn't create a phantom trailing empty segment on reimport.
@@ -29,7 +29,7 @@ function importTextGrid(): OAnnotJSON {
 
 // ── round-trip tests ─────────────────────────────────────────────────────────
 
-describe('annotation round-trip (export → re-import)', () => {
+describe.skipIf(!HAS_FIXTURES)('annotation round-trip (export → re-import)', () => {
   let sharedSource!: OAnnotJSON;
 
   beforeAll(() => {

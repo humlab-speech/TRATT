@@ -7,6 +7,14 @@ export const BASE = 'Intervju med Stig Bergling';
 
 const PROJECT_ROOT = path.resolve(__dirname, '../../../../..');
 
+/**
+ * The real-interview fixtures live in the repo root but are not committed
+ * (private recording). Specs that need them skip when they are absent.
+ */
+export const HAS_FIXTURES = fs.existsSync(
+  path.join(PROJECT_ROOT, `${BASE}.TextGrid`),
+);
+
 export function readFile(name: string): string {
   return fs.readFileSync(path.join(PROJECT_ROOT, name), 'utf-8');
 }
