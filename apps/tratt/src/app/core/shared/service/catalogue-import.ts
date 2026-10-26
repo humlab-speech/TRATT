@@ -77,6 +77,10 @@ export function filesFromExportZip(zip: Uint8Array): File[] {
     claimed.add(p);
     return [{ audio: a, annot: p }];
   });
+  // A recording exported without its audio leaves only its transcript: hand
+  // it over ungrouped, so it pairs by name with the file of that name in the
+  // list.
+  const orphans = paths.filter((p) => isAnnot(p) && !claimed.has(p));
   return [
     ...audio.map((p) =>
       group(
@@ -93,6 +97,12 @@ export function filesFromExportZip(zip: Uint8Array): File[] {
         }),
         a,
       ),
+    ),
+    ...orphans.map(
+      (p) =>
+        new File([entries[p] as BlobPart], nameOf(p), {
+          type: 'application/json',
+        }),
     ),
   ];
 }

@@ -219,13 +219,17 @@ export class CatalogueExportService {
         }
       }
 
-      // Audio + a native annotation next to it make the archive re-loadable
-      // (see filesFromExportZip). The annotation is written whatever formats
-      // were ticked: it is the lossless one. Audio is already compressed, so
-      // it is stored, not deflated.
+      // The native annotation is written whatever formats were ticked: it is
+      // the lossless one, and it is the only transcript an archive without
+      // this recording's audio can still hand back (see filesFromExportZip).
+      // With audio next to it the archive re-loads whole. Audio is already
+      // compressed, so it is stored, not deflated.
       let audioPath = '';
       let audioType = '';
       const source = this.audioService.getSourceFile(bundleId);
+      const annotName =
+        audioBasename(source?.name ?? entity.sessionFile?.name ?? bundleId) +
+        '_annot.json';
       if (source) {
         audioPath = this.uniquePath(files, `bundles/${slug}`, source.name);
         audioType = source.type;
@@ -233,18 +237,14 @@ export class CatalogueExportService {
           new Uint8Array(await source.arrayBuffer()),
           { level: 0 },
         ];
-        files[
-          this.uniquePath(
-            files,
-            `bundles/${slug}`,
-            audioBasename(source.name) + '_annot.json',
-          )
-        ] = strToU8(JSON.stringify(oannotjson));
       } else {
         warnings.push(
-          `${entity.sessionFile?.name ?? bundleId}: audio not attached, so it is not in the archive and cannot be re-loaded from it.`,
+          `${entity.sessionFile?.name ?? bundleId}: audio not attached, so it is not in the archive. Its transcript is, and loads into the file of the same name in the list.`,
         );
       }
+      files[this.uniquePath(files, `bundles/${slug}`, annotName)] = strToU8(
+        JSON.stringify(oannotjson),
+      );
 
       const options = this.pipelineQueueService.getTranscribeOptions();
       const stagesRun: string[] = [];
@@ -356,7 +356,12 @@ export class CatalogueExportService {
     }
 
     if (this.audioService.canRestore(bundleId)) {
-      const resident = await this.audioService.ensureResident(bundleId);
+      // A stored recording whose file is gone (not re-attached this
+      // session) cannot be decoded: fall through to the transcript below
+      // instead of dropping the whole bundle from the export.
+      const resident = await this.audioService
+        .ensureResident(bundleId)
+        .catch(() => false);
       const manager = resident
         ? this.audioService.getManager(bundleId)
         : undefined;
@@ -367,7 +372,6 @@ export class CatalogueExportService {
           duration: manager.resource.info.duration,
         };
       }
-      return undefined;
     }
 
     const end = transcriptEnd(entity.transcript);

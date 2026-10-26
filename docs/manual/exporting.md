@@ -144,8 +144,10 @@ the drop zone restores the whole batch, audio attached and transcripts in place.
 Loading it switches automatic transcription off so your corrections are not
 overwritten. See [The Workbench](workbench.md#loading-an-archive).
 
-A recording whose audio was not attached at export time cannot be restored from
-the archive. TRATT says which ones under *Completed with warnings* rather than
+A recording whose audio was not attached at export time has no audio file in the
+archive, only its transcript. Dropping the archive loads that transcript into the
+file of the same name already in the list (attach the audio there); it cannot be
+restored from the archive alone. TRATT says which ones under *Completed with warnings* rather than
 failing the whole export.
 
 > This is the backup worth taking. A folder of DOCX files is a deliverable; the

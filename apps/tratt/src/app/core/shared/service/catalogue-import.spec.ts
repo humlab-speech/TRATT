@@ -3,7 +3,7 @@ import { strToU8, zipSync } from 'fflate';
 import { archiveGroupOf, filesFromExportZip } from './catalogue-import';
 
 describe('filesFromExportZip', () => {
-  it('returns audio then its _annot.json, skipping output-only files and orphan annotations', () => {
+  it('returns audio then its _annot.json, then audio-less annotations, skipping output-only files', () => {
     const zip = zipSync({
       'bundles/a/a.wav': strToU8('RIFF'),
       'bundles/a/a_annot.json': strToU8('{}'),
@@ -16,7 +16,12 @@ describe('filesFromExportZip', () => {
       ),
     });
     const files = filesFromExportZip(zip);
-    expect(files.map((f) => f.name)).toEqual(['a.wav', 'a_annot.json']);
+    expect(files.map((f) => f.name)).toEqual([
+      'a.wav',
+      'a_annot.json',
+      'b_annot.json',
+    ]);
+    expect(archiveGroupOf(files[2])).toBeUndefined();
     expect(files[0].type).toBe('audio/wav');
   });
 

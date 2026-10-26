@@ -147,8 +147,9 @@ släppytan hela omgången, med ljudet bifogat och transkriptionerna på plats. A
 läsa in det stänger av automatisk transkribering så att dina rättelser inte
 skrivs över. Se [Arbetsbänken](workbench.md#loading-an-archive).
 
-En inspelning vars ljud inte var bifogat vid exporten kan inte återställas ur
-arkivet. TRATT talar om vilka under *Klar med varningar* i stället för att låta
+En inspelning vars ljud inte var bifogat vid exporten får ingen ljudfil i
+arkivet, men väl sin transkription. Den läses in i filen med samma namn i
+listan (bifoga ljudet där), och kan inte återställas ur arkivet ensam. TRATT talar om vilka under *Klar med varningar* i stället för att låta
 hela exporten misslyckas.
 
 > Det här är säkerhetskopian värd att ta. En mapp med DOCX-filer är en leverans;

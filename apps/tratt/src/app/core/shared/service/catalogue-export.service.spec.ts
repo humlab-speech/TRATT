@@ -190,7 +190,7 @@ describe('CatalogueExportService', () => {
     expect(entries.some((e) => e.startsWith('bundles/a/'))).toBe(true);
   });
 
-  it('records a warning and continues when ensureResident() fails for a bundle', async () => {
+  it('still exports the transcript of a bundle whose audio cannot be made resident', async () => {
     const { service, audioService } = setup([
       makeBundle('bundle-1', 'a.wav'),
       makeBundle('bundle-2', 'b.wav'),
@@ -201,10 +201,13 @@ describe('CatalogueExportService', () => {
       service.exportBundles(['bundle-1', 'bundle-2'], ['AnnotJSON']),
     );
 
-    expect(last.warnings.some((w) => w.includes('bundle-1'))).toBe(true);
     const entries = Object.keys(unzipSync(last.archive!));
     expect(entries.some((e) => e.startsWith('bundles/b/'))).toBe(true);
-    expect(entries.some((e) => e.startsWith('bundles/a/'))).toBe(false);
+    expect(
+      entries.some(
+        (e) => e.startsWith('bundles/a/') && e.endsWith('_annot.json'),
+      ),
+    ).toBe(true);
   });
 
   it('records a warning and continues when one converter errors on one bundle, but still writes files from the other requested converter', async () => {
@@ -225,9 +228,10 @@ describe('CatalogueExportService', () => {
     expect(
       entries.some((e) => e.startsWith('bundles/a/') && e.endsWith('.srt')),
     ).toBe(true);
+    // Only the native annotation is left; the failed converter wrote none.
     expect(
-      entries.some((e) => e.startsWith('bundles/a/') && e.endsWith('.json')),
-    ).toBe(false);
+      entries.filter((e) => e.startsWith('bundles/a/') && e.endsWith('.json')),
+    ).toHaveLength(1);
 
     exportSpy.mockRestore();
   });
@@ -256,7 +260,7 @@ describe('CatalogueExportService', () => {
   // the whole export — see 'records a warning instead of hanging when
   // serializing one bundle throws' below. The Observable still completes,
   // never hangs.
-  it('turns a rejection while making one bundle resident into a warning, and still completes', async () => {
+  it('exports a bundle whose audio rejects while being made resident, and still completes', async () => {
     const { service, audioService } = setup([makeBundle('bundle-1', 'a.wav')]);
     audioService.ensureResident.mockImplementationOnce(async () => {
       throw new Error('boom');
@@ -266,7 +270,8 @@ describe('CatalogueExportService', () => {
       service.exportBundles(['bundle-1'], ['AnnotJSON']),
     );
     expect(last.archive).toBeDefined();
-    expect(last.warnings).toEqual(['Skipped bundle-1 (a.wav): boom.']);
+    expect(last.exportedCount).toBe(1);
+    expect(last.warnings.some((w) => w.startsWith('Skipped'))).toBe(false);
   });
 
   it('surfaces a failure outside the per-bundle loop as an Observable error, not a silent hang', async () => {
