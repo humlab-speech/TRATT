@@ -2,38 +2,33 @@
  * Round-trip tests: import from real file → export (with time indicators) → re-import.
  * Verifies that exported annotation files can be read back correctly by the app.
  */
-import { describe, it, expect, beforeAll } from 'vitest';
-import { TextConverter } from './TextConverter';
-import { PraatTextgridConverter } from './PraatTextgridConverter';
-import { PraatTableConverter } from './PraatTableConverter';
-import { ELANConverter } from './ELANConverter';
-import { SRTConverter } from './SRTConverter';
-import { WebVTTConverter } from './WebVTTConverter';
-import { AnnotJSONConverter } from './AnnotJSONConverter';
+import { beforeAll, describe, expect, it } from 'vitest';
 import { OAnnotJSON } from '../annotjson';
-import { BASE, HAS_FIXTURES, readFile, audiofile, segmentCount } from './spec-helpers';
+import { AnnotJSONConverter } from './AnnotJSONConverter';
+import { ELANConverter } from './ELANConverter';
+import { PraatTableConverter } from './PraatTableConverter';
+import { PraatTextgridConverter } from './PraatTextgridConverter';
+import {
+  BASE,
+  audiofile,
+  makeSyntheticAnnot,
+  segmentCount,
+} from './spec-helpers';
+import { SRTConverter } from './SRTConverter';
+import { TextConverter } from './TextConverter';
+import { WebVTTConverter } from './WebVTTConverter';
 
 // Round-trip tests use a clean ms-boundary duration (2692 s × 48000 = 129216000)
 // so ELAN ms-rounding doesn't create a phantom trailing empty segment on reimport.
 const rtAudiofile = { ...audiofile, duration: 129216000 };
 
-function importTextGrid(): OAnnotJSON {
-  const c = new PraatTextgridConverter();
-  const r = c.import(
-    { name: `${BASE}.TextGrid`, type: 'text/plain', content: readFile(`${BASE}.TextGrid`), encoding: 'UTF-8' },
-    rtAudiofile,
-  );
-  expect(r.error).toBe('');
-  return r.annotjson!;
-}
-
 // ── round-trip tests ─────────────────────────────────────────────────────────
 
-describe.skipIf(!HAS_FIXTURES)('annotation round-trip (export → re-import)', () => {
+describe('annotation round-trip (export → re-import)', () => {
   let sharedSource!: OAnnotJSON;
 
   beforeAll(() => {
-    sharedSource = importTextGrid();
+    sharedSource = makeSyntheticAnnot();
   });
 
   it('PlainText (.txt) — with showTimestampString', () => {
@@ -41,14 +36,25 @@ describe.skipIf(!HAS_FIXTURES)('annotation round-trip (export → re-import)', (
     const src_count = segmentCount(source);
 
     const exporter = new TextConverter();
-    exporter.options = { showTimestampString: true, showTimestampSamples: false, addNewLineString: false, addSpeakerId: false, breakMarkerCode: '<P>' };
+    exporter.options = {
+      showTimestampString: true,
+      showTimestampSamples: false,
+      addNewLineString: false,
+      addSpeakerId: false,
+      breakMarkerCode: '<P>',
+    };
     const exported = exporter.export(source, rtAudiofile, 0);
     expect(exported.error).toBeFalsy();
     expect(exported.file!.content).toContain('<ts=');
 
     const importer = new TextConverter();
     const reimported = importer.import(
-      { name: `${BASE}.txt`, type: 'text/plain', content: exported.file!.content, encoding: 'UTF-8' },
+      {
+        name: `${BASE}.txt`,
+        type: 'text/plain',
+        content: exported.file!.content,
+        encoding: 'UTF-8',
+      },
       rtAudiofile,
     );
     expect(reimported.error).toBe('');
@@ -61,14 +67,25 @@ describe.skipIf(!HAS_FIXTURES)('annotation round-trip (export → re-import)', (
     const src_count = segmentCount(source);
 
     const exporter = new TextConverter();
-    exporter.options = { showTimestampString: false, showTimestampSamples: true, addNewLineString: false, addSpeakerId: false, breakMarkerCode: '<P>' };
+    exporter.options = {
+      showTimestampString: false,
+      showTimestampSamples: true,
+      addNewLineString: false,
+      addSpeakerId: false,
+      breakMarkerCode: '<P>',
+    };
     const exported = exporter.export(source, rtAudiofile, 0);
     expect(exported.error).toBeFalsy();
     expect(exported.file!.content).toContain('<sp=');
 
     const importer = new TextConverter();
     const reimported = importer.import(
-      { name: `${BASE}.txt`, type: 'text/plain', content: exported.file!.content, encoding: 'UTF-8' },
+      {
+        name: `${BASE}.txt`,
+        type: 'text/plain',
+        content: exported.file!.content,
+        encoding: 'UTF-8',
+      },
       rtAudiofile,
     );
     expect(reimported.error).toBe('');
@@ -88,7 +105,12 @@ describe.skipIf(!HAS_FIXTURES)('annotation round-trip (export → re-import)', (
 
     const importer = new PraatTextgridConverter();
     const reimported = importer.import(
-      { name: `${BASE}.TextGrid`, type: 'text/plain', content: exported.file!.content, encoding: 'UTF-8' },
+      {
+        name: `${BASE}.TextGrid`,
+        type: 'text/plain',
+        content: exported.file!.content,
+        encoding: 'UTF-8',
+      },
       rtAudiofile,
     );
     expect(reimported.error).toBe('');
@@ -106,7 +128,12 @@ describe.skipIf(!HAS_FIXTURES)('annotation round-trip (export → re-import)', (
 
     const importer = new PraatTableConverter();
     const reimported = importer.import(
-      { name: `${BASE}.Table`, type: 'text/plain', content: exported.file!.content, encoding: 'UTF-8' },
+      {
+        name: `${BASE}.Table`,
+        type: 'text/plain',
+        content: exported.file!.content,
+        encoding: 'UTF-8',
+      },
       rtAudiofile,
     );
     expect(reimported.error).toBe('');
@@ -124,21 +151,28 @@ describe.skipIf(!HAS_FIXTURES)('annotation round-trip (export → re-import)', (
 
     const importer = new ELANConverter();
     const reimported = importer.import(
-      { name: `${BASE}.eaf`, type: 'text/xml', content: exported.file!.content, encoding: 'UTF-8' },
+      {
+        name: `${BASE}.eaf`,
+        type: 'text/xml',
+        content: exported.file!.content,
+        encoding: 'UTF-8',
+      },
       rtAudiofile,
     );
     expect(reimported.error).toBe('');
     expect(reimported.annotjson).toBeDefined();
     // ELAN import adds a trailing empty segment when source doesn't reach audio duration;
     // ms-precision rounding may also cause a 1-segment gap at the end.
-    expect(segmentCount(reimported.annotjson!)).toBeGreaterThanOrEqual(src_count);
+    expect(segmentCount(reimported.annotjson!)).toBeGreaterThanOrEqual(
+      src_count,
+    );
   });
 
   it('SRT (.srt)', () => {
     // SRT only exports non-empty segments
     const source = sharedSource;
-    const nonEmpty = source.levels[0].items.filter((s: any) =>
-      (s.labels?.[0]?.value ?? '') !== ''
+    const nonEmpty = source.levels[0].items.filter(
+      (s: any) => (s.labels?.[0]?.value ?? '') !== '',
     ).length;
 
     const exporter = new SRTConverter();
@@ -148,19 +182,26 @@ describe.skipIf(!HAS_FIXTURES)('annotation round-trip (export → re-import)', (
 
     const importer = new SRTConverter();
     const reimported = importer.import(
-      { name: `${BASE}.srt`, type: 'text/plain', content: exported.file!.content, encoding: 'UTF-8' },
+      {
+        name: `${BASE}.srt`,
+        type: 'text/plain',
+        content: exported.file!.content,
+        encoding: 'UTF-8',
+      },
       rtAudiofile,
     );
     expect(reimported.error).toBe('');
     expect(reimported.annotjson).toBeDefined();
     // SRT skips empty segments on export; re-import recreates them
-    expect(reimported.annotjson!.levels[0].items.length).toBeGreaterThanOrEqual(nonEmpty);
+    expect(reimported.annotjson!.levels[0].items.length).toBeGreaterThanOrEqual(
+      nonEmpty,
+    );
   });
 
   it('WebVTT (.vtt)', () => {
     const source = sharedSource;
-    const nonEmpty = source.levels[0].items.filter((s: any) =>
-      (s.labels?.[0]?.value ?? '') !== ''
+    const nonEmpty = source.levels[0].items.filter(
+      (s: any) => (s.labels?.[0]?.value ?? '') !== '',
     ).length;
 
     const exporter = new WebVTTConverter();
@@ -170,12 +211,19 @@ describe.skipIf(!HAS_FIXTURES)('annotation round-trip (export → re-import)', (
 
     const importer = new WebVTTConverter();
     const reimported = importer.import(
-      { name: `${BASE}.vtt`, type: 'text/vtt', content: exported.file!.content, encoding: 'UTF-8' },
+      {
+        name: `${BASE}.vtt`,
+        type: 'text/vtt',
+        content: exported.file!.content,
+        encoding: 'UTF-8',
+      },
       rtAudiofile,
     );
     expect(reimported.error).toBe('');
     expect(reimported.annotjson).toBeDefined();
-    expect(reimported.annotjson!.levels[0].items.length).toBeGreaterThanOrEqual(nonEmpty);
+    expect(reimported.annotjson!.levels[0].items.length).toBeGreaterThanOrEqual(
+      nonEmpty,
+    );
   });
 
   it('AnnotJSON (_annot.json)', () => {
@@ -190,12 +238,16 @@ describe.skipIf(!HAS_FIXTURES)('annotation round-trip (export → re-import)', (
 
     const importer = new AnnotJSONConverter();
     const reimported = importer.import(
-      { name: `${BASE}_annot.json`, type: 'application/json', content: exported.file!.content, encoding: 'UTF-8' },
+      {
+        name: `${BASE}_annot.json`,
+        type: 'application/json',
+        content: exported.file!.content,
+        encoding: 'UTF-8',
+      },
       rtAudiofile,
     );
     expect(reimported.error).toBeFalsy();
     expect(reimported.annotjson).toBeDefined();
     expect(segmentCount(reimported.annotjson!)).toBe(src_count);
   });
-
 });
