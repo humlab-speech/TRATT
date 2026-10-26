@@ -89,7 +89,8 @@ See [Recording in the browser](loading-media.md#recording-in-the-browser).
 
 Drop a `.zip` that TRATT exported earlier on the same drop area and it is
 unpacked: each recording's audio and its `_annot.json` go back into the list,
-paired up. Loading an archive stops the queue and switches auto-transcription and
+paired up by the folder they sit in inside the archive. Two recordings that share
+a file name (`take.wav` and `take.wma`) therefore keep their own transcripts. Loading an archive stops the queue and switches auto-transcription and
 translation **off**, so restored material is not transcribed over.
 
 Everything else in the archive (Word files, subtitles, the manifests) is output
@@ -161,6 +162,9 @@ switcher, and work as described in
 **Overview** (Alt + 0) are in the toolbar. The Guidelines window is not offered
 here.
 
+Playing a unit or editing its text marks it
+[verified](checking-your-work.md#verified-transcriptions), here as everywhere else.
+
 Edits are saved as you type, per recording. Switching to another file in the list
 does not lose anything.
 
@@ -168,8 +172,10 @@ does not lose anything.
 
 ## Coming back later
 
-TRATT remembers the list but never the media files, so when you return the
-recordings are all there and each one offers **Attach file…**. Pick the same file
+TRATT remembers the list but never the media files. When you return, a **Welcome
+back** panel greets you: *Your files from the last session are listed on the left.
+Re-attach a file's audio with "Attach file…" to keep editing it, or drop new
+files.* The recordings are all there and each one offers **Attach file…**. Pick the same file
 from disk and editing continues where you left off. Until then the editor says
 *This file's audio isn't loaded in this session.*
 

@@ -37,7 +37,8 @@ lines with each unit's text underneath.
    with just that unit's audio and text.
 2. **Tab** plays and pauses. **Esc** stops. **Shift + Backspace** jumps back to
    where playback last started; **Shift + Tab** steps back a couple of seconds so
-   you can re-hear the last words.
+   you can re-hear the last words. Playing a unit for about 0.2 s also marks its
+   transcription as [verified](checking-your-work.md#verified-transcriptions).
 3. Type. Use markers for anything that is not a word.
 4. **Alt + →** saves and opens the next unit. **Alt + ←** goes back one.
    **Alt + ↓** saves and closes the window.

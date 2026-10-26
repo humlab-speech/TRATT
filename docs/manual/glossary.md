@@ -8,6 +8,8 @@ into ordinary language.
 | **Transcription unit** | One stretch of the recording with its own text: roughly one utterance, or one subtitle line. Other tools call this a *segment*. The Overview counts these. |
 | **Segment** | The same thing. The two words are used interchangeably in the interface. |
 | **Utterance** | Also the same thing. It is the column heading in the Overview. |
+| **Verified** / **non-verified** | Whether a human has checked a transcription: by listening to its part of the recording, or by editing its text. Shown as a green (verified) or orange (non-verified) `|` bar in the Overview and in Word exports. See [Verified transcriptions](checking-your-work.md#verified-transcriptions). |
+| **Not-check mark** (`⍻`) | The symbol appended to non-verified text in time-aligned exports (SRT, ELAN and so on), so the state survives re-import. |
 | **Boundary** | The dividing line between two transcription units. Adding one splits a unit; deleting one merges two. |
 | **Break** (`<P>`) | A unit that contains no speech. Marking silence explicitly is how TRATT tells "nothing was said here" from "not done yet". |
 | **Crop mark** | A boundary inserted from inside the text field (**Alt + S**), splitting the unit at the current playback position. |

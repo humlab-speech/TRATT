@@ -44,6 +44,8 @@ the marker toolbar. For a final read-through this is often faster than stepping
 through the waveform, because you can read continuously and only stop where
 something looks wrong. Click ▶ on the suspicious row, fix it, move on.
 
+<a id="verified-transcriptions"></a>
+
 ### Verified transcriptions
 
 Automatic transcription starts out **unverified**. Each sentence carries a coloured
@@ -51,12 +53,24 @@ bar at the start of its line: **orange** until a human has checked it, **green**
 once it is verified. A transcription becomes verified when you
 
 - listen to its part of the recording (playing the segment — in any editor, or
-  via **Toggle play all** in the Overview — counts after roughly a quarter
-  second of actual playback), or
+  via **Toggle play all** in the Overview — counts after 200 ms of
+  actual playback inside that unit), or
 - edit its text yourself.
 
 Manually typed transcriptions count as verified from the start. The same green
 and orange bars prefix every sentence in the exported [Word document](exporting.md).
+
+Three rules catch people out:
+
+- **Listening marks only the tier you are viewing.** Playing the recording while
+  the source tier is selected does not verify the units of a translation tier;
+  switch tiers and listen again.
+- **Hover previews do not count.** Moving the pointer over the waveform plays short
+  scrub snippets; only real playback (Tab, ▶, **Toggle play all**) verifies.
+- **A transcript imported without `⍻` marks arrives fully verified.** An SRT or
+  ELAN file from another tool has no such marks, so every unit is green from the
+  first moment even though nobody here has checked it. See
+  [verification marks](exporting.md#verification-marks).
 
 ---
 

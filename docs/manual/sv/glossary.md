@@ -9,6 +9,8 @@ engelska texten inom parentes.
 | **Transkriptionsenhet** | Ett stycke av inspelningen med egen text, ungefär ett yttrande eller en undertextrad. Andra verktyg kallar det ett *segment*. Det är dessa Översikt räknar. |
 | **Segment** | Samma sak. Orden används omväxlande i gränssnittet. |
 | **Yttrande** | Också samma sak. Det är kolumnrubriken i Översikt. |
+| **Verifierad** / **overifierad** | Om en människa har kontrollerat en transkription: genom att lyssna på dess del av inspelningen eller redigera texten. Visas som ett grönt (verifierad) eller orange (overifierad) `|`-streck i Översikt och i Word-exporter. Se [Verifierade transkriptioner](checking-your-work.md#verified-transcriptions). |
+| **Not-check-märke** (`⍻`) | Symbolen som läggs efter overifierad text i tidsanpassade exporter (SRT, ELAN med flera), så att statusen överlever en ny inläsning. |
 | **Gräns** (*boundary*) | Skiljelinjen mellan två transkriptionsenheter. Att lägga till en delar en enhet; att ta bort en slår ihop två. |
 | **Paus** (`<P>`, knappen *Break*) | En enhet som inte innehåller tal. Att markera tystnad uttryckligen är hur TRATT skiljer "inget sades här" från "inte klart ännu". |
 | **Beskärningsmärke** (*Crop mark*) | En gräns som infogas inifrån textfältet (**Alt + S**), och som delar enheten vid det aktuella uppspelningsläget. |

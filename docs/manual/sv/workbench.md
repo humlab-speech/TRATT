@@ -92,7 +92,8 @@ hoppades över.
 
 Släpp en `.zip` som TRATT exporterat tidigare på samma släppyta och den packas
 upp: varje inspelnings ljud och dess `_annot.json` hamnar tillbaka i listan,
-ihopparade. Att läsa in ett arkiv stoppar kön och stänger **av** automatisk
+ihopparade efter mappen de ligger i inne i arkivet. Två inspelningar med samma
+filnamn (`take.wav` och `take.wma`) behåller därför var sin transkription. Att läsa in ett arkiv stoppar kön och stänger **av** automatisk
 transkribering och översättning, så att återställt material inte transkriberas
 över.
 
@@ -165,6 +166,9 @@ Linjär vy i väljaren och arbeta som beskrivs under
 [Så fungerar transkribering](transcribing.md). **Genvägar** (Alt + 8) och
 **Översikt** (Alt + 0) finns i verktygsraden. Riktlinjefönstret erbjuds inte här.
 
+Att spela en enhet eller redigera dess text markerar den som
+[verifierad](checking-your-work.md#verified-transcriptions), här som överallt.
+
 Ändringar sparas medan du skriver, per inspelning. Att byta till en annan fil i
 listan förlorar ingenting.
 
@@ -172,8 +176,11 @@ listan förlorar ingenting.
 
 ## Att komma tillbaka senare
 
-TRATT minns listan men aldrig mediefilerna, så när du återvänder finns alla
-inspelningar kvar och var och en erbjuder **Bifoga fil…**. Välj samma fil från
+TRATT minns listan men aldrig mediefilerna. När du återvänder möts du av en
+**Välkommen tillbaka**-ruta: *Filerna från din förra session finns i listan till
+vänster. Koppla en fils ljud igen med ”Bifoga fil…” för att fortsätta redigera, eller
+släpp nya filer.* Alla inspelningar finns kvar och var och en erbjuder
+**Bifoga fil…**. Välj samma fil från
 disken och redigeringen fortsätter där du slutade. Till dess säger vyn *Ljudet för
 den här filen är inte inläst i den här sessionen.*
 

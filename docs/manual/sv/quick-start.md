@@ -106,6 +106,10 @@ Tryck **Alt + 0** för att öppna **Översikt**. Den visar hur många enheter so
 finns, hur många som har text, och hela transkriptet som en tabell. Klicka på en
 rad för att redigera den där, eller på ▶ för att lyssna på den.
 
+Varje rad börjar med ett färgat streck: orange tills du lyssnat på enheten eller
+redigerat dess text, sedan grönt. Använd det för att se vad som återstår att
+kontrollera ([mer](checking-your-work.md#verified-transcriptions)).
+
 ![Översiktsfönstret](../../assets/visp_tratt_overview_edit.png)
 
 ## 7. Exportera

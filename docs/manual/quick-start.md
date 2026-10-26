@@ -103,6 +103,10 @@ Press **Alt + 0** to open the **Overview** window. It shows how many units exist
 how many have text, and the whole transcript as a table. Click any row to edit it
 there, or click ▶ to hear it.
 
+Each row starts with a coloured bar: orange until you have listened to the unit or
+edited its text, then green. Use it to see what is left to check
+([details](checking-your-work.md#verified-transcriptions)).
+
 ![The Overview window](../assets/visp_tratt_overview_edit.png)
 
 ## 7. Export

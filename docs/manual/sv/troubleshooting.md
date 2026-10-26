@@ -162,6 +162,12 @@ Normalt efter en omladdning. TRATT behåller transkriptioner men aldrig media, s
 varje inspelning behöver få sitt ljud utpekat igen. Ett
 [exporterat arkiv](exporting.md#exporting-an-archive) återställer båda på en gång.
 
+**Allt blev orange**
+Avsiktligt. Transkriptioner som sparades före version 2.6, och alla som byggdes om
+vid återupptagning före 2.6-fixarna, läses in som overifierade: TRATT kan inte veta
+vem som kontrollerat dem. Lyssna på en enhet eller redigera den så blir den grön. Se
+[Verifierade transkriptioner](checking-your-work.md#verified-transcriptions).
+
 **"Det här ser inte ut att vara samma fil"**
 Filen du valde skiljer sig från den posten skapades av. Dialogen visar båda, så
 jämför dem. När bara ändringstiden skiljer sig rör det sig oftast om en kopia

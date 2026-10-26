@@ -36,7 +36,8 @@ markörraden och ett textfält.
 
 ![Transkriptionsfönstret över 2D Vy](../../assets/visp_tratt_popup_editor_audio_only.png)
 
-- **Tabb** / **Esc** spelar, pausar och stoppar.
+- **Tabb** / **Esc** spelar, pausar och stoppar. Att spela enheten i ungefär 0,2 s
+  markerar den som [verifierad](checking-your-work.md#verified-transcriptions).
 - **Alt + ←** och **Alt + →** sparar och stegar till föregående eller nästa
   enhet, snabbaste vägen genom en fil.
 - **Alt + ↓** sparar och stänger.

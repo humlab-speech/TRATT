@@ -35,7 +35,8 @@ the marker toolbar, and a text field.
 
 ![The transcription window over the 2D-Editor](../assets/visp_tratt_popup_editor_audio_only.png)
 
-- **Tab** / **Esc** play, pause and stop.
+- **Tab** / **Esc** play, pause and stop. Playing the unit for about 0.2 s marks
+  it [verified](checking-your-work.md#verified-transcriptions).
 - **Alt + ←** and **Alt + →** save and step to the previous or next unit; this is
   the fastest way through a file.
 - **Alt + ↓** saves and closes.

@@ -66,10 +66,13 @@ Alla dessa kan läsas tillbaka in i TRATT.
 | **Add timestamp at beginning of each sentence** | Sätter starttiden först i varje enhet |
 | **Collect annotations according to transcription tier in the output** | Visas när du valt fler än en nivå: grupperar utdata nivå för nivå i stället för att blanda |
 
-Varje mening börjar med ett färgat streck i den exporterade DOCX-filen: ett
+Varje mening börjar med ett färgat streck i de exporterade Word- (DOCX) och
+ODT-filerna, och en nyckelrad under tacktexten förklarar färgerna: ett
 **grönt** `|` markerar en transkription du verifierat (lyssnat på dess del av
 inspelningen, eller redigerat texten), ett **orange** `|` markerar en som
 fortfarande bara innehåller den automatiska transkriptionen.
+
+<a id="verification-marks"></a>
 
 ### Verifieringsmarkörer i tidsanpassade format
 

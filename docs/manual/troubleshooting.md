@@ -160,6 +160,12 @@ Normal after a reload. TRATT keeps transcripts but never media, so each recordin
 needs its audio pointed at again. An
 [exported archive](exporting.md#exporting-an-archive) restores both at once.
 
+**Everything came back orange**
+Intended. Transcripts stored before version 2.6, and any transcript rebuilt on
+resume before the 2.6 fixes, load as non-verified: TRATT cannot know who checked
+them. Listen to a unit or edit it and it turns green. See
+[Verified transcriptions](checking-your-work.md#verified-transcriptions).
+
 **"This doesn't look like the same file"**
 The file you picked differs from the one the entry was made from. The dialog shows
 both, so compare them. When only the modification time differs it is usually a
