@@ -48,6 +48,7 @@ import { ToolsModalComponent } from '../../modals/tools-modal/tools-modal.compon
 import { TranslateLinkedLevelModalComponent } from '../../modals/translate-linked-level-modal/translate-linked-level-modal.component';
 import { TrattModalService } from '../../modals/tratt-modal.service';
 import { YesNoModalComponent } from '../../modals/yes-no-modal/yes-no-modal.component';
+import { homeLinkFor } from '../../shared/home-link';
 import {
   AudioService,
   ManualLinkService,
@@ -69,7 +70,6 @@ import { RecordedFileService } from '../../shared/service/recorded-file.service'
 import { LoginMode } from '../../store';
 import { ApplicationStoreService } from '../../store/application/application-store.service';
 import { AuthenticationStoreService } from '../../store/authentication';
-import { isWorkbenchRoute } from '../../store/login-mode/annotation/annotation-load.effects';
 import { AnnotationStoreService } from '../../store/login-mode/annotation/annotation.store.service';
 import { DefaultComponent } from '../default.component';
 import { TrattLogoComponent } from '../tratt-logo/tratt-logo.component';
@@ -125,7 +125,7 @@ export class NavigationComponent extends DefaultComponent implements OnInit {
 
   /** The logo links to the start of the current mode (Språkbanken profile). */
   public get homeLink(): string {
-    return isWorkbenchRoute(this.router.url) ? '/workbench' : '/local';
+    return homeLinkFor(this.router.url);
   }
 
   public get AppInfo(): any {

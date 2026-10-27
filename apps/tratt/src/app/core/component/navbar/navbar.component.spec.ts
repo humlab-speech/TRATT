@@ -11,9 +11,7 @@ const ts = readFileSync(join(here, 'navbar.component.ts'), 'utf8');
 describe('NavigationComponent header shell', () => {
   it('logo links to the workbench on workbench routes, else /local', () => {
     expect(ts).toContain('public get homeLink(): string');
-    expect(ts).toContain(
-      "isWorkbenchRoute(this.router.url) ? '/workbench' : '/local'",
-    );
+    expect(ts).toContain('homeLinkFor(this.router.url)');
     expect(html).toContain('[routerLink]="homeLink"');
   });
 

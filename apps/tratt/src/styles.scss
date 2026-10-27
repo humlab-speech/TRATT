@@ -456,7 +456,6 @@ a {
     1px 1px 0 var(--tratt-surface-background) !important;
 }
 
-
 #editor-change-font-btn {
   border: 1px solid var(--tratt-border-control);
   padding: 3px;
@@ -519,5 +518,17 @@ ul.pagination.pagination-sm {
 @media (max-width: 1200px) {
   .transcr-window-dialog {
     max-width: 100% !important;
+  }
+}
+
+/* Below 768px the header centre slot wraps to a second row; keep content clear of it. */
+:root {
+  --tratt-header-center-row: 3rem;
+}
+@media (max-width: 767.98px) {
+  body:has(.tratt-header__center:not(:empty)) .tratt-main {
+    margin-top: calc(
+      var(--tratt-header-height) + var(--tratt-header-center-row)
+    );
   }
 }

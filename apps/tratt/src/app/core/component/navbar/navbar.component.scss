@@ -106,12 +106,6 @@
   display: block;
 }
 
-#build-information {
-  font-size: 0.75rem;
-  white-space: nowrap;
-  display: block;
-}
-
 .offcanvas-body * {
   font-size: 0.85rem;
 }
@@ -176,5 +170,9 @@
   .tratt-header__center {
     order: 3;
     inline-size: 100%;
+    block-size: var(--tratt-header-center-row);
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 }
