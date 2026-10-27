@@ -15,7 +15,7 @@ describe('UnsavedRecordingModalComponent', () => {
           preloadLangs: true,
         }),
       ],
-      providers: [{ provide: NgbActiveModal, useValue: { close: () => {} } }],
+      providers: [{ provide: NgbActiveModal, useValue: { close: jest.fn() } }],
     });
     const f = TestBed.createComponent(UnsavedRecordingModalComponent);
     f.detectChanges();
