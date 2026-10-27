@@ -110,5 +110,3 @@ directly), and columns can be dragged into a different order.
 ## Related
 
 - Ordinary export formats: [Exporting](exporting.md)
-- Merging turns by the same speaker (a different operation, in the TRN-Editor):
-  [The editors](the-editors.md#trn-editor--experimental)

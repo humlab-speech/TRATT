@@ -39,8 +39,8 @@ mixing them in is what makes the OCTRA manual hard for a first-time user.
   recordings" are the two ways of working, and a new page belongs in whichever
   one its reader is in. `NAV` in `scripts/build-manual.mjs` is the source of
   truth for the order.
-- **Say when something does not work.** This version of Tratt has an unfinished
-  TRN-Editor and an unreachable Tools dialog. Documenting them as working costs
+- **Say when something does not work.** This version of Tratt has an unreachable
+  Tools dialog. Documenting them as working costs
   more trust than the features are worth. When one is fixed, delete the caveat.
 - **Screenshots** live in `docs/assets/` and are referenced as `../assets/…` from
   the English pages and `../../assets/…` from the Swedish ones, so the pages render
@@ -215,7 +215,6 @@ resolved, remove the caveat in the same commit:
 | -------------------------------------------------------------------------------- | -------------------------------------------------------- |
 | Workbench reachable by URL only, with no entry of its own in the navigation bar  | `workbench.md`, `index.md`, `glossary.md`                |
 | Workbench has no name of its own in the interface, so the manual supplies one    | `workbench.md` (Swedish: "Arbetsbänken")                 |
-| TRN-Editor unfinished and not offered                                            | `the-editors.md`, `shortcuts.md`, `coming-from-octra.md` |
 | Tools dialog has no UI entry point (`openToolsModal()` has no caller)            | `using-tools.md`, `coming-from-octra.md`                 |
 | Guidelines window absent from the Workbench toolbar                              | `workbench.md`, `shortcuts.md`                           |
 | `/help-tools` not linked from anywhere                                           | `troubleshooting.md`, `privacy.md`                       |

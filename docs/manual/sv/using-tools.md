@@ -110,5 +110,3 @@ förväntar sig, och kolumner kan dras i annan ordning.
 ## Se även
 
 - Vanliga exportformat: [Exportera](exporting.md)
-- Att slå ihop turer av samma talare (en annan operation, i TRN-Editor):
-  [Vyerna](the-editors.md#trn-editor--experimental)

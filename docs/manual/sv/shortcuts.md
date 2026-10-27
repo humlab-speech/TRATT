@@ -104,21 +104,6 @@ visar alltid sanningen.
 
 ---
 
-## TRN-Editor-tabellen (experimentell)
-
-Listad för fullständighetens skull. TRN-Editor erbjuds inte i vyväljaren och är
-inte färdig; dess genvägar är inte inkopplade. Se
-[Vyerna](the-editors.md#trn-editor--experimental).
-
-| Tangenter | Åtgärd |
-| --- | --- |
-| **Enter** | Spara cellen och gå till nästa |
-| **Alt + ↑ / ↓ / ← / →** | Spara cellen och flytta i den riktningen |
-| **Ctrl/Cmd + A** | Markera alla segment |
-| **Ctrl/Cmd + Backsteg** | Ta bort de markerade segmenten helt |
-
----
-
 ## De tre du faktiskt behöver
 
 Allt ovan är referens. I det dagliga arbetet är det:

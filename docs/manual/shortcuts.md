@@ -102,21 +102,6 @@ shows the truth.
 
 ---
 
-## TRN-Editor table (experimental)
-
-Listed for completeness only. The TRN-Editor is not offered in the editor switcher
-and is unfinished; its shortcuts are not connected. See
-[The editors](the-editors.md#trn-editor--experimental).
-
-| Keys | Action |
-| --- | --- |
-| **Enter** | Save the cell and go to the next |
-| **Alt + ↑ / ↓ / ← / →** | Save the cell and move in that direction |
-| **Ctrl/Cmd + A** | Select all segments |
-| **Ctrl/Cmd + Backspace** | Remove the selected segments completely |
-
----
-
 ## The three you actually need
 
 Everything above is reference. Day to day it is:

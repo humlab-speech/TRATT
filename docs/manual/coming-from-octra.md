@@ -50,7 +50,7 @@ Tratt's interface.
 | --- | --- |
 | "Segment" | Usually "transcription unit" in the interface, though both words appear |
 | "Level" | Usually "tier", especially in the newer speaker and translation features |
-| Three editors | Still three in the switcher: 2D, Dictaphone, Linear. A fourth, the **TRN-Editor**, exists in the code but is unfinished and not offered; see [The editors](the-editors.md#trn-editor--experimental) |
+| Three editors | Still three in the switcher: 2D, Dictaphone, Linear |
 | The Tools dialog (combine units, cut audio) | Still present, but **not reachable from any button** in the current interface; see [Tools](using-tools.md) |
 | Manual link in the navigation bar | Still points at the OCTRA manual rather than at this one |
 

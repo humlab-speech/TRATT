@@ -52,7 +52,7 @@ Tratt:s gränssnitt.
 | --- | --- |
 | "Segment" | Oftast "transkriptionsenhet" i gränssnittet, även om båda orden förekommer |
 | "Level" | "Nivå", och "tier" i de nyare talar- och översättningsfunktionerna |
-| Tre vyer | Fortfarande tre i väljaren: 2D Vy, Diktafon-vy, Linjär vy. En fjärde, **TRN-Editor**, finns i koden men är ofärdig och erbjuds inte, se [Vyerna](the-editors.md#trn-editor--experimental) |
+| Tre vyer | Fortfarande tre i väljaren: 2D Vy, Diktafon-vy, Linjär vy |
 | Verktygsdialogen (kombinera enheter, klipp ljud) | Finns kvar, men **går inte att nå från någon knapp** i det nuvarande gränssnittet, se [Verktyg](using-tools.md) |
 | Manual-länken i navigeringslisten | Pekar numera på den här manualen, på gränssnittets språk |
 
