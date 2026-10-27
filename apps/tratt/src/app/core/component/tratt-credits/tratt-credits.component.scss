@@ -6,7 +6,7 @@
   margin: 2rem auto 0;
   padding: 1.25rem 1.5rem;
   border-top: 1px solid var(--tratt-border);
-  font-family: 'Noto Sans', sans-serif;
+  font-family: var(--tratt-font-data);
 
   h2 {
     font-size: 0.8125rem;
@@ -31,6 +31,7 @@
 
   a {
     color: var(--tratt-interactive-text);
+    text-decoration: underline;
   }
 }
 @media (max-width: 767.98px) {

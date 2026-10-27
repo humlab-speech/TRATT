@@ -33,6 +33,7 @@
       <button
         (mousedown)="onButtonClick('replay')"
         [ngClass]="{ active: replay }"
+        [attr.aria-pressed]="replay"
         class="btn btn-icon"
         name="replay"
         [title]="'g.replay' | transloco"

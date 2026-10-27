@@ -44,6 +44,7 @@ describe('NavigationComponent header shell', () => {
       html.indexOf('@if (appStorage.useMode === LoginMode.URL)'),
     );
     const embedded = branch.slice(0, branch.indexOf('} @else {'));
+    expect(embedded).toContain('<tratt-logo [tagline]="false" />');
     const linked = branch.slice(branch.indexOf('} @else {'));
     expect(embedded).toContain(
       '<span class="navbar-brand tratt-header__brand">',

@@ -270,8 +270,7 @@ resolved, remove the caveat in the same commit:
 
 Fixed since the manual was first written, and no longer mentioned: the cloud
 ASR/MAUS feature (removed from the app), the raw `modal.shortcuts.cycle_speaker`
-key in the Shortcuts window, the GitHub link (now under **About Tratt** and in
-the footer), the Workbench being gated to development builds, and the Workbench
+key in the Shortcuts window, the GitHub link (now under **About Tratt**), the Workbench being gated to development builds, and the Workbench
 having no header link or name of its own.
 
 ## Facts that will go out of date

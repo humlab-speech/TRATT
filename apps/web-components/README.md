@@ -4,7 +4,7 @@ This library offers the same components from @tratt/ngx-components without the l
 
 ## Installation
 
-Spelaren och visaren ritas på en kanvas. De läser `--tratt-*`-variablerna om sidan definierar dem och faller annars tillbaka på Språkbankens färger. Typsnittet är Noto Sans om sidan laddar det, annars Arial.
+The player and viewer draw on a canvas. They read the `--tratt-*` variables if the page defines them and otherwise fall back to the Språkbanken colours. The font is Noto Sans if the page loads it, otherwise Arial.
 
 ### Vanilla JS (plain Javascript)
 

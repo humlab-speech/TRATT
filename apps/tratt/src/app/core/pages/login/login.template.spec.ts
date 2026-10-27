@@ -67,7 +67,12 @@ describe('login template (Språkbanken profile, /local)', () => {
       for (const b of bars) {
         expect(b).toContain('aria-valuemin="0"');
         expect(b).toContain('aria-valuemax="100"');
-        expect(b).toMatch(/aria-valuenow="100"|\[attr\.aria-valuenow\]=/);
+        // The indeterminate bar (striped, animated) has no value by design.
+        if (!b.includes('progress-bar-animated')) {
+          expect(b).toMatch(/aria-valuenow="100"|\[attr\.aria-valuenow\]=/);
+        } else {
+          expect(b).not.toContain('aria-valuenow');
+        }
         expect(b).toContain('[attr.aria-label]=');
       }
     });
