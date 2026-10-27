@@ -1,3 +1,15 @@
+// Fonts are self-hosted: TRATT promises no external requests once loaded.
+// Jost* = headings and UI, Noto Sans = data, Noto Serif = body text
+// (Språkbanken graphic profile, spec section 4).
+@use '@fontsource/jost/300.css' as f_jost_300;
+@use '@fontsource/jost/400.css' as f_jost_400;
+@use '@fontsource/jost/500.css' as f_jost_500;
+@use '@fontsource/jost/700.css' as f_jost_700;
+@use '@fontsource/noto-sans/400.css' as f_noto_sans_400;
+@use '@fontsource/noto-sans/600.css' as f_noto_sans_600;
+@use '@fontsource/noto-serif/400.css' as f_noto_serif_400;
+@use '@fontsource/noto-serif/400-italic.css' as f_noto_serif_400_italic;
+@use '@fontsource/noto-serif/700.css' as f_noto_serif_700;
 @use 'bootstrap/scss/bootstrap';
 @use '@fortawesome/fontawesome-free/css/all.css';
 
