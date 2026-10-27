@@ -41,3 +41,66 @@ export const TRATT_COLORS = {
 export const TRATT_FONTS = {
   data: '"Noto Sans", Arial, sans-serif',
 } as const;
+
+type CanvasKey =
+  | 'surfaceBackground'
+  | 'waveformSignal'
+  | 'segmentTranscribed'
+  | 'segmentSelected'
+  | 'boundary'
+  | 'playhead'
+  | 'border'
+  | 'grid'
+  | 'textPrimary'
+  | 'textMuted'
+  | 'interactive';
+
+const CSS_VARS: Record<CanvasKey, string> = {
+  surfaceBackground: '--tratt-waveform-background',
+  waveformSignal: '--tratt-waveform-signal',
+  segmentTranscribed: '--tratt-segment-transcribed',
+  segmentSelected: '--tratt-segment-selected',
+  boundary: '--tratt-boundary',
+  playhead: '--tratt-playhead',
+  border: '--tratt-border',
+  grid: '--tratt-canvas-grid',
+  textPrimary: '--tratt-canvas-text',
+  textMuted: '--tratt-text-muted',
+  interactive: '--tratt-interactive',
+};
+
+export type TrattCanvasColors = Record<CanvasKey, string>;
+
+/**
+ * Current canvas colours: CSS custom properties win, TRATT_COLORS is the
+ * fallback (no DOM, or the app's stylesheet is not loaded).
+ */
+export function resolveTrattColors(el?: Element | null): TrattCanvasColors {
+  const target =
+    el ?? (typeof document !== 'undefined' ? document.documentElement : null);
+  const cs =
+    target && typeof getComputedStyle === 'function'
+      ? getComputedStyle(target)
+      : null;
+  const out = {} as TrattCanvasColors;
+  for (const key of Object.keys(CSS_VARS) as CanvasKey[]) {
+    out[key] = cs?.getPropertyValue(CSS_VARS[key]).trim() || TRATT_COLORS[key];
+  }
+  return out;
+}
+
+/** Calls `cb` whenever <html data-bs-theme> changes. Returns an unsubscribe. */
+export function observeTheme(cb: () => void): () => void {
+  if (
+    typeof MutationObserver === 'undefined' ||
+    typeof document === 'undefined'
+  ) {
+    return () => undefined;
+  }
+  const mo = new MutationObserver(cb);
+  mo.observe(document.documentElement, {
+    attributes: true,
+    attributeFilter: ['data-bs-theme'],
+  });
+  return () => mo.disconnect();
+}

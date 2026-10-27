@@ -15,7 +15,7 @@ import { SubscriptionManager } from '@tratt/utilities';
 import { AudioChunk } from '@tratt/web-media';
 import Konva from 'konva';
 import { Subscription, timer } from 'rxjs';
-import { TRATT_COLORS } from '../../../obj';
+import { observeTheme, resolveTrattColors, TRATT_COLORS } from '../../../obj';
 import { AudioplayerSettings } from './audioplayer-settings';
 import KonvaEventObject = Konva.KonvaEventObject;
 
@@ -52,6 +52,7 @@ export class AudioplayerComponent
     playHead: undefined,
   };
   private audiochunkSubscription: Subscription | undefined;
+  private stopThemeObserver?: () => void;
 
   private _settings: AudioplayerSettings = {
     slider: {
@@ -162,6 +163,8 @@ export class AudioplayerComponent
 
   ngAfterViewInit(): void {
     const settings = this._settings;
+    this.applyTheme();
+    this.stopThemeObserver = observeTheme(() => this.applyTheme());
 
     if (this.konvaContainer !== undefined && this.width !== undefined) {
       this.stage = new Konva.Stage({
@@ -202,7 +205,7 @@ export class AudioplayerComponent
           settings.slider.margin.left -
           settings.slider.margin.right,
         height: settings.slider.height,
-        fill: TRATT_COLORS.interactive,
+        fill: resolveTrattColors().interactive,
       });
 
       this.canvasElements.sliderBar.on('click', this.onSliderClick);
@@ -321,7 +324,21 @@ export class AudioplayerComponent
     }
   }
 
+  /** Writes the current theme colours into the settings and shapes. */
+  private applyTheme(): void {
+    const c = resolveTrattColors();
+    this._settings.playHead.backgroundColor = c.playhead;
+    this._settings.border.color = c.border;
+    this._settings.background.color = c.surfaceBackground;
+    this.canvasElements.panel?.fill(c.surfaceBackground);
+    this.canvasElements.panel?.stroke(c.border);
+    this.canvasElements.sliderBar?.fill(c.interactive);
+    this.canvasElements.playHead?.fill(c.playhead);
+    this.backgroundLayer?.batchDraw();
+  }
+
   public ngOnDestroy(): void {
+    this.stopThemeObserver?.();
     if (this.audiochunkSubscription !== undefined) {
       this.audiochunkSubscription.unsubscribe();
     }

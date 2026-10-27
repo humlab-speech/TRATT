@@ -20,7 +20,10 @@ import { ReplaySubject, Subject } from 'rxjs';
 import { Subscription } from 'rxjs/internal/Subscription';
 import { MultiThreadingService } from '../../../multi-threading.service';
 import { PlayCursor } from '../../../obj/play-cursor';
-import { TRATT_COLORS } from '../../../obj/tratt-colors';
+import {
+  observeTheme,
+  resolveTrattColors,
+} from '../../../obj/tratt-colors';
 import {
   AudioViewerInteractionService,
   type AudioViewerInteractionHost,
@@ -37,7 +40,7 @@ import {
 } from './audio-viewer-segments.service';
 import { AudioViewerTimeUtils } from './audio-viewer-time-utils';
 import { AudioViewerShortcutEvent } from './audio-viewer.component';
-import { AudioviewerConfig } from './audio-viewer.config';
+import { applyThemeColors, AudioviewerConfig } from './audio-viewer.config';
 
 @Injectable()
 export class AudioViewerService {
@@ -309,6 +312,7 @@ export class AudioViewerService {
   }
 
   private _settings = new AudioviewerConfig();
+  private stopThemeObserver?: () => void;
 
   get settings(): AudioviewerConfig {
     return this._settings;
@@ -323,6 +327,7 @@ export class AudioViewerService {
    * rather than replaced, pushing the same object reference into the
    * renderer keeps its copy in sync automatically without a proxy. */
   set settings(value: AudioviewerConfig) {
+    applyThemeColors(value, resolveTrattColors());
     this._settings = value;
     this.canvasRenderer.settings = value;
   }
@@ -608,6 +613,12 @@ export class AudioViewerService {
 
       this.shortcutsManager.clearShortcuts();
       this.shortcutsManager.registerShortcutGroup(this.settings.shortcuts);
+
+      this.stopThemeObserver?.();
+      this.stopThemeObserver = observeTheme(() => {
+        applyThemeColors(this._settings, resolveTrattColors());
+        this.redraw();
+      });
     }
   }
 
@@ -798,6 +809,8 @@ export class AudioViewerService {
    * destroy this audioviewer object
    */
   public destroy() {
+    this.stopThemeObserver?.();
+    this.stopThemeObserver = undefined;
     this.subscrManager.destroy();
     this.interaction.destroy();
     this.canvasRenderer.stage?.destroy();
@@ -1021,7 +1034,7 @@ export class AudioViewerService {
         if (boundarySelect) {
           this.audioChunk.selection = boundarySelect;
           this.drawnSelection = boundarySelect.clone();
-          this.settings.selection.color = TRATT_COLORS.segmentSelected;
+          this.settings.selection.color = resolveTrattColors().segmentSelected;
           this.audioChunk.absolutePlayposition =
             this.audioChunk.selection.start.clone();
           this.changePlayCursorSamples(this.audioChunk.selection.start);

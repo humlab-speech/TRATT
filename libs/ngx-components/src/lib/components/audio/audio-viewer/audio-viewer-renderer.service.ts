@@ -33,7 +33,11 @@ import { Text } from 'konva/lib/shapes/Text';
 // `tratt-colors.ts` and `play-cursor.ts` have no such dependency.
 import { Position, Size } from '../../../obj/objects';
 import { PlayCursor } from '../../../obj/play-cursor';
-import { TRATT_COLORS, TRATT_FONTS } from '../../../obj/tratt-colors';
+import {
+  resolveTrattColors,
+  TRATT_COLORS,
+  TRATT_FONTS,
+} from '../../../obj/tratt-colors';
 import { AudioViewerTimeUtils } from './audio-viewer-time-utils';
 import {
   cycleNextSpeaker,
@@ -1037,7 +1041,7 @@ export class AudioViewerRendererService {
         this.settings.playcursor.width / 2,
         this.settings.lineheight,
       ],
-      stroke: TRATT_COLORS.textPrimary,
+      stroke: resolveTrattColors().textPrimary,
       strokeWidth: 2,
       transformsEnabled: 'position',
     });
