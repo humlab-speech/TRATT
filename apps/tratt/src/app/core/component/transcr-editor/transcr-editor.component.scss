@@ -86,5 +86,5 @@ tratt-transcr-editor ngx-jodit .jodit-workplace {
 }
 
 .jodit-toolbar__box .jodit-toolbar-content {
-  border: 1px solid gray !important;
+  border: 1px solid var(--tratt-border-control) !important;
 }

@@ -483,7 +483,7 @@ export class TranscrEditorComponent
       validationError.setAttribute('class', 'card error-card');
       validationError.innerHTML = `
       <div class="card-header" style="padding:5px 10px; font-weight: bold;background-color:var(--tratt-surface-background);">
-      <span style="color:red;">( ! )</span> <span class="error-title"></span></div>
+      <span style="color:var(--tratt-danger-text);">( ! )</span> <span class="error-title"></span></div>
       <div class="card-body" style="padding:5px 10px;"></div>
       `;
       setStyle(validationError, {
@@ -1508,7 +1508,7 @@ export class TranscrEditorComponent
         const time = new SampleUnit(samples, this.audioManager.sampleRate);
         this.renderer.setStyle(segPopover, 'z-index', 30);
         this.renderer.setStyle(segPopover, 'position', 'absolute');
-        this.renderer.setStyle(segPopover, 'background-color', 'white');
+        this.renderer.setStyle(segPopover, 'background-color', 'var(--tratt-surface-page)');
         this.renderer.setStyle(segPopover, 'display', 'inherit');
         this.renderer.setStyle(segPopover, 'box-shadow', '0px 0px 10px gray');
 

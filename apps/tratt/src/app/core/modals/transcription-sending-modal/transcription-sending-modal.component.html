@@ -14,7 +14,7 @@
   </div>
   <div class="modal-body">
     {{ 'modal.transcription.sending.text' | transloco }}<br /><br />
-    <div style="color: red">{{ error }}</div>
+    <div style="color: var(--tratt-danger-text)">{{ error }}</div>
     @if (error === '') {
       <div class="text-success" style="text-align: center; display: block">
         {{ 'g.submission success' | transloco }}

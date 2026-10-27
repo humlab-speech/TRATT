@@ -12,9 +12,9 @@
     <tbody>
       <tr>
         <td>{{ numberOfSegments }}</td>
-        <td class="bg-success">{{ transcrSegments }}</td>
-        <td class="bg-info">{{ pauseSegments }}</td>
-        <td class="bg-danger">
+        <td class="tratt-state-success">{{ transcrSegments }}</td>
+        <td class="tratt-state-info">{{ pauseSegments }}</td>
+        <td class="tratt-state-danger">
           <b
             ><u>{{ emptySegments }}</u></b
           >
@@ -71,7 +71,7 @@
         width: 100%;
       "
     >
-      <i class="fa-solid fa-spinner fa-spin" style="font-size: 32px"></i>
+      <i class="fa-solid fa-spinner fa-spin" style="font-size: 2rem"></i>
     </div>
   </div>
   @if (shownSegments.length > 0) {
@@ -104,17 +104,17 @@
               #row
               class="segment-row"
               [ngClass]="{
-                'bg-success':
+                'tratt-state-success':
                   segment.transcription.text.trim() !== '' &&
                   (!annotationStoreService.breakMarker ||
                     segment.transcription.text !==
                       annotationStoreService.breakMarker!.code),
-                'bg-info':
+                'tratt-state-info':
                   annotationStoreService.breakMarker &&
                   (segment.transcription.text ===
                     annotationStoreService.breakMarker!.code ||
                     segment.transcription.text.trim() === ''),
-                'bg-danger':
+                'tratt-state-danger':
                   segment.transcription.text.trim() === '' &&
                   !annotationStoreService.breakMarker,
                 'bg-highlight': playAllState.currentSegment === i,
@@ -123,16 +123,16 @@
               <td
                 class="segment-number"
                 [ngClass]="{
-                  'bg-success':
+                  'tratt-state-success':
                     segment.transcription.text !== '' &&
                     (!annotationStoreService.breakMarker ||
                       segment.transcription.text !==
                         annotationStoreService.breakMarker!.code),
-                  'bg-info':
+                  'tratt-state-info':
                     annotationStoreService.breakMarker &&
                     segment.transcription.text ===
                       annotationStoreService.breakMarker!.code,
-                  'bg-danger': segment.transcription.text === '',
+                  'tratt-state-danger': segment.transcription.text === '',
                   'bg-highlight': playAllState.currentSegment === i,
                 }"
               >
@@ -157,16 +157,16 @@
               ) {
                 <td
                   [ngClass]="{
-                    'bg-success':
+                    'tratt-state-success':
                       segment.transcription.text !== '' &&
                       (!annotationStoreService.breakMarker ||
                         segment.transcription.text !==
                           annotationStoreService.breakMarker!.code),
-                    'bg-info':
+                    'tratt-state-info':
                       annotationStoreService.breakMarker &&
                       segment.transcription.text ===
                         annotationStoreService.breakMarker!.code,
-                    'bg-danger': segment.transcription.text === '',
+                    'tratt-state-danger': segment.transcription.text === '',
                     'bg-highlight': playAllState.currentSegment === i,
                   }"
                 >
@@ -201,16 +201,16 @@
                 <td
                   style="position: relative"
                   [ngClass]="{
-                    'bg-success':
+                    'tratt-state-success':
                       segment.transcription.text !== '' &&
                       (!annotationStoreService.breakMarker ||
                         segment.transcription.text !==
                           annotationStoreService.breakMarker!.code),
-                    'bg-info':
+                    'tratt-state-info':
                       annotationStoreService.breakMarker &&
                       segment.transcription.text ===
                         annotationStoreService.breakMarker!.code,
-                    'bg-danger': segment.transcription.text === '',
+                    'tratt-state-danger': segment.transcription.text === '',
                     'bg-highlight': playAllState.currentSegment === i,
                   }"
                   class="segment-transcript"
@@ -234,7 +234,7 @@
                     ) {
                       <span
                         class="verification-marker"
-                        [style.color]="segment.verified ? '#5AA018' : '#F0581A'"
+                        [style.color]="segment.verified ? 'var(--tratt-success)' : 'var(--tratt-next)'"
                         >|
                       </span>
                     }
@@ -248,16 +248,16 @@
                 <td
                   class="speaker-column"
                   [ngClass]="{
-                    'bg-success':
+                    'tratt-state-success':
                       segment.transcription.text !== '' &&
                       (!annotationStoreService.breakMarker ||
                         segment.transcription.text !==
                           annotationStoreService.breakMarker!.code),
-                    'bg-info':
+                    'tratt-state-info':
                       annotationStoreService.breakMarker &&
                       segment.transcription.text ===
                         annotationStoreService.breakMarker!.code,
-                    'bg-danger': segment.transcription.text === '',
+                    'tratt-state-danger': segment.transcription.text === '',
                     'bg-highlight': playAllState.currentSegment === i,
                   }"
                 >
@@ -267,16 +267,16 @@
               <td
                 class="last-column"
                 [ngClass]="{
-                  'bg-success':
+                  'tratt-state-success':
                     segment.transcription.text !== '' &&
                     (!annotationStoreService.breakMarker ||
                       segment.transcription.text !==
                         annotationStoreService.breakMarker!.code),
-                  'bg-info':
+                  'tratt-state-info':
                     annotationStoreService.breakMarker &&
                     segment.transcription.text ===
                       annotationStoreService.breakMarker!.code,
-                  'bg-danger': segment.transcription.text === '',
+                  'tratt-state-danger': segment.transcription.text === '',
                   'bg-highlight': playAllState.currentSegment === i,
                 }"
               >

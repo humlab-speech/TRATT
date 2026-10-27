@@ -38,7 +38,7 @@
 <div class="flex">
   <span id="saving">
     @if (saving === 'saving') {
-      <i class="fa-solid fa-floppy-disk" style="color: #333333"></i>
+      <i class="fa-solid fa-floppy-disk" style="color: var(--tratt-text-primary)"></i>
     }
     @if (saving === 'error') {
       <i
@@ -192,7 +192,7 @@
         @if (useMode === 'online' || useMode === 'demo') {
           <button
             (click)="onSendButtonClick()"
-            class="col-md-6 btn btn-primary"
+            class="col-md-6 btn btn-next"
             type="button"
           >
             @if (!appStorage.easyMode) {
