@@ -421,6 +421,10 @@
       "diarization failed": "Talarseparation misslyckades: {{message}}"
     },
     "app description": "Tratt är ett fritt tillgängligt webbprogram för transkription av talinspelningar till text (ortografiskt). Det har tre olika redigerare som tillgodoser olika behov vid transkribering, och du kan fritt växla mellan dem under en session.",
+    "hero": {
+      "part_of": "Ett verktyg i Visp – Språkbankens talforskningsplattform",
+      "privacy": "Inspelningen lämnar aldrig din dator. Även den automatiska transkriberingen körs lokalt."
+    },
     "funding support and development": "Finansiärer och samarbeten",
     "groups that developed the language models": "Utvecklare av språkmodellerna som används",
     "tabs": {

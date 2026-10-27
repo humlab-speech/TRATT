@@ -455,6 +455,10 @@
       "norwegian fine-tuned hint": "Norwegian uses a model optimised for Norwegian speech."
     },
     "app description": "Tratt is a free web-application for plain text (orthographic) transcription of speech recordings. It has three different editors that cater for different needs when transcribing, and you may switch between them freely in a session.",
+    "hero": {
+      "part_of": "A tool in Visp – Språkbanken's speech research platform",
+      "privacy": "Your recording never leaves your computer. Automatic transcription runs locally too."
+    },
     "funding support and development": "Funders and collaborations",
     "groups that developed the language models": "Developers of the language models used"
   },

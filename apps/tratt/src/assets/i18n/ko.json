@@ -332,6 +332,10 @@
       "speaker separation label": "화자 분리"
     },
     "app description": "Tratt는 음성 녹음을 일반 텍스트(정자법)로 전사하기 위한 무료 웹 애플리케이션입니다. 전사 시 다양한 요구에 맞는 세 가지 편집기를 제공하며, 세션 중에 자유롭게 전환할 수 있습니다.",
+    "hero": {
+      "part_of": "A tool in Visp – Språkbanken's speech research platform",
+      "privacy": "Your recording never leaves your computer. Automatic transcription runs locally too."
+    },
     "funding support and development": "후원자 및 협력",
     "groups that developed the language models": "사용된 언어 모델 개발자",
     "tabs": {

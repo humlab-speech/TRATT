@@ -16,11 +16,11 @@ h4 {
 
 /*noinspection ALL*/
 .ng-touched .ng-invalid {
-  border-bottom: 2px solid red;
+  border-bottom: 2px solid var(--tratt-danger);
 }
 
 #login-disabled {
-  border: 1px solid gray;
+  border: 1px solid var(--tratt-border-control);
   padding: 10px;
   text-align: center;
 }
@@ -56,9 +56,47 @@ h4,
 }
 
 .login-card {
-  padding: 50px;
+  padding: 3rem;
 }
 
 .feature {
   text-align: center;
+}
+
+.local-hero {
+  max-inline-size: 60rem;
+  margin: 0 auto;
+  padding: 3rem 1.5rem 1.5rem;
+}
+.local-hero__context {
+  font-weight: 500;
+  font-size: 0.875rem;
+  color: var(--tratt-text-muted);
+  margin-bottom: 0.75rem;
+}
+.local-hero__title {
+  line-height: 1.1;
+  margin-bottom: 1rem;
+}
+.local-hero__lead {
+  font-size: 1rem;
+  max-inline-size: 46rem;
+}
+.local-hero__privacy {
+  display: flex;
+  gap: 0.55rem;
+  align-items: center;
+  font-size: 0.9375rem;
+}
+.local-hero__privacy i {
+  color: var(--tratt-next);
+}
+
+.local-card {
+  max-inline-size: 60rem;
+  margin: 0 auto 3rem;
+  padding: 1.25rem 2rem 2rem;
+  border: 0;
+  border-radius: 0.5rem;
+  background: var(--tratt-surface-subtle);
 }

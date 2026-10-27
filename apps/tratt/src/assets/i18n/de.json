@@ -418,6 +418,10 @@
       "speaker separation label": "Sprechertrennung"
     },
     "app description": "Tratt ist eine kostenlose Web-Anwendung für die Klartexttranskription (Orthografie) von Sprachaufnahmen. Sie bietet drei verschiedene Editoren für unterschiedliche Bedürfnisse beim Transkribieren, und Sie können während einer Sitzung frei zwischen ihnen wechseln.",
+    "hero": {
+      "part_of": "A tool in Visp – Språkbanken's speech research platform",
+      "privacy": "Your recording never leaves your computer. Automatic transcription runs locally too."
+    },
     "funding support and development": "Förderer und Kooperationen",
     "groups that developed the language models": "Entwickler der verwendeten Sprachmodelle",
     "tabs": {

@@ -332,6 +332,10 @@
       "speaker separation label": "Sprekerscheiding"
     },
     "app description": "Tratt is een gratis webapplicatie voor transcriptie van spraakopnamen in platte tekst (orthografisch). Het beschikt over drie verschillende editors die tegemoetkomen aan uiteenlopende behoeften bij het transcriberen, en u kunt er tijdens een sessie vrij tussen wisselen.",
+    "hero": {
+      "part_of": "A tool in Visp – Språkbanken's speech research platform",
+      "privacy": "Your recording never leaves your computer. Automatic transcription runs locally too."
+    },
     "funding support and development": "Financiers en samenwerkingen",
     "groups that developed the language models": "Ontwikkelaars van de gebruikte taalmodellen",
     "tabs": {

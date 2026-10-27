@@ -332,6 +332,10 @@
       "speaker separation label": "Separazione dei parlanti"
     },
     "app description": "Tratt è un'applicazione web gratuita per la trascrizione in testo normale (ortografica) di registrazioni vocali. Dispone di tre editor diversi che soddisfano esigenze differenti durante la trascrizione e permette di passare liberamente da uno all'altro nel corso di una sessione.",
+    "hero": {
+      "part_of": "A tool in Visp – Språkbanken's speech research platform",
+      "privacy": "Your recording never leaves your computer. Automatic transcription runs locally too."
+    },
     "funding support and development": "Finanziatori e collaborazioni",
     "groups that developed the language models": "Sviluppatori dei modelli linguistici utilizzati",
     "tabs": {

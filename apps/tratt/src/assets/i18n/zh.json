@@ -332,6 +332,10 @@
       "speaker separation label": "说话人分离"
     },
     "app description": "Tratt是一款免费的网络应用程序，用于将语音录音转录为纯文本（正字法）。它提供三种不同的编辑器以满足不同的转录需求，您可以在同一会话中自由切换。",
+    "hero": {
+      "part_of": "A tool in Visp – Språkbanken's speech research platform",
+      "privacy": "Your recording never leaves your computer. Automatic transcription runs locally too."
+    },
     "funding support and development": "资助方与合作",
     "groups that developed the language models": "所用语言模型的开发者",
     "tabs": {
