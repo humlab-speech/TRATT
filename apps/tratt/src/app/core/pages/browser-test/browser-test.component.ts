@@ -40,7 +40,7 @@ export class BrowserTestComponent {
       case 'failed':
         return TRATT_COLORS.accentError;
       case 'ok':
-        return TRATT_COLORS.accentGreen;
+        return TRATT_COLORS.accentSuccess;
     }
     return 'processing';
   }

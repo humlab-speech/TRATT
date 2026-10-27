@@ -202,7 +202,7 @@ export class AudioplayerComponent
           settings.slider.margin.left -
           settings.slider.margin.right,
         height: settings.slider.height,
-        fill: TRATT_COLORS.chrome,
+        fill: TRATT_COLORS.interactive,
       });
 
       this.canvasElements.sliderBar.on('click', this.onSliderClick);

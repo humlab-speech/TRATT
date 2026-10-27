@@ -1,45 +1,43 @@
 /**
- * Canvas colours for the signal displays.
+ * Canvas colours for the signal displays (Språkbanken profile).
  *
- * The audio viewer paints to a `<canvas>`, which cannot read the CSS custom
- * properties in apps/tratt/src/styles.scss — so the tokens are mirrored here.
- * Keep the two files in sync.
+ * <canvas> cannot read CSS custom properties directly, so these mirror the
+ * literal canvas tokens in apps/tratt/src/styles/_tokens.scss. At runtime
+ * `resolveTrattColors()` (task 23) prefers the CSS values, so the two only
+ * have to agree for the library's standalone fallback.
  */
 export const TRATT_COLORS = {
-  /** Waveform canvas and panel backgrounds. VISP $white. */
   surfaceBackground: '#FFFFFF',
-  /** Page canvas behind the editors. VISP $tertiary-light. */
-  surfacePage: '#EEF0F4',
-  /** Structural chrome: toolbars, scrollbar selector. UMU "Blå". */
-  chrome: '#2A4765',
-  /** VISP $primary-light. */
-  chromeHover: '#3C6289',
-  /** Primary action. VISP $secondary. */
-  cta: '#D47752',
-  /** VISP $dark-font-color. */
-  textPrimary: '#1F3044',
-  /** Hairlines and frames. VISP $border-light. */
-  border: '#D4D9E0',
+  surfacePage: '#FFFFFF',
+  border: '#D9D9D9',
+  grid: '#D9D9D9',
+  textPrimary: '#1A1A1A',
+  textMuted: '#595959',
+  /** Interactive elements (scroll selector, sliders). Brand blue. */
+  interactive: '#1E989F',
+  /** The audio signal itself. Neutral grey: data, not interaction. */
+  waveformSignal: '#595959',
+  segmentTranscribed: 'rgba(0, 0, 0, 0.05)',
+  segmentSelected: 'rgba(30, 152, 159, 0.14)',
+  /** Segment boundaries are draggable, hence interactive blue. */
+  boundary: '#1E989F',
+  /** Playhead: a graphic element, hence brand orange (red is for errors). */
+  playhead: '#F0581A',
+  accentSuccess: '#5AA018',
+  accentWarning: '#F6C200',
+  accentError: '#D42225',
+  /** @deprecated Use `interactive`. */
+  chrome: '#187A7F',
+  /** @deprecated Use `interactive`. */
+  chromeHover: '#187A7F',
+  /** @deprecated Use `playhead` or `accentSuccess`. */
+  cta: '#C04615',
+  /** @deprecated Use `accentSuccess`. */
+  accentGreen: '#5AA018',
+  /** @deprecated */
+  accentGreenDark: '#488013',
+} as const;
 
-  /** The audio signal itself. */
-  waveformSignal: 'rgba(42, 71, 101, 0.8)',
-  /** Fill marking a segment that already has a transcript. */
-  segmentTranscribed: 'rgba(60, 98, 137, 0.15)',
-  /** Playhead / cursor. VISP $crimson. */
-  playhead: '#D7263D',
-
-  /** Status. Green is status-only now, not chrome. UMU "Barrskog". */
-  accentSuccess: '#3D6B5C',
-  /** UMU "Guld". */
-  accentWarning: '#D7B17C',
-  /** VISP $crimson. */
-  accentError: '#D7263D',
-
-  /**
-   * @deprecated Green is no longer structural. Use `chrome` for toolbars and
-   * `accentSuccess` for status.
-   */
-  accentGreen: '#2A4765',
-  /** @deprecated Use `chromeHover`. */
-  accentGreenDark: '#3C6289',
+export const TRATT_FONTS = {
+  data: '"Noto Sans", Arial, sans-serif',
 } as const;

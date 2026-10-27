@@ -33,7 +33,7 @@ import { Text } from 'konva/lib/shapes/Text';
 // `tratt-colors.ts` and `play-cursor.ts` have no such dependency.
 import { Position, Size } from '../../../obj/objects';
 import { PlayCursor } from '../../../obj/play-cursor';
-import { TRATT_COLORS } from '../../../obj/tratt-colors';
+import { TRATT_COLORS, TRATT_FONTS } from '../../../obj/tratt-colors';
 import { AudioViewerTimeUtils } from './audio-viewer-time-utils';
 import {
   cycleNextSpeaker,
@@ -129,25 +129,34 @@ const DEFAULT_RENDER_SETTINGS: AudioViewerRenderSettings = {
   pixelPerSec: 50,
   cropping: 'none',
   lineheight: 60,
-  backgroundcolor: '#ffffff',
+  backgroundcolor: TRATT_COLORS.surfaceBackground,
   roundValues: true,
   showTimePerLine: false,
   showTranscripts: false,
   showProgressBars: false,
   margin: { top: 0, right: 0, bottom: 0, left: 0 },
-  cursor: { color: '#000000', fixed: false },
+  cursor: { color: TRATT_COLORS.playhead, fixed: false },
   scrollbar: {
     enabled: false,
     width: 20,
-    background: { color: '#ffffff', stroke: 'gray', strokeWidth: 1 },
-    selector: { color: '#000000', stroke: 'gray', strokeWidth: 1, width: 20 },
+    background: {
+      color: TRATT_COLORS.surfaceBackground,
+      stroke: TRATT_COLORS.border,
+      strokeWidth: 1,
+    },
+    selector: {
+      color: TRATT_COLORS.interactive,
+      stroke: TRATT_COLORS.border,
+      strokeWidth: 1,
+      width: 20,
+    },
   },
-  playcursor: { height: 20, width: 10, color: '#000000' },
-  boundaries: { enabled: true, readonly: false, width: 3, color: '#000000' },
-  grid: { color: 'rgb(224, 224, 224)' },
-  data: { color: '#000000' },
-  selection: { enabled: true, color: 'gray' },
-  frame: { color: '#000000' },
+  playcursor: { height: 20, width: 10, color: TRATT_COLORS.playhead },
+  boundaries: { enabled: true, readonly: false, width: 3, color: TRATT_COLORS.boundary },
+  grid: { color: TRATT_COLORS.grid },
+  data: { color: TRATT_COLORS.waveformSignal },
+  selection: { enabled: true, color: TRATT_COLORS.segmentSelected },
+  frame: { color: TRATT_COLORS.border },
   timeline: { enabled: false, height: 15 },
 };
 
@@ -334,19 +343,19 @@ export class AudioViewerRendererService {
       width: 10,
     },
     caret: {
-      strokeColor: 'red',
+      strokeColor: TRATT_COLORS.playhead,
       strokeWidth: 1,
     },
     height: 200,
     border: {
       width: 1,
-      color: '#b5b5b5',
+      color: TRATT_COLORS.textMuted,
     },
     background: {
       color: TRATT_COLORS.surfaceBackground,
     },
     grid: {
-      strokeColor: 'gray',
+      strokeColor: TRATT_COLORS.border,
       strokeWidth: 1,
     },
     signal: {
@@ -1028,7 +1037,7 @@ export class AudioViewerRendererService {
         this.settings.playcursor.width / 2,
         this.settings.lineheight,
       ],
-      stroke: 'black',
+      stroke: TRATT_COLORS.textPrimary,
       strokeWidth: 2,
       transformsEnabled: 'position',
     });
@@ -1073,12 +1082,12 @@ export class AudioViewerRendererService {
       this.croppingData !== undefined
     ) {
       const shadowCircle = new Circle({
-        stroke: '#555555',
+        stroke: TRATT_COLORS.boundary,
         strokeWidth: 1,
         x: this.croppingData.x,
         y: this.croppingData.y,
         radius: this.croppingData.radius,
-        shadowColor: 'gray',
+        shadowColor: 'rgba(0, 0, 0, 0.25)',
         shadowEnabled: true,
         shadowBlur: 5,
         shadowOffset: { x: 2.5, y: 0 },
@@ -1087,7 +1096,7 @@ export class AudioViewerRendererService {
       result.add(shadowCircle);
       result.add(lineGroup);
       const borderedCircle = new Circle({
-        stroke: '#555555',
+        stroke: TRATT_COLORS.boundary,
         strokeWidth: 1,
         x: this.croppingData.x,
         y: this.croppingData.y,
@@ -1126,12 +1135,12 @@ export class AudioViewerRendererService {
       this.croppingData !== undefined
     ) {
       const shadowCircle = new Circle({
-        stroke: '#555555',
+        stroke: TRATT_COLORS.boundary,
         strokeWidth: 1,
         x: this.croppingData.x,
         y: this.croppingData.y,
         radius: this.croppingData.radius,
-        shadowColor: 'gray',
+        shadowColor: 'rgba(0, 0, 0, 0.25)',
         shadowEnabled: true,
         shadowBlur: 5,
         shadowOffset: { x: 2.5, y: 0 },
@@ -1140,7 +1149,7 @@ export class AudioViewerRendererService {
       result.add(shadowCircle);
       result.add(lineGroup);
       const borderedCircle = new Circle({
-        stroke: '#555555',
+        stroke: TRATT_COLORS.boundary,
         strokeWidth: 1,
         x: this.croppingData.x,
         y: this.croppingData.y,
@@ -1504,7 +1513,7 @@ export class AudioViewerRendererService {
               x: this.settings.margin.left,
               y: this.settings.margin.top,
               fontSize: 10,
-              fontFamily: 'Arial',
+              fontFamily: TRATT_FONTS.data,
               transformsEnabled: 'position',
               sceneFunc: (context, shape) => {
                 this.timeLabelSceneFunction(y, numOfLines, context, shape);
@@ -1767,7 +1776,7 @@ export class AudioViewerRendererService {
     return new Shape({
       x: this.settings.margin.left,
       y: lineNum1 * (this.settings.lineheight + this.settings.margin.top),
-      fontFamily: 'Arial',
+      fontFamily: TRATT_FONTS.data,
       fontSize: 9,
       width: this.innerWidth,
       height: segmentHeight,
@@ -1847,8 +1856,8 @@ export class AudioViewerRendererService {
       lastIRef,
     } = params;
     return new Shape({
-      fill: 'black',
-      fontFamily: 'Arial',
+      fill: TRATT_COLORS.textPrimary,
+      fontFamily: TRATT_FONTS.data,
       fontSize: 11,
       listening: false,
       x: this.settings.margin.left,
@@ -2772,7 +2781,7 @@ export class AudioViewerRendererService {
 
     const caret = new Line({
       points: [0, 0, 0, this.settings.lineheight],
-      stroke: 'red',
+      stroke: TRATT_COLORS.playhead,
       strokeWidth: 2,
       transformsEnabled: 'position',
     });

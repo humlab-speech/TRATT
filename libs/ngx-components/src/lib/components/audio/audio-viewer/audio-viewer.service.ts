@@ -20,6 +20,7 @@ import { ReplaySubject, Subject } from 'rxjs';
 import { Subscription } from 'rxjs/internal/Subscription';
 import { MultiThreadingService } from '../../../multi-threading.service';
 import { PlayCursor } from '../../../obj/play-cursor';
+import { TRATT_COLORS } from '../../../obj/tratt-colors';
 import {
   AudioViewerInteractionService,
   type AudioViewerInteractionHost,
@@ -1020,7 +1021,7 @@ export class AudioViewerService {
         if (boundarySelect) {
           this.audioChunk.selection = boundarySelect;
           this.drawnSelection = boundarySelect.clone();
-          this.settings.selection.color = 'gray';
+          this.settings.selection.color = TRATT_COLORS.segmentSelected;
           this.audioChunk.absolutePlayposition =
             this.audioChunk.selection.start.clone();
           this.changePlayCursorSamples(this.audioChunk.selection.start);
