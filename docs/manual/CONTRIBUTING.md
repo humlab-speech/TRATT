@@ -177,13 +177,17 @@ Not exercised live, and therefore still source-derived only:
 
 ## Screenshots
 
-The nine screenshots in `docs/assets/` are taken from a production build served
-locally, so the chrome matches from page to page. Seven of them come from one
-session on the 8 October build; the Overview and the Workbench were re-shot from
-the 22 October build, which is the first to carry the verification markers and the
-current drop-area wording. All of them predate the Språkbanken profile and still
-show the old look (navy header, blue buttons) until `npm run docs:screens` has been
-run and the result checked.
+**Stale: the following describes the images as they were before the Språkbanken
+profile.** The nine screenshots in `docs/assets/` were taken from a production
+build served locally, so the chrome matched from page to page. Seven of them came
+from one session on the 8 October build; the Overview and the Workbench were
+re-shot from the 22 October build, which was the first to carry the verification
+markers and the current drop-area wording. None of them has been re-shot since the
+profile, so they still show the old look (navy header, blue buttons) until the
+script has been run and the by-hand images taken.
+
+The script's selectors have not been run against the live UI; expect to adjust
+them on the first run.
 
 To re-shoot (everything except the WebGPU image):
 
@@ -196,8 +200,17 @@ To re-shoot (everything except the WebGPU image):
    `BASE_URL` defaults to `http://localhost:5321`; `MANUAL_FIXTURES` is required and
    the script stops with a message if the directory or `interview-01-mixed.srt` is
    missing.
-4. `visp_tratt_auto_transcription_options.png` is **not** generated: it needs a real
-   Chrome with WebGPU. The script skips it and prints a reminder; take it by hand.
+4. The script generates only the images it can produce truthfully: `main`,
+   `dictaphone_editor`, `popup_editor_audio_only`, `popup_editor_audio_and_video`
+   (only if the fixtures hold a video file), `overview` and `export_formats`. It
+   never substitutes or fakes the others; it prints a `take by hand:` line for each
+   and exits 0. Take these by hand (existing files are left untouched):
+   `auto_transcription_options` (real Chrome with WebGPU), `draft_automatic_transcription`
+   (an auto-transcription in progress), `2d_editor` (import with speaker
+   identification ticked, for the badges), `linear_editor` (one unit opened),
+   `overview_edit` (first two units checked) and `workbench` (four recordings: one
+   selected, one done, one queued). The exit code is non-zero only when a
+   generated image fails.
 5. Open every image at full size (no personal data, no stray errors, light theme).
    Keep each file under 400 kB, except the two popup images; the script warns when
    one is over.

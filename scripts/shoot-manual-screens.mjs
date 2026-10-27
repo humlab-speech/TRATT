@@ -62,9 +62,9 @@ const open = async (page, path) => {
 // Loads audio (or video) plus the SRT through the /local drop area.
 const loadSession = async (page, withVideo = false) => {
   await open(page, '/local');
-  const media = withVideo && video.length ? video[0] : audio[0];
+  const media = withVideo ? video[0] : audio[0];
   await page.setInputFiles('input[type=file]', [media, srt]);
-  await page.waitForTimeout(1500);
+  await page.waitForLoadState('networkidle');
 };
 const openDialog = async (page, name) => {
   await page.getByRole('button', { name }).first().click();
@@ -72,9 +72,19 @@ const openDialog = async (page, name) => {
   await page.waitForTimeout(500);
 };
 
-console.log(
-  'SKIP visp_tratt_auto_transcription_options.png: needs real Chrome with WebGPU, take it by hand (CONTRIBUTING, "Screenshots").',
-);
+
+// Images the script cannot produce truthfully: listed at the end, never faked.
+const byHand = [
+  ['visp_tratt_auto_transcription_options.png', 'needs real Chrome with WebGPU (model list)'],
+  ['visp_tratt_draft_automatic_transcription.png', 'needs an auto-transcription in progress (model download / WebGPU)'],
+  ['visp_tratt_2d_editor.png', 'needs the import with speaker identification ticked so speaker badges show'],
+  ['visp_tratt_linear_editor.png', 'needs one unit opened by hand in the linear editor'],
+  ['visp_tratt_overview_edit.png', 'needs the first two units checked by hand in the Overview'],
+  ['visp_tratt_workbench.png', 'needs four recordings in different states (one selected, one done, one queued)'],
+];
+if (!video.length) {
+  byHand.push(['visp_tratt_popup_editor_audio_and_video.png', 'no video file in MANUAL_FIXTURES (.mp4/.webm/.mov)']);
+}
 
 let failures = 0;
 const step = async (name, w, h, fn) => {
@@ -98,43 +108,31 @@ await step('visp_tratt_main.png', 1360, 820, async (page) => {
   });
 });
 
-await step('visp_tratt_draft_automatic_transcription.png', 1360, 820, async (page) => {
-  await open(page, '/local');
-  await page.setInputFiles('input[type=file]', audio[0]);
-  await page.getByRole('button', { name: /transcribe/i }).first().click();
-  await page.waitForSelector('[role=progressbar], .progress', { timeout: 30_000 });
-  await shot(page, 'visp_tratt_draft_automatic_transcription.png');
+await step('visp_tratt_dictaphone_editor.png', 1440, 820, async (page) => {
+  await loadSession(page);
+  await page.getByRole('link', { name: /dictaphone/i }).or(page.getByRole('button', { name: /dictaphone/i })).first().click();
+  await page.waitForLoadState('networkidle');
+  await shot(page, 'visp_tratt_dictaphone_editor.png');
 });
 
-for (const [name, label] of [
-  ['visp_tratt_2d_editor.png', /2d/i],
-  ['visp_tratt_linear_editor.png', /linear/i],
-  ['visp_tratt_dictaphone_editor.png', /dictaphone/i],
-]) {
-  await step(name, 1440, 820, async (page) => {
-    await loadSession(page);
-    await page.getByRole('link', { name: label }).or(page.getByRole('button', { name: label })).first().click();
-    await page.waitForTimeout(1000);
-    await shot(page, name);
-  });
-}
+await step('visp_tratt_popup_editor_audio_only.png', 1440, 820, async (page) => {
+  await loadSession(page);
+  await openDialog(page, /^transcription window$/i);
+  await shot(page, 'visp_tratt_popup_editor_audio_only.png');
+});
 
-for (const [name, withVideo] of [
-  ['visp_tratt_popup_editor_audio_only.png', false],
-  ['visp_tratt_popup_editor_audio_and_video.png', true],
-]) {
-  await step(name, 1440, 820, async (page) => {
-    await loadSession(page, withVideo);
-    await openDialog(page, /transcription window|popup|edit/i);
-    await shot(page, name);
+if (video.length) {
+  await step('visp_tratt_popup_editor_audio_and_video.png', 1440, 820, async (page) => {
+    await loadSession(page, true);
+    await openDialog(page, /^transcription window$/i);
+    await shot(page, 'visp_tratt_popup_editor_audio_and_video.png');
   });
 }
 
 await step('visp_tratt_overview.png', 1440, 820, async (page) => {
   await loadSession(page);
-  await openDialog(page, /overview/i);
+  await openDialog(page, /open overview window/i);
   await shot(page, 'visp_tratt_overview.png');
-  await shot(page, 'visp_tratt_overview_edit.png');
 });
 
 await step('visp_tratt_export_formats.png', 1440, 820, async (page) => {
@@ -143,22 +141,16 @@ await step('visp_tratt_export_formats.png', 1440, 820, async (page) => {
   await shot(page, 'visp_tratt_export_formats.png');
 });
 
-await step('visp_tratt_workbench.png', 1480, 900, async (page) => {
-  await open(page, '/workbench');
-  await page.setInputFiles('tratt-drop-zone input[type=file]', audio.slice(0, 4));
-  await page.waitForSelector('.bundle-list__item', { timeout: 30_000 });
-  await page.waitForTimeout(1000);
-  await shot(page, 'visp_tratt_workbench.png');
-});
-
 await browser.close();
 
 for (const f of readdirSync(out).filter((f) => f.startsWith('visp_tratt_') && f.endsWith('.png'))) {
   const size = statSync(join(out, f)).size;
   if (size > BUDGET && !BUDGET_EXEMPT.has(f)) console.warn(`WARN ${f} is ${Math.round(size / 1024)} kB (budget 400 kB); optimise it`);
 }
-console.log('Check every image at full size: no personal data, no stray errors, light theme.');
+console.log('\nTo take by hand (not generated, existing files left untouched):');
+for (const [f, why] of byHand) console.log(`  take by hand: ${f}: ${why}`);
+console.log('Check every generated image at full size: no personal data, no stray errors, light theme.');
 if (failures) {
-  console.error(`${failures} screenshot(s) failed; selectors may need adjusting to the current UI`);
+  console.error(`${failures} screenshot(s) failed; selectors have not been verified against the live UI and may need adjusting`);
   process.exit(1);
 }
