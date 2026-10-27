@@ -41,3 +41,11 @@ Open (deferred): translations for hero text; indeterminate progress bar should o
 - T17 `d53c16adb` right-panel row: tabs, inline shortcuts (`<kbd>`), export; taskbar `variant` input.
 
 Open (deferred): specs for status icons / `--awaiting` / taskbar variant; capacity memory bar non-colour signal (task 44); `.workbench__empty-header` overlap check; `aria-label` on icon-only fastbar buttons; browser checks (1024 px wrap, Alt+8 / Alt+0).
+
+## Phase 5 – Editors and canvas (tasks 18–20): complete
+
+- T18 `66e094ccf` `TRATT_COLORS` / `TRATT_FONTS` per profile; renderer, service, audioplayer on them; `accentGreen` → `accentSuccess` (deprecated key kept); caret no longer red.
+- T19 `4d4fa7de2` speaker palette of 10 Språkbanken colours with a real WCAG contrast test (speaker 11+ reuse colours).
+- T20 `95e030c4b` audio player toolbar on `btn-icon`, `accent-color` on sliders, rem sizes.
+
+Open (deferred): `resolveTrattColors` fallback test in task 23; token/`TRATT_COLORS` equality check; pale speaker tints rely on the text label; task 20 step button width and replay toggle non-colour active state; browser checks with Bahnauskunft.mp3.
