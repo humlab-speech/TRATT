@@ -23,6 +23,7 @@
  *                 CI always cleans, so stale pages cannot be published)
  */
 import MarkdownIt from 'markdown-it';
+import * as sass from 'sass';
 import {
   copyFileSync,
   existsSync,
@@ -264,10 +265,51 @@ for (const locale of LOCALES) {
 }
 
 // --- templating --------------------------------------------------------------
-const CSS = readFileSync(
-  join(repoRoot, 'scripts', 'manual-assets', 'manual.css'),
-  'utf8',
-);
+/**
+ * Self-hosted fonts: the same families the application uses, latin and
+ * latin-ext subsets, woff2 only. Files are copied to <outDir>/assets/fonts/ and
+ * the @font-face rules point at `__ASSETS__fonts/<file>`, which renderPage
+ * turns into a path relative to the page (works under /manual/ and /manual/sv/).
+ */
+function buildFonts(outDir) {
+  const faces = [
+    ['jost', ['300', '400', '500', '700']],
+    ['noto-sans', ['400', '600']],
+    ['noto-serif', ['400', '400-italic', '700']],
+  ];
+  const fontsOut = join(outDir, 'assets', 'fonts');
+  mkdirSync(fontsOut, { recursive: true });
+  let css = '';
+  for (const [pkg, variants] of faces) {
+    const pkgDir = join(repoRoot, 'node_modules', '@fontsource', pkg);
+    for (const variant of variants) {
+      const source = readFileSync(join(pkgDir, `${variant}.css`), 'utf8');
+      for (const block of source.match(/@font-face\s*{[^}]*}/g) ?? []) {
+        const woff2 = block.match(/url\(\.\/files\/([^)]*-(?:latin|latin-ext)-[^)]*\.woff2)\)/);
+        if (!woff2) continue;
+        copyFileSync(join(pkgDir, 'files', woff2[1]), join(fontsOut, woff2[1]));
+        css += block
+          .replace(/src:[^;]*;/, `src: url(__ASSETS__fonts/${woff2[1]}) format('woff2');`)
+          .replace(/\s+/g, ' ');
+        css += '\n';
+      }
+    }
+  }
+  return css;
+}
+
+// The site is written below; fonts are copied as part of building the CSS.
+if (!process.argv.includes('--no-clean')) {
+  rmSync(outRoot, { recursive: true, force: true });
+}
+mkdirSync(outRoot, { recursive: true });
+
+const CSS =
+  buildFonts(outRoot) +
+  sass.compile(join(repoRoot, 'scripts', 'manual-assets', 'manual.scss'), {
+    style: 'compressed',
+    quietDeps: true,
+  }).css;
 const JS = readFileSync(
   join(repoRoot, 'scripts', 'manual-assets', 'manual.js'),
   'utf8',
@@ -366,7 +408,7 @@ function renderPage(locale, page) {
 <title>${escapeHtml(entry.title)} — TRATT ${escapeHtml(ui.site)}</title>
 <meta name="description" content="TRATT ${escapeHtml(ui.site)} — ${escapeHtml(entry.title)}">
 ${alternates}
-<style>${CSS}</style>
+<style>${CSS.replaceAll('__ASSETS__', `${env.assetPrefix}assets/`)}</style>
 </head>
 <body>
 <a class="skip-link" href="#content">${escapeHtml(ui.skip)}</a>
@@ -407,11 +449,6 @@ ${body}
 
 // --- write -------------------------------------------------------------------
 const usedAssets = new Set();
-
-if (!process.argv.includes('--no-clean')) {
-  rmSync(outRoot, { recursive: true, force: true });
-}
-mkdirSync(outRoot, { recursive: true });
 
 let pageCount = 0;
 const untranslated = [];
@@ -475,6 +512,14 @@ for (const file of htmlFiles) {
   for (const m of html.matchAll(/href="([^"]+)"/g)) {
     if (/^(https?:|mailto:|#)/i.test(m[1])) continue;
     check(m[1], 'href');
+  }
+  for (const m of html.matchAll(/url\(([^)]+)\)/g)) {
+    const ref = m[1].replace(/^['"]|['"]$/g, '');
+    if (/^data:/i.test(ref)) continue;
+    const resolved = join(base, ref).replace(/^\.\//, '');
+    if (/^https?:/i.test(ref) || !existsSync(join(outRoot, resolved))) {
+      broken.push(`${file} -> ${ref} (missing font)`);
+    }
   }
   for (const m of html.matchAll(/src="([^"]+)"/g)) {
     if (/^(https?:|data:)/i.test(m[1])) continue;
