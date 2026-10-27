@@ -170,7 +170,26 @@ The nine screenshots in `docs/assets/` are taken from a production build served
 locally, so the chrome matches from page to page. Seven of them come from one
 session on the 8 October build; the Overview and the Workbench were re-shot from
 the 22 October build, which is the first to carry the verification markers and the
-current drop-area wording.
+current drop-area wording. All of them predate the Språkbanken profile and still
+show the old look (navy header, blue buttons) until `npm run docs:screens` has been
+run and the result checked.
+
+To re-shoot (everything except the WebGPU image):
+
+1. Create the fixtures (see **How to reproduce them** below) in a directory of your
+   choice. It must contain `interview-01-mixed.srt`, the short recordings
+   (`.wav`/`.mp3`/`.ogg`/`.m4a`) and, for the popup-with-video image, one video file.
+2. Serve a production build with `apps/tratt/src/config/appconfig.json` in place, and
+   run `npx playwright install chromium` once.
+3. `BASE_URL=http://localhost:5321 MANUAL_FIXTURES=/path/to/fixtures npm run docs:screens`.
+   `BASE_URL` defaults to `http://localhost:5321`; `MANUAL_FIXTURES` is required and
+   the script stops with a message if the directory or `interview-01-mixed.srt` is
+   missing.
+4. `visp_tratt_auto_transcription_options.png` is **not** generated: it needs a real
+   Chrome with WebGPU. The script skips it and prints a reminder; take it by hand.
+5. Open every image at full size (no personal data, no stray errors, light theme).
+   Keep each file under 400 kB, except the two popup images; the script warns when
+   one is over.
 
 | File                                        | Shows                                                       | Used by                                   |
 | ------------------------------------------- | ----------------------------------------------------------- | ----------------------------------------- |
