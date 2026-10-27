@@ -1,6 +1,6 @@
 {
-  "theme_color": "#2a4765",
-  "background_color": "#eef0f4",
+  "theme_color": "#ffffff",
+  "background_color": "#ffffff",
   "icons": [
     {
       "purpose": "maskable",
@@ -25,9 +25,9 @@
   "display": "standalone",
   "dir": "ltr",
   "lang": "en",
-  "name": "TRATT",
-  "short_name": "tratt",
-  "description": "TRATT is a web-application for the orthographic transcription of audio files.",
+  "name": "Tratt",
+  "short_name": "Tratt",
+  "description": "Tratt is a web-application for the orthographic transcription of audio files.",
   "start_url": "/",
   "scope": "/",
   "id": "/"
