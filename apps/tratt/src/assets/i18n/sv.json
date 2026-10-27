@@ -856,6 +856,14 @@
     }
   },
   "shell": {
+    "footer": {
+      "about_us": "Om oss",
+      "news": "Nyheter från Språkbanken",
+      "other_platforms": "Andra plattformar",
+      "feedback": "Använder du våra plattformar, datamängder eller analyser i ditt arbete? Då vill vi gärna höra från dig!",
+      "contact": "Kontakta oss",
+      "cite": "Referera till oss"
+    },
     "about": {
       "title": "Om Tratt",
       "source_code": "Källkod på GitHub",

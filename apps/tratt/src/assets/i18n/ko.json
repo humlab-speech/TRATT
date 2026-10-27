@@ -621,6 +621,14 @@
     }
   },
   "shell": {
+    "footer": {
+      "about_us": "About us",
+      "news": "News from Språkbanken",
+      "other_platforms": "Other platforms",
+      "feedback": "Do you use our platforms, datasets or analyses in your work? We would love to hear from you!",
+      "contact": "Contact us",
+      "cite": "Cite us"
+    },
     "about": {
       "title": "About Tratt",
       "source_code": "Source code on GitHub",

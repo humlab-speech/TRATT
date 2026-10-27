@@ -65,6 +65,20 @@ export const AppConfigSchema: JSONSchema4 = {
           },
           type: 'object',
         },
+        branding: {
+          properties: {
+            node: {
+              properties: {
+                name: { type: 'string', description: 'Name of the hosting node, used as the logo’s alt text.' },
+                logo: { type: 'string', description: 'URL or asset path of the node’s logo (SVG preferred).' },
+                url: { type: 'string', description: 'Where the logo links to.' },
+              },
+              required: ['name', 'logo', 'url'],
+              type: 'object',
+            },
+          },
+          type: 'object',
+        },
         login: {
           properties: {
             enabled: {

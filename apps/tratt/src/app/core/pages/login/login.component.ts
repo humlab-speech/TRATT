@@ -1,3 +1,5 @@
+import { TrattCreditsComponent } from '../../component/tratt-credits/tratt-credits.component';
+import { TrattFooterComponent } from '../../component/tratt-footer/tratt-footer.component';
 import { AsyncPipe, DecimalPipe } from '@angular/common';
 import { Component, ElementRef, ViewChild } from '@angular/core';
 import { NgForm } from '@angular/forms';
@@ -71,6 +73,8 @@ function formatDuration(seconds: number): string {
     AsyncPipe,
     DecimalPipe,
     TranslocoPipe,
+    TrattCreditsComponent,
+    TrattFooterComponent,
   ],
 })
 export class LoginComponent
