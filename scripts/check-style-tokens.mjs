@@ -1,13 +1,39 @@
 #!/usr/bin/env node
 // Fails on hard-coded colours or px font sizes in component styles and inline
 // styles. Colours belong in apps/tratt/src/styles/_palette.scss (Språkbanken profile).
+// Also bans legacy Bootstrap classes (btn-success, navbar-dark, bg-primary, bg-white,
+// bg-light, text-dark, btn-dark, btn-light) in templates and inline templates.
+// In .ts files only lines that look like colour usage are checked (color:, background,
+// fill, stroke, style=, styles:); banned classes are checked on every .ts line.
+// Exempt .ts files (see tsExempt): palette modules hold the literal colour values by
+// design, and spec/test files contain colour literals deliberately.
 // --report: print violation counts per directory and exit 0.
-import { readdirSync, readFileSync } from 'node:fs';
+import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-export const roots = ['apps/tratt/src/app', 'libs/ngx-components/src'];
-const exts = /\.(scss|css|html)$/;
+export const roots = [
+  'apps/tratt/src/app',
+  'apps/tratt/src/index.html',
+  'apps/web-components/src',
+  'libs/ngx-components/src',
+  'scripts/manual-assets',
+];
+const exts = /\.(scss|css|html|ts)$/;
+// .ts files exempt from the check, each with a reason.
+export const tsExempt = [
+  // Palette values: the single source of literal colours for canvas/waveform code.
+  /(^|\/)libs\/ngx-components\/src\/lib\/obj\/tratt-colors\.ts$/,
+  /(^|\/)speaker-colors\.ts$/,
+  /(^|\/)audio-viewer\.config\.ts$/,
+  // Tests contain colour literals deliberately.
+  /\.spec\.ts$/,
+  /\.test\.[a-z]+$/,
+];
+export const isTsExempt = (file) => tsExempt.some((re) => re.test(file));
+// In .ts only lines that look like colour usage are checked.
+export const TS_COLOUR_CONTEXT = /color\s*:|background|\bfill|\bstroke|style=|styles\s*:/i;
+export const BANNED_CLASS = /(?<![\w-])(btn-success|navbar-dark|bg-primary|bg-white|bg-light|text-dark|btn-dark|btn-light)(?![\w-])/;
 // "file:line" entries that are deliberate, each with a reason.
 export const allow = new Set([
   // Recording preview is intentionally black in both themes.
@@ -18,8 +44,10 @@ export const NAMED = /\b(?:color|background(?:-color)?|border(?:-[a-z]+)*|fill|s
 export const PX_FONT = /font-size\s*:\s*\d+(?:\.\d+)?px/;
 
 /** Returns the violation kind for one line, or null. */
-export function matchLine(line, { isHtml = false, location = '', lib = location.startsWith('libs/') } = {}) {
+export function matchLine(line, { isHtml = false, isTs = false, location = '', lib = location.startsWith('libs/') } = {}) {
   if (allow.has(location)) return null;
+  if ((isHtml || isTs) && BANNED_CLASS.test(line)) return 'banned class';
+  if (isTs && !TS_COLOUR_CONTEXT.test(line)) return null;
   // In templates only inline styles count (incl. multi-line style="…" and
   // [ngStyle] objects); `#ref` template variables are not colours.
   if (isHtml && !/style|^\s*'?[a-z-]+'?\s*:/i.test(line)) return null;
@@ -33,14 +61,15 @@ export function matchLine(line, { isHtml = false, location = '', lib = location.
 function scan() {
   const hits = [];
   for (const root of roots) {
-    for (const rel of readdirSync(root, { recursive: true })) {
-      const file = join(root, String(rel));
-      if (!exts.test(file)) continue;
+    const files = statSync(root).isFile() ? [root] : readdirSync(root, { recursive: true }).map((rel) => join(root, String(rel)));
+    for (const file of files) {
+      if (!exts.test(file) || isTsExempt(file)) continue;
       const isHtml = file.endsWith('.html');
+      const isTs = file.endsWith('.ts');
       readFileSync(file, 'utf8')
         .split('\n')
         .forEach((line, i) => {
-          const hit = matchLine(line, { isHtml, location: `${file}:${i + 1}` });
+          const hit = matchLine(line, { isHtml, isTs, location: `${file}:${i + 1}` });
           if (hit) hits.push({ file, root, line: i + 1, hit, text: line.trim() });
         });
     }
@@ -55,7 +84,7 @@ function main() {
     const perDir = new Map();
     for (const h of hits) {
       // root + up to two directory segments below it
-      const dirs = dirname(h.file.slice(h.root.length + 1)).split('/').filter((s) => s !== '.').slice(0, 2);
+      const dirs = dirname(h.file.slice(h.root.length + 1) || '.').split('/').filter((s) => s !== '.').slice(0, 2);
       const key = [h.root, ...dirs].join('/');
       perDir.set(key, (perDir.get(key) ?? 0) + 1);
     }
