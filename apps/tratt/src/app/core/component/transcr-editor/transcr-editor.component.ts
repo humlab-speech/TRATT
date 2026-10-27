@@ -20,6 +20,7 @@ import { TranslocoService } from '@jsverse/transloco';
 import { TrattAnnotationSegment } from '@tratt/annotation';
 import { TrattGuidelines } from '@tratt/assets';
 import { SampleUnit } from '@tratt/media';
+import { observeTheme } from '@tratt/ngx-components';
 import { TimespanPipe } from '@tratt/ngx-utilities';
 import {
   escapeHtml,
@@ -53,6 +54,7 @@ import { ShortcutService } from '../../shared/service/shortcut.service';
 import { AnnotationStoreService } from '../../store/login-mode/annotation/annotation.store.service';
 import { DefaultComponent } from '../default.component';
 import { TranscrEditorConfig } from './config';
+import { applyJoditTheme, currentJoditTheme } from './jodit-theme';
 import { ValidationPopoverComponent } from './validation-popover/validation-popover.component';
 
 type TranscrEditorMarker = TrattGuidelines['markers'][number];
@@ -128,6 +130,7 @@ export class TranscrEditorComponent
   private joditDefaultOptions: JoditConfig = {
     statusbar: false,
   };
+  private stopThemeObserver?: () => void;
 
   size = {
     height: 100,
@@ -438,6 +441,7 @@ export class TranscrEditorComponent
 
       this.joditOptions = {
         ...this.joditDefaultOptions,
+        theme: currentJoditTheme(),
         disablePlugins:
           'add-new-line,image-processor,image-properties,image,video,media,file,resize-cells,select-cells,' +
           'table-keyboard-navigation,table,preview,print,about,drag-and-drop,iframe,indent,inline-popup,' +
@@ -649,6 +653,7 @@ export class TranscrEditorComponent
   }
 
   override ngOnDestroy() {
+    this.stopThemeObserver?.();
     super.ngOnDestroy();
   }
 
@@ -1709,6 +1714,11 @@ export class TranscrEditorComponent
   }
 
   onAfterInit = () => {
+    applyJoditTheme(this.joditComponent?.jodit);
+    this.stopThemeObserver?.();
+    this.stopThemeObserver = observeTheme(() =>
+      applyJoditTheme(this.joditComponent?.jodit),
+    );
     this.subscriptionManager.removeByTag('initialization');
     this.subscribe(
       timer(200),

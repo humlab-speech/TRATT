@@ -69,3 +69,10 @@
   line-height: 1.5;
   white-space: nowrap;
 }
+
+// Partner logos are PNGs with a white background: keep them legible in dark mode.
+[data-bs-theme='dark'] .tratt-logo-on-light {
+  background: #fff;
+  padding: 0.25rem;
+  border-radius: 0.25rem;
+}
