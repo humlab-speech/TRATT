@@ -1,18 +1,18 @@
 .easy-table .column .grip {
-  border-bottom: 1px solid lightgray;
+  border-bottom: 1px solid var(--tratt-border);
   padding: 3px;
   vertical-align: middle;
   /* width: 30px; */
   text-align: center;
   background-color: var(--tratt-surface-background);
-  color: gray;
+  color: var(--tratt-text-muted);
   position: relative;
 }
 
 .easy-table .column .title {
   display: block;
   border: none;
-  border-bottom: 1px solid lightgray;
+  border-bottom: 1px solid var(--tratt-border);
   text-align: left;
   padding: 5px;
   cursor: text;
@@ -31,7 +31,7 @@
 }
 
 .dropdown-item {
-  font-size: 12px;
+  font-size: 0.75rem;
   padding: 3px 3px 3px 10px;
   min-height: 30px;
 }
@@ -58,7 +58,7 @@
   height: 300px;
   background-color: var(--tratt-surface-background);
   padding: 10px;
-  border: 1px lightgray;
+  border: 1px var(--tratt-border);
 }
 
 .table-options {
@@ -76,7 +76,7 @@
 .easy-table .column .title {
   display: block;
   border: none;
-  border-bottom: 1px solid lightgray;
+  border-bottom: 1px solid var(--tratt-border);
   text-align: left;
   padding: 5px;
   cursor: text;
@@ -87,9 +87,9 @@
 .easy-table .column {
   padding: 0;
   position: relative;
-  border-right: 1px solid gray;
-  border-top: 1px solid gray;
-  border-bottom: 1px solid gray;
+  border-right: 1px solid var(--tratt-border-control);
+  border-top: 1px solid var(--tratt-border-control);
+  border-bottom: 1px solid var(--tratt-border-control);
   border-collapse: collapse;
   display: inline-grid;
   white-space: nowrap;
@@ -99,16 +99,16 @@
   box-sizing: border-box;
   cursor: move;
   background: var(--tratt-surface-background);
-  font-size: 14px;
+  font-size: 0.875rem;
   margin: 0;
 }
 
 .easy-table .column:first-of-type {
-  border-left: 1px solid gray;
+  border-left: 1px solid var(--tratt-border-control);
 }
 
 .easy-table .cell {
-  border-bottom: 1px solid lightgray;
+  border-bottom: 1px solid var(--tratt-border);
   padding: 5px;
   height: 35px;
   background-color: var(--tratt-surface-background);
@@ -124,7 +124,7 @@
 }
 
 .settings {
-  border: 1px solid lightgray;
+  border: 1px solid var(--tratt-border);
   background-color: var(--tratt-surface-background);
   padding: 8px;
   display: inline;
@@ -147,7 +147,8 @@
 
 .cdk-drag-placeholder {
   opacity: 0.5;
-  border: 1px dashed gray;
+  background-color: var(--sb-blue-tint);
+  border: 1px dashed var(--tratt-interactive);
 }
 
 .cdk-drag-animating {

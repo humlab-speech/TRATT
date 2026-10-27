@@ -91,6 +91,25 @@
   color: var(--tratt-text-primary);
 }
 
+// Bootstrap paints table cells with --bs-table-bg, which hides a tint set on
+// the row. Let the row's tint show through and let a cell carry its own.
+.table > :not(caption) > tr[class*='tratt-state-'] > * {
+  background-color: transparent;
+  box-shadow: none;
+}
+@each $name, $colour in (next: orange, info: blue, success: green, warning: yellow, danger: red) {
+  .table > :not(caption) > tr > :is(td, th).tratt-state-#{$name} {
+    background-color: var(--sb-#{$colour}-tint);
+    box-shadow: inset 0.25rem 0 0 var(--sb-#{$colour});
+    color: var(--tratt-text-primary);
+  }
+}
+.table > :not(caption) > tr > :is(td, th).tratt-state-neutral {
+  background-color: var(--tratt-surface-sunken);
+  box-shadow: none;
+  color: var(--tratt-text-primary);
+}
+
 // Reading column for plain pages (/news, /features, /help-tools, /404, /login).
 .tratt-page {
   max-inline-size: 60rem;
