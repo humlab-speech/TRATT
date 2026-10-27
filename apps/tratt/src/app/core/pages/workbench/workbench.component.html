@@ -21,7 +21,7 @@
       #workbenchNav="ngbNav"
       [(activeId)]="activeTab"
       [destroyOnHide]="false"
-      class="nav-tabs"
+      class="nav-tabs tratt-tabs"
     >
       <li [ngbNavItem]="'upload'">
         <button ngbNavLink type="button">
@@ -191,7 +191,11 @@
 
       <button
         type="button"
-        class="btn btn-outline-primary workbench__queue-run"
+        [class]="
+          queueRunning()
+            ? 'btn btn-outline-secondary workbench__queue-run'
+            : 'btn btn-next-lg workbench__queue-run'
+        "
         [disabled]="
           !queueRunning() &&
           (readyBundleIds().length === 0 || queueOptions() === null)
