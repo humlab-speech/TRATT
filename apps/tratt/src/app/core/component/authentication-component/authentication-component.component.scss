@@ -17,7 +17,7 @@
   box-sizing: border-box;
   height: auto;
   padding: 10px;
-  font-size: 16px;
+  font-size: 1rem;
 }
 
 #signin-form .form-control:focus {
@@ -38,5 +38,5 @@
 
 .separator:before,
 .separator:after {
-  border-bottom: 1px solid lightgray;
+  border-bottom: 1px solid var(--tratt-border);
 }

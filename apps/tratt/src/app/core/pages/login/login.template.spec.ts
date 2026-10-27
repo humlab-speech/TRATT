@@ -33,6 +33,12 @@ describe('login template (Språkbanken profile, /local)', () => {
       expect(html).toContain('class="tratt-prose"');
     });
 
+    it('gives the online card its own narrow card and page shell', () => {
+      expect(html).toContain("'section order-2 order-md-1 tratt-page'");
+      expect(scss).toMatch(/\.login-card \{[^}]*max-inline-size: 32rem/);
+      expect(scss).not.toMatch(/\.login-card \{\s*padding: 3rem/);
+    });
+
     it('has token-based scss and no hero title overrides of global h1', () => {
       expect(scss).toContain('.local-hero__title');
       const title = scss.slice(scss.indexOf('.local-hero__title'));
