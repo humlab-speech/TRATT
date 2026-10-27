@@ -30,6 +30,11 @@ mixing them in is what makes the OCTRA manual hard for a first-time user.
 - **Quote the interface exactly.** Labels in the manual must match the English
   strings in `apps/tratt/src/assets/i18n/en.json`. When you change a label there,
   grep this directory for the old text.
+- **The manual's appearance comes from the app's palette**
+  (`apps/tratt/src/styles/_palette.scss`). Never change colours in `manual.scss`.
+- **Callouts are blockquotes.** A blockquote whose first word is `Warning`,
+  `Caution`, `Varning` or `Observera` (usually bold, as `> **Warning.**`) becomes
+  a yellow callout. Any other blockquote stays plain.
 - **Reference material is tables.** Shortcuts, formats and options are looked up,
   not read.
 - **No em dashes in the prose.** Use a comma, a colon or a full stop. The only
@@ -60,7 +65,7 @@ The application deep-links into the manual. These targets must keep working:
 | `shared/service/manual-link.service.ts` (`ROUTE_PAGES`) | one chapter per application route      |
 
 `ROUTE_PAGES` is the second half of the contract. It decides which chapter the
-navigation bar's **Manual** entry and the Help dialog open from a given route:
+header's **Manual** link and the Help dialog open from a given route:
 `/workbench` opens `workbench`, and a route with no entry opens the manual's
 front page. Both doors read the same table, so they cannot disagree. Add a route
 there and the page it names must exist; the link check fails if it does not.
@@ -199,7 +204,8 @@ How to reproduce them:
   file. See [Verification marks](exporting.md#verification-marks-in-time-aligned-formats).
 - Viewport 1440 × 820 at a device pixel ratio of 2 for the editor pages, 1480 × 900
   for the Workbench, 1360 wide for the start page. **Below 1400 px the editor
-  switcher collapses to icons**, so do not shoot the editor narrower than that.
+  switcher in the header collapses to icons** (the Workbench's editor tabs keep
+  their labels), so do not shoot the editor narrower than that.
 - `visp_tratt_auto_transcription_options.png` is the exception: the headless
   browser has no WebGPU, which greys out the two largest Whisper models and
   changes every model description, so that one was taken in a real Chrome with
@@ -213,8 +219,6 @@ resolved, remove the caveat in the same commit:
 
 | Issue                                                                            | Where the manual says so                                 |
 | -------------------------------------------------------------------------------- | -------------------------------------------------------- |
-| Workbench reachable by URL only, with no entry of its own in the navigation bar  | `workbench.md`, `index.md`, `glossary.md`                |
-| Workbench has no name of its own in the interface, so the manual supplies one    | `workbench.md` (Swedish: "Arbetsbänken")                 |
 | Tools dialog has no UI entry point (`openToolsModal()` has no caller)            | `using-tools.md`, `coming-from-octra.md`                 |
 | Guidelines window absent from the Workbench toolbar                              | `workbench.md`, `shortcuts.md`                           |
 | `/help-tools` not linked from anywhere                                           | `troubleshooting.md`, `privacy.md`                       |
@@ -223,8 +227,9 @@ resolved, remove the caveat in the same commit:
 
 Fixed since the manual was first written, and no longer mentioned: the cloud
 ASR/MAUS feature (removed from the app), the raw `modal.shortcuts.cycle_speaker`
-key in the Shortcuts window, the navbar GitHub link, and the Workbench being
-gated to development builds.
+key in the Shortcuts window, the GitHub link (now under **About Tratt** and in
+the footer), the Workbench being gated to development builds, and the Workbench
+having no header link or name of its own.
 
 ## Facts that will go out of date
 

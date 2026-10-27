@@ -30,9 +30,12 @@ avsnitten beskriver, och det är där man börjar.
 
 Har du en hel omgång håller **Arbetsbänken** på `/workbench` många inspelningar i
 en lista, transkriberar dem genom en kö och låter dig klicka mellan resultaten.
-Den har ingen post i navigeringslisten, så du kommer dit genom att skriva
-adressen. Vyerna, genvägarna och formaten är desamma i båda fallen, så ingenting
+Du öppnar den med länken **Arbetsbänk** i sidhuvudet på startsidan, eller
+genom att skriva adressen. Vyerna, genvägarna och formaten är desamma i båda fallen, så ingenting
 du lär dig nedan går till spillo.
+
+I sidhuvudet finns också en knapp, **Växla mellan ljust och mörkt läge**, för
+färgtemat. Ditt val stannar på din egen enhet. Se [Integritet](privacy.md).
 
 ---
 

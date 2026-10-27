@@ -20,7 +20,7 @@ Skäl att ha fler än en:
 
 ### Att arbeta med nivåer
 
-Nivåmenyn sitter i den övre listen och visar den aktuella nivåns namn.
+Nivåmenyn sitter i sidhuvudet och visar den aktuella nivåns namn.
 
 | För att | Gör |
 | --- | --- |
@@ -80,7 +80,7 @@ takt.
 
 ### Att sköta talarlistan
 
-Talarmenyn i den övre listen listar varje talare med sin färgruta.
+Talarmenyn i sidhuvudet listar varje talare med sin färgruta.
 
 | För att | Gör |
 | --- | --- |

@@ -16,6 +16,7 @@ switch it on, a speech or translation model.
 | The audio or video file you are working on | In the browser tab's memory only. It is read from disk, decoded, and discarded when you close the tab. It is never uploaded and never written back to disk by Tratt. |
 | The draft transcription produced by a transcription model | In the browser's local storage on your machine. |
 | The transcript you are editing | In the browser's local storage on your machine. |
+| Your choice of light or dark mode (**Switch between light and dark mode** in the header) | In the browser's local storage on your machine, under `tratt.theme`. It is never sent anywhere. |
 
 Because the audio is only held in memory, Tratt will remember your
 transcript between sessions, but will not store your recording. When you come back, drag the

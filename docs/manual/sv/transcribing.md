@@ -50,7 +50,7 @@ textfält och en spelare på skärmen, och Översikt låter dig redigera rader i
 tabell. Se [Vyerna](the-editors.md).
 
 **Att spara.** Det finns inget att spara. Varje ändring hamnar direkt i
-webbläsarlagringen, och en liten sparikon blinkar till i den övre listen när det
+webbläsarlagringen, och en liten sparikon blinkar till i redigeringsytans hörn när det
 sker. Det du ändå måste göra är att [exportera en fil](exporting.md) innan du
 slutar för dagen.
 
@@ -154,7 +154,7 @@ separata nivåer, beskrivs under [Nivåer och talare](tiers-and-speakers.md).
 
 ## Inställningar värda att sätta dag ett
 
-Öppna **Inställningar** i den övre listen (kugghjulsikonen).
+Öppna **Inställningar** i sidhuvudet (kugghjulsikonen).
 
 | Inställning | Vad den gör | Förslag |
 | --- | --- | --- |

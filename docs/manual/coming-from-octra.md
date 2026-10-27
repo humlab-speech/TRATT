@@ -52,7 +52,7 @@ Tratt's interface.
 | "Level" | Usually "tier", especially in the newer speaker and translation features |
 | Three editors | Still three in the switcher: 2D, Dictaphone, Linear |
 | The Tools dialog (combine units, cut audio) | Still present, but **not reachable from any button** in the current interface; see [Tools](using-tools.md) |
-| Manual link in the navigation bar | Still points at the OCTRA manual rather than at this one |
+| Manual link in the header | Now opens this manual, in the interface language |
 
 ---
 

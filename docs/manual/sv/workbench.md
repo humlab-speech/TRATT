@@ -4,16 +4,17 @@
 Arbetsbänken transkriberar en omgång filer och låter dig redigera varje
 resultat utan att ladda in filerna en i taget.
 
-> **Så kommer du dit.** Arbetsbänken (*Workbench*) har ingen egen post i
-> navigeringslisten. Du kommer dit genom att skriva `/workbench` i Tratts
-> adress, till exempel `https://tratt.demo.humlab.umu.se/workbench`. Den ingår i släppta byggen; ett bygge från innan den kom leder
-> adressen till den vanliga startsidan i stället.
+> **Så kommer du dit.** På startsidan finns länken **Arbetsbänk** i sidhuvudet,
+> bredvid **Manual**. Den syns bara i byggen där Arbetsbänken är aktiverad. Du
+> kan också skriva `/workbench` i Tratts adress, till exempel
+> `https://tratt.demo.humlab.umu.se/workbench`. Ett bygge från innan Arbetsbänken
+> kom leder adressen till den vanliga startsidan i stället.
 >
-> Väl där öppnar både **Manual** i navigeringslisten och **Hjälp** i
-> verktygsraden det här kapitlet i stället för manualens förstasida.
+> Väl där öppnar både **Manual** i sidhuvudet och **Hjälp** bredvid
+> vyflikarna det här kapitlet i stället för manualens förstasida.
 >
-> Gränssnittet i Arbetsbänken är översatt till svenska, men sidan har inget eget
-> namn i gränssnittet. Manualen kallar den Arbetsbänken; adressen är engelsk.
+> Gränssnittet i Arbetsbänken är översatt till svenska. Länken i sidhuvudet heter
+> **Arbetsbänk**; adressen är engelsk.
 
 ---
 
@@ -54,8 +55,11 @@ Fyra saker ligger till vänster, uppifrån och ned:
    som startar kön.
 4. Två kapacitetsmätare: **Webbläsarlagring** och **Arbetsminne (uppskattat)**.
 
-Resten av fönstret är den inspelning du valt: namn och uppgifter, vyväljaren,
-verktygsraden med **Genvägar**, **Översikt** och **Hjälp**, och själva vyn.
+Resten av fönstret är den inspelning du valt. Dess namn och uppgifter visas i
+dataväljaren i sidhuvudets mitt; klicka på den för att öppna fillistan, vilket
+också är det snabbaste sättet att byta inspelning på en smal skärm. Ovanför vyn
+finns en rad med vyflikarna, **Genvägar**, **Översikt**, **Hjälp** och, längst
+till höger, **Exportera den här transkriptionen**. Under den kommer själva vyn.
 
 ![Arbetsbänken med fyra inspelningar inlästa](../../assets/visp_tratt_workbench.png)
 
@@ -151,13 +155,15 @@ En misslyckad fil säger vad som gick fel (*Kunde inte läsa ljudet*,
 
 ## Att redigera ett resultat
 
-Klicka på en inspelning i listan för att öppna den. Rubriken ovanför vyn ger mediefilens namn
-och uppgifter, till exempel `interview_a.mp3 · 1:45 · 16 kHz mono · 3.369 MB`.
+Klicka på en inspelning i listan för att öppna den. Dataväljaren (*Välj fil*) i
+sidhuvudets mitt ger mediefilens namn och uppgifter, till exempel
+`interview_a.mp3 · 1:45 · 16 kHz mono · 3.369 MB`, och var filen ligger i
+listan, till exempel *2 av 4*. Klicka på den för att välja en annan fil.
 
 Därefter är du i den vanliga redigeringsmiljön. Du väljer 2D Vy, Diktafon-vy eller
-Linjär vy i väljaren och arbetar som beskrivs under
+Linjär vy med vyflikarna och arbetar som beskrivs under
 [Så fungerar transkribering](transcribing.md). **Genvägar** (Alt + 8) och
-**Översikt** (Alt + 0) finns i verktygsraden.
+**Översikt** (Alt + 0) finns i samma rad som flikarna.
 
 Att spela en enhet eller redigera dess text markerar den som
 [verifierad](checking-your-work.md#verified-transcriptions).
@@ -212,8 +218,8 @@ igenom materialet i mindre grupper, exportera och
 
 ## Att få ut resultaten
 
-**En inspelning.** Med en transkription på skärmen öppnar **Exportera den här
-transkriptionen** i rubriken den vanliga exportdialogen, som beskrivs under
+**En inspelning.** Med en transkription på skärmen öppnar den orangea knappen **Exportera den här
+transkriptionen** längst till höger i raden med vyflikarna den vanliga exportdialogen, som beskrivs under
 [Exportera](exporting.md). Den fungerar även när ljudet inte är bifogat. Den är
 dold tills det finns något att exportera.
 

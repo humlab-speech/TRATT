@@ -19,7 +19,7 @@ Reasons to have more than one:
 
 ### Working with tiers
 
-The tier menu sits in the top bar and shows the current tier's name.
+The tier menu sits in the header and shows the current tier's name.
 
 | To | Do |
 | --- | --- |
@@ -76,7 +76,7 @@ drift out of sync.
 
 ### Managing the speaker list
 
-The speaker menu in the top bar lists every speaker with its colour swatch.
+The speaker menu in the header lists every speaker with its colour swatch.
 
 | To | Do |
 | --- | --- |

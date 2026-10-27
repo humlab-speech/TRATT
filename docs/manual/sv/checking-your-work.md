@@ -6,8 +6,7 @@
 
 ## Översiktsfönstret
 
-Tryck **Alt + 0**, eller klicka **Översikt** i verktygsraden under den övre
-listen.
+Tryck **Alt + 0**, eller klicka **Översikt** i verktygsraden under sidhuvudet (i Arbetsbänken: i raden med vyflikarna).
 
 ![Översiktsfönstret](../../assets/visp_tratt_overview_edit.png)
 

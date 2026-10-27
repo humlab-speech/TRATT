@@ -28,10 +28,14 @@ transcribe it, export it. That is what the next two sections describe, and it is
 where to start.
 
 If you have a batch, the **Workbench** at `/workbench` holds many recordings in one
-list, transcribes them through a queue, and lets you click between the results. It
-has no entry in the navigation bar, so you get there by typing the address. The
+list, transcribes them through a queue, and lets you click between the results. Open
+it with the **Workbench** link in the header of the start page, or by typing
+the address. The
 editors, shortcuts and formats are the same either way, so nothing you learn below
 is wasted.
+
+The header also has a button, **Switch between light and dark mode**, for the
+colour theme. Your choice stays on your own device. See [Privacy](privacy.md).
 
 ---
 

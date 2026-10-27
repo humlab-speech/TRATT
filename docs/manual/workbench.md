@@ -4,14 +4,14 @@
 Workbench transcribes a batch of files and lets you edit each result without
 loading files one at a time.
 
-> **How to get there.** The Workbench has no entry of its own in the navigation
-> bar. You reach it by putting `/workbench` in Tratt's address, for example
-> `https://tratt.demo.humlab.umu.se/workbench`. It is part of
-> released builds; a build from before it shipped sends that address to the
-> ordinary start page instead.
+> **How to get there.** On the start page, the header has a **Workbench** link
+> next to **Manual**. It only shows in builds where the Workbench is enabled. You
+> can also put `/workbench` in Tratt's address, for example
+> `https://tratt.demo.humlab.umu.se/workbench`. A build from before the
+> Workbench shipped sends that address to the ordinary start page instead.
 >
-> Once you are there, **Manual** in the navigation bar and **Help** in the
-> toolbar both open this chapter rather than the manual's front page.
+> Once you are there, **Manual** in the header and **Help** next to the editor
+> tabs both open this chapter rather than the manual's front page.
 
 ---
 
@@ -52,9 +52,12 @@ Four things sit on the left, from top to bottom:
    that starts the queue.
 4. Two capacity meters: **Browser storage** and **Working memory (est.)**.
 
-The rest of the window is the recording you have selected: its name and details,
-the editor switcher, the toolbar with **Shortcuts**, **Overview** and **Help**,
-and the editor itself.
+The rest of the window is the recording you have selected. Its name and details
+are in the data selector in the middle of the header; click it to open the list
+of files, which is also the quickest way to switch recording on a narrow screen.
+Above the editor, one bar holds the editor tabs, **Shortcuts**, **Overview**,
+**Help** and, at the right end, **Export this transcription**. Below it is the
+editor itself.
 
 ![The Workbench with four recordings loaded](../assets/visp_tratt_workbench.png)
 
@@ -146,13 +149,15 @@ A failed file says what went wrong (*Could not read the audio*,
 
 ## Editing a result
 
-Click a recording in the list to open it. The header above the editor gives the media file
-name and details, for example `interview_a.mp3 · 1:45 · 16 kHz mono · 3.369 MB`.
+Click a recording in the list to open it. The data selector (*Choose file*) in
+the middle of the header gives the media file name and details, for example
+`interview_a.mp3 · 1:45 · 16 kHz mono · 3.369 MB`, and where the file sits in the
+list, for example *2 of 4*. Click it to pick another file.
 
-From there you are in the ordinary editor. You select the 2D, Dictaphone, or Linear editor in the
-switcher, and work as described in
+From there you are in the ordinary editor. You select the 2D, Dictaphone, or Linear editor with the
+editor tabs, and work as described in
 [How transcribing works](transcribing.md). **Shortcuts** (Alt + 8) and
-**Overview** (Alt + 0) are in the toolbar. 
+**Overview** (Alt + 0) are in the same bar as the tabs.
 
 Playing a unit or editing its text marks it
 [verified](checking-your-work.md#verified-transcriptions).
@@ -207,8 +212,8 @@ work through the material in smaller groups,  export and
 
 ## Getting results out
 
-**One recording.** With a transcript on screen, **Export this transcription** in
-the header opens the usual export dialog, described in
+**One recording.** With a transcript on screen, the orange **Export this
+transcription** button at the right end of the bar with the editor tabs opens the usual export dialog, described in
 [Exporting](exporting.md). It works even when the audio is not attached. It is
 hidden until there is something to export.
 

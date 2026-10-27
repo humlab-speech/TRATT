@@ -5,7 +5,7 @@ annorlunda ut än hos en kollega.
 
 Tratt erbjuder flera vyer över *samma* transkript. Att byta mellan dem ändrar
 inte dina data. Du kan flytta mellan dem mitt i en fil, hur ofta du
-vill, med knapparna till vänster i den övre listen.
+vill, med vyknapparna i sidhuvudet (i [Arbetsbänken](workbench.md): vyflikarna ovanför vyn).
 
 Standardvyn använder **2D Vy**.
 

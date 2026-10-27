@@ -48,7 +48,7 @@ text field and a player on screen, and the Overview window lets you edit rows in
 table. See [The editors](the-editors.md).
 
 **Saving.** There is nothing to save. Every change goes into browser storage
-immediately, and a small save icon flickers in the top bar as it does. What you do
+immediately, and a small save icon flickers in the corner of the editing area as it does. What you do
 still need to do is [export a file](exporting.md) before you finish for the day.
 
 **Undo** is **Ctrl + Z** (**Cmd + Z** on a Mac), **redo** is **Ctrl + Y**
@@ -150,7 +150,7 @@ are covered in [Tiers and speakers](tiers-and-speakers.md).
 
 ## Preferences worth setting on day one
 
-Open **Preferences** from the top bar (the gear icon).
+Open **Preferences** from the header (the gear icon).
 
 | Setting | What it does | Suggested |
 | --- | --- | --- |

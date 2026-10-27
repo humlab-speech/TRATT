@@ -6,8 +6,8 @@ Tratt håller ditt arbete i webbläsaren. **Att exportera en fil är
 det enda sättet ditt transkript lämnar webbläsaren.** Exportera ditt arbete varje
 gång du avslutar ett redigeringspass.
 
-Klicka **Exportera** (nedladdningsikonen i den övre listen, eller knappen längst
-ned i redigeraren). Dialogen heter *Exportera transkriptioner*. Klicka på ett
+Klicka **Exportera** (nedladdningsikonen i sidhuvudet, eller knappen längst
+ned i redigeraren). I [Arbetsbänken](workbench.md) heter den **Exportera den här transkriptionen** och ligger längst till höger i raden med vyflikarna. Dialogen heter *Exportera transkriptioner*. Klicka på ett
 format för att fälla ut dess alternativ, och sedan på **Ladda ner**.
 
 ![Exportdialogen](../../assets/visp_tratt_export_formats.png)

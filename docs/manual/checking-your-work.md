@@ -6,7 +6,7 @@
 
 ## The Overview window
 
-Press **Alt + 0**, or click **Overview** in the toolbar under the top bar.
+Press **Alt + 0**, or click **Overview** in the toolbar under the header (in the Workbench, in the bar with the editor tabs).
 
 ![The Overview window](../assets/visp_tratt_overview_edit.png)
 
