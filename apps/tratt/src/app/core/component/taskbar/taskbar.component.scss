@@ -6,7 +6,7 @@
 #fastbar .btn-link,
 #fastbar .btn-link:hover,
 #fastbar .btn-link:focus {
-  color: var(--tratt-text-primary);
+  color: var(--tratt-interactive-text);
 }
 
 #fastbar div {
@@ -15,4 +15,19 @@
 
 .btn-group.btn-group-justified.btn-group-sm {
   margin: 0;
+}
+
+.fastbar--inline .btn-group {
+  inline-size: auto !important;
+  padding: 0 !important;
+  gap: 1.25rem;
+}
+
+.fastbar--inline .btn-link {
+  inline-size: auto !important;
+  padding: 0;
+  font-size: 0.9375rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
 }

@@ -10,6 +10,7 @@ import { ApplicationStoreService } from '../../store/application/application-sto
   styleUrls: ['./taskbar.component.scss'],
 })
 export class FastbarComponent {
+  @Input() variant: 'stacked' | 'inline' = 'stacked';
   @Input() buttonLabels: any = {
     shortcuts: 'Shortcuts',
     overview: 'Overview',

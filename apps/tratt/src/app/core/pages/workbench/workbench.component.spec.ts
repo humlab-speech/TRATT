@@ -1113,7 +1113,7 @@ describe('WorkbenchComponent', () => {
       const { resolveBundleMedia, openModalRef } = exportStubs(media);
 
       const button = fixture.debugElement.query(
-        By.css('.workbench__editor-header-actions .btn-next'),
+        By.css('.workbench__pane-bar .workbench__editor-header-actions .btn-next'),
       );
       expect(button.nativeElement.textContent).toContain(
         'workbench.editor_header.export',

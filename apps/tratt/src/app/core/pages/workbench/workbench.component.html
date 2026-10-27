@@ -231,46 +231,53 @@
   @if (sessionReady) {
     <div class="workbench__right">
       @if (hasAnyBundles()) {
-        @if (selectedBundleHeader; as header) {
-          <!-- Not gated on exportEnabled: that is read once when the session
-               becomes ready, which can be before the project config has
-               loaded — the button then never appeared next to an editor.
-               LOCAL's config always allows export (as in welcome back). -->
-          <ng-container
-            *ngTemplateOutlet="
-              fileActions;
-              context: {
-                $implicit: header,
-                showExport: useMode === 'local',
-              }
-            "
-          ></ng-container>
-        }
-        <div class="workbench__editor-tabs">
-          @for (entry of editorComponentsList; track entry.name) {
-            <button
-              type="button"
-              class="workbench__editor-tab"
-              [class.workbench__editor-tab--active]="
-                activeEditorName() === entry.name
+        <div class="workbench__pane-bar">
+          <div
+            class="workbench__editor-tabs nav nav-tabs tratt-tabs"
+            role="toolbar"
+          >
+            @for (entry of editorComponentsList; track entry.name) {
+              <button
+                type="button"
+                class="nav-link workbench__editor-tab"
+                [class.active]="activeEditorName() === entry.name"
+                [class.workbench__editor-tab--active]="
+                  activeEditorName() === entry.name
+                "
+                [attr.aria-pressed]="activeEditorName() === entry.name"
+                (click)="changeEditor(entry.name)"
+              >
+                <i [class]="entry.icon" aria-hidden="true"></i>
+                {{ entry.translate | transloco }}
+              </button>
+            }
+          </div>
+          <tratt-fastbar
+            variant="inline"
+            class="workbench__fastbar"
+            (overviewbtnclicked)="openOverview()"
+            (shortcutbtnclicked)="openShortcutsModal()"
+            [buttonLabels]="{
+              shortcuts: 'g.shortcuts' | transloco,
+              overview: 'g.overview' | transloco,
+              help: 'g.help' | transloco,
+            }"
+          ></tratt-fastbar>
+          @if (selectedBundleHeader; as header) {
+            <!-- Not gated on exportEnabled: that is read once when the
+                 session becomes ready, which can be before the project config
+                 has loaded. LOCAL's config always allows export. -->
+            <ng-container
+              *ngTemplateOutlet="
+                fileActions;
+                context: {
+                  $implicit: header,
+                  showExport: useMode === 'local',
+                }
               "
-              [attr.aria-pressed]="activeEditorName() === entry.name"
-              (click)="changeEditor(entry.name)"
-            >
-              <i [class]="entry.icon" aria-hidden="true"></i>
-              {{ entry.translate | transloco }}
-            </button>
+            ></ng-container>
           }
         </div>
-        <tratt-fastbar
-          (overviewbtnclicked)="openOverview()"
-          (shortcutbtnclicked)="openShortcutsModal()"
-          [buttonLabels]="{
-            shortcuts: 'g.shortcuts' | transloco,
-            overview: 'g.overview' | transloco,
-            help: 'g.help' | transloco,
-          }"
-        ></tratt-fastbar>
       }
 
       <!-- The editor host stays in the DOM even with an empty list, so the

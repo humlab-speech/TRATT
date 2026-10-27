@@ -1,4 +1,4 @@
-<div id="fastbar">
+<div id="fastbar" [class.fastbar--inline]="variant === 'inline'">
   <div class="btn-group w-100 p-2">
     <button
       type="button"
@@ -10,7 +10,7 @@
         <span class="d-none d-md-inline"> {{ buttonLabels.shortcuts }}</span>
       }
       @if (!appStorage.easyMode) {
-        <span class="d-none d-lg-inline"> [ALT + 8]</span>
+        <span class="d-none d-lg-inline"> <kbd>Alt+8</kbd></span>
       }
     </button>
     <button
@@ -23,7 +23,7 @@
         <span class="d-none d-md-inline"> {{ buttonLabels.overview }}</span>
       }
       @if (!appStorage.easyMode) {
-        <span class="d-none d-lg-inline"> [ALT + 0]</span>
+        <span class="d-none d-lg-inline"> <kbd>Alt+0</kbd></span>
       }
     </button>
     <button type="button" (click)="openHelpModal()" class="btn btn-link w-100">
