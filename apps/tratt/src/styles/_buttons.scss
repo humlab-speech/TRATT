@@ -71,3 +71,9 @@
   inline-size: 2.25rem;
   block-size: 2.25rem;
 }
+
+// Strong blue is too dark for text/outline on dark surfaces.
+[data-bs-theme='dark'] .btn-outline-primary {
+  --bs-btn-color: var(--tratt-interactive-text);
+  --bs-btn-border-color: var(--tratt-interactive);
+}

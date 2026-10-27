@@ -1,3 +1,4 @@
+@use 'sass:color';
 @use 'palette' as p;
 
 :root {
@@ -51,6 +52,30 @@
   --tratt-font-body: 'Noto Serif', Georgia, 'Times New Roman', serif;
   --tratt-header-height: 4.5rem;
   --tratt-radius: 0.375rem;
+}
+
+[data-bs-theme='dark'] {
+  --tint-base: #{p.$dark-page};
+  --tratt-surface-page: #{p.$dark-page};
+  --tratt-surface-subtle: #{p.$dark-subtle};
+  --tratt-surface-sunken: #{p.$dark-sunken};
+  --tratt-border: #{p.$dark-border};
+  --tratt-border-control: #{p.$dark-border-control};
+  --tratt-text-primary: #{p.$dark-text};
+  --tratt-text-muted: #{p.$dark-text-muted};
+  --tratt-interactive-text: #{p.$dark-link}; //      6.3:1 on #1e1e1e
+  --tratt-danger-text: #{p.$dark-danger-text}; //    4.8:1 on the dark red tint
+  --tratt-success-text: #{color.mix(p.$sb-green, #fff, 80%)};
+
+  // Canvas (literal values, see global constraints)
+  --tratt-waveform-background: #121212;
+  --tratt-waveform-signal: #a6a6a6;
+  --tratt-segment-transcribed: rgba(255, 255, 255, 0.06);
+  --tratt-segment-selected: rgba(30, 152, 159, 0.22);
+  --tratt-canvas-grid: #333333;
+  --tratt-canvas-text: #ededed;
+
+  color-scheme: dark;
 }
 
 // Tints are declared on every theme root so they recompute when
