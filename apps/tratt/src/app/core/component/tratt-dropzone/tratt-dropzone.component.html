@@ -22,12 +22,12 @@
               [popoverTitle]="'dropzone.validation error' | transloco"
               [ngbPopover]="fileProgress.error ?? ''"
               [triggers]="'hover'"
-              style="font-size: 16px"
+              style="font-size: 1rem"
               placement="top"
             ></i>
           }
           @if (fileProgress.status === 'valid' && !fileProgress.warning) {
-            <i class="fa-solid fa-check" style="font-size: 16px"></i>
+            <i class="fa-solid fa-check" style="font-size: 1rem"></i>
           }
           @if (fileProgress.status === 'valid' && fileProgress.warning) {
             <i

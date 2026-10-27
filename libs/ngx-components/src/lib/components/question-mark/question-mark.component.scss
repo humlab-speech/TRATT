@@ -3,9 +3,9 @@
 }
 
 .fa-circle-question {
-  color: #2a4765;
+  color: var(--tratt-interactive-text, #187a7f);
 }
 
 ngb-popover-window {
-  box-shadow: 0 5px 10px lightgray !important;
+  box-shadow: 0 5px 10px var(--tratt-border, #d9d9d9) !important;
 }

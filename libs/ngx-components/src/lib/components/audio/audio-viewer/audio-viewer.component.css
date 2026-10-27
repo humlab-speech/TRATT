@@ -16,5 +16,5 @@
 #konvaContainer canvas {
   max-width: 100% !important;
   height: auto;
-  border: 2px solid black;
+  border: 2px solid var(--tratt-text-primary, #1a1a1a);
 }

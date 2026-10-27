@@ -4,6 +4,8 @@ This library offers the same components from @tratt/ngx-components without the l
 
 ## Installation
 
+Spelaren och visaren ritas på en kanvas. De läser `--tratt-*`-variablerna om sidan definierar dem och faller annars tillbaka på Språkbankens färger. Typsnittet är Noto Sans om sidan laddar det, annars Arial.
+
 ### Vanilla JS (plain Javascript)
 
 Currently, the libraries are not published on npm because Octra 2.0 and the libraries are still in development. If you

@@ -50,7 +50,7 @@
 
 .level-row {
   padding: 5px;
-  border-bottom: 1px solid gray;
+  border-bottom: 1px solid var(--tratt-border-control);
 }
 
 .level-row.last {
@@ -72,12 +72,12 @@
 }
 
 .level-row td .selected {
-  border: 1px solid lightgray;
+  border: 1px solid var(--tratt-border);
 }
 
 .level-add-row {
   margin-top: 5px;
-  border: 1px dashed gray;
+  border: 1px dashed var(--tratt-border-control);
   text-align: center;
   cursor: pointer;
 }
