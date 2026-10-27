@@ -56,6 +56,8 @@ describe('dropzone styles on tokens', () => {
     expect(dzScss).toContain('2px dashed var(--tratt-border-control)');
     expect(dzScss).toContain('var(--sb-blue-tint)');
     expect(dzScss).toContain('.dropzone--over');
+    expect(dzScss).toContain('.dropzone:focus-visible');
+    expect(dzScss).toMatch(/dropzone--over \{\s*border-style: solid/);
     expect(dzScss).toContain('var(--tratt-next)');
     expect(dzScss).not.toMatch(/color: black/);
   });

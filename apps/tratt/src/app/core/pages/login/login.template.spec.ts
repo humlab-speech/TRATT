@@ -55,6 +55,17 @@ describe('login template (Språkbanken profile, /local)', () => {
       expect(html).not.toContain('font-size: 0.8rem');
     });
 
+    it('every progressbar has aria value range, value and label', () => {
+      const bars = html.match(/<div[^>]*role="progressbar"[^>]*>/g) ?? [];
+      expect(bars.length).toBe(6);
+      for (const b of bars) {
+        expect(b).toContain('aria-valuemin="0"');
+        expect(b).toContain('aria-valuemax="100"');
+        expect(b).toMatch(/aria-valuenow="100"|\[attr\.aria-valuenow\]=/);
+        expect(b).toContain('[attr.aria-label]=');
+      }
+    });
+
     it('recording levels use tokens (yellow in the middle)', () => {
       const rp = readFileSync(
         join(

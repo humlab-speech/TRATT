@@ -65,6 +65,13 @@ export class DropZoneComponent implements OnInit {
     this.isOver.set(true);
   }
 
+  onDragLeave($event: DragEvent) {
+    // Moving onto a child element also fires dragleave; ignore that.
+    const to = $event.relatedTarget as Node | null;
+    if (to && ($event.currentTarget as Node).contains(to)) return;
+    this.isOver.set(false);
+  }
+
   onFileDrop($event: DragEvent) {
     $event.stopPropagation();
     $event.preventDefault();

@@ -217,6 +217,18 @@
                             <div
                               class="progress-bar"
                               role="progressbar"
+                              aria-valuemin="0"
+                              aria-valuemax="100"
+                              [attr.aria-valuenow]="
+                                (transcription().downloadLoaded /
+                                  (transcription().downloadTotal ||
+                                    transcription().downloadExpectedBytes)) *
+                                  100 | number: '1.0-0'
+                              "
+                              [attr.aria-label]="
+                                'login.auto-transcription.downloading model'
+                                  | transloco
+                              "
                               [style.width]="
                                 (transcription().downloadLoaded /
                                   (transcription().downloadTotal ||
@@ -270,6 +282,17 @@
                             <div
                               class="progress-bar"
                               role="progressbar"
+                              aria-valuemin="0"
+                              aria-valuemax="100"
+                              [attr.aria-valuenow]="
+                                (transcription().downloadLoaded /
+                                  transcription().downloadTotal) *
+                                  100 | number: '1.0-0'
+                              "
+                              [attr.aria-label]="
+                                'login.auto-transcription.diarizingLabel'
+                                  | transloco
+                              "
                               [style.width]="
                                 (transcription().downloadLoaded /
                                   transcription().downloadTotal) *
@@ -331,6 +354,17 @@
                             <div
                               class="progress-bar"
                               role="progressbar"
+                              aria-valuemin="0"
+                              aria-valuemax="100"
+                              [attr.aria-valuenow]="
+                                (transcription().segmentEndS /
+                                  transcription().audioDurationS) *
+                                  100 | number: '1.0-0'
+                              "
+                              [attr.aria-label]="
+                                'login.auto-transcription.transcribing audio'
+                                  | transloco
+                              "
                               [style.width]="
                                 (transcription().segmentEndS /
                                   transcription().audioDurationS) *
@@ -419,6 +453,17 @@
                             <div
                               class="progress-bar"
                               role="progressbar"
+                              aria-valuemin="0"
+                              aria-valuemax="100"
+                              [attr.aria-valuenow]="
+                                (translation().downloadLoaded /
+                                  translation().downloadTotal) *
+                                  100 | number: '1.0-0'
+                              "
+                              [attr.aria-label]="
+                                'login.translation.phase.downloading'
+                                  | transloco
+                              "
                               [style.width]="
                                 (translation().downloadLoaded /
                                   translation().downloadTotal) *
@@ -465,6 +510,12 @@
                           <div
                             class="progress-bar progress-bar-striped progress-bar-animated"
                             role="progressbar"
+                            aria-valuemin="0"
+                            aria-valuemax="100"
+                            aria-valuenow="100"
+                            [attr.aria-label]="
+                              'login.translation.phase.initializing' | transloco
+                            "
                             style="width: 100%"
                           ></div>
                         </div>
@@ -493,6 +544,17 @@
                             <div
                               class="progress-bar"
                               role="progressbar"
+                              aria-valuemin="0"
+                              aria-valuemax="100"
+                              [attr.aria-valuenow]="
+                                (translation().segmentIndex /
+                                  translation().segmentTotal) *
+                                  100 | number: '1.0-0'
+                              "
+                              [attr.aria-label]="
+                                'login.translation.phase.translating'
+                                  | transloco
+                              "
                               [style.width]="
                                 (translation().segmentIndex /
                                   translation().segmentTotal) *

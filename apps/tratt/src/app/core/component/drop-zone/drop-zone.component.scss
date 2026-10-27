@@ -24,6 +24,16 @@
   background-color: var(--sb-blue-tint);
 }
 
+// Not colour-only: the drag-over border turns solid.
+.dropzone.dropzone--over {
+  border-style: solid;
+}
+
+.dropzone:focus-visible {
+  outline: 2px solid var(--tratt-interactive);
+  outline-offset: 2px;
+}
+
 .dropzone .inner {
   display: flex;
   flex-direction: column;
