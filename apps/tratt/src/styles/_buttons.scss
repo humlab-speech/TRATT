@@ -18,7 +18,7 @@
 }
 
 // Large CTA: pure brand orange is allowed because ≥ 1.1875rem bold is WCAG
-// "large text" (3:1 suffices; white on #f0581a is 3.43:1).
+// "large text" (3:1 suffices; white on the brand orange is 3.43:1).
 .btn-next-lg {
   --bs-btn-bg: var(--sb-orange);
   --bs-btn-border-color: var(--sb-orange);

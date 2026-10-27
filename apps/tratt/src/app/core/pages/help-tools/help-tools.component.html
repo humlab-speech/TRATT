@@ -137,8 +137,7 @@
 
           <button
             [disabled]="!backupFiles || backupFiles.length === 0"
-            class="btn btn-raised text-light w-100"
-            style="background-color: var(--tratt-danger)"
+            class="btn btn-danger w-100"
             (click)="importBackup(backupFiles![0])"
           >
             Backup local data
