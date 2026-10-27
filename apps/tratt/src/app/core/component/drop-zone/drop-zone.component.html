@@ -5,7 +5,9 @@
     (keydown.enter)="onClick()"
     (keydown.space)="$event.preventDefault(); onClick()"
     (dragover)="onDragOver($event)"
+    (dragleave)="isOver.set(false)"
     (drop)="onFileDrop($event)"
+    [class.dropzone--over]="isOver()"
     [ngStyle]="{
       height: height,
     }"

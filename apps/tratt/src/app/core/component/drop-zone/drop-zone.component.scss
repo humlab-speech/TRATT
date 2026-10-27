@@ -1,6 +1,7 @@
 .dropzone {
-  border: 2px dashed var(--tratt-accent-warning);
-  background-color: var(--tratt-waveform-background);
+  border: 2px dashed var(--tratt-border-control);
+  border-radius: 0.5rem;
+  background-color: var(--tratt-surface-page);
   padding: 20px;
   min-height: 100px;
   text-align: center;
@@ -17,6 +18,12 @@
   cursor: pointer;
 }
 
+.dropzone:hover,
+.dropzone.dropzone--over {
+  border-color: var(--tratt-interactive);
+  background-color: var(--sb-blue-tint);
+}
+
 .dropzone .inner {
   display: flex;
   flex-direction: column;
@@ -31,6 +38,6 @@
 }
 
 .dropzone .dragndrop {
-  color: black;
-  font-size: 30px;
+  color: var(--tratt-next);
+  font-size: 2.75rem;
 }
