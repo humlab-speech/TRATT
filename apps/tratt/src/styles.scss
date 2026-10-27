@@ -13,7 +13,6 @@
 @use 'styles/bootstrap-config';
 @use '@fortawesome/fontawesome-free/css/all.css';
 @use 'styles/tokens';
-@use 'styles/legacy-tokens';
 @use 'styles/typography';
 @use 'styles/buttons';
 @use 'styles/components';
@@ -116,7 +115,7 @@ main {
 }
 
 .export-button {
-  background-color: var(--tratt-surface-background);
+  background-color: var(--tratt-surface-subtle);
   border: 1px solid grey;
   text-align: center;
   padding: 20px;
@@ -132,14 +131,14 @@ main {
 }
 
 .error_underline {
-  border-bottom: 2px solid var(--tratt-accent-error);
+  border-bottom: 2px solid var(--tratt-danger);
   display: inline;
   cursor: pointer;
 }
 
 .error-tooltip {
   display: none;
-  background-color: var(--tratt-danger-surface);
+  background-color: var(--sb-red-tint);
   border: 1px solid var(--tratt-danger);
   padding: 10px;
   max-width: 70%;
@@ -200,7 +199,7 @@ main {
 
 .seg-popover {
   border: 1px solid var(--tratt-border-control);
-  background-color: var(--tratt-surface-background);
+  background-color: var(--tratt-surface-subtle);
   z-index: 100;
   position: absolute;
   padding: 5px;
@@ -220,7 +219,7 @@ main {
 }
 
 .note-toolbar button.note-btn.btn.btn-light.btn-sm {
-  background-color: var(--tratt-surface-background);
+  background-color: var(--tratt-surface-subtle);
   color: var(--tratt-text-primary);
   padding: 2px 6px;
 }
@@ -255,7 +254,7 @@ main {
 }
 
 .note-toolbar-wrapper.panel-default {
-  background-color: var(--tratt-surface-background);
+  background-color: var(--tratt-surface-subtle);
 }
 
 .val-error {
@@ -347,7 +346,7 @@ label.radio-inline .bmd-radio {
   vertical-align: middle;
   /* width: 30px; */
   text-align: center;
-  background-color: var(--tratt-surface-background);
+  background-color: var(--tratt-surface-subtle);
   color: var(--tratt-text-muted);
   position: relative;
 }
@@ -373,7 +372,7 @@ label.radio-inline .bmd-radio {
   justify-content: space-between;
   box-sizing: border-box;
   cursor: move;
-  background: var(--tratt-surface-background);
+  background: var(--tratt-surface-subtle);
   font-size: 0.875rem;
   margin: 0;
 }
@@ -382,7 +381,7 @@ label.radio-inline .bmd-radio {
   border-bottom: 1px solid var(--tratt-border);
   padding: 5px;
   height: 35px;
-  background-color: var(--tratt-surface-background);
+  background-color: var(--tratt-surface-subtle);
 }
 
 .column.ng-star-inserted.gu-mirror .cell:last-of-type {
@@ -391,7 +390,7 @@ label.radio-inline .bmd-radio {
 
 .note-toolbar.card-header {
   padding: 0;
-  background-color: var(--tratt-surface-background);
+  background-color: var(--tratt-surface-subtle);
 }
 
 .highlighted {
@@ -431,7 +430,7 @@ a {
 
 .jodit-toolbar__box:not(:empty):not(:empty),
 .jodit-toolbar-editor-collection_size_middle.jodit-toolbar-editor-collection_mode_horizontal {
-  background: var(--tratt-surface-background) !important;
+  background: var(--tratt-surface-subtle) !important;
 }
 
 .jodit-toolbar__box .btn-shortcut {
@@ -450,10 +449,10 @@ a {
 
 .text-outline-white {
   text-shadow:
-    -1px -1px 0 var(--tratt-surface-background),
-    1px -1px 0 var(--tratt-surface-background),
-    -1px 1px 0 var(--tratt-surface-background),
-    1px 1px 0 var(--tratt-surface-background) !important;
+    -1px -1px 0 var(--tratt-surface-subtle),
+    1px -1px 0 var(--tratt-surface-subtle),
+    -1px 1px 0 var(--tratt-surface-subtle),
+    1px 1px 0 var(--tratt-surface-subtle) !important;
 }
 
 #editor-change-font-btn {

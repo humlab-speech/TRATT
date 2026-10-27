@@ -482,7 +482,7 @@ export class TranscrEditorComponent
       const validationError = document.createElement('div');
       validationError.setAttribute('class', 'card error-card');
       validationError.innerHTML = `
-      <div class="card-header" style="padding:5px 10px; font-weight: bold;background-color:var(--tratt-surface-background);">
+      <div class="card-header" style="padding:5px 10px; font-weight: bold;background-color:var(--tratt-surface-subtle);">
       <span style="color:var(--tratt-danger-text);">( ! )</span> <span class="error-title"></span></div>
       <div class="card-body" style="padding:5px 10px;"></div>
       `;

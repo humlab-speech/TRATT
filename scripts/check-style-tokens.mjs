@@ -26,7 +26,7 @@ export function matchLine(line, { isHtml = false, location = '', lib = location.
   // Token names such as var(--tratt-accent-green) are not named colours.
   // Libraries (published, no app CSS) read tokens with a literal fallback: var(--tratt-x, #abc).
   const noFallback = lib ? line.replace(/var\(--(?:tratt|sb)-[a-z-]+,\s*#[0-9a-fA-F]{3,8}\)/g, 'var()') : line;
-  const bare = line.replace(/var\(--[\w-]+\)/g, 'var()');
+  const bare = line.replace(/var\(--[\w-]+(?:,\s*#[0-9a-fA-F]{3,8})?\)/g, 'var()');
   return (HEX.test(noFallback) && 'hex colour') || (NAMED.test(bare) && 'named colour') || (PX_FONT.test(line) && 'px font-size') || null;
 }
 

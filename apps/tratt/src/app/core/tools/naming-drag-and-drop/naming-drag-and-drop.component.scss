@@ -26,7 +26,7 @@
 :host {
   padding: 10px;
   display: block;
-  background-color: var(--tratt-surface-background);
+  background-color: var(--tratt-surface-subtle);
   -webkit-border-radius: 3px;
   -moz-border-radius: 3px;
   border-radius: 3px;
@@ -48,7 +48,7 @@
 }
 
 .naming-text {
-  background-color: var(--tratt-surface-background);
+  background-color: var(--tratt-surface-subtle);
   cursor: pointer;
 }
 

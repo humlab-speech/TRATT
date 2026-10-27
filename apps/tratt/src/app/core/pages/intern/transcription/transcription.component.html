@@ -25,7 +25,7 @@
             type="button"
             (click)="openPromptModal()"
             class="btn btn-link p-0 border-0 text-decoration-none"
-            style="cursor: pointer; color: var(--tratt-accent-green-dark)"
+            style="cursor: pointer; color: var(--tratt-interactive-text)"
           >
             {{ 'g.prompt' | transloco }}
           </button>
@@ -43,7 +43,7 @@
     @if (saving === 'error') {
       <i
         class="fa-solid fa-floppy-disk"
-        style="color: var(--tratt-accent-error)"
+        style="color: var(--tratt-danger)"
       ></i>
     }
   </span>
@@ -91,7 +91,7 @@
         placeholder="{{ 'g.insert comment' | transloco }}"
         style="
           resize: none;
-          background-color: var(--tratt-note-surface);
+          background-color: var(--sb-yellow-tint);
           height: 40px;
         "
       ></textarea>
@@ -124,7 +124,7 @@
           (click)="sendTranscriptionForShortAudioFiles('middle')"
           class="btn btn-raised btn-warning col-md-3 btn btn-warning"
           type="button"
-          style="background-color: var(--tratt-accent-warning)"
+          style="background-color: var(--tratt-warning)"
         >
           <i class="fa-solid fa-star"></i>
           <i class="fa-solid fa-star"></i>

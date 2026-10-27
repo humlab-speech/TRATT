@@ -26,16 +26,6 @@ export const TRATT_COLORS = {
   accentSuccess: '#5AA018',
   accentWarning: '#F6C200',
   accentError: '#D42225',
-  /** @deprecated Use `interactive`. */
-  chrome: '#187A7F',
-  /** @deprecated Use `interactive`. */
-  chromeHover: '#187A7F',
-  /** @deprecated Use `playhead` or `accentSuccess`. */
-  cta: '#C04615',
-  /** @deprecated Use `accentSuccess`. */
-  accentGreen: '#5AA018',
-  /** @deprecated */
-  accentGreenDark: '#488013',
 } as const;
 
 export const TRATT_FONTS = {
