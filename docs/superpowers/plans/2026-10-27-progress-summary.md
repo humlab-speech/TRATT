@@ -60,3 +60,23 @@ Open (deferred): `resolveTrattColors` fallback test in task 23; token/`TRATT_COL
 Rulings: consumer `frame.color = '#222222'` overrides removed (theme owns canvas colours; light-mode frame is now the border token).
 
 Open (deferred): browser checks (white-surface scan, mid-playback toggle in 2D/linear/popup, video.js, Jodit globals); real-Konva test for theme-nodes; magnifier frame contrast in light; `shell.header.theme_toggle` only sv/en.
+
+## Phase 7 (start) – Style-token lint (task 25 steps 1–2)
+
+- `121768995` `scripts/check-style-tokens.mjs` with `--report` mode and node tests; `npm run lint:styles`. CI step still to do (task 25 step 3).
+
+## Phase 8 – All other entry points (tasks 30–38): complete
+
+- T30 `328f9776b` `.tratt-state-*` tint classes, `.tratt-page`, spec scope widened (spec links to the addendum plan, committed `0014ed8ff`).
+- T31 `863c0b947` + fix `eedf75113` toasts as tinted state surfaces (`role="alert"` on danger only, `aria-live="polite"` host), small components on tokens, real-DOM alert spec.
+- T32 `75c5620bb` dialogs: next-step buttons per the exhaustive table; unsaved recording leaves as danger.
+- T33 `31e2212c2` online `/login` card + auth pages (`tratt-page`, sign-in `btn-next`).
+- T34 `819e6e00c` projects list, submission end, reload; pagination icons.
+- T35 `3b460cb7d` classic transcription mode: overview on `tratt-state-*` (table-scoped overrides in `_components.scss`), verification markers (UI only), selected row as tint + edge.
+- T36 `21fb50454` info pages on `.tratt-page`, tools, browser test rows with icons + state classes.
+- T37 `597631b61` logo is a non-link `span` in the Visp embed (`LoginMode.URL`), beta badge hidden there.
+- T38 `40d9e7501` + fix `13440291f` libs on `var(--tratt-*, literal)` fallbacks; bugreport send `btn-next`; README note; lint extended (hex fallback allowed in `libs/` only). Style-token lint now exits 0.
+
+Rulings: signup/reset submit buttons stay `btn-primary`; bugreport `btn-next` kept in the library (unstyled `.btn` outside Tratt); pagination screen-reader labels left English (pre-existing).
+
+Open (deferred): light/dark visual pass of `/intern/transcr`, `/test`, configurator; Visp embed 1440/400 px comparison; video letterbox colour (should stay black); verification-marker contrast on tint (consider `-text` tokens); lint `bare` false-positive for colour words in token names; `.bg-highlight` warning edge; `validation-popover` legacy `--tratt-accent-error` (task 26); `linear-editor` etc. clean now.
