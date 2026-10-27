@@ -5,25 +5,25 @@
 ## Loading a file
 
 **"This file type is not supported." / "File format not supported."**
-The extension is not in TRATT's list. Convert to `.wav` or `.mp3` and try again.
+The extension is not in Tratt's list. Convert to `.wav` or `.mp3` and try again.
 See [supported formats](loading-media.md#supported-file-formats).
 
 **"File exceeds the maximum allowed size of 3000 MB." or an invalid-size error**
-Two limits apply: a global 3000 MB ceiling, and a per-format one: 1.9 GB for
-`.wav`, 500 MB for everything else. A long `.wav` is the usual culprit; convert it
-to FLAC or MP3, or split the recording.
+The Traat application is subject to two limits due to how in-browser applications work. First, there is a global 3000 MB ceiling in how much storage the application can use. Second, there are per-file limiations: 1.9 GB for
+`.wav`, 500 MB for everything else. If you are having trouble loading in a recording, convert it
+to FLAC or MP3, or split the recording into two.
 
 **"Transcript filename does not match the audio filename."**
-TRATT pairs the two by name. Rename the transcript so its base name matches the
-audio's, e.g. `interview3.wav` with `interview3_annot.json`.
+Tratt assumes that the audio file and transcript file with time information have identical names but for their file extensions. Rename the transcript so its base name matches the
+audio's, e.g. `interview3.wav` with `interview3.srt`. The one exception to the rule is *annotJSON* files, in which case teh application assumes that the files are named like `interview3.wav` and `interview3_annot.json`.
 
 **The transcript file sits there with a spinner**
-It is waiting for audio. Drop the media file too. A transcript alone cannot be
-opened.
+It is waiting for audio. Drop the media file too. A transcript cannot be
+opened without a media file, with the same name (See above).
 
 **Loading a video takes a long time**
-Expected: the sound has to be decoded out of the container in the browser. `.wav`
-loads fastest.
+This is expected. When a video file is loaded, the sound has to be decoded out of the container in the browser. 
+Please use a simpler audio format, preferably `.wav`, if the process is very slow.
 
 ---
 
@@ -33,7 +33,7 @@ loads fastest.
 
 **The Auto-transcribe checkbox is disabled, with a warning about Safari**
 Safari and other WebKit browsers reload the tab part-way through large model
-downloads, losing your work, so TRATT disables the feature there. Use Chrome, Edge
+downloads, losing your work, so Tratt disables the feature in these browsers. Use Chrome, Edge
 or Firefox. Manual transcription in Safari is unaffected.
 
 **The checkbox is missing entirely**
@@ -43,30 +43,29 @@ There is nothing to draft if you already brought a transcript.
 **The largest models are greyed out, "Requires WebGPU"**
 Your browser or graphics hardware does not expose WebGPU. Which models that affects
 depends on the language you picked. Use Tiny or Small, or run
-TRATT on a machine with a discrete graphics card. In Chrome and Edge you can check
+Tratt on a machine with a discrete graphics card. In Chrome and Edge you can check whether you have WebGPU 
 at `chrome://gpu`.
 
 **The model download stalls or fails**
-Models come from `huggingface.co`. If your network blocks it, automatic
-transcription cannot work; everything else in TRATT still does. On a slow link,
-start with the Tiny model to confirm the pipeline works before committing to a
+The models are downloaded from `huggingface.co`. If your network blocks it, automatic
+transcription cannot work. In this case, you can still perform manual transcription. On a slow link,
+you can start with the Tiny model to confirm the pipeline works before committing to a
 multi-gigabyte download.
 
 **Transcription fails part-way, mentioning WebGPU**
-Some drivers cannot sustain a long WebGPU run. TRATT picks WebGPU automatically and
+Some drivers cannot sustain a long WebGPU run. Tratt picks WebGPU automatically and
 has no switch of its own, so force the CPU path by disabling WebGPU in the browser
-(Chrome/Edge: `chrome://flags` → *WebGPU* → **Disabled**, restart) and reloading.
-Everything then runs on WASM: slower, and only the smaller models remain available.
+(Chrome/Edge: `chrome://flags` → *WebGPU* → **Disabled**, and restart the browser) and reload the application.
+This causes the application to use the WebAssembly pipeline, which will be slower, but may work better. 
 
 **It is taking a very long time**
-Model size, recording length and hardware all multiply. Speaker separation adds more
-still, because that model always runs on the CPU. The progress bar shows position
-within the recording. If it is moving, it is working. If you need an estimate,
-run a five-minute excerpt first.
+Model size, recording length, and your hardware determines how fast the processing will be. Speaker separation adds more
+processin ttime still, because that model always runs witout WebGPU accelleration. The progress bar shows position
+within the recording. If it is moving, work is being done and you just have to wait. If you need an estimate of how long the processing will be, run a five-minute excerpt first.
 
 **The speaker labels are wrong**
-Diarization is a guess. Give it the expected number of speakers next time, and fix
-labels with **Ctrl/Cmd + S**, see
+The process of determoning speaker changes and assigning units to the correct speaker is very error prone. To give it some guidande, provide it the expected number of speakers, but please expect that you need to fix
+labels with **Ctrl/Cmd + S** in your manual review. See
 [Tiers and speakers](tiers-and-speakers.md#fixing-speaker-labels).
 
 ---
@@ -74,7 +73,7 @@ labels with **Ctrl/Cmd + S**, see
 ## Audio playback
 
 **No sound, or "Missing permissions"**
-The browser is blocking autoplay. TRATT shows the fix for your browser: click the
+In this case, the browser is blocking autoplay. Tratt shows the fix for your browser: click the
 crossed-out play icon at the left of the address bar, set Autoplay to *Allow Audio
 and Video*, then click **Reload** in the dialog.
 
@@ -92,7 +91,7 @@ with **S** instead of using a selection, or clear the text first.
 
 **"Cannot delete boundary because there are neighboring transcription units that are
 already transcribed."**
-Merging would destroy text. Empty one of the two units first.
+You are trying to perform a merge that would destroy text. Empty one of the two units first.
 
 **"You can't apply undo & redo at the moment."**
 Another operation is still running. Wait a second and try again.
@@ -102,7 +101,7 @@ Another operation is still running. Wait a second and try again.
 ## Recording
 
 **"Microphone permission was denied." / "No microphone was found."**
-Grant microphone access in the browser's site settings and reload. On macOS, also
+Grant microphone access in the browser's settings and reload. On macOS, also
 check System Settings → Privacy & Security → Microphone for your browser.
 
 **Device names are blank**
@@ -110,15 +109,15 @@ Browsers hide device labels until permission has been granted once. Click
 **Request access**, then **Refresh devices**.
 
 **"Your browser does not support MP4 recording, saving as WebM."**
-Firefox. Harmless: TRATT accepts both.
+This applies to Firefox. The changes is safe to perform, as Tratt accepts both formats.
 
 **The volume light stays red**
 The microphone is too quiet or is not the one you think it is. Stop, pick a
-different input device, check the system input level, and re-record. There is no
-fixing this afterwards.
+different input device, check the system input level, and try again. You may not be able to recover a recording 
+that was performed with to low recording level afterwards.
 
 **I closed the tab mid-recording**
-Come back to the Record tab. TRATT offers *Unfinished recording recovered* with the
+Come back to the Record tab. Tratt offers *Unfinished recording recovered* with the
 option to continue, download the partial file, or discard it.
 
 ---
@@ -127,19 +126,16 @@ option to continue, download the partial file, or discard it.
 
 ## The Workbench
 
-**`/workbench` sends me to the start page**
-This build predates the Workbench. Update TRATT, or reload the page if it has
-updated in the background. See [The Workbench](workbench.md).
 
 **A file failed with "Ran out of memory"**
-Too much decoded audio is attached at once. The **Working memory (est.)** meter
-shows how much; disk storage is not the constraint. Export what is finished,
-**Clear finished** to release it, then attach the next few recordings. A smaller
-model also helps.
+You have attached too much decoded audio to the session at once. The **Working memory (est.)** meter
+shows how much storage is being used. Export what is finished,
+**Clear finished** to release it, then attach the next few recordings. Using a smaller
+transcription model also helps.
 
 **A file failed with "Could not read the audio"**
-The same decoding problem as anywhere else: an unsupported or damaged file. Try it
-on the start page on its own, and convert it to `.wav` or `.mp3` if it still
+You are uploading a media file in an unsupported file format, or the file is damaged. Try to
+ start page on its own, and convert it to `.wav` or `.mp3` if it still
 fails.
 
 **A file failed with "Could not load the model"**
@@ -147,30 +143,28 @@ The model download did not complete. Check the network, then **Retry** on that
 row. The rest of the queue is unaffected.
 
 **Everything says "Interrupted"**
-The page was closed or reloaded while the queue was running. Nothing is lost:
-re-attach the audio and run the queue again. Only files without a transcript are
-picked up.
+The page was closed or reloaded while the queue was running. 
+Re-attach the audio and run the queue again. In most cases, nothing is lost in this process.
 
 **The Transcribe button is greyed out**
 No pipeline is configured. Open **Pipeline settings** and tick
 **Auto-transcribe with Whisper** first.
 
 **Every file says "Attach file…"**
-Normal after a reload. TRATT keeps transcripts but never media, so each recording
-needs its audio pointed at again. An
-[exported archive](exporting.md#exporting-an-archive) restores both at once.
+This is normal after a reload. Tratt keeps a copy of the transcripts in its storage, but not the media. So each recording
+needs its audio to be attached from your computer again. An
+[exported archive](exporting.md#exporting-an-archive) contains everythink though and restores both at once.
 
 **Everything came back orange**
-Intended. Transcripts stored before version 2.6, and any transcript rebuilt on
-resume before the 2.6 fixes, load as non-verified: TRATT cannot know who checked
+Intended. Transcripts stored before version 3.2, and any transcript rebuilt on
+resume before the 3.2 fixes, load as non-verified. Tratt cannot know who checked
 them. Listen to a unit or edit it and it turns green. See
 [Verified transcriptions](checking-your-work.md#verified-transcriptions).
 
 **"This doesn't look like the same file"**
 The file you picked differs from the one the entry was made from. The dialog shows
-both, so compare them. When only the modification time differs it is usually a
-copy or re-exported audio and **Use anyway** is safe; a different length or size
-means the boundaries will not line up.
+both, so that you may compare them. When only the modification time differs it is usually a
+copy or re-exported audio and **Use anyway** is safe.
 
 **The start page replaced a recording that was in the Workbench list**
 They share one stored session slot, and TRATT warns about this before it happens.
@@ -181,17 +175,15 @@ Use one route or the other for a given piece of material.
 ## Losing work
 
 **My transcript is gone**
-TRATT keeps it in this browser's storage, in this browser profile. It disappears if
+Tratt keeps a copy of transcripts in this browser's storage. You can have problems if
 you clear site data, use a private window and close it, switch browsers or machines,
 or if a cleanup tool clears IndexedDB.
 
 **I dropped the file back in but the button said "Start new transcription"**
 That means TRATT does not recognise the file as the one the stored session belongs
 to, and clicking it *discards* the stored transcript. Check that it is the same
-file, with the same name, before clicking.
+file, with the same name, before clicking the button to start a new transcription.
 
-**Prevention:** export an AnnotJSON file at the end of every session. It is the only
-copy that lives outside the browser.
 
 <a id="the-maintenance-page"></a>
 
@@ -199,16 +191,16 @@ copy that lives outside the browser.
 
 ## The maintenance page
 
-Not linked from the interface: add `/help-tools` to TRATT's address, for example
-`http://localhost:5321/help-tools`.
+This pave is not linked to from the interface: add `/help-tools` to TRATT's address, for example
+`https://tratt.demo.humlab.umu.se/help-tools`.
 
 | Tool | Use it when |
 | --- | --- |
-| **Refresh App** | TRATT is behaving oddly after an update: forces a reload and refreshes the cache |
-| **Clear all Storage Data** | You are finished on a shared machine, or storage is corrupt. Removes the transcript, logs and settings permanently. |
+| **Refresh App** | Tratt is behaving oddly after an update. It forces a reload and refreshes the cache |
+| **Clear all Storage Data** | You are finished on a shared machine, or storage is corrupt. It removes the transcript, logs and settings permanently. |
 | **Stresstest** | Checking whether this browser and machine can cope |
-| **Backup local data** | Before clearing anything, or before a browser update: downloads a zip of TRATT's local data |
-| **Restore local backup** | Putting that zip back |
+| **Backup local data** | Before clearing anything, or before a browser update. It downloads a zip of Tratt's local data |
+| **Restore local backup** | Restoring the previous state from a zip file |
 
 **Clear all Storage Data cannot be undone.** Export your transcript, or take a
 backup, first.

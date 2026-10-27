@@ -3,17 +3,17 @@
 **För:** dig som ska bestämma hur du vill arbeta, eller undrar varför skärmen ser
 annorlunda ut än hos en kollega.
 
-TRATT erbjuder flera vyer över *samma* transkript. Att byta mellan dem ändrar
-ingenting annat än din vy. Du kan flytta mellan dem mitt i en fil, hur ofta du
+Tratt erbjuder flera vyer över *samma* transkript. Att byta mellan dem ändrar
+inte dina data. Du kan flytta mellan dem mitt i en fil, hur ofta du
 vill, med knapparna till vänster i den övre listen.
 
-Standard är **2D Vy**.
+Standardvyn använder **2D Vy**.
 
 ---
 
 ## 2D Vy
 
-Arbetshästen. Inspelningen ritas som en vågform uppdelad på rader (som text som
+I den här vyn ritas inspelningen som en vågform uppdelad på rader (som text som
 radbryts), med varje transkriptionsenhet skuggad och sin text tryckt under.
 
 ![2D Vy](../../assets/visp_tratt_2d_editor.png)
@@ -25,13 +25,13 @@ radbryts), med varje transkriptionsenhet skuggad och sin text tryckt under.
   **transkriptionsfönstret** för den.
 - **S**, **A**, **D** och dra-markering sköter gränser direkt på vågformen
   ([Så fungerar transkribering](transcribing.md#boundaries)).
-- **Sekunder per rad** i Inställningar styr hur mycket ljud varje rad rymmer.
+- **Sekunder per rad** i Inställningarna styr hur mycket ljud varje rad rymmer.
 - Slå på **Visa förstoringsglas** för en förstorad remsa runt markören när du
   behöver placera en gräns exakt.
 
 ### Transkriptionsfönstret
 
-Rutan du får med **Enter**. Den visar en enhet: dess egen vågform, en spelare,
+Rutan du får med **Enter**. Den visar en enhet: dess vågform med återkoppling om vad som spelas, en spelare,
 markörraden och ett textfält.
 
 ![Transkriptionsfönstret över 2D Vy](../../assets/visp_tratt_popup_editor_audio_only.png)
@@ -42,22 +42,22 @@ markörraden och ett textfält.
   enhet, snabbaste vägen genom en fil.
 - **Alt + ↓** sparar och stänger.
 - **Ctrl/Cmd + S** växlar talaretiketten.
-- Är din mediefil ett format som webbläsaren kan spela upp direkt (MP4, WebM)
-  visas videon bredvid vågformen.
+- Har du läst in en videofil i ett format som webbläsaren kan spela upp direkt
+  (MP4, WebM) visas videon ovanpå vågformen.
 
 ---
 
 ## Diktafon-vy
 
-En spelare och ett enda textfält. Ingen vågform, inga gränser.
+En spelare och ett enda textfält. Den visar ingen vågform och inga gränser.
 
 ![Diktafon-vyn](../../assets/visp_tratt_dictaphone_editor.png)
 
 **Använd den när** inspelningen är kort, eller när gränserna redan är rätt och du
-bara vill skriva. Den är också den mildaste starten för någon som aldrig använt
+bara vill skriva. Den kan också vara den mildaste starten för någon som aldrig använt
 ett annoteringsverktyg.
 
-Uppspelningstangenterna är desamma överallt: **Tabb** spela/pausa, **Esc** stoppa,
+Uppspelningstangenterna är desamma som i de andra vyerna: **Tabb** spela/pausa, **Esc** stoppa,
 **Skift + Backsteg** tillbaka till senaste startläge, **Skift + Tabb** stega
 tillbaka i tid.
 
@@ -65,18 +65,18 @@ tillbaka i tid.
 
 ## Linjär vy
 
-Två signalvisningar staplade: hela inspelningen överst, och en förstorad vy av det
-aktuella läget under.
+Det här är två staplade signalvisningar. Den övre visar hela inspelningen, och en
+förstorad vy av det aktuella läget visas under.
 
 ![Linjär vy](../../assets/visp_tratt_linear_editor.png)
 
-**Använd den när** du behöver fin kontroll över gränslägen men samtidigt vill
-behålla överblicken över filen som helhet.
+**Använd den när** du behöver fin kontroll över gränslägen men vill se en
+överblick över filen som helhet.
 
 De två visningarna har egna uppspelningstangenter, eftersom du oftast arbetar i
 den ena medan du lyssnar på den andra:
 
-| | Övre (överblick) | Nedre (lupp) |
+| | Övre (överblick) | Nedre (förstorad) |
 | --- | --- | --- |
 | Spela / pausa | **Tabb** | **Skift + Blanksteg** |
 | Stoppa | **Esc** | **Esc** |
@@ -88,19 +88,6 @@ musen befinner sig över.
 
 ---
 
-<a id="trn-editor--experimental"></a>
-
-## TRN-Editor (experimentell)
-
-En tabellvy över hela transkriptet, med operationer per talare (slå ihop segment
-med samma talaretikett, ersätta permutationer).
-
-**Du kommer inte att se den.** Standardkonfigurationen i TRATT erbjuder bara de
-tre vyerna ovan, och TRN-Editor är ändå inte färdig. Dess tangentbordsgenvägar
-är inte inkopplade och att öppna ett segment gör ingenting. Den beskrivs här bara
-så att du vet vad namnet syftar på om du möter det i koden eller i
-OCTRA-manualen.
-
-Vill du ha en tabellvy över ditt transkript som *fungerar*, använd
+Vill du ha en tabellvy över ditt transkript, använd
 [Översikt](checking-your-work.md) (**Alt + 0**), som listar varje enhet och låter
 dig redigera och spela rader på plats.

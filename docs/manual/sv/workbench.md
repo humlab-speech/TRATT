@@ -1,13 +1,12 @@
 # Arbetsbänken
 
 **För:** dig som har en mapp med inspelningar snarare än en enda fil.
-Arbetsbänken transkriberar en hel omgång utan tillsyn och låter dig redigera varje
+Arbetsbänken transkriberar en omgång filer och låter dig redigera varje
 resultat utan att ladda in filerna en i taget.
 
 > **Så kommer du dit.** Arbetsbänken (*Workbench*) har ingen egen post i
-> navigeringslisten. Du kommer dit genom att skriva `/workbench` i TRATT:s
-> adress, till exempel `http://localhost:5321/workbench`, och adressen är värd
-> att bokmärka. Den ingår i släppta byggen; ett bygge från innan den kom leder
+> navigeringslisten. Du kommer dit genom att skriva `/workbench` i Tratts
+> adress, till exempel `https://tratt.demo.humlab.umu.se/workbench`. Den ingår i släppta byggen; ett bygge från innan den kom leder
 > adressen till den vanliga startsidan i stället.
 >
 > Väl där öppnar både **Manual** i navigeringslisten och **Hjälp** i
@@ -35,10 +34,10 @@ exportformaten är de som beskrivs i resten av manualen. Arbetsbänken ändrar h
 material kommer in och hur du rör dig mellan inspelningar, inte hur du
 transkriberar.
 
-**De delar en sparad session.** TRATT håller en enda aktuell inspelning i
+**De delar en sparad session.** Tratt håller en enda aktuell inspelning i
 webbläsarlagringen, och Arbetsbänkens fillista använder samma plats. Att starta en
 ny transkription på startsidan kan därför ersätta en fil som ligger i
-Arbetsbänkens lista, och TRATT varnar när det är på väg att hända. Välj ett av de
+Arbetsbänkens lista, och Tratt varnar när det är på väg att hända. Välj ett av de
 två arbetssätten för ett givet material och håll dig till det.
 
 ---
@@ -71,7 +70,7 @@ listas under
 [Ladda in en inspelning](loading-media.md#supported-file-formats).
 
 **En transkriptfil** hör till sin inspelning: släpp den tillsammans med ljudet,
-eller efter att ljudet redan ligger i listan. TRATT parar ihop de två på namn och
+eller efter att ljudet redan ligger i listan. Tratt parar ihop de två på namn och
 säger till när det inte går:
 
 - *Ingen inspelning heter "x". Släpp transkriptionen tillsammans med ljudfilen,
@@ -80,9 +79,6 @@ säger till när det inte går:
 - Att ersätta en transkription som redan har text kräver en bekräftelse, eftersom
   dina ändringar i den skulle gå förlorade.
 
-**Filer som redan ligger i listan** läggs inte till igen; TRATT namnger dem som
-hoppades över.
-
 **Spela in nu** spelar in direkt i Arbetsbänken, precis som på startsidan. Se
 [Spela in i webbläsaren](loading-media.md#recording-in-the-browser).
 
@@ -90,40 +86,37 @@ hoppades över.
 
 ### Att läsa in ett exporterat arkiv
 
-Släpp en `.zip` som TRATT exporterat tidigare på samma släppyta och den packas
-upp: varje inspelnings ljud och dess `_annot.json` hamnar tillbaka i listan,
+Släpp en `.zip` som Tratt exporterat tidigare på samma släppyta och den packas
+upp: varje inspelnings ljud och dess `_annot.json` läses då tillbaka in i listan,
 ihopparade efter mappen de ligger i inne i arkivet. Två inspelningar med samma
 filnamn (`take.wav` och `take.wma`) behåller därför var sin transkription. Att läsa in ett arkiv stoppar kön och stänger **av** automatisk
 transkribering och översättning, så att återställt material inte transkriberas
 över.
 
 Allt annat i arkivet (Word-filer, undertexter, manifesten) är utdata och ignoreras
-på vägen in.
-
-Går arkivet inte att läsa får du *Kunde inte läsa arkivet*, och ett arkiv utan
-inspelningar rapporterar *Det innehåller inga inspelningar*.
+när arkivet läses in i Tratt.
 
 ---
 
 ## Pipelinen
 
-**Pipelineinställningar** beskriver på en rad vad som händer med en fil när den
+**Pipelineinställningar** beskriver vad som händer med en fil när den
 körs. Utan något inställt står det **Automatisk transkribering av**, och *Nya filer
 transkriberas inte automatiskt*. Klicka på reglageikonen för att öppna
 inställningarna.
 
-Inställningarna är samma kontroller som på startsidan: modellen,
-transkriptionsspråket, talarseparation och lokal översättning. De beskrivs under
+Inställningarna är samma kontroller som på startsidan `https://tratt.demo.humlab.umu.se/local`. Du kan välja en transkriptionsmodell,
+transkriptionsspråk, talarseparation och lokal översättning. De beskrivs under
 [Automatisk utkasttranskription](automatic-transcription.md). Stäng dialogen med
 **Klar** så visar sammanfattningsraden vad du valt, till exempel:
 
 > Automatisk transkribering på · Whisper Medium · Svenska · 2 talare · → Engelska
 
 **Med automatisk transkribering på transkriberas filer när de kommer in.** Du kan
-släppa tjugo inspelningar och gå därifrån.
+släppa in flera inspelningar i programmet och sedan vänta på att alla bearbetas.
 
-**Med den av** händer ingenting förrän du trycker på knappen längst ned i panelen.
-Den heter **Transkribera N fil(er)** och kör kön över de filer som ännu inte har
+**Med automatisk transkribering av** händer ingenting förrän du trycker på knappen längst ned i panelen
+(**Transkribera N fil(er)**), som kör kön över de filer som ännu inte har
 någon transkription. Medan kön körs blir samma knapp **Pausa kön**; en paus låter
 filen som pågår bli klar och håller resten.
 
@@ -134,7 +127,7 @@ transkriptionsalternativ inställda, aktivera automatisk transkribering först.*
 
 ## Att följa arbetet
 
-Varje rad i **Filer** visar hur långt den inspelningen har kommit.
+Varje rad i **Filer** visar inspelningens status i pipelinen:
 
 | Status | Betyder |
 | --- | --- |
@@ -144,50 +137,50 @@ Varje rad i **Filer** visar hur långt den inspelningen har kommit.
 | **Misslyckades** | Stoppade på ett fel, med **Försök igen** på raden |
 | **Avbruten** | Sidan stängdes eller laddades om halvvägs |
 
-En fil som körs namnger sitt steg: **Förbereder**, **Laddar modell**,
-**Transkriberar**, **Separerar talare**, **Översätter**. Knappen på raden avbryter
+Knappen på raden avbryter
 just den filen (*Avbryt transkriberingen av den här filen*) och lämnar resten av
 kön i fred.
 
-En misslyckad fil säger vad som gick fel i vanliga ord: *Kunde inte läsa ljudet*,
+En misslyckad fil säger vad som gick fel (*Kunde inte läsa ljudet*,
 *Kunde inte ladda modellen*, *Minnet tog slut*, *Avbruten*, eller bara
-*Misslyckades*. **Minnet tog slut** är den att göra något åt, se
+*Misslyckades*).
+**Minnet tog slut** betyder att den uppladdade omgången är för stor för tillgängligt minne, se
 [Kapacitet](#capacity) nedan.
 
 ---
 
 ## Att redigera ett resultat
 
-Klicka på en inspelning i listan för att öppna den. Rubriken ovanför vyn ger namn
+Klicka på en inspelning i listan för att öppna den. Rubriken ovanför vyn ger mediefilens namn
 och uppgifter, till exempel `interview_a.mp3 · 1:45 · 16 kHz mono · 3.369 MB`.
 
-Därefter är du i den vanliga redigeringsmiljön: välj 2D Vy, Diktafon-vy eller
-Linjär vy i väljaren och arbeta som beskrivs under
+Därefter är du i den vanliga redigeringsmiljön. Du väljer 2D Vy, Diktafon-vy eller
+Linjär vy i väljaren och arbetar som beskrivs under
 [Så fungerar transkribering](transcribing.md). **Genvägar** (Alt + 8) och
-**Översikt** (Alt + 0) finns i verktygsraden. Riktlinjefönstret erbjuds inte här.
+**Översikt** (Alt + 0) finns i verktygsraden.
 
 Att spela en enhet eller redigera dess text markerar den som
-[verifierad](checking-your-work.md#verified-transcriptions), här som överallt.
+[verifierad](checking-your-work.md#verified-transcriptions).
 
 Ändringar sparas medan du skriver, per inspelning. Att byta till en annan fil i
-listan förlorar ingenting.
+listan gör inte att Tratt förlorar data.
 
 ---
 
 ## Att komma tillbaka senare
 
-TRATT minns listan men aldrig mediefilerna. När du återvänder möts du av en
+Tratt minns listan med mediefilernas namn men lagrar aldrig själva mediefilerna.
+När du återvänder möts du av en
 **Välkommen tillbaka**-ruta: *Filerna från din förra session finns i listan till
 vänster. Koppla en fils ljud igen med ”Bifoga fil…” för att fortsätta redigera, eller
-släpp nya filer.* Alla inspelningar finns kvar och var och en erbjuder
-**Bifoga fil…**. Välj samma fil från
+släpp nya filer.* Välj samma fil från
 disken och redigeringen fortsätter där du slutade. Till dess säger vyn *Ljudet för
 den här filen är inte inläst i den här sessionen.*
 
-Ser filen du väljer inte ut att vara den posten skapades från stannar TRATT och
+Ser filen du väljer inte ut att vara den posten skapades från stannar Tratt och
 frågar: *Det här ser inte ut att vara samma fil*, med vad du valde och vad som
 förväntades sida vid sida, och **Använd ändå**. När bara ändringstiden skiljer sig
-sägs det uttryckligen, eftersom det brukar vara en kopia eller omexporterat ljud
+anger Tratt det, eftersom det brukar vara en kopia eller omexporterat ljud
 snarare än fel inspelning.
 
 Du kan också exportera ett arkiv innan du slutar och
@@ -203,16 +196,16 @@ transkriptionerna tillsammans och inte kräver någon ny bifogning.
 De två mätarna mäter olika saker, och bara den ena begränsar hur mycket du kan ha
 igång.
 
-**Webbläsarlagring** är det TRATT behåller på disken: nedladdade modeller och dina
+**Webbläsarlagring** är det Tratt behåller på disken, vilket omfattar nedladdade modeller och dina
 transkriptioner. Noten under den uppskattar båda, till exempel *modeller ca 210 MB
 för nuvarande pipeline + annoteringar ca 221 MB*. **Media skrivs aldrig till
 lagringen**, och därför fyller en mapp med stora inspelningar inte upp den. Vissa
-webbläsare rapporterar inte användning alls, och siffran är då otillgänglig.
+webbläsare rapporterar inte användning alls, och mätaren är då otillgänglig.
 
-**Arbetsminne (uppskattat)** är avkodat ljud som hålls i fliken, och **det är den
-verkliga gränsen**. Varje inspelning vars ljud är bifogat tar minne så länge det
+**Arbetsminne (uppskattat)** är avkodat ljud som hålls i fliken.
+Varje inspelning vars ljud är bifogat tar minne så länge det
 är bifogat. Är du nära taket, eller misslyckas en fil med *Minnet tog slut*, arbeta
-igenom materialet i mindre grupper: exportera och
+igenom materialet i mindre grupper, exportera och
 [Rensa klara](#housekeeping), bifoga sedan de nästkommande.
 
 ---
@@ -224,8 +217,8 @@ transkriptionen** i rubriken den vanliga exportdialogen, som beskrivs under
 [Exportera](exporting.md). Den fungerar även när ljudet inte är bifogat. Den är
 dold tills det finns något att exportera.
 
-**Alla.** **Exportera alla** i Filer-rubriken öppnar **Exportera katalog**: markera
-de format du vill ha, och TRATT skriver ett arkiv med varje markerad inspelning,
+**Alla.** **Exportera alla** i Filer-rubriken öppnar **Exportera katalog**,
+markera de format du vill ha, och Tratt skriver ett arkiv med varje markerad inspelning,
 eller alla när du inte markerat någon. Den visar förloppet, listar inspelningar
 som måste hoppas över under *Klar med varningar*, och avslutar med *Klar, N
 fil(er) arkiverade*.
@@ -240,7 +233,4 @@ Vad arkivet innehåller, och hur du läser in det igen, beskrivs under
 ## Att hålla ordning
 
 **Rensa klara** tar bort de färdiga inspelningarna ur listan. **Ta bort** tar bort
-dem du markerat, och kryssrutan i Filer-rubriken markerar alla.
-
-Båda är permanenta: *Ta bort N fil(er) från listan? Deras transkriptioner och
-ändringar raderas och kan inte återställas.* Exportera innan du rensar.
+dem du markerat, och kryssrutan i Filer-rubriken markerar alla. Åtgärderna kan inte ångras.

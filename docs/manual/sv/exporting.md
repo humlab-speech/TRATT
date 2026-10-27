@@ -2,9 +2,9 @@
 
 **För:** alla, i slutet av varje arbetspass.
 
-TRATT håller ditt arbete i webbläsaren, inte på disk. **Att exportera en fil är
-det enda sättet ditt transkript lämnar webbläsaren.** Gör det innan du slutar,
-varje gång.
+Tratt håller ditt arbete i webbläsaren. **Att exportera en fil är
+det enda sättet ditt transkript lämnar webbläsaren.** Exportera ditt arbete varje
+gång du avslutar ett redigeringspass.
 
 Klicka **Exportera** (nedladdningsikonen i den övre listen, eller knappen längst
 ned i redigeraren). Dialogen heter *Exportera transkriptioner*. Klicka på ett
@@ -14,30 +14,30 @@ format för att fälla ut dess alternativ, och sedan på **Ladda ner**.
 
 ---
 
-## Vilket format?
+## Vilket format ska jag exportera till?
 
 Dialogen delar in formaten i tre avsnitt och talar om för varje grupp om filen kan
-läsas tillbaka in i TRATT.
+läsas tillbaka in i Tratt.
 
 ### Allmänna utdataformat
 
-För att läsa, dela och publicera. **Bara SRT kan läsas tillbaka in i TRATT.**
+För att läsa, dela och publicera. **Bara SRT kan läsas tillbaka in i Tratt.**
 
 | Format | Fil | Bra för |
 | --- | --- | --- |
-| **DOCX** | `.docx` | Word. Det format de flesta faktiskt vill ha transkriptet i. |
+| **DOCX** | `.docx` | MS Word. Det format de flesta faktiskt vill ha transkriptet i. |
 | **ODT** | `.odt` | LibreOffice / OpenOffice. Samma alternativ som DOCX. |
-| **SRT** | `.srt` | Undertexter, videospelare, och det enda formatet i gruppen som går att importera igen |
+| **SRT** | `.srt` | Undertexter, videospelare, och det enda formatet i gruppen som går att importera igen för att fortsätta ditt arbete senare |
 | **PlainText** | `.txt` | Allt som läser text |
 
 ### Lingvistiska format
 
-Alla dessa kan läsas tillbaka in i TRATT.
+Alla dessa kan läsas tillbaka in i Tratt.
 
 | Format | Fil | Bra för |
 | --- | --- | --- |
-| **AnnotJSON** | `_annot.json` | **TRATT:s eget format.** Behåller allt: nivåer, gränser, talare, markörer. Exportera det vid sidan av vad du annars behöver. |
-| **TextGrid** | `.TextGrid` | Praat |
+| **AnnotJSON** | `_annot.json` | **Tratts eget format**, och är Emu SDMS-kompatibelt. Behåller allt: nivåer, gränser, talare och markörer. Exportera det vid sidan av vad du annars behöver. |
+| **TextGrid** | `.TextGrid` | Praats primära annoteringsformat |
 | **ELAN** | `.eaf` | ELAN. Lägg `.eaf`-filen i samma mapp som ljudet, annars hittar ELAN inte mediet. |
 | **PraatTextTable** | `.Table` | Praats tabellformat |
 
@@ -47,7 +47,7 @@ Alla dessa kan läsas tillbaka in i TRATT.
 | --- | --- | --- |
 | **WebVTT** | `.vtt` | Undertexter för webbvideo |
 | **BASPartitur** | `.par` | BAS-webbtjänsterna. Exporten skriver ORT- och TRN-rader ur transkriptionen. |
-| **CTM** | `.ctm` | Verktyg för utvärdering av taligenkänning. Konfidensvärdet skrivs alltid som 1. TRATT håller inte reda på det. |
+| **CTM** | `.ctm` | Verktyg för utvärdering av taligenkänning. Konfidensvärdet skrivs alltid som 1. Tratt håller inte reda på det. |
 
 > **Ta alltid en AnnotJSON-kopia.** DOCX och ODT är enkelriktade: de läses bra och
 > importeras illa. Kan du behöva rätta transkriptet om ett halvår är det
@@ -80,7 +80,7 @@ De tidsanpassade exportformaten (SRT, WebVTT, ELAN, TextGrid, PraatTable,
 CTM, BAS Partitur, Whisper JSON) bär verifieringsstatusen i själva texten:
 varje overifierad transkription slutar med ett **not-check-märke** (`⍻`,
 U+237B). Verifierade meningar skrivs utan det. När du senare laddar en sådan
-fil tillsammans med dess ljud läser TRATT tillbaka märket: markerade meningar
+fil tillsammans med dess ljud läser Tratt tillbaka märket. Markerade meningar
 kommer in som overifierade, omarkerade som verifierade.
 
 ### PlainText
@@ -127,50 +127,48 @@ transkriptet.
 ## Att exportera ett arkiv
 
 En enda export täcker en hel omgång, och det är den enda export som kan läsas in
-igen i sin helhet. **Exportera alla** i [Arbetsbänkens](workbench.md) fillista
-öppnar **Exportera katalog**: markera de format du vill ha så skriver TRATT en
-enda `.zip`.
+direkt igen. **Exportera alla** i [Arbetsbänkens](workbench.md) fillista
+öppnar **Exportera katalog**: markera de format du vill ha så skriver Tratt en
+enda `.zip`-fil med hela sessionen.
 
 Filen namnges efter vad den innehåller och när den gjordes, till exempel
-`tratt_12_20261008@1923.zip`: tolv inspelningar, 8 oktober 2026, klockan 19:23 i
-lokal tid.
+`tratt_12_20261008@1923.zip`, vilket betyder att arkivet innehåller tolv
+inspelningar och skrevs den 8 oktober 2026 klockan 19:23 lokal tid.
 
-Inuti har varje inspelning en egen mapp under `bundles/` som innehåller
+Inuti arkivet har varje inspelning en egen mapp under `bundles/` som innehåller
 
 - **källjudet** som du angav det,
 - en förlustfri **`_annot.json`** av dess transkription, och
-- de övriga format du markerat.
+- de övriga format du markerade när du exporterade sessionen.
 
-Två manifest i roten, **`manifest.json`** och **`manifest.csv`**, listar varje
-inspelning med sökvägar och uppgifter. CSV-filen öppnas i ett kalkylprogram,
+Två manifestfiler ligger i arkivets rot: **`manifest.json`** och **`manifest.csv`**.
+De listar varje inspelning med sökvägar och uppgifter. CSV-filen öppnas i ett kalkylprogram,
 vilket gör den till ett behändigt register över en korpus.
 
-Eftersom ljudet och AnnotJSON följs åt återställer ett släpp av arkivet på
+Eftersom ljudet och AnnotJSON är samlade tillsammans återställer ett släpp av arkivet på
 släppytan hela omgången, med ljudet bifogat och transkriptionerna på plats. Att
 läsa in det stänger av automatisk transkribering så att dina rättelser inte
 skrivs över. Se [Arbetsbänken](workbench.md#loading-an-archive).
 
 En inspelning vars ljud inte var bifogat vid exporten får ingen ljudfil i
 arkivet, men väl sin transkription. Den läses in i filen med samma namn i
-listan (bifoga ljudet där), och kan inte återställas ur arkivet ensam. TRATT talar om vilka under *Klar med varningar* i stället för att låta
+listan (bifoga ljudet där).
+Tratt visar vilka som inte kunde läsas in genom *Klar med varningar* i stället för att låta
 hela exporten misslyckas.
-
-> Det här är säkerhetskopian värd att ta. En mapp med DOCX-filer är en leverans;
-> arkivet är det som gör att du kan ta upp arbetet igen.
 
 ---
 
 <a id="formats-tratt-can-read"></a>
 
-## Format TRATT kan läsa
+## Format Tratt kan läsa
 
 Släpp dessa tillsammans med ditt ljud på startsidan för att fortsätta ett
 befintligt arbete.
 
 | Format | Anmärkning |
 | --- | --- |
-| **TRATT-arkiv** (`.zip`) | En hel omgång, ljud och transkriptioner tillsammans. Se [Att exportera ett arkiv](#exporting-an-archive). |
-| **AnnotJSON** (`_annot.json`) | Fullständig rundtur för en inspelning. Föredra detta. |
+| **Tratt-arkiv** (`.zip`) | En hel session, ljud och transkriptioner tillsammans. Se [Att exportera ett arkiv](#exporting-an-archive). |
+| **AnnotJSON** (`_annot.json`) | Fullständig beskrivning av transkriptet för en inspelning. |
 | **WhisperJSON** (`.json`) | Utdata från Whisper / WhisperX kört någon annanstans. Bara tidsstämplar och text läses; allt annat ignoreras. |
 | **SubRip** (`.srt`) | Med alternativ för talarextraktion, se [Nivåer och talare](tiers-and-speakers.md#importing-material-that-already-has-speakers) |
 | **WebVTT** (`.vtt`) | Läser `<v Namn>`-taggar. STYLE-, REGION- och NOTE-block ignoreras; flerradiga textblock slås ihop. |
@@ -180,11 +178,10 @@ befintligt arbete.
 | **BASPartitur** (`.par`) | TRN- och ORT-rader slås ihop till en nivå av tidsanpassade enheter |
 | **CTM** (`.ctm`) | |
 
-Transkriptfilens namn måste matcha ljudfilens namn, annars avvisar TRATT den med
+Transkriptfilens namn måste matcha ljudfilens namn, annars avvisar Tratt den med
 *Transkriptfilens namn matchar inte ljudfilens namn*.
 
-DOCX och ODT kan inte importeras. Inte heller Bundle JSON: det finns i koden men
-export är avstängd.
+DOCX- och ODT-filer kan inte importeras till Tratt.
 
 ---
 

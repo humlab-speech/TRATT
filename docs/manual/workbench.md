@@ -1,12 +1,12 @@
 # The Workbench
 
 **For:** anyone with a folder of recordings rather than a single file. The
-Workbench transcribes a batch unattended and lets you edit each result without
+Workbench transcribes a batch of files and lets you edit each result without
 loading files one at a time.
 
 > **How to get there.** The Workbench has no entry of its own in the navigation
-> bar. You reach it by putting `/workbench` in TRATT's address, for example
-> `http://localhost:5321/workbench`, and it is worth bookmarking. It is part of
+> bar. You reach it by putting `/workbench` in Tratt's address, for example
+> `https://tratt.demo.humlab.umu.se/workbench`. It is part of
 > released builds; a build from before it shipped sends that address to the
 > ordinary start page instead.
 >
@@ -35,7 +35,7 @@ how you transcribe.
 **They share one stored session.** TRATT keeps a single current recording in
 browser storage, and the Workbench's file list uses the same slot. Starting a new
 transcription on the start page can therefore replace a file that is in the
-Workbench list, and TRATT warns you when it is about to. Pick one of the two ways
+Workbench list, and Tratt warns you when it is about to. Pick one of the two ways
 of working for a given piece of material and stay with it.
 
 ---
@@ -68,7 +68,7 @@ transcript. Formats and size limits are the same as everywhere else, listed unde
 [Loading a recording](loading-media.md#supported-file-formats).
 
 **A transcript file** belongs with its recording: drop it together with the audio,
-or after the audio is already in the list. TRATT pairs the two by name and tells
+or after the audio is already in the list. Tratt pairs the two by name and tells
 you when it cannot:
 
 - *No recording named "x". Drop the transcript together with its audio file, or
@@ -77,8 +77,6 @@ you when it cannot:
 - Replacing a transcript that already has text asks for confirmation first,
   because your edits to it would be lost.
 
-**Files already in the list** are not added twice; TRATT names the ones it
-skipped.
 
 **Record now** records straight into the Workbench, exactly as on the start page.
 See [Recording in the browser](loading-media.md#recording-in-the-browser).
@@ -87,27 +85,24 @@ See [Recording in the browser](loading-media.md#recording-in-the-browser).
 
 ### Loading an exported archive
 
-Drop a `.zip` that TRATT exported earlier on the same drop area and it is
-unpacked: each recording's audio and its `_annot.json` go back into the list,
+Drop a `.zip` that Tratt exported earlier on the same drop area and it is
+unpacked: each recording's audio and its `_annot.json` are then loaded back into the list,
 paired up by the folder they sit in inside the archive. Two recordings that share
 a file name (`take.wav` and `take.wma`) therefore keep their own transcripts. Loading an archive stops the queue and switches auto-transcription and
 translation **off**, so restored material is not transcribed over.
 
 Everything else in the archive (Word files, subtitles, the manifests) is output
-and is ignored on the way back in.
-
-If the archive cannot be read you get *Could not read the archive*, and an archive
-with no recordings in it reports *It contains no recordings*.
+and is ignored when loaded back into Tratt.
 
 ---
 
 ## The pipeline
 
-**Pipeline settings** describes, in one line, what will happen to a file when it
+**Pipeline settings** describes what will happen to a file when it
 runs. With nothing configured it reads **Auto-transcribe off**, and *New files are
 not transcribed automatically*. Click the sliders icon to open the settings.
 
-The settings are the same controls as on the start page: the model, the
+The settings are the same controls as on the `https://tratt.demo.humlab.umu.se/local` start page. The user may select a transcription model, the
 transcription language, speaker separation and local translation. They are
 described in [Automatic draft transcription](automatic-transcription.md). Close
 the dialog with **Done** and the summary line shows what you chose, for example:
@@ -115,10 +110,10 @@ the dialog with **Done** and the summary line shows what you chose, for example:
 > Auto-transcribe on · Whisper Medium · Swedish · 2 speakers · → English
 
 **With auto-transcribe on, files are transcribed as they arrive.** You can drop
-twenty recordings and walk away.
+several recordings into the application and then wait for the processing to be performed on them all.
 
-**With it off**, nothing happens until you press the button at the bottom of the
-panel, which reads **Transcribe N file(s)** and runs the queue over the files that
+**With Auto-transcribe off**, nothing will happen until you press the button at the bottom of the
+panel (**Transcribe N file(s)**) and runs the queue over the files that
 have no transcript yet. While the queue is running the same button becomes
 **Pause queue**; pausing lets the file in progress finish and holds the rest.
 
@@ -129,7 +124,7 @@ configured, enable auto transcription first.*
 
 ## Watching it work
 
-Each row in **Files** shows where that recording has got to.
+Each row in **Files** shows the status of the recording with regards to the pipeline:
 
 | Status | Means |
 | --- | --- |
@@ -139,50 +134,48 @@ Each row in **Files** shows where that recording has got to.
 | **Failed** | Stopped on an error, with **Retry** on the row |
 | **Interrupted** | The page was closed or reloaded part-way |
 
-A running file names its stage: **Preparing**, **Loading model**,
-**Transcribing**, **Separating speakers**, **Translating**. The button on the row
-stops that one file (*Stop transcribing this file*) and leaves the rest of the
+The button on the row stops that one file (*Stop transcribing this file*) and leaves the rest of the
 queue alone.
 
-A failed file says what went wrong in plain words: *Could not read the audio*,
-*Could not load the model*, *Ran out of memory*, *Cancelled*, or simply *Failed*.
-**Ran out of memory** is the one to act on, see
+A failed file says what went wrong (*Could not read the audio*,
+*Could not load the model*, *Ran out of memory*, *Cancelled*, or simply *Failed*).
+**Ran out of memory** means that the batch upploaded is too large for the available storage.
 [Capacity](#capacity) below.
 
 ---
 
 ## Editing a result
 
-Click a recording in the list to open it. The header above the editor gives its
+Click a recording in the list to open it. The header above the editor gives the media file
 name and details, for example `interview_a.mp3 · 1:45 · 16 kHz mono · 3.369 MB`.
 
-From there you are in the ordinary editor: pick 2D, Dictaphone or Linear in the
+From there you are in the ordinary editor. You select the 2D, Dictaphone, or Linear editor in the
 switcher, and work as described in
 [How transcribing works](transcribing.md). **Shortcuts** (Alt + 8) and
-**Overview** (Alt + 0) are in the toolbar. The Guidelines window is not offered
-here.
+**Overview** (Alt + 0) are in the toolbar. 
 
 Playing a unit or editing its text marks it
-[verified](checking-your-work.md#verified-transcriptions), here as everywhere else.
+[verified](checking-your-work.md#verified-transcriptions).
 
 Edits are saved as you type, per recording. Switching to another file in the list
-does not lose anything.
+does not make Tratt lose data.
 
 ---
 
 ## Coming back later
 
-TRATT remembers the list but never the media files. When you return, a **Welcome
+Tratt will remembeer the list of media file names but never store the media files themselves. 
+When you return, a **Welcome
 back** panel greets you: *Your files from the last session are listed on the left.
 Re-attach a file's audio with "Attach file…" to keep editing it, or drop new
-files.* The recordings are all there and each one offers **Attach file…**. Pick the same file
+files.*  Pick the same file
 from disk and editing continues where you left off. Until then the editor says
 *This file's audio isn't loaded in this session.*
 
-If the file you pick does not look like the one the entry was made from, TRATT
+If the file you pick does not look like the one the entry was made from, Tratt
 stops to ask: *This doesn't look like the same file*, with what you picked and
 what it expected side by side, and **Use anyway**. When only the modification
-time differs it says so, since that is usually a copy or re-exported audio rather
+time differs, Tratts indicates that, since that is usually a copy or re-exported audio rather
 than the wrong recording.
 
 You can also export an archive before you stop and
@@ -198,16 +191,16 @@ transcripts together and needs no re-attaching.
 The two meters measure different things, and only one of them limits how much you
 can have open.
 
-**Browser storage** is what TRATT keeps on disk: the downloaded models and your
+**Browser storage** is what Tratt keeps on disk, which includes the downloaded models and your
 transcripts. The note under it estimates both, for example *models ~210 MB for the
 current pipeline + annotations ~221 MB*. **Media is never written to storage**,
 which is why a folder of large recordings does not fill it up. Some browsers do
-not report usage at all, and the figure is then unavailable.
+not report usage at all, and the indicator is then unavailable.
 
-**Working memory (est.)** is decoded audio held in the tab, and **this is the real
-limit**. Every recording whose audio is attached occupies memory for as long as it
+**Working memory (est.)** is decoded audio held in the tab. 
+Every recording whose audio is attached occupies memory for as long as it
 is attached. If you are near the budget, or a file fails with *Ran out of memory*,
-work through the material in smaller groups: export and
+work through the material in smaller groups,  export and
 [Clear finished](#housekeeping), then attach the next few.
 
 ---
@@ -219,8 +212,8 @@ the header opens the usual export dialog, described in
 [Exporting](exporting.md). It works even when the audio is not attached. It is
 hidden until there is something to export.
 
-**All of them.** **Export all** in the Files header opens **Export catalogue**:
-tick the formats you want, and TRATT writes one archive containing every selected
+**All of them.** **Export all** in the Files header opens **Export catalogue**, 
+tick the formats you want, and Tratt writes one archive containing every selected
 recording, or all of them when you have ticked none. It reports progress, lists
 any recordings it had to skip under *Completed with warnings*, and finishes with
 *Done, N file(s) archived*.
@@ -236,7 +229,4 @@ What the archive contains, and how to load it back, is described in
 
 **Clear finished** takes the completed recordings out of the list. **Remove**
 takes out the ones you have ticked, and the checkbox in the Files header ticks
-them all.
-
-Both are permanent: *Remove N file(s) from the list? Their transcripts and any
-edits will be deleted and cannot be restored.* Export before you clear.
+them all. These actions cannot be undone.

@@ -46,7 +46,7 @@ transkription helt enkelt inte tillgänglig; allt annat i TRATT fungerar ändå.
 ## Rensa dina data
 
 Öppna den dolda underhållssidan genom att lägga till `/help-tools` i TRATT:s
-adress (till exempel `http://localhost:5321/help-tools`) och använd **Clear all
+adress (till exempel `https://tratt.visp.humlab.umu.se/help-tools`) och använd **Clear all
 Storage Data**. Den tar bort lagrat transkript, loggar och inställningar från den
 här webbläsaren permanent. Gör det på en delad dator när du är klar, efter att
 du har exporterat ditt arbete. Samma sida kan också ta en zip-säkerhetskopia av

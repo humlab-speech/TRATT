@@ -1,31 +1,31 @@
 # Så fungerar transkribering
 
-**För:** dig som ska tillbringa riktiga timmar i TRATT. Läs den här sidan en gång;
-därefter räcker [Tangentbordsgenvägar](shortcuts.md) uppslagen.
+**Det här dokumentet är för:** dig som ska tillbringa riktiga timmar i Tratt. Läs den här sidan en gång,
+och därefter räcker [Tangentbordsgenvägar](shortcuts.md) uppslagen.
 
 ---
 
 ## Modellen i huvudet
 
-Ett TRATT-dokument har tre lager:
+Ett Tratt-dokument har tre lager:
 
 **Transkriptet** består av **nivåer** (gränssnittet säger *nivå*, nyare
-funktioner säger *tier*). Det mesta arbetet sker på en nivå. En andra nivå kan
-innehålla en översättning, eller en talares turer. Se
+funktioner säger *tier*). Det mesta arbetet sker på en nivå och du når dem en i taget. En andra nivå kan
+innehålla en översättning, eller en andra talares turer. Se
 [Nivåer och talare](tiers-and-speakers.md).
 
 **En nivå** är en följd av **transkriptionsenheter**: sammanhängande stycken av
 inspelningen, vart och ett med sin egen text. På andra håll kallas de segment
-eller yttranden. De överlappar aldrig och lämnar aldrig luckor: hela inspelningen
-täcks alltid av enheter, även de tysta delarna.
+eller yttranden. De överlappar aldrig och lämnar aldrig luckor. Hela inspelningen
+täcks alltid av enheter. Tysta delar kan ha en pausmarkering `<P>` (infogas med **Alt + P**).
 
 **En gräns** är linjen mellan två enheter. Att lägga till en gräns delar en enhet
-i två; att ta bort en slår ihop två enheter till en. Det är det enda sättet
+i två, och att ta bort en slår ihop två enheter till en. Det är det enda sättet
 antalet enheter ändras.
 
-Det finns alltså exakt två sorters arbete: att få gränserna på rätt ställen, och
-att få rätt text i varje enhet. Har en utkasttranskription satt gränserna åt dig
-går det mesta av din tid till det andra.
+Det finns alltså exakt två sorters arbete. Det första är att få gränserna på rätt
+ställen, och det andra är att få rätt text i varje enhet. Om en transkriptionsmodell
+har gjort ett utkast åt dig går det mesta av din tid åt till att redigera texter och gränser.
 
 ---
 
@@ -34,10 +34,10 @@ går det mesta av din tid till det andra.
 I 2D Vy (standard) ritas inspelningen som en vågform över flera rader med varje
 enhets text under.
 
-1. **Hovra** över enheten du vill åt och tryck **Enter**: transkriptionsfönstret
-   öppnas med just den enhetens ljud och text.
+1. **Hovra** över enheten du vill åt och tryck **Enter**. Transkriptionsfönstret
+   öppnas sedan med just den enhetens ljud och text.
 2. **Tabb** spelar och pausar. **Esc** stoppar. **Skift + Backsteg** hoppar
-   tillbaka dit uppspelningen senast startade; **Skift + Tabb** stegar tillbaka
+   tillbaka dit uppspelningen senast startade. **Skift + Tabb** stegar tillbaka
    ett par sekunder så att du kan höra de sista orden igen. Att spela en enhet i
    ungefär 0,2 s markerar också dess transkription som
    [verifierad](checking-your-work.md#verified-transcriptions).
@@ -45,7 +45,7 @@ enhets text under.
 4. **Alt + →** sparar och öppnar nästa enhet. **Alt + ←** går tillbaka en.
    **Alt + ↓** sparar och stänger fönstret.
 
-Du kan också arbeta utan att öppna fönstret alls: Diktafon-vyn sätter ett
+Du kan också arbeta utan att öppna ett popup-fönster. Diktafon-vyn sätter ett
 textfält och en spelare på skärmen, och Översikt låter dig redigera rader i en
 tabell. Se [Vyerna](the-editors.md).
 
@@ -56,8 +56,8 @@ slutar för dagen.
 
 **Ångra** är **Ctrl + Z** (**Cmd + Z** på Mac), **gör om** är **Ctrl + Y**
 (**Skift + Cmd + Z**). Det fungerar både på text och på gränsändringar. Ibland
-säger TRATT att ångra och gör om inte kan användas för tillfället: det händer
-medan en annan operation pågår, vänta ett ögonblick och försök igen.
+säger Tratt att ångra och gör om inte kan användas för tillfället. Det händer
+medan en annan operation fortfarande pågår. Vänta ett ögonblick och försök göra ändringen igen.
 
 ---
 
@@ -65,7 +65,7 @@ medan en annan operation pågår, vänta ett ögonblick och försök igen.
 
 ## Gränser
 
-Allt detta sker på vågformen, utan att något textfält har fokus.
+Allt gränsarbete sker på vågformen, utan att något textfält har fokus.
 
 | För att | Gör |
 | --- | --- |
@@ -75,9 +75,9 @@ Allt detta sker på vågformen, utan att något textfält har fokus.
 | Spela bara markeringen | **C** |
 | Flytta markören | **←** / **→** |
 
-Två regler som förr eller senare biter dig:
+Två begränsningar gäller för gränser som du bör känna till:
 
-- **TRATT vägrar dela över enheter som redan har text.** Spänner din markering
+- **Tratt vägrar dela över enheter som redan har text.** Spänner din markering
   över två enheter och någon av dem redan är transkriberad får du
   *Cannot set boundary in a transcription unit that is already transcribed.*
   Rensa texten först, eller sätt enskilda gränser med **S** i stället för att
@@ -93,7 +93,7 @@ stället för att lämna textfältet:
 2. Sätt textmarkören på motsvarande ställe i texten.
 3. Tryck **Alt + S** (**Beskärningsmärke**) för att infoga en gräns där.
 
-Enheten delas vid uppspelningsläget, och texten delas vid din markör.
+Enheten delas *vid uppspelningsläget*, och texten delas *vid din markör*.
 
 ---
 
@@ -115,11 +115,11 @@ från *Tomma transkriptionsenheter*, som är de som fortfarande väntar på dig.
 
 ## Markörer
 
-Markörer noterar sådant som inte är ord. De ligger i verktygsraden ovanför
+Markörer noterar sådant som inte är ord. Knappar för dem finns i verktygsraden ovanför
 textfältet och har var sin genväg. Knapptexterna visas på engelska även i det
 svenska gränssnittet, eftersom riktlinjefilen ännu inte är översatt:
 
-| Markör | Knapp | Genväg | Används för |
+| Markör | Knapp | Genväg | Exempel på användning |
 | --- | --- | --- | --- |
 | `[~abc]` | `~abc` | **Alt + 1** | Ett ord avhugget i *början* av enheten |
 | `<nib>` | filled pause | **Alt + 2** | Tvekljud: "öh", "hm" |
@@ -143,11 +143,11 @@ Har talarseparation körts, eller har du laddat in en undertextfil med talarnamn
 bär varje enhet en **talaretikett**. Etiketter visas som färgade brickor, och
 varje talare behåller sin färg.
 
-Med transkriptionsfönstret öppet växlar **Ctrl + S** (**Cmd + S**) enhetens
-etikett till nästa kända talare, snabbaste sättet att rätta en felplacerad tur.
-Du kan också klicka på brickan.
+Med transkriptionsfönstret öppet växlar **Ctrl + S** (**Cmd + S** på macOS) enhetens
+etikett till nästa kända talare. Det är det snabbaste sättet att rätta en felplacerad tur, och mycket användbart när du har använt den automatiska talartilldelningen, som kan vara mycket felaktig.
+Du kan också klicka på brickan för att växla mellan talaretiketterna.
 
-Att lägga till, byta namn på och ta bort talare, och att dela upp talare på
+Hur du lägger till, byter namn på och tar bort talare, och delar upp talare på
 separata nivåer, beskrivs under [Nivåer och talare](tiers-and-speakers.md).
 
 ---

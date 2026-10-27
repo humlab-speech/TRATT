@@ -2,8 +2,8 @@
 
 **For:** everyone, at the end of every session.
 
-TRATT keeps your work in the browser, not on disk. **Exporting a file is the only
-way your transcript leaves the browser.** Do it before you stop, every time.
+Tratt keeps your work in the browser. **Exporting a file is the only
+way your transcript leaves the browser.** Export your work everytime you exit an editing session.
 
 Click **Export** (the download icon in the top bar, or the button along the bottom
 of the editor). The dialog is headed *Export transcriptions*. Click a format to
@@ -13,10 +13,10 @@ expand its options, then **Download**.
 
 ---
 
-## Which format?
+## Which format to export to?
 
 The dialog groups formats into three sections, and tells you for each group whether
-you can load the file back into TRATT later.
+you can load the file back into Tratt later.
 
 ### General output formats
 
@@ -24,9 +24,9 @@ For reading, sharing and publishing. **Only SRT can be loaded back into TRATT.**
 
 | Format | File | Good for |
 | --- | --- | --- |
-| **DOCX** | `.docx` | Word. The format most people actually want the transcript in. |
+| **DOCX** | `.docx` | MS Word. The format most people actually want the transcript in. |
 | **ODT** | `.odt` | LibreOffice / OpenOffice. Same options as DOCX. |
-| **SRT** | `.srt` | Subtitles, video players, and the one format in this group you can re-import |
+| **SRT** | `.srt` | Subtitles, video players, and the one format in this group you can re-import to continue your work later|
 | **PlainText** | `.txt` | Anything that reads text |
 
 ### Linguistic formats
@@ -35,8 +35,8 @@ All of these can be loaded back into TRATT.
 
 | Format | File | Good for |
 | --- | --- | --- |
-| **AnnotJSON** | `_annot.json` | **TRATT's own format.** Keeps everything: tiers, boundaries, speakers, markers. Export this alongside whatever else you need. |
-| **TextGrid** | `.TextGrid` | Praat |
+| **AnnotJSON** | `_annot.json` | **TRATT's own format.**, and is Emu SDMS compliant. Keeps everything: tiers, boundaries, speakers, and markers. Export this alongside whatever else you need. |
+| **TextGrid** | `.TextGrid` | Praat's primary annotation file format |
 | **ELAN** | `.eaf` | ELAN. Put the `.eaf` in the same folder as the audio or ELAN will not find the media. |
 | **PraatTextTable** | `.Table` | Praat's table format |
 
@@ -79,7 +79,7 @@ The time-aligned export formats (SRT, WebVTT, ELAN, TextGrid, PraatTable,
 CTM, BAS Partitur, Whisper JSON) carry the verification state in the text
 itself: every non-verified transcription ends with a **not-check mark**
 (`⍻`, U+237B). Verified sentences are written without it. When you load such
-a file together with its audio later, TRATT reads the mark back: marked
+a file together with its audio later, Tratt reads the mark back. Marked
 sentences come in as non-verified, unmarked ones as verified.
 
 ### Plain text
@@ -126,35 +126,33 @@ and playback history), not part of the transcript.
 ## Exporting an archive
 
 One export covers a whole batch, and it is the only export that can be loaded
-back complete. **Export all** in the [Workbench](workbench.md) file list opens
-**Export catalogue**: tick the formats you want and TRATT writes a single `.zip`.
+back directly. **Export all** in the [Workbench](workbench.md) file list opens
+**Export catalogue**: tick the formats you want and Tratt writes a single `.zip` archive of the session.
 
 The file is named after what is in it and when it was made, for example
-`tratt_12_20261008@1923.zip`: twelve recordings, 8 October 2026, 19:23 local time.
+`tratt_12_20261008@1923.zip`, wich means that the archieve contains twelve recordings, and was written on the October 8th, 2026, at 19:23 local time.
 
-Inside, each recording has its own folder under `bundles/` holding
+Inside the archive, each recording has its own folder under `bundles/` holding
 
 - the **source audio** as you supplied it,
 - a lossless **`_annot.json`** of its transcript, and
-- whatever other formats you ticked.
+- whatever other formats you ticked when exporting the session.
 
-Two manifests at the root, **`manifest.json`** and **`manifest.csv`**, list every
+Two manifests files are located at the root of the archiive: **`manifest.json`** and **`manifest.csv`**. These files list every
 recording with its paths and details. The CSV opens in a spreadsheet, which makes
 it a convenient index for a corpus.
 
-Because the audio and the AnnotJSON travel together, dropping the archive back on
+Because the audio and the AnnotJSON are bundled together, dropping the archive back on
 the drop zone restores the whole batch, audio attached and transcripts in place.
 Loading it switches automatic transcription off so your corrections are not
 overwritten. See [The Workbench](workbench.md#loading-an-archive).
 
 A recording whose audio was not attached at export time has no audio file in the
 archive, only its transcript. Dropping the archive loads that transcript into the
-file of the same name already in the list (attach the audio there); it cannot be
-restored from the archive alone. TRATT says which ones under *Completed with warnings* rather than
+file of the same name already in the list (attach the audio there). 
+Tratt indicates which ones failed to be loaded by showing *Completed with warnings* rather than
 failing the whole export.
 
-> This is the backup worth taking. A folder of DOCX files is a deliverable; the
-> archive is what lets you pick the work up again.
 
 ---
 
@@ -166,8 +164,8 @@ Drop these alongside your audio on the start page to continue existing work.
 
 | Format | Notes |
 | --- | --- |
-| **TRATT archive** (`.zip`) | A whole batch, audio and transcripts together. See [Exporting an archive](#exporting-an-archive). |
-| **AnnotJSON** (`_annot.json`) | Complete round trip for one recording. Prefer this. |
+| **Tratt archive** (`.zip`) | A whole session, audio and transcripts together. See [Exporting an archive](#exporting-an-archive). |
+| **AnnotJSON** (`_annot.json`) | Complete description of the transcript for one recording. |
 | **WhisperJSON** (`.json`) | Output from Whisper / WhisperX run elsewhere. Only timestamps and text are read; everything else is ignored. |
 | **SubRip** (`.srt`) | With speaker-extraction options; see [Tiers and speakers](tiers-and-speakers.md#importing-material-that-already-has-speakers) |
 | **WebVTT** (`.vtt`) | Reads `<v Name>` voice tags. STYLE, REGION and NOTE blocks are ignored; multi-line cues are merged. |
@@ -177,11 +175,10 @@ Drop these alongside your audio on the start page to continue existing work.
 | **BAS Partitur** (`.par`) | TRN and ORT lines are combined into one tier of time-aligned units |
 | **CTM** (`.ctm`) | |
 
-The transcript file's name must match the audio file's name, or TRATT rejects it
+The transcript file's name must match the audio file's name, or Tratt rejects it
 with *Transcript filename does not match the audio filename*.
 
-DOCX and ODT cannot be imported. Neither can Bundle JSON: it appears in the code
-but export is disabled.
+DOCX and ODT files cannot be imported into Tratt.
 
 ---
 

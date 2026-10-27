@@ -17,7 +17,7 @@ Two audiences, in this order:
    [`transcribing.md`](transcribing.md) explains the model once;
    [`shortcuts.md`](shortcuts.md) is the page they keep open.
 
-Administrators and developers are deliberately *not* an audience here. Configuration
+Administrators and developers are deliberately _not_ an audience here. Configuration
 and deployment belong in the repository README and the upstream OCTRA manual;
 mixing them in is what makes the OCTRA manual hard for a first-time user.
 
@@ -52,12 +52,12 @@ mixing them in is what makes the OCTRA manual hard for a first-time user.
 
 The application deep-links into the manual. These targets must keep working:
 
-| Linked from | Target |
-| --- | --- |
-| `modals/tools-modal/tools-modal.component.html` | `using-tools.html#tratt-combine-units` |
-| `modals/tools-modal/tools-modal.component.html` | `using-tools.html#cutting-audio-files` |
-| `modals/help-modal/help-modal.component.ts` | `shortcuts.html` |
-| `shared/service/manual-link.service.ts` (`ROUTE_PAGES`) | one chapter per application route |
+| Linked from                                             | Target                                 |
+| ------------------------------------------------------- | -------------------------------------- |
+| `modals/tools-modal/tools-modal.component.html`         | `using-tools.html#tratt-combine-units` |
+| `modals/tools-modal/tools-modal.component.html`         | `using-tools.html#cutting-audio-files` |
+| `modals/help-modal/help-modal.component.ts`             | `shortcuts.html`                       |
+| `shared/service/manual-link.service.ts` (`ROUTE_PAGES`) | one chapter per application route      |
 
 `ROUTE_PAGES` is the second half of the contract. It decides which chapter the
 navigation bar's **Manual** entry and the Help dialog open from a given route:
@@ -119,19 +119,19 @@ Four rules keep the translations honest:
 - **A page that has not been translated is not a hole.** The build falls back to
   the English text and prints a notice in the reader's language at the top of the
   page, so navigation stays complete and nobody hits a dead link. `npm run
-  build:manual` lists every page that fell back.
+build:manual` lists every page that fell back.
 - **Explicit anchors must be carried over verbatim.** A translated page has
   translated headings, so heading-derived anchors change, but every `<a id="…">`
   in the English page must exist with the same id in the translation, because the
-  app deep-links into the manual *in the interface language*. The link checker
+  app deep-links into the manual _in the interface language_. The link checker
   verifies each `manualLink()` call against every language and fails if an anchor
   is missing from one of them.
 - **A translated page with no English counterpart fails the build.** It is a typo,
   not a new page.
 - **Quote the interface in the reader's language.** Swedish pages use the Swedish
-  strings from `apps/tratt/src/assets/i18n/sv.json`. Where the interface is *not*
-  translated (the marker toolbar, since `guidelines_sv.json` is still English; *Add
-  empty level*; *Add translated tier…*; *Speaker separation*; the Finnish and
+  strings from `apps/tratt/src/assets/i18n/sv.json`. Where the interface is _not_
+  translated (the marker toolbar, since `guidelines_sv.json` is still English; _Add
+  empty level_; _Add translated tier…_; _Speaker separation_; the Finnish and
   Norwegian model descriptions), the Swedish manual gives the English label and
   says why, rather than inventing a translation the reader will never see on
   screen. When one of those is translated in the app, update the manual with it.
@@ -167,17 +167,17 @@ session on the 8 October build; the Overview and the Workbench were re-shot from
 the 22 October build, which is the first to carry the verification markers and the
 current drop-area wording.
 
-| File | Shows | Used by |
-| --- | --- | --- |
-| `visp_tratt_main.png` | The start page down to the start button | `quick-start.md` |
-| `visp_tratt_auto_transcription_options.png` | The **Auto-transcribe with Whisper** panel | `automatic-transcription.md` |
-| `visp_tratt_2d_editor.png` | The 2D-Editor with speaker badges | `the-editors.md` |
-| `visp_tratt_popup_editor_audio_only.png` | The transcription window over the 2D-Editor | `quick-start.md`, `the-editors.md` |
-| `visp_tratt_dictaphone_editor.png` | The Dictaphone Editor | `the-editors.md` |
-| `visp_tratt_linear_editor.png` | The Linear Editor, both displays, one unit open | `the-editors.md` |
-| `visp_tratt_overview_edit.png` | The Overview window, with verified and non-verified markers | `quick-start.md`, `checking-your-work.md` |
-| `visp_tratt_export_formats.png` | The export dialog | `quick-start.md`, `exporting.md` |
-| `visp_tratt_workbench.png` | The Workbench with four recordings | `workbench.md` |
+| File                                        | Shows                                                       | Used by                                   |
+| ------------------------------------------- | ----------------------------------------------------------- | ----------------------------------------- |
+| `visp_tratt_main.png`                       | The start page down to the start button                     | `quick-start.md`                          |
+| `visp_tratt_auto_transcription_options.png` | The **Auto-transcribe with Whisper** panel                  | `automatic-transcription.md`              |
+| `visp_tratt_2d_editor.png`                  | The 2D-Editor with speaker badges                           | `the-editors.md`                          |
+| `visp_tratt_popup_editor_audio_only.png`    | The transcription window over the 2D-Editor                 | `quick-start.md`, `the-editors.md`        |
+| `visp_tratt_dictaphone_editor.png`          | The Dictaphone Editor                                       | `the-editors.md`                          |
+| `visp_tratt_linear_editor.png`              | The Linear Editor, both displays, one unit open             | `the-editors.md`                          |
+| `visp_tratt_overview_edit.png`              | The Overview window, with verified and non-verified markers | `quick-start.md`, `checking-your-work.md` |
+| `visp_tratt_export_formats.png`             | The export dialog                                           | `quick-start.md`, `exporting.md`          |
+| `visp_tratt_workbench.png`                  | The Workbench with four recordings                          | `workbench.md`                            |
 
 How to reproduce them:
 
@@ -211,16 +211,16 @@ How to reproduce them:
 Each of these is documented as a limitation. When the underlying issue is
 resolved, remove the caveat in the same commit:
 
-| Issue | Where the manual says so |
-| --- | --- |
-| Workbench reachable by URL only, with no entry of its own in the navigation bar | `workbench.md`, `index.md`, `glossary.md` |
-| Workbench has no name of its own in the interface, so the manual supplies one | `workbench.md` (Swedish: "Arbetsbänken") |
-| TRN-Editor unfinished and not offered | `the-editors.md`, `shortcuts.md`, `coming-from-octra.md` |
-| Tools dialog has no UI entry point (`openToolsModal()` has no caller) | `using-tools.md`, `coming-from-octra.md` |
-| Guidelines window absent from the Workbench toolbar | `workbench.md`, `shortcuts.md` |
-| `/help-tools` not linked from anywhere | `troubleshooting.md`, `privacy.md` |
-| Swedish marker labels still English (`guidelines_sv.json`) | `sv/transcribing.md`, `sv/shortcuts.md` |
-| Swedish Whisper model labels mis-sized in `sv.json` ("Liten" regardless of size) | `sv/automatic-transcription.md` |
+| Issue                                                                            | Where the manual says so                                 |
+| -------------------------------------------------------------------------------- | -------------------------------------------------------- |
+| Workbench reachable by URL only, with no entry of its own in the navigation bar  | `workbench.md`, `index.md`, `glossary.md`                |
+| Workbench has no name of its own in the interface, so the manual supplies one    | `workbench.md` (Swedish: "Arbetsbänken")                 |
+| TRN-Editor unfinished and not offered                                            | `the-editors.md`, `shortcuts.md`, `coming-from-octra.md` |
+| Tools dialog has no UI entry point (`openToolsModal()` has no caller)            | `using-tools.md`, `coming-from-octra.md`                 |
+| Guidelines window absent from the Workbench toolbar                              | `workbench.md`, `shortcuts.md`                           |
+| `/help-tools` not linked from anywhere                                           | `troubleshooting.md`, `privacy.md`                       |
+| Swedish marker labels still English (`guidelines_sv.json`)                       | `sv/transcribing.md`, `sv/shortcuts.md`                  |
+| Swedish Whisper model labels mis-sized in `sv.json` ("Liten" regardless of size) | `sv/automatic-transcription.md`                          |
 
 Fixed since the manual was first written, and no longer mentioned: the cloud
 ASR/MAUS feature (removed from the app), the raw `modal.shortcuts.cycle_speaker`
@@ -231,18 +231,18 @@ gated to development builds.
 
 Check these against the source when TRATT is updated:
 
-| Fact in the manual | Source of truth |
-| --- | --- |
-| Model names, sizes, WebGPU requirements | `component/tratt-dropzone/auto-transcribe-options.component.ts` |
-| Diarization model | `shared/service/local-diarization-runtime.service.ts` |
-| Supported media formats and size limits | `libs/web-media/src/lib/audio/AudioFormats/*.ts` and `AppInfo.maxAudioFileSize` |
-| Export/import formats and their options | `libs/annotation/src/lib/converters/` and `app.info.ts` |
-| Keyboard shortcuts | `editors/*/*.component.ts`, `libs/ngx-components/.../audio-viewer.config.ts`, `pages/intern/transcription/transcription.component.ts` |
-| Markers | `apps/tratt/src/config/localmode/guidelines/guidelines_*.json` |
-| Which editors and tools are enabled | `apps/tratt/src/config/localmode/projectconfig.json`, `editors/components.ts` |
-| Workbench statuses, stages, errors and capacity wording | `workbench.*` in `apps/tratt/src/assets/i18n/en.json` |
-| Whether the Workbench is reachable | `workbenchEnabled` in `apps/tratt/src/environments/*.ts`, `shared/guard/workbench-enabled.guard.ts` |
-| Which chapter "Manual" and Help open from a given route | `shared/service/manual-link.service.ts` |
-| Pipeline summary line | `core/pages/workbench/pipeline-summary.ts` |
-| Archive name and contents | `core/shared/service/catalogue-export.service.ts`, `catalogue-import.ts` |
-| Start-page submit button wording | `core/pages/login/offline-submit-label.helper.ts` |
+| Fact in the manual                                      | Source of truth                                                                                                                       |
+| ------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| Model names, sizes, WebGPU requirements                 | `component/tratt-dropzone/auto-transcribe-options.component.ts`                                                                       |
+| Diarization model                                       | `shared/service/local-diarization-runtime.service.ts`                                                                                 |
+| Supported media formats and size limits                 | `libs/web-media/src/lib/audio/AudioFormats/*.ts` and `AppInfo.maxAudioFileSize`                                                       |
+| Export/import formats and their options                 | `libs/annotation/src/lib/converters/` and `app.info.ts`                                                                               |
+| Keyboard shortcuts                                      | `editors/*/*.component.ts`, `libs/ngx-components/.../audio-viewer.config.ts`, `pages/intern/transcription/transcription.component.ts` |
+| Markers                                                 | `apps/tratt/src/config/localmode/guidelines/guidelines_*.json`                                                                        |
+| Which editors and tools are enabled                     | `apps/tratt/src/config/localmode/projectconfig.json`, `editors/components.ts`                                                         |
+| Workbench statuses, stages, errors and capacity wording | `workbench.*` in `apps/tratt/src/assets/i18n/en.json`                                                                                 |
+| Whether the Workbench is reachable                      | `workbenchEnabled` in `apps/tratt/src/environments/*.ts`, `shared/guard/workbench-enabled.guard.ts`                                   |
+| Which chapter "Manual" and Help open from a given route | `shared/service/manual-link.service.ts`                                                                                               |
+| Pipeline summary line                                   | `core/pages/workbench/pipeline-summary.ts`                                                                                            |
+| Archive name and contents                               | `core/shared/service/catalogue-export.service.ts`, `catalogue-import.ts`                                                              |
+| Start-page submit button wording                        | `core/pages/login/offline-submit-label.helper.ts`                                                                                     |

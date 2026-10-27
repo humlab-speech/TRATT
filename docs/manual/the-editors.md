@@ -4,16 +4,16 @@
 from a colleague's.
 
 TRATT offers several editors over the *same* transcript. Switching between them
-changes nothing but your view; you can move between them mid-file, as often as you
+does not change your data. You can move between them mid-file, as often as you
 like, using the buttons at the left of the top bar.
 
-The default is the **2D-Editor**.
+The default view uses the **2D-Editor**.
 
 ---
 
 ## 2D-Editor
 
-The workhorse. The recording is drawn as a waveform broken into lines, like text
+In this view, the recording is drawn as a waveform broken into lines, like text
 wrapping, with each transcription unit shaded and its text printed underneath.
 
 ![The 2D-Editor](../assets/visp_tratt_2d_editor.png)
@@ -24,13 +24,13 @@ of the time.
 - Hover a unit and press **Enter** to open the **transcription window** for it.
 - **S**, **A**, **D** and drag-select manage boundaries directly on the waveform
   ([How transcribing works](transcribing.md#boundaries)).
-- **Seconds per line** in Preferences controls how much audio each line holds.
+- **Seconds per line** in the Preferences controls how much audio each line holds.
 - Turn on **Show magnifier** for a zoomed strip around the cursor when you need to
   place a boundary precisely.
 
 ### The transcription window
 
-The pop-up you get with **Enter**. It shows one unit: its own waveform, a player,
+The pop-up you get with **Enter**. It shows one unit: its waveform with feedback on what is being played, a player,
 the marker toolbar, and a text field.
 
 ![The transcription window over the 2D-Editor](../assets/visp_tratt_popup_editor_audio_only.png)
@@ -41,22 +41,22 @@ the marker toolbar, and a text field.
   the fastest way through a file.
 - **Alt + ↓** saves and closes.
 - **Ctrl/Cmd + S** cycles the speaker label.
-- If your media file is one the browser can play natively (MP4, WebM), the video
-  is shown next to the waveform.
+- If you loaded a video file and it is in a format the browser can play natively (MP4, WebM), the video
+  is shown on top of the waveform.
 
 ---
 
 ## Dictaphone Editor
 
-A player and a single text field. No waveform, no boundaries.
+A player and a single text field. It does not show a waveform, and also no boundaries.
 
 ![The Dictaphone Editor](../assets/visp_tratt_dictaphone_editor.png)
 
 **Use it when** the recording is short, or the boundaries are already right and you
-only want to type. It is also the gentlest starting point for someone who has never
+only want to type. It may also be the gentlest starting point for someone who has never
 used an annotation tool.
 
-Playback keys are the same everywhere: **Tab** play/pause, **Esc** stop,
+Playback keys are the same as in the other editors: **Tab** play/pause, **Esc** stop,
 **Shift + Backspace** back to the last start position, **Shift + Tab** step back in
 time.
 
@@ -64,18 +64,17 @@ time.
 
 ## Linear Editor
 
-Two signal displays stacked: the whole recording on top, and a magnified view of the
-current position below.
+This is two signal displays stacked. The top display shows the whole recording, and a magnified view of the
+current position is shown below.
 
 ![The Linear Editor](../assets/visp_tratt_linear_editor.png)
 
-**Use it when** you need fine control over boundary positions while keeping your
-bearings in the file as a whole.
+**Use it when** you need fine control over boundary positions but want to see an overview of the file as a whole.
 
 The two displays have separate playback keys, because you are usually working in one
 while listening to the other:
 
-| | Upper (overview) display | Lower (loupe) display |
+| | Upper (overview) display | Lower (zoomed) display |
 | --- | --- | --- |
 | Play / pause | **Tab** | **Shift + Space** |
 | Stop | **Esc** | **Esc** |
@@ -87,19 +86,6 @@ mouse is over.
 
 ---
 
-<a id="trn-editor--experimental"></a>
-
-## TRN-Editor (experimental)
-
-A table view of the whole transcript, with per-speaker operations (merge segments
-with the same speaker label, replace permutations).
-
-**You will not see it.** The standard TRATT configuration offers only the three
-editors above, and the TRN-Editor is not finished anyway: its keyboard shortcuts
-are not wired up and opening a segment does nothing. It is documented here only so
-that you know what the name refers to if you meet it in the code or in the upstream
-OCTRA manual.
-
-For a table-shaped view of your transcript that *does* work, use the
+For a table-shaped view of your transcript, use the
 [Overview window](checking-your-work.md) (**Alt + 0**), which lists every unit and
 lets you edit and play rows in place.
