@@ -170,9 +170,19 @@
   .tratt-header__center {
     order: 3;
     inline-size: 100%;
-    block-size: var(--tratt-header-center-row);
-    display: flex;
-    align-items: center;
-    justify-content: center;
+
+    // Must match the `body:has(.tratt-header__center:not(:empty))` offset
+    // rule in styles.scss: an empty slot takes no space, a filled one takes
+    // exactly --tratt-header-center-row.
+    &:empty {
+      display: none;
+    }
+
+    &:not(:empty) {
+      block-size: var(--tratt-header-center-row);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
   }
 }

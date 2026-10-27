@@ -521,7 +521,8 @@ ul.pagination.pagination-sm {
   }
 }
 
-/* Below 768px the header centre slot wraps to a second row; keep content clear of it. */
+/* Below 768px the header centre slot wraps to a second row; keep content clear of it.
+   Depends on :has() and must mirror the :not(:empty) rule in navbar.component.scss. */
 :root {
   --tratt-header-center-row: 3rem;
 }
