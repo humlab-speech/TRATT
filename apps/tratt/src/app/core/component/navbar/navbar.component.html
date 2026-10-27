@@ -6,19 +6,25 @@
     id="navbar"
   >
     <div class="container-fluid">
-      <a
-        class="navbar-brand tratt-header__brand"
-        [routerLink]="homeLink"
-        [queryParamsHandling]="'merge'"
-      >
-        <tratt-logo [tagline]="true" />
-        @if (environment.beta_version && !localOnly) {
-          <span
-            class="badge rounded-pill text-bg-secondary ms-2 align-self-center"
-            >beta</span
-          >
-        }
-      </a>
+      @if (appStorage.useMode === LoginMode.URL) {
+        <span class="navbar-brand tratt-header__brand">
+          <tratt-logo [tagline]="true" />
+        </span>
+      } @else {
+        <a
+          class="navbar-brand tratt-header__brand"
+          [routerLink]="homeLink"
+          [queryParamsHandling]="'merge'"
+        >
+          <tratt-logo [tagline]="true" />
+          @if (environment.beta_version && !localOnly) {
+            <span
+              class="badge rounded-pill text-bg-secondary ms-2 align-self-center"
+              >beta</span
+            >
+          }
+        </a>
+      }
       <div class="tratt-header__center">
         @if (headerSlots.center(); as tpl) {
           <ng-container [ngTemplateOutlet]="tpl" />

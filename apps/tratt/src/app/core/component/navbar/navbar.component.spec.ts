@@ -30,4 +30,20 @@ describe('NavigationComponent header shell', () => {
     expect(html).not.toContain('fcffba');
     expect(html).not.toContain('language selector short label');
   });
+
+  it('logo is a span, not a link, when embedded in Visp (LoginMode.URL)', () => {
+    const branch = html.slice(
+      html.indexOf('@if (appStorage.useMode === LoginMode.URL)'),
+    );
+    const embedded = branch.slice(0, branch.indexOf('} @else {'));
+    const linked = branch.slice(branch.indexOf('} @else {'));
+    expect(embedded).toContain(
+      '<span class="navbar-brand tratt-header__brand">',
+    );
+    expect(embedded).not.toContain('<a');
+    expect(embedded).not.toContain('routerLink');
+    expect(linked).toContain('<a');
+    expect(linked).toContain('[routerLink]="homeLink"');
+    expect(ts).toContain('protected readonly LoginMode = LoginMode;');
+  });
 });

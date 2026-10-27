@@ -125,6 +125,8 @@ export class NavigationComponent extends DefaultComponent implements OnInit {
   }
 
   /** The logo links to the start of the current mode (Språkbanken profile). */
+  protected readonly LoginMode = LoginMode;
+
   public get homeLink(): string {
     return homeLinkFor(this.router.url);
   }
