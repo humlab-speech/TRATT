@@ -1,6 +1,6 @@
 import { TrattCreditsComponent } from '../../component/tratt-credits/tratt-credits.component';
 import { TrattFooterComponent } from '../../component/tratt-footer/tratt-footer.component';
-import { AsyncPipe, DecimalPipe } from '@angular/common';
+import { AsyncPipe, DecimalPipe, NgTemplateOutlet } from '@angular/common';
 import { Component, ElementRef, ViewChild } from '@angular/core';
 import { NgForm } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
@@ -72,6 +72,7 @@ function formatDuration(seconds: number): string {
     NgbNavModule,
     AsyncPipe,
     DecimalPipe,
+    NgTemplateOutlet,
     TranslocoPipe,
     TrattCreditsComponent,
     TrattFooterComponent,

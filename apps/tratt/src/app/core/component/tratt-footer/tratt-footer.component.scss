@@ -3,7 +3,8 @@
   grid-template-columns: 1fr 1.3fr 1fr;
   gap: 2.5rem;
   align-items: start;
-  padding: 2rem 1.5rem 2.25rem;
+  // Full-bleed background, content on the same 75rem container as the page.
+  padding: 2rem max(1.5rem, calc((100% - 75rem) / 2 + 1.5rem)) 2.25rem;
   background: var(--tratt-surface-subtle);
   border-top: 1px solid var(--tratt-border);
 

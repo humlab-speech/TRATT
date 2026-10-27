@@ -2,7 +2,7 @@
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 1.5rem 2.5rem;
-  max-inline-size: 60rem;
+  max-inline-size: 75rem; // same container width as the /local layout
   margin: 2rem auto 0;
   padding: 1.25rem 1.5rem;
   border-top: 1px solid var(--tratt-border);

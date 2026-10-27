@@ -1,4 +1,6 @@
-@if (localOnly) {
+<!-- Intro of the start page. Shown in the left column of the /local layout (or
+     alone above the browser notice when the browser is unsupported). -->
+<ng-template #localHero>
   <section class="local-hero">
     <p class="local-hero__context">{{ 'login.hero.part_of' | transloco }}</p>
     <h1 class="local-hero__title">{{ 'login.local mode' | transloco }}</h1>
@@ -10,16 +12,11 @@
       {{ 'login.hero.privacy' | transloco }}
     </p>
   </section>
-}
+</ng-template>
 
-<div
-  [class]="
-    localOnly
-      ? 'section order-2 order-md-2'
-      : 'section order-2 order-md-1 tratt-page'
-  "
-  id="login"
->
+<!-- No flex `order` here: credits and footer follow in DOM order, and an
+     `order` on this block would sort them above the work area. -->
+<div [class]="localOnly ? 'section' : 'section tratt-page'" id="login">
   <div class="row">
     <div class="col-12" style="text-align: center">
       @if (
@@ -52,7 +49,13 @@
   }
 
   @if (compatibleBrowser !== false) {
-    <div class="row" id="loginrow">
+    <!-- /local: two columns on wide screens (intro + notes | work card) so the
+         upload box is visible without scrolling; one column below `lg`
+         (intro, work card, notes). Online mode keeps the Bootstrap row. -->
+    <div [class]="localOnly ? 'local-layout' : 'row'" id="loginrow">
+      @if (localOnly) {
+        <ng-container *ngTemplateOutlet="localHero" />
+      }
       @if (!localOnly) {
         <div class="col-md-6">
           <div
@@ -119,17 +122,17 @@
           </div>
         </div>
       }
-      <div [class]="localOnly ? 'col-12' : 'col-md-6'">
+      <div [class]="localOnly ? 'local-main' : 'col-md-6'">
         <div class="card login-card" [class.local-card]="localOnly" #localmode>
           <div class="card-body">
             <section>
               @if (!localOnly) {
                 <h4>{{ 'login.local mode' | transloco }}</h4>
+                <div
+                  class="tratt-prose"
+                  [innerHTML]="'login.local mode description' | transloco"
+                ></div>
               }
-              <div
-                class="tratt-prose"
-                [innerHTML]="'login.local mode description' | transloco"
-              ></div>
               <div>
                 @if (appStorage.sessionfile !== undefined) {
                   <div
@@ -141,7 +144,7 @@
                     class="alert alert-warning"
                   ></div>
                 }
-                <div style="margin-top: 40px">
+                <div class="local-tabs">
                   <ul
                     ngbNav
                     #localNav="ngbNav"
@@ -158,7 +161,7 @@
                         <div class="pt-3">
                           <tratt-dropzone
                             #dropzone
-                            [height]="'147px'"
+                            [height]="localOnly ? '200px' : '147px'"
                             [oldFiles]="sessionfile ? [sessionfile] : []"
                             [showAutoTranscribe]="true"
                           ></tratt-dropzone>
@@ -633,8 +636,21 @@
           </div>
         </div>
       </div>
+      @if (localOnly) {
+        <section class="local-details">
+          <div
+            class="tratt-prose"
+            [innerHTML]="'login.local mode description' | transloco"
+          ></div>
+        </section>
+      }
     </div>
   } @else {
+    @if (localOnly) {
+      <div class="local-layout local-layout--hero-only">
+        <ng-container *ngTemplateOutlet="localHero" />
+      </div>
+    }
     <tratt-browser-test></tratt-browser-test>
   }
 </div>

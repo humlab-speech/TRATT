@@ -34,19 +34,66 @@ describe('login template (Språkbanken profile, /local)', () => {
     });
 
     it('gives the online card its own narrow card and page shell', () => {
-      expect(html).toContain("'section order-2 order-md-1 tratt-page'");
+      expect(html).toContain("'section tratt-page'");
       expect(scss).toMatch(/\.login-card \{[^}]*max-inline-size: 32rem/);
       expect(scss).not.toMatch(/\.login-card \{\s*padding: 3rem/);
     });
 
-    it('has token-based scss and no hero title overrides of global h1', () => {
+    it('has token-based scss; the hero title only sizes itself fluidly', () => {
       expect(scss).toContain('.local-hero__title');
       const title = scss.slice(scss.indexOf('.local-hero__title'));
       const block = title.slice(0, title.indexOf('}'));
-      expect(block).not.toMatch(/text-align|font-weight|font-size/);
+      expect(block).not.toMatch(/text-align|font-weight/);
+      // The hero lives in a narrower column now, so it may not use the global
+      // h1 size, but only a fluid clamp().
+      expect(block).toMatch(/font-size: clamp\(/);
       expect(scss).toContain('var(--tratt-danger)');
       expect(scss).toContain('var(--tratt-border-control)');
-      expect(scss).toContain('padding: 3rem');
+    });
+
+    // Regression: the work card ended up ~1100 px down the page, below the
+    // credits and footer, because `order-2` on #login sorted it after the
+    // order-less <tratt-credits>/<tratt-footer> in the flex-column host.
+    describe('/local layout order and space', () => {
+      it('uses no flex order on #login, so credits and footer stay last', () => {
+        expect(html).not.toMatch(/\border(-md)?-\d\b/);
+        const login = html.indexOf('id="login"');
+        expect(login).toBeGreaterThan(-1);
+        expect(html.indexOf('<tratt-credits />')).toBeGreaterThan(login);
+        expect(html.indexOf('<tratt-footer />')).toBeGreaterThan(
+          html.indexOf('<tratt-credits />'),
+        );
+      });
+
+      it('puts intro, work card and notes in one grid', () => {
+        expect(html).toContain(
+          `[class]="localOnly ? 'local-layout' : 'row'" id="loginrow"`,
+        );
+        expect(html).toContain("localOnly ? 'local-main' : 'col-md-6'");
+        expect(html).toContain('class="local-details"');
+        // The notes are rendered once per mode: in the card online, beside the
+        // card on /local — never in both.
+        const notes = html.match(/'login\.local mode description'/g) ?? [];
+        expect(notes.length).toBe(2);
+        expect(html).toMatch(
+          /@if \(!localOnly\) \{\s*<h4>[^]*?'login\.local mode description'/,
+        );
+      });
+
+      it('shows the card next to the intro from lg and stacks intro → card → notes below', () => {
+        const wide = scss.slice(scss.indexOf('.local-layout {'));
+        expect(wide).toMatch(/grid-template-columns: minmax\(0, 5fr\) minmax\(0, 7fr\)/);
+        expect(wide).toMatch(/'hero card'\s*'details card'/);
+        const narrow = scss.slice(scss.indexOf('@media (max-width: 991.98px)'));
+        expect(narrow).toMatch(/'hero'\s*'card'\s*'details'/);
+      });
+
+      it('keeps the notice and tabs tight inside the /local card', () => {
+        expect(html).toContain('class="local-tabs"');
+        expect(html).not.toContain('style="margin-top: 40px"');
+        expect(scss).toMatch(/\.local-card \.local-tabs \{\s*margin-top: 0\.25rem/);
+        expect(scss).toMatch(/\.local-card \{[^]*?\.alert-warning \{/);
+      });
     });
 
     it('uses token panels, theme progress bars and the next-step button', () => {
