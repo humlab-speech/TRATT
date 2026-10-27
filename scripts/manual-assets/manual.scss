@@ -318,6 +318,11 @@ article {
     padding: 0.8rem 1rem;
     background: var(--sb-blue-tint);
     border-inline-start: 4px solid var(--tratt-info);
+    // The interactive teal is below 4.5:1 on the tinted callout; links there
+    // take the body text colour and keep their underline.
+    a {
+      color: var(--tratt-text-primary);
+    }
     p:first-child {
       margin-block-start: 0;
     }
