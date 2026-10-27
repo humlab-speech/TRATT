@@ -116,7 +116,7 @@ main {
 
 .export-button {
   background-color: var(--tratt-surface-subtle);
-  border: 1px solid grey;
+  border: 1px solid var(--tratt-border);
   text-align: center;
   padding: 20px;
 }
@@ -291,7 +291,7 @@ label.radio-inline .bmd-radio {
   min-height: 100px;
 }
 
-.btn-icon {
+img.btn-icon {
   height: 14px;
 }
 
@@ -476,10 +476,6 @@ a {
   font-size: 0.8rem;
   padding: 10px;
   min-height: 1em;
-}
-
-.version-popover {
-  min-width: 300px;
 }
 
 ul.pagination.pagination-sm {
