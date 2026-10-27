@@ -1,9 +1,9 @@
 #context-menu {
-  background-color: var(--tratt-surface-background);
-  border: 1px solid gray;
+  background: var(--tratt-surface-page);
+  border: 1px solid var(--tratt-border);
   border-radius: 3px;
   font-size: 0.8em;
-  box-shadow: 0 0 5px grey;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.25);
 }
 
 :host {
@@ -11,17 +11,17 @@
 }
 
 table {
-  border-top: 1px solid lightgray;
+  border-top: 1px solid var(--tratt-border);
   border-collapse: collapse;
 }
 
 tbody tr td {
   padding: 3px 0;
-  border-bottom: 1px solid lightgray;
+  border-bottom: 1px solid var(--tratt-border);
 }
 
 tbody tr:hover {
-  background-color: lightskyblue;
+  background-color: var(--sb-blue-tint);
   cursor: pointer;
 }
 

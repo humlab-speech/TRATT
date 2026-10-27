@@ -1,9 +1,7 @@
 .container.inner {
   padding-bottom: 10px;
   padding-top: 10px;
-  -moz-box-shadow: 0 1px 6px #a0a0a0; /* Firefox */
-  -webkit-box-shadow: 0 1px 6px #a0a0a0; /* Chrome, Safari */
-  box-shadow: 0 1px 6px #a0a0a0; /* CSS3 */
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.25);
 }
 
 :host {
