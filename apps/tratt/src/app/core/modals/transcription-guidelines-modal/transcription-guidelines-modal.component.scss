@@ -4,13 +4,13 @@
 
 .project,
 .authors {
-  color: gray;
+  color: var(--tratt-text-muted);
   font-size: 0.8em;
   display: block;
 }
 
 .version {
-  color: gray;
+  color: var(--tratt-text-muted);
   font-size: 0.8em;
 }
 
