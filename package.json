@@ -5,6 +5,7 @@
   "author": "Fredrik Nylen, Umeå University. Authors of the original OCTRA: Julian Pömp, Christoph Draxler; Institut für Phonetik und Sprachverarbeitung, LMU München",
   "scripts": {
     "generate:build-info": "node scripts/generate-build-info.mjs",
+    "lint:styles": "node scripts/check-style-tokens.mjs",
     "postinstall": "node scripts/generate-build-info.mjs",
     "prestart:tratt": "node scripts/generate-build-info.mjs",
     "prebuild": "node scripts/generate-build-info.mjs",
