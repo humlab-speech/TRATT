@@ -1,0 +1,47 @@
+@use 'sass:color';
+
+// Språkbanken graphic profile – the five brand colours. Change them here only.
+$sb-orange: #f0581a; // graphics, actions that take the next workflow step
+$sb-blue: #1e989f; // interactive elements, help
+$sb-red: #d42225; // results that stop the workflow, destructive actions
+$sb-yellow: #f6c200; // results that change the workflow; never text on white
+$sb-green: #5aa018; // no role in the profile; TRATT: done / on
+
+// Derived with the profile's own 80:20 rule (spec 3.2).
+// strong = 80 % colour + 20 % black: text and small filled buttons, ≥ 4.5:1 on white.
+@function strong($c) {
+  @return color.mix($c, #000, 80%);
+}
+// tint = 20 % colour + 80 % base: backgrounds only.
+@function tint($c, $base: #fff) {
+  @return color.mix($c, $base, 20%);
+}
+
+$sb-orange-strong: strong($sb-orange); // ≈ #c04615, 5.09:1
+$sb-blue-strong: strong($sb-blue); //     ≈ #187a7f, 5.09:1
+$sb-red-strong: strong($sb-red); //       ≈ #aa1b1e, 7.28:1
+$sb-green-strong: strong($sb-green); //   ≈ #488013, 4.80:1
+
+// Neutral greys, R = G = B.
+$grey-0: #fff;
+$grey-50: #f5f5f5;
+$grey-100: #ebebeb;
+$grey-200: #d9d9d9; // hairlines
+$grey-400: #8c8c8c; // control borders, 3.36:1
+$grey-600: #595959; // secondary text, 7.0:1
+$grey-900: #1a1a1a; // text, 17.4:1
+
+// Dark mode.
+$dark-page: #121212;
+$dark-subtle: #1e1e1e;
+$dark-sunken: #2a2a2a;
+$dark-border: #333;
+$dark-border-control: #6b6b6b;
+$dark-text: #ededed;
+$dark-text-muted: #a6a6a6;
+$dark-link: color.mix($sb-blue, #fff, 80%); //       ≈ #4badb2
+$dark-danger-text: color.mix($sb-red, #fff, 70%); // ≈ #e16466
+
+$font-ui: ('Jost', system-ui, -apple-system, 'Segoe UI', sans-serif);
+$font-data: ('Noto Sans', system-ui, -apple-system, 'Segoe UI', sans-serif);
+$font-body: ('Noto Serif', Georgia, 'Times New Roman', serif);

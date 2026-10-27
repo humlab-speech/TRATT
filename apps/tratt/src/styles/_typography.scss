@@ -1,0 +1,52 @@
+// No base font size is set: the browser owns it (Språkbanken profile).
+body {
+  font-family: var(--tratt-font-ui);
+}
+
+h1 {
+  font-weight: 300;
+  text-align: start;
+}
+
+// Body text: Noto Serif. 0.875rem matches Jost's x-height at 1rem
+// (0.536 em vs 0.46 em) – spec 4, decision 6.
+.tratt-prose {
+  font-family: var(--tratt-font-body);
+  font-size: 0.875rem;
+  line-height: 1.65;
+
+  a {
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+  }
+}
+
+// Tables and data: Noto Sans.
+.tratt-data,
+.table {
+  font-family: var(--tratt-font-data);
+  font-size: 0.875rem;
+}
+
+.tratt-num {
+  font-variant-numeric: tabular-nums;
+}
+
+.tratt-label {
+  font-family: var(--tratt-font-ui);
+  font-weight: 500;
+  font-size: 0.8125rem;
+  letter-spacing: 0.02em;
+  color: var(--tratt-text-muted);
+}
+
+kbd {
+  font-family: var(--tratt-font-data);
+  font-size: 0.75rem;
+  color: var(--tratt-text-muted);
+  background: var(--tratt-surface-page);
+  border: 1px solid var(--tratt-border-control);
+  border-bottom-width: 2px;
+  border-radius: 0.25rem;
+  padding: 0 0.3rem;
+}

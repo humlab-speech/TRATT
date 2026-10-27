@@ -1,0 +1,66 @@
+@use 'palette' as p;
+
+:root {
+  --sb-orange: #{p.$sb-orange};
+  --sb-blue: #{p.$sb-blue};
+  --sb-red: #{p.$sb-red};
+  --sb-yellow: #{p.$sb-yellow};
+  --sb-green: #{p.$sb-green};
+  --sb-orange-strong: #{p.$sb-orange-strong};
+  --sb-blue-strong: #{p.$sb-blue-strong};
+  --sb-red-strong: #{p.$sb-red-strong};
+  --sb-green-strong: #{p.$sb-green-strong};
+  --tint-base: #{p.$grey-0};
+
+  // Surfaces and text
+  --tratt-surface-page: #{p.$grey-0};
+  --tratt-surface-subtle: #{p.$grey-50};
+  --tratt-surface-sunken: #{p.$grey-100};
+  --tratt-border: #{p.$grey-200};
+  --tratt-border-control: #{p.$grey-400};
+  --tratt-text-primary: #{p.$grey-900};
+  --tratt-text-muted: #{p.$grey-600};
+
+  // Roles (spec 3.1)
+  --tratt-next: var(--sb-orange);
+  --tratt-next-strong: var(--sb-orange-strong);
+  --tratt-interactive: var(--sb-blue);
+  --tratt-interactive-text: var(--sb-blue-strong);
+  --tratt-danger: var(--sb-red);
+  --tratt-danger-text: var(--sb-red-strong);
+  --tratt-warning: var(--sb-yellow);
+  --tratt-success: var(--sb-green);
+  --tratt-success-text: var(--sb-green-strong);
+  --tratt-info: var(--sb-blue);
+  --tratt-on-color: #fff;
+
+  // Signal display. Literal values only – read as strings for <canvas>
+  // (libs/ngx-components/src/lib/obj/tratt-colors.ts mirrors them).
+  --tratt-waveform-background: #ffffff;
+  --tratt-waveform-signal: #595959;
+  --tratt-segment-transcribed: rgba(0, 0, 0, 0.05);
+  --tratt-segment-selected: rgba(30, 152, 159, 0.14);
+  --tratt-boundary: #1e989f;
+  --tratt-playhead: #f0581a;
+  --tratt-canvas-grid: #d9d9d9;
+  --tratt-canvas-text: #1a1a1a;
+
+  // Type and measures
+  --tratt-font-ui: 'Jost', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --tratt-font-data: 'Noto Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --tratt-font-body: 'Noto Serif', Georgia, 'Times New Roman', serif;
+  --tratt-header-height: 4.5rem;
+  --tratt-radius: 0.375rem;
+}
+
+// Tints are declared on every theme root so they recompute when
+// --tint-base changes (a value computed on :root would not follow a
+// [data-bs-theme] set further down the tree).
+:root,
+[data-bs-theme] {
+  --sb-orange-tint: color-mix(in srgb, var(--sb-orange) 20%, var(--tint-base));
+  --sb-blue-tint: color-mix(in srgb, var(--sb-blue) 20%, var(--tint-base));
+  --sb-red-tint: color-mix(in srgb, var(--sb-red) 20%, var(--tint-base));
+  --sb-yellow-tint: color-mix(in srgb, var(--sb-yellow) 20%, var(--tint-base));
+  --sb-green-tint: color-mix(in srgb, var(--sb-green) 20%, var(--tint-base));
+}

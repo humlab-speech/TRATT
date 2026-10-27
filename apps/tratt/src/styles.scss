@@ -10,141 +10,16 @@
 @use '@fontsource/noto-serif/400.css' as f_noto_serif_400;
 @use '@fontsource/noto-serif/400-italic.css' as f_noto_serif_400_italic;
 @use '@fontsource/noto-serif/700.css' as f_noto_serif_700;
-@use 'bootstrap/scss/bootstrap';
+@use 'styles/bootstrap-config';
 @use '@fortawesome/fontawesome-free/css/all.css';
-
-/* Design tokens.
- *
- * TRATT renders inside the VISP shell, so structural colours mirror VISP's
- * tokens (humlab-speech/webclient, src/colors.scss lines 106-124). Where the
- * Umeå University palette has a near-equivalent it wins, which keeps TRATT
- * palette-compliant when it runs standalone.
- *
- * Canvas colours cannot read CSS variables; they live in
- * libs/ngx-components/src/lib/obj/tratt-colors.ts. Keep the two in sync.
- */
-:root {
-  /* Surfaces — VISP $tertiary-light / $white / $tertiary */
-  --tratt-surface-page: #eef0f4;
-  --tratt-surface-card: #ffffff;
-  --tratt-surface-sunken: #e6e8ed;
-
-  /* Structural chrome — UMU "Blå", within a hair of VISP $primary #2f4f71 */
-  --tratt-chrome: #2a4765;
-  --tratt-chrome-hover: #3c6289; /* VISP $primary-light */
-  --tratt-on-chrome: #ffffff;
-
-  /* Primary action — VISP $secondary verbatim, so buttons read as one system */
-  --tratt-cta: #d47752;
-  --tratt-cta-hover: #b76545; /* VISP $secondary-dark */
-  --tratt-cta-contrast: #a85832; /* 5.1:1 against white text, unlike $secondary */
-  --tratt-on-cta: #ffffff;
-
-  /* Text and lines — VISP $dark-font-color / $border / $border-light */
-  --tratt-text-primary: #1f3044;
-  --tratt-text-muted: #667a90;
-  --tratt-border: #d4d9e0;
-
-  /* Signal display */
-  --tratt-waveform-background: #ffffff;
-  --tratt-waveform-signal: rgba(42, 71, 101, 0.8);
-  --tratt-segment-transcribed: rgba(60, 98, 137, 0.15);
-  --tratt-playhead: #d7263d; /* VISP $crimson */
-
-  /* Status. Green is demoted from chrome to semantics — UMU "Barrskog". */
-  --tratt-success: #3d6b5c;
-  --tratt-warning: #d7b17c; /* UMU "Guld" */
-  --tratt-danger: #d7263d; /* VISP $crimson */
-  --tratt-danger-surface: #fdf2f3;
-  --tratt-note-surface: #fdf8ee; /* comment fields — a tint of --tratt-warning */
-  --tratt-info: #3c6289;
-
-  /* Deprecated aliases. Drop once the hardcoded-hex sweep lands. */
-  --tratt-surface-background: var(--tratt-surface-page);
-  --tratt-accent-green: var(--tratt-chrome);
-  --tratt-accent-green-dark: var(--tratt-chrome-hover);
-  --tratt-accent-error: var(--tratt-danger);
-  --tratt-accent-warning: var(--tratt-warning);
-}
-
-/* Bootstrap ships stock colours (#0d6efd blue, #198754 green, #dc3545 red) that
- * leaked into every badge, alert, progress bar and link. Remapping its theme
- * variables here covers all of them, so the utility classes stay usable. */
-:root {
-  --bs-primary: var(--tratt-chrome);
-  --bs-primary-rgb: 42, 71, 101;
-  --bs-secondary: var(--tratt-text-muted);
-  --bs-secondary-rgb: 102, 122, 144;
-  --bs-success: var(--tratt-success);
-  --bs-success-rgb: 61, 107, 92;
-  --bs-danger: var(--tratt-danger);
-  --bs-danger-rgb: 215, 38, 61;
-  --bs-warning: var(--tratt-warning);
-  --bs-warning-rgb: 215, 177, 124;
-  --bs-info: var(--tratt-info);
-  --bs-info-rgb: 60, 98, 137;
-
-  --bs-body-color: var(--tratt-text-primary);
-  --bs-body-color-rgb: 31, 48, 68;
-  --bs-body-bg: var(--tratt-surface-card);
-  --bs-border-color: var(--tratt-border);
-  --bs-link-color: var(--tratt-chrome);
-  --bs-link-color-rgb: 42, 71, 101;
-  --bs-link-hover-color: var(--tratt-chrome-hover);
-}
-
-/* btn-success marks the handful of headline CTAs (9 call sites), btn-primary
- * the everyday buttons (55). That split already matches VISP's two-tier
- * hierarchy, so it maps straight onto accent-vs-chrome. */
-.btn.btn-success {
-  color: var(--tratt-on-cta);
-  background-color: var(--tratt-cta);
-  border-color: var(--tratt-cta);
-}
-
-.btn.btn-success:hover,
-.btn.btn-success:focus {
-  color: var(--tratt-on-cta);
-  background-color: var(--tratt-cta-hover);
-  border-color: var(--tratt-cta-hover);
-}
-
-.btn.btn-warning {
-  color: #fff;
-  background-color: var(--tratt-accent-warning);
-  border-color: var(--tratt-accent-warning);
-}
-
-.btn.btn-danger {
-  color: #fff;
-  background-color: var(--tratt-danger);
-  border-color: var(--tratt-danger);
-}
-
-.btn.btn-primary {
-  color: var(--tratt-on-chrome) !important;
-  background-color: var(--tratt-chrome) !important;
-  border-color: var(--tratt-chrome) !important;
-}
-
-.btn.btn-primary:hover,
-.btn.btn-primary:focus {
-  background-color: var(--tratt-chrome-hover) !important;
-  border-color: var(--tratt-chrome-hover) !important;
-}
-
-.btn.btn-secondary {
-  color: #fff !important;
-  background-color: var(--tratt-text-muted) !important;
-  border-color: var(--tratt-text-muted) !important;
-}
+@use 'styles/tokens';
+@use 'styles/legacy-tokens';
+@use 'styles/typography';
+@use 'styles/buttons';
+@use 'styles/components';
 
 .modal-open {
   padding-right: 0 !important;
-}
-
-h1 {
-  text-align: center;
 }
 
 html {
