@@ -95,6 +95,17 @@ npm run validate:manual   # links, anchors and in-app deep links
 npm run build:manual      # renders to dist/manual, then re-checks the output
 ```
 
+Before publishing, run the accessibility check locally (it is deliberately not in
+CI). It opens every built page in both themes and runs axe-core for colour
+contrast, links in running text, page language, image alt text, one main landmark
+and the skip link. It needs `npx playwright install chromium` once, and a server:
+
+```bash
+npm run build:manual
+npx http-server dist/manual -p 8081 -c-1 &   # BASE_URL defaults to http://localhost:8081
+npm run a11y:manual                          # exit code 1 on any violation
+```
+
 The application finds the published site through `tratt.manual.url` and
 `tratt.manual.pageExtension` in `apps/tratt/src/config/appconfig.json`
 (`AppInfo.applyManualSettings`). `AppInfo.manualLink(page, anchor?)` builds every

@@ -79,6 +79,7 @@
     "help": "nx help",
     "test": "nx test tratt",
     "a11y:contrast": "node scripts/a11y-contrast.mjs",
+    "a11y:manual": "node scripts/a11y-manual.mjs",
     "docs:screens": "node scripts/shoot-manual-screens.mjs",
     "modernizr": "modernizr -d apps/tratt/src/assets/js/modernizr.js -c ./apps/tratt/src/modernizr.json",
     "workspace-generator": "nx workspace-generator",
