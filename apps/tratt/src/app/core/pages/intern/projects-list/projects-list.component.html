@@ -66,7 +66,24 @@
                   [collectionSize]="currentPage?.collectionSize ?? 0"
                   [pageSize]="itemsPerPage"
                   (pageChange)="showProjects($event)"
-                ></ngb-pagination>
+                >
+                  <ng-template ngbPaginationFirst
+                    ><i class="fa-solid fa-backward-fast" aria-hidden="true"></i
+                    ><span class="visually-hidden">First</span></ng-template
+                  >
+                  <ng-template ngbPaginationPrevious
+                    ><i class="fa-solid fa-backward" aria-hidden="true"></i
+                    ><span class="visually-hidden">Previous</span></ng-template
+                  >
+                  <ng-template ngbPaginationNext
+                    ><i class="fa-solid fa-forward" aria-hidden="true"></i
+                    ><span class="visually-hidden">Next</span></ng-template
+                  >
+                  <ng-template ngbPaginationLast
+                    ><i class="fa-solid fa-forward-fast" aria-hidden="true"></i
+                    ><span class="visually-hidden">Last</span></ng-template
+                  >
+                </ngb-pagination>
               </div>
             </div>
           </div>
@@ -84,13 +101,13 @@
                       @if (project.active) {
                         <i
                           class="fa-solid fa-circle-check"
-                          style="color: green"
+                          style="color: var(--tratt-success-text)"
                         ></i>
                       }
                       @if (!project.active) {
                         <i
                           class="fa-solid fa-circle-minus"
-                          style="color: red"
+                          style="color: var(--tratt-danger-text)"
                         ></i>
                       }
                     </div>
@@ -111,8 +128,7 @@
                 <div class="row">
                   <div class="col mb-2">
                     <span
-                      class="rounded-pill text-white property-pill me-1"
-                      style="background-color: var(--tratt-chrome)"
+                      class="rounded-pill property-pill me-1 tratt-state-neutral"
                     >
                       <i class="fa-solid fa-list-ol"></i>
                       {{ 'g.free tasks' | transloco }}:
@@ -121,7 +137,7 @@
 
                     @if (project.enddate) {
                       <span
-                        class="rounded-pill text-white property-pill me-1 bg-info"
+                        class="rounded-pill property-pill me-1 tratt-state-info"
                       >
                         <i class="fa-solid fa-calendar-day"></i>
                         {{ 'p.available until' | transloco }}:
@@ -137,7 +153,7 @@
                   </div>
                   <div class="col-md-2">
                     <button
-                      class="btn btn-primary btn-sm w-100"
+                      class="btn btn-next btn-sm w-100"
                       size="sm"
                       [disabled]="projectStarting"
                       (click)="onProjectClick(project)"
@@ -155,7 +171,7 @@
           <div
             class="spinner-border"
             role="status"
-            style="width: 6rem; height: 6rem; color: lightgrey"
+            style="width: 6rem; height: 6rem; color: var(--tratt-border-control)"
           >
             <span class="visually-hidden">Loading...</span>
           </div>
