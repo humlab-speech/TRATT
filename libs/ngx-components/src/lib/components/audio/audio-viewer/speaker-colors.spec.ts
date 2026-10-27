@@ -36,9 +36,31 @@ function makeAnnotation(
   return annotation;
 }
 
+function luminance(hex: string): number {
+  const lin = (i: number) => {
+    const c = parseInt(hex.slice(i, i + 2), 16) / 255;
+    return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+  };
+  return 0.2126 * lin(1) + 0.7152 * lin(3) + 0.0722 * lin(5);
+}
+
+function contrast(a: string, b: string): number {
+  const [hi, lo] = [luminance(a), luminance(b)].sort((x, y) => y - x);
+  return (hi + 0.05) / (lo + 0.05);
+}
+
 describe('SPEAKER_COLORS', () => {
-  it('has 17 entries', () => {
-    expect(SPEAKER_COLORS).toHaveLength(17);
+  it.each(SPEAKER_COLORS)(
+    '%s gives >= 4.5:1 contrast with its chosen text colour',
+    (color) => {
+      expect(
+        contrast(color, getSpeakerTextColor(color)),
+      ).toBeGreaterThanOrEqual(4.5);
+    },
+  );
+
+  it('has 10 entries', () => {
+    expect(SPEAKER_COLORS).toHaveLength(10);
   });
 });
 
@@ -68,9 +90,9 @@ describe('getSpeakerColor', () => {
     expect(getSpeakerColor('C', ids)).toBe(SPEAKER_COLORS[2]);
   });
 
-  it('wraps colors via modulo when more than 17 speakers', () => {
+  it('wraps colors via modulo when more than 10 speakers', () => {
     const ids = Array.from({ length: 18 }, (_, i) => `Speaker ${i + 1}`);
-    expect(getSpeakerColor('Speaker 18', ids)).toBe(SPEAKER_COLORS[17 % 17]);
+    expect(getSpeakerColor('Speaker 18', ids)).toBe(SPEAKER_COLORS[17 % 10]);
   });
 
   it('returns first color for unknown id (fallback)', () => {
@@ -81,7 +103,7 @@ describe('getSpeakerColor', () => {
 describe('getSpeakerTextColor', () => {
   it('returns beige for dark backgrounds', () => {
     expect(getSpeakerTextColor('#000000')).toBe(LIGHT_TEXT);
-    expect(getSpeakerTextColor('#2A4765')).toBe(LIGHT_TEXT);
+    expect(getSpeakerTextColor('#187A7F')).toBe(LIGHT_TEXT);
     expect(getSpeakerTextColor('#3D6B5C')).toBe(LIGHT_TEXT);
   });
 
