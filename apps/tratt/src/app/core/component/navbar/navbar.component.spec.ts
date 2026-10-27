@@ -31,6 +31,14 @@ describe('NavigationComponent header shell', () => {
     expect(html).not.toContain('language selector short label');
   });
 
+  it('language toggle is a keyboard-reachable button named by its visible text', () => {
+    const start = html.indexOf('<!-- languageDropdown -->');
+    const toggle = html.slice(html.indexOf('<button', start), html.indexOf('</button>', start));
+    expect(toggle).toContain('ngbDropdownToggle');
+    expect(toggle).toContain('type="button"');
+    expect(toggle).not.toContain('aria-label');
+  });
+
   it('logo is a span, not a link, when embedded in Visp (LoginMode.URL)', () => {
     const branch = html.slice(
       html.indexOf('@if (appStorage.useMode === LoginMode.URL)'),

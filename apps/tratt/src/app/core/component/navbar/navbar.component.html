@@ -922,11 +922,11 @@
             display="dynamic"
             placement="bottom-end"
           >
-            <a
+            <button
               ngbDropdownToggle
               type="button"
               class="nav-link dropdown-toggle"
-              [attr.aria-label]="'p.language selector label' | transloco"
+              [title]="'p.language selector label' | transloco"
             >
               <i class="fa-solid fa-globe" aria-hidden="true"></i>
               <span class="d-none d-lg-inline">{{
@@ -939,7 +939,7 @@
                 class="fa-solid fa-chevron-down tratt-header__chevron"
                 aria-hidden="true"
               ></i>
-            </a>
+            </button>
             <div
               ngbDropdownMenu
               class="dropdown-menu dropdown dropdown-primary dropdown-menu-right"

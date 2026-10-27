@@ -248,7 +248,7 @@ const BRAND_MARK = inlineSvg(
 // The logo is a placeholder (see the README next to it). Its text colour is
 // replaced by currentColor so it also reads on the dark theme.
 const SB_LOGO = readText('apps', 'tratt', 'src', 'assets', 'img', 'sprakbanken', 'sprakbanken_logo.svg')
-  .replace(/fill="#1a1a1a"/g, 'fill="currentColor"')
+  .replace(/fill="#f0581a"/g, 'fill="currentColor"')
   .trim();
 
 /** Footer and theme-toggle texts come from the application's own i18n files. */

@@ -64,7 +64,7 @@
   }
 
   @if (warnings().length > 0) {
-    <div class="catalogue-export__warnings">
+    <div class="catalogue-export__warnings tratt-state-warning">
       <strong>{{ 'workbench.catalogue_export.warnings_title' | transloco }}</strong>
       <ul>
         @for (warning of warnings(); track warning) {

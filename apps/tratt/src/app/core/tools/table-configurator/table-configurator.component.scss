@@ -58,7 +58,7 @@
   height: 300px;
   background-color: var(--tratt-surface-subtle);
   padding: 10px;
-  border: 1px var(--tratt-border);
+  border: 1px solid var(--tratt-border);
 }
 
 .table-options {
@@ -93,7 +93,7 @@
   border-collapse: collapse;
   display: inline-grid;
   white-space: nowrap;
-  color: rgba(0, 0, 0, 0.87);
+  color: var(--tratt-text-primary);
   align-items: center;
   justify-content: space-between;
   box-sizing: border-box;
