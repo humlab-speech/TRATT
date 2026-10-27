@@ -26,7 +26,7 @@
         style="
           overflow: auto;
           max-height: 1200px;
-          border-right: 1px solid lightgray;
+          border-right: 1px solid var(--tratt-border);
         "
       >
         <tratt-transcr-overview
@@ -51,7 +51,7 @@
           @if (
             sendValidTranscriptOnly && !annotationStoreService.transcriptValid
           ) {
-            <p style="color: red; text-align: center">
+            <p style="color: var(--tratt-danger-text); text-align: center">
               {{ 'transcription.invalid' | transloco }}
             </p>
           }

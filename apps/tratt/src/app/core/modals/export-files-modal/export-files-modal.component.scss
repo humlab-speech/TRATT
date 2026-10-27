@@ -18,7 +18,7 @@ progressbar {
   margin-left: 10px;
   margin-bottom: 20px;
   padding: 10px;
-  border: 1px solid lightgray;
+  border: 1px solid var(--tratt-border);
 }
 
 .options table tbody tr td {
@@ -49,10 +49,10 @@ progressbar {
 
 .category-header td {
   padding: 12px 8px 4px;
-  border-bottom: 2px solid #dee2e6;
+  border-bottom: 2px solid var(--tratt-border);
   font-size: 1em;
   font-weight: bold;
-  color: #495057;
+  color: var(--tratt-text-muted);
   background-color: transparent !important;
   cursor: default !important;
 }

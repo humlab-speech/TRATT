@@ -35,7 +35,7 @@
               <td (click)="onLineClick(item.converter, item.index)">
                 <i
                   class="fa-solid"
-                  style="color: gray"
+                  style="color: var(--tratt-text-muted)"
                   [ngClass]="{
                     'fa-chevron-down': exportStates[item.index] === 'active',
                     'fa-chevron-right': exportStates[item.index] !== 'active',
@@ -662,7 +662,7 @@
           >
             <i
               class="fa-solid"
-              style="color: gray"
+              style="color: var(--tratt-text-muted)"
               [ngClass]="{
                 'fa-chevron-down': tools.tableConfigurator.opened,
                 'fa-chevron-right': !tools.tableConfigurator.opened,
@@ -717,7 +717,7 @@
           <td (click)="getProtocol()">
             <i
               class="fa-solid"
-              style="color: gray"
+              style="color: var(--tratt-text-muted)"
               [ngClass]="{
                 'fa-chevron-down': preparing.name === 'Protocol',
                 'fa-chevron-right': preparing.name !== 'Protocol',
@@ -760,7 +760,7 @@
     @if (recordedFileService.recordedFile) {
       <button
         type="button"
-        class="btn btn-secondary"
+        class="btn btn-next"
         (click)="recordedFileService.triggerExport()"
       >
         <i class="fa-solid fa-microphone"></i>
@@ -769,7 +769,7 @@
     }
     <button
       type="button"
-      class="btn btn-primary"
+      class="btn btn-secondary"
       data-dismiss="modal"
       (click)="close()"
     >
