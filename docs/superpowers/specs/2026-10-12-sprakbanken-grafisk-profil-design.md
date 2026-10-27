@@ -1,12 +1,12 @@
 # Tratt enligt Språkbankens grafiska profil – design och plan
 
 **Datum:** 2026-10-12 · **Status:** förslag, väntar på besluten i avsnitt 9
-**Omfattning:** `/local` och `/workbench`, inklusive redigerarna och signalvisningen som visas i `/workbench`.
+**Omfattning:** Hela applikationen (alla rutter, dialoger och inbäddningen i Visp) och manualens webbplats.
 **Underlag:** Språkbankens grafiska profil (avsnitten Grunder och Frontend, WIP 2026-) och logotyperna i [spraakbanken/communication](https://github.com/spraakbanken/communication/tree/main/logotypes).
 **Skiss:** [`reference/sprakbanken-profil/tratt-sprakbanken-profil.html`](reference/sprakbanken-profil/tratt-sprakbanken-profil.html). Öppna den i en webbläsare. Skärmbilderna nedan är tagna från den.
-**Implementeringsplan:** [`../plans/2026-10-12-sprakbanken-grafisk-profil.md`](../plans/2026-10-12-sprakbanken-grafisk-profil.md).
+**Implementeringsplan:** [`../plans/2026-10-12-sprakbanken-grafisk-profil.md`](../plans/2026-10-12-sprakbanken-grafisk-profil.md). Utvidgning till alla ingångar: [`../plans/2026-10-27-sprakbanken-profil-alla-ingangar.md`](../plans/2026-10-27-sprakbanken-profil-alla-ingangar.md).
 
-Utanför omfattningen: `/login` (onlineläget), `/intern/*`, inbäddningen i Visp (`/visp-task/...`) och manualens webbplats. Tokens och typsnitt från fas 1 slår ändå igenom överallt, så de sidorna får nya färger och typsnitt men ingen ny layout.
+Utanför omfattningen: `apps/translations` och Typedoc-sidorna, se beslut 12 och 16 i `plans/2026-10-27-…`.
 
 ---
 
