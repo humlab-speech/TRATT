@@ -49,3 +49,14 @@ Open (deferred): specs for status icons / `--awaiting` / taskbar variant; capaci
 - T20 `95e030c4b` audio player toolbar on `btn-icon`, `accent-color` on sliders, rem sizes.
 
 Open (deferred): `resolveTrattColors` fallback test in task 23; token/`TRATT_COLORS` equality check; pale speaker tints rely on the text label; task 20 step button width and replay toggle non-colour active state; browser checks with Bahnauskunft.mp3.
+
+## Phase 6 – Dark mode (tasks 21–24): complete
+
+- T21 `1513dc2dd` `ThemeService` (key `tratt.theme`, system preference fallback, try/catch storage), inline no-FOUC script, header toggle (`aria-pressed`).
+- T22 `d971e1d0f` dark tokens (all key pairs ≥ AA, verified by review calculation).
+- T23 `087466b1c` + fix `e5dd474cd` `resolveTrattColors()` / `observeTheme()`; canvas recolours existing Konva nodes on theme change (`applyThemeToStage`), draw-time colours theme-aware; `TRATT_COLORS` ≡ light tokens test; library fallback test.
+- T24 `032d44420` Jodit (via `observeTheme`, no re-create), video.js, logos in dark.
+
+Rulings: consumer `frame.color = '#222222'` overrides removed (theme owns canvas colours; light-mode frame is now the border token).
+
+Open (deferred): browser checks (white-surface scan, mid-playback toggle in 2D/linear/popup, video.js, Jodit globals); real-Konva test for theme-nodes; magnifier frame contrast in light; `shell.header.theme_toggle` only sv/en.
