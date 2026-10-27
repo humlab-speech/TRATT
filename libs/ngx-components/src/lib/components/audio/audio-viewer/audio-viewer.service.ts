@@ -617,7 +617,7 @@ export class AudioViewerService {
       this.stopThemeObserver?.();
       this.stopThemeObserver = observeTheme(() => {
         applyThemeColors(this._settings, resolveTrattColors());
-        this.redraw();
+        this.canvasRenderer.applyThemeToStage();
       });
     }
   }

@@ -37,7 +37,9 @@ import {
   resolveTrattColors,
   TRATT_COLORS,
   TRATT_FONTS,
+  type TrattCanvasColors,
 } from '../../../obj/tratt-colors';
+import { applyThemeToNodes, THEME_NODE } from './theme-nodes';
 import { AudioViewerTimeUtils } from './audio-viewer-time-utils';
 import {
   cycleNextSpeaker,
@@ -904,6 +906,7 @@ export class AudioViewerRendererService {
 
   public createLineBackground(line: Group, size: Size) {
     const container = new Rect({
+      name: THEME_NODE.lineBackground,
       fill: this.settings.backgroundcolor,
       width: size.width,
       height: size.height,
@@ -914,6 +917,7 @@ export class AudioViewerRendererService {
 
   public createLineBorder(line: Group, size: Size) {
     const frame = new Rect({
+      name: THEME_NODE.lineFrame,
       stroke: this.settings.frame.color,
       strokeWidth: 1,
       width: size.width,
@@ -925,7 +929,7 @@ export class AudioViewerRendererService {
 
   public createLineSelection(line: Group, size: Size) {
     const frame = new Rect({
-      name: 'selection',
+      name: `selection ${THEME_NODE.selection}`,
       opacity: 0.2,
       fill: this.settings.selection.color,
       width: 0,
@@ -937,6 +941,7 @@ export class AudioViewerRendererService {
 
   public createLineGrid(line: Group, size: Size) {
     const frame = new Shape({
+      name: THEME_NODE.lineGrid,
       opacity: 0.2,
       stroke: this.settings.grid.color,
       strokeWidth: 1,
@@ -1035,6 +1040,7 @@ export class AudioViewerRendererService {
     });
 
     const caret = new Line({
+      name: THEME_NODE.caret,
       points: [
         this.settings.playcursor.width / 2,
         0,
@@ -1167,6 +1173,7 @@ export class AudioViewerRendererService {
 
   public createLineSignal(line: Group, size: Size, lineNum: number) {
     const frame = new Shape({
+      name: THEME_NODE.lineSignal,
       stroke: this.settings.data.color,
       strokeWidth: 1,
       width: size.width,
@@ -1860,7 +1867,8 @@ export class AudioViewerRendererService {
       lastIRef,
     } = params;
     return new Shape({
-      fill: TRATT_COLORS.textPrimary,
+      name: THEME_NODE.textLabel,
+      fill: resolveTrattColors().textPrimary,
       fontFamily: TRATT_FONTS.data,
       fontSize: 11,
       listening: false,
@@ -1868,6 +1876,8 @@ export class AudioViewerRendererService {
       y: 0,
       transformsEnabled: 'position',
       sceneFunc: (context, shape) => {
+        // fillText uses the context's fillStyle, not the shape's fill attr
+        context.fillStyle = this.themeColors().textPrimary;
         // live read on every Konva redraw, not a build-time snapshot
         const currentLevel = getCurrentLevel();
         if (
@@ -2277,7 +2287,7 @@ export class AudioViewerRendererService {
         const length = this.layers.overlay
           .getContext()
           .measureText(startTimeString).width;
-        context.fillStyle = 'dimgray';
+        context.fillStyle = this.themeColors().textMuted;
         context.fillText(startTimeString, 3, y + 8);
         context.fillText(
           endTimeString,
@@ -2364,7 +2374,7 @@ export class AudioViewerRendererService {
             transcript.trim().length > 0 &&
             transcript !== this.silencePlaceholder;
           context.fillStyle = hasTranscription
-            ? TRATT_COLORS.segmentTranscribed
+            ? this.themeColors().segmentTranscribed
             : this.settings.backgroundcolor;
           context.clearRect(x, localY + this.settings.lineheight - 20, w, 20);
           context.fillRect(x, localY + this.settings.lineheight - 20, w, 20);
@@ -2566,6 +2576,7 @@ export class AudioViewerRendererService {
       });
 
       const background = new Rect({
+        name: THEME_NODE.scrollBackground,
         stroke: this.settings.scrollbar.background.stroke,
         strokeWidth: this.settings.scrollbar.background.strokeWidth,
         fill: this.settings.scrollbar.background.color,
@@ -2577,6 +2588,7 @@ export class AudioViewerRendererService {
       const rest =
         this.settings.scrollbar.width - this.settings.scrollbar.selector.width;
       const selector = new Rect({
+        name: THEME_NODE.scrollSelector,
         stroke: this.settings.scrollbar.selector.stroke,
         strokeWidth: this.settings.scrollbar.selector.strokeWidth,
         fill: this.settings.scrollbar.selector.color,
@@ -3101,6 +3113,44 @@ export class AudioViewerRendererService {
 
   public redraw() {
     this.stage?.batchDraw();
+  }
+
+  private cachedThemeColors?: TrattCanvasColors;
+
+  /** Theme colours for draw-time reads; refreshed by applyThemeToStage(). */
+  private themeColors(): TrattCanvasColors {
+    return (this.cachedThemeColors ??= resolveTrattColors());
+  }
+
+  /**
+   * Konva bakes fill/stroke into each node at creation, so after the
+   * settings were recoloured (applyThemeColors) the existing nodes are
+   * updated in place. Draw-time colours are re-read from the theme.
+   */
+  public applyThemeToStage() {
+    this.cachedThemeColors = resolveTrattColors();
+    const stage = this.stage;
+    if (!stage) return;
+    const s = this.settings;
+    const c = this.cachedThemeColors;
+    applyThemeToNodes((sel) => stage.find(sel), {
+      [THEME_NODE.lineBackground]: { fill: s.backgroundcolor },
+      [THEME_NODE.lineFrame]: { stroke: s.frame.color },
+      [THEME_NODE.lineGrid]: { stroke: s.grid.color },
+      [THEME_NODE.lineSignal]: { stroke: s.data.color },
+      [THEME_NODE.selection]: { fill: s.selection.color },
+      [THEME_NODE.caret]: { stroke: c.textPrimary },
+      [THEME_NODE.textLabel]: { fill: c.textPrimary },
+      [THEME_NODE.scrollBackground]: {
+        fill: s.scrollbar.background.color,
+        stroke: s.scrollbar.background.stroke,
+      },
+      [THEME_NODE.scrollSelector]: {
+        fill: s.scrollbar.selector.color,
+        stroke: s.scrollbar.selector.stroke,
+      },
+    });
+    this.redraw();
   }
 
   public redrawOverlay() {

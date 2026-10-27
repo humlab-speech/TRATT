@@ -383,7 +383,6 @@ export class TrnEditorComponent
     this.audioViewerSettings.boundaries.enabled = false;
     this.audioViewerSettings.boundaries.readonly = true;
     this.audioViewerSettings.selection.enabled = true;
-    this.audioViewerSettings.frame.color = '#222222';
     this.audioViewerSettings.roundValues = false;
     this.audioViewerSettings.showTimePerLine = true;
     this.audioViewerSettings.showProgressBars = true;
