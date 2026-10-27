@@ -79,6 +79,21 @@ test('exempt .ts files are skipped, others are not', () => {
   assert.ok(!isTsExempt('libs/ngx-components/src/lib/obj/other-colors.ts'));
 });
 
+test('index.html splash may use token fallbacks; bare hex still flagged', () => {
+  const line = '  background: var(--tratt-surface-sunken, #ebebeb) !important;';
+  assert.equal(matchLine(line, { location: 'apps/tratt/src/index.html:100' }), null);
+  assert.equal(matchLine(line, { location: 'apps/tratt/src/app/a.scss:1' }), 'hex colour');
+  assert.equal(matchLine('  background: #ebebeb;', { location: 'apps/tratt/src/index.html:100' }), 'hex colour');
+});
+
+test('canvas gradient stops, shadowColor and [style.] bindings are linted in .ts', () => {
+  const ts = { isTs: true };
+  assert.equal(matchLine("  g.addColorStop(0, '#22c55e');", ts), 'hex colour');
+  assert.equal(matchLine("  ctx.shadowColor = '#000';", ts), 'hex colour');
+  assert.equal(matchLine("  template: '<i [style.color]=\"'#fff'\"></i>',", ts), 'hex colour');
+  assert.equal(matchLine('  g.addColorStop(0, TRATT_COLORS.accentSuccess);', ts), null);
+});
+
 test('libs still flag bare, nested and non-token fallbacks', () => {
   const lib = { location: 'libs/x/a.scss:1' };
   assert.equal(matchLine('  border: 1px solid var(--tratt-border) #fff;', lib), 'hex colour');

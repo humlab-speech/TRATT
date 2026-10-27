@@ -7,6 +7,9 @@
 // fill, stroke, style=, styles:); banned classes are checked on every .ts line.
 // Exempt .ts files (see tsExempt): palette modules hold the literal colour values by
 // design, and spec/test files contain colour literals deliberately.
+// Exception: apps/tratt/src/index.html (loading splash) may use var(--tratt-*|--sb-*, #hex)
+// like a library, because it paints before the app stylesheet loads; bare hex stays banned.
+// .js/.mjs files (scripts/manual-assets) get the same line filter as .ts.
 // --report: print violation counts per directory and exit 0.
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { dirname, join } from 'node:path';
@@ -19,7 +22,7 @@ export const roots = [
   'libs/ngx-components/src',
   'scripts/manual-assets',
 ];
-const exts = /\.(scss|css|html|ts)$/;
+const exts = /\.(scss|css|html|ts|js|mjs)$/;
 // .ts files exempt from the check, each with a reason.
 export const tsExempt = [
   // Palette values: the single source of literal colours for canvas/waveform code.
@@ -32,7 +35,8 @@ export const tsExempt = [
 ];
 export const isTsExempt = (file) => tsExempt.some((re) => re.test(file));
 // In .ts only lines that look like colour usage are checked.
-export const TS_COLOUR_CONTEXT = /color\s*:|background|\bfill|\bstroke|style=|styles\s*:/i;
+export const TS_COLOUR_CONTEXT = /color\s*:|background|\bfill|\bstroke|style=|styles\s*:|addColorStop|shadowColor|\[style\./i;
+const SPLASH = 'apps/tratt/src/index.html:';
 export const BANNED_CLASS = /(?<![\w-])(btn-success|navbar-dark|bg-primary|bg-white|bg-light|text-dark|btn-dark|btn-light)(?![\w-])/;
 // "file:line" entries that are deliberate, each with a reason.
 export const allow = new Set([
@@ -44,7 +48,7 @@ export const NAMED = /\b(?:color|background(?:-color)?|border(?:-[a-z]+)*|fill|s
 export const PX_FONT = /font-size\s*:\s*\d+(?:\.\d+)?px/;
 
 /** Returns the violation kind for one line, or null. */
-export function matchLine(line, { isHtml = false, isTs = false, location = '', lib = location.startsWith('libs/') } = {}) {
+export function matchLine(line, { isHtml = false, isTs = false, location = '', lib = location.startsWith('libs/') || location.startsWith(SPLASH) } = {}) {
   if (allow.has(location)) return null;
   if ((isHtml || isTs) && BANNED_CLASS.test(line)) return 'banned class';
   if (isTs && !TS_COLOUR_CONTEXT.test(line)) return null;
@@ -65,7 +69,7 @@ function scan() {
     for (const file of files) {
       if (!exts.test(file) || isTsExempt(file)) continue;
       const isHtml = file.endsWith('.html');
-      const isTs = file.endsWith('.ts');
+      const isTs = /\.(ts|js|mjs)$/.test(file);
       readFileSync(file, 'utf8')
         .split('\n')
         .forEach((line, i) => {
