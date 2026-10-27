@@ -606,7 +606,7 @@ export class AutoTranscribeOptionsComponent implements OnInit {
   readonly hasWebGpu = signal(false);
   readonly isSafari = signal(false);
   speakerSegmentationEnabled = false;
-  numSpeakers: number | null = 2;
+  numSpeakers: number | null = null;
 
   models: KbWhisperModel[] = KB_WHISPER_MODELS;
   readonly languages = WHISPER_LANGUAGES.map((l) => ({

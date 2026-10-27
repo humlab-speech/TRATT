@@ -63,6 +63,8 @@ export type DiarizationDType =
 
 export const DIARIZATION_DEFAULT_MODEL_ID =
   'onnx-community/pyannote-segmentation-3.0';
+export const DIARIZATION_EMBEDDING_MODEL_ID =
+  'onnx-community/wespeaker-voxceleb-resnet34-LM';
 
 @Injectable({ providedIn: 'root' })
 export class LocalDiarizationRuntimeService implements OnDestroy {

@@ -1,13 +1,23 @@
 /// <reference lib="webworker" />
 
 import {
+  AutoModel,
   AutoModelForAudioFrameClassification,
   AutoProcessor,
   env,
 } from '@huggingface/transformers';
 import { ML_MODEL_SAMPLE_RATE } from '@tratt/web-media';
-import { normalizePyannoteSpeakerTurns } from '../shared/service/local-diarization-postprocess';
-import { DiarizationDType } from '../shared/service/local-diarization-runtime.service';
+import {
+  mergePyannoteSegments,
+  MergedTurn,
+  normalizePyannoteSpeakerTurns,
+  renumberByFirstAppearance,
+} from '../shared/service/local-diarization-postprocess';
+import { clusterSpeakerTurns } from '../shared/service/speaker-clustering';
+import {
+  DIARIZATION_EMBEDDING_MODEL_ID,
+  DiarizationDType,
+} from '../shared/service/local-diarization-runtime.service';
 import { SpeakerTurn } from '../shared/service/local-diarization.service';
 
 if (env.backends.onnx.wasm) {
@@ -69,6 +79,83 @@ let loadedProcessor: any = null;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 let loadedModel: any = null;
 let loadedModelId: string | null = null;
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let loadedEmbeddingProcessor: any = null;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let loadedEmbeddingModel: any = null;
+let loadedEmbeddingModelId: string | null = null;
+
+/**
+ * Loads the speaker-embedding model and extracts one d-vector per turn, so the
+ * clustering step can recover global speaker identity across windows.
+ */
+async function extractEmbeddings(
+  turns: MergedTurn[],
+  audio: Float32Array,
+  useWebGPU: boolean,
+  dtype: DiarizationDType | undefined,
+): Promise<number[][]> {
+  const fileProgress = new Map<string, { loaded: number; total: number }>();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const progress_callback = (progress: any) => {
+    if (progress?.status !== 'progress' || progress.loaded === undefined) {
+      return;
+    }
+    fileProgress.set(progress.file ?? '', {
+      loaded: progress.loaded,
+      total: progress.total ?? 0,
+    });
+    let totalLoaded = 0;
+    let totalSize = 0;
+    for (const fp of fileProgress.values()) {
+      totalLoaded += fp.loaded;
+      totalSize += fp.total;
+    }
+    const msg: WorkerDiarizationDownloadProgressMessage = {
+      type: 'download-progress',
+      loaded: totalLoaded,
+      total: totalSize,
+      file: progress.file ?? '',
+    };
+    postMessage(msg);
+  };
+
+  if (
+    !loadedEmbeddingProcessor ||
+    !loadedEmbeddingModel ||
+    loadedEmbeddingModelId !== DIARIZATION_EMBEDDING_MODEL_ID
+  ) {
+    loadedEmbeddingProcessor = await AutoProcessor.from_pretrained(
+      DIARIZATION_EMBEDDING_MODEL_ID,
+      { progress_callback },
+    );
+    loadedEmbeddingModel = await AutoModel.from_pretrained(
+      DIARIZATION_EMBEDDING_MODEL_ID,
+      {
+        device: useWebGPU ? 'webgpu' : 'wasm',
+        ...(dtype ? { dtype } : {}),
+        progress_callback,
+      },
+    );
+    loadedEmbeddingModelId = DIARIZATION_EMBEDDING_MODEL_ID;
+  }
+
+  const embeddings: number[][] = [];
+  for (const turn of turns) {
+    const startSample = Math.round(turn.startS * ML_MODEL_SAMPLE_RATE);
+    const endSample = Math.round(turn.endS * ML_MODEL_SAMPLE_RATE);
+    const slice = audio.slice(startSample, endSample);
+    const inputs = await loadedEmbeddingProcessor(slice);
+    const output = await loadedEmbeddingModel(inputs);
+    let embedding = output.last_hidden_state;
+    if (embedding.dims.length === 3) {
+      embedding = embedding.mean(1);
+    }
+    embeddings.push(Array.from(embedding.data));
+  }
+  return embeddings;
+}
 
 addEventListener(
   'message',
@@ -210,12 +297,38 @@ addEventListener(
         audioDurationS,
       });
 
-      const turns = normalizePyannoteSpeakerTurns(rawSegments, {
+      const mergedTurns = mergePyannoteSegments(rawSegments, {
         mergeGapS,
         minTurnS,
         minConfidence,
-        numSpeakers,
       });
+
+      let turns: SpeakerTurn[];
+      try {
+        const embeddings = await extractEmbeddings(
+          mergedTurns,
+          audio,
+          useWebGPU,
+          dtype,
+        );
+        const labels = clusterSpeakerTurns(embeddings, { numSpeakers });
+        turns = renumberByFirstAppearance(
+          mergedTurns.map((turn, i) => ({
+            ...turn,
+            localId: String(labels[i]),
+          })),
+        );
+      } catch (err) {
+        console.warn(
+          '[octra:pyannote-worker] speaker embeddings unavailable, falling back to local labels',
+          err,
+        );
+        turns = normalizePyannoteSpeakerTurns(rawSegments, {
+          mergeGapS,
+          minTurnS,
+          minConfidence,
+        });
+      }
 
       console.info('[octra:pyannote-worker] normalized turns', {
         totalTurns: turns.length,
