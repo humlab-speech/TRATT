@@ -93,6 +93,11 @@
   white-space: nowrap;
 }
 
+// The awaiting row sits on a tint where the link colour is only ~4:1.
+.bundle-list__item--awaiting .bundle-list__reattach-label {
+  color: var(--tratt-text-primary);
+}
+
 .bundle-list__reattach-input {
   // Visually hidden but still focusable/keyboard-activatable via its
   // associated <label for="...">, matching common hidden-file-input
