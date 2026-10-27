@@ -80,3 +80,21 @@ Open (deferred): browser checks (white-surface scan, mid-playback toggle in 2D/l
 Rulings: signup/reset submit buttons stay `btn-primary`; bugreport `btn-next` kept in the library (unstyled `.btn` outside Tratt); pagination screen-reader labels left English (pre-existing).
 
 Open (deferred): light/dark visual pass of `/intern/transcr`, `/test`, configurator; Visp embed 1440/400 px comparison; video letterbox colour (should stay black); verification-marker contrast on tint (consider `-text` tokens); lint `bare` false-positive for colour words in token names; `.bg-highlight` warning edge; `validation-popover` legacy `--tratt-accent-error` (task 26); `linear-editor` etc. clean now.
+
+## Phase 7 (rest) – Alias removal and automated contrast (tasks 25 step 3, 26, 27)
+
+- T25 step 3 `afeca040d` CI step `Style tokens` (`npm run test:scripts` + `npm run lint:styles`). The `validate:i18n` CI step is deliberately NOT added: it fails on gaps that predate this work (de 50, it/ko/nl/zh 213, sv 34 missing keys).
+- T26 `62920da68` pre-profile aliases and `_legacy-tokens.scss` removed; deprecated `TRATT_COLORS` fields removed.
+- T27 `562b71e97`, `30bf0b2ab`, `08a17ce80` `npm run a11y:contrast` (Playwright + axe, light and dark; theme assertion, render sentinel, pass-count floor): 0 violations on `/local`, `/local` + About dialog, `/help-tools`, `/news`, `/features`, `/workbench` (file loaded). Needs gitignored `apps/tratt/src/config/appconfig.json` and a dev server.
+
+## Phase 9 – Manual (tasks 39–43): complete
+
+- T39 `dff0f5f44` manual CSS compiled from the app palette with Sass; self-hosted fonts (18 woff2); build fails on missing font url.
+- T40 `29d7676b1` Språkbanken header/footer, theme toggle (`tratt.manual.theme`), type, blockquote callouts, tests (`npm run test:manual`).
+- T41 `bfd5bb8a4` manual text (EN + SV) matches the shipped UI; labels verified against `en.json`/`sv.json`.
+- T42 `6b9404757`, `998856895` `npm run docs:screens` script + CONTRIBUTING; **no screenshots regenerated** (fixtures absent, `espeak-ng` missing; the WebGPU image and six states are listed "take by hand"). Manual/README images still show the OLD look.
+- T43 `4694cb650`, `5331f64b5` `npm run a11y:manual`: 0 violations in light and dark on 32 pages (callout links fixed).
+
+Rulings: Translations CI step omitted (pre-existing i18n debt); screenshots not regenerated (see above); bugreport `btn-next` kept in library.
+
+Open (deferred): re-shoot manual/README images; selectors in the screenshot script untested; `--tratt-primary-color` undefined in `transcr-window` speaker badge; help-tools `text-light` on teal in dark; print in dark theme keeps dark tokens; reload-file page not covered by contrast script.
