@@ -1,6 +1,6 @@
 # Snabbstart: din första transkription
 
-**För:** dig som just har öppnat TRATT och har en inspelning att transkribera.
+**För:** dig som just har öppnat Tratt och har en inspelning att transkribera.
 **Du får:** ett rättat transkript sparat som en fil på din dator.
 **Tid:** ungefär tio minuters uppmärksamhet. Använder du automatisk transkription
 tillkommer tid för nedladdning och bearbetning, se steg 3.
@@ -9,11 +9,11 @@ Du behöver inget konto. Du behöver inte installera något.
 
 ---
 
-## 1. Öppna TRATT
+## 1. Öppna Tratt
 
 Du landar på en sida med rubriken **Transkribera samtal lokalt i din webbläsare**.
 
-![TRATT:s startsida](../../assets/visp_tratt_main.png)
+![Tratt:s startsida](../../assets/visp_tratt_main.png)
 
 Använd **Chrome**, **Edge**, **Firefox** eller **Opera**. Safari fungerar för
 manuell transkribering men kan inte köra automatisk transkription. Se
@@ -28,7 +28,7 @@ De flesta format fungerar: `.wav`, `.mp3`, `.m4a`, `.flac`, `.ogg`, `.mp4`,
 `.mov`, `.webm` med flera. Hela listan med storleksgränser finns under
 [Ladda in en inspelning](loading-media.md#supported-file-formats).
 
-En grön bock intill filnamnet betyder att TRATT har läst filen. En videofil tar
+En grön bock intill filnamnet betyder att Tratt har läst filen. En videofil tar
 lite längre tid, eftersom ljudet först måste extraheras.
 
 > **Har du ingen inspelning än?** Byt till fliken **Spela in nu** och spela in
@@ -50,7 +50,7 @@ När filen är inläst dyker en ruta upp under släppytan med kryssrutan
   laddas ned (ungefär 100 MB till 3 GB, den sparas i webbläsaren till nästa
   gång).
 
-  Markera vid behov **Speaker separation** (talarseparation) så gissar TRATT vem
+  Markera vid behov **Speaker separation** (talarseparation) så gissar Tratt vem
   som talar när. Vet du hur många personer som hörs, skriv antalet; för en
   intervju mellan två personer, skriv `2`.
 
@@ -60,11 +60,11 @@ modellen. Detaljer och rekommendationer:
 
 ## 4. Starta
 
-Klicka på knappen under rutan. För en fil TRATT inte sett förut står det
+Klicka på knappen under rutan. För en fil Tratt inte sett förut står det
 **Starta ny transkription**. Texten ändrar sig efter vad du valt: **Manuell
 transkription** när du skriver allt själv, **Kör automatisk bearbetning** när en
 modell ska köras, och **Ersätt de lagrade annoteringarna** när det skulle skriva
-över en transkription TRATT redan har.
+över en transkription Tratt redan har.
 
 Har du bett om ett utkast ser du nu förloppet: först modellnedladdningen, sedan
 *Transkriberar ljud…* med en tidräknare, och därefter *Identifierar talare…* om
@@ -76,7 +76,7 @@ vara kvar öppen. När det är klart öppnas redigeraren av sig själv.
 Du hamnar i **2D Vy**: inspelningen ritas som en vågform på flera rader, en rad
 efter den andra, med texten under varje talstycke.
 
-TRATT kallar varje sådant stycke en **transkriptionsenhet**: ett yttrande,
+Tratt kallar varje sådant stycke en **transkriptionsenhet**: ett yttrande,
 ungefär en undertextrad. Andra verktyg kallar det ett segment.
 
 ![Rätta en enhet i transkriptionsfönstret](../../assets/visp_tratt_popup_editor_audio_only.png)
@@ -126,7 +126,7 @@ Om du är osäker på vilket du vill ha:
 | --- | --- |
 | Läsa eller redigera transkriptet i Word eller LibreOffice | **DOCX** eller **ODT** |
 | Göra undertexter | **SRT** eller **WebVTT** |
-| Kunna arbeta vidare i TRATT senare utan att förlora något | **AnnotJSON** |
+| Kunna arbeta vidare i Tratt senare utan att förlora något | **AnnotJSON** |
 | Analysera i Praat eller ELAN | **TextGrid** eller **ELAN** |
 
 Export till Word och OpenDocument kan lägga varje yttrande på egen rad eller köra
@@ -147,7 +147,7 @@ Vyerna och genvägarna är identiska, så läs vidare oavsett.
 
 ## Två saker värda att veta innan du stänger fliken
 
-**TRATT minns ditt transkript, men aldrig din inspelning.** När du kommer
+**Tratt minns ditt transkript, men aldrig din inspelning.** När du kommer
 tillbaka finns texten kvar, men du måste dra in samma mediefil igen för att
 kunna arbeta vidare. Exportera en fil varje gång du slutar för dagen.
 

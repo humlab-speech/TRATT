@@ -23,7 +23,7 @@ Det har tre delar.
 | **Tomma transkriptionsenheter** | Enheter med varken text eller paus, ditt återstående arbete |
 
 Sikta på **Tomma transkriptionsenheter = 0** innan du exporterar. Är siffran inte
-noll, klicka på den: TRATT markerar vad som saknas.
+noll, klicka på den: Tratt markerar vad som saknas.
 
 ### Validering
 
@@ -31,7 +31,7 @@ Namnger projektets riktlinjefil ett valideringsskript listar det här avsnittet
 varje nivå med sitt antal fel (normalt *Inga fel hittade*), och den felande
 texten stryks under i redigeraren. Är ingen validering konfigurerad står det
 i stället *No validation methods found*. Båda är normalt; standardriktlinjerna i
-TRATT innehåller bara stavnings- och skiljeteckensregler, så i praktiken säger det
+Tratt innehåller bara stavnings- och skiljeteckensregler, så i praktiken säger det
 här avsnittet sällan något.
 
 ### Transkript
@@ -83,7 +83,7 @@ Tre regler som överraskar:
 transkriptionskonventionerna för projektet: stavnings- och skiljeteckensregler,
 och betydelsen av varje markör med exempel.
 
-TRATT:s standardriktlinjer är medvetet tunna (korrekt stavning, inga
+Tratt:s standardriktlinjer är medvetet tunna (korrekt stavning, inga
 skiljetecken) eftersom de är tänkta att ersättas. Har ditt projekt egna
 konventioner hör de hemma i riktlinjefilen, så att de är ett tangenttryck bort för
 alla som arbetar med materialet, i stället för i ett dokument som ingen öppnar.

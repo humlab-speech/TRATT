@@ -9,7 +9,7 @@ user-facing manual.
 
 Two audiences, in this order:
 
-1. **The walk-in user.** Someone who found TRATT, has a recording, and has never
+1. **The walk-in user.** Someone who found Tratt, has a recording, and has never
    used an annotation tool. They get [`quick-start.md`](quick-start.md): one linear
    path, no branching, no jargon before it is defined, and a result on disk at the
    end. Everything else is optional to them.
@@ -39,7 +39,7 @@ mixing them in is what makes the OCTRA manual hard for a first-time user.
   recordings" are the two ways of working, and a new page belongs in whichever
   one its reader is in. `NAV` in `scripts/build-manual.mjs` is the source of
   truth for the order.
-- **Say when something does not work.** This version of TRATT has an unfinished
+- **Say when something does not work.** This version of Tratt has an unfinished
   TRN-Editor and an unreachable Tools dialog. Documenting them as working costs
   more trust than the features are worth. When one is fixed, delete the caveat.
 - **Screenshots** live in `docs/assets/` and are referenced as `../assets/…` from
@@ -142,7 +142,7 @@ the MB figure. Remove that note when the strings are fixed.
 
 ## Verification status
 
-Checked against TRATT running at `localhost:5321` on 2026-10-08, after the
+Checked against Tratt running at `localhost:5321` on 2026-10-08, after the
 Workbench landed: the start page and its state-dependent submit button, the
 Workbench (file list, drop area, pipeline settings and summary, capacity meters,
 restored-session state with "Attach file…", remove-with-confirmation), the editor
@@ -192,7 +192,7 @@ How to reproduce them:
   `Respondent` badges on the units instead of splitting them into two tiers.
 - The imported tier is renamed from `OCTRA_1` to `Transcription` before shooting.
 - The Overview needs a part-checked transcript, or every row is the same colour.
-  An SRT that TRATT itself has imported comes in verified unless the text carries
+  An SRT that Tratt itself has imported comes in verified unless the text carries
   the not-check mark, so `interview-01-mixed.srt` appends `⍻` (U+237B) to every
   line but the first two. The first two then show the green marker and the rest
   the orange one, which is what the reader sees after checking the opening of a
@@ -229,7 +229,7 @@ gated to development builds.
 
 ## Facts that will go out of date
 
-Check these against the source when TRATT is updated:
+Check these against the source when Tratt is updated:
 
 | Fact in the manual                                      | Source of truth                                                                                                                       |
 | ------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |

@@ -3,7 +3,7 @@
 **For:** anyone deciding how to work, or wondering why the screen looks different
 from a colleague's.
 
-TRATT offers several editors over the *same* transcript. Switching between them
+Tratt offers several editors over the *same* transcript. Switching between them
 does not change your data. You can move between them mid-file, as often as you
 like, using the buttons at the left of the top bar.
 

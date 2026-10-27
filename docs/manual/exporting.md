@@ -20,7 +20,7 @@ you can load the file back into Tratt later.
 
 ### General output formats
 
-For reading, sharing and publishing. **Only SRT can be loaded back into TRATT.**
+For reading, sharing and publishing. **Only SRT can be loaded back into Tratt.**
 
 | Format | File | Good for |
 | --- | --- | --- |
@@ -31,11 +31,11 @@ For reading, sharing and publishing. **Only SRT can be loaded back into TRATT.**
 
 ### Linguistic formats
 
-All of these can be loaded back into TRATT.
+All of these can be loaded back into Tratt.
 
 | Format | File | Good for |
 | --- | --- | --- |
-| **AnnotJSON** | `_annot.json` | **TRATT's own format.**, and is Emu SDMS compliant. Keeps everything: tiers, boundaries, speakers, and markers. Export this alongside whatever else you need. |
+| **AnnotJSON** | `_annot.json` | **Tratt's own format.**, and is Emu SDMS compliant. Keeps everything: tiers, boundaries, speakers, and markers. Export this alongside whatever else you need. |
 | **TextGrid** | `.TextGrid` | Praat's primary annotation file format |
 | **ELAN** | `.eaf` | ELAN. Put the `.eaf` in the same folder as the audio or ELAN will not find the media. |
 | **PraatTextTable** | `.Table` | Praat's table format |
@@ -46,7 +46,7 @@ All of these can be loaded back into TRATT.
 | --- | --- | --- |
 | **WebVTT** | `.vtt` | Web video subtitles |
 | **BASPartitur** | `.par` | BAS web services. Export writes ORT and TRN lines from the transcription. |
-| **CTM** | `.ctm` | Speech-recognition scoring tools. Confidence is always written as 1; TRATT does not track it. |
+| **CTM** | `.ctm` | Speech-recognition scoring tools. Confidence is always written as 1; Tratt does not track it. |
 
 > **Always take an AnnotJSON copy.** DOCX and ODT are one-way: they read well and
 > import badly. If you might need to correct the transcript in six months, the
@@ -158,7 +158,7 @@ failing the whole export.
 
 <a id="formats-tratt-can-read"></a>
 
-## Formats TRATT can read
+## Formats Tratt can read
 
 Drop these alongside your audio on the start page to continue existing work.
 

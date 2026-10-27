@@ -1,9 +1,9 @@
 # Glossary
 
-TRATT's vocabulary comes from phonetics and speech research. This page translates it
+Tratt's vocabulary comes from phonetics and speech research. This page translates it
 into ordinary language.
 
-| TRATT says | Which means |
+| Tratt says | Which means |
 | --- | --- |
 | **Transcription unit** | One stretch of the recording with its own text: roughly one utterance, or one subtitle line. Other tools call this a *segment*. The Overview counts these. |
 | **Segment** | The same thing. The two words are used interchangeably in the interface. |
@@ -11,7 +11,7 @@ into ordinary language.
 | **Verified** / **non-verified** | Whether a human has checked a transcription: by listening to its part of the recording, or by editing its text. Shown as a green (verified) or orange (non-verified) `|` bar in the Overview and in Word exports. See [Verified transcriptions](checking-your-work.md#verified-transcriptions). |
 | **Not-check mark** (`⍻`) | The symbol appended to non-verified text in time-aligned exports (SRT, ELAN and so on), so the state survives re-import. |
 | **Boundary** | The dividing line between two transcription units. Adding one splits a unit; deleting one merges two. |
-| **Break** (`<P>`) | A unit that contains no speech. Marking silence explicitly is how TRATT tells "nothing was said here" from "not done yet". |
+| **Break** (`<P>`) | A unit that contains no speech. Marking silence explicitly is how Tratt tells "nothing was said here" from "not done yet". |
 | **Crop mark** | A boundary inserted from inside the text field (**Alt + S**), splitting the unit at the current playback position. |
 | **Tier** / **Level** | One layer of annotation over the recording: a sequence of transcription units. A transcript can have several, such as a translation or one per speaker. *Level* is the older word; the two mean the same. |
 | **Linked tier** | A tier whose boundaries are kept in sync with another tier's. Translation tiers work this way. |
@@ -19,13 +19,13 @@ into ordinary language.
 | **Marker** | A symbol standing for something that is not a word: a pause, a noise, an unintelligible passage. |
 | **Guidelines** | The project's transcription conventions: spelling and punctuation rules, and what each marker means. **Alt + 9**. |
 | **Annotation** | The whole transcript: all tiers, units, text, markers and speakers. What AnnotJSON stores. |
-| **AnnotJSON** | TRATT's own file format. The only export that preserves everything. |
+| **AnnotJSON** | Tratt's own file format. The only export that preserves everything. |
 | **Diarization** / **Speaker separation** | Working out who spoke when, without knowing who anybody is. |
-| **Whisper** | The family of speech-recognition models TRATT runs locally. **KB-Whisper** is the Swedish-optimised variant from the National Library of Sweden. |
+| **Whisper** | The family of speech-recognition models Tratt runs locally. **KB-Whisper** is the Swedish-optimised variant from the National Library of Sweden. |
 | **WebGPU** | A browser feature that lets models use your graphics card. Its presence decides which models you can run and how fast they are. |
 | **WASM** | WebAssembly: the fallback that runs models on the CPU. Slower, works everywhere. |
-| **Local mode** | Working on your own files in your own browser, with no server. This is how TRATT is normally used. |
-| **Online mode** | OCTRA's server-backed mode, where a project assigns you files. Not enabled in the standard TRATT deployment. |
+| **Local mode** | Working on your own files in your own browser, with no server. This is how Tratt is normally used. |
+| **Online mode** | OCTRA's server-backed mode, where a project assigns you files. Not enabled in the standard Tratt deployment. |
 | **Magnifier** | The zoomed strip of waveform around the cursor, for placing boundaries precisely. |
 | **Playcursor** | The line showing where playback has reached. *Follow playcursor* keeps it on screen. |
 | **Easy Mode** | A preference that strips button labels and keyboard hints for a compact interface. |
@@ -37,4 +37,4 @@ into ordinary language.
 | **Catalogue export** | The dialog that writes that archive. |
 | **Manifest** | `manifest.json` and `manifest.csv` at the root of an archive: one row per recording, with paths and details. |
 | **Working memory** | Decoded audio held in the browser tab. The Workbench meters it, because it, and not disk storage, limits how many recordings you can have attached at once. |
-| **OCTRA** | The upstream project TRATT is forked from, at LMU Munich. |
+| **OCTRA** | The upstream project Tratt is forked from, at LMU Munich. |

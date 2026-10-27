@@ -1,6 +1,6 @@
 # Ladda in en inspelning
 
-**För:** alla. Sidan beskriver de tre sätt material kommer in i TRATT, vilka
+**För:** alla. Sidan beskriver de tre sätt material kommer in i Tratt, vilka
 format som fungerar, och hur du fortsätter där du slutade.
 
 ---
@@ -11,7 +11,7 @@ På startsidan visar fliken **Ladda upp fil** en streckad släppyta:
 *Dra och släpp en ljudfil (+ en valfri transkriptfil) här eller klicka här.*
 
 Du kan släppa **en mediefil**, och valfritt **en transkriptfil** tillsammans med
-den, i vilken ordning som helst. TRATT väntar tills det finns ljud innan något
+den, i vilken ordning som helst. Tratt väntar tills det finns ljud innan något
 kan göras. Under tiden visar transkriptfilen en snurra och texten
 *Waiting for audio file*.
 
@@ -32,7 +32,7 @@ eller ett transkript vars namn inte matchar ljudfilens namn.
 
 ### Att släppa ett exporterat arkiv
 
-En `.zip` som TRATT exporterat kan släppas rakt in igen. Det är det enda sättet
+En `.zip` som Tratt exporterat kan släppas rakt in igen. Det är det enda sättet
 att få tillbaka ljud *och* transkriptioner i ett steg, eftersom arkivet bär båda.
 Den är mest användbar i [Arbetsbänken](workbench.md#loading-an-archive), där en
 hel omgång återställs på en gång; se
@@ -41,11 +41,11 @@ innehåller.
 
 ### Transkriptfilen
 
-Har du redan ett transkript (från en tidigare TRATT-session, från ett annat
+Har du redan ett transkript (från en tidigare Tratt-session, från ett annat
 verktyg eller från en undertextfil) släpper du in det tillsammans med ljudet, så
-öppnar TRATT det för redigering i stället för att börja från noll. Formaten som
+öppnar Tratt det för redigering i stället för att börja från noll. Formaten som
 kan läsas listas under
-[Exportera → format TRATT kan läsa](exporting.md#formats-tratt-can-read).
+[Exportera → format Tratt kan läsa](exporting.md#formats-tratt-can-read).
 
 Vissa importfilter har alternativ; kugghjulet intill filen öppnar dem. SubRip och
 WebVTT kan till exempel plocka ut talarnamn ur texten och lägga varje talare på
@@ -57,7 +57,7 @@ en egen nivå. Se [Nivåer och talare](tiers-and-speakers.md).
 
 ## Spela in i webbläsaren
 
-Fliken **Spela in nu** spelar in direkt i TRATT: ingen separat inspelare, ingen
+Fliken **Spela in nu** spelar in direkt i Tratt: ingen separat inspelare, ingen
 fil att flytta runt.
 
 1. Välj inspelningskälla med de två små ikonknapparna högst upp i panelen:
@@ -71,10 +71,10 @@ fil att flytta runt.
    på den de första sekunderna; en röd lampa genom hela inspelningen går inte att
    rädda.
 4. **Paus** / **Återuppta** vid behov, sedan **Stopp**.
-5. **Använd inspelning** laddar in den i TRATT som om du hade laddat upp den.
+5. **Använd inspelning** laddar in den i Tratt som om du hade laddat upp den.
    **Ladda ner** sparar en kopia på disk. **Kassera** slänger den.
 
-TRATT spelar in i MP4 där webbläsaren stöder det, och WebM annars (Firefox); båda
+Tratt spelar in i MP4 där webbläsaren stöder det, och WebM annars (Firefox); båda
 fungerar som indata.
 
 **Återställning.** Kraschar fliken eller stänger du den mitt i en inspelning
@@ -83,7 +83,7 @@ starttid, ungefärliga längd och storlek, och möjlighet att fortsätta, ladda 
 det ofullständiga eller kassera.
 
 **Varning när du lämnar.** Har du en inspelning som inte använts eller exporterats
-varnar TRATT innan du navigerar bort. Ta varningen på allvar. En oexporterad
+varnar Tratt innan du navigerar bort. Ta varningen på allvar. En oexporterad
 inspelning är borta när fliken är det.
 
 ---
@@ -103,7 +103,7 @@ listan finns i appen: klicka **Filformat som stöds** ovanför släppytan.
 
 ### Video
 
-Laddar du en video arbetar TRATT med dess ljud. När formatet är ett som din
+Laddar du en video arbetar Tratt med dess ljud. När formatet är ett som din
 webbläsare kan spela upp direkt (**MP4 är säkrast, WebM fungerar också bra**)
 visas bilden bredvid vågformen i transkriptionsfönstret, vilket hjälper mycket
 vid överlappande tal och gester. Format som webbläsaren inte kan spela upp
@@ -113,7 +113,7 @@ transkriberas ändå, bara utan bild.
 
 ## Att återvända till en session
 
-TRATT behåller ditt transkript i webbläsaren men **behåller aldrig din mediefil**.
+Tratt behåller ditt transkript i webbläsaren men **behåller aldrig din mediefil**.
 
 När du kommer tillbaka visar startsidan att det finns data från en tidigare
 transkription, tillsammans med namn, storlek och datum för filen du arbetade med.
@@ -131,7 +131,7 @@ Knappen under släppytan talar om vilket av de två som är på väg att hända.
 | **Ersätt de lagrade annoteringarna** (blå) | Du har markerat automatisk transkribering för en inspelning som redan har en transkription. Körningen skriver över den. |
 | **Starta ny transkription** (röd) | Filen matchar inte den sparade sessionen, eller så finns ingen. Klickar du **kastas det sparade transkriptet** och du börjar om, utan ytterligare bekräftelse och utan möjlighet att ångra. |
 
-TRATT avgör vilken knapp som ska visas genom att jämföra filen du släppte med den
+Tratt avgör vilken knapp som ska visas genom att jämföra filen du släppte med den
 som finns i den sparade sessionen (på namn och storlek, och på basnamn så att
 samma inspelning i ett annat format ändå räknas som en träff). Förväntade du dig
 *Fortsätt* men fick den röda *Starta ny* har du angett en annan fil. Kontrollera

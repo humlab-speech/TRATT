@@ -32,7 +32,7 @@ and the export formats are the ones described in the rest of this manual. The
 Workbench changes how material gets in and how you move between recordings, not
 how you transcribe.
 
-**They share one stored session.** TRATT keeps a single current recording in
+**They share one stored session.** Tratt keeps a single current recording in
 browser storage, and the Workbench's file list uses the same slot. Starting a new
 transcription on the start page can therefore replace a file that is in the
 Workbench list, and Tratt warns you when it is about to. Pick one of the two ways

@@ -27,7 +27,7 @@ The tier menu sits in the top bar and shows the current tier's name.
 | Rename a tier | Type in its name field and click away |
 | Add an empty tier | **+** at the bottom of the menu, then **Add empty level** |
 | Add a translation tier | **+**, then **Add translated tier…**; see below |
-| Delete a tier | The bin icon on its row, which only appears once there is more than one tier. TRATT asks for confirmation; the tier and its text are gone permanently. |
+| Delete a tier | The bin icon on its row, which only appears once there is more than one tier. Tratt asks for confirmation; the tier and its text are gone permanently. |
 
 Only tiers of type SEGMENT can be selected for editing; others are shown greyed out.
 
@@ -94,7 +94,7 @@ carries straight through to Word, ODT and subtitle export.
 
 ## Importing material that already has speakers
 
-Subtitle files often carry speaker names, and TRATT can pull them out on import.
+Subtitle files often carry speaker names, and Tratt can pull them out on import.
 Drop the file with the audio, then click the gear icon on its row.
 
 **WebVTT** offers:

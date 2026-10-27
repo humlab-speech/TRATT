@@ -1,6 +1,6 @@
 # Quick start: your first transcription
 
-**For:** anyone who has just opened TRATT and has a recording to transcribe.
+**For:** anyone who has just opened Tratt and has a recording to transcribe.
 **You will end up with:** a corrected transcript saved as a file on your computer.
 **Time:** about ten minutes of your attention. If you use automatic transcription,
 add download and processing time; see step 3.
@@ -9,11 +9,11 @@ You do not need an account. You do not need to install anything.
 
 ---
 
-## 1. Open TRATT
+## 1. Open Tratt
 
 You land on a page headed **Transcribe conversations locally in your web browser**.
 
-![The TRATT start page](../assets/visp_tratt_main.png)
+![The Tratt start page](../assets/visp_tratt_main.png)
 
 Use **Chrome**, **Edge**, **Firefox** or **Opera**. Safari works for manual
 transcription but cannot run automatic transcription; see
@@ -28,7 +28,7 @@ Most formats work: `.wav`, `.mp3`, `.m4a`, `.flac`, `.ogg`, `.mp4`, `.mov`,
 `.webm` and more. The full list with size limits is in
 [Loading a recording](loading-media.md#supported-file-formats).
 
-A green check mark next to the file name means TRATT has read it. A video file
+A green check mark next to the file name means Tratt has read it. A video file
 takes a little longer, because the sound has to be extracted first.
 
 > **No recording yet?** Switch to the **Record now** tab and record straight into
@@ -48,7 +48,7 @@ Once the file is loaded, a box appears under the drop zone with the checkbox
   more accurate and slower, and the first run has to download the model
   (roughly 100 MB to 3 GB, cached for next time).
 
-  Optionally tick **Speaker separation** to have TRATT guess who spoke when. If you
+  Optionally tick **Speaker separation** to have Tratt guess who spoke when. If you
   know how many people are on the recording, type that number; for a two-person
   interview, type `2`.
 
@@ -58,11 +58,11 @@ model itself. Details and model recommendations:
 
 ## 4. Start
 
-Click the button below the box. On a file TRATT has not seen before it reads
+Click the button below the box. On a file Tratt has not seen before it reads
 **Start new transcription**. Its wording changes with what you have chosen:
 **Manual transcription** when you are typing everything yourself, **Run automatic
 processing** when a model is going to run, and **Replace the stored annotations**
-when that would overwrite a transcript TRATT already has.
+when that would overwrite a transcript Tratt already has.
 
 If you asked for a draft, you now see progress: first the model download, then
 *Transcribing audio…* with a time counter, then *Identifying speakers…* if you
@@ -74,7 +74,7 @@ must stay open. When it finishes, the editor opens by itself.
 You arrive in the **2D-Editor**: the recording is drawn as a waveform on several
 lines, one line after another, with the text sitting under each chunk of speech.
 
-TRATT calls each of those chunks a **transcription unit**: one utterance, roughly
+Tratt calls each of those chunks a **transcription unit**: one utterance, roughly
 one line of a subtitle. Other tools call it a segment.
 
 ![Correcting one unit in the transcription window](../assets/visp_tratt_popup_editor_audio_only.png)
@@ -123,7 +123,7 @@ If you are not sure which one you want:
 | --- | --- |
 | Read or edit the transcript in Word or LibreOffice | **DOCX** or **ODT** |
 | Make subtitles | **SRT** or **WebVTT** |
-| Keep working in TRATT later, losing nothing | **AnnotJSON** |
+| Keep working in Tratt later, losing nothing | **AnnotJSON** |
 | Analyse it in Praat or ELAN | **TextGrid** or **ELAN** |
 
 Word and OpenDocument export can put each utterance on its own line or run it as
@@ -144,7 +144,7 @@ and shortcuts are identical, so read on either way.
 
 ## Two things worth knowing before you close the tab
 
-**TRATT remembers your transcript, but never your recording.** When you come back,
+**Tratt remembers your transcript, but never your recording.** When you come back,
 the text is still there, but you must drag the same media file in again to keep
 working. Export a file whenever you stop for the day.
 

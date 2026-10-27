@@ -5,7 +5,7 @@ cutting the audio into pieces, or producing a table of their own design.
 
 > **Note on availability.** The **Tools** dialog described in the first two
 > sections below (*Combine transcription units* and *Cut audio file*) is present in
-> TRATT but is **not currently reachable from any button in the interface** in this
+> Tratt but is **not currently reachable from any button in the interface** in this
 > version. The Table Configurator, in the third section, *is* reachable: it lives
 > inside the Export dialog. If you need the first two, ask whoever maintains your
 > installation.
@@ -50,7 +50,7 @@ of the interview.
 annotation files alongside them, and hands you the collection as a download.
 
 **Everything is converted to WAVE PCM 16-bit mono** at the recording's sample rate.
-That is lossless relative to what TRATT decoded, but it is not a copy of your
+That is lossless relative to what Tratt decoded, but it is not a copy of your
 original encoding.
 
 **Settings**

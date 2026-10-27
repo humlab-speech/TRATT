@@ -167,7 +167,7 @@ both, so that you may compare them. When only the modification time differs it i
 copy or re-exported audio and **Use anyway** is safe.
 
 **The start page replaced a recording that was in the Workbench list**
-They share one stored session slot, and TRATT warns about this before it happens.
+They share one stored session slot, and Tratt warns about this before it happens.
 Use one route or the other for a given piece of material.
 
 ---
@@ -180,7 +180,7 @@ you clear site data, use a private window and close it, switch browsers or machi
 or if a cleanup tool clears IndexedDB.
 
 **I dropped the file back in but the button said "Start new transcription"**
-That means TRATT does not recognise the file as the one the stored session belongs
+That means Tratt does not recognise the file as the one the stored session belongs
 to, and clicking it *discards* the stored transcript. Check that it is the same
 file, with the same name, before clicking the button to start a new transcription.
 
@@ -191,7 +191,7 @@ file, with the same name, before clicking the button to start a new transcriptio
 
 ## The maintenance page
 
-This pave is not linked to from the interface: add `/help-tools` to TRATT's address, for example
+This pave is not linked to from the interface: add `/help-tools` to Tratt's address, for example
 `https://tratt.demo.humlab.umu.se/help-tools`.
 
 | Tool | Use it when |
@@ -209,9 +209,9 @@ backup, first.
 
 ## Reporting a problem
 
-TRATT has a built-in feedback form (the question-mark icon in the top bar), but it
+Tratt has a built-in feedback form (the question-mark icon in the top bar), but it
 only appears when the app is connected to an OCTRA backend, which the standard
-local-only TRATT deployment is not. In that case, report problems on the project's
+local-only Tratt deployment is not. In that case, report problems on the project's
 issue tracker: <https://github.com/humlab-speech/TRATT/issues>.
 
 Whichever route you use, a bug report is usually not actionable without:

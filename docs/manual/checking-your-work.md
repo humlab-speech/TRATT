@@ -22,14 +22,14 @@ It has three parts.
 | **Empty transcription units** | Units with neither text nor a break: your remaining work |
 
 Aim for **Empty transcription units = 0** before you export. If the number is not
-zero, click it: TRATT highlights what is missing.
+zero, click it: Tratt highlights what is missing.
 
 ### Validation
 
 If the project's guidelines file names a validation script, this section lists each
 tier with its error count (normally *No errors found*) and offending text is
 underlined in the editor. If no validation is configured, the section reads
-*No validation methods found* instead. Either is normal; the standard TRATT
+*No validation methods found* instead. Either is normal; the standard Tratt
 guidelines carry only spelling and punctuation rules, so in practice this section
 rarely tells you anything.
 
@@ -80,7 +80,7 @@ Three rules catch people out:
 for the project: spelling and punctuation rules, and the meaning of every marker
 with examples.
 
-The default TRATT guidelines are deliberately thin (correct spelling, no
+The default Tratt guidelines are deliberately thin (correct spelling, no
 punctuation characters) because they are meant to be replaced. If your project has
 its own conventions, they belong in the guidelines file so that they are one
 keystroke away for everyone working on the material, rather than in a document

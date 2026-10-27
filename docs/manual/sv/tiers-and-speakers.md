@@ -28,7 +28,7 @@ Nivåmenyn sitter i den övre listen och visar den aktuella nivåns namn.
 | Byta namn på en nivå | Skriv i dess namnfält och klicka utanför |
 | Lägga till en tom nivå | **+** längst ned i menyn, sedan **Add empty level** |
 | Lägga till en översättningsnivå | **+**, sedan **Add translated tier…**: se nedan |
-| Ta bort en nivå | Papperskorgsikonen på dess rad, som bara syns när det finns mer än en nivå. TRATT frågar först; nivån och dess text försvinner permanent. |
+| Ta bort en nivå | Papperskorgsikonen på dess rad, som bara syns när det finns mer än en nivå. Tratt frågar först; nivån och dess text försvinner permanent. |
 
 Bara nivåer av typen SEGMENT kan väljas för redigering; övriga visas gråmarkerade.
 
@@ -98,7 +98,7 @@ följer med rakt igenom till export i Word, ODT och undertexter.
 
 ## Att importera material som redan har talare
 
-Undertextfiler bär ofta talarnamn, och TRATT kan plocka ut dem vid import. Släpp
+Undertextfiler bär ofta talarnamn, och Tratt kan plocka ut dem vid import. Släpp
 filen tillsammans med ljudet och klicka sedan på kugghjulet på dess rad.
 
 **WebVTT** erbjuder:

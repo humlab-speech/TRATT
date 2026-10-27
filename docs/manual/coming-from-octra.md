@@ -1,15 +1,15 @@
 # Coming from the OCTRA manual
 
 **For:** people who found the [OCTRA 2.0 manual](https://clarin.phonetik.uni-muenchen.de/apps/octra/manuals/octra/2.0/)
-(which the app itself still links to) and are trying to map it onto TRATT.
+(which the app itself still links to) and are trying to map it onto Tratt.
 
-TRATT is a fork of OCTRA. The editing machinery is the same, so the OCTRA manual's
+Tratt is a fork of OCTRA. The editing machinery is the same, so the OCTRA manual's
 chapters on the GUI and the editors mostly still describe what you see. The
 surrounding workflow is not the same at all.
 
 ---
 
-## What TRATT adds that the OCTRA manual does not mention
+## What Tratt adds that the OCTRA manual does not mention
 
 | Feature | Where |
 | --- | --- |
@@ -25,28 +25,28 @@ surrounding workflow is not the same at all.
 
 ---
 
-## What the OCTRA manual describes that TRATT does not do
+## What the OCTRA manual describes that Tratt does not do
 
 **Online mode and the OCTRA backend.** The whole chapter on project login, assigned
 jobs, sending transcripts to a server, quitting-and-releasing a task and the
-transcription-end screen. TRATT ships with the backend disabled: there is no login,
+transcription-end screen. Tratt ships with the backend disabled: there is no login,
 no project, nothing is sent anywhere. If you need that, use
 [upstream OCTRA](https://github.com/IPS-LMU/octra).
 
-**URL mode and demo/embedding parameters.** Not part of TRATT's supported workflow.
+**URL mode and demo/embedding parameters.** Not part of Tratt's supported workflow.
 
 **Administration, guidelines authoring and validation methods.** The configuration
 files still exist and behave as documented upstream, but validation is off by
-default in TRATT and the Overview will say *No validation methods found*.
+default in Tratt and the Overview will say *No validation methods found*.
 
 **Search & replace.** Documented upstream under *Using Tools*; not exposed in
-TRATT's interface.
+Tratt's interface.
 
 ---
 
 ## Things that changed name or behaviour
 
-| OCTRA manual | In TRATT |
+| OCTRA manual | In Tratt |
 | --- | --- |
 | "Segment" | Usually "transcription unit" in the interface, though both words appear |
 | "Level" | Usually "tier", especially in the newer speaker and translation features |
@@ -58,7 +58,7 @@ TRATT's interface.
 
 ## Still worth reading upstream
 
-The OCTRA manual remains the better reference for the internals TRATT inherited
+The OCTRA manual remains the better reference for the internals Tratt inherited
 unchanged: the AnnotJSON data model, the structure of guidelines and validation
 files, and project configuration options. If you are configuring an installation
 rather than transcribing with one, start there.

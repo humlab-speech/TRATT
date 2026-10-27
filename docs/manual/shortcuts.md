@@ -1,6 +1,6 @@
 # Keyboard shortcuts
 
-Press **Alt + 8** inside TRATT to see the same list for the editor you are currently
+Press **Alt + 8** inside Tratt to see the same list for the editor you are currently
 in, generated from the app itself.
 
 Throughout: **Ctrl** on Windows and Linux, **Cmd** on macOS, except where the two

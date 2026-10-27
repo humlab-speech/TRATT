@@ -1,6 +1,6 @@
 # Tangentbordsgenvägar
 
-Tryck **Alt + 8** inne i TRATT för att se samma lista för den vy du befinner dig
+Tryck **Alt + 8** inne i Tratt för att se samma lista för den vy du befinner dig
 i, genererad ur appen själv.
 
 Genomgående: **Ctrl** på Windows och Linux, **Cmd** på macOS, utom där de två

@@ -1,7 +1,7 @@
 # Automatic draft transcription
 
 
-TRATT can run a speech-recognition model **on your own computer, inside the browser
+Tratt can run a speech-recognition model **on your own computer, inside the browser
 tab**, and open the result in the editor for you to revise. It can also make an initial 
 guess on who in a conversation said each utterance, and the interface also allows a
 rough translation of the draft transcription to be made.
@@ -13,7 +13,7 @@ be prepared to make revisions to the draft annotation later.
 
 ## Turning it on
 
-Load your media file first. The options only appear once TRATT has audio and you
+Load your media file first. The options only appear once Tratt has audio and you
 have **not** supplied a transcript file of your own.
 
 > In the [Workbench](workbench.md) the same controls live behind **Pipeline
@@ -25,7 +25,7 @@ Under the drop zone, tick **Auto-transcribe with Whisper**, then set:
 1. **Transcription language**: the language actually spoken on the recording.
    A hundred languages are offered, listed by their own names
    (*Svenska (Swedish, sv)*, *Suomi (Finnish, fi)*), with Swedish first and the rest
-   alphabetical. TRATT preselects the language your interface is set to, so change
+   alphabetical. Tratt preselects the language your interface is set to, so change
    it if the recording is in something else. This is not a translation setting.
 2. **Model**: see the tables below.
 3. **Speaker separation** (optional): see [Speaker separation](#speaker-separation).
@@ -49,13 +49,13 @@ though some browsers slow background tabs down.
 
 ## Which model to pick
 
-The model list changes with the language you chose, because TRATT ships specialised
+The model list changes with the language you chose, because Tratt ships specialised
 models for the Nordic languages.
 
 **If your machine has WebGPU** (recent Chrome, Edge or Firefox with a reasonable
 graphics card), all models are available and the larger ones are much faster.
 **Without WebGPU** the models run on the CPU instead: the biggest ones are greyed
-out, and the rest are slow but usable. TRATT says *WebGPU not detected* under the
+out, and the rest are slow but usable. Tratt says *WebGPU not detected* under the
 model list when that is the case, and says nothing when WebGPU is there. The model
 descriptions change with it: without WebGPU the reference model falls back to the
 largest one your machine can run.
@@ -90,7 +90,7 @@ Uses OpenAI's Whisper.
 | Large v3 Turbo | 700 MB | Labelled *our selected reference model*: fast and accurate. Needs WebGPU. |
 | Large v3 | 3.1 GB | Slower than Turbo, often a little more accurate. Needs WebGPU. |
 
-TRATT preselects Small here, not the reference model. If your machine has WebGPU
+Tratt preselects Small here, not the reference model. If your machine has WebGPU
 and the recording matters, switch to **Large v3 Turbo**.
 
 ### About the download
@@ -128,13 +128,13 @@ and background voices all confuse it. You can fix labels afterwards: see
 
 ## Translating the transcript
 
-TRATT can also translate, locally, using Opus-MT models.
+Tratt can also translate, locally, using Opus-MT models.
 
 **On the start page.** Once there is a transcript to work with, either one you
 loaded or one auto-transcription is about to produce, a **Translate transcript
 locally** box appears. Pick **From** (about thirty languages) and **To**. The
 **To** list only offers languages actually reachable from your source, and marks
-routes that have to go through English as *(two steps)*. TRATT then tells you which
+routes that have to go through English as *(two steps)*. Tratt then tells you which
 path it will use:
 
 - *One-step download*: one model, straight from your language to the target.
@@ -144,7 +144,7 @@ path it will use:
   possible.
 
 Translation runs on your machine and can take several minutes. If it stops making
-progress TRATT says so rather than leaving you guessing: *Model load stalled*,
+progress Tratt says so rather than leaving you guessing: *Model load stalled*,
 *Translation stalled, no progress for 60 seconds*, or *Download stalled, likely a
 browser storage limit*, which is the one to retry with **Skip browser cache**
 ticked.
@@ -174,9 +174,9 @@ WebGPU*; which ones those are depends on the language. The smaller models still
 work.
 
 **Errors.** If transcription fails while running on WebGPU, the error box suggests
-retrying without it. TRATT detects WebGPU automatically and has no switch of its
+retrying without it. Tratt detects WebGPU automatically and has no switch of its
 own, so the way to force the slower, more tolerant CPU path is to turn WebGPU off
 in the browser itself (in Chrome and Edge: `chrome://flags` → *Unsafe WebGPU
-Support* / *WebGPU* → **Disabled**, then restart) and reload TRATT. All models then
+Support* / *WebGPU* → **Disabled**, then restart) and reload Tratt. All models then
 run on WASM, and the largest ones become unavailable. More in
 [Troubleshooting](troubleshooting.md).

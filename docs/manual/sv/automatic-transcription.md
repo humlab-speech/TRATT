@@ -2,7 +2,7 @@
 
 **För:** dig som hellre rättar ett utkast än skriver från ingenting.
 
-TRATT kan köra en taligenkänningsmodell **på din egen dator, inne i
+Tratt kan köra en taligenkänningsmodell **på din egen dator, inne i
 webbläsarfliken**, och öppna resultatet i redigeraren så att du kan rätta det.
 Den kan också gissa vem som talade när, och översätta det färdiga transkriptet.
 
@@ -14,7 +14,7 @@ lyssnandet.
 
 ## Slå på det
 
-Ladda in mediefilen först. Alternativen dyker upp när TRATT har ljud och du
+Ladda in mediefilen först. Alternativen dyker upp när Tratt har ljud och du
 **inte** har lämnat in en egen transkriptfil.
 
 > I [Arbetsbänken](workbench.md) ligger samma kontroller bakom
@@ -26,7 +26,7 @@ sedan in:
 
 1. **Transkriptionsspråk**: det språk som faktiskt talas på inspelningen. Ett
    hundratal språk erbjuds, listade med sina egna namn (*Svenska (Swedish, sv)*,
-   *Suomi (Finnish, fi)*), med svenska först och resten i bokstavsordning. TRATT
+   *Suomi (Finnish, fi)*), med svenska först och resten i bokstavsordning. Tratt
    förvaljer det språk gränssnittet är inställt på, så byt om inspelningen är på
    något annat. Detta är inte en översättningsinställning.
 2. **Modell**: se tabellerna nedan.
@@ -52,13 +52,13 @@ transkriptionen fortsätter, även om vissa webbläsare bromsar bakgrundsflikar.
 
 ## Vilken modell ska man välja
 
-Modellistan ändras med språket du valt, eftersom TRATT levererar specialiserade
+Modellistan ändras med språket du valt, eftersom Tratt levererar specialiserade
 modeller för de nordiska språken.
 
 **Om din dator har WebGPU** (aktuell Chrome, Edge eller Firefox med ett hyggligt
 grafikkort) är alla modeller tillgängliga och de större är mycket snabbare.
 **Utan WebGPU** körs modellerna på processorn i stället: de största gråmarkeras,
-och resten är långsamma men användbara. TRATT skriver *WebGPU not detected* under
+och resten är långsamma men användbara. Tratt skriver *WebGPU not detected* under
 modellistan när det är så, och skriver ingenting när WebGPU finns.
 Modellbeskrivningarna ändras med detta: utan WebGPU blir jämförelsemodellen den
 största din dator klarar.
@@ -97,7 +97,7 @@ Använder OpenAI:s Whisper.
 | Large v3 Turbo | 700 MB | Märkt *vår valda referensmodell*, snabb och noggrann. Kräver WebGPU. |
 | Large v3 | 3,1 GB | Långsammare än Turbo, ofta något noggrannare. Kräver WebGPU. |
 
-TRATT förväljer Small här, inte referensmodellen. Har din dator WebGPU och
+Tratt förväljer Small här, inte referensmodellen. Har din dator WebGPU och
 inspelningen är viktig, byt till **Large v3 Turbo**.
 
 ### Om nedladdningen
@@ -136,13 +136,13 @@ varandra och bakgrundsröster förvirrar den. Du kan rätta etiketterna efteråt
 
 ## Översätta transkriptet
 
-TRATT kan också översätta, lokalt, med Opus-MT-modeller.
+Tratt kan också översätta, lokalt, med Opus-MT-modeller.
 
 **På startsidan.** Så snart det finns ett transkript att arbeta med (antingen ett
 du laddat in eller ett som automatisk transkription är på väg att skapa) dyker
 rutan **Översätt transkriptionen lokalt** upp. Välj **Från** (ett trettiotal
 språk) och **Till**. Listan **Till** erbjuder bara språk som faktiskt går att nå
-från din källa, och märker vägar som måste gå via engelska med *(två steg)*. TRATT
+från din källa, och märker vägar som måste gå via engelska med *(två steg)*. Tratt
 talar sedan om vilken väg som används:
 
 - *Direkt opus-mt-modell*: en modell, rakt från ditt språk till målspråket.
@@ -153,7 +153,7 @@ talar sedan om vilken väg som används:
   inte möjligt.
 
 Översättningen körs på din dator och kan ta flera minuter. Står den stilla säger
-TRATT det i stället för att lämna dig i ovisshet: *Modellinläsningen har fastnat*,
+Tratt det i stället för att lämna dig i ovisshet: *Modellinläsningen har fastnat*,
 *Översättningen har fastnat, inga framsteg på 60 sekunder*, eller *Nedladdningen
 har fastnat, troligen en lagringsgräns i webbläsaren*, som är den att försöka igen
 med **Hoppa över webbläsarcache** markerat.
@@ -183,9 +183,9 @@ transkription. Manuell transkribering i Safari påverkas inte.
 fortfarande.
 
 **Fel.** Misslyckas transkriptionen medan den körs på WebGPU föreslår
-felmeddelandet att du försöker igen utan. TRATT upptäcker WebGPU automatiskt och
+felmeddelandet att du försöker igen utan. Tratt upptäcker WebGPU automatiskt och
 har ingen egen omkopplare, så vägen till den långsammare men mer toleranta
 processorvägen går genom webbläsaren (Chrome och Edge: `chrome://flags` →
-*WebGPU* → **Disabled**, starta om) och en omladdning av TRATT. Alla modeller körs
+*WebGPU* → **Disabled**, starta om) och en omladdning av Tratt. Alla modeller körs
 då på WASM, och de största blir otillgängliga. Mer under
 [Felsökning](troubleshooting.md).

@@ -4,7 +4,7 @@
 "vart tog ljudet vägen?" är en fråga du måste kunna besvara.
 
 **Kort svar:** din inspelning och ditt transkript lämnar aldrig webbläsaren. Det
-enda TRATT hämtar åt dig är själva applikationen och, om du slår på det, en
+enda Tratt hämtar åt dig är själva applikationen och, om du slår på det, en
 tal- eller översättningsmodell.
 
 ---
@@ -13,22 +13,22 @@ tal- eller översättningsmodell.
 
 | | Var det finns |
 | --- | --- |
-| Ljud- eller videofilen du laddar in | Endast i webbläsarflikens minne. Den läses från disk, avkodas och kastas när du stänger fliken. Den laddas aldrig upp och skrivs aldrig tillbaka till disk av TRATT. |
+| Ljud- eller videofilen du laddar in | Endast i webbläsarflikens minne. Den läses från disk, avkodas och kastas när du stänger fliken. Den laddas aldrig upp och skrivs aldrig tillbaka till disk av Tratt. |
 | Transkriptet du skapar | I webbläsarens egen databas (IndexedDB) på din dator. |
 | Dina inställningar, gränssnittsspråk och loggade åtgärder | Samma lokala databas. |
 | Utkastet från automatisk transkription | Skapas på din dator, av en modell som körs i din webbläsare. |
 
-Eftersom ljudet bara hålls i minnet kan TRATT erbjuda sig att minnas ditt
+Eftersom ljudet bara hålls i minnet kan Tratt erbjuda sig att minnas ditt
 transkript mellan sessioner, men inte din inspelning. När du kommer tillbaka drar
 du in samma fil igen så väntar texten.
 
 ## Vad som hämtas över nätet
 
-**1. Själva applikationen.** När sidan laddas hämtas TRATT:s egna filer från den
-server som är värd för den. TRATT installerar en service worker, så efter första
+**1. Själva applikationen.** När sidan laddas hämtas Tratt:s egna filer från den
+server som är värd för den. Tratt installerar en service worker, så efter första
 lyckade laddningen körs appen från webbläsarens cache: du kan gå helt offline
 och fortsätta transkribera. Webbläsaren hämtar en ny version när en sådan
-publiceras; TRATT visar en avisering om uppdatering i stället för att ladda om
+publiceras; Tratt visar en avisering om uppdatering i stället för att ladda om
 under fötterna på dig.
 
 **2. Tal- och översättningsmodeller, bara om du ber om dem.** Att markera
@@ -41,16 +41,16 @@ Ditt ljud skickas **inte** till Hugging Face eller någon annanstans. Trafiken g
 åt ett håll: modellen kommer ned, inspelningen stannar.
 
 Kan din dator eller ditt nätverk inte nå `huggingface.co` är automatisk
-transkription helt enkelt inte tillgänglig; allt annat i TRATT fungerar ändå.
+transkription helt enkelt inte tillgänglig; allt annat i Tratt fungerar ändå.
 
 ## Rensa dina data
 
-Öppna den dolda underhållssidan genom att lägga till `/help-tools` i TRATT:s
+Öppna den dolda underhållssidan genom att lägga till `/help-tools` i Tratt:s
 adress (till exempel `https://tratt.visp.humlab.umu.se/help-tools`) och använd **Clear all
 Storage Data**. Den tar bort lagrat transkript, loggar och inställningar från den
 här webbläsaren permanent. Gör det på en delad dator när du är klar, efter att
 du har exporterat ditt arbete. Samma sida kan också ta en zip-säkerhetskopia av
-dina lokala TRATT-data och återställa en; se
+dina lokala Tratt-data och återställa en; se
 [Felsökning](troubleshooting.md#the-maintenance-page).
 
 Webbläsare rensar också IndexedDB när du rensar webbplatsdata, använder ett

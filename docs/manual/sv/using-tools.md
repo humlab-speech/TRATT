@@ -5,7 +5,7 @@ klippa ljudet i bitar, eller skapa en tabell av egen design.
 
 > **Om tillgänglighet.** Dialogen **Verktyg**, som beskrivs i de två första
 > avsnitten nedan (*Kombinera transkriptionsenheter* och *Klipp ljudfil*), finns i
-> TRATT men går i den här versionen **inte att nå från någon knapp i
+> Tratt men går i den här versionen **inte att nå från någon knapp i
 > gränssnittet**. Tabellkonfiguratorn i det tredje avsnittet *går* att nå, den
 > ligger inne i exportdialogen. Behöver du de två första, hör av dig till den som
 > förvaltar din installation.
@@ -50,7 +50,7 @@ intervjun.
 annoteringsfiler vid sidan av, och ger dig samlingen som en nedladdning.
 
 **Allt konverteras till WAVE PCM 16-bitars mono** i inspelningens samplingsfrekvens.
-Det är förlustfritt i förhållande till vad TRATT avkodade, men det är inte en kopia
+Det är förlustfritt i förhållande till vad Tratt avkodade, men det är inte en kopia
 av din ursprungliga kodning.
 
 **Inställningar**

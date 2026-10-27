@@ -2,15 +2,15 @@
 
 **För:** dig som hittat
 [OCTRA 2.0-manualen](https://clarin.phonetik.uni-muenchen.de/apps/octra/manuals/octra/2.0/)
-(som appen själv länkade till tidigare) och försöker överföra den till TRATT.
+(som appen själv länkade till tidigare) och försöker överföra den till Tratt.
 
-TRATT är en avgrening av OCTRA. Redigeringsmotorn är densamma, så
+Tratt är en avgrening av OCTRA. Redigeringsmotorn är densamma, så
 OCTRA-manualens kapitel om gränssnittet och vyerna beskriver i stort sett
 fortfarande det du ser. Arbetsflödet runtomkring är inte alls detsamma.
 
 ---
 
-## Vad TRATT lägger till som OCTRA-manualen inte nämner
+## Vad Tratt lägger till som OCTRA-manualen inte nämner
 
 | Funktion | Var |
 | --- | --- |
@@ -26,29 +26,29 @@ fortfarande det du ser. Arbetsflödet runtomkring är inte alls detsamma.
 
 ---
 
-## Vad OCTRA-manualen beskriver som TRATT inte gör
+## Vad OCTRA-manualen beskriver som Tratt inte gör
 
 **Onlineläge och OCTRA-backenden.** Hela kapitlet om projektinloggning, tilldelade
 uppdrag, att skicka transkript till en server, att avsluta-och-släppa en uppgift
-och avslutningsskärmen. TRATT levereras med backenden avstängd: ingen inloggning,
+och avslutningsskärmen. Tratt levereras med backenden avstängd: ingen inloggning,
 inget projekt, ingenting skickas någonstans. Behöver du det, använd
 [OCTRA i original](https://github.com/IPS-LMU/octra).
 
-**URL-läge och demo-/inbäddningsparametrar.** Ingår inte i TRATT:s arbetsflöde.
+**URL-läge och demo-/inbäddningsparametrar.** Ingår inte i Tratt:s arbetsflöde.
 
 **Administration, att skriva riktlinjer och valideringsmetoder.**
 Konfigurationsfilerna finns kvar och beter sig som dokumenterat i ursprunget, men
-validering är avstängd som standard i TRATT och Översikt säger då
+validering är avstängd som standard i Tratt och Översikt säger då
 *No validation methods found*.
 
 **Sök och ersätt.** Dokumenterad i ursprunget under *Using Tools*; exponeras inte i
-TRATT:s gränssnitt.
+Tratt:s gränssnitt.
 
 ---
 
 ## Sådant som bytt namn eller beteende
 
-| OCTRA-manualen | I TRATT |
+| OCTRA-manualen | I Tratt |
 | --- | --- |
 | "Segment" | Oftast "transkriptionsenhet" i gränssnittet, även om båda orden förekommer |
 | "Level" | "Nivå", och "tier" i de nyare talar- och översättningsfunktionerna |
@@ -60,7 +60,7 @@ TRATT:s gränssnitt.
 
 ## Fortfarande värt att läsa i ursprungsmanualen
 
-OCTRA-manualen är fortfarande den bättre referensen för de inre delar TRATT ärvt
+OCTRA-manualen är fortfarande den bättre referensen för de inre delar Tratt ärvt
 oförändrade: datamodellen AnnotJSON, strukturen på riktlinje- och
 valideringsfiler, samt projektkonfigurationens alternativ. Ska du konfigurera en
 installation snarare än transkribera med en, börja där.

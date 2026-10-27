@@ -1,6 +1,6 @@
-# TRATT-manualen
+# Tratt-manualen
 
-TRATT gör om en inspelning av människor som talar till redigerbar text, helt och
+Tratt gör om en inspelning av människor som talar till redigerbar text, helt och
 hållet inne i din webbläsare. Du laddar in en ljud- eller videofil, låter vid
 behov en taligenkänningsmodell skriva ett första utkast, rättar utkastet mot
 ljudet och exporterar resultatet som ett dokument, en undertextfil eller en
@@ -16,7 +16,7 @@ Se [Vad lämnar din dator](privacy.md) för exakt vad som faktiskt gör det.
 | Om du är… | Gå till |
 | --- | --- |
 | **Ny här.** Du har en inspelning och vill ha text ur den, idag. | [Snabbstart: din första transkription](quick-start.md) *(ungefär fem minuters läsning, plus tid för modellnedladdning)* |
-| **Transkriberar på riktigt.** Du arbetar i TRATT regelbundet och vill vara snabb och korrekt. | [Så fungerar transkribering](transcribing.md), därefter [Tangentbordsgenvägar](shortcuts.md) |
+| **Transkriberar på riktigt.** Du arbetar i Tratt regelbundet och vill vara snabb och korrekt. | [Så fungerar transkribering](transcribing.md), därefter [Tangentbordsgenvägar](shortcuts.md) |
 | **Har en mapp med inspelningar**, inte en fil. | [Arbetsbänken](workbench.md) |
 | **Slår upp en sak.** | Referenslistan nedan |
 
@@ -24,7 +24,7 @@ Se [Vad lämnar din dator](privacy.md) för exakt vad som faktiskt gör det.
 
 ## Två arbetssätt
 
-Det mesta i TRATT handlar om en inspelning i taget: du laddar en fil på
+Det mesta i Tratt handlar om en inspelning i taget: du laddar en fil på
 startsidan, transkriberar den och exporterar den. Det är vad de två följande
 avsnitten beskriver, och det är där man börjar.
 
@@ -58,34 +58,34 @@ du lär dig nedan går till spillo.
 
 **Resultat och verktyg**
 
-- [Exportera](exporting.md): alla format TRATT kan skriva, och vad de passar till
+- [Exportera](exporting.md): alla format Tratt kan skriva, och vad de passar till
 - [Verktyg](using-tools.md): slå ihop enheter, klippa ljud, egna tabeller
 
 **Referens**
 
 - [Tangentbordsgenvägar](shortcuts.md)
 - [Felsökning](troubleshooting.md)
-- [Ordlista](glossary.md): vad TRATT kallar saker
+- [Ordlista](glossary.md): vad Tratt kallar saker
 - [Från OCTRA-manualen](coming-from-octra.md)
 
 ---
 
 ## Om manualen
 
-TRATT är en avgrening av [OCTRA](https://github.com/IPS-LMU/octra) (Institut für
+Tratt är en avgrening av [OCTRA](https://github.com/IPS-LMU/octra) (Institut für
 Phonetik und Sprachverarbeitung, LMU München), utvecklad för plattformen Visible
 Speech av [Humlab](https://www.umu.se/humlab/) och
 [Språkbanken CLARIN](https://sprakbanken.se/) vid Umeå universitet.
 
 [OCTRA-manualen](https://clarin.phonetik.uni-muenchen.de/apps/octra/manuals/octra/)
 beskriver ursprungsverktyget. Mycket av den gäller fortfarande för den gemensamma
-redigeringsmotorn, men den beskriver inte TRATT:s lokala taligenkänning,
+redigeringsmotorn, men den beskriver inte Tratt:s lokala taligenkänning,
 inspelning i webbläsaren, talarhantering eller dokumentexport, och den beskriver
-ett serverstött läge som TRATT inte kör. Om du har läst den, börja med
+ett serverstött läge som Tratt inte kör. Om du har läst den, börja med
 [Från OCTRA-manualen](coming-from-octra.md).
 
-Manualen beskriver TRATT 2.4.x.
+Manualen beskriver Tratt 2.4.x.
 
-> Gränssnittet i TRATT är översatt till svenska, men inte fullständigt. Där en
+> Gränssnittet i Tratt är översatt till svenska, men inte fullständigt. Där en
 > knapp fortfarande visas på engelska anger manualen den engelska texten, så att
 > det du läser här är det du ser på skärmen.
