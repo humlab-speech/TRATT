@@ -896,7 +896,18 @@
               </button>
             </li>
           }
-          <li class="nav-item" id="tratt-theme-slot"></li>
+          <li class="nav-item" id="tratt-theme-slot">
+            <button
+              type="button"
+              class="nav-link btn btn-link"
+              (click)="theme.toggle()"
+              [attr.aria-label]="'shell.header.theme_toggle' | transloco"
+              [attr.aria-pressed]="theme.effective() === 'dark'"
+              [attr.title]="'shell.header.theme_toggle' | transloco"
+            >
+              <i class="fa-solid fa-circle-half-stroke" aria-hidden="true"></i>
+            </button>
+          </li>
           <!-- languageDropdown -->
           <li
             class="nav-item dropdown"

@@ -927,6 +927,7 @@
     },
     "header": {
       "label": "Main navigation",
+      "theme_toggle": "Switch between light and dark mode",
       "workbench": "Workbench"
     }
   }

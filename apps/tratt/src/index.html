@@ -1,6 +1,17 @@
 <!doctype html>
 <html lang="en">
   <head>
+    <script>
+      // Apply the stored theme before Angular boots (ThemeService takes over).
+      try {
+        var t = localStorage.getItem('tratt.theme');
+        if (t !== 'light' && t !== 'dark')
+          t = matchMedia('(prefers-color-scheme: dark)').matches
+            ? 'dark'
+            : 'light';
+        document.documentElement.setAttribute('data-bs-theme', t);
+      } catch (e) {}
+    </script>
     <base href="/" />
     <link rel="manifest" id="manifest" href="manifest.json" />
     <meta charset="utf-8" />

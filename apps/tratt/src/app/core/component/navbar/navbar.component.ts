@@ -66,6 +66,7 @@ import {
 import { HeaderSlotService } from '../../shared/service/header-slot.service';
 import { manualPageForUrl } from '../../shared/service/manual-link.service';
 import { PendingEditsService } from '../../shared/service/pending-edits.service';
+import { ThemeService } from '../../shared/service/theme.service';
 import { RecordedFileService } from '../../shared/service/recorded-file.service';
 import { LoginMode } from '../../store';
 import { ApplicationStoreService } from '../../store/application/application-store.service';
@@ -200,6 +201,7 @@ export class NavigationComponent extends DefaultComponent implements OnInit {
   }
 
   constructor(
+    public theme: ThemeService,
     public appStorage: AppStorageService,
     private appStoreService: ApplicationStoreService,
     public navbarServ: NavbarService,

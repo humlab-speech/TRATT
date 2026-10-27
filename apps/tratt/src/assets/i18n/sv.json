@@ -875,6 +875,7 @@
     },
     "header": {
       "label": "Huvudnavigering",
+      "theme_toggle": "Växla mellan ljust och mörkt läge",
       "workbench": "Arbetsbänk"
     }
   }
