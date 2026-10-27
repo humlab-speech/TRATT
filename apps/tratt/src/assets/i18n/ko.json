@@ -421,8 +421,7 @@
     }
   },
   "p": {
-    "language selector label": "이 페이지가 표시되는 언어",
-    "language selector short label": "언어: "
+    "language selector label": "이 페이지가 표시되는 언어"
   },
   "reload-file": {
     "another file selected": "다른 파일을 선택했습니다. 이전과 동일한 파일을 선택하거나 새 기록을 시작하십시오. '{file}'을(를) 원합니다.",
@@ -619,7 +618,13 @@
   },
   "shell": {
     "about": {
-      "title": "About Tratt"
+      "title": "About Tratt",
+      "source_code": "Source code on GitHub",
+      "version": "Version"
+    },
+    "header": {
+      "label": "Main navigation",
+      "workbench": "Workbench"
     }
   }
 }

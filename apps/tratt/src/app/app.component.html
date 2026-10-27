@@ -20,10 +20,7 @@
   <header>
     <tratt-navigation #navigation></tratt-navigation>
   </header>
-  <main style="margin-top: 40px">
-    @if (environment.beta_version && !localOnly) {
-      <div class="d-none d-md-block beta_mark text-outline-white">beta</div>
-    }
+  <main class="tratt-main">
     <div class="container-fluid flex">
       <router-outlet></router-outlet>
     </div>

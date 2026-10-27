@@ -421,8 +421,7 @@
     }
   },
   "p": {
-    "language selector label": "Taal waarin deze pagina wordt weergegeven",
-    "language selector short label": "Taal: "
+    "language selector label": "Taal waarin deze pagina wordt weergegeven"
   },
   "reload-file": {
     "another file selected": "Een ander bestand geselecteerd. Selecteer hetzelfde bestand als voorheen of start een nieuwe transcriptie. Gezocht: '{{file}}'",
@@ -619,7 +618,13 @@
   },
   "shell": {
     "about": {
-      "title": "About Tratt"
+      "title": "About Tratt",
+      "source_code": "Source code on GitHub",
+      "version": "Version"
+    },
+    "header": {
+      "label": "Main navigation",
+      "workbench": "Workbench"
     }
   }
 }

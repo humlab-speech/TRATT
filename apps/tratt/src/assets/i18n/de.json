@@ -594,8 +594,7 @@
     "selected level": "Ausgewähltes level",
     "send email": "E-Mail senden",
     "sign up": "Neu registrieren",
-    "username or email": "Nutzername oder E-Mail",
-    "language selector short label": "Sprache: "
+    "username or email": "Nutzername oder E-Mail"
   },
   "projects-list": {
     "introduction": "Wähle ein Projekt, für das Du transkribieren möchtest und klicke auf \"START\".",
@@ -837,7 +836,13 @@
   },
   "shell": {
     "about": {
-      "title": "About Tratt"
+      "title": "About Tratt",
+      "source_code": "Source code on GitHub",
+      "version": "Version"
+    },
+    "header": {
+      "label": "Main navigation",
+      "workbench": "Workbench"
     }
   }
 }

@@ -1,4 +1,9 @@
-import { NgClass, NgStyle, UpperCasePipe } from '@angular/common';
+import {
+  NgClass,
+  NgStyle,
+  NgTemplateOutlet,
+  UpperCasePipe,
+} from '@angular/common';
 import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
@@ -19,7 +24,6 @@ import {
   NgbDropdownToggle,
   NgbModalRef,
   NgbOffcanvas,
-  NgbPopover,
 } from '@ng-bootstrap/ng-bootstrap';
 import { AccountRole, ProjectDto } from '@octra/api-types';
 import { OctraAPIService } from '@octra/ngx-octra-api';
@@ -58,14 +62,17 @@ import {
   ConsoleGroupEntry,
   ConsoleType,
 } from '../../shared/service/bug-report.service';
+import { HeaderSlotService } from '../../shared/service/header-slot.service';
 import { manualPageForUrl } from '../../shared/service/manual-link.service';
 import { PendingEditsService } from '../../shared/service/pending-edits.service';
 import { RecordedFileService } from '../../shared/service/recorded-file.service';
 import { LoginMode } from '../../store';
 import { ApplicationStoreService } from '../../store/application/application-store.service';
 import { AuthenticationStoreService } from '../../store/authentication';
+import { isWorkbenchRoute } from '../../store/login-mode/annotation/annotation-load.effects';
 import { AnnotationStoreService } from '../../store/login-mode/annotation/annotation.store.service';
 import { DefaultComponent } from '../default.component';
+import { TrattLogoComponent } from '../tratt-logo/tratt-logo.component';
 import { NavbarService } from './navbar.service';
 
 @Component({
@@ -73,13 +80,14 @@ import { NavbarService } from './navbar.service';
   templateUrl: './navbar.component.html',
   styleUrls: ['./navbar.component.scss'],
   imports: [
-    NgbPopover,
     NgbCollapse,
     RouterLinkActive,
     RouterLink,
     NgClass,
     NgbDropdown,
     NgStyle,
+    NgTemplateOutlet,
+    TrattLogoComponent,
     NgbDropdownToggle,
     NgbDropdownMenu,
     NgbDropdownItem,
@@ -113,6 +121,11 @@ export class NavigationComponent extends DefaultComponent implements OnInit {
       this.appStorage.snapshot.authentication.me?.systemRole.label ===
       AccountRole.administrator
     );
+  }
+
+  /** The logo links to the start of the current mode (Språkbanken profile). */
+  public get homeLink(): string {
+    return isWorkbenchRoute(this.router.url) ? '/workbench' : '/local';
   }
 
   public get AppInfo(): any {
@@ -192,6 +205,7 @@ export class NavigationComponent extends DefaultComponent implements OnInit {
     public navbarServ: NavbarService,
     public sanitizer: DomSanitizer,
     public langService: TranslocoService,
+    public headerSlots: HeaderSlotService,
     public modalService: TrattModalService,
     public settService: SettingsService,
     public bugService: BugReportService,

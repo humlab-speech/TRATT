@@ -1,55 +1,29 @@
 @if (appStorage.snapshot.application.loading.status !== 'WAITING') {
   <nav
-    class="navbar fixed-top navbar-expand-md navbar-dark bg-primary py-0"
-    aria-label="Fourth navbar example"
+    class="navbar fixed-top navbar-expand-md tratt-header"
+    [attr.aria-label]="'shell.header.label' | transloco"
     #navbar
     id="navbar"
   >
     <div class="container-fluid">
       <a
-        [ngbPopover]="versionPopover"
-        popoverClass="version-popover"
-        class="navbar-brand d-inline-flex align-items-center gap-2"
-        ><img
-          src="assets/img/tratt/tratt-mark-light.svg"
-          alt=""
-          width="26"
-          height="21"
-        />TRATT
-        @if (appStorage.useMode !== undefined && !localOnly) {
-          ({{ appStorage.useMode }})
-        }
+        class="navbar-brand tratt-header__brand"
+        [routerLink]="homeLink"
+        [queryParamsHandling]="'merge'"
+      >
+        <tratt-logo [tagline]="true" />
         @if (environment.beta_version && !localOnly) {
           <span
-            class="text-outline-white d-inline-block d-md-none text-danger fw-bold"
-            style="font-size: 0.85rem"
+            class="badge rounded-pill text-bg-secondary ms-2 align-self-center"
+            >beta</span
           >
-            beta
-          </span>
         }
       </a>
-      <ng-template #versionPopover>
-        <div id="build-information">
-          <div>
-            <div class="fw-bold">Version:</div>
-            <div>
-              {{ AppInfo.BUILD.version }}
-            </div>
-          </div>
-          <div>
-            <div class="fw-bold">Last updated:</div>
-            <div>
-              {{ AppInfo.BUILD.timestamp }}
-            </div>
-          </div>
-          <div>
-            <div class="fw-bold">Hash:</div>
-            <div style="font-size: 0.7rem">
-              {{ AppInfo.BUILD.hash }}
-            </div>
-          </div>
-        </div>
-      </ng-template>
+      <div class="tratt-header__center">
+        @if (headerSlots.center(); as tpl) {
+          <ng-container [ngTemplateOutlet]="tpl" />
+        }
+      </div>
       <button
         class="navbar-toggler"
         type="button"
@@ -63,13 +37,13 @@
         <span class="navbar-toggler-icon"></span>
       </button>
       <div
-        class="collapse navbar-collapse"
+        class="collapse navbar-collapse justify-content-md-end"
         id="navbarsExample04"
         #collapse="ngbCollapse"
         [(ngbCollapse)]="isCollapsed"
       >
         @if (!appStorage.loggedIn) {
-          <ul class="navbar-nav me-auto mb-2 mb-md-0">
+          <ul class="navbar-nav ms-md-auto mb-2 mb-md-0">
             @if (!localOnly) {
               <li [routerLinkActive]="['active']" class="nav-item active">
                 <a
@@ -82,6 +56,21 @@
               </li>
             }
 
+            @if (
+              environment.workbenchEnabled && localOnly && homeLink === '/local'
+            ) {
+              <li class="nav-item">
+                <a
+                  class="nav-link"
+                  routerLink="/workbench"
+                  [queryParamsHandling]="'merge'"
+                  (click)="isCollapsed = true"
+                >
+                  <i class="fa-solid fa-layer-group" aria-hidden="true"></i>
+                  {{ 'shell.header.workbench' | transloco }}
+                </a>
+              </li>
+            }
             <li class="nav-item">
               <a
                 class="nav-link"
@@ -90,18 +79,8 @@
                 rel="noopener"
                 (click)="isCollapsed = true"
               >
+                <i class="fa-solid fa-book" aria-hidden="true"></i>
                 {{ 'g.manual' | transloco }}
-              </a>
-            </li>
-            <li class="nav-item">
-              <a
-                class="nav-link"
-                href="https://github.com/humlab-speech/TRATT"
-                target="_blank"
-                (click)="isCollapsed = true"
-              >
-                <i class="fa-brands fa-github"></i>
-                Github
               </a>
             </li>
             <li class="nav-item">
@@ -115,7 +94,7 @@
             </li>
           </ul>
         } @else {
-          <ul class="navbar-nav me-auto">
+          <ul class="navbar-nav ms-md-auto">
             @for (editor of editors; track editor) {
               @if (
                 appStorage.loggedIn &&
@@ -909,23 +888,15 @@
               >
                 <i
                   class="fa-solid fa-circle-question navbar-icon"
-                  style="color: #fcffba"
-                  [ngStyle]="{
-                    color: errorsFound ? 'red' : '#fcffba',
-                  }"
-                >
-                </i>
+                  [class.text-danger]="errorsFound"
+                ></i>
                 <span class="d-inline d-md-none">
                   {{ 'g.feedback' | transloco }}
                 </span>
               </button>
             </li>
           }
-          <li class="nav-item d-flex align-items-center me-1">
-            <span class="nav-link">{{
-              'p.language selector short label' | transloco
-            }}</span>
-          </li>
+          <li class="nav-item" id="tratt-theme-slot"></li>
           <!-- languageDropdown -->
           <li
             class="nav-item dropdown"
@@ -940,9 +911,17 @@
               class="nav-link dropdown-toggle"
               [attr.aria-label]="'p.language selector label' | transloco"
             >
-              <i class="fa-solid fa-globe me-1" aria-hidden="true"></i>
-              {{ langService.getActiveLang() | uppercase }}
-              <span class="caret"></span>
+              <i class="fa-solid fa-globe" aria-hidden="true"></i>
+              <span class="d-none d-lg-inline">{{
+                nativeLanguageName(langService.getActiveLang())
+              }}</span>
+              <span class="d-lg-none">{{
+                langService.getActiveLang() | uppercase
+              }}</span>
+              <i
+                class="fa-solid fa-chevron-down tratt-header__chevron"
+                aria-hidden="true"
+              ></i>
             </a>
             <div
               ngbDropdownMenu

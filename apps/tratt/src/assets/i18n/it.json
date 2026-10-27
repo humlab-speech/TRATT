@@ -421,8 +421,7 @@
     }
   },
   "p": {
-    "language selector label": "Lingua in cui questa pagina viene visualizzata",
-    "language selector short label": "Lingua: "
+    "language selector label": "Lingua in cui questa pagina viene visualizzata"
   },
   "reload-file": {
     "another file selected": "Un altro file è stato selezionato. Per favore, selezione lo stesso file o inizia una nuova trascrizione. Richiesto: '{{file}}'",
@@ -619,7 +618,13 @@
   },
   "shell": {
     "about": {
-      "title": "About Tratt"
+      "title": "About Tratt",
+      "source_code": "Source code on GitHub",
+      "version": "Version"
+    },
+    "header": {
+      "label": "Main navigation",
+      "workbench": "Workbench"
     }
   }
 }
