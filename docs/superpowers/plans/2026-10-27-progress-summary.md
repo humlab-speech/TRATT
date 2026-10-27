@@ -32,3 +32,12 @@ Open (deferred): official Språkbanken logo file (placeholder SVG, licence unres
 Rulings: de/it/ko/nl/zh `login.hero.*` stay English placeholders; `.level-light--orange` class name kept (colour is yellow).
 
 Open (deferred): translations for hero text; indeterminate progress bar should omit `aria-valuenow`; text inside filled progress bars (spec 3.2 vs brief — revisit in task 44); vu-meter canvas hex and preview `background:#000` (task 25 allowlist / task 18-23); browser checks at 1440/400 px not done; tests are mostly source-text assertions.
+
+## Phase 4 – `/workbench` (tasks 14–17): complete
+
+- T14 `fd3ec1eb0` file list: status icons (✓ / ⚠) plus text, awaiting-media row marker, bulk buttons on Bootstrap classes.
+- T15 `54570488f` processing card, `btn-next-lg` / `btn-outline-secondary` run button, tabs.
+- T16 `7f19e054a` capacity indicator on tokens (warn state yellow per amendment).
+- T17 `d53c16adb` right-panel row: tabs, inline shortcuts (`<kbd>`), export; taskbar `variant` input.
+
+Open (deferred): specs for status icons / `--awaiting` / taskbar variant; capacity memory bar non-colour signal (task 44); `.workbench__empty-header` overlap check; `aria-label` on icon-only fastbar buttons; browser checks (1024 px wrap, Alt+8 / Alt+0).
