@@ -6,6 +6,7 @@
   "scripts": {
     "generate:build-info": "node scripts/generate-build-info.mjs",
     "lint:styles": "node scripts/check-style-tokens.mjs",
+    "test:scripts": "node --test scripts/",
     "postinstall": "node scripts/generate-build-info.mjs",
     "prestart:tratt": "node scripts/generate-build-info.mjs",
     "prebuild": "node scripts/generate-build-info.mjs",
