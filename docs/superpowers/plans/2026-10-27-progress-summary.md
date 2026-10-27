@@ -98,3 +98,13 @@ Open (deferred): light/dark visual pass of `/intern/transcr`, `/test`, configura
 Rulings: Translations CI step omitted (pre-existing i18n debt); screenshots not regenerated (see above); bugreport `btn-next` kept in library.
 
 Open (deferred): re-shoot manual/README images; selectors in the screenshot script untested; `--tratt-primary-color` undefined in `transcr-window` speaker badge; help-tools `text-light` on teal in dark; print in dark theme keeps dark tokens; reload-file page not covered by contrast script.
+
+## Phase 10 – Verification (task 44) and final review: complete
+
+- T44a `7c0973fb4`…`b177e40ae`, fix `dbbf4107d`: style-token lint widened to every entry point (`index.html`, `web-components`, `manual-assets`, `.ts`, banned legacy classes); splash keeps literal fallbacks (`index.html` only).
+- T44b–c `22e0fdb6e`…`af031ef98`: contrast check over `/test`, `/404`, `/load`, About and Export-all dialogs (0 violations, both themes); spec "Shipped shape"; `docs/superpowers/plans/2026-10-27-final-verification.md` (PASS 13 / FAIL 1 pre-existing i18n / NOT RUN 3 needing a human).
+- Final whole-branch review (Opus) found one Critical (`.btn-icon` collision breaking the player toolbar and editor markers) and six Important items; one fix wave `509454bac`, `9e37c96cd` (BREAKING CHANGE footer for `ngx-components`), `ea6285c97`, `04e3a2369`.
+
+Parked after the fix wave (rulings in the ledger): no scoped test for the `.btn.btn-icon` rule; `color-mix(` lint exemption too broad; four `<a ngbDropdownToggle>` in the navbar still not keyboard reachable (WCAG 2.1.1, pre-existing from `main`, recommended before claiming AA conformance).
+
+Still needs a human before merge: visual passes (1440/1024/768/400 px, light and dark) of `/local`, `/workbench`, `/login` online, `/intern/*`, dialogs and the Visp embed; the manual EN/SV at 1440/900/400 px; offline check in real Chrome; the official Språkbanken logo file and licence; screenshot re-shoot; translations for the new keys in de/it/ko/nl/zh.
