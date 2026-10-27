@@ -592,6 +592,10 @@
       "export_unavailable": "아직 내보낼 것이 없습니다: 이 파일에는 전사가 없고 오디오도 첨부되지 않았습니다.",
       "audio_not_attached": "오디오가 첨부되지 않음"
     },
+    "data_selector": {
+      "label": "파일 선택",
+      "position": "{{total}}개 중 {{index}}"
+    },
     "dropzone": {
       "already_loaded": "이미 목록에 있어 다시 추가하지 않았습니다: {{names}}",
       "transcript_no_recording": "“{{name}}” 녹음이 없습니다. 전사를 오디오 파일과 함께 놓거나 녹음과 같은 이름으로 지정하세요.",

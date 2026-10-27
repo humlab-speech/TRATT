@@ -810,6 +810,10 @@
       "export_unavailable": "Noch nichts zu exportieren: Diese Datei hat keine Transkription und ihr Audio ist nicht angehängt.",
       "audio_not_attached": "Audio nicht angehängt"
     },
+    "data_selector": {
+      "label": "Datei wählen",
+      "position": "{{index}} von {{total}}"
+    },
     "dropzone": {
       "already_loaded": "Bereits in der Liste, nicht erneut hinzugefügt: {{names}}",
       "transcript_no_recording": "Keine Aufnahme namens „{{name}}“. Legen Sie die Transkription zusammen mit ihrer Audiodatei ab oder benennen Sie sie wie die Aufnahme.",

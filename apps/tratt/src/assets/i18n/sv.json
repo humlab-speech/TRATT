@@ -754,6 +754,10 @@
       "export_unavailable": "Inget att exportera än: filen har ingen transkription och dess ljud är inte bifogat.",
       "audio_not_attached": "ljudet är inte bifogat"
     },
+    "data_selector": {
+      "label": "Välj fil",
+      "position": "{{index}} av {{total}}"
+    },
     "bundle_list": {
       "title": "Filer",
       "reattach": "Bifoga fil…",

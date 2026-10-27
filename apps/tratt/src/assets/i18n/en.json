@@ -806,6 +806,10 @@
       "export_unavailable": "Nothing to export yet: this file has no transcript and its audio isn't attached.",
       "audio_not_attached": "audio not attached"
     },
+    "data_selector": {
+      "label": "Choose file",
+      "position": "{{index}} of {{total}}"
+    },
     "bundle_list": {
       "title": "Files",
       "reattach": "Attach file…",

@@ -259,15 +259,6 @@
   border-top: 1px solid #d4d9e0;
 }
 
-.workbench__editor-header {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  min-width: 0;
-  padding: 0.4rem 0.75rem;
-  border-bottom: 1px solid #d4d9e0;
-}
-
 .workbench__editor-header-actions {
   display: flex;
   gap: 0.5rem;
@@ -277,19 +268,6 @@
   .btn {
     white-space: nowrap;
   }
-}
-
-.workbench__editor-header-name {
-  font-weight: 600;
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-}
-
-.workbench__editor-header-meta {
-  flex-shrink: 0;
-  font-size: 0.8rem;
-  color: #667a90;
 }
 
 .workbench__editor-tabs {

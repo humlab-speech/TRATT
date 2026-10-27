@@ -592,6 +592,10 @@
       "export_unavailable": "暂无可导出内容：此文件没有转写，且未附加音频。",
       "audio_not_attached": "未附加音频"
     },
+    "data_selector": {
+      "label": "选择文件",
+      "position": "第 {{index}} 个，共 {{total}} 个"
+    },
     "dropzone": {
       "already_loaded": "已在列表中，未重复添加：{{names}}",
       "transcript_no_recording": "没有名为“{{name}}”的录音。请将转写与其音频文件一起拖入，或按录音命名。",

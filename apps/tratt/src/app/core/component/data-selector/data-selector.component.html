@@ -1,0 +1,55 @@
+<div
+  ngbDropdown
+  class="tratt-data-selector"
+  placement="bottom"
+  display="dynamic"
+  container="body"
+>
+  <button
+    ngbDropdownToggle
+    type="button"
+    class="tratt-data-selector__toggle"
+    [attr.aria-label]="
+      ('workbench.data_selector.label' | transloco) + ': ' + header().name
+    "
+  >
+    <i
+      class="fa-solid fa-file-audio tratt-data-selector__icon"
+      aria-hidden="true"
+    ></i>
+    <span class="tratt-data-selector__name">{{ header().name }}</span>
+    <span class="tratt-data-selector__meta">
+      @if (header().durationText !== undefined) {
+        {{ header().durationText }} · {{ header().sampleRateKhz }} kHz
+        {{
+          (header().channels === 1
+            ? 'workbench.editor_header.mono'
+            : 'workbench.editor_header.stereo'
+          ) | transloco
+        }}
+        · {{ header().sizeText }}
+      } @else {
+        {{ 'workbench.editor_header.audio_not_attached' | transloco }}
+      }
+    </span>
+    @if (position(); as pos) {
+      <span class="tratt-data-selector__position">{{
+        'workbench.data_selector.position' | transloco: pos
+      }}</span>
+    }
+    <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
+  </button>
+  <div ngbDropdownMenu class="tratt-data-selector__menu">
+    @for (f of files(); track f.id) {
+      <button
+        ngbDropdownItem
+        type="button"
+        [class.active]="f.id === selectedId()"
+        [attr.aria-current]="f.id === selectedId() ? 'true' : null"
+        (click)="selectFile.emit(f.id)"
+      >
+        {{ f.name }}
+      </button>
+    }
+  </div>
+</div>

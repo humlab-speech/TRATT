@@ -145,6 +145,7 @@ import {
   StorageCapacity,
 } from '../../shared/service/capacity.service';
 import { CatalogueExportService } from '../../shared/service/catalogue-export.service';
+import { HeaderSlotService } from '../../shared/service/header-slot.service';
 import { PendingEditsService } from '../../shared/service/pending-edits.service';
 import { PipelineQueueService } from '../../shared/service/pipeline-queue.service';
 import { RecordedFileService } from '../../shared/service/recorded-file.service';
@@ -1098,7 +1099,7 @@ describe('WorkbenchComponent', () => {
       expect(
         fixture.debugElement.query(
           By.css(
-            '.workbench__right:not(.workbench__empty) .workbench__editor-header-actions .btn-primary',
+            '.workbench__right:not(.workbench__empty) .workbench__editor-header-actions .btn-next',
           ),
         ),
       ).toBeTruthy();
@@ -1112,9 +1113,7 @@ describe('WorkbenchComponent', () => {
       const { resolveBundleMedia, openModalRef } = exportStubs(media);
 
       const button = fixture.debugElement.query(
-        By.css(
-          '.workbench__editor-header .workbench__editor-header-actions .btn-primary',
-        ),
+        By.css('.workbench__editor-header-actions .btn-next'),
       );
       expect(button.nativeElement.textContent).toContain(
         'workbench.editor_header.export',
@@ -1150,7 +1149,7 @@ describe('WorkbenchComponent', () => {
 
       const exportButton = () =>
         fixture.debugElement.query(
-          By.css('.workbench__editor-header-actions .btn-primary'),
+          By.css('.workbench__editor-header-actions .btn-next'),
         );
       expect(component.selectedBundleHeader?.name).toBe('a.wav');
       expect(exportButton()).toBeNull();
@@ -1183,7 +1182,7 @@ describe('WorkbenchComponent', () => {
       );
       expect(actions).toBeTruthy();
       expect(actions.nativeElement.textContent).toContain('g.export recording');
-      expect(actions.query(By.css('.btn-primary'))).toBeNull();
+      expect(actions.query(By.css('.btn-next'))).toBeNull();
     });
 
     it('stays available while the file has no audio, exporting from the transcript', async () => {
@@ -1193,7 +1192,7 @@ describe('WorkbenchComponent', () => {
       const { openModalRef } = exportStubs({ sampleRate: 16000 });
 
       const button = fixture.debugElement.query(
-        By.css('.workbench__editor-header-actions .btn-primary'),
+        By.css('.workbench__editor-header-actions .btn-next'),
       );
       expect(button.nativeElement.disabled).toBe(false);
 
@@ -1238,7 +1237,7 @@ describe('WorkbenchComponent', () => {
         fixture.debugElement.query(By.css('.workbench__editor-tabs')),
       ).toBeNull();
       expect(
-        fixture.debugElement.query(By.css('.workbench__editor-header')),
+        fixture.debugElement.query(By.css('.workbench__editor-header-actions')),
       ).toBeNull();
       // The editor host stays, so the ViewChild survives the empty state.
       expect(component.showEditor).toBeDefined();
@@ -1563,16 +1562,27 @@ describe('WorkbenchComponent', () => {
       fixture.detectChanges();
 
       expect(component.sessionReady).toBe(false);
-      const header = fixture.debugElement.query(
-        By.css('.workbench__empty .workbench__editor-header'),
-      );
-      expect(header.nativeElement.textContent).toContain('restored.wav');
-      expect(header.nativeElement.textContent).toContain(
-        'workbench.editor_header.audio_not_attached',
-      );
+      const slots = TestBed.inject(HeaderSlotService);
+      const tpl = slots.center();
+      expect(tpl).toBeTruthy();
+      const view = tpl!.createEmbeddedView({});
+      view.detectChanges();
+      const text = view.rootNodes
+        .map((n: Node) => n.textContent ?? '')
+        .join(' ');
+      expect(text).toContain('restored.wav');
+      expect(text).toContain('workbench.editor_header.audio_not_attached');
       expect(
-        header.query(By.css('.workbench__editor-header-actions .btn-primary')),
+        fixture.debugElement.query(
+          By.css(
+            '.workbench__empty .workbench__editor-header-actions .btn-next',
+          ),
+        ),
       ).toBeTruthy();
+      view.destroy();
+
+      fixture.destroy();
+      expect(slots.center()).toBeNull();
     });
 
     it("names a restored file whose audio isn't attached, without media details", () => {

@@ -592,6 +592,10 @@
       "export_unavailable": "Ancora niente da esportare: questo file non ha una trascrizione e il suo audio non è allegato.",
       "audio_not_attached": "audio non allegato"
     },
+    "data_selector": {
+      "label": "Scegli file",
+      "position": "{{index}} di {{total}}"
+    },
     "dropzone": {
       "already_loaded": "Già nell'elenco, non aggiunto di nuovo: {{names}}",
       "transcript_no_recording": "Nessuna registrazione chiamata “{{name}}”. Trascina la trascrizione insieme al suo file audio, oppure chiamala come la registrazione.",
