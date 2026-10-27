@@ -38,7 +38,7 @@
   @if (settingsService.appSettings.tratt.oldVersion?.url) {
     <div class="row">
       <div class="col">
-        <div class="alert mb-0 py-1" style="font-size: 0.8rem">
+        <div class="alert alert-info mb-0 py-1 small">
           <i class="fa-solid fa-circle-info"></i>
           {{ 'login.old version.notice' | transloco }}
           <a [href]="settingsService.appSettings.tratt.oldVersion?.url">{{
@@ -196,9 +196,7 @@
                   !translation().active &&
                   !translation().error
                 ) {
-                  <div
-                    class="transcription-progress mt-3 p-3 border rounded bg-light"
-                  >
+                  <div class="transcription-progress tratt-panel mt-3">
                     @if (transcription().phase === 'downloading') {
                       <div>
                         <strong>{{
@@ -270,7 +268,7 @@
                         ) {
                           <div class="progress mt-1" style="height: 18px">
                             <div
-                              class="progress-bar bg-info"
+                              class="progress-bar"
                               role="progressbar"
                               [style.width]="
                                 (transcription().downloadLoaded /
@@ -331,7 +329,7 @@
                         @if (transcription().audioDurationS > 0) {
                           <div class="progress mt-2" style="height: 14px">
                             <div
-                              class="progress-bar bg-success"
+                              class="progress-bar"
                               role="progressbar"
                               [style.width]="
                                 (transcription().segmentEndS /
@@ -405,9 +403,7 @@
                   translation().error ||
                   translation().phase === 'finalizing'
                 ) {
-                  <div
-                    class="translation-progress mt-3 p-3 border rounded bg-light"
-                  >
+                  <div class="translation-progress tratt-panel mt-3">
                     @if (translation().phase === 'downloading') {
                       <div>
                         <strong>{{
@@ -495,7 +491,7 @@
                         @if (translation().segmentTotal > 0) {
                           <div class="progress mt-2" style="height: 14px">
                             <div
-                              class="progress-bar bg-success"
+                              class="progress-bar"
                               role="progressbar"
                               [style.width]="
                                 (translation().segmentIndex /
@@ -546,7 +542,7 @@
                       (dropzone?.statistics?.progress ?? 0) > 0 ||
                       (dropzone?.statistics?.waiting ?? 0) > 0
                     "
-                    class="btn btn-raised btn-primary"
+                    class="btn btn-next-lg"
                     id="offline-submit"
                     type="submit"
                   >

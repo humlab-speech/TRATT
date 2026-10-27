@@ -43,6 +43,32 @@ describe('login template (Språkbanken profile, /local)', () => {
       expect(scss).toContain('padding: 3rem');
     });
 
+    it('uses token panels, theme progress bars and the next-step button', () => {
+      expect(html).toContain('class="transcription-progress tratt-panel mt-3"');
+      expect(html).toContain('class="translation-progress tratt-panel mt-3"');
+      expect(html).not.toContain('bg-light');
+      expect(html).not.toContain('bg-success');
+      expect(html).not.toContain('bg-info');
+      expect(html).toContain('class="btn btn-next-lg"');
+      expect(html).toContain('btn btn-raised btn-danger offline-delete-btn');
+      expect(html).toContain('class="alert alert-info mb-0 py-1 small"');
+      expect(html).not.toContain('font-size: 0.8rem');
+    });
+
+    it('recording levels use tokens (yellow in the middle)', () => {
+      const rp = readFileSync(
+        join(
+          __dirname,
+          '../../component/recording-panel/recording-panel.component.scss',
+        ),
+        'utf8',
+      );
+      expect(rp).toMatch(/--green \{\s*color: var\(--tratt-success\)/);
+      expect(rp).toMatch(/--orange \{\s*color: var\(--tratt-warning\)/);
+      expect(rp).toMatch(/--red \{\s*color: var\(--tratt-danger\)/);
+      expect(rp).not.toMatch(/#[0-9a-f]{6}/i);
+    });
+
     it.each(locales)('has hero texts in %s', (l) => {
       const json = JSON.parse(readFileSync(join(i18nDir, `${l}.json`), 'utf8'));
       expect(typeof json.login.hero.part_of).toBe('string');
