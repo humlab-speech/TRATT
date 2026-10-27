@@ -31,8 +31,6 @@ export interface WorkerDiarizeMessage {
   audioDurationS: number;
   dtype?: DiarizationDType;
   numSpeakers?: number;
-  minSpeakers?: number;
-  maxSpeakers?: number;
   mergeGapS?: number;
   minTurnS?: number;
   minConfidence?: number;
@@ -86,8 +84,6 @@ addEventListener(
       audioDurationS,
       dtype,
       numSpeakers,
-      minSpeakers,
-      maxSpeakers,
       mergeGapS,
       minTurnS,
       minConfidence,
@@ -218,6 +214,7 @@ addEventListener(
         mergeGapS,
         minTurnS,
         minConfidence,
+        numSpeakers,
       });
 
       console.info('[octra:pyannote-worker] normalized turns', {

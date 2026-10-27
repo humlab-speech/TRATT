@@ -38,7 +38,7 @@ enhets text under.
    öppnas sedan med just den enhetens ljud och text.
 2. **Tabb** spelar och pausar. **Esc** stoppar. **Skift + Backsteg** hoppar
    tillbaka dit uppspelningen senast startade. **Skift + Tabb** stegar tillbaka
-   ett par sekunder så att du kan höra de sista orden igen. Att spela en enhet i
+   en halv sekund så att du kan höra de sista orden igen. Att spela en enhet i
    ungefär 0,2 s markerar också dess transkription som
    [verifierad](checking-your-work.md#verified-transcriptions).
 3. Skriv. Använd markörer för allt som inte är ord.

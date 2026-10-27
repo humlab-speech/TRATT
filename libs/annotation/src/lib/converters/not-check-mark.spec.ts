@@ -29,10 +29,10 @@ describe('not-check mark helpers', () => {
     });
   });
 
-  it('treats unmarked text as verified', () => {
+  it('treats unmarked text as non-verified (conservative default)', () => {
     expect(stripNotCheckMark('hello')).toEqual({
       text: 'hello',
-      verified: true,
+      verified: false,
     });
   });
 

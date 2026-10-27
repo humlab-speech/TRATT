@@ -36,7 +36,7 @@ lines with each unit's text underneath.
 1. **Hover** the unit you want and press **Enter**. The transcription then window opens
    with just that unit's audio and text.
 2. **Tab** plays and pauses. **Esc** stops. **Shift + Backspace** jumps back to
-   where playback last started. The keys **Shift + Tab** steps back a couple of seconds so
+   where playback last started. The keys **Shift + Tab** steps back half a second so
    you can re-hear the last words. Playing a unit for about 0.2 s also marks its
    transcription as [verified](checking-your-work.md#verified-transcriptions).
 3. Type. Use markers for anything that is not a word.

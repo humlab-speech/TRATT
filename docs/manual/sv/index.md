@@ -84,7 +84,7 @@ inspelning i webbläsaren, talarhantering eller dokumentexport, och den beskrive
 ett serverstött läge som Tratt inte kör. Om du har läst den, börja med
 [Från OCTRA-manualen](coming-from-octra.md).
 
-Manualen beskriver Tratt 2.4.x.
+Manualen beskriver Tratt 3.2.x.
 
 > Gränssnittet i Tratt är översatt till svenska, men inte fullständigt. Där en
 > knapp fortfarande visas på engelska anger manualen den engelska texten, så att

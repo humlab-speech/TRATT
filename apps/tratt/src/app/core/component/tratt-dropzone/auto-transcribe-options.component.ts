@@ -695,6 +695,7 @@ export class AutoTranscribeOptionsComponent implements OnInit {
     } catch {
       this.hasWebGpu.set(false);
     }
+    this.ensureRunnableModelSelection();
   }
 
   onLanguageChange(): void {
@@ -714,6 +715,34 @@ export class AutoTranscribeOptionsComponent implements OnInit {
       newModels.find((m) => m.key === defaultKey)!
     ).modelId;
     this.emitChange();
+  }
+
+  /**
+   * True when `model` can actually run on this browser: not CPU-unsupported,
+   * and not WebGPU-required on a machine without WebGPU.
+   */
+  private isModelRunnable(model: KbWhisperModel): boolean {
+    return (
+      !model.unsupportedReason && (!model.requiresWebGpu || this.hasWebGpu())
+    );
+  }
+
+  /**
+   * After WebGPU detection resolves, downgrade the selected model to a
+   * runnable one when the preselect (medium for sv/no/fi/nn) or a saved
+   * choice needs WebGPU the browser does not have. Never upgrades: an
+   * explicit runnable choice is left alone.
+   */
+  private ensureRunnableModelSelection(): void {
+    const selected = this.models.find((m) => m.modelId === this.selectedModelId);
+    if (selected && this.isModelRunnable(selected)) {
+      return;
+    }
+    const fallback = this.models.find((m) => this.isModelRunnable(m));
+    if (fallback) {
+      this.selectedModelId = fallback.modelId;
+      this.emitChange();
+    }
   }
 
   get numSpeakersValue(): number | '' {

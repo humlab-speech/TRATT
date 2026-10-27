@@ -83,4 +83,4 @@ recording, speaker handling or document export, and it describes a server-backed
 mode that Tratt does not run. If you have been reading it, start with
 [Coming from the OCTRA manual](coming-from-octra.md).
 
-This manual documents Tratt 2.4.x.
+This manual documents Tratt 3.2.x.

@@ -413,8 +413,8 @@
           "webgpu": "Small (~290 MB) — 2x faster but less accurate than our reference model (Turbo)"
         },
         "openai-large-v3": {
-          "wasm": "Large v3 (~3.1 GB) — Most accurate, needs WebGPU",
-          "webgpu": "Large v3 (~3.1 GB) — 2x slower but often more accurate than our reference model (Turbo)"
+          "wasm": "Large v3 (~1.2 GB) — Most accurate, needs WebGPU",
+          "webgpu": "Large v3 (~1.2 GB) — 2x slower but often more accurate than our reference model (Turbo)"
         },
         "openai-large-v3-turbo": {
           "wasm": "Large v3 Turbo (~700 MB) — Fast and accurate, needs WebGPU",

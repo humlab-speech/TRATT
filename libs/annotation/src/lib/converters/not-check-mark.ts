@@ -4,11 +4,11 @@
  *
  * TRATT's own AnnotJSON stores `verified` as a field, but the time-aligned
  * exchange formats (SRT, WebVTT, ELAN, Praat, CTM, BAS Partitur, Whisper
- * JSON) have no such field. To keep the verification state across an
- * export/import round trip, export appends this mark to the END of every
- * non-verified transcription's text, and import treats a trailing mark as
- * "non-verified" (stripping it from the text) and unmarked text as
- * "verified".
+ * JSON) have no such field. Export appends this mark to the END of every
+ * non-verified transcription's text so external consumers can see which
+ * lines were not yet verified. On import the mark is stripped and every
+ * segment is reported as non-verified: the mark only ever proves
+ * non-verification, never verification.
  */
 export const NOT_CHECK_MARK = '\u237B';
 
@@ -25,8 +25,11 @@ export function appendNotCheckMark(text: string, verified: boolean): string {
 
 /**
  * Strips a trailing not-check mark from a transcription read from a file.
- * The returned `verified` mirrors the mark: marked text is non-verified,
- * unmarked text counts as verified.
+ *
+ * The returned `verified` is always `false`: the mark only proves
+ * non-verification, and its absence (legacy or third-party files) is not
+ * proof that a human verified the segment. Verification therefore does not
+ * survive a round trip through these lossy time-aligned formats.
  */
 export function stripNotCheckMark(text: string): {
   text: string;
@@ -39,5 +42,5 @@ export function stripNotCheckMark(text: string): {
       verified: false,
     };
   }
-  return { text: trimmed, verified: true };
+  return { text: trimmed, verified: false };
 }

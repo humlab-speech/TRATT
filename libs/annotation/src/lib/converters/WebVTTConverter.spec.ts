@@ -308,7 +308,8 @@ describe('WebVTTConverter — not-check mark round trip', () => {
     const r = c.import(vttFile(vtt), audio as any);
     expect(r.error).toBe('');
     const items = r.annotjson!.levels[0].items as OSegment[];
-    expect(items.map((i) => i.verified)).toEqual([false, true]);
+    // Unmarked text is conservatively treated as non-verified on import.
+    expect(items.map((i) => i.verified)).toEqual([false, false]);
     expect(items[0].labels[0].value).toBe('Hello');
   });
 });

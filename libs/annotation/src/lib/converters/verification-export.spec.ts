@@ -113,7 +113,7 @@ describe('verification mark in time-aligned exports (serialize → export)', () 
     assertMarked(result.file!.content as string);
   });
 
-  it('round-trips through SRT: verified state survives export and import', () => {
+  it('round-trips through SRT: verification is conservatively reset to unverified on import', () => {
     const exported = new SRTConverter().export(
       serializedAnnotation(),
       audio,
@@ -130,7 +130,7 @@ describe('verification mark in time-aligned exports (serialize → export)', () 
     );
     expect(reimported.error).toBe('');
     const items = reimported.annotjson!.levels[0].items;
-    expect(items.map((item) => item.verified)).toEqual([false, true]);
+    expect(items.map((item) => item.verified)).toEqual([false, false]);
     expect(items[0].labels[0].value).toBe('Not listened');
   });
 });

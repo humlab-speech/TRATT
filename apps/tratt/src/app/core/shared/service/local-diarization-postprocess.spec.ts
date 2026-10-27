@@ -66,4 +66,34 @@ describe('normalizePyannoteSpeakerTurns', () => {
       { startS: 2.2, endS: 3, speakerId: '0' },
     ]);
   });
+
+  it('caps distinct speakers to numSpeakers, folding the shortest away', () => {
+    const segments: PyannoteSpeakerSegment[] = [
+      { id: 1, start: 0, end: 4 },
+      { id: 2, start: 5, end: 9 },
+      { id: 3, start: 10, end: 10.5 },
+    ];
+
+    expect(
+      normalizePyannoteSpeakerTurns(segments, { numSpeakers: 2 }),
+    ).toEqual([
+      { startS: 0, endS: 4, speakerId: '0' },
+      { startS: 5, endS: 9, speakerId: '1' },
+      { startS: 10, endS: 10.5, speakerId: '1' },
+    ]);
+  });
+
+  it('leaves speakers alone when numSpeakers is not set', () => {
+    const segments: PyannoteSpeakerSegment[] = [
+      { id: 1, start: 0, end: 1 },
+      { id: 2, start: 2, end: 3 },
+      { id: 3, start: 4, end: 5 },
+    ];
+
+    expect(normalizePyannoteSpeakerTurns(segments)).toEqual([
+      { startS: 0, endS: 1, speakerId: '0' },
+      { startS: 2, endS: 3, speakerId: '1' },
+      { startS: 4, endS: 5, speakerId: '2' },
+    ]);
+  });
 });
