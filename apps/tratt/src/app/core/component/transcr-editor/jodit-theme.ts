@@ -9,7 +9,7 @@ export function currentJoditTheme(): JoditThemeName {
 
 /** Minimal shape of a Jodit instance used here. */
 export interface ThemableJodit {
-  options: { theme?: string };
+  options?: { theme?: string };
   container?: HTMLElement;
 }
 
@@ -19,7 +19,8 @@ export function applyJoditTheme(
   theme: JoditThemeName = currentJoditTheme(),
 ): void {
   if (!jodit) return;
-  jodit.options.theme = theme;
+  // options can be unset while afterInit is still running
+  if (jodit.options) jodit.options.theme = theme;
   jodit.container?.classList.toggle('jodit_theme_dark', theme === 'dark');
   jodit.container?.classList.toggle('jodit_theme_default', theme !== 'dark');
 }

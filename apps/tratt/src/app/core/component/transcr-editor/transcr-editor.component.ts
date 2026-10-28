@@ -54,7 +54,11 @@ import { ShortcutService } from '../../shared/service/shortcut.service';
 import { AnnotationStoreService } from '../../store/login-mode/annotation/annotation.store.service';
 import { DefaultComponent } from '../default.component';
 import { TranscrEditorConfig } from './config';
-import { applyJoditTheme, currentJoditTheme } from './jodit-theme';
+import {
+  applyJoditTheme,
+  currentJoditTheme,
+  ThemableJodit,
+} from './jodit-theme';
 import { ValidationPopoverComponent } from './validation-popover/validation-popover.component';
 
 type TranscrEditorMarker = TrattGuidelines['markers'][number];
@@ -1713,11 +1717,11 @@ export class TranscrEditorComponent
     }
   }
 
-  onAfterInit = () => {
-    applyJoditTheme(this.joditComponent?.jodit);
+  onAfterInit = (instance?: ThemableJodit) => {
+    applyJoditTheme(instance ?? this.joditComponent?.jodit);
     this.stopThemeObserver?.();
     this.stopThemeObserver = observeTheme(() =>
-      applyJoditTheme(this.joditComponent?.jodit),
+      applyJoditTheme(this.joditComponent?.jodit ?? instance),
     );
     this.subscriptionManager.removeByTag('initialization');
     this.subscribe(
