@@ -13,7 +13,7 @@ import { TranslocoPipe } from '@jsverse/transloco';
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <span class="tratt-logo__name">Tratt</span>
-    <img class="tratt-logo__mark" src="assets/img/tratt/tratt-mark.svg" alt="" width="44" height="37" />
+    <img class="tratt-logo__mark" src="assets/img/tratt/tratt-mark.svg" alt="" width="44" height="35" />
     @if (tagline()) {
       <span class="tratt-logo__tagline">{{ 'branding.tagline' | transloco }}</span>
     }
