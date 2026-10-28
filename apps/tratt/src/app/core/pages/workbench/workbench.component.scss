@@ -135,6 +135,13 @@
   color: var(--tratt-text-muted);
 }
 
+.workbench__export {
+  // Compact `.btn-next-lg`: keeps the large-text size (brand-orange contrast),
+  // trims the padding to fit the pane bar.
+  --bs-btn-padding-y: 0.3rem;
+  --bs-btn-padding-x: 0.9rem;
+}
+
 .workbench__queue-run {
   width: 100%;
   margin-top: 0.25rem;
