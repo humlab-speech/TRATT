@@ -356,6 +356,20 @@ I just want to let you know, that the OCTRA server is currently offline.
   // distinctly-named methods (cancelTranscription/cancelTranslation) because
   // login.component.spec.ts's characterization suite probes them directly.
   // See task-2-report.md for the full reasoning.
+  override ngOnDestroy(): void {
+    // Leaving this page mid-run must not leak the pipeline: cancel the run,
+    // drop the subscription, and return the store to idle so a stale
+    // `active`/`phase` never re-renders a spinner when the user returns.
+    this._clearElapsedInterval();
+    this._clearTranslationElapsed();
+    this.pipelineRunnerService.cancel();
+    this._pipelineSub?.unsubscribe();
+    this._pipelineSub = null;
+    this.store.dispatch(PipelineActions.transcriptionCancelled());
+    this.store.dispatch(PipelineActions.translationCancelled());
+    super.ngOnDestroy();
+  }
+
   cancelTranslation(): void {
     this._clearTranslationElapsed();
     this.pipelineRunnerService.cancel();

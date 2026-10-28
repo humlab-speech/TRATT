@@ -1021,6 +1021,27 @@ describe('LoginComponent (pipeline runner characterization)', () => {
       expect(component.transcription().phase).toBe('idle');
     });
 
+    it('ngOnDestroy() cancels an in-flight run and resets the store to idle', () => {
+      const dropzone = makeDropzoneStub({
+        transcribeOptions: makeTranscriptionOptions(),
+        hasAudio: true,
+      });
+      component.dropzone = dropzone as any;
+      transcriptionServiceMock.transcribe.mockReturnValue(
+        new Subject<TranscriptionEvent>(),
+      );
+      component.onOfflineSubmit(false);
+
+      component.ngOnDestroy();
+
+      expect(transcriptionServiceMock.cancel).toHaveBeenCalledTimes(1);
+      expect(diarizationServiceMock.cancel).toHaveBeenCalledTimes(1);
+      expect(translationServiceMock.cancel).not.toHaveBeenCalled();
+      expect(component.transcription().active).toBe(false);
+      expect(component.transcription().phase).toBe('idle');
+      expect(component.translation().phase).toBe('idle');
+    });
+
     it('cancelTranslation() cancels ONLY the translation service (not transcription, not diarization)', () => {
       const dropzone = makeDropzoneStub({
         translateOptions: { sourceLanguage: 'en', targetLanguage: 'sv' },
