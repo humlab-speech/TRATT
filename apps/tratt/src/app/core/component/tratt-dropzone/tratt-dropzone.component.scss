@@ -39,6 +39,7 @@
 .dropzone-placeholder {
   color: var(--tratt-text-primary);
   font-weight: 500;
+  font-size: clamp(0.8rem, 11cqh, 1rem);
 }
 
 .progress {

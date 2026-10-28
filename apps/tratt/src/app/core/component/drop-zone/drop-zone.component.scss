@@ -2,7 +2,9 @@
   border: 2px dashed var(--tratt-border-control);
   border-radius: 0.5rem;
   background-color: var(--tratt-surface-page);
-  padding: 20px;
+  // ponytail: size container so icon/text scale with the (fixed) height via cqh.
+  container-type: size;
+  padding: clamp(8px, 8cqh, 20px);
   min-height: 100px;
   text-align: center;
   width: 100%;
@@ -49,5 +51,5 @@
 
 .dropzone .dragndrop {
   color: var(--tratt-next);
-  font-size: 2.75rem;
+  font-size: clamp(1.5rem, 30cqh, 2.75rem);
 }
