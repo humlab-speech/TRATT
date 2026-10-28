@@ -1,4 +1,4 @@
-// "Next step" (orange). Small/normal size uses the strong variant (5.09:1).
+// "Next step" (orange), strong variant (5.09:1). Disabled = Bootstrap's default dimming.
 .btn-next,
 .btn-next-lg {
   --bs-btn-color: var(--tratt-on-color);
@@ -17,15 +17,9 @@
   --bs-btn-font-weight: 700;
 }
 
-// Large CTA: pure brand orange is allowed because ≥ 1.1875rem bold is WCAG
-// "large text" (3:1 suffices; white on the brand orange is 3.43:1).
+// Large CTA: same strong orange as `.btn-next` (one orange, same dimming when
+// disabled), only bigger.
 .btn-next-lg {
-  --bs-btn-bg: var(--sb-orange);
-  --bs-btn-border-color: var(--sb-orange);
-  --bs-btn-hover-bg: var(--sb-orange-strong);
-  --bs-btn-hover-border-color: var(--sb-orange-strong);
-  --bs-btn-disabled-bg: var(--sb-orange);
-  --bs-btn-disabled-border-color: var(--sb-orange);
   --bs-btn-font-size: 1.1875rem;
   --bs-btn-padding-y: 0.7rem;
   --bs-btn-padding-x: 1.25rem;
