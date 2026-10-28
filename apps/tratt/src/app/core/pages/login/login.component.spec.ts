@@ -412,6 +412,10 @@ describe('LoginComponent (pipeline runner characterization)', () => {
       expect(translationServiceMock.translate).not.toHaveBeenCalled();
       expect(component.diarizationWarning()).toBeNull();
       expect(component.transcription().active).toBe(false);
+      // Regression: a completed run must return the phase to idle, so
+      // returning to this page later never re-renders the "preparing
+      // editor…" spinner.
+      expect(component.transcription().phase).toBe('idle');
       expect(dropzone.setAnnotationFromAnnotJson).toHaveBeenCalledWith(
         annotJson,
       );

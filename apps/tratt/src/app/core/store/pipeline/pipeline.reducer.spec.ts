@@ -367,15 +367,30 @@ describe('pipeline.reducer', () => {
   });
 
   describe('result', () => {
-    it('writes diarizationWarning and does not touch transcription/translation', () => {
-      const before = freshTranslationActive();
+    it('writes diarizationWarning and returns both phases to idle', () => {
+      const before: PipelineState = {
+        ...initialState,
+        transcription: {
+          ...initialState.transcription,
+          phase: 'finalizing',
+        },
+        translation: {
+          ...initialState.translation,
+          phase: 'finalizing',
+        },
+      };
       const state = reducer(
         before,
         PipelineActions.result({ diarizationWarning: 'warned' }),
       );
       expect(state.diarizationWarning).toBe('warned');
-      expect(state.transcription).toEqual(before.transcription);
-      expect(state.translation).toEqual(before.translation);
+      expect(state.transcription.phase).toBe('idle');
+      expect(state.translation.phase).toBe('idle');
+      // Only the resting phase is restored; everything else is untouched.
+      expect(state.transcription.active).toBe(false);
+      expect(state.translation.active).toBe(false);
+      expect(state.transcription.error).toBe(before.transcription.error);
+      expect(state.translation.error).toBe(before.translation.error);
     });
   });
 

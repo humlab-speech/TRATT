@@ -267,11 +267,22 @@ export const reducer = createReducer(
     }),
   ),
 
+  // The terminal result also returns both phases to 'idle'. The old inline
+  // component code never needed this — its progress fields died with the
+  // component on navigation — but this slice lives in the store, which
+  // survives route changes: a completed run that left `phase: 'finalizing'`
+  // behind re-rendered as a forever-spinner whenever the user came back to
+  // the local page ("Transcription complete — preparing editor…" with no
+  // pipeline running). By the time `result` fires, `active` is already
+  // false for both stages (finalized / inner translation result), so only
+  // the resting phase is restored here.
   on(
     PipelineActions.result,
     (state, { diarizationWarning }): PipelineState => ({
       ...state,
       diarizationWarning,
+      transcription: { ...state.transcription, phase: 'idle' },
+      translation: { ...state.translation, phase: 'idle' },
     }),
   ),
 
