@@ -49,7 +49,9 @@
   }
 
   @if (localOnly) {
-    <tratt-umu-logo class="local-umu-logo" variant="centered" />
+    <ng-template trattHeaderCenter>
+      <tratt-umu-logo class="local-umu-logo" variant="centered" />
+    </ng-template>
   }
 
   @if (compatibleBrowser !== false) {
