@@ -21,7 +21,7 @@ import {
 import { toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
-import { UmuLogoComponent } from '../../component/umu-logo/umu-logo.component';
+import { HumlabLogoComponent } from '../../component/humlab-logo/humlab-logo.component';
 import { NgbModalRef, NgbNavModule } from '@ng-bootstrap/ng-bootstrap';
 import { Store } from '@ngrx/store';
 import {
@@ -130,7 +130,7 @@ import { describePipeline } from './pipeline-summary';
   styleUrls: ['./workbench.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
-    UmuLogoComponent,
+    HumlabLogoComponent,
     TrattDropzoneComponent,
     BundleListComponent,
     RecordingPanelComponent,
