@@ -50,7 +50,6 @@ export class HumlabLogoComponent {
     const parts = ['humlab_logo'];
     if (this.variant() === 'left') parts.push('left');
     if (negative) parts.push('neg');
-    // The negative SVGs export with fill="none" (invisible), so dark mode uses PNGs.
-    return `assets/img/humlab/${[...parts, lang].join('_')}.${negative ? 'png' : 'svg'}`;
+    return `assets/img/humlab/${[...parts, lang].join('_')}.svg`;
   };
 }
