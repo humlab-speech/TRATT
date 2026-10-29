@@ -10,11 +10,10 @@ import { TranslocoPipe } from '@jsverse/transloco';
 })
 export class TrattCreditsComponent {
   readonly funders: { name: string; url?: string }[] = [
-    { name: 'VISP — Visible Speech' },
+    { name: 'Visible Speech', url: "https://visp.humlab.umu.se/" },
+    { name: 'Humlab, Umeå University', url: 'https://www.umu.se/en/humlab/' },
     { name: 'SweCLARIN', url: 'https://www.sweclarin.se/' },
-    { name: 'Humlab – Umeå University', url: 'https://www.umu.se/en/humlab/' },
     { name: 'IPS LMU Munich', url: 'http://www.en.phonetik.uni-muenchen.de/' },
-    { name: 'BAS', url: 'https://www.bas.uni-muenchen.de/Bas/BasHomeeng.html' },
     { name: 'Clarin-D', url: 'https://www.clarin-d.net/en/' },
   ];
   readonly modelGroups: { name: string; url: string }[] = [
