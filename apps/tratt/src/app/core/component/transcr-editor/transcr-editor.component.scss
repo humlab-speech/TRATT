@@ -43,7 +43,7 @@ tratt-transcr-editor .transcr-editor .marker-icon {
   margin-right: 3px;
 }
 
-tratt-transcr-editor .btn-icon {
+tratt-transcr-editor img.btn-icon {
   height: 16px;
 }
 
@@ -82,9 +82,9 @@ tratt-transcr-editor ngx-jodit .jodit-workplace {
 }
 
 .jodit-toolbar__box .jodit-ui-group.jodit-ui-group_size_middle {
-  background: var(--tratt-surface-background) !important;
+  background: var(--tratt-surface-subtle) !important;
 }
 
 .jodit-toolbar__box .jodit-toolbar-content {
-  border: 1px solid gray !important;
+  border: 1px solid var(--tratt-border-control) !important;
 }

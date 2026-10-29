@@ -4,8 +4,10 @@ h4 {
   padding: 10px;
 }
 
+// Page surface; the work card and the footer sit on the subtle surface so they
+// read as separate areas (the card used to vanish into an identical page).
 :host {
-  background-color: var(--tratt-surface-background);
+  background-color: var(--tratt-surface-page);
 }
 
 .login-submit,
@@ -16,11 +18,11 @@ h4 {
 
 /*noinspection ALL*/
 .ng-touched .ng-invalid {
-  border-bottom: 2px solid red;
+  border-bottom: 2px solid var(--tratt-danger);
 }
 
 #login-disabled {
-  border: 1px solid gray;
+  border: 1px solid var(--tratt-border-control);
   padding: 10px;
   text-align: center;
 }
@@ -40,20 +42,6 @@ h4 {
   }
 }
 
-footer {
-  padding-top: 40px;
-  background: var(--tratt-surface-background);
-}
-
-footer .logo {
-  height: 40px;
-  margin-bottom: 10px;
-}
-
-.section.order-4 footer {
-  padding-top: 4px;
-}
-
 :host {
   display: flex;
   flex-direction: column;
@@ -70,9 +58,130 @@ h4,
 }
 
 .login-card {
-  padding: 50px;
+  max-inline-size: 32rem;
+  margin: 3rem auto;
+  padding: 2rem;
+  border: 0;
+  border-radius: 0.5rem;
+  background: var(--tratt-surface-subtle);
 }
 
 .feature {
   text-align: center;
+}
+
+// /local layout. The work card (upload / record) is the point of the page, so
+// it sits next to the intro on wide screens instead of below it, and the long
+// "how it works" notes move under the intro. Below `lg` everything stacks as
+// intro → work card → notes, so the card is never more than one intro away.
+.local-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+  grid-template-areas:
+    'hero card'
+    'details card';
+  grid-template-rows: auto 1fr;
+  column-gap: clamp(2rem, 5vw, 4.5rem);
+  align-items: start;
+  max-inline-size: 75rem;
+  margin: 0 auto;
+  padding: 2.5rem 1.5rem 3rem;
+}
+.local-humlab-logo {
+  height: 3.5rem;
+  width: fit-content;
+}
+.local-layout--hero-only {
+  display: block;
+}
+@media (max-width: 991.98px) {
+  .local-layout {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      'hero'
+      'card'
+      'details';
+    grid-template-rows: none;
+    padding: 1.5rem 1rem 2rem;
+  }
+  .local-hero {
+    margin-bottom: 1.5rem;
+  }
+}
+
+.local-hero {
+  grid-area: hero;
+}
+.local-hero__context {
+  font-weight: 500;
+  font-size: 0.875rem;
+  color: var(--tratt-text-muted);
+  margin-bottom: 0.75rem;
+}
+.local-hero__title {
+  // The column is narrower than the old full-width hero, so the size follows
+  // the viewport instead of the global h1 size.
+  font-size: clamp(2rem, 1.1rem + 1.7vw, 2.75rem);
+  line-height: 1.1;
+  margin-bottom: 1rem;
+}
+.local-hero__lead {
+  font-size: 1rem;
+  max-inline-size: 46rem;
+}
+.local-hero__privacy {
+  display: flex;
+  gap: 0.55rem;
+  align-items: center;
+  font-size: 0.9375rem;
+}
+.local-hero__privacy i {
+  color: var(--tratt-next);
+}
+
+.local-main {
+  grid-area: card;
+  min-inline-size: 0;
+}
+.local-details {
+  grid-area: details;
+  margin-top: 1.75rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--tratt-border);
+  font-size: 0.9375rem;
+  .tratt-prose {
+    font-size: inherit;
+  }
+}
+@media (max-width: 991.98px) {
+  .local-details {
+    margin-top: 2rem;
+  }
+}
+
+.local-card {
+  max-inline-size: none;
+  margin: 0;
+  padding: 1.5rem;
+  border: 1px solid var(--tratt-border);
+  border-radius: 0.5rem;
+  background: var(--tratt-surface-subtle);
+  .card-body {
+    padding: 0;
+  }
+  // The "continue your previous session" notice is a prompt for the drop zone
+  // right below it, not a page section: keep it tight.
+  .alert-warning {
+    padding: 0.6rem 0.85rem;
+    margin-bottom: 1rem;
+    font-size: 0.9375rem;
+  }
+}
+
+// Online mode has prose above the tabs and needs the air; /local does not.
+.local-tabs {
+  margin-top: 40px;
+}
+.local-card .local-tabs {
+  margin-top: 0.25rem;
 }

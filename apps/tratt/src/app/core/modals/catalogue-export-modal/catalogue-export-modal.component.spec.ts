@@ -89,6 +89,13 @@ describe('CatalogueExportModalComponent', () => {
     jest.restoreAllMocks();
   });
 
+  it('marks Export as the next-step button', () => {
+    const btn = fixture.debugElement.query(
+      By.css('.catalogue-export__export'),
+    ).nativeElement as HTMLElement;
+    expect(btn.classList).toContain('btn-next');
+  });
+
   it('calls exportBundles with the given bundle ids and checked converters on Export click', () => {
     fixture.debugElement
       .query(By.css('.catalogue-export__export'))

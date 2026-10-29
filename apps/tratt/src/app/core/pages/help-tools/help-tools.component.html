@@ -1,11 +1,11 @@
-<div class="container">
+<div class="tratt-page">
   <h2>Help tools</h2>
   <div class="row">
     <div class="col-md-4 is-table-row">
       <div class="card">
         <div class="card-header">
           <button
-            class="btn btn-success bmd-btn-fab bmd-btn-fab-sm"
+            class="btn btn-next bmd-btn-fab bmd-btn-fab-sm"
             type="button"
           >
             1
@@ -30,7 +30,7 @@
       <div class="card">
         <div class="card-header">
           <button
-            class="btn btn-success bmd-btn-fab bmd-btn-fab-sm"
+            class="btn btn-next bmd-btn-fab bmd-btn-fab-sm"
             type="button"
           >
             2
@@ -55,7 +55,7 @@
       <div class="card">
         <div class="card-header">
           <button
-            class="btn btn-success bmd-btn-fab bmd-btn-fab-sm"
+            class="btn btn-next bmd-btn-fab bmd-btn-fab-sm"
             type="button"
           >
             3
@@ -78,7 +78,7 @@
       <div class="card">
         <div class="card-header">
           <button
-            class="btn btn-success bmd-btn-fab bmd-btn-fab-sm"
+            class="btn btn-next bmd-btn-fab bmd-btn-fab-sm"
             type="button"
           >
             4
@@ -92,8 +92,7 @@
           </p>
           <button
             type="button"
-            class="btn btn-raised text-light w-100"
-            style="background-color: var(--tratt-chrome)"
+            class="btn btn-raised btn-primary w-100"
             (click)="backupLocalData()"
           >
             Backup local data
@@ -115,7 +114,7 @@
       <div class="card">
         <div class="card-header">
           <button
-            class="btn btn-success bmd-btn-fab bmd-btn-fab-sm"
+            class="btn btn-next bmd-btn-fab bmd-btn-fab-sm"
             type="button"
           >
             5
@@ -138,8 +137,7 @@
 
           <button
             [disabled]="!backupFiles || backupFiles.length === 0"
-            class="btn btn-raised text-light w-100"
-            style="background-color: var(--tratt-accent-error)"
+            class="btn btn-danger w-100"
             (click)="importBackup(backupFiles![0])"
           >
             Backup local data

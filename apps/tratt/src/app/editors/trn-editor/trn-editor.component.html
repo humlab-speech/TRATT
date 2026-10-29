@@ -13,7 +13,7 @@
     }"
   >
   </tratt-validation-popover>
-  <table class="table table-bordered bg-white">
+  <table class="table table-bordered bg-body">
     <thead>
       <tr id="table-head">
         <th></th>
@@ -122,13 +122,13 @@
             @if (i === textEditor.selectedSegment) {
               <i
                 class="fa-solid fa-circle"
-                style="color: green; font-size: 10px"
+                style="color: var(--tratt-success); font-size: 0.625rem"
               ></i>
             } @else {
               <i
                 class="fa-solid fa-triangle-exclamation segment-warning"
                 [ngStyle]="{
-                  color: 'red',
+                  color: 'var(--tratt-danger-text)',
                   display:
                     segment.transcription.safeHTML
                       .toString()

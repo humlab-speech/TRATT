@@ -1,6 +1,6 @@
 <div class="modal-content">
   <div class="modal-header">
-    <h4 class="modal-title">About TRATT</h4>
+    <h4 class="modal-title">{{ 'shell.about.title' | transloco }}</h4>
     <button
       type="button"
       class="btn-close"
@@ -15,29 +15,34 @@
     <div id="logos" class="align-items-center">
       <a href="http://www.en.phonetik.uni-muenchen.de/"
         ><img
+          class="tratt-logo-on-light"
           src="assets/img/ipsx60.png"
           alt="Institute of Phonetics and Speech Processing logo"
           style="height: 60px"
       /></a>
       <a href="https://clarin.phonetik.uni-muenchen.de/Bas/BasHomeeng.html"
         ><img
+          class="tratt-logo-on-light"
           src="assets/img/bas.png"
           alt="Bavarian Archive for Speech Signals logo"
           style="height: 60px"
       /></a>
       <a href="https://www.clarin-d.net/en/"
         ><img
+          class="tratt-logo-on-light"
           src="assets/img/clarin-d.png"
           alt="CLARIN-D logo"
           style="height: 60px"
       /></a>
       <a href="https://www.sweclarin.se/" target="_blank"
         ><img
+          class="tratt-logo-on-light"
           src="assets/img/sweclarin_logo.png"
           alt="SweCLARIN logo"
           style="height: 60px"
       /></a>
       <img
+        class="tratt-logo-on-light"
         src="assets/img/visp_slogan_sv.svg"
         alt="VISP — Visible Speech"
         style="height: 60px"
@@ -82,6 +87,15 @@
         <a href="https://github.com/IPS-LMU/octra" target="_blank"
           >Open source project on Github <i class="fa-brands fa-github"></i
         ></a>
+      </li>
+      <li>
+        <a
+          href="https://github.com/humlab-speech/TRATT"
+          target="_blank"
+          rel="noopener"
+          ><i class="fa-brands fa-github" aria-hidden="true"></i>
+          {{ 'shell.about.source_code' | transloco }}</a
+        >
       </li>
       <li>
         <a
@@ -147,6 +161,14 @@
         }
       </ul>
     }
+    <div id="build-information" class="mt-3 small text-muted">
+      <div>
+        <span class="fw-bold">{{ 'shell.about.version' | transloco }}:</span>
+        {{ AppInfo.BUILD.version }}
+      </div>
+      <div>{{ AppInfo.BUILD.timestamp }}</div>
+      <div style="font-size: 0.7rem">{{ AppInfo.BUILD.hash }}</div>
+    </div>
   </div>
   <div class="modal-footer">
     <button

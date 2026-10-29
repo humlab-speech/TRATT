@@ -1,0 +1,24 @@
+<section class="tratt-credits">
+  <div>
+    <h2>{{ 'login.funding support and development' | transloco }}</h2>
+    <ul>
+      @for (f of funders; track f.name) {
+        <li>
+          @if (f.url) {
+            <a [href]="f.url" target="_blank" rel="noopener">{{ f.name }}</a>
+          } @else {
+            {{ f.name }}
+          }
+        </li>
+      }
+    </ul>
+  </div>
+  <div>
+    <h2>{{ 'login.groups that developed the language models' | transloco }}</h2>
+    <ul>
+      @for (g of modelGroups; track g.name) {
+        <li><a [href]="g.url" target="_blank" rel="noopener">{{ g.name }}</a></li>
+      }
+    </ul>
+  </div>
+</section>

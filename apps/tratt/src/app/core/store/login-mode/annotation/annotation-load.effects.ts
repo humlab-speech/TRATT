@@ -64,15 +64,9 @@ import { resolveLocalBundleState } from './local-bundle-collection';
 import { FileInfo } from '@tratt/web-media';
 import mime from 'mime';
 import { FeedBackForm } from '../../../obj/FeedbackForm/FeedBackForm';
+import { isWorkbenchRoute } from '../../../shared/home-link';
 
-/**
- * True when `url` is the `/workbench` route or a sub-path/query/hash of it.
- * Deliberately anchored (not a plain `startsWith('/workbench')` check) so it
- * doesn't also match a hypothetical future route like `/workbench-v2`.
- */
-export function isWorkbenchRoute(url: string): boolean {
-  return /^\/workbench(\/|\?|#|$)/.test(url);
-}
+export { isWorkbenchRoute };
 
 function isLoadRoute(url: string): boolean {
   return /^\/load(\/|\?|#|$)/.test(url);

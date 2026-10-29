@@ -9,6 +9,28 @@
     });
   }
 
+  // Theme: the inline script in <head> has already set data-bs-theme.
+  var themeButton = document.querySelector('.theme-toggle');
+  if (themeButton) {
+    var root = document.documentElement;
+    var sync = function () {
+      themeButton.setAttribute(
+        'aria-pressed',
+        String(root.getAttribute('data-bs-theme') === 'dark'),
+      );
+    };
+    sync();
+    themeButton.addEventListener('click', function () {
+      var next =
+        root.getAttribute('data-bs-theme') === 'dark' ? 'light' : 'dark';
+      root.setAttribute('data-bs-theme', next);
+      try {
+        localStorage.setItem('tratt.manual.theme', next);
+      } catch (e) {}
+      sync();
+    });
+  }
+
   // Filter the page list. Small enough that no search index is needed.
   var filter = document.querySelector('.nav-filter input');
   if (filter) {

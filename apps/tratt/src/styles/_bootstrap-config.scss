@@ -1,0 +1,39 @@
+@use 'palette' as p;
+
+@use 'bootstrap/scss/bootstrap' with (
+  // Filled .btn-primary must carry white text: brand blue gives only 3.47:1,
+  // so Bootstrap's primary is the strong variant (5.09:1). Brand blue itself
+  // is used for borders, focus and checked controls below.
+  $primary: p.$sb-blue-strong,
+  $secondary: p.$grey-600,
+  $success: p.$sb-green,
+  $info: p.$sb-blue,
+  $warning: p.$sb-yellow,
+  $danger: p.$sb-red,
+  $light: p.$grey-50,
+  $dark: p.$grey-900,
+  $body-color: p.$grey-900,
+  $body-secondary-color: p.$grey-600,
+  $border-color: p.$grey-200,
+  $link-color: p.$sb-blue-strong,
+  $font-family-sans-serif: p.$font-ui,
+  $headings-font-weight: 400,
+  $h1-font-size: 2.75rem,
+  $h2-font-size: 1.5rem,
+  $h3-font-size: 1.1875rem,
+  $h4-font-size: 1.0625rem,
+  $input-border-color: p.$grey-400,
+  $form-check-input-border: 1px solid p.$grey-400,
+  $form-check-input-checked-bg-color: p.$sb-blue,
+  $form-check-input-checked-border-color: p.$sb-blue,
+  $focus-ring-color: rgba(p.$sb-blue, 0.4),
+  $progress-bar-bg: p.$sb-orange,
+  $progress-bar-color: p.$grey-900,
+  $body-bg-dark: p.$dark-page,
+  $body-color-dark: p.$dark-text,
+  $body-secondary-color-dark: p.$dark-text-muted,
+  $body-tertiary-bg-dark: p.$dark-subtle,
+  $border-color-dark: p.$dark-border,
+  $link-color-dark: p.$dark-link,
+  $link-hover-color-dark: p.$dark-text
+);

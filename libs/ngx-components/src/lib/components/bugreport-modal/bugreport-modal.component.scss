@@ -7,7 +7,7 @@
 .upload-screenshot {
   width: 150px;
   height: 100px;
-  border: 1px solid #2a4765;
+  border: 1px solid var(--tratt-interactive-text, #187a7f);
   border-radius: 9px;
   padding: 5px;
   text-align: center;
@@ -22,7 +22,7 @@
 }
 
 .upload-screenshot .fa-plus {
-  color: #2a4765;
+  color: var(--tratt-interactive-text, #187a7f);
   margin-top: 30px;
   display: block;
 }
@@ -32,14 +32,14 @@
 }
 
 .upload-screenshot .cross.rounded-circle {
-  background-color: var(--tratt-danger-surface);
+  background-color: var(--sb-red-tint, #f6d3d3);
   font-size: 0.8em;
   width: 22px;
   height: 22px;
   text-align: center;
   vertical-align: middle;
   display: table-cell;
-  border: 1px solid blue;
+  border: 1px solid var(--tratt-interactive, #1e989f);
   padding-top: 1px;
   position: absolute;
   top: 0;

@@ -1,0 +1,50 @@
+.tratt-footer {
+  display: grid;
+  grid-template-columns: 1fr 1.3fr 1fr;
+  gap: 2.5rem;
+  align-items: start;
+  // Full-bleed background, content on the same 75rem container as the page.
+  padding: 2rem max(1.5rem, calc((100% - 75rem) / 2 + 1.5rem)) 2.25rem;
+  background: var(--tratt-surface-subtle);
+  border-top: 1px solid var(--tratt-border);
+
+  a {
+    color: var(--tratt-interactive-text);
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+  }
+}
+.tratt-footer__logo img {
+  display: block;
+  block-size: 1.6rem;
+  inline-size: auto;
+  margin-bottom: 0.9rem;
+}
+.tratt-footer__links {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.35rem;
+}
+.tratt-footer__mid .tratt-prose {
+  font-size: 0.9375rem;
+  margin-bottom: 0.6rem;
+}
+.tratt-footer__inline {
+  display: flex;
+  gap: 1.25rem;
+  margin: 0;
+}
+.tratt-footer__node {
+  justify-self: end;
+}
+@media (max-width: 767.98px) {
+  .tratt-footer {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+  .tratt-footer__node {
+    justify-self: start;
+  }
+}

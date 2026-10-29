@@ -58,13 +58,13 @@
   transition: color 120ms ease-in-out;
 
   &--green {
-    color: #2ecc71;
+    color: var(--tratt-success);
   }
   &--orange {
-    color: #f39c12;
+    color: var(--tratt-warning);
   }
   &--red {
-    color: #e74c3c;
+    color: var(--tratt-danger);
   }
 }
 

@@ -5,7 +5,9 @@
     <tbody>
       @for (rule of compatibilityService.rules; track rule) {
         <tr>
-          <td style="width: 40px; text-align: center">
+          <td
+            [ngClass]="getStateClass(rule)"
+            style="width: 40px; text-align: center">
             <i
               [class]="getStateIcon(rule)"
               [ngStyle]="{ color: getStateColor(rule) }"
@@ -21,11 +23,11 @@
                     ? rule.help + compatibilityService.supportedBrowsers
                     : rule.help
                 "
-                style="color: red"
+                style="color: var(--tratt-danger-text)"
               ></p>
             }
             @if (rule.name === 'cookies') {
-              <p style="color: red">
+              <p style="color: var(--tratt-danger-text)">
                 @if (browserName === 'Chrome') {
                   To use TRATT with this browser please follow the instructions:
                   <ul>

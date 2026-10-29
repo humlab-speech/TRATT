@@ -20,6 +20,7 @@ import { TranslocoService } from '@jsverse/transloco';
 import { TrattAnnotationSegment } from '@tratt/annotation';
 import { TrattGuidelines } from '@tratt/assets';
 import { SampleUnit } from '@tratt/media';
+import { observeTheme } from '@tratt/ngx-components';
 import { TimespanPipe } from '@tratt/ngx-utilities';
 import {
   escapeHtml,
@@ -53,6 +54,11 @@ import { ShortcutService } from '../../shared/service/shortcut.service';
 import { AnnotationStoreService } from '../../store/login-mode/annotation/annotation.store.service';
 import { DefaultComponent } from '../default.component';
 import { TranscrEditorConfig } from './config';
+import {
+  applyJoditTheme,
+  currentJoditTheme,
+  ThemableJodit,
+} from './jodit-theme';
 import { ValidationPopoverComponent } from './validation-popover/validation-popover.component';
 
 type TranscrEditorMarker = TrattGuidelines['markers'][number];
@@ -128,6 +134,7 @@ export class TranscrEditorComponent
   private joditDefaultOptions: JoditConfig = {
     statusbar: false,
   };
+  private stopThemeObserver?: () => void;
 
   size = {
     height: 100,
@@ -438,6 +445,7 @@ export class TranscrEditorComponent
 
       this.joditOptions = {
         ...this.joditDefaultOptions,
+        theme: currentJoditTheme(),
         disablePlugins:
           'add-new-line,image-processor,image-properties,image,video,media,file,resize-cells,select-cells,' +
           'table-keyboard-navigation,table,preview,print,about,drag-and-drop,iframe,indent,inline-popup,' +
@@ -478,8 +486,8 @@ export class TranscrEditorComponent
       const validationError = document.createElement('div');
       validationError.setAttribute('class', 'card error-card');
       validationError.innerHTML = `
-      <div class="card-header" style="padding:5px 10px; font-weight: bold;background-color:var(--tratt-surface-background);">
-      <span style="color:red;">( ! )</span> <span class="error-title"></span></div>
+      <div class="card-header" style="padding:5px 10px; font-weight: bold;background-color:var(--tratt-surface-subtle);">
+      <span style="color:var(--tratt-danger-text);">( ! )</span> <span class="error-title"></span></div>
       <div class="card-body" style="padding:5px 10px;"></div>
       `;
       setStyle(validationError, {
@@ -649,6 +657,7 @@ export class TranscrEditorComponent
   }
 
   override ngOnDestroy() {
+    this.stopThemeObserver?.();
     super.ngOnDestroy();
   }
 
@@ -1503,7 +1512,7 @@ export class TranscrEditorComponent
         const time = new SampleUnit(samples, this.audioManager.sampleRate);
         this.renderer.setStyle(segPopover, 'z-index', 30);
         this.renderer.setStyle(segPopover, 'position', 'absolute');
-        this.renderer.setStyle(segPopover, 'background-color', 'white');
+        this.renderer.setStyle(segPopover, 'background-color', 'var(--tratt-surface-page)');
         this.renderer.setStyle(segPopover, 'display', 'inherit');
         this.renderer.setStyle(segPopover, 'box-shadow', '0px 0px 10px gray');
 
@@ -1708,7 +1717,12 @@ export class TranscrEditorComponent
     }
   }
 
-  onAfterInit = () => {
+  onAfterInit = (instance?: ThemableJodit) => {
+    applyJoditTheme(instance ?? this.joditComponent?.jodit);
+    this.stopThemeObserver?.();
+    this.stopThemeObserver = observeTheme(() =>
+      applyJoditTheme(this.joditComponent?.jodit ?? instance),
+    );
     this.subscriptionManager.removeByTag('initialization');
     this.subscribe(
       timer(200),

@@ -6,6 +6,8 @@ import {
   it,
   jest,
 } from '@jest/globals';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { OAudiofile, SampleUnit } from '@tratt/media';
 import { ExportFilesModalComponent } from './export-files-modal.component';
 
@@ -95,5 +97,21 @@ describe('ExportFilesModalComponent with passed media and no audio', () => {
     component.getProtocol();
 
     expect(component.parentformat.download).toBe('restored.json');
+  });
+});
+
+describe('ExportFilesModalComponent template', () => {
+  const html = readFileSync(
+    join(__dirname, 'export-files-modal.component.html'),
+    'utf8',
+  );
+
+  it('export recording is the next-step button and close is secondary', () => {
+    expect(html).toMatch(
+      /class="btn btn-next"\s+\(click\)="recordedFileService\.triggerExport\(\)"/,
+    );
+    expect(html).toMatch(
+      /class="btn btn-secondary"\s+data-dismiss="modal"\s+\(click\)="close\(\)"/,
+    );
   });
 });

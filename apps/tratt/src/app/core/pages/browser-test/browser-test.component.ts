@@ -1,4 +1,4 @@
-import { NgStyle } from '@angular/common';
+import { NgClass, NgStyle } from '@angular/common';
 import { Component } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { TRATT_COLORS } from '@tratt/ngx-components';
@@ -9,7 +9,7 @@ import { CompatibilityService } from '../../shared/service/compatibility.service
   selector: 'tratt-browser-test',
   templateUrl: './browser-test.component.html',
   styleUrls: ['./browser-test.component.scss'],
-  imports: [NgStyle, RouterLink],
+  imports: [NgClass, NgStyle, RouterLink],
 })
 export class BrowserTestComponent {
   public get browserName(): string {
@@ -33,6 +33,16 @@ export class BrowserTestComponent {
     return 'spinner';
   }
 
+  getStateClass(rule: any): string {
+    switch (rule.state) {
+      case 'failed':
+        return 'tratt-state-danger';
+      case 'ok':
+        return 'tratt-state-success';
+    }
+    return 'tratt-state-neutral';
+  }
+
   getStateColor(rule: any): string {
     switch (rule.state) {
       case 'processing':
@@ -40,7 +50,7 @@ export class BrowserTestComponent {
       case 'failed':
         return TRATT_COLORS.accentError;
       case 'ok':
-        return TRATT_COLORS.accentGreen;
+        return TRATT_COLORS.accentSuccess;
     }
     return 'processing';
   }

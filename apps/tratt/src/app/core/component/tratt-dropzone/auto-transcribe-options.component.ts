@@ -350,29 +350,38 @@ interface SavedTranscribeSettings {
   imports: [FormsModule, NgbTooltipModule, TranslocoPipe],
   template: `
     @if (audioLoaded() && !annotationAlreadyLoaded()) {
-      <div class="auto-transcribe-options mt-2 p-2 border rounded">
+      <div class="auto-transcribe-options mt-3 p-3 border">
         @if (isSafari()) {
           <div class="alert alert-warning mb-2">
             <i class="fa-solid fa-triangle-exclamation"></i>
             {{ 'login.auto-transcription.safari warning' | transloco }}
           </div>
         }
-        <div class="form-check mb-1">
-          <input
-            class="form-check-input"
-            type="checkbox"
-            [id]="idPrefix() + 'autoTranscribeCheck'"
-            [(ngModel)]="enabled"
-            (ngModelChange)="emitChange()"
-            [disabled]="isSafari()"
-            [class.safari-disabled]="isSafari()"
-          />
+        <div class="ato-head">
+          <i
+            class="fa-solid ato-chevron"
+            [class.fa-chevron-down]="enabled()"
+            [class.fa-chevron-right]="!enabled()"
+            aria-hidden="true"
+          ></i>
           <label
-            class="form-check-label"
+            class="ato-title"
             [attr.for]="idPrefix() + 'autoTranscribeCheck'"
           >
             {{ 'login.auto-transcription.auto-transcribe label' | transloco }}
           </label>
+          <div class="form-check form-switch ms-auto mb-0">
+            <input
+              class="form-check-input"
+              type="checkbox"
+              role="switch"
+              [id]="idPrefix() + 'autoTranscribeCheck'"
+              [(ngModel)]="enabled"
+              (ngModelChange)="emitChange()"
+              [disabled]="isSafari()"
+              [class.safari-disabled]="isSafari()"
+            />
+          </div>
         </div>
         @if (!isSafari() && !compact()) {
           <small class="text-muted d-block mb-2">
@@ -386,7 +395,7 @@ interface SavedTranscribeSettings {
             <div class="mb-2">
               <label
                 [attr.for]="idPrefix() + 'languageSelect'"
-                class="form-label form-label-sm mb-1"
+                class="form-label fw-medium form-label-sm mb-1"
               >
                 {{ 'login.auto-transcription.language label' | transloco }}
               </label>
@@ -509,7 +518,7 @@ interface SavedTranscribeSettings {
             @if (speakerSegmentationEnabled) {
               <div class="mt-2 ms-3">
                 <label
-                  class="form-label small mb-1"
+                  class="form-label fw-medium small mb-1"
                   [attr.for]="idPrefix() + 'numSpeakersInput'"
                 >
                   {{
@@ -558,8 +567,23 @@ interface SavedTranscribeSettings {
   styles: [
     `
       .auto-transcribe-options {
-        background-color: var(--tratt-surface-background);
-        font-size: 0.9rem;
+        background: var(--tratt-surface-page);
+        border-color: var(--tratt-border) !important;
+        border-radius: 0.5rem !important;
+      }
+      .ato-head {
+        display: flex;
+        align-items: center;
+        gap: 0.55rem;
+      }
+      .ato-chevron {
+        color: var(--tratt-interactive-text);
+        font-size: 0.85em;
+      }
+      .ato-title {
+        font-weight: 500;
+        font-size: 1.0625rem;
+        margin: 0;
       }
       .form-check-input.safari-disabled {
         opacity: 0.6;

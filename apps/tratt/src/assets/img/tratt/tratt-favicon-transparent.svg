@@ -1,5 +1,59 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" role="img" aria-label="TRATT">
-  <path d="M8 9h48a5 5 0 0 1 5 5v24a5 5 0 0 1-5 5H26L13 55V43H8a5 5 0 0 1-5-5V14a5 5 0 0 1 5-5z" fill="#1F4477"></path>
-  <rect x="13" y="19" width="38" height="5" rx="2.5" fill="#FFFFFF"></rect>
-  <rect x="13" y="29" width="19" height="5" rx="2.5" fill="#E8863C"></rect>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   width="64"
+   height="64"
+   viewBox="0 0 64 64"
+   role="img"
+   aria-label="TRATT"
+   version="1.1"
+   id="svg8"
+   sodipodi:docname="SB-tratt-favicon-transparent.svg"
+   inkscape:version="1.2.1 (9c6d41e, 2022-07-14)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs12" />
+  <sodipodi:namedview
+     id="namedview10"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     showgrid="false"
+     inkscape:zoom="16.046875"
+     inkscape:cx="20.876339"
+     inkscape:cy="31.968841"
+     inkscape:window-width="2063"
+     inkscape:window-height="1284"
+     inkscape:window-x="944"
+     inkscape:window-y="134"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="svg8" />
+  <path
+     d="M8 9h48a5 5 0 0 1 5 5v24a5 5 0 0 1-5 5H26L13 55V43H8a5 5 0 0 1-5-5V14a5 5 0 0 1 5-5z"
+     fill="#1F4477"
+     id="path2"
+     style="fill:#f0581a;fill-opacity:1" />
+  <rect
+     x="13"
+     y="19"
+     width="38"
+     height="5"
+     rx="2.5"
+     fill="#FFFFFF"
+     id="rect4" />
+  <rect
+     x="13"
+     y="29"
+     width="19"
+     height="5"
+     rx="2.5"
+     fill="#E8863C"
+     id="rect6"
+     style="fill:#ffffff;fill-opacity:1" />
 </svg>

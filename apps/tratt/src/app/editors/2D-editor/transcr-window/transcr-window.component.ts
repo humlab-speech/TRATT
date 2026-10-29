@@ -519,7 +519,6 @@ export class TranscrWindowComponent
     this.magnifier.settings.boundaries.enabled = false;
     this.magnifier.settings.boundaries.readonly = true;
     this.magnifier.settings.selection.enabled = true;
-    this.magnifier.settings.frame.color = '#222222';
     this.magnifier.settings.roundValues = false;
     this.magnifier.settings.showTimePerLine = true;
     this.magnifier.settings.showProgressBars = true;

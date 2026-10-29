@@ -1,8 +1,12 @@
-import { AsyncPipe, DecimalPipe } from '@angular/common';
+import { TrattCreditsComponent } from '../../component/tratt-credits/tratt-credits.component';
+import { TrattFooterComponent } from '../../component/tratt-footer/tratt-footer.component';
+import { AsyncPipe, DecimalPipe, NgTemplateOutlet } from '@angular/common';
 import { Component, ElementRef, ViewChild } from '@angular/core';
 import { NgForm } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
+import { HeaderCenterDirective } from '../../shared/directive/header-center.directive';
+import { HumlabLogoComponent } from '../../component/humlab-logo/humlab-logo.component';
 import { NgbNavModule } from '@ng-bootstrap/ng-bootstrap';
 import { Store } from '@ngrx/store';
 import { AccountLoginMethod } from '@octra/api-types';
@@ -70,7 +74,12 @@ function formatDuration(seconds: number): string {
     NgbNavModule,
     AsyncPipe,
     DecimalPipe,
+    NgTemplateOutlet,
     TranslocoPipe,
+    TrattCreditsComponent,
+    TrattFooterComponent,
+    HumlabLogoComponent,
+    HeaderCenterDirective,
   ],
 })
 export class LoginComponent

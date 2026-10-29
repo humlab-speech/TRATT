@@ -7,7 +7,7 @@
     "need playback": "在提交标注之前，至少需要播放一次。"
   },
   "authentication": {
-    "description": "关闭此窗口，点击TRATT中的“认证成功！”按钮来完成认证。之后自动进程会继续。",
+    "description": "关闭此窗口，点击Tratt中的“认证成功！”按钮来完成认证。之后自动进程会继续。",
     "window closed": "此窗口将在{{seconds}}秒内关闭。",
     "you are authenticated": "认证成功！"
   },
@@ -17,7 +17,7 @@
     "invalid": "<b>你的浏览器不兼容</b>。 请使用以下浏览器之一："
   },
   "bug report": {
-    "description": "你认为有需要改进的地方吗？有发现bug吗？请告诉我们你对TRATT的评价。",
+    "description": "你认为有需要改进的地方吗？有发现bug吗？请告诉我们你对Tratt的评价。",
     "error": "很抱歉，你的反馈没有发送成功。请将反馈内容通过邮件发送给我们： {{email}}",
     "give feedback": "给予反馈",
     "send protocol": "添加协议（推荐）",
@@ -236,7 +236,7 @@
     "last used": "最近使用",
     "local and remove": "移除在线模式的数据并且继续",
     "local mode": "本地模式",
-    "local mode description": "<p>通过下方框输入你的音频或视频文件来开始转录。你可以使用自动转录模型生成草稿，然后通过选择上传框下方的选项来编辑。</p><p>模型转录工作将在你的计算机上执行，可用的模型取决于你的浏览器对 WebGPU 扩展的支持以及你的计算机的显卡。视频文件将仅转换为音频，这可能需要额外时间。</p><p>TRATT 将保存你的最后一个转录会话到浏览器中，但绝不会保存音频或视频文件。这意味着当你想继续上一个会话时，你需要重新上传媒体文件。</p>",
+    "local mode description": "<p>通过上传框输入你的音频或视频文件来开始转录。你可以使用自动转录模型生成草稿，然后通过选择上传框下方的选项来编辑。</p><p>模型转录工作将在你的计算机上执行，可用的模型取决于你的浏览器对 WebGPU 扩展的支持以及你的计算机的显卡。视频文件将仅转换为音频，这可能需要额外时间。</p><p>Tratt 将保存你的最后一个转录会话到浏览器中，但绝不会保存音频或视频文件。这意味着当你想继续上一个会话时，你需要重新上传媒体文件。</p>",
     "login and remove": "移除本地模式的数据并且登录",
     "offline mode data warning": "此处有使用在线模式创建的本地数据。如果你想使用本地模式继续，此处的数据会被覆盖。",
     "old file found": "此处有之前标注的可用数据。如果你想要继续之前的标注，请拖拽以下文件至灰色方框中：<br/><br/>{{file_label}}",
@@ -244,7 +244,7 @@
     "online mode continue": "发现旧数据！如果继续的话，请确保你使用以下账号资料登录：{{member_id}} , {{member_project}}, {{member_jobno}}",
     "online mode data warning": "此处有使用本地模式穿件的本地数据。如果你想使用在线模式继续，此处的数据会被覆盖。",
     "online mode description": "在线模式中，你自动获取要标注的音频文件。",
-    "online mode disabled": "在线模式当前不可用。请使用本地TRATT。",
+    "online mode disabled": "在线模式当前不可用。请使用本地Tratt。",
     "translation": {
       "enable label": "Translate transcript locally",
       "from": "From",
@@ -331,7 +331,11 @@
       "speaker separation help": "在浏览器中本地运行，可能会增加处理时间。",
       "speaker separation label": "说话人分离"
     },
-    "app description": "TRATT是一款免费的网络应用程序，用于将语音录音转录为纯文本（正字法）。它提供三种不同的编辑器以满足不同的转录需求，您可以在同一会话中自由切换。",
+    "app description": "Tratt是一款免费的网络应用程序，用于将语音录音转录为纯文本（正字法）。它提供三种不同的编辑器以满足不同的转录需求，您可以在同一会话中自由切换。",
+    "hero": {
+      "part_of": "A tool in Visp – Språkbanken's speech research platform",
+      "privacy": "Your recording never leaves your computer. Automatic transcription runs locally too."
+    },
     "funding support and development": "资助方与合作",
     "groups that developed the language models": "所用语言模型的开发者",
     "tabs": {
@@ -344,23 +348,23 @@
     "successful text": "你已成功退出。"
   },
   "maintenance": {
-    "banner": "从 <b>{{start}}</b> 到 <b>{{end}}</b> (预期) 系统将进行维护 <br/>这期间TRATT服务不可用。请确保这期间不要使用TRATT。",
-    "in app": "从 <b>{{start}}</b> 到 <b>{{end}}</b> (预期) 系统将进行维护 <b>请在维护之前15分钟退出TRATT。</b>"
+    "banner": "从 <b>{{start}}</b> 到 <b>{{end}}</b> (预期) 系统将进行维护 <br/>这期间Tratt服务不可用。请确保这期间不要使用Tratt。",
+    "in app": "从 <b>{{start}}</b> 到 <b>{{end}}</b> (预期) 系统将进行维护 <b>请在维护之前15分钟退出Tratt。</b>"
   },
   "modal": {
     "inactivity": {
-      "body": "检测到你未完成TRATT，并且已经至少{{value}}分钟没有操作。如果继续不操作，建议退出TRATT。如果你现在不想继续标注，退出TRATT即可。你想怎么做？",
+      "body": "检测到你未完成Tratt，并且已经至少{{value}}分钟没有操作。如果继续不操作，建议退出Tratt。如果你现在不想继续标注，退出Tratt即可。你想怎么做？",
       "continue": "继续标注",
       "header": "检测到长时间无操作",
       "new": "新建标注",
-      "quit": "退出TRATT"
+      "quit": "退出Tratt"
     },
     "login": {
       "header": "登录失败",
       "text": "请检查你的用户名和密码。"
     },
     "missing permissions": {
-      "description": "TRATT未被允许播放音频。若要继续，请允许TRATT播放音频。按照以下三步操作，并且点击网页底部的“重新加载”按钮。",
+      "description": "Tratt未被允许播放音频。若要继续，请允许Tratt播放音频。按照以下三步操作，并且点击网页底部的“重新加载”按钮。",
       "header": "缺少权限",
       "step1": "点击地址栏左边的“禁止自动播放”按钮。",
       "step2": "点击“自动播放”旁边的按钮。",
@@ -408,7 +412,7 @@
       "demoEnd": {
         "exportText": "你可以点击“后退”，然后点击“导出”，来导出标注：",
         "header": "演示模式",
-        "text": "你正在使用演示模式。<br/><br/>点击。。。<ul><li>“继续”，重载当前声音文件。你的输入会被删除，标注文件开始传输</li><li>“退出”，退出TRATT应用。你的输入会被删除。</li><li>“后退”，来继续标注。</li></ul>"
+        "text": "你正在使用演示模式。<br/><br/>点击。。。<ul><li>“继续”，重载当前声音文件。你的输入会被删除，标注文件开始传输</li><li>“退出”，退出Tratt应用。你的输入会被删除。</li><li>“后退”，来继续标注。</li></ul>"
       },
       "send": {
         "header": "发送标注内容",
@@ -421,8 +425,7 @@
     }
   },
   "p": {
-    "language selector label": "本页面显示的语言",
-    "language selector short label": "语言："
+    "language selector label": "本页面显示的语言"
   },
   "reload-file": {
     "another file selected": "已选中另一个文件。请选择与之前相同的文件，或者开始新的标注。需要：'{{file}}'",
@@ -507,7 +510,7 @@
     "overview": "下表格显示了标注单元的概览："
   },
   "branding": {
-    "tagline": "将语音转写为文本"
+    "tagline": "Transcription of audio to text"
   },
   "workbench": {
     "start session": "开始会话",
@@ -593,6 +596,10 @@
       "export_unavailable": "暂无可导出内容：此文件没有转写，且未附加音频。",
       "audio_not_attached": "未附加音频"
     },
+    "data_selector": {
+      "label": "选择文件",
+      "position": "第 {{index}} 个，共 {{total}} 个"
+    },
     "dropzone": {
       "already_loaded": "已在列表中，未重复添加：{{names}}",
       "transcript_no_recording": "没有名为“{{name}}”的录音。请将转写与其音频文件一起拖入，或按录音命名。",
@@ -615,6 +622,25 @@
       "dialog_title": "流程设置",
       "done": "完成",
       "close": "关闭"
+    }
+  },
+  "shell": {
+    "footer": {
+      "about_us": "About us",
+      "news": "News from Språkbanken",
+      "other_platforms": "Other platforms",
+      "feedback": "Do you use our platforms, datasets or analyses in your work? We would love to hear from you!",
+      "contact": "Contact us",
+      "cite": "Cite us"
+    },
+    "about": {
+      "title": "About Tratt",
+      "source_code": "Source code on GitHub",
+      "version": "Version"
+    },
+    "header": {
+      "label": "Main navigation",
+      "workbench": "Workbench"
     }
   }
 }

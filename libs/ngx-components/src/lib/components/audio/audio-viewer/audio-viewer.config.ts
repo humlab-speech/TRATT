@@ -1,5 +1,29 @@
 import { ShortcutGroup } from '@tratt/web-media';
-import { TRATT_COLORS } from '../../../obj';
+import {
+  TRATT_COLORS,
+  TRATT_FONTS,
+  TrattCanvasColors,
+} from '../../../obj';
+
+/** Writes theme colours into a viewer config in place (the renderer shares the reference). */
+export function applyThemeColors(
+  s: AudioviewerConfig,
+  c: TrattCanvasColors,
+): void {
+  s.backgroundcolor = c.surfaceBackground;
+  s.cursor.color = c.playhead;
+  s.playcursor.color = c.playhead;
+  s.scrollbar.background.color = c.surfaceBackground;
+  s.scrollbar.background.stroke = c.border;
+  s.scrollbar.selector.color = c.interactive;
+  s.scrollbar.selector.stroke = c.border;
+  s.boundaries.color = c.boundary;
+  s.grid.color = c.grid;
+  s.data.color = c.waveformSignal;
+  s.selection.color = c.segmentSelected;
+  s.frame.color = c.border;
+  s.timeline.foreColor = c.textPrimary;
+}
 
 export class AudioviewerConfig {
   public multiLine = false;
@@ -7,7 +31,7 @@ export class AudioviewerConfig {
   public justifySignalHeight = true;
   public cropping = 'none';
   public lineheight = 60;
-  public backgroundcolor = TRATT_COLORS.surfaceBackground;
+  public backgroundcolor: string = TRATT_COLORS.surfaceBackground;
   public margin: {
     top: number;
     right: number;
@@ -27,17 +51,27 @@ export class AudioviewerConfig {
     color: TRATT_COLORS.playhead,
   };
 
-  public scrollbar = {
+  public scrollbar: {
+    enabled: boolean;
+    width: number;
+    background: { color: string; stroke: string; strokeWidth: number };
+    selector: {
+      color: string;
+      stroke: string;
+      strokeWidth: number;
+      width: number;
+    };
+  } = {
     enabled: false,
     width: 20,
     background: {
       color: TRATT_COLORS.surfaceBackground,
-      stroke: 'gray',
+      stroke: TRATT_COLORS.border,
       strokeWidth: 1,
     },
     selector: {
-      color: TRATT_COLORS.chrome,
-      stroke: 'gray',
+      color: TRATT_COLORS.interactive,
+      stroke: TRATT_COLORS.border,
       strokeWidth: 1,
       width: 20,
     },
@@ -50,7 +84,7 @@ export class AudioviewerConfig {
   } = {
     height: 20,
     width: 10,
-    color: TRATT_COLORS.chrome,
+    color: TRATT_COLORS.playhead,
   };
   public boundaries: {
     enabled: boolean;
@@ -61,14 +95,14 @@ export class AudioviewerConfig {
     enabled: true,
     readonly: false,
     width: 3,
-    color: TRATT_COLORS.accentWarning,
+    color: TRATT_COLORS.boundary,
   };
   public grid: {
     enabled: true;
     color: string;
   } = {
     enabled: true,
-    color: 'rgb(224, 224, 224)',
+    color: TRATT_COLORS.grid,
   };
 
   public data: {
@@ -82,7 +116,7 @@ export class AudioviewerConfig {
     color: string;
   } = {
     enabled: true,
-    color: 'gray',
+    color: TRATT_COLORS.segmentSelected,
   };
   public frame: {
     color: string;
@@ -203,8 +237,8 @@ export class AudioviewerConfig {
     height: 15,
     fontSize: 9,
     fontWeight: 'light',
-    font: 'Arial',
-    foreColor: 'black',
+    font: TRATT_FONTS.data,
+    foreColor: TRATT_COLORS.textPrimary,
   };
 
   public stepWidthRatio = 0.0226;

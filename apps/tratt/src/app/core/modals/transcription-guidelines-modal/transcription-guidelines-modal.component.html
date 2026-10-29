@@ -25,7 +25,7 @@
             [href]="guidelines?.meta?.pdf?.url"
             target="_blank"
             class="btn btn-sm btn-danger"
-            style="border: 1px solid red"
+            style="border: 1px solid var(--tratt-danger)"
           >
             <i class="fa-solid fa-print"></i>
             PDF
@@ -57,7 +57,7 @@
       </div>
     </div>
     @if ((shownGuidelines?.instructions?.length ?? 0) === 0) {
-      <div class="bg-warning">
+      <div class="tratt-state-warning">
         {{ 'g.no guidelines found' | transloco }}
       </div>
     } @else {

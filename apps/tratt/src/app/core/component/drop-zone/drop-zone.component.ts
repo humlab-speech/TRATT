@@ -6,6 +6,7 @@ import {
   Input,
   OnInit,
   Output,
+  signal,
   ViewChild,
 } from '@angular/core';
 import { SessionFile } from '../../obj/SessionFile';
@@ -34,6 +35,8 @@ export class DropZoneComponent implements OnInit {
   @Input() allowZip = false;
   @Output() public afterdrop: EventEmitter<File[]> = new EventEmitter<File[]>();
   @ViewChild('fileinput', { static: true }) fileinput!: ElementRef;
+  /** True while a file is dragged over the zone. */
+  readonly isOver = signal(false);
   private fileAPIsupported = false;
 
   private _files?: File[];
@@ -59,11 +62,20 @@ export class DropZoneComponent implements OnInit {
     $event.stopPropagation();
     $event.preventDefault();
     $event.dataTransfer!.dropEffect = 'copy';
+    this.isOver.set(true);
+  }
+
+  onDragLeave($event: DragEvent) {
+    // Moving onto a child element also fires dragleave; ignore that.
+    const to = $event.relatedTarget as Node | null;
+    if (to && ($event.currentTarget as Node).contains(to)) return;
+    this.isOver.set(false);
   }
 
   onFileDrop($event: DragEvent) {
     $event.stopPropagation();
     $event.preventDefault();
+    this.isOver.set(false);
 
     if (this.fileAPIsupported) {
       this._files = this.filterFiles($event.dataTransfer!.files);

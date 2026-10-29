@@ -5,8 +5,8 @@
 Tratt keeps your work in the browser. **Exporting a file is the only
 way your transcript leaves the browser.** Export your work everytime you exit an editing session.
 
-Click **Export** (the download icon in the top bar, or the button along the bottom
-of the editor). The dialog is headed *Export transcriptions*. Click a format to
+Click **Export** (the download icon in the header, or the button along the bottom
+of the editor). In the [Workbench](workbench.md) it is **Export this transcription**, at the right end of the bar with the editor tabs. The dialog is headed *Export transcriptions*. Click a format to
 expand its options, then **Download**.
 
 ![The export dialog](../assets/visp_tratt_export_formats.png)

@@ -66,7 +66,7 @@ to move around.
    the list is empty or unnamed, click **Request access** (browsers hide device
    names until you have granted permission once).
 3. Click **Start recording**. A level light shows red (too quiet, check the
-   microphone), orange (marginal) or green (good). Watch it for the first few
+   microphone), yellow (marginal) or green (good). Watch it for the first few
    seconds; a red light for the whole recording is unrecoverable.
 4. **Pause** / **Resume** as needed, then **Stop**.
 5. **Use recording** loads it straight into Tratt as if you had uploaded it.
@@ -119,14 +119,14 @@ Drag that same file in again and click **Continue transcription** to carry on wh
 you stopped.
 
 The button below the drop zone tells you which of the two is about to happen. The
-blue one is safe and its wording follows what you have chosen; the red one is not.
+orange one is safe and its wording follows what you have chosen; the red one is not.
 
 | Button | What it does |
 | --- | --- |
-| **Continue transcription** (blue) | The file matches the stored session. Your stored transcript is reopened. |
-| **Manual transcription** (blue) | Same, with no model selected: it opens the editor for you to type in. |
-| **Run automatic processing** (blue) | Same, with auto-transcription or translation ticked: the model runs first. |
-| **Replace the stored annotations** (blue) | You have ticked auto-transcription for a recording that already has a transcript. Running it overwrites that transcript. |
+| **Continue transcription** (orange) | The file matches the stored session. Your stored transcript is reopened. |
+| **Manual transcription** (orange) | Same, with no model selected: it opens the editor for you to type in. |
+| **Run automatic processing** (orange) | Same, with auto-transcription or translation ticked: the model runs first. |
+| **Replace the stored annotations** (orange) | You have ticked auto-transcription for a recording that already has a transcript. Running it overwrites that transcript. |
 | **Start new transcription** (red) | The file does not match the stored session, or there is none. Clicking it **discards the stored transcript** and starts fresh, with no further confirmation and no undo. |
 
 Tratt decides which button to show by comparing the file you dropped with the one

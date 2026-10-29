@@ -33,7 +33,13 @@ import { Text } from 'konva/lib/shapes/Text';
 // `tratt-colors.ts` and `play-cursor.ts` have no such dependency.
 import { Position, Size } from '../../../obj/objects';
 import { PlayCursor } from '../../../obj/play-cursor';
-import { TRATT_COLORS } from '../../../obj/tratt-colors';
+import {
+  resolveTrattColors,
+  TRATT_COLORS,
+  TRATT_FONTS,
+  type TrattCanvasColors,
+} from '../../../obj/tratt-colors';
+import { applyThemeToNodes, THEME_NODE } from './theme-nodes';
 import { AudioViewerTimeUtils } from './audio-viewer-time-utils';
 import {
   cycleNextSpeaker,
@@ -129,25 +135,34 @@ const DEFAULT_RENDER_SETTINGS: AudioViewerRenderSettings = {
   pixelPerSec: 50,
   cropping: 'none',
   lineheight: 60,
-  backgroundcolor: '#ffffff',
+  backgroundcolor: TRATT_COLORS.surfaceBackground,
   roundValues: true,
   showTimePerLine: false,
   showTranscripts: false,
   showProgressBars: false,
   margin: { top: 0, right: 0, bottom: 0, left: 0 },
-  cursor: { color: '#000000', fixed: false },
+  cursor: { color: TRATT_COLORS.playhead, fixed: false },
   scrollbar: {
     enabled: false,
     width: 20,
-    background: { color: '#ffffff', stroke: 'gray', strokeWidth: 1 },
-    selector: { color: '#000000', stroke: 'gray', strokeWidth: 1, width: 20 },
+    background: {
+      color: TRATT_COLORS.surfaceBackground,
+      stroke: TRATT_COLORS.border,
+      strokeWidth: 1,
+    },
+    selector: {
+      color: TRATT_COLORS.interactive,
+      stroke: TRATT_COLORS.border,
+      strokeWidth: 1,
+      width: 20,
+    },
   },
-  playcursor: { height: 20, width: 10, color: '#000000' },
-  boundaries: { enabled: true, readonly: false, width: 3, color: '#000000' },
-  grid: { color: 'rgb(224, 224, 224)' },
-  data: { color: '#000000' },
-  selection: { enabled: true, color: 'gray' },
-  frame: { color: '#000000' },
+  playcursor: { height: 20, width: 10, color: TRATT_COLORS.playhead },
+  boundaries: { enabled: true, readonly: false, width: 3, color: TRATT_COLORS.boundary },
+  grid: { color: TRATT_COLORS.grid },
+  data: { color: TRATT_COLORS.waveformSignal },
+  selection: { enabled: true, color: TRATT_COLORS.segmentSelected },
+  frame: { color: TRATT_COLORS.border },
   timeline: { enabled: false, height: 15 },
 };
 
@@ -334,19 +349,19 @@ export class AudioViewerRendererService {
       width: 10,
     },
     caret: {
-      strokeColor: 'red',
+      strokeColor: TRATT_COLORS.playhead,
       strokeWidth: 1,
     },
     height: 200,
     border: {
       width: 1,
-      color: '#b5b5b5',
+      color: TRATT_COLORS.textMuted,
     },
     background: {
       color: TRATT_COLORS.surfaceBackground,
     },
     grid: {
-      strokeColor: 'gray',
+      strokeColor: TRATT_COLORS.border,
       strokeWidth: 1,
     },
     signal: {
@@ -891,6 +906,7 @@ export class AudioViewerRendererService {
 
   public createLineBackground(line: Group, size: Size) {
     const container = new Rect({
+      name: THEME_NODE.lineBackground,
       fill: this.settings.backgroundcolor,
       width: size.width,
       height: size.height,
@@ -901,6 +917,7 @@ export class AudioViewerRendererService {
 
   public createLineBorder(line: Group, size: Size) {
     const frame = new Rect({
+      name: THEME_NODE.lineFrame,
       stroke: this.settings.frame.color,
       strokeWidth: 1,
       width: size.width,
@@ -912,7 +929,7 @@ export class AudioViewerRendererService {
 
   public createLineSelection(line: Group, size: Size) {
     const frame = new Rect({
-      name: 'selection',
+      name: `selection ${THEME_NODE.selection}`,
       opacity: 0.2,
       fill: this.settings.selection.color,
       width: 0,
@@ -924,6 +941,7 @@ export class AudioViewerRendererService {
 
   public createLineGrid(line: Group, size: Size) {
     const frame = new Shape({
+      name: THEME_NODE.lineGrid,
       opacity: 0.2,
       stroke: this.settings.grid.color,
       strokeWidth: 1,
@@ -1022,13 +1040,14 @@ export class AudioViewerRendererService {
     });
 
     const caret = new Line({
+      name: THEME_NODE.caret,
       points: [
         this.settings.playcursor.width / 2,
         0,
         this.settings.playcursor.width / 2,
         this.settings.lineheight,
       ],
-      stroke: 'black',
+      stroke: resolveTrattColors().textPrimary,
       strokeWidth: 2,
       transformsEnabled: 'position',
     });
@@ -1073,12 +1092,12 @@ export class AudioViewerRendererService {
       this.croppingData !== undefined
     ) {
       const shadowCircle = new Circle({
-        stroke: '#555555',
+        stroke: TRATT_COLORS.boundary,
         strokeWidth: 1,
         x: this.croppingData.x,
         y: this.croppingData.y,
         radius: this.croppingData.radius,
-        shadowColor: 'gray',
+        shadowColor: 'rgba(0, 0, 0, 0.25)',
         shadowEnabled: true,
         shadowBlur: 5,
         shadowOffset: { x: 2.5, y: 0 },
@@ -1087,7 +1106,7 @@ export class AudioViewerRendererService {
       result.add(shadowCircle);
       result.add(lineGroup);
       const borderedCircle = new Circle({
-        stroke: '#555555',
+        stroke: TRATT_COLORS.boundary,
         strokeWidth: 1,
         x: this.croppingData.x,
         y: this.croppingData.y,
@@ -1126,12 +1145,12 @@ export class AudioViewerRendererService {
       this.croppingData !== undefined
     ) {
       const shadowCircle = new Circle({
-        stroke: '#555555',
+        stroke: TRATT_COLORS.boundary,
         strokeWidth: 1,
         x: this.croppingData.x,
         y: this.croppingData.y,
         radius: this.croppingData.radius,
-        shadowColor: 'gray',
+        shadowColor: 'rgba(0, 0, 0, 0.25)',
         shadowEnabled: true,
         shadowBlur: 5,
         shadowOffset: { x: 2.5, y: 0 },
@@ -1140,7 +1159,7 @@ export class AudioViewerRendererService {
       result.add(shadowCircle);
       result.add(lineGroup);
       const borderedCircle = new Circle({
-        stroke: '#555555',
+        stroke: TRATT_COLORS.boundary,
         strokeWidth: 1,
         x: this.croppingData.x,
         y: this.croppingData.y,
@@ -1154,6 +1173,7 @@ export class AudioViewerRendererService {
 
   public createLineSignal(line: Group, size: Size, lineNum: number) {
     const frame = new Shape({
+      name: THEME_NODE.lineSignal,
       stroke: this.settings.data.color,
       strokeWidth: 1,
       width: size.width,
@@ -1504,7 +1524,7 @@ export class AudioViewerRendererService {
               x: this.settings.margin.left,
               y: this.settings.margin.top,
               fontSize: 10,
-              fontFamily: 'Arial',
+              fontFamily: TRATT_FONTS.data,
               transformsEnabled: 'position',
               sceneFunc: (context, shape) => {
                 this.timeLabelSceneFunction(y, numOfLines, context, shape);
@@ -1767,7 +1787,7 @@ export class AudioViewerRendererService {
     return new Shape({
       x: this.settings.margin.left,
       y: lineNum1 * (this.settings.lineheight + this.settings.margin.top),
-      fontFamily: 'Arial',
+      fontFamily: TRATT_FONTS.data,
       fontSize: 9,
       width: this.innerWidth,
       height: segmentHeight,
@@ -1847,14 +1867,17 @@ export class AudioViewerRendererService {
       lastIRef,
     } = params;
     return new Shape({
-      fill: 'black',
-      fontFamily: 'Arial',
+      name: THEME_NODE.textLabel,
+      fill: resolveTrattColors().textPrimary,
+      fontFamily: TRATT_FONTS.data,
       fontSize: 11,
       listening: false,
       x: this.settings.margin.left,
       y: 0,
       transformsEnabled: 'position',
       sceneFunc: (context, shape) => {
+        // fillText uses the context's fillStyle, not the shape's fill attr
+        context.fillStyle = this.themeColors().textPrimary;
         // live read on every Konva redraw, not a build-time snapshot
         const currentLevel = getCurrentLevel();
         if (
@@ -2264,7 +2287,7 @@ export class AudioViewerRendererService {
         const length = this.layers.overlay
           .getContext()
           .measureText(startTimeString).width;
-        context.fillStyle = 'dimgray';
+        context.fillStyle = this.themeColors().textMuted;
         context.fillText(startTimeString, 3, y + 8);
         context.fillText(
           endTimeString,
@@ -2351,7 +2374,7 @@ export class AudioViewerRendererService {
             transcript.trim().length > 0 &&
             transcript !== this.silencePlaceholder;
           context.fillStyle = hasTranscription
-            ? TRATT_COLORS.segmentTranscribed
+            ? this.themeColors().segmentTranscribed
             : this.settings.backgroundcolor;
           context.clearRect(x, localY + this.settings.lineheight - 20, w, 20);
           context.fillRect(x, localY + this.settings.lineheight - 20, w, 20);
@@ -2553,6 +2576,7 @@ export class AudioViewerRendererService {
       });
 
       const background = new Rect({
+        name: THEME_NODE.scrollBackground,
         stroke: this.settings.scrollbar.background.stroke,
         strokeWidth: this.settings.scrollbar.background.strokeWidth,
         fill: this.settings.scrollbar.background.color,
@@ -2564,6 +2588,7 @@ export class AudioViewerRendererService {
       const rest =
         this.settings.scrollbar.width - this.settings.scrollbar.selector.width;
       const selector = new Rect({
+        name: THEME_NODE.scrollSelector,
         stroke: this.settings.scrollbar.selector.stroke,
         strokeWidth: this.settings.scrollbar.selector.strokeWidth,
         fill: this.settings.scrollbar.selector.color,
@@ -2772,7 +2797,7 @@ export class AudioViewerRendererService {
 
     const caret = new Line({
       points: [0, 0, 0, this.settings.lineheight],
-      stroke: 'red',
+      stroke: TRATT_COLORS.playhead,
       strokeWidth: 2,
       transformsEnabled: 'position',
     });
@@ -3088,6 +3113,44 @@ export class AudioViewerRendererService {
 
   public redraw() {
     this.stage?.batchDraw();
+  }
+
+  private cachedThemeColors?: TrattCanvasColors;
+
+  /** Theme colours for draw-time reads; refreshed by applyThemeToStage(). */
+  private themeColors(): TrattCanvasColors {
+    return (this.cachedThemeColors ??= resolveTrattColors());
+  }
+
+  /**
+   * Konva bakes fill/stroke into each node at creation, so after the
+   * settings were recoloured (applyThemeColors) the existing nodes are
+   * updated in place. Draw-time colours are re-read from the theme.
+   */
+  public applyThemeToStage() {
+    this.cachedThemeColors = resolveTrattColors();
+    const stage = this.stage;
+    if (!stage) return;
+    const s = this.settings;
+    const c = this.cachedThemeColors;
+    applyThemeToNodes((sel) => stage.find(sel), {
+      [THEME_NODE.lineBackground]: { fill: s.backgroundcolor },
+      [THEME_NODE.lineFrame]: { stroke: s.frame.color },
+      [THEME_NODE.lineGrid]: { stroke: s.grid.color },
+      [THEME_NODE.lineSignal]: { stroke: s.data.color },
+      [THEME_NODE.selection]: { fill: s.selection.color },
+      [THEME_NODE.caret]: { stroke: c.textPrimary },
+      [THEME_NODE.textLabel]: { fill: c.textPrimary },
+      [THEME_NODE.scrollBackground]: {
+        fill: s.scrollbar.background.color,
+        stroke: s.scrollbar.background.stroke,
+      },
+      [THEME_NODE.scrollSelector]: {
+        fill: s.scrollbar.selector.color,
+        stroke: s.scrollbar.selector.stroke,
+      },
+    });
+    this.redraw();
   }
 
   public redrawOverlay() {

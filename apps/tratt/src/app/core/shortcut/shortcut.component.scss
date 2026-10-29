@@ -16,24 +16,24 @@
 }
 
 :host .dark {
-  background-color: black;
-  color: white;
+  background-color: var(--tratt-text-primary);
+  color: var(--tratt-surface-page);
 }
 
 :host .light {
-  background-color: var(--tratt-surface-background);
-  color: black;
-  border: 1px solid gray;
+  background: var(--tratt-surface-page);
+  color: var(--tratt-text-primary);
+  border: 1px solid var(--tratt-border);
 }
 
 :host .separator {
   border: none;
   min-width: auto;
   padding: 5px 0;
-  color: black;
+  color: var(--tratt-text-primary);
   background-color: unset;
 }
 
 * {
-  font-size: 16px;
+  font-size: 1rem;
 }

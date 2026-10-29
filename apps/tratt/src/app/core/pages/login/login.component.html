@@ -1,87 +1,22 @@
-@if (localOnly) {
-  <section class="order-1 order-md-1">
-    <div class="container-md p-2">
-      <hr class="d-none d-md-block" />
-      <!-- Inlined from assets/img/tratt/tratt-banner.svg so the tagline can come
-           from the i18n bundle and follow the active locale. Geometry is the
-           designer's; keep it in step with that file. textLength pins the
-           tagline to 338px, so translations cannot break the layout. -->
-      <div class="text-center mb-3 p-0">
-        <svg
-          [attr.viewBox]="'0 0 606 218'"
-          role="img"
-          [attr.aria-label]="'TRATT — ' + ('branding.tagline' | transloco)"
-          style="width: 100%; max-width: 606px; height: auto"
-        >
-          <rect width="606" height="218" fill="#1F4477"></rect>
-          <g transform="translate(45 48.1) scale(1.48)">
-            <path
-              d="M8 4H92a6 6 0 0 1 6 6v46a6 6 0 0 1-6 6H40L22 78V62H8a6 6 0 0 1-6-6V10a6 6 0 0 1 6-6z"
-              fill="#FFFFFF"
-            ></path>
-            <rect
-              x="16"
-              y="20"
-              width="68"
-              height="6"
-              rx="3"
-              fill="#1F4477"
-            ></rect>
-            <rect
-              x="16"
-              y="34"
-              width="68"
-              height="6"
-              rx="3"
-              fill="#1F4477"
-            ></rect>
-            <rect
-              x="16"
-              y="48"
-              width="34"
-              height="6"
-              rx="3"
-              fill="#E08A4E"
-            ></rect>
-          </g>
-          <text
-            x="220"
-            y="108"
-            [attr.textLength]="240"
-            [attr.lengthAdjust]="'spacingAndGlyphs'"
-            font-family="Archivo, Helvetica, Arial, sans-serif"
-            font-weight="900"
-            font-size="74"
-            fill="#FFFFFF"
-          >
-            TRATT
-          </text>
-          <text
-            x="220"
-            y="140"
-            [attr.textLength]="338"
-            [attr.lengthAdjust]="'spacingAndGlyphs'"
-            font-family="'IBM Plex Mono', ui-monospace, Menlo, monospace"
-            font-size="20"
-            fill="#B9C7DD"
-          >
-            {{ 'branding.tagline' | transloco }}
-          </text>
-        </svg>
-      </div>
-      <p style="text-align: justify">
-        {{ 'login.app description' | transloco }}
-      </p>
-    </div>
+<!-- Intro of the start page. Shown in the left column of the /local layout (or
+     alone above the browser notice when the browser is unsupported). -->
+<ng-template #localHero>
+  <section class="local-hero">
+    <p class="local-hero__context">{{ 'login.hero.part_of' | transloco }}</p>
+    <h1 class="local-hero__title">{{ 'login.local mode' | transloco }}</h1>
+    <p class="local-hero__lead tratt-prose">
+      {{ 'login.app description' | transloco }}
+    </p>
+    <p class="local-hero__privacy">
+      <i class="fa-solid fa-user-lock" aria-hidden="true"></i>
+      {{ 'login.hero.privacy' | transloco }}
+    </p>
   </section>
-}
+</ng-template>
 
-<div
-  [class]="
-    localOnly ? 'section order-2 order-md-2' : 'section order-2 order-md-1'
-  "
-  id="login"
->
+<!-- No flex `order` here: credits and footer follow in DOM order, and an
+     `order` on this block would sort them above the work area. -->
+<div [class]="localOnly ? 'section' : 'section tratt-page'" id="login">
   <div class="row">
     <div class="col-12" style="text-align: center">
       @if (
@@ -102,7 +37,7 @@
   @if (settingsService.appSettings.tratt.oldVersion?.url) {
     <div class="row">
       <div class="col">
-        <div class="alert mb-0 py-1" style="font-size: 0.8rem">
+        <div class="alert alert-info mb-0 py-1 small">
           <i class="fa-solid fa-circle-info"></i>
           {{ 'login.old version.notice' | transloco }}
           <a [href]="settingsService.appSettings.tratt.oldVersion?.url">{{
@@ -113,8 +48,20 @@
     </div>
   }
 
+  @if (localOnly) {
+    <ng-template trattHeaderCenter>
+      <tratt-humlab-logo class="local-humlab-logo" variant="centered" />
+    </ng-template>
+  }
+
   @if (compatibleBrowser !== false) {
-    <div class="row" id="loginrow">
+    <!-- /local: two columns on wide screens (intro + notes | work card) so the
+         upload box is visible without scrolling; one column below `lg`
+         (intro, work card, notes). Online mode keeps the Bootstrap row. -->
+    <div [class]="localOnly ? 'local-layout' : 'row'" id="loginrow">
+      @if (localOnly) {
+        <ng-container *ngTemplateOutlet="localHero" />
+      }
       @if (!localOnly) {
         <div class="col-md-6">
           <div
@@ -181,32 +128,17 @@
           </div>
         </div>
       }
-      <div [class]="localOnly ? 'col-12' : 'col-md-6'">
-        <div class="card login-card position-relative" #localmode>
-          <p
-            style="
-              position: absolute;
-              top: 0;
-              right: 0;
-              text-align: right;
-              margin-top: 10px;
-              margin-right: 10px;
-            "
-          >
-            <button
-              type="button"
-              (click)="startDemo()"
-              class="btn btn-link link pointer p-0"
-            >
-              {{ 'login.demo' | transloco }}
-            </button>
-          </p>
+      <div [class]="localOnly ? 'local-main' : 'col-md-6'">
+        <div class="card login-card" [class.local-card]="localOnly" #localmode>
           <div class="card-body">
             <section>
-              <h4>{{ 'login.local mode' | transloco }}</h4>
-              <div
-                [innerHTML]="'login.local mode description' | transloco"
-              ></div>
+              @if (!localOnly) {
+                <h4>{{ 'login.local mode' | transloco }}</h4>
+                <div
+                  class="tratt-prose"
+                  [innerHTML]="'login.local mode description' | transloco"
+                ></div>
+              }
               <div>
                 @if (appStorage.sessionfile !== undefined) {
                   <div
@@ -218,16 +150,16 @@
                     class="alert alert-warning"
                   ></div>
                 }
-                <div style="margin-top: 40px">
+                <div class="local-tabs">
                   <ul
                     ngbNav
                     #localNav="ngbNav"
                     [(activeId)]="activeTab"
                     [destroyOnHide]="false"
-                    class="nav-tabs"
+                    class="nav-tabs tratt-tabs"
                   >
                     <li [ngbNavItem]="'upload'">
-                      <button ngbNavLink type="button" style="color: #000">
+                      <button ngbNavLink type="button">
                         <i class="fa-solid fa-folder-open me-1"></i>
                         {{ 'login.tabs.upload' | transloco }}
                       </button>
@@ -235,7 +167,7 @@
                         <div class="pt-3">
                           <tratt-dropzone
                             #dropzone
-                            [height]="'147px'"
+                            [height]="localOnly ? '200px' : '147px'"
                             [oldFiles]="sessionfile ? [sessionfile] : []"
                             [showAutoTranscribe]="true"
                           ></tratt-dropzone>
@@ -243,7 +175,7 @@
                       </ng-template>
                     </li>
                     <li [ngbNavItem]="'record'">
-                      <button ngbNavLink type="button" style="color: #000">
+                      <button ngbNavLink type="button">
                         <i class="fa-solid fa-microphone me-1"></i>
                         {{ 'login.tabs.record' | transloco }}
                       </button>
@@ -254,6 +186,15 @@
                           ></tratt-recording-panel>
                         </div>
                       </ng-template>
+                    </li>
+                    <li class="nav-item ms-auto align-self-center">
+                      <button
+                        type="button"
+                        (click)="startDemo()"
+                        class="btn btn-link p-0"
+                      >
+                        {{ 'login.demo' | transloco }}
+                      </button>
                     </li>
                   </ul>
                   <div [ngbNavOutlet]="localNav"></div>
@@ -266,9 +207,7 @@
                   !translation().active &&
                   !translation().error
                 ) {
-                  <div
-                    class="transcription-progress mt-3 p-3 border rounded bg-light"
-                  >
+                  <div class="transcription-progress tratt-panel mt-3">
                     @if (transcription().phase === 'downloading') {
                       <div>
                         <strong>{{
@@ -289,6 +228,18 @@
                             <div
                               class="progress-bar"
                               role="progressbar"
+                              aria-valuemin="0"
+                              aria-valuemax="100"
+                              [attr.aria-valuenow]="
+                                (transcription().downloadLoaded /
+                                  (transcription().downloadTotal ||
+                                    transcription().downloadExpectedBytes)) *
+                                  100 | number: '1.0-0'
+                              "
+                              [attr.aria-label]="
+                                'login.auto-transcription.downloading model'
+                                  | transloco
+                              "
                               [style.width]="
                                 (transcription().downloadLoaded /
                                   (transcription().downloadTotal ||
@@ -340,8 +291,19 @@
                         ) {
                           <div class="progress mt-1" style="height: 18px">
                             <div
-                              class="progress-bar bg-info"
+                              class="progress-bar"
                               role="progressbar"
+                              aria-valuemin="0"
+                              aria-valuemax="100"
+                              [attr.aria-valuenow]="
+                                (transcription().downloadLoaded /
+                                  transcription().downloadTotal) *
+                                  100 | number: '1.0-0'
+                              "
+                              [attr.aria-label]="
+                                'login.auto-transcription.diarizingLabel'
+                                  | transloco
+                              "
                               [style.width]="
                                 (transcription().downloadLoaded /
                                   transcription().downloadTotal) *
@@ -401,8 +363,19 @@
                         @if (transcription().audioDurationS > 0) {
                           <div class="progress mt-2" style="height: 14px">
                             <div
-                              class="progress-bar bg-success"
+                              class="progress-bar"
                               role="progressbar"
+                              aria-valuemin="0"
+                              aria-valuemax="100"
+                              [attr.aria-valuenow]="
+                                (transcription().segmentEndS /
+                                  transcription().audioDurationS) *
+                                  100 | number: '1.0-0'
+                              "
+                              [attr.aria-label]="
+                                'login.auto-transcription.transcribing audio'
+                                  | transloco
+                              "
                               [style.width]="
                                 (transcription().segmentEndS /
                                   transcription().audioDurationS) *
@@ -475,9 +448,7 @@
                   translation().error ||
                   translation().phase === 'finalizing'
                 ) {
-                  <div
-                    class="translation-progress mt-3 p-3 border rounded bg-light"
-                  >
+                  <div class="translation-progress tratt-panel mt-3">
                     @if (translation().phase === 'downloading') {
                       <div>
                         <strong>{{
@@ -493,6 +464,17 @@
                             <div
                               class="progress-bar"
                               role="progressbar"
+                              aria-valuemin="0"
+                              aria-valuemax="100"
+                              [attr.aria-valuenow]="
+                                (translation().downloadLoaded /
+                                  translation().downloadTotal) *
+                                  100 | number: '1.0-0'
+                              "
+                              [attr.aria-label]="
+                                'login.translation.phase.downloading'
+                                  | transloco
+                              "
                               [style.width]="
                                 (translation().downloadLoaded /
                                   translation().downloadTotal) *
@@ -539,6 +521,11 @@
                           <div
                             class="progress-bar progress-bar-striped progress-bar-animated"
                             role="progressbar"
+                            aria-valuemin="0"
+                            aria-valuemax="100"
+                            [attr.aria-label]="
+                              'login.translation.phase.initializing' | transloco
+                            "
                             style="width: 100%"
                           ></div>
                         </div>
@@ -565,8 +552,19 @@
                         @if (translation().segmentTotal > 0) {
                           <div class="progress mt-2" style="height: 14px">
                             <div
-                              class="progress-bar bg-success"
+                              class="progress-bar"
                               role="progressbar"
+                              aria-valuemin="0"
+                              aria-valuemax="100"
+                              [attr.aria-valuenow]="
+                                (translation().segmentIndex /
+                                  translation().segmentTotal) *
+                                  100 | number: '1.0-0'
+                              "
+                              [attr.aria-label]="
+                                'login.translation.phase.translating'
+                                  | transloco
+                              "
                               [style.width]="
                                 (translation().segmentIndex /
                                   translation().segmentTotal) *
@@ -616,7 +614,7 @@
                       (dropzone?.statistics?.progress ?? 0) > 0 ||
                       (dropzone?.statistics?.waiting ?? 0) > 0
                     "
-                    class="btn btn-raised btn-primary"
+                    class="btn btn-next-lg"
                     id="offline-submit"
                     type="submit"
                   >
@@ -644,166 +642,23 @@
           </div>
         </div>
       </div>
+      @if (localOnly) {
+        <section class="local-details">
+          <div
+            class="tratt-prose"
+            [innerHTML]="'login.local mode description' | transloco"
+          ></div>
+        </section>
+      }
     </div>
   } @else {
+    @if (localOnly) {
+      <div class="local-layout local-layout--hero-only">
+        <ng-container *ngTemplateOutlet="localHero" />
+      </div>
+    }
     <tratt-browser-test></tratt-browser-test>
   }
 </div>
-<div class="section order-3 order-md-2">
-  <footer class="footer">
-    <fieldset
-      style="
-        border: 1px solid #ccc;
-        border-radius: 4px;
-        padding: 0.5rem 1rem 1rem;
-        background: #fff;
-      "
-    >
-      <legend
-        style="
-          float: none;
-          width: auto;
-          font-size: 0.85rem;
-          padding: 0.15rem 0.5rem;
-          color: #555;
-          border: 1px solid #ccc;
-          border-radius: 3px;
-          background: #fff;
-        "
-      >
-        {{ 'login.funding support and development' | transloco }}
-      </legend>
-      <div
-        class="row row-cols-auto justify-content-center align-items-center g-3"
-      >
-        <div class="col">
-          <img
-            alt="VISP — Visible Speech"
-            class="logo"
-            src="./assets/img/visp_slogan_sv.svg"
-          />
-        </div>
-        <div class="col">
-          <a href="https://www.sweclarin.se/" target="_blank">
-            <img
-              alt="SweCLARIN"
-              class="logo"
-              src="./assets/img/sweclarin_logo.png"
-            />
-          </a>
-        </div>
-        <div class="col">
-          <a href="https://www.umu.se/en/humlab/" target="_blank">
-            <img
-              alt="Humlab – Umeå University"
-              class="logo"
-              src="./assets/img/humlab_logo_left_en.png"
-            />
-          </a>
-        </div>
-        <div class="col">
-          <a href="http://www.en.phonetik.uni-muenchen.de/" target="_blank">
-            <img
-              alt="IPS LMU Munich"
-              class="logo"
-              src="./assets/img/ipsx60.png"
-            />
-          </a>
-        </div>
-        <div class="col">
-          <a
-            href="https://www.bas.uni-muenchen.de/Bas/BasHomeeng.html"
-            target="_blank"
-          >
-            <img alt="BAS" class="logo" src="./assets/img/bas.png" />
-          </a>
-        </div>
-        <div class="col">
-          <a href="https://www.clarin-d.net/en/" target="_blank">
-            <img alt="Clarin-D" class="logo" src="./assets/img/clarin-d.png" />
-          </a>
-        </div>
-      </div>
-    </fieldset>
-  </footer>
-</div>
-<div class="section order-4 order-md-3">
-  <footer class="footer">
-    <fieldset
-      style="
-        border: 1px solid #ccc;
-        border-radius: 4px;
-        padding: 0.5rem 1rem 1rem;
-        background: #fff;
-      "
-    >
-      <legend
-        style="
-          float: none;
-          width: auto;
-          font-size: 0.85rem;
-          padding: 0.15rem 0.5rem;
-          color: #555;
-          border: 1px solid #ccc;
-          border-radius: 3px;
-          background: #fff;
-        "
-      >
-        {{ 'login.groups that developed the language models' | transloco }}
-      </legend>
-      <div
-        class="row row-cols-auto justify-content-center align-items-center g-3"
-      >
-        <div class="col">
-          <a href="https://github.com/Helsinki-NLP" target="_blank">
-            <img
-              alt="Language Technology at the University of Helsinki"
-              class="logo"
-              src="./assets/img/helsinki-nlp.png"
-            />
-          </a>
-        </div>
-        <div class="col">
-          <a href="https://huggingface.co/Finnish-NLP" target="_blank">
-            <img
-              alt="Finnish-NLP"
-              class="logo"
-              src="./assets/img/finnish-nlp.png"
-            />
-          </a>
-        </div>
-        <div class="col">
-          <a href="https://ai.nb.no/" target="_blank">
-            <img
-              alt="AI-lab at National Library of Norway"
-              class="logo"
-              src="./assets/img/nb-ai-lab.png"
-            />
-          </a>
-        </div>
-        <div class="col">
-          <a
-            href="https://www.kb.se/eng/research-collaboration/kblab.html"
-            target="_blank"
-          >
-            <img
-              alt="KBLab – National Library of Sweden"
-              class="logo"
-              src="./assets/img/kblab.svg"
-            />
-          </a>
-        </div>
-        <div class="col">
-          <a href="https://huggingface.co/openai" target="_blank">
-            <img alt="OpenAI" class="logo" src="./assets/img/openai.png" />
-          </a>
-        </div>
-        <div class="col">
-          <a href="https://github.com/pyannote/pyannote-audio" target="_blank">
-            <img alt="pyannote" class="logo" src="./assets/img/pyannote.webp" />
-          </a>
-        </div>
-      </div>
-    </fieldset>
-  </footer>
-</div>
+<tratt-credits />
+<tratt-footer />

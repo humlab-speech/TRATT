@@ -13,7 +13,7 @@
 .alert {
   margin-bottom: 5px;
   font-size: 0.8em;
-  box-shadow: #5a5a5a 0 0 10px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.25);
   padding: 10px;
   margin-left: 10px;
 }
@@ -26,9 +26,9 @@
 #alert .clear-all-button {
   font-size: 0.8em;
   width: 100%;
-  background-color: lightgray;
+  background-color: var(--tratt-surface-sunken);
   border: none;
-  box-shadow: #5a5a5a 5px 3px 10px;
+  box-shadow: 5px 3px 10px rgba(0, 0, 0, 0.25);
   margin-left: 10px;
 }
 
@@ -36,4 +36,8 @@
   padding-top: 5px;
   padding-right: 10px;
   font-size: 1.5em;
+}
+
+.toast {
+  color: var(--tratt-text-primary);
 }

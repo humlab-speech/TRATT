@@ -1,16 +1,16 @@
 .capacity-indicator {
-  background: #fff;
-  border: 1px solid #d4d9e0;
-  border-radius: 4px;
-  padding: 9px 11px 10px 11px;
+  background: var(--tratt-surface-page);
+  border: 1px solid var(--tratt-border);
+  border-radius: var(--tratt-radius);
+  padding: 0.7rem 0.8rem;
 }
 
 .capacity-indicator__row {
   display: flex;
   justify-content: space-between;
   gap: 8px;
-  font-size: 11px;
-  color: #667a90;
+  font-size: 0.8125rem;
+  color: var(--tratt-text-muted);
 }
 
 .capacity-indicator__row--spaced {
@@ -18,56 +18,56 @@
 }
 
 .capacity-indicator__label {
-  font-weight: 700;
-  letter-spacing: 0.4px;
-  text-transform: uppercase;
+  font-weight: 500;
 }
 
 .capacity-indicator__value {
+  font-family: var(--tratt-font-data);
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
 
 .capacity-indicator__bar {
   margin-top: 5px;
-  height: 8px;
-  border-radius: 4px;
-  background: #e6e8ed;
+  height: 0.4rem;
+  border-radius: 999px;
+  background: var(--tratt-surface-sunken);
   overflow: hidden;
   display: flex;
 }
 
 .capacity-indicator__storage-models {
   height: 100%;
-  background: #2a4765;
+  background: var(--tratt-next);
 }
 
 .capacity-indicator__storage-annotations {
   height: 100%;
-  background: #3d6b5c;
+  background: var(--tratt-text-muted);
 }
 
 .capacity-indicator__memory-fill {
   height: 100%;
 }
 
-// The three thresholds the design doc pins to the mockup's own script:
-// green below 55% of RAM_BUDGET_BYTES, amber 55-80%, red above 80%.
+// Thresholds live in the component's TS: green below 55% of
+// RAM_BUDGET_BYTES, yellow 55-80%, red above 80%.
 .capacity-indicator__memory-fill--ok {
-  background: #3d6b5c;
+  background: var(--tratt-success);
 }
 
 .capacity-indicator__memory-fill--warn {
-  background: #d7b17c;
+  background: var(--tratt-warning);
 }
 
 .capacity-indicator__memory-fill--danger {
-  background: #d7263d;
+  background: var(--tratt-danger);
 }
 
 .capacity-indicator__note {
   margin-top: 4px;
-  font-size: 11px;
-  color: #6b7c90;
+  font-size: 0.75rem;
+  font-family: var(--tratt-font-data);
+  color: var(--tratt-text-muted);
   line-height: 1.4;
 }

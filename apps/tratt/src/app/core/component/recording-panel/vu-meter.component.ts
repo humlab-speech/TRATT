@@ -8,6 +8,11 @@ import {
   ViewChild,
 } from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
+import {
+  observeTheme,
+  resolveTrattColors,
+  TRATT_COLORS,
+} from '@tratt/ngx-components';
 
 @Component({
   selector: 'tratt-vu-meter',
@@ -46,7 +51,13 @@ export class VuMeterComponent implements AfterViewInit, OnDestroy {
     this._rmsDb = v;
   }
 
+  private colors = resolveTrattColors();
+  private stopThemeWatch?: () => void;
+
   ngAfterViewInit(): void {
+    this.stopThemeWatch = observeTheme(() => {
+      this.colors = resolveTrattColors();
+    });
     const loop = () => {
       if (this.destroyed) return;
       this.draw();
@@ -57,6 +68,7 @@ export class VuMeterComponent implements AfterViewInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.destroyed = true;
+    this.stopThemeWatch?.();
     if (this.raf) cancelAnimationFrame(this.raf);
   }
 
@@ -76,14 +88,14 @@ export class VuMeterComponent implements AfterViewInit, OnDestroy {
     const h = c.height;
     ctx.clearRect(0, 0, w, h);
 
-    ctx.fillStyle = '#222';
+    ctx.fillStyle = this.colors.surfaceBackground;
     ctx.fillRect(0, 0, w, h);
 
     const rms = this.dbToFrac(this._rmsDb);
     const grad = ctx.createLinearGradient(0, 0, w, 0);
-    grad.addColorStop(0, '#22c55e');
-    grad.addColorStop(0.7, '#eab308');
-    grad.addColorStop(1, '#ef4444');
+    grad.addColorStop(0, TRATT_COLORS.accentSuccess);
+    grad.addColorStop(0.7, TRATT_COLORS.accentWarning);
+    grad.addColorStop(1, TRATT_COLORS.accentError);
     ctx.fillStyle = grad;
     ctx.fillRect(0, 0, w * rms, h);
 
@@ -94,7 +106,7 @@ export class VuMeterComponent implements AfterViewInit, OnDestroy {
     }
     const peak = this.dbToFrac(this.peakHoldDb);
     if (peak > 0) {
-      ctx.fillStyle = '#fff';
+      ctx.fillStyle = this.colors.textPrimary;
       ctx.fillRect(Math.min(w - 2, w * peak), 0, 2, h);
     }
   }

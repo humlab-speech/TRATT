@@ -33,7 +33,7 @@ td.fitwidth {
   display: flex;
   flex: auto;
   flex-direction: column;
-  background-color: var(--tratt-surface-background);
+  background-color: var(--tratt-surface-subtle);
 }
 
 :host {
@@ -52,18 +52,19 @@ td.fitwidth {
 }
 
 .active-playback {
-  background-color: yellow;
-  border-top: 3px solid black;
-  border-bottom: 3px solid black;
+  background-color: var(--sb-yellow-tint);
+  border-top: 3px solid var(--tratt-warning);
+  border-bottom: 3px solid var(--tratt-warning);
 }
 
 #transcription-panel {
-  background-color: var(--tratt-surface-background);
+  background-color: var(--tratt-surface-subtle);
 }
 
 .segment-selected td {
-  background-color: #1e1ea2;
-  color: white;
+  background-color: var(--sb-blue-tint);
+  box-shadow: inset 0.25rem 0 0 var(--tratt-interactive);
+  color: var(--tratt-text-primary);
 }
 
 #actionsDropdown {
@@ -72,7 +73,7 @@ td.fitwidth {
 }
 
 .sub-header {
-  background-color: var(--tratt-surface-background);
+  background-color: var(--tratt-surface-subtle);
 }
 
 .dropdown-menu {

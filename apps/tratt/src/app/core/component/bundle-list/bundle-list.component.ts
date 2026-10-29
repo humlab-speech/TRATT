@@ -29,6 +29,7 @@ import {
 import { LoginModeActions } from '../../store/login-mode/login-mode.actions';
 import { runStatusOf } from '../../store/pipeline-queue';
 import { selectAllRunStatuses } from '../../store/pipeline-queue/pipeline-queue.selectors';
+import { selectLocalBundle } from './select-local-bundle';
 
 /**
  * Lists the bundles created over the course of a session — the first-wave
@@ -342,14 +343,11 @@ export class BundleListComponent {
   ) {}
 
   selectBundle(bundleId: string): void {
-    if (this.localMode().selectedBundleId === bundleId) {
-      return;
-    }
-    // Commit the editor's debounced typing BEFORE the selection moves —
-    // afterwards it would be routed into the newly selected bundle.
-    this.pendingEdits.flush();
-    this.store.dispatch(
-      LoginModeActions.selectBundle({ mode: LoginMode.LOCAL, bundleId }),
+    selectLocalBundle(
+      this.store,
+      this.pendingEdits,
+      this.localMode().selectedBundleId,
+      bundleId,
     );
   }
 

@@ -111,7 +111,7 @@ edited its text, then green. Use it to see what is left to check
 
 ## 7. Export
 
-Click **Export**: the download icon in the top bar, and also a button along the
+Click **Export**: the download icon in the header, and also a button along the
 bottom of the editor. The dialog is headed *Export transcriptions*. Choose a
 format and click **Download**.
 

@@ -14,6 +14,10 @@ export interface AppSettings {
       pageExtension?: string;
       locales?: string[];
     };
+    branding?: {
+      /** Logo of the hosting node in the footer (Språkbanken profile). Omitted: no logo column. */
+      node?: { name: string; logo: string; url: string };
+    };
     login?: {
       enabled: boolean;
     };

@@ -1,0 +1,24 @@
+<footer class="tratt-footer" role="contentinfo">
+  <div>
+    <a [href]="base + '/'" target="_blank" rel="noopener" class="tratt-footer__logo">
+      <img src="assets/img/sprakbanken/sprakbanken_logo.svg" alt="Språkbanken" height="26" />
+    </a>
+    <ul class="tratt-footer__links">
+      <li><a [href]="base + '/om'" target="_blank" rel="noopener">{{ 'shell.footer.about_us' | transloco }}</a></li>
+      <li><a [href]="base + '/aktuellt'" target="_blank" rel="noopener">{{ 'shell.footer.news' | transloco }}</a></li>
+      <li><a [href]="base + '/plattformar'" target="_blank" rel="noopener">{{ 'shell.footer.other_platforms' | transloco }}</a></li>
+    </ul>
+  </div>
+  <div class="tratt-footer__mid">
+    <p class="tratt-prose">{{ 'shell.footer.feedback' | transloco }}</p>
+    <p class="tratt-footer__inline">
+      <a [href]="base + '/kontakt'" target="_blank" rel="noopener">{{ 'shell.footer.contact' | transloco }}</a>
+      <a [href]="base + '/om/referera-till-oss'" target="_blank" rel="noopener">{{ 'shell.footer.cite' | transloco }}</a>
+    </p>
+  </div>
+  @if (node; as n) {
+  <div class="tratt-footer__node">
+    <a [href]="n.url" target="_blank" rel="noopener"><img [src]="n.logo" [alt]="n.name" height="48" /></a>
+  </div>
+  }
+</footer>

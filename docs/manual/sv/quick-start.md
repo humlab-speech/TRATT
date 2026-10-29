@@ -114,7 +114,7 @@ kontrollera ([mer](checking-your-work.md#verified-transcriptions)).
 
 ## 7. Exportera
 
-Klicka på **Exportera**: nedladdningsikonen i den övre listen, och även en knapp
+Klicka på **Exportera**: nedladdningsikonen i sidhuvudet, och även en knapp
 längst ned i redigeraren. Dialogen heter *Exportera transkriptioner*. Välj format
 och klicka på **Ladda ner**.
 

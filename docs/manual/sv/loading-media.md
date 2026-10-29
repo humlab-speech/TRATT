@@ -67,7 +67,7 @@ fil att flytta runt.
    Är listan tom eller namnlös, klicka **Begär åtkomst**. Webbläsare döljer
    enhetsnamn tills du gett tillstånd en gång.
 3. Klicka **Starta inspelning**. En nivålampa visar rött (*Låg volym, kontrollera
-   mikrofonen*), orange (*Marginell volym*) eller grönt (*Bra volym*). Håll ögonen
+   mikrofonen*), gult (*Marginell volym*) eller grönt (*Bra volym*). Håll ögonen
    på den de första sekunderna; en röd lampa genom hela inspelningen går inte att
    rädda.
 4. **Paus** / **Återuppta** vid behov, sedan **Stopp**.
@@ -120,15 +120,15 @@ transkription, tillsammans med namn, storlek och datum för filen du arbetade me
 Dra in samma fil igen och klicka **Fortsätt transkription** för att fortsätta där
 du slutade.
 
-Knappen under släppytan talar om vilket av de två som är på väg att hända. Den blå
+Knappen under släppytan talar om vilket av de två som är på väg att hända. Den orangea
 är ofarlig och dess text följer vad du valt; den röda är det inte.
 
 | Knapp | Vad den gör |
 | --- | --- |
-| **Fortsätt transkription** (blå) | Filen matchar den sparade sessionen. Ditt sparade transkript öppnas igen. |
-| **Manuell transkription** (blå) | Detsamma, utan vald modell: vyn öppnas för dig att skriva i. |
-| **Kör automatisk bearbetning** (blå) | Detsamma, med automatisk transkribering eller översättning markerad: modellen körs först. |
-| **Ersätt de lagrade annoteringarna** (blå) | Du har markerat automatisk transkribering för en inspelning som redan har en transkription. Körningen skriver över den. |
+| **Fortsätt transkription** (orange) | Filen matchar den sparade sessionen. Ditt sparade transkript öppnas igen. |
+| **Manuell transkription** (orange) | Detsamma, utan vald modell: vyn öppnas för dig att skriva i. |
+| **Kör automatisk bearbetning** (orange) | Detsamma, med automatisk transkribering eller översättning markerad: modellen körs först. |
+| **Ersätt de lagrade annoteringarna** (orange) | Du har markerat automatisk transkribering för en inspelning som redan har en transkription. Körningen skriver över den. |
 | **Starta ny transkription** (röd) | Filen matchar inte den sparade sessionen, eller så finns ingen. Klickar du **kastas det sparade transkriptet** och du börjar om, utan ytterligare bekräftelse och utan möjlighet att ångra. |
 
 Tratt avgör vilken knapp som ska visas genom att jämföra filen du släppte med den

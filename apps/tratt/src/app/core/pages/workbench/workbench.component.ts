@@ -21,6 +21,7 @@ import {
 import { toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
+import { HumlabLogoComponent } from '../../component/humlab-logo/humlab-logo.component';
 import { NgbModalRef, NgbNavModule } from '@ng-bootstrap/ng-bootstrap';
 import { Store } from '@ngrx/store';
 import {
@@ -46,7 +47,9 @@ import {
   TrattEditorRequirements,
 } from '../../../editors/tratt-editor';
 import { BundleListComponent } from '../../component/bundle-list/bundle-list.component';
+import { selectLocalBundle } from '../../component/bundle-list/select-local-bundle';
 import { CapacityIndicatorComponent } from '../../component/capacity-indicator/capacity-indicator.component';
+import { DataSelectorComponent } from '../../component/data-selector/data-selector.component';
 import { DefaultComponent } from '../../component/default.component';
 import { NavbarService } from '../../component/navbar/navbar.service';
 import { RecordingPanelComponent } from '../../component/recording-panel/recording-panel.component';
@@ -78,6 +81,7 @@ import { YesNoModalComponent } from '../../modals/yes-no-modal/yes-no-modal.comp
 import { FileProgress } from '../../obj/objects';
 import { SessionFile } from '../../obj/SessionFile';
 import { ProjectSettings } from '../../obj/Settings';
+import { HeaderCenterDirective } from '../../shared/directive/header-center.directive';
 import { LoadeditorDirective } from '../../shared/directive/loadeditor.directive';
 import { postToParent } from '../../shared/post-to-parent';
 import { SettingsService, UserInteractionsService } from '../../shared/service';
@@ -126,6 +130,7 @@ import { describePipeline } from './pipeline-summary';
   styleUrls: ['./workbench.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
+    HumlabLogoComponent,
     TrattDropzoneComponent,
     BundleListComponent,
     RecordingPanelComponent,
@@ -138,6 +143,8 @@ import { describePipeline } from './pipeline-summary';
     AutoTranslateOptionsComponent,
     CapacityIndicatorComponent,
     NgTemplateOutlet,
+    HeaderCenterDirective,
+    DataSelectorComponent,
   ],
 })
 export class WorkbenchComponent
@@ -198,7 +205,26 @@ export class WorkbenchComponent
    */
   editorPlaceholder = signal<'none' | 'loading' | 'awaiting-media'>('none');
 
-  private selectedBundleId = this.store.selectSignal(selectSelectedBundleId);
+  protected selectedBundleId = this.store.selectSignal(selectSelectedBundleId);
+
+  /**
+   * The data selector's list: same source, order and phantom-row filter as
+   * the bundle list (`BundleListComponent.bundles`).
+   */
+  readonly headerFiles = computed(() =>
+    this.bundleSummaries()
+      .filter((b) => b.name !== undefined)
+      .map((b) => ({ id: b.bundleId, name: b.name as string })),
+  );
+
+  selectFileFromHeader(bundleId: string): void {
+    selectLocalBundle(
+      this.store,
+      this.pendingEdits,
+      this.selectedBundleId(),
+      bundleId,
+    );
+  }
   private localMode = this.store.selectSignal(selectLocalMode);
   private alertService = inject(AlertService);
   private saveTracker = inject(AnnotationSaveTracker);

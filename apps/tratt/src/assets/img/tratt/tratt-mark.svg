@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="2 8 60 48" width="60" height="48" role="img" aria-label="Tratt">
+  <path fill="#F0581A" d="M8 9h48a5 5 0 0 1 5 5v24a5 5 0 0 1-5 5H26L13 55V43H8a5 5 0 0 1-5-5V14a5 5 0 0 1 5-5z"/>
+  <rect x="13" y="19" width="38" height="5" rx="2.5" fill="#FFF"/>
+  <rect x="13" y="29" width="19" height="5" rx="2.5" fill="#FFF"/>
+</svg>

@@ -30,6 +30,11 @@ mixing them in is what makes the OCTRA manual hard for a first-time user.
 - **Quote the interface exactly.** Labels in the manual must match the English
   strings in `apps/tratt/src/assets/i18n/en.json`. When you change a label there,
   grep this directory for the old text.
+- **The manual's appearance comes from the app's palette**
+  (`apps/tratt/src/styles/_palette.scss`). Never change colours in `manual.scss`.
+- **Callouts are blockquotes.** A blockquote whose first word is `Warning`,
+  `Caution`, `Varning` or `Observera` (usually bold, as `> **Warning.**`) becomes
+  a yellow callout. Any other blockquote stays plain.
 - **Reference material is tables.** Shortcuts, formats and options are looked up,
   not read.
 - **No em dashes in the prose.** Use a comma, a colon or a full stop. The only
@@ -60,7 +65,7 @@ The application deep-links into the manual. These targets must keep working:
 | `shared/service/manual-link.service.ts` (`ROUTE_PAGES`) | one chapter per application route      |
 
 `ROUTE_PAGES` is the second half of the contract. It decides which chapter the
-navigation bar's **Manual** entry and the Help dialog open from a given route:
+header's **Manual** link and the Help dialog open from a given route:
 `/workbench` opens `workbench`, and a route with no entry opens the manual's
 front page. Both doors read the same table, so they cannot disagree. Add a route
 there and the page it names must exist; the link check fails if it does not.
@@ -88,6 +93,17 @@ Locally:
 ```bash
 npm run validate:manual   # links, anchors and in-app deep links
 npm run build:manual      # renders to dist/manual, then re-checks the output
+```
+
+Before publishing, run the accessibility check locally (it is deliberately not in
+CI). It opens every built page in both themes and runs axe-core for colour
+contrast, links in running text, page language, image alt text, one main landmark
+and the skip link. It needs `npx playwright install chromium` once, and a server:
+
+```bash
+npm run build:manual
+npx http-server dist/manual -p 8081 -c-1 &   # BASE_URL defaults to http://localhost:8081
+npm run a11y:manual                          # exit code 1 on any violation
 ```
 
 The application finds the published site through `tratt.manual.url` and
@@ -161,11 +177,43 @@ Not exercised live, and therefore still source-derived only:
 
 ## Screenshots
 
-The nine screenshots in `docs/assets/` are taken from a production build served
-locally, so the chrome matches from page to page. Seven of them come from one
-session on the 8 October build; the Overview and the Workbench were re-shot from
-the 22 October build, which is the first to carry the verification markers and the
-current drop-area wording.
+**Stale: the following describes the images as they were before the Språkbanken
+profile.** The nine screenshots in `docs/assets/` were taken from a production
+build served locally, so the chrome matched from page to page. Seven of them came
+from one session on the 8 October build; the Overview and the Workbench were
+re-shot from the 22 October build, which was the first to carry the verification
+markers and the current drop-area wording. None of them has been re-shot since the
+profile, so they still show the old look (navy header, blue buttons) until the
+script has been run and the by-hand images taken.
+
+The script's selectors have not been run against the live UI; expect to adjust
+them on the first run.
+
+To re-shoot (everything except the WebGPU image):
+
+1. Create the fixtures (see **How to reproduce them** below) in a directory of your
+   choice. It must contain `interview-01-mixed.srt`, the short recordings
+   (`.wav`/`.mp3`/`.ogg`/`.m4a`) and, for the popup-with-video image, one video file.
+2. Serve a production build with `apps/tratt/src/config/appconfig.json` in place, and
+   run `npx playwright install chromium` once.
+3. `BASE_URL=http://localhost:5321 MANUAL_FIXTURES=/path/to/fixtures npm run docs:screens`.
+   `BASE_URL` defaults to `http://localhost:5321`; `MANUAL_FIXTURES` is required and
+   the script stops with a message if the directory or `interview-01-mixed.srt` is
+   missing.
+4. The script generates only the images it can produce truthfully: `main`,
+   `dictaphone_editor`, `popup_editor_audio_only`, `popup_editor_audio_and_video`
+   (only if the fixtures hold a video file), `overview` and `export_formats`. It
+   never substitutes or fakes the others; it prints a `take by hand:` line for each
+   and exits 0. Take these by hand (existing files are left untouched):
+   `auto_transcription_options` (real Chrome with WebGPU), `draft_automatic_transcription`
+   (an auto-transcription in progress), `2d_editor` (import with speaker
+   identification ticked, for the badges), `linear_editor` (one unit opened),
+   `overview_edit` (first two units checked) and `workbench` (four recordings: one
+   selected, one done, one queued). The exit code is non-zero only when a
+   generated image fails.
+5. Open every image at full size (no personal data, no stray errors, light theme).
+   Keep each file under 400 kB, except the two popup images; the script warns when
+   one is over.
 
 | File                                        | Shows                                                       | Used by                                   |
 | ------------------------------------------- | ----------------------------------------------------------- | ----------------------------------------- |
@@ -199,7 +247,8 @@ How to reproduce them:
   file. See [Verification marks](exporting.md#verification-marks-in-time-aligned-formats).
 - Viewport 1440 × 820 at a device pixel ratio of 2 for the editor pages, 1480 × 900
   for the Workbench, 1360 wide for the start page. **Below 1400 px the editor
-  switcher collapses to icons**, so do not shoot the editor narrower than that.
+  switcher in the header collapses to icons** (the Workbench's editor tabs keep
+  their labels), so do not shoot the editor narrower than that.
 - `visp_tratt_auto_transcription_options.png` is the exception: the headless
   browser has no WebGPU, which greys out the two largest Whisper models and
   changes every model description, so that one was taken in a real Chrome with
@@ -213,8 +262,6 @@ resolved, remove the caveat in the same commit:
 
 | Issue                                                                            | Where the manual says so                                 |
 | -------------------------------------------------------------------------------- | -------------------------------------------------------- |
-| Workbench reachable by URL only, with no entry of its own in the navigation bar  | `workbench.md`, `index.md`, `glossary.md`                |
-| Workbench has no name of its own in the interface, so the manual supplies one    | `workbench.md` (Swedish: "Arbetsbänken")                 |
 | Tools dialog has no UI entry point (`openToolsModal()` has no caller)            | `using-tools.md`, `coming-from-octra.md`                 |
 | Guidelines window absent from the Workbench toolbar                              | `workbench.md`, `shortcuts.md`                           |
 | `/help-tools` not linked from anywhere                                           | `troubleshooting.md`, `privacy.md`                       |
@@ -223,8 +270,8 @@ resolved, remove the caveat in the same commit:
 
 Fixed since the manual was first written, and no longer mentioned: the cloud
 ASR/MAUS feature (removed from the app), the raw `modal.shortcuts.cycle_speaker`
-key in the Shortcuts window, the navbar GitHub link, and the Workbench being
-gated to development builds.
+key in the Shortcuts window, the GitHub link (now under **About Tratt**), the Workbench being gated to development builds, and the Workbench
+having no header link or name of its own.
 
 ## Facts that will go out of date
 

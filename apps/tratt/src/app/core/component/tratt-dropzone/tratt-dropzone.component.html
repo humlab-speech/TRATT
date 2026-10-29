@@ -1,8 +1,7 @@
 <button
   type="button"
   (click)="showSupported()"
-  class="btn btn-link link p-0"
-  style="z-index: 20; width: 100%; text-align: right; font-size: 0.85rem"
+  class="btn btn-link link p-0 dz-supported"
 >
   <i class="fa-solid fa-circle-info"></i> {{ 'g.supported files' | transloco }}
 </button>
@@ -23,27 +22,25 @@
               [popoverTitle]="'dropzone.validation error' | transloco"
               [ngbPopover]="fileProgress.error ?? ''"
               [triggers]="'hover'"
-              style="font-size: 16px"
+              style="font-size: 1rem"
               placement="top"
             ></i>
           }
           @if (fileProgress.status === 'valid' && !fileProgress.warning) {
-            <i class="fa-solid fa-check" style="font-size: 16px"></i>
+            <i class="fa-solid fa-check" style="font-size: 1rem"></i>
           }
           @if (fileProgress.status === 'valid' && fileProgress.warning) {
             <i
-              class="fa-solid fa-triangle-exclamation"
+              class="fa-solid fa-triangle-exclamation dz-icon-warning"
               [popoverTitle]="'dropzone.validation warning' | transloco"
               [triggers]="'hover'"
               [ngbPopover]="fileProgress.warning"
-              style="font-size: 16px; color: var(--tratt-accent-warning)"
             ></i>
           }
           @if (fileProgress.status === 'waiting') {
             <div
-              class="spinner-border icon-wait"
+              class="spinner-border icon-wait dz-spinner"
               role="status"
-              style="width: 16px; height: 16px; border-width: 2px; color: gray"
               [title]="'dropzone.waiting for audio' | transloco"
             >
               <span class="visually-hidden">{{
@@ -54,11 +51,7 @@
             !fileProgress.file.type.includes('audio') &&
             fileProgress.status === 'progress'
           ) {
-            <div
-              class="spinner-border icon-wait"
-              role="status"
-              style="width: 16px; height: 16px; border-width: 2px; color: gray"
-            >
+            <div class="spinner-border icon-wait dz-spinner" role="status">
               <span class="visually-hidden">{{
                 'g.please wait' | transloco
               }}</span>
@@ -96,9 +89,8 @@
         <td>
           <button
             type="button"
-            class="btn btn-link p-0 icon-delete"
+            class="btn btn-link p-0 icon-delete dz-row-btn"
             (click)="onDeleteEntry($event, fileProgress.id)"
-            style="font-size: 14px; color: dimgray"
           >
             <i class="fa-solid fa-trash"></i>
             <span class="visually-hidden">{{
@@ -112,13 +104,12 @@
             [ngStyle]="{
               visibility: fileProgress.needsOptions ? 'visible' : 'hidden',
             }"
-            class="btn btn-link p-0 ms-1"
+            class="btn btn-link p-0 ms-1 dz-row-btn"
             (click)="
               $event.stopImmediatePropagation();
               $event.stopPropagation();
               trattDropzoneService.openImportOptionsModal(fileProgress)
             "
-            style="font-size: 14px; color: dimgray"
           >
             <i class="fa-solid fa-gear"></i>
             <span class="visually-hidden">{{

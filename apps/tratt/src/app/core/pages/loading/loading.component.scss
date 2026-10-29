@@ -11,16 +11,16 @@
 }
 
 .log {
-  color: red;
+  color: var(--tratt-danger-text);
   line-height: 1.5;
 }
 
 .progress {
   height: 10px;
   background: transparent;
-  border: 1px solid var(--tratt-accent-green-dark);
+  border: 1px solid var(--tratt-interactive-text);
 }
 
 .progress-bar {
-  background-color: var(--tratt-accent-green-dark);
+  background-color: var(--tratt-interactive-text);
 }

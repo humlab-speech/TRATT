@@ -4,6 +4,8 @@ This library offers the same components from @tratt/ngx-components without the l
 
 ## Installation
 
+The player and viewer draw on a canvas. They read the `--tratt-*` variables if the page defines them and otherwise fall back to the Språkbanken colours. The font is Noto Sans if the page loads it, otherwise Arial.
+
 ### Vanilla JS (plain Javascript)
 
 Currently, the libraries are not published on npm because Octra 2.0 and the libraries are still in development. If you

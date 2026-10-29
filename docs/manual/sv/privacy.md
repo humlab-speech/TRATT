@@ -16,6 +16,7 @@ tal- eller översättningsmodell.
 | Ljud- eller videofilen du laddar in | Endast i webbläsarflikens minne. Den läses från disk, avkodas och kastas när du stänger fliken. Den laddas aldrig upp och skrivs aldrig tillbaka till disk av Tratt. |
 | Transkriptet du skapar | I webbläsarens egen databas (IndexedDB) på din dator. |
 | Dina inställningar, gränssnittsspråk och loggade åtgärder | Samma lokala databas. |
+| Ditt val av ljust eller mörkt läge (**Växla mellan ljust och mörkt läge** i sidhuvudet) | I webbläsarens lokala lagring på din dator, under `tratt.theme`. Det skickas aldrig någonstans. |
 | Utkastet från automatisk transkription | Skapas på din dator, av en modell som körs i din webbläsare. |
 
 Eftersom ljudet bara hålls i minnet kan Tratt erbjuda sig att minnas ditt

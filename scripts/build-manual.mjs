@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Renders the TRATT user manual to a self-contained static site in dist/manual.
+ * Renders the Tratt user manual to a self-contained static site in dist/manual.
  *
  * Sources:
  *   docs/manual/*.md        English — the default language, published at the
@@ -23,6 +23,7 @@
  *                 CI always cleans, so stale pages cannot be published)
  */
 import MarkdownIt from 'markdown-it';
+import * as sass from 'sass';
 import {
   copyFileSync,
   existsSync,
@@ -36,7 +37,12 @@ import { basename, dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const manualDir = join(repoRoot, 'docs', 'manual');
+const srcArgIndex = process.argv.indexOf('--src');
+// --src <dir> reads the Markdown from somewhere else (used by the tests).
+const manualDir =
+  srcArgIndex > -1 && process.argv[srcArgIndex + 1]
+    ? resolve(process.cwd(), process.argv[srcArgIndex + 1])
+    : join(repoRoot, 'docs', 'manual');
 const assetsDir = join(repoRoot, 'docs', 'assets');
 
 const outArgIndex = process.argv.indexOf('--out');
@@ -206,6 +212,58 @@ md.renderer.rules.image = (tokens, idx, options, env, self) => {
   return defaultImage(tokens, idx, options, env, self);
 };
 
+// Blockquotes are callouts. A quote that opens with Warning/Caution/Varning/
+// Observera (optionally inside ** or _) is a warning and is styled yellow.
+md.renderer.rules.blockquote_open = (tokens, idx, options, env, self) => {
+  const first = tokens.slice(idx + 1).find((t) => t.type === 'inline');
+  if (first && /^[*_\s]*(warning|caution|varning|observera)\b/i.test(first.content)) {
+    tokens[idx].attrJoin('class', 'callout-warning');
+  }
+  return self.renderToken(tokens, idx, options);
+};
+
+// --- shared assets -------------------------------------------------------------
+const readText = (...parts) => readFileSync(join(repoRoot, ...parts), 'utf8');
+
+/** Inline an SVG file as a decorative graphic (no external requests). */
+const inlineSvg = (svg, attrs) =>
+  svg
+    .replace(/<!--[\s\S]*?-->/g, '')
+    .replace(/\s+(?:role|aria-label)="[^"]*"/g, '')
+    .replace('<svg ', `<svg ${attrs} `)
+    .trim();
+
+const faIcon = (name) =>
+  inlineSvg(
+    readText('node_modules', '@fortawesome', 'fontawesome-free', 'svgs', 'solid', `${name}.svg`),
+    'class="icon" aria-hidden="true" focusable="false"',
+  );
+const ICON_GLOBE = faIcon('globe');
+const ICON_THEME = faIcon('circle-half-stroke');
+
+const BRAND_MARK = inlineSvg(
+  readText('apps', 'tratt', 'src', 'assets', 'img', 'tratt', 'tratt-mark.svg'),
+  'aria-hidden="true" focusable="false"',
+);
+// The logo is a placeholder (see the README next to it). Its text colour is
+// replaced by currentColor so it also reads on the dark theme.
+const SB_LOGO = readText('apps', 'tratt', 'src', 'assets', 'img', 'sprakbanken', 'sprakbanken_logo.svg')
+  .replace(/fill="#f0581a"/g, 'fill="currentColor"')
+  .trim();
+
+/** Footer and theme-toggle texts come from the application's own i18n files. */
+const APP_TEXT = Object.fromEntries(
+  ['en', 'sv'].map((code) => {
+    const shell = JSON.parse(readText('apps', 'tratt', 'src', 'assets', 'i18n', `${code}.json`)).shell;
+    for (const k of ['about_us', 'news', 'other_platforms', 'feedback', 'contact', 'cite']) {
+      if (!shell.footer?.[k]) throw new Error(`shell.footer.${k} missing in ${code}.json`);
+    }
+    if (!shell.header?.theme_toggle) throw new Error(`shell.header.theme_toggle missing in ${code}.json`);
+    return [code, shell];
+  }),
+);
+const SB_BASE = 'https://sprakbanken.se';
+
 // --- collect pages -----------------------------------------------------------
 const englishPages = readdirSync(manualDir)
   .filter((f) => f.endsWith('.md'))
@@ -264,10 +322,51 @@ for (const locale of LOCALES) {
 }
 
 // --- templating --------------------------------------------------------------
-const CSS = readFileSync(
-  join(repoRoot, 'scripts', 'manual-assets', 'manual.css'),
-  'utf8',
-);
+/**
+ * Self-hosted fonts: the same families the application uses, latin and
+ * latin-ext subsets, woff2 only. Files are copied to <outDir>/assets/fonts/ and
+ * the @font-face rules point at `__ASSETS__fonts/<file>`, which renderPage
+ * turns into a path relative to the page (works under /manual/ and /manual/sv/).
+ */
+function buildFonts(outDir) {
+  const faces = [
+    ['jost', ['300', '400', '500', '700']],
+    ['noto-sans', ['400', '600']],
+    ['noto-serif', ['400', '400-italic', '700']],
+  ];
+  const fontsOut = join(outDir, 'assets', 'fonts');
+  mkdirSync(fontsOut, { recursive: true });
+  let css = '';
+  for (const [pkg, variants] of faces) {
+    const pkgDir = join(repoRoot, 'node_modules', '@fontsource', pkg);
+    for (const variant of variants) {
+      const source = readFileSync(join(pkgDir, `${variant}.css`), 'utf8');
+      for (const block of source.match(/@font-face\s*{[^}]*}/g) ?? []) {
+        const woff2 = block.match(/url\(\.\/files\/([^)]*-(?:latin|latin-ext)-[^)]*\.woff2)\)/);
+        if (!woff2) continue;
+        copyFileSync(join(pkgDir, 'files', woff2[1]), join(fontsOut, woff2[1]));
+        css += block
+          .replace(/src:[^;]*;/, `src: url(__ASSETS__fonts/${woff2[1]}) format('woff2');`)
+          .replace(/\s+/g, ' ');
+        css += '\n';
+      }
+    }
+  }
+  return css;
+}
+
+// The site is written below; fonts are copied as part of building the CSS.
+if (!process.argv.includes('--no-clean')) {
+  rmSync(outRoot, { recursive: true, force: true });
+}
+mkdirSync(outRoot, { recursive: true });
+
+const CSS =
+  buildFonts(outRoot) +
+  sass.compile(join(repoRoot, 'scripts', 'manual-assets', 'manual.scss'), {
+    style: 'compressed',
+    quietDeps: true,
+  }).css;
 const JS = readFileSync(
   join(repoRoot, 'scripts', 'manual-assets', 'manual.js'),
   'utf8',
@@ -328,12 +427,50 @@ function renderToc(locale, toc) {
 
 function renderLangSwitch(locale, page) {
   return `<nav class="lang-switch" aria-label="${escapeHtml(UI[locale.code].language)}">
+    ${ICON_GLOBE}
     ${LOCALES.map((l) =>
       l.code === locale.code
         ? `<span class="active" aria-current="true" lang="${l.code}">${l.label}</span>`
         : `<a href="${crossLocaleHref(locale, l, page)}" lang="${l.code}" hreflang="${l.code}" title="${escapeHtml(l.name)}">${l.label}</a>`,
     ).join('\n    ')}
   </nav>`;
+}
+
+/** Same theme bootstrap as the application's index.html, with the manual's own key. */
+const THEME_SCRIPT = `<script>
+try {
+  var t = localStorage.getItem('tratt.manual.theme');
+  if (t !== 'light' && t !== 'dark')
+    t = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-bs-theme', t);
+} catch (e) {}
+</script>`;
+
+function renderFooter(locale, sourcePath) {
+  const ui = UI[locale.code];
+  const f = APP_TEXT[locale.code].footer;
+  const a = (path, text) =>
+    `<a href="${SB_BASE}${path}" target="_blank" rel="noopener">${escapeHtml(text)}</a>`;
+  return `<footer class="site-footer">
+  <!-- Icons: Font Awesome Free by Fonticons, Inc. (https://fontawesome.com), licensed CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/) -->
+  <div class="site-footer-main">
+    <div>
+      <a class="footer-logo" href="${SB_BASE}/" target="_blank" rel="noopener">${SB_LOGO}</a>
+      <ul>
+        <li>${a('/om', f.about_us)}</li>
+        <li>${a('/aktuellt', f.news)}</li>
+        <li>${a('/plattformar', f.other_platforms)}</li>
+      </ul>
+    </div>
+    <div>
+      <p>${escapeHtml(f.feedback)}</p>
+      <p class="footer-inline">${a('/kontakt', f.contact)} ${a('/om/referera-till-oss', f.cite)}</p>
+    </div>
+  </div>
+  <div class="site-footer-meta">
+    <p><a href="https://github.com/humlab-speech/TRATT/blob/main/docs/manual/${sourcePath}" target="_blank" rel="noopener">${escapeHtml(ui.edit)}</a> <a href="https://github.com/humlab-speech/TRATT" target="_blank" rel="noopener">${escapeHtml(APP_TEXT[locale.code].about.source_code)}</a></p>
+  </div>
+</footer>`;
 }
 
 function renderPage(locale, page) {
@@ -363,18 +500,21 @@ function renderPage(locale, page) {
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>${escapeHtml(entry.title)} — TRATT ${escapeHtml(ui.site)}</title>
-<meta name="description" content="TRATT ${escapeHtml(ui.site)} — ${escapeHtml(entry.title)}">
+<title>${escapeHtml(entry.title)} — Tratt ${escapeHtml(ui.site)}</title>
+<meta name="description" content="Tratt ${escapeHtml(ui.site)} — ${escapeHtml(entry.title)}">
 ${alternates}
-<style>${CSS}</style>
+${THEME_SCRIPT}
+<style>${CSS.replaceAll('__ASSETS__', `${env.assetPrefix}assets/`)}</style>
 </head>
 <body>
 <a class="skip-link" href="#content">${escapeHtml(ui.skip)}</a>
 <header class="topbar">
-  <a class="brand" href="index.html">TRATT <span>${escapeHtml(ui.site)}</span></a>
-  ${renderLangSwitch(locale, page)}
-  <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="sidebar">${escapeHtml(ui.menu)}</button>
-  <a class="repo" href="https://github.com/humlab-speech/TRATT" target="_blank" rel="noopener">GitHub</a>
+  <a class="brand" href="index.html"><span class="brand-name">Tratt</span><span class="brand-mark">${BRAND_MARK}</span><span class="brand-tagline">${escapeHtml(ui.site)}</span></a>
+  <div class="topbar-actions">
+    ${renderLangSwitch(locale, page)}
+    <button class="icon-button theme-toggle" type="button" aria-pressed="false" aria-label="${escapeHtml(APP_TEXT[locale.code].header.theme_toggle)}" title="${escapeHtml(APP_TEXT[locale.code].header.theme_toggle)}">${ICON_THEME}</button>
+    <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="sidebar">${escapeHtml(ui.menu)}</button>
+  </div>
 </header>
 <div class="layout">
   <aside class="sidebar" id="sidebar">
@@ -394,11 +534,9 @@ ${alternates}
     <article>
 ${body}
     </article>
-    <footer class="page-footer">
-      <p>TRATT ${escapeHtml(ui.site)} · <a href="https://github.com/humlab-speech/TRATT/blob/main/docs/manual/${sourcePath}" target="_blank" rel="noopener">${escapeHtml(ui.edit)}</a></p>
-    </footer>
   </main>
 </div>
+${renderFooter(locale, sourcePath)}
 <script>${JS}</script>
 </body>
 </html>
@@ -407,11 +545,6 @@ ${body}
 
 // --- write -------------------------------------------------------------------
 const usedAssets = new Set();
-
-if (!process.argv.includes('--no-clean')) {
-  rmSync(outRoot, { recursive: true, force: true });
-}
-mkdirSync(outRoot, { recursive: true });
 
 let pageCount = 0;
 const untranslated = [];
@@ -475,6 +608,14 @@ for (const file of htmlFiles) {
   for (const m of html.matchAll(/href="([^"]+)"/g)) {
     if (/^(https?:|mailto:|#)/i.test(m[1])) continue;
     check(m[1], 'href');
+  }
+  for (const m of html.matchAll(/url\(([^)]+)\)/g)) {
+    const ref = m[1].replace(/^['"]|['"]$/g, '');
+    if (/^data:/i.test(ref)) continue;
+    const resolved = join(base, ref).replace(/^\.\//, '');
+    if (/^https?:/i.test(ref) || !existsSync(join(outRoot, resolved))) {
+      broken.push(`${file} -> ${ref} (missing font)`);
+    }
   }
   for (const m of html.matchAll(/src="([^"]+)"/g)) {
     if (/^(https?:|data:)/i.test(m[1])) continue;

@@ -1,0 +1,36 @@
+:host {
+  display: inline-grid;
+  grid-template-columns: auto 1fr;
+  column-gap: 0.2rem;
+  align-items: end;
+  color: var(--tratt-text-primary);
+  line-height: 1;
+}
+.tratt-logo__name {
+  font-family: var(--tratt-font-ui);
+  font-weight: 300;
+  font-size: 2.125rem;
+  line-height: 0.9;
+  letter-spacing: -0.01em;
+}
+.tratt-logo__mark {
+  justify-self: start;
+  inline-size: 2.75rem;
+  block-size: auto;
+  margin: 0 0 -0.15rem 0.1rem;
+}
+.tratt-logo__tagline {
+  grid-column: 1 / -1;
+  margin-top: 0.3rem;
+  font-family: var(--tratt-font-ui);
+  font-weight: 500;
+  font-size: 0.75rem;
+}
+@media (max-width: 575.98px) {
+  .tratt-logo__name {
+    font-size: 1.75rem;
+  }
+  .tratt-logo__tagline {
+    display: none;
+  }
+}

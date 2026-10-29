@@ -59,7 +59,7 @@
 
 #bottom-feedback {
   border: 1px solid var(--tratt-text-primary);
-  background-color: var(--tratt-surface-background);
+  background-color: var(--tratt-surface-subtle);
   padding: 5px;
   height: 30px;
   position: relative;
@@ -95,7 +95,7 @@
 }
 
 .required_marker {
-  color: red;
+  color: var(--tratt-danger-text);
 }
 
 #bottom-navigation button {
@@ -104,20 +104,20 @@
 
 #bottom-comment {
   width: 100%;
-  border: 1px solid gray;
+  border: 1px solid var(--tratt-border-control);
   height: 40px;
   margin-bottom: 0;
 }
 
 #bottom-comment textarea {
-  background-color: var(--tratt-note-surface);
+  background-color: var(--sb-yellow-tint);
 }
 
 #editor-loading {
   z-index: 30;
   position: absolute;
-  color: gray;
-  background-color: rgba(255, 255, 255, 0.5);
+  color: var(--tratt-text-muted);
+  background-color: color-mix(in srgb, var(--tratt-surface-page) 50%, transparent);
 }
 
 @media (max-width: 765px) {

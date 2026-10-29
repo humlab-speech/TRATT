@@ -1,0 +1,118 @@
+// Underline tabs used on /local and /workbench (add class="tratt-tabs").
+.nav-tabs.tratt-tabs {
+  --bs-nav-tabs-border-width: 0;
+  --bs-nav-link-color: var(--tratt-interactive-text);
+  --bs-nav-link-hover-color: var(--tratt-interactive-text);
+  gap: 0.25rem;
+  border-bottom: 1px solid var(--tratt-border);
+
+  .nav-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: -1px;
+    border: 0;
+    border-bottom: 3px solid transparent;
+    border-radius: 0;
+
+    &:hover {
+      background: var(--sb-blue-tint);
+    }
+
+    &.active {
+      color: var(--tratt-text-primary);
+      font-weight: 500;
+      background: transparent;
+      border-bottom-color: var(--tratt-interactive);
+    }
+  }
+}
+
+// Alerts: tint + coloured left edge; text keeps the text colour (spec 3.2 rule 3–4).
+.alert {
+  --bs-alert-color: var(--tratt-text-primary);
+  --bs-alert-link-color: var(--tratt-interactive-text);
+  border-width: 0 0 0 4px;
+  border-radius: 0 var(--tratt-radius) var(--tratt-radius) 0;
+}
+.alert-warning {
+  --bs-alert-bg: var(--sb-yellow-tint);
+  --bs-alert-border-color: var(--sb-yellow);
+}
+.alert-danger {
+  --bs-alert-bg: var(--sb-red-tint);
+  --bs-alert-border-color: var(--sb-red);
+}
+.alert-success {
+  --bs-alert-bg: var(--sb-green-tint);
+  --bs-alert-border-color: var(--sb-green);
+}
+.alert-info {
+  --bs-alert-bg: var(--sb-blue-tint);
+  --bs-alert-border-color: var(--sb-blue);
+}
+
+.tratt-panel {
+  background: var(--tratt-surface-subtle);
+  border-radius: 0.5rem;
+  padding: 1rem;
+}
+
+.tratt-chip {
+  display: inline-block;
+  padding: 0 0.55rem;
+  border-radius: 999px;
+  background: var(--tratt-surface-sunken);
+  color: var(--tratt-text-primary);
+  font-family: var(--tratt-font-data);
+  font-size: 0.75rem;
+  line-height: 1.5;
+  white-space: nowrap;
+}
+
+// Partner logos are PNGs with a white background: keep them legible in dark mode.
+[data-bs-theme='dark'] .tratt-logo-on-light {
+  background: var(--tratt-on-color); // white in both themes
+  padding: 0.25rem;
+  border-radius: 0.25rem;
+}
+
+// Tinted state surfaces (spec 3.2 rule 3–4): tint + 4 px edge, text keeps the
+// text colour. Replaces bg-success / bg-info / bg-warning / bg-danger.
+@each $name, $colour in (next: orange, info: blue, success: green, warning: yellow, danger: red) {
+  .tratt-state-#{$name} {
+    background: var(--sb-#{$colour}-tint);
+    box-shadow: inset 0.25rem 0 0 var(--sb-#{$colour});
+    color: var(--tratt-text-primary);
+  }
+}
+.tratt-state-neutral {
+  background: var(--tratt-surface-sunken);
+  color: var(--tratt-text-primary);
+}
+
+// Bootstrap paints table cells with --bs-table-bg, which hides a tint set on
+// the row. Let the row's tint show through and let a cell carry its own.
+.table > :not(caption) > tr[class*='tratt-state-'] > * {
+  background-color: transparent;
+  box-shadow: none;
+}
+@each $name, $colour in (next: orange, info: blue, success: green, warning: yellow, danger: red) {
+  .table > :not(caption) > tr > :is(td, th).tratt-state-#{$name} {
+    background-color: var(--sb-#{$colour}-tint);
+    box-shadow: inset 0.25rem 0 0 var(--sb-#{$colour});
+    color: var(--tratt-text-primary);
+  }
+}
+.table > :not(caption) > tr > :is(td, th).tratt-state-neutral {
+  background-color: var(--tratt-surface-sunken);
+  box-shadow: none;
+  color: var(--tratt-text-primary);
+}
+
+// Reading column for plain pages (/news, /features, /help-tools, /404, /login).
+.tratt-page {
+  max-inline-size: 60rem;
+  margin: 0 auto;
+  padding: 3rem 1.5rem 2rem;
+}

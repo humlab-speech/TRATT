@@ -1,0 +1,41 @@
+.tratt-credits {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.5rem 2.5rem;
+  max-inline-size: 75rem; // same container width as the /local layout
+  margin: 2rem auto 0;
+  padding: 1.25rem 1.5rem;
+  border-top: 1px solid var(--tratt-border);
+  font-family: var(--tratt-font-data);
+
+  h2 {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    margin: 0 0 0.4rem;
+  }
+
+  ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    font-size: 0.8125rem;
+  }
+
+  li {
+    display: inline;
+
+    + li::before {
+      content: ' · ';
+    }
+  }
+
+  a {
+    color: var(--tratt-interactive-text);
+    text-decoration: underline;
+  }
+}
+@media (max-width: 767.98px) {
+  .tratt-credits {
+    grid-template-columns: 1fr;
+  }
+}

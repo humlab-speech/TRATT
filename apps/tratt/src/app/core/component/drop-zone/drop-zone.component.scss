@@ -1,7 +1,10 @@
 .dropzone {
-  border: 2px dashed var(--tratt-accent-warning);
-  background-color: var(--tratt-waveform-background);
-  padding: 20px;
+  border: 2px dashed var(--tratt-border-control);
+  border-radius: 0.5rem;
+  background-color: var(--tratt-surface-page);
+  // ponytail: size container so icon/text scale with the (fixed) height via cqh.
+  container-type: size;
+  padding: clamp(8px, 8cqh, 20px);
   min-height: 100px;
   text-align: center;
   width: 100%;
@@ -15,6 +18,22 @@
 
 .dropzone:hover {
   cursor: pointer;
+}
+
+.dropzone:hover,
+.dropzone.dropzone--over {
+  border-color: var(--tratt-interactive);
+  background-color: var(--sb-blue-tint);
+}
+
+// Not colour-only: the drag-over border turns solid.
+.dropzone.dropzone--over {
+  border-style: solid;
+}
+
+.dropzone:focus-visible {
+  outline: 2px solid var(--tratt-interactive);
+  outline-offset: 2px;
 }
 
 .dropzone .inner {
@@ -31,6 +50,6 @@
 }
 
 .dropzone .dragndrop {
-  color: black;
-  font-size: 30px;
+  color: var(--tratt-next);
+  font-size: clamp(1.5rem, 30cqh, 2.75rem);
 }

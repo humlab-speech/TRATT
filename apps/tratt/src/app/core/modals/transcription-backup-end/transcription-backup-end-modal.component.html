@@ -9,7 +9,7 @@
     <div class="text-center">
       @if (downloadFile) {
         <a
-          class="btn btn-primary"
+          class="btn btn-next"
           (click)="downloadClicked = true"
           [download]="downloadFile.name"
           [href]="downloadFile.url"

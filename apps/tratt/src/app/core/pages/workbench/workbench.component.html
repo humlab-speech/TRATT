@@ -1,4 +1,14 @@
 <div class="workbench">
+  <ng-template trattHeaderCenter>
+    @if (hasAnyBundles() && selectedBundleHeader; as header) {
+      <tratt-data-selector
+        [header]="header"
+        [files]="headerFiles()"
+        [selectedId]="selectedBundleId()"
+        (selectFile)="selectFileFromHeader($event)"
+      />
+    }
+  </ng-template>
   <div class="workbench__left">
     @if (hasAnyBundles()) {
       <!-- Moved above the upload/record tabs (step 6): the bundle list is
@@ -11,7 +21,7 @@
       #workbenchNav="ngbNav"
       [(activeId)]="activeTab"
       [destroyOnHide]="false"
-      class="nav-tabs"
+      class="nav-tabs tratt-tabs"
     >
       <li [ngbNavItem]="'upload'">
         <button ngbNavLink type="button">
@@ -181,7 +191,11 @@
 
       <button
         type="button"
-        class="btn btn-outline-primary workbench__queue-run"
+        [class]="
+          queueRunning()
+            ? 'btn btn-outline-secondary workbench__queue-run'
+            : 'btn btn-next-lg workbench__queue-run'
+        "
         [disabled]="
           !queueRunning() &&
           (readyBundleIds().length === 0 || queueOptions() === null)
@@ -213,50 +227,58 @@
     <div class="workbench__capacity">
       <tratt-capacity-indicator></tratt-capacity-indicator>
     </div>
+    <tratt-humlab-logo class="workbench__humlab-logo" variant="left" />
   </div>
   @if (sessionReady) {
     <div class="workbench__right">
       @if (hasAnyBundles()) {
-        @if (selectedBundleHeader; as header) {
-          <!-- Not gated on exportEnabled: that is read once when the session
-               becomes ready, which can be before the project config has
-               loaded — the button then never appeared next to an editor.
-               LOCAL's config always allows export (as in welcome back). -->
-          <ng-container
-            *ngTemplateOutlet="
-              fileHeader;
-              context: {
-                $implicit: header,
-                showExport: useMode === 'local',
-              }
-            "
-          ></ng-container>
-        }
-        <div class="workbench__editor-tabs">
-          @for (entry of editorComponentsList; track entry.name) {
-            <button
-              type="button"
-              class="workbench__editor-tab"
-              [class.workbench__editor-tab--active]="
-                activeEditorName() === entry.name
+        <div class="workbench__pane-bar">
+          <div
+            class="workbench__editor-tabs nav nav-tabs tratt-tabs"
+            role="toolbar"
+          >
+            @for (entry of editorComponentsList; track entry.name) {
+              <button
+                type="button"
+                class="nav-link workbench__editor-tab"
+                [class.active]="activeEditorName() === entry.name"
+                [class.workbench__editor-tab--active]="
+                  activeEditorName() === entry.name
+                "
+                [attr.aria-pressed]="activeEditorName() === entry.name"
+                (click)="changeEditor(entry.name)"
+              >
+                <i [class]="entry.icon" aria-hidden="true"></i>
+                {{ entry.translate | transloco }}
+              </button>
+            }
+          </div>
+          <tratt-fastbar
+            variant="inline"
+            class="workbench__fastbar"
+            (overviewbtnclicked)="openOverview()"
+            (shortcutbtnclicked)="openShortcutsModal()"
+            [buttonLabels]="{
+              shortcuts: 'g.shortcuts' | transloco,
+              overview: 'g.overview' | transloco,
+              help: 'g.help' | transloco,
+            }"
+          ></tratt-fastbar>
+          @if (selectedBundleHeader; as header) {
+            <!-- Not gated on exportEnabled: that is read once when the
+                 session becomes ready, which can be before the project config
+                 has loaded. LOCAL's config always allows export. -->
+            <ng-container
+              *ngTemplateOutlet="
+                fileActions;
+                context: {
+                  $implicit: header,
+                  showExport: useMode === 'local',
+                }
               "
-              [attr.aria-pressed]="activeEditorName() === entry.name"
-              (click)="changeEditor(entry.name)"
-            >
-              <i [class]="entry.icon" aria-hidden="true"></i>
-              {{ entry.translate | transloco }}
-            </button>
+            ></ng-container>
           }
         </div>
-        <tratt-fastbar
-          (overviewbtnclicked)="openOverview()"
-          (shortcutbtnclicked)="openShortcutsModal()"
-          [buttonLabels]="{
-            shortcuts: 'g.shortcuts' | transloco,
-            overview: 'g.overview' | transloco,
-            help: 'g.help' | transloco,
-          }"
-        ></tratt-fastbar>
       }
 
       <!-- The editor host stays in the DOM even with an empty list, so the
@@ -306,7 +328,7 @@
             placeholder="{{ 'g.insert comment' | transloco }}"
             style="
               resize: none;
-              background-color: var(--tratt-note-surface);
+              background-color: var(--sb-yellow-tint);
               height: 40px;
             "
           ></textarea>
@@ -342,7 +364,7 @@
                 (click)="sendTranscriptionForShortAudioFiles('middle')"
                 class="btn btn-raised btn-warning col-md-3 btn btn-warning"
                 type="button"
-                style="background-color: var(--tratt-accent-warning)"
+                style="background-color: var(--tratt-warning)"
               >
                 <i class="fa-solid fa-star"></i>
                 <i class="fa-solid fa-star"></i>
@@ -433,7 +455,7 @@
         <div class="workbench__empty-header">
           <ng-container
             *ngTemplateOutlet="
-              fileHeader;
+              fileActions;
               context: { $implicit: header, showExport: true }
             "
           ></ng-container>
@@ -464,57 +486,42 @@
   }
 </div>
 
-<!-- The selected file's name, media details and per-file actions. Also
+<!-- The selected file's per-file actions (name and media details live in
+     the header's data selector). Also
      shown before a session exists (welcome back), so a restored file can be
      exported before its audio is re-attached. -->
-<ng-template #fileHeader let-header let-showExport="showExport">
-  <div class="workbench__editor-header">
-    <span class="workbench__editor-header-name">{{ header.name }}</span>
-    <span class="workbench__editor-header-meta">
-      @if (header.durationText !== undefined) {
-        {{ header.durationText }} · {{ header.sampleRateKhz }} kHz
-        {{
-          (header.channels === 1
-            ? 'workbench.editor_header.mono'
-            : 'workbench.editor_header.stereo'
-          ) | transloco
-        }}
-        · {{ header.sizeText }}
-      } @else {
-        {{ 'workbench.editor_header.audio_not_attached' | transloco }}
-      }
-    </span>
-    @let ownRecording = recordedFileService.recordedFile?.name === header.name;
-    @if ((showExport && hasTranscriptToExport) || ownRecording) {
-      <!-- Per-file actions live with the file they act on; exporting
+<ng-template #fileActions let-header let-showExport="showExport">
+  @let ownRecording = recordedFileService.recordedFile?.name === header.name;
+  @if (showExport || ownRecording) {
+    <!-- Per-file actions live with the file they act on; exporting
            several files at once is "Export all" in the list. -->
-      <div class="workbench__editor-header-actions">
-        @if (ownRecording) {
-          <!-- Media is never stored, so a fresh recording stays exportable
+    <div class="workbench__editor-header-actions">
+      @if (ownRecording) {
+        <!-- Media is never stored, so a fresh recording stays exportable
                before it has a transcript. -->
-          <button
-            (click)="recordedFileService.triggerExport()"
-            class="btn btn-sm btn-outline-secondary"
-            type="button"
-          >
-            <i class="fa-solid fa-microphone me-1" aria-hidden="true"></i>
-            {{ 'g.export recording' | transloco }}
-          </button>
-        }
-        @if (showExport && hasTranscriptToExport) {
-          <!-- Only once there is something to export: not for audio alone
+        <button
+          (click)="recordedFileService.triggerExport()"
+          class="btn btn-sm btn-outline-secondary"
+          type="button"
+        >
+          <i class="fa-solid fa-microphone me-1" aria-hidden="true"></i>
+          {{ 'g.export recording' | transloco }}
+        </button>
+      }
+      @if (showExport) {
+        <!-- Dimmed until there is something to export: not for audio alone
                (a fresh file, or one still being transcribed). Works without
                the file's audio (see exportSelected()). -->
-          <button
-            (click)="exportSelected()"
-            class="btn btn-sm btn-primary"
-            type="button"
-          >
-            <i class="fa-solid fa-download me-1" aria-hidden="true"></i>
-            {{ 'workbench.editor_header.export' | transloco }}
-          </button>
-        }
-      </div>
-    }
-  </div>
+        <button
+          (click)="exportSelected()"
+          [disabled]="!hasTranscriptToExport"
+          class="btn btn-next-lg workbench__export"
+          type="button"
+        >
+          <i class="fa-solid fa-download me-1" aria-hidden="true"></i>
+          {{ 'workbench.editor_header.export' | transloco }}
+        </button>
+      }
+    </div>
+  }
 </ng-template>

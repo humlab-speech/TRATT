@@ -5,30 +5,21 @@ import {
 } from '@tratt/annotation';
 
 /**
- * Categorical colours for speaker labels, from the Umeå University palette.
- *
- * Ordered so the earliest speakers are easy to tell apart, and so the two
- * colours that also carry UI meaning — chrome navy `#2A4765` and the
- * CTA-adjacent terracotta `#B87D5E` — sort last and rarely appear.
+ * Categorical speaker colours from the Språkbanken palette. Red and yellow
+ * are excluded – they carry UI meaning (errors, warnings). Brand colours
+ * first, then their strong variants, neutrals and tints.
  */
 export const SPEAKER_COLORS: readonly string[] = [
-  '#3D6B5C',
-  '#9C7A8C',
-  '#D7B17C',
-  '#5B8E8A',
-  '#6B5B6E',
-  '#C9918A',
-  '#8B8FAE',
-  '#73A790',
-  '#C2A08A',
-  '#A8C3D4',
-  '#4A5E7A',
-  '#EABAB9',
-  '#C4D4C0',
-  '#D4C7B5',
-  '#000000',
-  '#B87D5E',
-  '#2A4765',
+  '#1E989F', // blue          → black text 6.1:1
+  '#5AA018', // green         → black text 6.5:1
+  '#595959', // dark grey     → white text 7.0:1
+  '#187A7F', // blue strong   → white text 5.1:1
+  '#488013', // green strong  → white text 4.8:1
+  '#D2EAEC', // blue tint     → black text
+  '#DEECD1', // green tint    → black text
+  '#FCDED1', // orange tint   → black text
+  '#8C8C8C', // mid grey      → black text 6.2:1
+  '#EBEBEB', // light grey    → black text
 ];
 
 export const LIGHT_TEXT = '#FFFFFF';

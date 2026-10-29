@@ -1,138 +1,24 @@
-@use 'bootstrap/scss/bootstrap';
+// Fonts are self-hosted: TRATT promises no external requests once loaded.
+// Jost* = headings and UI, Noto Sans = data, Noto Serif = body text
+// (Språkbanken graphic profile, spec section 4).
+@use '@fontsource/jost/300.css' as f_jost_300;
+@use '@fontsource/jost/400.css' as f_jost_400;
+@use '@fontsource/jost/500.css' as f_jost_500;
+@use '@fontsource/jost/700.css' as f_jost_700;
+@use '@fontsource/noto-sans/400.css' as f_noto_sans_400;
+@use '@fontsource/noto-sans/600.css' as f_noto_sans_600;
+@use '@fontsource/noto-serif/400.css' as f_noto_serif_400;
+@use '@fontsource/noto-serif/400-italic.css' as f_noto_serif_400_italic;
+@use '@fontsource/noto-serif/700.css' as f_noto_serif_700;
+@use 'styles/bootstrap-config';
 @use '@fortawesome/fontawesome-free/css/all.css';
-
-/* Design tokens.
- *
- * TRATT renders inside the VISP shell, so structural colours mirror VISP's
- * tokens (humlab-speech/webclient, src/colors.scss lines 106-124). Where the
- * Umeå University palette has a near-equivalent it wins, which keeps TRATT
- * palette-compliant when it runs standalone.
- *
- * Canvas colours cannot read CSS variables; they live in
- * libs/ngx-components/src/lib/obj/tratt-colors.ts. Keep the two in sync.
- */
-:root {
-  /* Surfaces — VISP $tertiary-light / $white / $tertiary */
-  --tratt-surface-page: #eef0f4;
-  --tratt-surface-card: #ffffff;
-  --tratt-surface-sunken: #e6e8ed;
-
-  /* Structural chrome — UMU "Blå", within a hair of VISP $primary #2f4f71 */
-  --tratt-chrome: #2a4765;
-  --tratt-chrome-hover: #3c6289; /* VISP $primary-light */
-  --tratt-on-chrome: #ffffff;
-
-  /* Primary action — VISP $secondary verbatim, so buttons read as one system */
-  --tratt-cta: #d47752;
-  --tratt-cta-hover: #b76545; /* VISP $secondary-dark */
-  --tratt-cta-contrast: #a85832; /* 5.1:1 against white text, unlike $secondary */
-  --tratt-on-cta: #ffffff;
-
-  /* Text and lines — VISP $dark-font-color / $border / $border-light */
-  --tratt-text-primary: #1f3044;
-  --tratt-text-muted: #667a90;
-  --tratt-border: #d4d9e0;
-
-  /* Signal display */
-  --tratt-waveform-background: #ffffff;
-  --tratt-waveform-signal: rgba(42, 71, 101, 0.8);
-  --tratt-segment-transcribed: rgba(60, 98, 137, 0.15);
-  --tratt-playhead: #d7263d; /* VISP $crimson */
-
-  /* Status. Green is demoted from chrome to semantics — UMU "Barrskog". */
-  --tratt-success: #3d6b5c;
-  --tratt-warning: #d7b17c; /* UMU "Guld" */
-  --tratt-danger: #d7263d; /* VISP $crimson */
-  --tratt-danger-surface: #fdf2f3;
-  --tratt-note-surface: #fdf8ee; /* comment fields — a tint of --tratt-warning */
-  --tratt-info: #3c6289;
-
-  /* Deprecated aliases. Drop once the hardcoded-hex sweep lands. */
-  --tratt-surface-background: var(--tratt-surface-page);
-  --tratt-accent-green: var(--tratt-chrome);
-  --tratt-accent-green-dark: var(--tratt-chrome-hover);
-  --tratt-accent-error: var(--tratt-danger);
-  --tratt-accent-warning: var(--tratt-warning);
-}
-
-/* Bootstrap ships stock colours (#0d6efd blue, #198754 green, #dc3545 red) that
- * leaked into every badge, alert, progress bar and link. Remapping its theme
- * variables here covers all of them, so the utility classes stay usable. */
-:root {
-  --bs-primary: var(--tratt-chrome);
-  --bs-primary-rgb: 42, 71, 101;
-  --bs-secondary: var(--tratt-text-muted);
-  --bs-secondary-rgb: 102, 122, 144;
-  --bs-success: var(--tratt-success);
-  --bs-success-rgb: 61, 107, 92;
-  --bs-danger: var(--tratt-danger);
-  --bs-danger-rgb: 215, 38, 61;
-  --bs-warning: var(--tratt-warning);
-  --bs-warning-rgb: 215, 177, 124;
-  --bs-info: var(--tratt-info);
-  --bs-info-rgb: 60, 98, 137;
-
-  --bs-body-color: var(--tratt-text-primary);
-  --bs-body-color-rgb: 31, 48, 68;
-  --bs-body-bg: var(--tratt-surface-card);
-  --bs-border-color: var(--tratt-border);
-  --bs-link-color: var(--tratt-chrome);
-  --bs-link-color-rgb: 42, 71, 101;
-  --bs-link-hover-color: var(--tratt-chrome-hover);
-}
-
-/* btn-success marks the handful of headline CTAs (9 call sites), btn-primary
- * the everyday buttons (55). That split already matches VISP's two-tier
- * hierarchy, so it maps straight onto accent-vs-chrome. */
-.btn.btn-success {
-  color: var(--tratt-on-cta);
-  background-color: var(--tratt-cta);
-  border-color: var(--tratt-cta);
-}
-
-.btn.btn-success:hover,
-.btn.btn-success:focus {
-  color: var(--tratt-on-cta);
-  background-color: var(--tratt-cta-hover);
-  border-color: var(--tratt-cta-hover);
-}
-
-.btn.btn-warning {
-  color: #fff;
-  background-color: var(--tratt-accent-warning);
-  border-color: var(--tratt-accent-warning);
-}
-
-.btn.btn-danger {
-  color: #fff;
-  background-color: var(--tratt-danger);
-  border-color: var(--tratt-danger);
-}
-
-.btn.btn-primary {
-  color: var(--tratt-on-chrome) !important;
-  background-color: var(--tratt-chrome) !important;
-  border-color: var(--tratt-chrome) !important;
-}
-
-.btn.btn-primary:hover,
-.btn.btn-primary:focus {
-  background-color: var(--tratt-chrome-hover) !important;
-  border-color: var(--tratt-chrome-hover) !important;
-}
-
-.btn.btn-secondary {
-  color: #fff !important;
-  background-color: var(--tratt-text-muted) !important;
-  border-color: var(--tratt-text-muted) !important;
-}
+@use 'styles/tokens';
+@use 'styles/typography';
+@use 'styles/buttons';
+@use 'styles/components';
 
 .modal-open {
   padding-right: 0 !important;
-}
-
-h1 {
-  text-align: center;
 }
 
 html {
@@ -146,7 +32,7 @@ body {
   min-height: 100vh;
   height: 100%;
   overflow: hidden;
-  background-color: var(--tratt-surface-background);
+  background-color: var(--tratt-surface-page);
 }
 
 main {
@@ -155,7 +41,7 @@ main {
   flex: 1 0 auto;
   display: flex;
   flex-direction: column;
-  background-color: var(--tratt-surface-background);
+  background-color: var(--tratt-surface-page);
 }
 
 @media (max-width: 400px) {
@@ -163,11 +49,6 @@ main {
     padding-left: 0;
     padding-right: 0;
   }
-}
-
-footer {
-  text-align: center;
-  font-size: 10px;
 }
 
 .container {
@@ -234,8 +115,8 @@ footer {
 }
 
 .export-button {
-  background-color: var(--tratt-surface-background);
-  border: 1px solid grey;
+  background-color: var(--tratt-surface-subtle);
+  border: 1px solid var(--tratt-border);
   text-align: center;
   padding: 20px;
 }
@@ -250,14 +131,14 @@ footer {
 }
 
 .error_underline {
-  border-bottom: 2px solid var(--tratt-accent-error);
+  border-bottom: 2px solid var(--tratt-danger);
   display: inline;
   cursor: pointer;
 }
 
 .error-tooltip {
   display: none;
-  background-color: var(--tratt-danger-surface);
+  background-color: var(--sb-red-tint);
   border: 1px solid var(--tratt-danger);
   padding: 10px;
   max-width: 70%;
@@ -317,8 +198,8 @@ footer {
 }
 
 .seg-popover {
-  border: 1px solid var(--tratt-accent-warning);
-  background-color: var(--tratt-surface-background);
+  border: 1px solid var(--tratt-border-control);
+  background-color: var(--tratt-surface-subtle);
   z-index: 100;
   position: absolute;
   padding: 5px;
@@ -337,21 +218,15 @@ footer {
   width: 90%;
 }
 
-.alert-warning {
-  color: var(--tratt-surface-background);
-  background-color: var(--tratt-accent-warning);
-  border-color: var(--tratt-accent-warning);
-}
-
 .note-toolbar button.note-btn.btn.btn-light.btn-sm {
-  background-color: var(--tratt-surface-background);
-  color: black;
+  background-color: var(--tratt-surface-subtle);
+  color: var(--tratt-text-primary);
   padding: 2px 6px;
 }
 
 .note-toolbar button.note-btn.btn.btn-light.btn-sm:hover {
-  background-color: lightgrey;
-  color: black;
+  background-color: var(--tratt-surface-sunken);
+  color: var(--tratt-text-primary);
 }
 
 .note-editor.note-frame.panel {
@@ -379,11 +254,11 @@ footer {
 }
 
 .note-toolbar-wrapper.panel-default {
-  background-color: var(--tratt-surface-background);
+  background-color: var(--tratt-surface-subtle);
 }
 
 .val-error {
-  border: 1px solid red;
+  border: 1px solid var(--tratt-danger);
   border-radius: 2px;
   cursor: pointer;
 }
@@ -416,7 +291,7 @@ label.radio-inline .bmd-radio {
   min-height: 100px;
 }
 
-.btn-icon {
+img.btn-icon {
   height: 14px;
 }
 
@@ -452,7 +327,7 @@ label.radio-inline .bmd-radio {
 }
 
 .column.ng-star-inserted.gu-mirror .delete-column {
-  color: gray;
+  color: var(--tratt-text-muted);
 }
 
 .column.ng-star-inserted.gu-mirror .delete-column {
@@ -466,20 +341,20 @@ label.radio-inline .bmd-radio {
 }
 
 .column.ng-star-inserted.gu-mirror .grip {
-  border: 1px solid lightgray;
+  border: 1px solid var(--tratt-border);
   padding: 3px;
   vertical-align: middle;
   /* width: 30px; */
   text-align: center;
-  background-color: var(--tratt-surface-background);
-  color: gray;
+  background-color: var(--tratt-surface-subtle);
+  color: var(--tratt-text-muted);
   position: relative;
 }
 
 .column.ng-star-inserted.gu-mirror .title {
   display: block;
   border: none;
-  border-bottom: 1px solid lightgray;
+  border-bottom: 1px solid var(--tratt-border);
   text-align: left;
   padding: 5px;
   cursor: text;
@@ -490,23 +365,23 @@ label.radio-inline .bmd-radio {
 .star .column.ng-star-inserted.gu-mirror {
   padding: 0;
   position: relative;
-  border: 1px solid gray;
+  border: 1px solid var(--tratt-border-control);
   white-space: nowrap;
-  color: rgba(0, 0, 0, 0.87);
+  color: var(--tratt-text-primary);
   align-items: center;
   justify-content: space-between;
   box-sizing: border-box;
   cursor: move;
-  background: var(--tratt-surface-background);
-  font-size: 14px;
+  background: var(--tratt-surface-subtle);
+  font-size: 0.875rem;
   margin: 0;
 }
 
 .column.ng-star-inserted.gu-mirror .cell {
-  border-bottom: 1px solid lightgray;
+  border-bottom: 1px solid var(--tratt-border);
   padding: 5px;
   height: 35px;
-  background-color: var(--tratt-surface-background);
+  background-color: var(--tratt-surface-subtle);
 }
 
 .column.ng-star-inserted.gu-mirror .cell:last-of-type {
@@ -515,34 +390,17 @@ label.radio-inline .bmd-radio {
 
 .note-toolbar.card-header {
   padding: 0;
-  background-color: var(--tratt-surface-background);
+  background-color: var(--tratt-surface-subtle);
 }
 
 .highlighted {
-  background-color: yellow;
-  border: 1px solid dimgray;
+  background-color: var(--sb-yellow-tint);
+  border: 1px solid var(--tratt-border-control);
   display: inline;
 }
 
 .modal-content {
-  border-radius: 20px !important;
-  background-color: var(--tratt-surface-background);
-}
-
-.bg-white,
-.bg-light,
-.card,
-.dropdown-menu,
-.panel {
-  background-color: var(--tratt-surface-background) !important;
-}
-
-.btn-info,
-.bg-info,
-.btn-info:hover {
-  color: var(--tratt-surface-background);
-  background-color: var(--tratt-accent-green);
-  border-color: var(--tratt-accent-green);
+  border-radius: 0.5rem;
 }
 
 a {
@@ -572,7 +430,7 @@ a {
 
 .jodit-toolbar__box:not(:empty):not(:empty),
 .jodit-toolbar-editor-collection_size_middle.jodit-toolbar-editor-collection_mode_horizontal {
-  background: var(--tratt-surface-background) !important;
+  background: var(--tratt-surface-subtle) !important;
 }
 
 .jodit-toolbar__box .btn-shortcut {
@@ -591,26 +449,14 @@ a {
 
 .text-outline-white {
   text-shadow:
-    -1px -1px 0 var(--tratt-surface-background),
-    1px -1px 0 var(--tratt-surface-background),
-    -1px 1px 0 var(--tratt-surface-background),
-    1px 1px 0 var(--tratt-surface-background) !important;
-}
-
-.beta_mark {
-  color: red;
-  position: absolute;
-  margin-left: 97px;
-  margin-top: 30px;
-  left: 0;
-  top: 0;
-  z-index: 1031;
-  font-weight: 600;
-  letter-spacing: 1px;
+    -1px -1px 0 var(--tratt-surface-subtle),
+    1px -1px 0 var(--tratt-surface-subtle),
+    -1px 1px 0 var(--tratt-surface-subtle),
+    1px 1px 0 var(--tratt-surface-subtle) !important;
 }
 
 #editor-change-font-btn {
-  border: 1px solid gray;
+  border: 1px solid var(--tratt-border-control);
   padding: 3px;
   text-align: left;
   text-transform: capitalize;
@@ -630,10 +476,6 @@ a {
   font-size: 0.8rem;
   padding: 10px;
   min-height: 1em;
-}
-
-.version-popover {
-  min-width: 300px;
 }
 
 ul.pagination.pagination-sm {
@@ -671,5 +513,18 @@ ul.pagination.pagination-sm {
 @media (max-width: 1200px) {
   .transcr-window-dialog {
     max-width: 100% !important;
+  }
+}
+
+/* Below 768px the header centre slot wraps to a second row; keep content clear of it.
+   Depends on :has() and must mirror the :not(:empty) rule in navbar.component.scss. */
+:root {
+  --tratt-header-center-row: 3rem;
+}
+@media (max-width: 767.98px) {
+  body:has(.tratt-header__center:not(:empty)) .tratt-main {
+    margin-top: calc(
+      var(--tratt-header-height) + var(--tratt-header-center-row)
+    );
   }
 }

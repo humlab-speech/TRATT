@@ -214,7 +214,7 @@ en säkerhetskopia, först.
 
 ## Att rapportera ett problem
 
-Tratt har ett inbyggt återkopplingsformulär (frågetecknet i den övre listen), men
+Tratt har ett inbyggt återkopplingsformulär (frågetecknet i sidhuvudet), men
 det visas bara när appen är ansluten till en OCTRA-backend, vilket den lokala
 standardinstallationen av Tratt inte är. Rapportera i så fall problem i projektets
 ärendehanterare: <https://github.com/humlab-speech/TRATT/issues>.

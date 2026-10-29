@@ -33,7 +33,7 @@
             >
               <i
                 class="fa-solid"
-                style="color: gray"
+                style="color: var(--tratt-text-muted)"
                 [ngClass]="{
                   'fa-chevron-down': tools.combinePhrases.opened,
                   'fa-chevron-right': !tools.combinePhrases.opened,
@@ -101,7 +101,7 @@
                                   )
                                 "
                                 placement="right"
-                                style="color: darkblue"
+                                style="color: var(--tratt-interactive-text)"
                               ></i>
                             </td>
                           </tr>
@@ -132,7 +132,7 @@
                                   )
                                 "
                                 placement="right"
-                                style="color: darkblue"
+                                style="color: var(--tratt-interactive-text)"
                               ></i>
                             </td>
                           </tr>
@@ -142,7 +142,7 @@
                     <button
                       (click)="onCombinePhrasesClick()"
                       [disabled]="!isCombinePhrasesSettingsValid"
-                      class="btn btn-primary btn-raised"
+                      class="btn btn-next btn-raised"
                     >
                       {{ 'tools.combine phrases.name' | transloco }}
                     </button>
@@ -161,7 +161,7 @@
             >
               <i
                 class="fa-solid"
-                style="color: gray"
+                style="color: var(--tratt-text-muted)"
                 [ngClass]="{
                   'fa-chevron-down': tools.audioCutting.opened,
                   'fa-chevron-right': !tools.audioCutting.opened,
@@ -213,14 +213,14 @@
                     @if (tools.audioCutting.showConfigurator) {
                       <i
                         class="fa-solid fa-chevron-down"
-                        style="color: gray"
+                        style="color: var(--tratt-text-muted)"
                       ></i>
                       {{ 'tools.cut audio.hide configurator' | transloco }}
                     }
                     @if (!tools.audioCutting.showConfigurator) {
                       <i
                         class="fa-solid fa-chevron-right"
-                        style="color: gray"
+                        style="color: var(--tratt-text-muted)"
                       ></i>
                       {{ 'tools.cut audio.show configurator' | transloco }}
                     }
@@ -271,7 +271,7 @@
                         [disabled]="
                           namingConvention.resultConvention.length === 1
                         "
-                        class="btn btn-primary btn-raised"
+                        class="btn btn-next btn-raised"
                         style="max-width: 200px; margin-top: 20px"
                       >
                         {{ 'tools.cut audio.name' | transloco }}

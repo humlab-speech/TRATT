@@ -26,7 +26,7 @@
 :host {
   padding: 10px;
   display: block;
-  background-color: var(--tratt-surface-background);
+  background-color: var(--tratt-surface-subtle);
   -webkit-border-radius: 3px;
   -moz-border-radius: 3px;
   border-radius: 3px;
@@ -34,9 +34,9 @@
 
 .naming-item {
   display: inline-block;
-  border: 1px solid gray;
+  border: 1px solid var(--tratt-border-control);
   padding: 6px;
-  font-size: 13px;
+  font-size: 0.8125rem;
   border-radius: 3px;
   justify-content: center;
   align-items: normal;
@@ -48,7 +48,7 @@
 }
 
 .naming-text {
-  background-color: var(--tratt-surface-background);
+  background-color: var(--tratt-surface-subtle);
   cursor: pointer;
 }
 
@@ -63,7 +63,8 @@
 
 .cdk-drag-placeholder {
   opacity: 0.75;
-  border: 1px dotted gray;
+  background-color: var(--sb-blue-tint);
+  border: 1px dotted var(--tratt-interactive);
 }
 
 .cdk-drag-animating {

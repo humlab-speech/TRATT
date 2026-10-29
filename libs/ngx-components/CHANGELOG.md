@@ -2,6 +2,17 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+# Unreleased
+
+### BREAKING CHANGES
+
+* **ngx-components:** the exported `TRATT_COLORS` no longer has the keys `chrome`, `chromeHover`, `cta`, `accentGreen` and `accentGreenDark`. Use the Språkbanken palette keys instead (see `tratt-colors.ts`).
+* **ngx-components:** the theme now owns the audio-viewer canvas colours. The `settings` setter of `AudioViewerService` always runs `applyThemeColors`, so colours a consumer sets in the settings are overwritten by the active theme.
+
+### Features
+
+* **ngx-components:** `resolveTrattColors` and `observeTheme` read the `--tratt-*` tokens from CSS and follow light/dark theme changes.
+
 # [1.1.0](https://github.com/IPS-LMU/octra/compare/ngx-components-1.0.0...ngx-components-1.1.0) (2025-04-02)
 
 

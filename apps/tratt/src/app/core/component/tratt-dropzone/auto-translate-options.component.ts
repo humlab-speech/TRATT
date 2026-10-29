@@ -69,23 +69,35 @@ interface SavedTranslateSettings {
   imports: [FormsModule, NgbTooltipModule, TranslocoPipe],
   template: `
     @if (visible()) {
-      <div class="auto-translate-options mt-2 p-2 border rounded">
-        <div class="form-check mb-1">
-          <input
-            class="form-check-input"
-            type="checkbox"
-            id="autoTranslateCheck"
-            [(ngModel)]="enabledModel"
-            (ngModelChange)="onEnabledChange()"
-          />
-          <label class="form-check-label" for="autoTranslateCheck">
+      <div class="auto-translate-options mt-3 p-3 border">
+        <div class="ato-head">
+          <i
+            class="fa-solid ato-chevron"
+            [class.fa-chevron-down]="enabled()"
+            [class.fa-chevron-right]="!enabled()"
+            aria-hidden="true"
+          ></i>
+          <label class="ato-title" for="autoTranslateCheck">
             {{ 'login.translation.enable label' | transloco }}
           </label>
+          <div class="form-check form-switch ms-auto mb-0">
+            <input
+              class="form-check-input"
+              type="checkbox"
+              role="switch"
+              id="autoTranslateCheck"
+              [(ngModel)]="enabledModel"
+              (ngModelChange)="onEnabledChange()"
+            />
+          </div>
         </div>
 
         @if (enabled()) {
           <div class="mb-2">
-            <label for="translateFrom" class="form-label form-label-sm mb-1">
+            <label
+              for="translateFrom"
+              class="form-label fw-medium form-label-sm mb-1"
+            >
               {{ 'login.translation.from' | transloco }}
             </label>
             <select
@@ -101,7 +113,10 @@ interface SavedTranslateSettings {
             </select>
           </div>
           <div class="mb-2">
-            <label for="translateTo" class="form-label form-label-sm mb-1">
+            <label
+              for="translateTo"
+              class="form-label fw-medium form-label-sm mb-1"
+            >
               {{ 'login.translation.to' | transloco }}
             </label>
             <select
@@ -175,8 +190,23 @@ interface SavedTranslateSettings {
   styles: [
     `
       .auto-translate-options {
-        background-color: var(--tratt-surface-background);
-        font-size: 0.9rem;
+        background: var(--tratt-surface-page);
+        border-color: var(--tratt-border) !important;
+        border-radius: 0.5rem !important;
+      }
+      .ato-head {
+        display: flex;
+        align-items: center;
+        gap: 0.55rem;
+      }
+      .ato-chevron {
+        color: var(--tratt-interactive-text);
+        font-size: 0.85em;
+      }
+      .ato-title {
+        font-weight: 500;
+        font-size: 1.0625rem;
+        margin: 0;
       }
     `,
   ],

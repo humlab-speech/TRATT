@@ -1,0 +1,90 @@
+// "Next step" (orange). Small/normal size uses the strong variant (5.09:1).
+.btn-next,
+.btn-next-lg {
+  --bs-btn-color: var(--tratt-on-color);
+  --bs-btn-bg: var(--sb-orange-strong);
+  --bs-btn-border-color: var(--sb-orange-strong);
+  --bs-btn-hover-color: var(--tratt-on-color);
+  --bs-btn-hover-bg: color-mix(in srgb, var(--sb-orange) 70%, black);
+  --bs-btn-hover-border-color: color-mix(in srgb, var(--sb-orange) 70%, black);
+  --bs-btn-active-color: var(--tratt-on-color);
+  --bs-btn-active-bg: color-mix(in srgb, var(--sb-orange) 62%, black);
+  --bs-btn-active-border-color: color-mix(in srgb, var(--sb-orange) 62%, black);
+  --bs-btn-disabled-color: var(--tratt-on-color);
+  --bs-btn-disabled-bg: var(--sb-orange-strong);
+  --bs-btn-disabled-border-color: var(--sb-orange-strong);
+  --bs-btn-focus-shadow-rgb: 240, 88, 26;
+  --bs-btn-font-weight: 700;
+}
+
+// Brand-orange CTA (#f0581a, the profile's "next step" colour). Disabled =
+// Bootstrap's 65 % opacity, i.e. the same orange dimmed. White on it is 3.43:1,
+// which is only WCAG-valid for "large text", hence ≥ 1.1875rem bold. Anything
+// smaller must stay `.btn-next` (strong orange).
+.btn-next-lg {
+  --bs-btn-bg: var(--sb-orange);
+  --bs-btn-border-color: var(--sb-orange);
+  --bs-btn-hover-bg: var(--sb-orange-strong);
+  --bs-btn-hover-border-color: var(--sb-orange-strong);
+  --bs-btn-disabled-bg: var(--sb-orange);
+  --bs-btn-disabled-border-color: var(--sb-orange);
+  --bs-btn-font-size: 1.1875rem;
+  --bs-btn-padding-y: 0.7rem;
+  --bs-btn-padding-x: 1.25rem;
+}
+
+// Text-only buttons: blue for interaction, red for destructive actions.
+.btn-text,
+.btn-text-danger {
+  --bs-btn-bg: transparent;
+  --bs-btn-border-color: transparent;
+  --bs-btn-hover-border-color: transparent;
+  --bs-btn-active-border-color: transparent;
+  --bs-btn-disabled-bg: transparent;
+  --bs-btn-disabled-border-color: transparent;
+  --bs-btn-disabled-color: var(--tratt-text-muted);
+}
+.btn-text {
+  --bs-btn-color: var(--tratt-interactive-text);
+  --bs-btn-hover-color: var(--tratt-interactive-text);
+  --bs-btn-hover-bg: var(--sb-blue-tint);
+  --bs-btn-active-color: var(--tratt-interactive-text);
+  --bs-btn-active-bg: var(--sb-blue-tint);
+}
+.btn-text-danger {
+  --bs-btn-color: var(--tratt-danger-text);
+  --bs-btn-hover-color: var(--tratt-danger-text);
+  --bs-btn-hover-bg: var(--sb-red-tint);
+  --bs-btn-active-color: var(--tratt-danger-text);
+  --bs-btn-active-bg: var(--sb-red-tint);
+}
+
+// Square icon button (player toolbar, header). Scoped to `.btn.btn-icon`: the
+// `<img class="btn-icon">` marker icons in the editor content keep their legacy sizing
+// (styles.scss `img.btn-icon`).
+.btn.btn-icon {
+  --bs-btn-color: var(--tratt-text-primary);
+  --bs-btn-bg: transparent;
+  --bs-btn-border-color: transparent;
+  --bs-btn-hover-color: var(--tratt-text-primary);
+  --bs-btn-hover-bg: var(--sb-blue-tint);
+  --bs-btn-hover-border-color: transparent;
+  --bs-btn-active-bg: var(--sb-blue-tint);
+  --bs-btn-padding-x: 0;
+  --bs-btn-padding-y: 0;
+  inline-size: 2.25rem;
+  block-size: 2.25rem;
+
+  // Icon + text ("2 s" step button) grows instead of clipping.
+  &:has(.an-step) {
+    inline-size: auto;
+    padding-inline: 0.5rem;
+    gap: 0.35rem;
+  }
+}
+
+// Strong blue is too dark for text/outline on dark surfaces.
+[data-bs-theme='dark'] .btn-outline-primary {
+  --bs-btn-color: var(--tratt-interactive-text);
+  --bs-btn-border-color: var(--tratt-interactive);
+}

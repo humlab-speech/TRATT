@@ -11,7 +11,7 @@
     <label class="bundle-list__select-all-label">
       <input
         type="checkbox"
-        class="bundle-list__select-all"
+        class="form-check-input bundle-list__select-all"
         [checked]="allSelected()"
         [attr.aria-label]="'workbench.bundle_list.select_all' | transloco"
         (change)="toggleSelectAll()"
@@ -23,7 +23,7 @@
     </label>
     <button
       type="button"
-      class="bundle-list__bulk-btn bundle-list__export-catalogue"
+      class="btn btn-sm btn-outline-primary bundle-list__export-catalogue"
       [attr.title]="'workbench.bundle_list.export_catalogue' | transloco"
       (click)="onExportCatalogue()"
     >
@@ -34,7 +34,7 @@
   <div class="bundle-list__bulk-bar" role="toolbar">
     <button
       type="button"
-      class="bundle-list__bulk-btn bundle-list__clear-finished"
+      class="btn btn-sm btn-text bundle-list__clear-finished"
       [attr.title]="'workbench.bundle_list.clear_finished' | transloco"
       (click)="onClearFinished()"
     >
@@ -43,7 +43,7 @@
     </button>
     <button
       type="button"
-      class="bundle-list__bulk-btn bundle-list__remove"
+      class="btn btn-sm btn-text-danger bundle-list__remove"
       [disabled]="selectedCount() === 0"
       [attr.title]="'workbench.bundle_list.remove' | transloco"
       (click)="onRemoveSelected()"
@@ -58,10 +58,14 @@
 }
 <ul class="bundle-list" (keydown)="onListKeydown($event)">
   @for (bundle of bundles(); track bundle.bundleId; let i = $index) {
-    <li class="bundle-list__item" [class.active]="bundle.selected">
+    <li
+      class="bundle-list__item"
+      [class.active]="bundle.selected"
+      [class.bundle-list__item--awaiting]="bundle.awaitingMedia"
+    >
       <input
         type="checkbox"
-        class="bundle-list__item-checkbox"
+        class="form-check-input bundle-list__item-checkbox"
         [checked]="isSelected(bundle.bundleId)"
         [attr.aria-label]="bundle.name"
         (change)="toggleSelected(bundle.bundleId)"
@@ -92,7 +96,7 @@
              the active row. -->
         <input
           type="file"
-          accept="audio/*"
+          accept="audio/*,video/*,.wma,.asf,.opus,.aac,.mka,.mp2,.amr,.3gp"
           [id]="'bundle-reattach-' + bundle.bundleId"
           class="bundle-list__reattach-input"
           [attr.aria-label]="
@@ -181,6 +185,15 @@
             bundle.run.error?.kind === 'cancelled'
           "
         >
+          @if (bundle.run.state === 'done') {
+            <i class="fa-solid fa-check" aria-hidden="true"></i>
+          } @else if (
+            (bundle.run.state === 'failed' &&
+              bundle.run.error?.kind !== 'cancelled') ||
+            bundle.run.state === 'interrupted'
+          ) {
+            <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
+          }
           {{ 'workbench.bundle_list.status.' + bundle.run.state | transloco }}
         </span>
       }

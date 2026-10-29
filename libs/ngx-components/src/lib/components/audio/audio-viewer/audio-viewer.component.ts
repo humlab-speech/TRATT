@@ -500,6 +500,15 @@ export class AudioViewerComponent
     if (this.audioChunk && !this._avInitialized) {
       this.afterChunkUpdated(this.audioChunk);
     }
+
+    // Konva measures text with whatever font is loaded at draw time; redraw once
+    // Noto Sans is available so labels don't stay in the fallback font.
+    if (typeof document !== 'undefined' && document.fonts) {
+      document.fonts
+        .load('400 10px "Noto Sans"')
+        .then(() => this.redraw())
+        .catch(() => undefined);
+    }
   }
 }
 

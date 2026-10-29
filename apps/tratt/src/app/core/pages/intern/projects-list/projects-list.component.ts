@@ -1,7 +1,13 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
-import { NgbPagination } from '@ng-bootstrap/ng-bootstrap';
+import {
+  NgbPagination,
+  NgbPaginationFirst,
+  NgbPaginationLast,
+  NgbPaginationNext,
+  NgbPaginationPrevious,
+} from '@ng-bootstrap/ng-bootstrap';
 import { Actions, ofType } from '@ngrx/effects';
 import { Store } from '@ngrx/store';
 import {
@@ -28,7 +34,15 @@ import { ProjectRequestModalComponent } from './project-request-modal/project-re
   selector: 'tratt-projects-list',
   templateUrl: './projects-list.component.html',
   styleUrls: ['./projects-list.component.scss'],
-  imports: [TranslocoPipe, LuxonShortDateTimePipe, NgbPagination],
+  imports: [
+    TranslocoPipe,
+    LuxonShortDateTimePipe,
+    NgbPagination,
+    NgbPaginationFirst,
+    NgbPaginationPrevious,
+    NgbPaginationNext,
+    NgbPaginationLast,
+  ],
 })
 export class ProjectsListComponent extends DefaultComponent implements OnInit {
   projects?: ProjectListDto;

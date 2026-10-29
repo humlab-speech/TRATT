@@ -5,7 +5,7 @@ from a colleague's.
 
 Tratt offers several editors over the *same* transcript. Switching between them
 does not change your data. You can move between them mid-file, as often as you
-like, using the buttons at the left of the top bar.
+like, using the editor buttons in the header (in the [Workbench](workbench.md), the editor tabs above the editor).
 
 The default view uses the **2D-Editor**.
 

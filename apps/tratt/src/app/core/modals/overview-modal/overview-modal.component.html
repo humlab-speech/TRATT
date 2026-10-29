@@ -26,7 +26,7 @@
         style="
           overflow: auto;
           max-height: 1200px;
-          border-right: 1px solid lightgray;
+          border-right: 1px solid var(--tratt-border);
         "
       >
         <tratt-transcr-overview
@@ -51,7 +51,7 @@
           @if (
             sendValidTranscriptOnly && !annotationStoreService.transcriptValid
           ) {
-            <p style="color: red; text-align: center">
+            <p style="color: var(--tratt-danger-text); text-align: center">
               {{ 'transcription.invalid' | transloco }}
             </p>
           }
@@ -63,7 +63,7 @@
                 (sendValidTranscriptOnly &&
                   !annotationStoreService.transcriptValid)
               "
-              class="btn btn-primary btn-outline btn-success"
+              class="btn btn-next"
               id="transcr-send-btn"
             >
               <i class="fa-solid fa-paper-plane"></i>
@@ -83,7 +83,7 @@
                 <button
                   (click)="sendTranscriptionForShortAudioFiles('middle')"
                   class="btn btn-raised btn-warning w-100"
-                  style="background-color: var(--tratt-accent-warning)"
+                  style="background-color: var(--tratt-warning)"
                 >
                   <i class="fa-solid fa-star"></i>
                   <i class="fa-solid fa-star"></i>

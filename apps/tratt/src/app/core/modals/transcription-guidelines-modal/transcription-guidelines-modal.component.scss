@@ -4,13 +4,13 @@
 
 .project,
 .authors {
-  color: gray;
+  color: var(--tratt-text-muted);
   font-size: 0.8em;
   display: block;
 }
 
 .version {
-  color: gray;
+  color: var(--tratt-text-muted);
   font-size: 0.8em;
 }
 
@@ -67,11 +67,11 @@ audio {
 }
 
 .card-header {
-  background-color: var(--tratt-surface-background);
+  background-color: var(--tratt-surface-subtle);
 }
 
 .card-header.example {
-  background-color: var(--tratt-accent-green);
+  background-color: var(--tratt-interactive-text);
 }
 
 .modal-dialog.modal-lg {

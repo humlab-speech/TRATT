@@ -15,7 +15,7 @@
       "installMode": "lazy",
       "updateMode": "prefetch",
       "resources": {
-        "files": ["/assets/**", "/config/**", "/favicon.ico"]
+        "files": ["/assets/**", "/config/**", "/media/**", "/favicon.ico"]
       }
     }
   ],
