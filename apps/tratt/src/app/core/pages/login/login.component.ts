@@ -5,6 +5,7 @@ import { Component, ElementRef, ViewChild } from '@angular/core';
 import { NgForm } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
+import { UmuLogoComponent } from '../../component/umu-logo/umu-logo.component';
 import { NgbNavModule } from '@ng-bootstrap/ng-bootstrap';
 import { Store } from '@ngrx/store';
 import { AccountLoginMethod } from '@octra/api-types';
@@ -76,6 +77,7 @@ function formatDuration(seconds: number): string {
     TranslocoPipe,
     TrattCreditsComponent,
     TrattFooterComponent,
+    UmuLogoComponent,
   ],
 })
 export class LoginComponent

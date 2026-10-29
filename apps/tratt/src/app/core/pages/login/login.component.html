@@ -48,6 +48,10 @@
     </div>
   }
 
+  @if (localOnly) {
+    <tratt-umu-logo class="local-umu-logo" variant="centered" />
+  }
+
   @if (compatibleBrowser !== false) {
     <!-- /local: two columns on wide screens (intro + notes | work card) so the
          upload box is visible without scrolling; one column below `lg`
