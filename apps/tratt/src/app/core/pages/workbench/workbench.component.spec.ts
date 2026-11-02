@@ -1099,7 +1099,7 @@ describe('WorkbenchComponent', () => {
       expect(
         fixture.debugElement.query(
           By.css(
-            '.workbench__right:not(.workbench__empty) .workbench__editor-header-actions .btn-next',
+            '.workbench__right:not(.workbench__empty) .workbench__editor-header-actions .workbench__export',
           ),
         ),
       ).toBeTruthy();
@@ -1113,7 +1113,9 @@ describe('WorkbenchComponent', () => {
       const { resolveBundleMedia, openModalRef } = exportStubs(media);
 
       const button = fixture.debugElement.query(
-        By.css('.workbench__pane-bar .workbench__editor-header-actions .btn-next'),
+        By.css(
+          '.workbench__pane-bar .workbench__editor-header-actions .workbench__export',
+        ),
       );
       expect(button.nativeElement.textContent).toContain(
         'workbench.editor_header.export',
@@ -1149,10 +1151,10 @@ describe('WorkbenchComponent', () => {
 
       const exportButton = () =>
         fixture.debugElement.query(
-          By.css('.workbench__editor-header-actions .btn-next'),
+          By.css('.workbench__editor-header-actions .workbench__export'),
         );
       expect(component.selectedBundleHeader?.name).toBe('a.wav');
-      expect(exportButton()).toBeNull();
+      expect(exportButton().nativeElement.disabled).toBe(true);
 
       // The transcription arrives (or the user types): now it is offered.
       localModeState = {
@@ -1164,7 +1166,7 @@ describe('WorkbenchComponent', () => {
       };
       (component as any).cd.markForCheck();
       fixture.detectChanges();
-      expect(exportButton()).toBeTruthy();
+      expect(exportButton().nativeElement.disabled).toBe(false);
     });
 
     it('keeps "Export recording" for a fresh recording without a transcript', () => {
@@ -1182,7 +1184,9 @@ describe('WorkbenchComponent', () => {
       );
       expect(actions).toBeTruthy();
       expect(actions.nativeElement.textContent).toContain('g.export recording');
-      expect(actions.query(By.css('.btn-next'))).toBeNull();
+      expect(
+        actions.query(By.css('.workbench__export')).nativeElement.disabled,
+      ).toBe(true);
     });
 
     it('stays available while the file has no audio, exporting from the transcript', async () => {
@@ -1192,7 +1196,7 @@ describe('WorkbenchComponent', () => {
       const { openModalRef } = exportStubs({ sampleRate: 16000 });
 
       const button = fixture.debugElement.query(
-        By.css('.workbench__editor-header-actions .btn-next'),
+        By.css('.workbench__editor-header-actions .workbench__export'),
       );
       expect(button.nativeElement.disabled).toBe(false);
 
@@ -1575,7 +1579,7 @@ describe('WorkbenchComponent', () => {
       expect(
         fixture.debugElement.query(
           By.css(
-            '.workbench__empty .workbench__editor-header-actions .btn-next',
+            '.workbench__empty .workbench__editor-header-actions .workbench__export',
           ),
         ),
       ).toBeTruthy();
