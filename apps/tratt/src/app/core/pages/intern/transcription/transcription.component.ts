@@ -31,6 +31,8 @@ import {
 import { TrattModalService } from '../../../modals/tratt-modal.service';
 import { ProjectSettings } from '../../../obj/Settings';
 
+import { HeaderCenterDirective } from '../../../shared/directive/header-center.directive';
+import { HumlabLogoComponent } from '../../../component/humlab-logo/humlab-logo.component';
 import { LoadeditorDirective } from '../../../shared/directive/loadeditor.directive';
 
 import { NgClass } from '@angular/common';
@@ -77,6 +79,8 @@ import { AnnotationStoreService } from '../../../store/login-mode/annotation/ann
     LoadeditorDirective,
     FormsModule,
     TranslocoPipe,
+    HeaderCenterDirective,
+    HumlabLogoComponent,
   ],
 })
 export class TranscriptionComponent

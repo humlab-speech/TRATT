@@ -17,7 +17,7 @@ import { TranslocoService } from '@jsverse/transloco';
   changeDetection: ChangeDetectionStrategy.OnPush,
   // Both themes are rendered; CSS shows the one matching data-bs-theme.
   template: `
-    <img class="humlab-logo--light" [src]="src()" alt="Humlab, Umeå universitet" />
+    <img class="humlab-logo--light" [src]="src()" [alt]="org() === 'umu' ? 'Umeå universitet' : 'Humlab, Umeå universitet'" />
     <img class="humlab-logo--dark" [src]="src(true)" alt="" aria-hidden="true" />
   `,
   styles: `
@@ -42,12 +42,14 @@ import { TranslocoService } from '@jsverse/transloco';
 })
 export class HumlabLogoComponent {
   readonly variant = input<'centered' | 'left'>('centered');
+  /** `umu` = Umeå University wordmark, `humlab` = Umeå University + Humlab. */
+  readonly org = input<'humlab' | 'umu'>('humlab');
   private readonly lang = toSignal(inject(TranslocoService).langChanges$, {
     initialValue: inject(TranslocoService).getActiveLang(),
   });
   readonly src = (negative = false) => {
     const lang = this.lang() === 'sv' ? 'se' : 'en';
-    const parts = ['humlab_logo'];
+    const parts = [this.org() === 'umu' ? 'umu_logo' : 'humlab_logo'];
     if (this.variant() === 'left') parts.push('left');
     if (negative) parts.push('neg');
     return `assets/img/humlab/${[...parts, lang].join('_')}.svg`;

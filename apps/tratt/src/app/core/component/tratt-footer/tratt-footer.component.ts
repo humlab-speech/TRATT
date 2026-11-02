@@ -1,10 +1,11 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
+import { HumlabLogoComponent } from '../humlab-logo/humlab-logo.component';
 import { SettingsService } from '../../shared/service';
 
 @Component({
   selector: 'tratt-footer',
-  imports: [TranslocoPipe],
+  imports: [TranslocoPipe, HumlabLogoComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './tratt-footer.component.html',
   styleUrl: './tratt-footer.component.scss',

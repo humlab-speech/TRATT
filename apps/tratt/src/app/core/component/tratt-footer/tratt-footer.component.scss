@@ -39,6 +39,12 @@
 .tratt-footer__node {
   justify-self: end;
 }
+// ~80% of the Språkbanken link block height, for visual balance.
+.tratt-footer__humlab {
+  justify-self: end;
+  align-self: center;
+  block-size: 5rem;
+}
 @media (max-width: 767.98px) {
   .tratt-footer {
     grid-template-columns: 1fr;

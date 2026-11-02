@@ -16,6 +16,7 @@
       <a [href]="base + '/om/referera-till-oss'" target="_blank" rel="noopener">{{ 'shell.footer.cite' | transloco }}</a>
     </p>
   </div>
+  <tratt-humlab-logo class="tratt-footer__humlab" variant="centered" />
   @if (node; as n) {
   <div class="tratt-footer__node">
     <a [href]="n.url" target="_blank" rel="noopener"><img [src]="n.logo" [alt]="n.name" height="48" /></a>
