@@ -8,13 +8,18 @@ import {
 export interface TranscriptionFinalizationOptions {
   language?: string;
   speakerTurns?: SpeakerTurn[];
+  /** Localized tier name used when the ASR language has no endonym. */
+  defaultLevelName?: string;
 }
 
 export function finalizeTranscriptionAnnotJson(
   annotJson: OAnnotJSON,
   options: TranscriptionFinalizationOptions,
 ): OAnnotJSON {
-  const levelName = pickInitialLevelName({ asrLanguage: options.language });
+  const levelName = pickInitialLevelName({
+    asrLanguage: options.language,
+    fallback: options.defaultLevelName,
+  });
   for (const level of annotJson.levels ?? []) {
     if (level.name === 'OCTRA_1') {
       level.name = levelName;

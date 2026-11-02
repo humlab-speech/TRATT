@@ -70,7 +70,7 @@ function lookupDisplayName(base: string, locale: string): string | undefined {
  * Default name for the first annotation level when no language signal is
  * available (or the only signal is English).
  */
-export const DEFAULT_INITIAL_LEVEL_NAME = 'Transcription level 1';
+export const DEFAULT_INITIAL_LEVEL_NAME = 'Default tier';
 
 /**
  * Pick the name for the initial annotation level when starting a new
@@ -80,6 +80,8 @@ export const DEFAULT_INITIAL_LEVEL_NAME = 'Transcription level 1';
 export function pickInitialLevelName(input: {
   asrLanguage?: string;
   uiLanguage?: string;
+  /** Localized name used when no language signal applies. */
+  fallback?: string;
 }): string {
   const asrBase = baseCode(input.asrLanguage);
   if (asrBase) {
@@ -93,7 +95,7 @@ export function pickInitialLevelName(input: {
     if (native) return native;
   }
 
-  return DEFAULT_INITIAL_LEVEL_NAME;
+  return input.fallback ?? DEFAULT_INITIAL_LEVEL_NAME;
 }
 
 function baseCode(code?: string): string | undefined {

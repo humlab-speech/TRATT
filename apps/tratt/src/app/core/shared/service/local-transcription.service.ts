@@ -1,4 +1,5 @@
 import { Injectable, NgZone, OnDestroy } from '@angular/core';
+import { TranslocoService } from '@jsverse/transloco';
 import { IFile, OAnnotJSON, srtTimestamp } from '@tratt/annotation';
 import { OAudiofile } from '@tratt/media';
 import { AudioManager, prepareMonoAudioForMlModel } from '@tratt/web-media';
@@ -70,7 +71,10 @@ export class LocalTranscriptionService implements OnDestroy {
   private worker: Worker | null = null;
   private subject: Subject<TranscriptionEvent> | null = null;
 
-  constructor(private ngZone: NgZone) {}
+  constructor(
+    private ngZone: NgZone,
+    private transloco: TranslocoService,
+  ) {}
 
   transcribe(
     audioManager: AudioManager,
@@ -286,7 +290,10 @@ export class LocalTranscriptionService implements OnDestroy {
       throw new Error(result?.error ?? 'SRT import returned no annotation');
     }
 
-    return finalizeTranscriptionAnnotJson(result.annotjson, options);
+    return finalizeTranscriptionAnnotJson(result.annotjson, {
+      ...options,
+      defaultLevelName: this.transloco.translate('translation.default tier'),
+    });
   }
 
   private chunksToSrt(

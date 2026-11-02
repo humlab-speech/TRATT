@@ -1,6 +1,7 @@
 {
   "translation": {
-    "language name": "Deutsch"
+    "language name": "Deutsch",
+    "default tier": "Standardebene"
   },
   "alerts": {
     "combine segments ignore speakerlabel successful": "Das Kombinieren von Segmenten unabhängig vom Sprecher-Label war erfolgreich.",

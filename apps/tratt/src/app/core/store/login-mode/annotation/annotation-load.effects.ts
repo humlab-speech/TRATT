@@ -1079,7 +1079,7 @@ export class AnnotationLoadEffects {
     try {
       let feedback: FeedBackForm | undefined = undefined;
       const levelName = pickInitialLevelName({
-        uiLanguage: this.transloco.getActiveLang(),
+        fallback: this.transloco.translate('translation.default tier'),
       });
       if (
         modeState.transcript.levels === undefined ||

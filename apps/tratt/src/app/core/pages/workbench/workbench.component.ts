@@ -1336,7 +1336,7 @@ export class WorkbenchComponent
       return;
     }
     const levelName = pickInitialLevelName({
-      uiLanguage: this.transloco.getActiveLang(),
+      fallback: this.transloco.translate('translation.default tier'),
     });
     const seeded = new TrattAnnotation<TrattAnnotationSegment>();
     const level = seeded.createSegmentLevel(levelName);

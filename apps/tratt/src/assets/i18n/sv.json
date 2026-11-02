@@ -1,6 +1,7 @@
 {
   "translation": {
-    "language name": "Svenska"
+    "language name": "Svenska",
+    "default tier": "Standardnivå"
   },
   "alerts": {
     "combine segments ignore speakerlabel successful": "Segmenten kombinerades framgångsrikt och ignorerade talaretikett.",

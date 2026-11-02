@@ -1,6 +1,7 @@
 {
   "translation": {
-    "language name": "Italiano"
+    "language name": "Italiano",
+    "default tier": "Livello predefinito"
   },
   "alerts": {
     "error occurred": "Si è verificato un errore. Per favore, inviaci un breve feedback in modo da consentirci di risolverlo.",

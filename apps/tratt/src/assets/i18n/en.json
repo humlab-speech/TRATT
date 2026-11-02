@@ -1,6 +1,7 @@
 {
   "translation": {
-    "language name": "English"
+    "language name": "English",
+    "default tier": "Default tier"
   },
   "alerts": {
     "combine segments ignore speakerlabel successful": "Segments were combined successfully regardless of speaker labels.",

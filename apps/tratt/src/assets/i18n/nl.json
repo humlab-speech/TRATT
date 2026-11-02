@@ -1,6 +1,7 @@
 {
   "translation": {
-    "language name": "Nederlands"
+    "language name": "Nederlands",
+    "default tier": "Standaardlaag"
   },
   "alerts": {
     "error occurred": "Er is een fout opgetreden. Stuur ons een korte feedback om de fout te herstellen.",

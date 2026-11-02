@@ -1,6 +1,7 @@
 {
   "translation": {
-    "language name": "한국어"
+    "language name": "한국어",
+    "default tier": "기본 티어"
   },
   "alerts": {
     "error occurred": "오류가 발생했습니다. 수정할 오류에 대한 간단한 피드백을 보내주시기 바랍니다.",

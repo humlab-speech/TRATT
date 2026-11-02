@@ -22,15 +22,15 @@ describe('finalizeTranscriptionAnnotJson', () => {
     });
     const level = result.levels[0] as OSegmentLevel<OSegment>;
 
-    expect(level.name).toBe('Transcription level 1');
+    expect(level.name).toBe('Default tier');
     expect(
       level.items[0].labels.find(
-        (label) => label.name === 'Transcription level 1',
+        (label) => label.name === 'Default tier',
       )?.value,
     ).toBe('Hello');
     expect(
       level.items[1].labels.find(
-        (label) => label.name === 'Transcription level 1',
+        (label) => label.name === 'Default tier',
       )?.value,
     ).toBe('World');
     expect(
