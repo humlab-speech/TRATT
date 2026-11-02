@@ -1,7 +1,9 @@
 import { Injectable } from '@angular/core';
+import { TranslocoService } from '@jsverse/transloco';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { Store } from '@ngrx/store';
 import { IAnnotJSON } from '@tratt/annotation';
+import { renamePlaceholderLevels } from '@tratt/utilities';
 import {
   catchError,
   forkJoin,
@@ -131,6 +133,12 @@ export class BundleRestoreEffects {
                   continue;
                 }
 
+                // Transcripts stored before the placeholder was renamed on
+                // import still carry the converters' `OCTRA_1` tier name.
+                renamePlaceholderLevels(
+                  result.annotation,
+                  this.transloco.translate('translation.default tier'),
+                );
                 this.store.dispatch(
                   LoginModeActions.createBundle({
                     mode: LoginMode.LOCAL,
@@ -186,6 +194,7 @@ export class BundleRestoreEffects {
     private actions$: Actions,
     private store: Store<RootState>,
     private idbService: IDBService,
+    private transloco: TranslocoService,
   ) {}
 
   private loadBundle(bundleId: string): Observable<RestoredBundleData> {

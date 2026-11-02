@@ -13,7 +13,7 @@ describe('finalizeTranscriptionAnnotJson', () => {
     ];
 
     const result = finalizeTranscriptionAnnotJson(annotJson, {
-      language: 'en',
+      defaultLevelName: 'Default tier',
       speakerTurns: [
         { startS: 0, endS: 0.9, speakerId: 'SPEAKER_00' },
         { startS: 0.9, endS: 1.0, speakerId: 'SPEAKER_01' },
@@ -51,7 +51,7 @@ describe('finalizeTranscriptionAnnotJson', () => {
     ];
 
     const result = finalizeTranscriptionAnnotJson(annotJson, {
-      language: 'en',
+      defaultLevelName: 'Default tier',
     });
     const level = result.levels[0] as OSegmentLevel<OSegment>;
 
@@ -68,7 +68,7 @@ describe('finalizeTranscriptionAnnotJson', () => {
     ];
 
     const result = finalizeTranscriptionAnnotJson(annotJson, {
-      language: 'en',
+      defaultLevelName: 'Default tier',
       speakerTurns: [{ startS: 0, endS: 2, speakerId: 'SPEAKER_00' }],
     });
     const level = result.levels[0] as OSegmentLevel<OSegment>;
@@ -86,7 +86,7 @@ describe('finalizeTranscriptionAnnotJson', () => {
     ];
 
     const result = finalizeTranscriptionAnnotJson(annotJson, {
-      language: 'en',
+      defaultLevelName: 'Default tier',
     });
     const level = result.levels[0] as OSegmentLevel<OSegment>;
 

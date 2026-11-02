@@ -15,6 +15,7 @@ if (typeof (globalThis as any).structuredClone === 'undefined') {
 
 import 'fake-indexeddb/auto'; // polyfills global indexedDB for this test file
 import { TestBed } from '@angular/core/testing';
+import { TranslocoService } from '@jsverse/transloco';
 import {
   afterEach,
   beforeEach,
@@ -141,6 +142,10 @@ describe('BundleRestoreEffects', () => {
         provideMockActions(() => actions$),
         provideMockStore({ initialState }),
         { provide: IDBService, useValue: fakeIdbService },
+        {
+          provide: TranslocoService,
+          useValue: { translate: (k: string) => k },
+        },
       ],
     });
 

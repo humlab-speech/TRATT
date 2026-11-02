@@ -3,7 +3,11 @@ import { TranslocoService } from '@jsverse/transloco';
 import { Store } from '@ngrx/store';
 import { Converter, IFile, ImportResult, OAnnotJSON } from '@tratt/annotation';
 import { OAudiofile } from '@tratt/media';
-import { escapeRegex, SubscriptionManager } from '@tratt/utilities';
+import {
+  escapeRegex,
+  renamePlaceholderLevels,
+  SubscriptionManager,
+} from '@tratt/utilities';
 import { AudioManager, FileInfo, readFile } from '@tratt/web-media';
 import {
   catchError,
@@ -811,6 +815,7 @@ export class TrattDropzoneService {
       }
       if (result?.annotjson && !result.error) {
         padSegmentLevels(result.annotjson, audio.duration!);
+        renamePlaceholderLevels(result.annotjson, this.defaultLevelName());
         return result.annotjson;
       }
       error = result?.error || error;
@@ -819,6 +824,10 @@ export class TrattDropzoneService {
       error ??
       this.translocoService.translate('dropzone.file format not supported');
     return undefined;
+  }
+
+  private defaultLevelName(): string {
+    return this.translocoService.translate('translation.default tier');
   }
 
   private setAnnotation = async (
@@ -845,6 +854,7 @@ export class TrattDropzoneService {
         );
       }
       padSegmentLevels(importResult.annotjson, this._oaudiofile.duration!);
+      renamePlaceholderLevels(importResult.annotjson, this.defaultLevelName());
       this._oannotation = importResult.annotjson;
       fileProgress.status = 'valid';
       this.updateStatistics();

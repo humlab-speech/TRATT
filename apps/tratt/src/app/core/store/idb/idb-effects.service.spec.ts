@@ -1,5 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
+import { TranslocoService } from '@jsverse/transloco';
 import { provideMockActions } from '@ngrx/effects/testing';
 import { Store } from '@ngrx/store';
 import { provideMockStore } from '@ngrx/store/testing';
@@ -68,6 +69,10 @@ describe('IDBEffects undo/redo guards missing audio (C12)', () => {
         { provide: SessionStorageService, useValue: {} },
         { provide: RoutingService, useValue: {} },
         { provide: AudioService, useValue: { audioManager: undefined } },
+        {
+          provide: TranslocoService,
+          useValue: { translate: (k: string) => k },
+        },
       ],
     });
 
@@ -144,6 +149,10 @@ describe('IDBEffects.loadOptions$ (IDB open failure)', () => {
         { provide: SessionStorageService, useValue: {} },
         { provide: RoutingService, useValue: {} },
         { provide: AudioService, useValue: { audioManager: undefined } },
+        {
+          provide: TranslocoService,
+          useValue: { translate: (k: string) => k },
+        },
       ],
     });
 
@@ -201,6 +210,10 @@ describe('IDBEffects.removeBundles$', () => {
         { provide: SessionStorageService, useValue: {} },
         { provide: RoutingService, useValue: {} },
         { provide: AudioService, useValue: { audioManager: undefined } },
+        {
+          provide: TranslocoService,
+          useValue: { translate: (k: string) => k },
+        },
       ],
     });
 
@@ -269,6 +282,10 @@ describe('IDBEffects.getModeStateFromString', () => {
         { provide: SessionStorageService, useValue: {} },
         { provide: RoutingService, useValue: {} },
         { provide: AudioService, useValue: { audioManager: undefined } },
+        {
+          provide: TranslocoService,
+          useValue: { translate: (k: string) => k },
+        },
       ],
     });
 
@@ -379,6 +396,10 @@ describe('IDBEffects — persists to the real selected bundle (Task 3)', () => {
               },
             },
           },
+        },
+        {
+          provide: TranslocoService,
+          useValue: { translate: (k: string) => k },
         },
       ],
     });

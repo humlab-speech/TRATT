@@ -36,7 +36,6 @@ import { OAudiofile } from '@tratt/media';
 import {
   formatMinutesSeconds,
   getFileSize,
-  pickInitialLevelName,
 } from '@tratt/utilities';
 import { AudioManager, normalizeMimeType } from '@tratt/web-media';
 import { timer } from 'rxjs';
@@ -1335,9 +1334,7 @@ export class WorkbenchComponent
     if (!transcript || transcript.levels.length > 0) {
       return;
     }
-    const levelName = pickInitialLevelName({
-      fallback: this.transloco.translate('translation.default tier'),
-    });
+    const levelName = this.transloco.translate('translation.default tier');
     const seeded = new TrattAnnotation<TrattAnnotationSegment>();
     const level = seeded.createSegmentLevel(levelName);
     level.items.push(

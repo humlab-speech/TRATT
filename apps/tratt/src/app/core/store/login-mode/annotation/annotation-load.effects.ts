@@ -19,7 +19,7 @@ import {
 } from '@tratt/annotation';
 import {
   extractFileNameFromURL,
-  pickInitialLevelName,
+  renamePlaceholderLevels,
   SubscriptionManager,
 } from '@tratt/utilities';
 import { SessionStorageService } from 'ngx-webstorage';
@@ -1078,9 +1078,7 @@ export class AnnotationLoadEffects {
   private loadSegments(modeState: AnnotationState, rootState: RootState) {
     try {
       let feedback: FeedBackForm | undefined = undefined;
-      const levelName = pickInitialLevelName({
-        fallback: this.transloco.translate('translation.default tier'),
-      });
+      const levelName = this.transloco.translate('translation.default tier');
       if (
         modeState.transcript.levels === undefined ||
         modeState.transcript.levels.length === 0
@@ -1283,25 +1281,4 @@ export class AnnotationLoadEffects {
     private maintenance: AnnotationMaintenanceService,
     private router: Router,
   ) {}
-}
-
-function renamePlaceholderLevels(
-  annotation: {
-    levels?: { name: string; items?: { labels?: { name: string }[] }[] }[];
-  },
-  newName: string,
-): void {
-  const placeholder = 'OCTRA_1';
-  for (const level of annotation.levels ?? []) {
-    if (level.name === placeholder) {
-      level.name = newName;
-    }
-    for (const item of level.items ?? []) {
-      for (const label of item.labels ?? []) {
-        if (label.name === placeholder) {
-          label.name = newName;
-        }
-      }
-    }
-  }
 }

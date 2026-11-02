@@ -1,37 +1,21 @@
 import { OAnnotJSON, OSegment, OSegmentLevel } from '@tratt/annotation';
-import { pickInitialLevelName } from '@tratt/utilities';
+import { renamePlaceholderLevels } from '@tratt/utilities';
 import {
   applySpeakerTurnsToAnnotJson,
   SpeakerTurn,
 } from './local-diarization.service';
 
 export interface TranscriptionFinalizationOptions {
-  language?: string;
   speakerTurns?: SpeakerTurn[];
-  /** Localized tier name used when the ASR language has no endonym. */
-  defaultLevelName?: string;
+  /** Localized tier name (follows the UI language). */
+  defaultLevelName: string;
 }
 
 export function finalizeTranscriptionAnnotJson(
   annotJson: OAnnotJSON,
   options: TranscriptionFinalizationOptions,
 ): OAnnotJSON {
-  const levelName = pickInitialLevelName({
-    asrLanguage: options.language,
-    fallback: options.defaultLevelName,
-  });
-  for (const level of annotJson.levels ?? []) {
-    if (level.name === 'OCTRA_1') {
-      level.name = levelName;
-    }
-    for (const item of level.items ?? []) {
-      for (const label of item.labels ?? []) {
-        if (label.name === 'OCTRA_1') {
-          label.name = levelName;
-        }
-      }
-    }
-  }
+  renamePlaceholderLevels(annotJson, options.defaultLevelName);
 
   const result = options.speakerTurns?.length
     ? applySpeakerTurnsToAnnotJson(annotJson, options.speakerTurns)

@@ -66,38 +66,6 @@ function lookupDisplayName(base: string, locale: string): string | undefined {
   return undefined;
 }
 
-/**
- * Default name for the first annotation level when no language signal is
- * available (or the only signal is English).
- */
-export const DEFAULT_INITIAL_LEVEL_NAME = 'Default tier';
-
-/**
- * Pick the name for the initial annotation level when starting a new
- * transcription. Priority: ASR language endonym → UI language endonym
- * (only when non-English) → `DEFAULT_INITIAL_LEVEL_NAME`.
- */
-export function pickInitialLevelName(input: {
-  asrLanguage?: string;
-  uiLanguage?: string;
-  /** Localized name used when no language signal applies. */
-  fallback?: string;
-}): string {
-  const asrBase = baseCode(input.asrLanguage);
-  if (asrBase) {
-    const native = NATIVE_LANGUAGE_NAMES[asrBase];
-    if (native) return native;
-  }
-
-  const uiBase = baseCode(input.uiLanguage);
-  if (uiBase && uiBase !== 'en') {
-    const native = NATIVE_LANGUAGE_NAMES[uiBase];
-    if (native) return native;
-  }
-
-  return input.fallback ?? DEFAULT_INITIAL_LEVEL_NAME;
-}
-
 function baseCode(code?: string): string | undefined {
   if (!code) return undefined;
   const base = code.split('-')[0].toLowerCase();

@@ -35,6 +35,13 @@ body {
   background-color: var(--tratt-surface-page);
 }
 
+main.tratt-main,
+main.tratt-main > .container-fluid {
+  // allow shrinking so routed pages stay inside the viewport (body clips)
+  flex-shrink: 1;
+  min-height: 0;
+}
+
 main {
   -webkit-box-flex: 1;
   -ms-flex: 1 0 auto;

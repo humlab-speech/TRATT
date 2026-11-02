@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { TranslocoService } from '@jsverse/transloco';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { Action, Store } from '@ngrx/store';
 import {
@@ -7,7 +8,7 @@ import {
   TrattAnnotation,
   TrattAnnotationSegment,
 } from '@tratt/annotation';
-import { hasProperty } from '@tratt/utilities';
+import { hasProperty, renamePlaceholderLevels } from '@tratt/utilities';
 import { SessionStorageService } from 'ngx-webstorage';
 import {
   catchError,
@@ -239,6 +240,10 @@ export class IDBEffects {
           map(
             ([[onlineAnnotation, localAnnotation, demoAnnotation], state]) => {
               const deserialize = (json: IAnnotJSON) => {
+                renamePlaceholderLevels(
+                  json,
+                  this.transloco.translate('translation.default tier'),
+                );
                 const annotation = OAnnotJSON.deserialize(json);
                 if (annotation) {
                   const result = TrattAnnotation.deserialize(annotation);
@@ -1104,6 +1109,7 @@ export class IDBEffects {
     private routingService: RoutingService,
     private store: Store<RootState>,
     private audio: AudioService,
+    private transloco: TranslocoService,
   ) {
     actions$.subscribe((action) => {
       if (action.type.toLocaleLowerCase().indexOf('failed') > -1) {

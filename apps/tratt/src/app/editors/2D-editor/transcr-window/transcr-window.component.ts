@@ -1313,7 +1313,7 @@ export class TranscrWindowComponent
         this.idCounter,
         this.tempSegments,
         this.audioManager.createSampleUnit(samplesArray[i]),
-        'OCTRA_1',
+        this.currentLevel!.name,
         segTexts[i],
       );
       this.tempSegments = result.entries;
