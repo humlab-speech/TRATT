@@ -20,7 +20,8 @@ have **not** supplied a transcript file of your own.
 > settings**, where they apply to every recording in the list rather than to one
 > file. Everything on this page applies there too.
 
-Under the drop zone, tick **Auto-transcribe with Whisper**, then set:
+Under the drop zone, turn on **Auto-transcribe with Whisper** (a switch, with
+**Translate transcript locally** beside it), then set:
 
 1. **Transcription language**: the language actually spoken on the recording.
    A hundred languages are offered, listed by their own names
@@ -88,7 +89,7 @@ Uses OpenAI's Whisper.
 | Tiny | 95 MB | Fastest, least accurate |
 | Small | 290 MB | **Preselected.** A reasonable compromise. |
 | Large v3 Turbo | 700 MB | Labelled *our selected reference model*: fast and accurate. Needs WebGPU. |
-| Large v3 | 3.1 GB | Slower than Turbo, often a little more accurate. Needs WebGPU. |
+| Large v3 | 1.2 GB | Slower than Turbo, often a little more accurate. Needs WebGPU. |
 
 Tratt preselects Small here, not the reference model. If your machine has WebGPU
 and the recording matters, switch to **Large v3 Turbo**.

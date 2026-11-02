@@ -177,17 +177,17 @@ Not exercised live, and therefore still source-derived only:
 
 ## Screenshots
 
-**Stale: the following describes the images as they were before the Språkbanken
-profile.** The nine screenshots in `docs/assets/` were taken from a production
-build served locally, so the chrome matched from page to page. Seven of them came
-from one session on the 8 October build; the Overview and the Workbench were
-re-shot from the 22 October build, which was the first to carry the verification
-markers and the current drop-area wording. None of them has been re-shot since the
-profile, so they still show the old look (navy header, blue buttons) until the
-script has been run and the by-hand images taken.
+The ten screenshots in `docs/assets/` were re-shot for the Språkbanken profile
+from a production build of `3ed8c0b33` (version 3.2.1) served locally, so the
+chrome matches from page to page: white header, Umeå/Humlab logo, teal
+interaction and orange next-step buttons, Jost headings over Noto Serif body.
+Nine came from one run against that build; `auto_transcription_options` was taken
+in a real Chrome with WebGPU, as it always has to be.
 
-The script's selectors have not been run against the live UI; expect to adjust
-them on the first run.
+Two README-only images still show the pre-profile look and could not be
+regenerated here: `draft_automatic_transcription` needs an auto-transcription in
+progress (the model download needs `huggingface.co`) and
+`popup_editor_audio_and_video` needs a video fixture that the app will accept.
 
 To re-shoot (everything except the WebGPU image):
 
@@ -218,12 +218,12 @@ To re-shoot (everything except the WebGPU image):
 | File                                        | Shows                                                       | Used by                                   |
 | ------------------------------------------- | ----------------------------------------------------------- | ----------------------------------------- |
 | `visp_tratt_main.png`                       | The start page down to the start button                     | `quick-start.md`                          |
-| `visp_tratt_auto_transcription_options.png` | The **Auto-transcribe with Whisper** panel                  | `automatic-transcription.md`              |
+| `visp_tratt_auto_transcription_options.png` | The upload card with the Whisper options open               | `automatic-transcription.md`              |
 | `visp_tratt_2d_editor.png`                  | The 2D-Editor with speaker badges                           | `the-editors.md`                          |
 | `visp_tratt_popup_editor_audio_only.png`    | The transcription window over the 2D-Editor                 | `quick-start.md`, `the-editors.md`        |
 | `visp_tratt_dictaphone_editor.png`          | The Dictaphone Editor                                       | `the-editors.md`                          |
 | `visp_tratt_linear_editor.png`              | The Linear Editor, both displays, one unit open             | `the-editors.md`                          |
-| `visp_tratt_overview_edit.png`              | The Overview window, with verified and non-verified markers | `quick-start.md`, `checking-your-work.md` |
+| `visp_tratt_overview_edit.png`              | The Overview window, one row open for editing               | `quick-start.md`, `checking-your-work.md` |
 | `visp_tratt_export_formats.png`             | The export dialog                                           | `quick-start.md`, `exporting.md`          |
 | `visp_tratt_workbench.png`                  | The Workbench with four recordings                          | `workbench.md`                            |
 
@@ -242,18 +242,27 @@ How to reproduce them:
 - The Overview needs a part-checked transcript, or every row is the same colour.
   An SRT that Tratt itself has imported comes in verified unless the text carries
   the not-check mark, so `interview-01-mixed.srt` appends `⍻` (U+237B) to every
-  line but the first two. The first two then show the green marker and the rest
-  the orange one, which is what the reader sees after checking the opening of a
-  file. See [Verification marks](exporting.md#verification-marks-in-time-aligned-formats).
-- Viewport 1440 × 820 at a device pixel ratio of 2 for the editor pages, 1480 × 900
-  for the Workbench, 1360 wide for the start page. **Below 1400 px the editor
-  switcher in the header collapses to icons** (the Workbench's editor tabs keep
-  their labels), so do not shoot the editor narrower than that.
+  line but the first two. In 3.2.1 that yields one green row and the rest orange,
+  not two green: the importer appears to shift the flag by one unit. The picture
+  reads correctly either way. See
+  [Verification marks](exporting.md#verification-marks-in-time-aligned-formats).
+- `overview.png` (README) is the window as it opens; `overview_edit.png` has one
+  row opened for editing, which is a **double-click** on the row, not a click.
+- Device pixel ratio 2 throughout, light theme (`localStorage['tratt.theme'] =
+  'light'` before the first paint). Viewport 1600 × 800 for the 2D-Editor, the
+  transcription window and the two dialogs; 1600 × 620 for the Dictaphone and
+  Linear editors, whose text field otherwise fills the lower half with white;
+  1600 × 900 for the Workbench; 1440 wide for the start page, clipped to the
+  bottom of the upload card. **Below 1400 px the editor switcher in the header
+  collapses to icons** (the Workbench's editor tabs keep their labels), so do not
+  shoot the editor narrower than that.
 - `visp_tratt_auto_transcription_options.png` is the exception: the headless
   browser has no WebGPU, which greys out the two largest Whisper models and
   changes every model description, so that one was taken in a real Chrome with
-  WebGPU and cropped to the panel. It shows the English model list; the Nordic
-  languages get a different one.
+  WebGPU and cropped. Since the profile the options sit in two columns inside the
+  upload card, so the crop covers the whole card (**Auto-transcribe with Whisper**
+  beside **Translate transcript locally**) rather than one panel. It shows the
+  English model list; the Nordic languages get a different one.
 
 ## Caveats to delete when the app changes
 

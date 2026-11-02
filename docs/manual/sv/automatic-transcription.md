@@ -21,7 +21,8 @@ Ladda in mediefilen först. Alternativen dyker upp när Tratt har ljud och du
 > **Pipelineinställningar**, där de gäller varje inspelning i listan i stället för
 > en enskild fil. Allt på den här sidan gäller även där.
 
-Under släppytan markerar du **Automatisk transkribering med Whisper** och ställer
+Under släppytan slår du på **Automatisk transkribering med Whisper** (en
+strömbrytare, med **Översätt transkriptionen lokalt** bredvid) och ställer
 sedan in:
 
 1. **Transkriptionsspråk**: det språk som faktiskt talas på inspelningen. Ett
@@ -95,7 +96,7 @@ Använder OpenAI:s Whisper.
 | Tiny | 95 MB | Snabbast, minst noggrann |
 | Small | 290 MB | **Förvald.** En rimlig kompromiss. |
 | Large v3 Turbo | 700 MB | Märkt *vår valda referensmodell*, snabb och noggrann. Kräver WebGPU. |
-| Large v3 | 3,1 GB | Långsammare än Turbo, ofta något noggrannare. Kräver WebGPU. |
+| Large v3 | 1,2 GB | Långsammare än Turbo, ofta något noggrannare. Kräver WebGPU. |
 
 Tratt förväljer Small här, inte referensmodellen. Har din dator WebGPU och
 inspelningen är viktig, byt till **Large v3 Turbo**.

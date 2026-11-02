@@ -39,7 +39,7 @@ Every unit as a table row: number, text, speaker (when the transcript has speake
 and a **Play segment** button. The ▶ in the column header is **Toggle play all**,
 which plays the units in sequence.
 
-This table is editable. Click a row and the text field opens inline, complete with
+This table is editable. Double-click a row and the text field opens inline, complete with
 the marker toolbar. For a final read-through this is often faster than stepping
 through the waveform, because you can read continuously and only stop where
 something looks wrong. Click ▶ on the suspicious row, fix it, move on.

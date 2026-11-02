@@ -39,7 +39,7 @@ Varje enhet som en tabellrad: nummer, text, talare (när transkriptet har talare
 och en knapp **Play segment**. ▶ i kolumnrubriken är **Toggle play all**, som
 spelar enheterna i följd.
 
-Tabellen går att redigera. Klicka på en rad så öppnas textfältet på plats,
+Tabellen går att redigera. Dubbelklicka på en rad så öppnas textfältet på plats,
 komplett med markörraden. För en sista genomläsning är det ofta snabbare än att
 stega genom vågformen, eftersom du kan läsa sammanhängande och bara stanna där
 något ser fel ut. Klicka ▶ på den misstänkta raden, rätta, gå vidare.
