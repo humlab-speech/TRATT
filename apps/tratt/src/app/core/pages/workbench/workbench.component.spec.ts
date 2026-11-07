@@ -772,7 +772,7 @@ describe('WorkbenchComponent', () => {
         // `entry.translate` key, not the English display word.
         const labels = tabs.map((t) => t.nativeElement.textContent.trim());
         expect(labels.some((l) => l.includes('simple editor'))).toBe(true);
-        expect(labels.some((l) => l.includes('TRN editor'))).toBe(true);
+        expect(labels.some((l) => l.includes('2D editor'))).toBe(true);
         expect(labels.some((l) => l.includes('linear editor'))).toBe(false);
       } finally {
         editorComponents[0].editor = realEditor;
