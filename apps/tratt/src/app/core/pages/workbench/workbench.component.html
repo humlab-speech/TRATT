@@ -85,15 +85,6 @@
           <span class="workbench__visp-title">{{
             'workbench.visp.title' | transloco
           }}</span>
-          <button
-            type="button"
-            class="btn btn-sm btn-outline-secondary"
-            [disabled]="visp.loading()"
-            (click)="visp.refresh()"
-          >
-            <i class="fa-solid fa-rotate" aria-hidden="true"></i>
-            {{ 'workbench.visp.refresh' | transloco }}
-          </button>
         </div>
         @if (visp.loading()) {
           <p role="status">{{ 'workbench.visp.loading' | transloco }}</p>

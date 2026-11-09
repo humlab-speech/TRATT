@@ -941,7 +941,7 @@
       "title": "Tilldelade inspelningspaket",
       "refresh": "Uppdatera",
       "loading": "Hämtar dina inspelningspaket från VISP…",
-      "empty": "Inga inspelningspaket är tilldelade dig i det här projektet. Be projektägaren tilldela några i VISP och tryck sedan på Uppdatera.",
+      "empty": "Inga inspelningspaket är tilldelade dig i det här projektet. Be projektägaren tilldela några i VISP och öppna sedan Tratt från VISP igen.",
       "assigned_list": "Inspelningspaket som är tilldelade dig:",
       "save": "Spara till VISP",
       "retry": "Försök igen",

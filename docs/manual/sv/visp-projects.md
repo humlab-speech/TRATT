@@ -22,7 +22,7 @@ väljas; för att arbeta i en annan nivå öppnar du Tratt från VISP igen.
 | Listan | Filerna du lägger till | Din tilldelning i projektet |
 | Ljudet | Kopplas av dig, igen efter omladdning | Hämtas från VISP när det behövs |
 | Ditt transkript | Sparas i webbläsaren, exporteras som filer | Sparas i projektet medan du arbetar |
-| Lägga till och ta bort | Släppa, spela in, läsa in `.zip`, **Ta bort** | Finns inte; **Uppdatera** läser tilldelningen igen |
+| Lägga till och ta bort | Släppa, spela in, läsa in `.zip`, **Ta bort** | Finns inte: listan är din tilldelning |
 | Nivåer | Alla du skapar | Bara annoteringsnivån du valde när du öppnade Tratt |
 
 Själva transkriberandet är detsamma: redigerarna, kortkommandona och markörerna
@@ -32,8 +32,8 @@ Själva transkriberandet är detsamma: redigerarna, kortkommandona och markörer
 
 ## Listan
 
-Rubriken lyder **Tilldelade inspelningspaket**, med **Uppdatera** bredvid. Varje
-inspelningspakets rad har en liten pratbubbleknapp. Den öppnar:
+Rubriken lyder **Tilldelade inspelningspaket**. Varje inspelningspakets rad har
+en liten pratbubbleknapp. Den öppnar:
 
 - **Klar**, som talar om för projektägaren att du är färdig med det;
 - **Kommentar**, en anteckning till projektägaren.
@@ -104,12 +104,11 @@ transkript som ska gälla.
 
 ## När tilldelningen ändras
 
-**Uppdatera** läser din tilldelning igen. Nytilldelade inspelningspaket dyker upp
-i listan. Inspelningspaket som inte längre är tilldelade dig försvinner, utom ett
-med osparade ändringar, som blir kvar med:
-
-> *Inte längre tilldelat dig. Dina osparade ändringar finns kvar här tills du tar
-> bort inspelningspaketet; ladda ner transkriptet först om du behöver det.*
+Tratt läser din tilldelning när det öppnas. Tilldelar projektägaren eller tar
+bort inspelningspaket medan Tratt är öppet, öppnar du Tratt från VISP igen för att
+se ändringen. Ett inspelningspaket som inte längre är tilldelat dig kan inte
+längre sparas till VISP: sparandet misslyckas och dina ändringar finns kvar i den
+här webbläsaren. Ladda ner transkriptet om du behöver det.
 
 Det kan inte längre sparas till projektet. Använd **Ladda ned transkriptionen** om du
 vill behålla texten och sedan **Ta bort**.
@@ -133,5 +132,5 @@ hamnar i transkriptionsnivån och sparas som allt du skriver. Inställningarna b
 | *Du är inte medlem i det här projektet. Be projektägaren lägga till dig.* | Fråga projektägaren. |
 | *Annoteringsnivån som TRATT öppnades med är inte en segmentnivå i projektet, så TRATT kan inte öppna dess inspelningspaket. Öppna TRATT från VISP igen och välj en annan nivå.* | Nivån togs bort eller ändrades i VISP efter att du öppnade Tratt. Öppna Tratt från VISP igen. |
 | *Annoteringsnivån som TRATT öppnades med är länkad till andra nivåer, så TRATT kan inte redigera den säkert. Öppna TRATT från VISP igen och välj en annan nivå.* | Nivån länkades i VISP efter att du öppnade Tratt. Öppna Tratt från VISP igen. |
-| *VISP kan inte nås. Dina ändringar finns kvar i den här webbläsaren; försök igen om en stund.* | Vänta: Tratt försöker igen av sig självt. **Försök igen** vid inspelningspaketet försöker direkt; **Uppdatera** läser om listan. |
+| *VISP kan inte nås. Dina ändringar finns kvar i den här webbläsaren; försök igen om en stund.* | Vänta: Tratt försöker igen av sig självt. **Försök igen** vid inspelningspaketet försöker direkt. |
 | *This TRATT installation is not configured for VISP.* | Visas i stället för Arbetsbänken (meddelandet är ännu inte översatt). Säg till den som driver VISP. |

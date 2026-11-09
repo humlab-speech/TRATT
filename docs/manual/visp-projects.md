@@ -22,7 +22,7 @@ chosen; to work on another level, open Tratt from VISP again.
 | The list | The files you add | Your assignment in the project |
 | Audio | Attached by you, again after a reload | Fetched from VISP whenever it is needed |
 | Your transcript | Kept in the browser, exported as files | Saved into the project as you work |
-| Adding and removing | Drop, record, load a `.zip`, **Remove** | Not available; **Refresh** re-reads the assignment |
+| Adding and removing | Drop, record, load a `.zip`, **Remove** | Not available: the list is your assignment |
 | Tiers | Any you create | Only the annotation level you chose when opening Tratt |
 
 Everything about transcribing itself is the same: the editors, the shortcuts and
@@ -32,8 +32,8 @@ the markers are the ones described in the rest of this manual.
 
 ## The list
 
-The header reads **Assigned recording bundles**, with **Refresh** next to it.
-Each recording bundle's row has a small speech-bubble button. It opens:
+The header reads **Assigned recording bundles**. Each recording bundle's row has
+a small speech-bubble button. It opens:
 
 - **Finished**, which tells the project owner you are done with it;
 - **Comment**, a note to the project owner.
@@ -101,12 +101,11 @@ to keep.
 
 ## When the assignment changes
 
-**Refresh** reads your assignment again. Newly assigned recording bundles appear
-in the list. Recording bundles no longer assigned to you disappear, except one
-with unsaved changes, which stays with:
-
-> *No longer assigned to you. Your unsaved changes are kept here until you remove
-> this recording bundle; download the transcript first if you need it.*
+Tratt reads your assignment when it opens. If the project owner assigns or
+unassigns recording bundles while Tratt is open, open Tratt from VISP again to
+see the change. A recording bundle that is no longer assigned to you can no
+longer be saved to VISP: saving it fails, and your changes stay in this browser.
+Download the transcript if you need it.
 
 It can no longer be saved to the project. Use **Download transcript** if you
 want to keep the text, then **Remove**.
@@ -130,5 +129,5 @@ the transcription level and is saved like anything you type. See
 | *You are not a member of this project. Ask the project owner to add you.* | Ask the project owner. |
 | *The annotation level TRATT was opened with is not a segment level in this project, so TRATT cannot open its recording bundles. Open TRATT from VISP again and choose another level.* | The level was removed or changed in VISP after you opened Tratt. Open Tratt from VISP again. |
 | *The annotation level TRATT was opened with is linked to other levels, so TRATT cannot edit it safely. Open TRATT from VISP again and choose another level.* | The level was linked in VISP after you opened Tratt. Open Tratt from VISP again. |
-| *VISP cannot be reached. Your changes are kept in this browser; try again in a moment.* | Wait: Tratt tries again by itself. **Retry** on the recording bundle tries at once; **Refresh** re-reads the list. |
+| *VISP cannot be reached. Your changes are kept in this browser; try again in a moment.* | Wait: Tratt tries again by itself. **Retry** on the recording bundle tries at once. |
 | *This TRATT installation is not configured for VISP.* | Shown instead of the Workbench. Tell whoever runs VISP. |
