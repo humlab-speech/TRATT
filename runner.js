@@ -248,6 +248,12 @@ async function run(scriptPath, showOutput = true, returnAfterExit = true) {
         if (showOutput && returnAfterExit) {
           console.log(output);
         }
+        if (code !== 0) {
+          // A failed step must fail the run, not hand the next step a
+          // half-built dist folder.
+          reject(new Error(`'${scriptPath}' exited with code ${code}`));
+          return;
+        }
         resolve(output);
       });
     } else {
