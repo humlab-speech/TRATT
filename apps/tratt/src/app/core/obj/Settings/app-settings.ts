@@ -4,6 +4,12 @@ export interface AppSettings {
     url: string;
     appToken: string;
   };
+  /** Deployment-mounted VISP integration; absent for stand-alone TRATT. */
+  visp?: {
+    serverUrl: string;
+    mediaOrigin: string;
+    transcriptionLevel: string;
+  };
   tratt: {
     database: {
       name: string;

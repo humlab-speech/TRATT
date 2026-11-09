@@ -288,3 +288,26 @@ describe('verified flag round-trip', () => {
     expect(items[0].verified).toBe(false);
   });
 });
+
+describe('ITEM level deserialization', () => {
+  it('turns raw ITEM items into OItem instances so clone() works', () => {
+    const json = {
+      name: 'x',
+      annotates: 'x.wav',
+      sampleRate: 16000,
+      levels: [
+        {
+          name: 'Word',
+          type: AnnotationLevelType.ITEM,
+          items: [{ id: 1, labels: [{ name: 'Word', value: 'hi' }] }],
+        },
+      ],
+      links: [],
+    } as unknown as OAnnotJSON;
+    const restored = TrattAnnotation.deserialize(json);
+    expect(() => restored.clone()).not.toThrow();
+    expect(
+      (restored.levels[0].items[0] as { labels: OLabel[] }).labels[0].value,
+    ).toBe('hi');
+  });
+});

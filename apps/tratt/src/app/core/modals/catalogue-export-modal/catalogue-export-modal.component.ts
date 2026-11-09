@@ -1,14 +1,39 @@
-import { Component, Input, OnDestroy, signal } from '@angular/core';
+import { Component, computed, Input, OnDestroy, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { NgbActiveModal, NgbModalOptions } from '@ng-bootstrap/ng-bootstrap';
 import { Subscription } from 'rxjs';
 import { AppInfo } from '../../../app.info';
+import { audioBasename } from '../../component/tratt-dropzone/transcript-pairing';
 import { AlertService } from '../../shared/service/alert.service';
 import {
   archiveFileName,
+  archiveFolderName,
   CatalogueExportService,
 } from '../../shared/service/catalogue-export.service';
+
+/** What the dialog needs to know about each recording bundle it saves. */
+export interface CatalogueExportBundle {
+  bundleId: string;
+  name: string;
+  /** Its audio is attached, so the archive carries it. */
+  hasAudio: boolean;
+  /** It has a transcript; one without is left out of the archive. */
+  hasTranscript: boolean;
+}
+
+/** One file in the dialog's preview of the archive. */
+export interface ArchiveEntryFile {
+  name: string;
+  kind: 'audio' | 'transcript' | 'native';
+}
+
+/** One recording bundle's folder in the dialog's preview of the archive. */
+export interface ArchiveEntryFolder {
+  folder: string;
+  hasAudio: boolean;
+  files: ArchiveEntryFile[];
+}
 
 @Component({
   selector: 'tratt-catalogue-export-modal',
@@ -24,16 +49,43 @@ export class CatalogueExportModalComponent implements OnDestroy {
     backdrop: true,
   };
 
-  @Input() bundleIds: string[] = [];
+  /** The recording bundles to save, in list order. */
+  @Input() set bundles(value: CatalogueExportBundle[]) {
+    this._bundles.set(value);
+  }
+  get bundles(): CatalogueExportBundle[] {
+    return this._bundles();
+  }
+  private readonly _bundles = signal<CatalogueExportBundle[]>([]);
+
+  get bundleIds(): string[] {
+    return this.bundles.map((b) => b.bundleId);
+  }
   // Final whole-branch review fix: lets the template surface the
   // "no selection = all N" fallback explicitly (workbench.catalogue_export.
   // all_bundles_hint) — by the time the modal opens, `bundleIds` is already
   // resolved to "all ids", so the modal has no other way to tell that case
   // apart from "the user genuinely checked every bundle".
   @Input() wasAllBundlesDefault = false;
+  /** Recording bundles with a transcript but no audio attached: saved
+   * without audio. */
+  readonly withoutAudio = computed(
+    () => this._bundles().filter((b) => b.hasTranscript && !b.hasAudio).length,
+  );
+
+  /** Tratt's own format. Always saved (see CatalogueExportService), so it is
+   * shown as included rather than offered as a checkbox — ticking it would
+   * only write the same file twice. */
+  static readonly NATIVE_FORMAT = 'AnnotJSON';
+  readonly nativeExtension =
+    AppInfo.converters.find(
+      (c) => c.name === CatalogueExportModalComponent.NATIVE_FORMAT,
+    )?.extensions[0] ?? '_annot.json';
 
   readonly exportableConverters = AppInfo.converters.filter(
-    (c) => c.conversion.export,
+    (c) =>
+      c.conversion.export &&
+      c.name !== CatalogueExportModalComponent.NATIVE_FORMAT,
   );
   /** Ticked when the dialog opens: a document to read, subtitles, and
    * ELAN, which keeps everything — every level (transcript, translations)
@@ -55,6 +107,56 @@ export class CatalogueExportModalComponent implements OnDestroy {
   checkedConverters = signal<Set<string>>(
     new Set(CatalogueExportModalComponent.DEFAULT_FORMATS),
   );
+
+  /**
+   * A preview of the archive for the current choices, built with the same
+   * folder and file names CatalogueExportService writes: one folder per
+   * recording bundle that has a transcript, holding its audio (if attached),
+   * one file per ticked format and Tratt's own transcript file.
+   *
+   * Single-tier formats (SRT, DOCX, ...) write one file per tier, so a
+   * translated recording bundle gets e.g. two .srt files; the preview shows
+   * one per format, which is what the user chooses between.
+   */
+  readonly contents = computed(() => {
+    const checked = this.checkedConverters();
+    const formats = this.exportableConverters.filter((c) =>
+      checked.has(c.name),
+    );
+    const used = new Set<string>();
+    const folders: ArchiveEntryFolder[] = [];
+    const leftOut: string[] = [];
+    for (const bundle of this._bundles()) {
+      if (!bundle.hasTranscript) {
+        leftOut.push(bundle.name);
+        continue;
+      }
+      const base = audioBasename(bundle.name);
+      const files: ArchiveEntryFile[] = [];
+      if (bundle.hasAudio) {
+        files.push({ name: bundle.name, kind: 'audio' });
+      }
+      for (const format of formats) {
+        files.push({
+          name: base + (format.extensions[0] ?? ''),
+          kind: 'transcript',
+        });
+      }
+      files.push({ name: base + this.nativeExtension, kind: 'native' });
+      folders.push({
+        folder: archiveFolderName(bundle.name, used),
+        hasAudio: bundle.hasAudio,
+        files,
+      });
+    }
+    return {
+      archiveName: archiveFileName(folders.length),
+      folders,
+      leftOut,
+      withAudio: folders.filter((f) => f.hasAudio).length,
+      transcriptOnly: folders.filter((f) => !f.hasAudio).length,
+    };
+  });
 
   progress = signal<{ completed: number; total: number } | null>(null);
   warnings = signal<string[]>([]);
@@ -101,7 +203,11 @@ export class CatalogueExportModalComponent implements OnDestroy {
   }
 
   onExport(): void {
-    if (this.isExporting() || !this.hasTimeAligned()) {
+    if (
+      this.isExporting() ||
+      !this.hasTimeAligned() ||
+      this.contents().folders.length === 0
+    ) {
       return;
     }
     const names = [...this.checkedConverters()];
@@ -159,7 +265,8 @@ export class CatalogueExportModalComponent implements OnDestroy {
           this.closeProgressAlert();
           this.isExporting.set(false);
           this.progress.set(null);
-          const message = error instanceof Error ? error.message : String(error);
+          const message =
+            error instanceof Error ? error.message : String(error);
           this.errorMessage.set(message);
           // The modal is already closed, so surface the failure as an alert.
           void this.alertService.showAlert(

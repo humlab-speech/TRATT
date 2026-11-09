@@ -11,6 +11,7 @@ import {
 } from '@jest/globals';
 import { TranslocoService } from '@jsverse/transloco';
 import { of } from 'rxjs';
+import { AlertService } from '../../shared/service/alert.service';
 import {
   CapacityService,
   RAM_BUDGET_BYTES,
@@ -298,5 +299,157 @@ describe('CapacityIndicatorComponent', () => {
     expect(component.memoryUsedText()).toBe('200 MB');
     expect(component.memoryBudgetText()).toBe('2.0 GB');
     expect(component.residentCount()).toBe(2);
+  });
+
+  describe('folding', () => {
+    const details = () =>
+      fixture.debugElement.query(By.css('.capacity-indicator__details'))
+        .nativeElement as HTMLElement;
+    const toggle = () =>
+      fixture.debugElement.query(By.css('.capacity-indicator__toggle'))
+        .nativeElement as HTMLButtonElement;
+
+    it('is folded by default, and opens and closes from its heading', () => {
+      expect(details().hidden).toBe(true);
+      expect(toggle().getAttribute('aria-expanded')).toBe('false');
+
+      toggle().click();
+      fixture.detectChanges();
+      expect(details().hidden).toBe(false);
+      expect(toggle().getAttribute('aria-expanded')).toBe('true');
+
+      toggle().click();
+      fixture.detectChanges();
+      expect(details().hidden).toBe(true);
+    });
+
+    it('flags amber memory on the folded heading without opening it', () => {
+      residentMemory.set({
+        estimatedBytes: RAM_BUDGET_BYTES * 0.6,
+        residentCount: 3,
+        budgetBytes: RAM_BUDGET_BYTES,
+      });
+      fixture.detectChanges();
+
+      expect(
+        fixture.debugElement.query(By.css('.capacity-indicator__alert')),
+      ).toBeTruthy();
+      expect(details().hidden).toBe(true);
+    });
+
+    it.each([
+      [
+        'memory',
+        () =>
+          residentMemory.set({
+            estimatedBytes: RAM_BUDGET_BYTES * 0.85,
+            residentCount: 6,
+            budgetBytes: RAM_BUDGET_BYTES,
+          }),
+      ],
+      [
+        'storage',
+        () =>
+          storage.set({
+            usedBytes: 7_000_000_000,
+            quotaBytes: 8_000_000_000,
+            modelsEstimateBytes: 400_000_000,
+          }),
+      ],
+    ])(
+      'opens itself and, out of sight, toasts once when %s nears its limit',
+      (_, push) => {
+        const showAlert = jest
+          .spyOn(TestBed.inject(AlertService), 'showAlert')
+          .mockResolvedValue(undefined as never);
+
+        push();
+        fixture.detectChanges();
+        expect(details().hidden).toBe(false);
+        expect(
+          fixture.debugElement.query(
+            By.css('.capacity-indicator__alert--danger'),
+          ),
+        ).toBeTruthy();
+        expect(showAlert).toHaveBeenCalledTimes(1);
+        expect(showAlert).toHaveBeenCalledWith(
+          'warning',
+          'workbench.capacity.near_limit_toast',
+        );
+
+        // Still near the limit: no second toast.
+        fixture.detectChanges();
+        expect(showAlert).toHaveBeenCalledTimes(1);
+      },
+    );
+
+    describe('the callout pointing at the figures', () => {
+      const callout = () =>
+        fixture.debugElement.query(By.css('.capacity-indicator__callout'));
+      const nearLimit = () =>
+        storage.set({
+          usedBytes: 9_000_000_000,
+          quotaBytes: 10_000_000_000,
+          modelsEstimateBytes: 400_000_000,
+        });
+
+      beforeEach(() => {
+        jest
+          .spyOn(TestBed.inject(AlertService), 'showAlert')
+          .mockResolvedValue(undefined as never);
+      });
+
+      it('appears on crossing a limit, flags the panel, and is dismissable', () => {
+        fixture.detectChanges();
+        expect(callout()).toBeNull();
+
+        nearLimit();
+        fixture.detectChanges();
+        expect(callout()).toBeTruthy();
+        expect(callout().attributes['role']).toBe('alert');
+        expect(
+          fixture.debugElement.query(By.css('.capacity-indicator--flagged')),
+        ).toBeTruthy();
+
+        callout()
+          .query(By.css('.capacity-indicator__callout-close'))
+          .nativeElement.click();
+        fixture.detectChanges();
+        expect(callout()).toBeNull();
+        expect(
+          fixture.debugElement.query(By.css('.capacity-indicator--flagged')),
+        ).toBeNull();
+      });
+
+      it('goes away by itself once usage drops below the limit', () => {
+        nearLimit();
+        fixture.detectChanges();
+        expect(callout()).toBeTruthy();
+
+        storage.set({
+          usedBytes: 1_000_000_000,
+          quotaBytes: 10_000_000_000,
+          modelsEstimateBytes: 400_000_000,
+        });
+        fixture.detectChanges();
+        expect(callout()).toBeNull();
+      });
+
+      it('scrolls the panel into view instead of toasting when it is on screen', () => {
+        const host = fixture.nativeElement as HTMLElement;
+        host.getClientRects = () => [{}] as unknown as DOMRectList;
+        const scroll = jest.fn();
+        host.scrollIntoView = scroll;
+        const showAlert = TestBed.inject(AlertService).showAlert as jest.Mock;
+
+        nearLimit();
+        fixture.detectChanges();
+
+        expect(scroll).toHaveBeenCalledWith(
+          expect.objectContaining({ block: 'nearest' }),
+        );
+        expect(showAlert).not.toHaveBeenCalled();
+      });
+    });
   });
 });

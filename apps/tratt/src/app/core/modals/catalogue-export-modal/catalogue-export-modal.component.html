@@ -1,5 +1,7 @@
 <div class="modal-header">
-  <h5 class="modal-title">{{ 'workbench.catalogue_export.title' | transloco }}</h5>
+  <h5 class="modal-title">
+    {{ 'workbench.catalogue_export.title' | transloco }}
+  </h5>
   <button type="button" class="btn-close" (click)="close()"></button>
 </div>
 <div class="modal-body">
@@ -19,22 +21,181 @@
     </p>
   }
 
-  <fieldset class="catalogue-export__formats">
-    <legend>{{ 'workbench.catalogue_export.formats_label' | transloco }}</legend>
-    @for (converter of exportableConverters; track converter.name) {
-      <label class="catalogue-export__format-option">
-        <input
-          type="checkbox"
-          [checked]="isChecked(converter.name)"
-          (change)="toggleConverter(converter.name)"
-        />
-        {{ converter.name }}
+  <div class="catalogue-export__layout">
+    <fieldset class="catalogue-export__formats">
+      <legend>
+        {{ 'workbench.catalogue_export.formats_label' | transloco }}
+      </legend>
+      @for (converter of exportableConverters; track converter.name) {
+        <label class="catalogue-export__format-option">
+          <input
+            type="checkbox"
+            [checked]="isChecked(converter.name)"
+            (change)="toggleConverter(converter.name)"
+          />
+          {{ converter.name }}
+        </label>
+      }
+      <!-- Always written: the lossless copy a .zip loads back from. -->
+      <label
+        class="catalogue-export__format-option catalogue-export__format-option--fixed"
+        [attr.title]="'workbench.catalogue_export.native_hint' | transloco"
+      >
+        <input type="checkbox" checked disabled />
+        {{ 'workbench.catalogue_export.native_format' | transloco }}
       </label>
-    }
-  </fieldset>
-  @if (!hasTimeAligned()) {
-    <p class="text-danger catalogue-export__time-hint">
-      {{ 'workbench.catalogue_export.time_aligned_required' | transloco }}
+      @if (!hasTimeAligned()) {
+        <p class="text-danger catalogue-export__time-hint">
+          {{ 'workbench.catalogue_export.time_aligned_required' | transloco }}
+        </p>
+      }
+    </fieldset>
+
+    <!-- What the .zip will hold, redrawn as formats are ticked: which
+       recording bundles carry their audio and which only transcripts. -->
+    @let toc = contents();
+    <section
+      class="catalogue-export__contents"
+      [attr.aria-label]="
+        'workbench.catalogue_export.contents_label' | transloco
+      "
+    >
+      <h6 class="catalogue-export__contents-title">
+        {{ 'workbench.catalogue_export.contents_label' | transloco }}
+      </h6>
+      <ul class="catalogue-export__summary">
+        @if (toc.withAudio > 0) {
+          <li class="catalogue-export__tag catalogue-export__tag--audio">
+            <i class="fa-solid fa-volume-high" aria-hidden="true"></i>
+            {{
+              'workbench.catalogue_export.summary_with_audio'
+                | transloco: { count: toc.withAudio }
+            }}
+          </li>
+        }
+        @if (toc.transcriptOnly > 0) {
+          <li class="catalogue-export__tag catalogue-export__tag--text">
+            <i class="fa-solid fa-file-lines" aria-hidden="true"></i>
+            {{
+              'workbench.catalogue_export.summary_transcript_only'
+                | transloco: { count: toc.transcriptOnly }
+            }}
+          </li>
+        }
+        @if (toc.leftOut.length > 0) {
+          <li class="catalogue-export__tag catalogue-export__tag--out">
+            <i class="fa-solid fa-ban" aria-hidden="true"></i>
+            {{
+              'workbench.catalogue_export.summary_left_out'
+                | transloco: { count: toc.leftOut.length }
+            }}
+          </li>
+        }
+      </ul>
+
+      @if (toc.folders.length > 0) {
+        <ul class="catalogue-export__tree">
+          <li class="catalogue-export__node catalogue-export__node--zip">
+            <i class="fa-solid fa-file-zipper" aria-hidden="true"></i>
+            {{ toc.archiveName }}
+            <ul>
+              @for (entry of toc.folders; track entry.folder) {
+                <li
+                  class="catalogue-export__node catalogue-export__node--folder"
+                  [class.catalogue-export__node--no-audio]="!entry.hasAudio"
+                >
+                  <div class="catalogue-export__folder-head">
+                    <i class="fa-solid fa-folder" aria-hidden="true"></i>
+                    <span class="catalogue-export__folder-name"
+                      >bundles/{{ entry.folder }}/</span
+                    >
+                    <span
+                      class="catalogue-export__badge"
+                      [class.catalogue-export__badge--audio]="entry.hasAudio"
+                    >
+                      {{
+                        (entry.hasAudio
+                          ? 'workbench.catalogue_export.badge_with_audio'
+                          : 'workbench.catalogue_export.badge_transcript_only'
+                        ) | transloco
+                      }}
+                    </span>
+                  </div>
+                  <ul class="catalogue-export__files">
+                    @for (file of entry.files; track file.name) {
+                      <li
+                        class="catalogue-export__file catalogue-export__file--{{
+                          file.kind
+                        }}"
+                        [attr.title]="
+                          file.kind === 'native'
+                            ? ('workbench.catalogue_export.native_hint'
+                              | transloco)
+                            : null
+                        "
+                      >
+                        <i
+                          class="fa-solid"
+                          [class.fa-file-audio]="file.kind === 'audio'"
+                          [class.fa-file-lines]="file.kind === 'transcript'"
+                          [class.fa-file-code]="file.kind === 'native'"
+                          aria-hidden="true"
+                        ></i>
+                        {{ file.name }}
+                      </li>
+                    }
+                    @if (!entry.hasAudio) {
+                      <li
+                        class="catalogue-export__file catalogue-export__file--missing"
+                      >
+                        <i
+                          class="fa-solid fa-volume-xmark"
+                          aria-hidden="true"
+                        ></i>
+                        {{
+                          'workbench.catalogue_export.no_audio_file' | transloco
+                        }}
+                      </li>
+                    }
+                  </ul>
+                </li>
+              }
+              <li
+                class="catalogue-export__node catalogue-export__node--manifest"
+              >
+                <i class="fa-solid fa-list" aria-hidden="true"></i>
+                manifest.json, manifest.csv
+                <span class="catalogue-export__note">
+                  {{ 'workbench.catalogue_export.manifest_hint' | transloco }}
+                </span>
+              </li>
+            </ul>
+          </li>
+        </ul>
+      } @else {
+        <p class="catalogue-export__empty">
+          {{ 'workbench.catalogue_export.nothing_to_save' | transloco }}
+        </p>
+      }
+
+      @if (toc.leftOut.length > 0) {
+        <p class="catalogue-export__left-out">
+          {{
+            'workbench.catalogue_export.left_out'
+              | transloco: { names: toc.leftOut.join(', ') }
+          }}
+        </p>
+      }
+    </section>
+  </div>
+
+  @if (withoutAudio() > 0) {
+    <p class="catalogue-export__missing-audio">
+      <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+      {{
+        'workbench.catalogue_export.missing_audio'
+          | transloco: { count: withoutAudio() }
+      }}
     </p>
   }
 
@@ -65,7 +226,9 @@
 
   @if (warnings().length > 0) {
     <div class="catalogue-export__warnings tratt-state-warning">
-      <strong>{{ 'workbench.catalogue_export.warnings_title' | transloco }}</strong>
+      <strong>{{
+        'workbench.catalogue_export.warnings_title' | transloco
+      }}</strong>
       <ul>
         @for (warning of warnings(); track warning) {
           <li>{{ warning }}</li>
@@ -81,7 +244,9 @@
   <button
     type="button"
     class="btn btn-next catalogue-export__export"
-    [disabled]="!hasTimeAligned() || isExporting()"
+    [disabled]="
+      !hasTimeAligned() || isExporting() || contents().folders.length === 0
+    "
     (click)="onExport()"
   >
     {{ 'workbench.catalogue_export.export' | transloco }}

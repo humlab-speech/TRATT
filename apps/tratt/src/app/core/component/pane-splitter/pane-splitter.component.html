@@ -1,0 +1,58 @@
+<!-- The whole handle drags; the full-height strip is the keyboard and
+     screen-reader control, the pill's arrows step the size. -->
+<div class="pane-splitter" (pointerdown)="onPointerDown($event)">
+  <div
+    class="pane-splitter__strip"
+    role="separator"
+    tabindex="0"
+    aria-orientation="vertical"
+    aria-valuemin="0"
+    [attr.aria-valuemax]="maxSize()"
+    [attr.aria-valuenow]="size()"
+    [attr.aria-controls]="controls() ?? null"
+    [attr.aria-label]="
+      (hidden() ? 'pane_splitter.show' : 'pane_splitter.resize') | transloco
+    "
+    [attr.title]="
+      (hidden() ? 'pane_splitter.show' : 'pane_splitter.resize') | transloco
+    "
+    (keydown)="onKeydown($event)"
+    (click)="onStripClick()"
+  ></div>
+  <div class="pane-splitter__grip">
+    <button
+      type="button"
+      class="pane-splitter__arrow"
+      [disabled]="hidden()"
+      [attr.aria-label]="
+        (size() > defaultSize() + 1
+          ? 'pane_splitter.narrower'
+          : 'pane_splitter.hide'
+        ) | transloco
+      "
+      [attr.title]="
+        (size() > defaultSize() + 1
+          ? 'pane_splitter.narrower'
+          : 'pane_splitter.hide'
+        ) | transloco
+      "
+      (click)="shrink()"
+    >
+      <i class="fa-solid fa-chevron-left" aria-hidden="true"></i>
+    </button>
+    <button
+      type="button"
+      class="pane-splitter__arrow"
+      [disabled]="atMax()"
+      [attr.aria-label]="
+        (hidden() ? 'pane_splitter.show' : 'pane_splitter.wider') | transloco
+      "
+      [attr.title]="
+        (hidden() ? 'pane_splitter.show' : 'pane_splitter.wider') | transloco
+      "
+      (click)="grow()"
+    >
+      <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
+    </button>
+  </div>
+</div>

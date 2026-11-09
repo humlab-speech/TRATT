@@ -123,6 +123,9 @@ describe('BundleListComponent', () => {
       hasResident: jest.fn().mockReturnValue(false),
       // resident OR re-decodable; these fixtures model residency only.
       canRestore: jest.fn((id: unknown) => audioService.hasResident(id)),
+      // The file a bundle's audio came from; none in these fixtures.
+      getSourceFile: jest.fn(() => undefined),
+      getMediaInfo: jest.fn(() => undefined),
       forget: jest.fn(),
     };
     modalService = { openModal: jest.fn() };
@@ -227,7 +230,7 @@ describe('BundleListComponent', () => {
   // A restored file used to be only an "Attach file…" picker: it could not
   // be selected, so its transcript could not be exported or replaced before
   // the audio was found again.
-  it('lets a file waiting for its audio be selected, with attaching as a separate control', () => {
+  it('lets a bundle waiting for its audio be selected, with attaching in the audio column', () => {
     const dispatchSpy = jest.spyOn(store, 'dispatch');
     const row = fixture.debugElement
       .queryAll(By.css('.bundle-list__item'))
@@ -243,11 +246,37 @@ describe('BundleListComponent', () => {
         bundleId: 'bundle-a',
       }),
     );
-    const attach = row.query(By.css('label.bundle-list__reattach-label'));
+    const audio = row.query(By.css('.bundle-list__audio'));
+    const attach = audio.query(By.css('label.bundle-list__attach'));
     expect(attach.nativeElement.getAttribute('for')).toBe(
       'bundle-reattach-bundle-a',
     );
-    expect(row.query(By.css('input[type="file"]'))).toBeTruthy();
+    expect(audio.query(By.css('input[type="file"]'))).toBeTruthy();
+  });
+
+  it('shows a bundle with its audio attached as such', () => {
+    const row = fixture.debugElement
+      .queryAll(By.css('.bundle-list__item'))
+      .find((r) => r.nativeElement.textContent.includes('b.wav'))!;
+    const icon = row.query(
+      By.css('.bundle-list__audio .bundle-list__audio-on'),
+    );
+    expect(icon.nativeElement.getAttribute('aria-label')).toBe(
+      'workbench.bundle_list.audio_attached',
+    );
+    expect(row.query(By.css('.bundle-list__attach'))).toBeNull();
+  });
+
+  it('opens the attach picker for a bundle on request', () => {
+    const input = fixture.debugElement.query(
+      By.css('[id="bundle-reattach-bundle-a"]'),
+    ).nativeElement as HTMLInputElement;
+    const click = jest
+      .spyOn(input, 'click')
+      .mockImplementation(() => undefined);
+
+    fixture.componentInstance.pickAudio('bundle-a');
+    expect(click).toHaveBeenCalled();
   });
 
   it('renders each click-to-select row as a focusable, keyboard-activatable button', () => {
@@ -269,6 +298,45 @@ describe('BundleListComponent', () => {
     );
 
     expect(rowB!.nativeElement.classList.contains('active')).toBe(true);
+  });
+
+  describe('audio details tooltip', () => {
+    const row = (name: string) =>
+      fixture.debugElement
+        .queryAll(By.css('.bundle-list__item'))
+        .find((r) => r.nativeElement.textContent.includes(name))!
+        .nativeElement as HTMLElement;
+
+    it('shows duration, sample rate, channels and size on hover', () => {
+      audioService.getMediaInfo.mockImplementation((id: string) =>
+        id === 'bundle-b'
+          ? {
+              fullname: 'b.wav',
+              sampleRate: 44100,
+              duration: { seconds: 65 },
+              channels: 2,
+              size: 2048,
+            }
+          : undefined,
+      );
+      // OnPush: render afresh with the details known (in the app the
+      // service's registry signal triggers this).
+      fixture = TestBed.createComponent(BundleListComponent);
+      fixture.detectChanges();
+      expect(row('b.wav').title).toBe(
+        '1:05 · 44.1 kHz workbench.editor_header.stereo · 2 KB',
+      );
+    });
+
+    it('says why there are no details yet', () => {
+      fixture.detectChanges();
+      expect(row('b.wav').title).toBe(
+        'workbench.bundle_list.audio_details_pending',
+      );
+      expect(
+        fixture.componentInstance.audioDetails('bundle-b', true),
+      ).toBe('workbench.bundle_list.audio_details_not_attached');
+    });
   });
 
   describe('re-attach control', () => {
@@ -568,6 +636,41 @@ describe('BundleListComponent', () => {
       expect(labels).toContain('workbench.bundle_list.stage.asr 50%');
     });
 
+    it('underlines a running row with its share of the run, pulsing while it is prepared', () => {
+      const run = (status: object) => {
+        store.setState({
+          ...initialState,
+          pipelineQueue: {
+            queue: [],
+            activeId: 'bundle-b',
+            mode: 'running',
+            runs: { 'bundle-b': { state: 'running', ...status } },
+          },
+        } as unknown as RootState);
+        fixture.detectChanges();
+        return fixture.debugElement.queryAll(By.css('.bundle-list__progress'));
+      };
+
+      const [asr] = run({ stage: 'asr', progress: 0.4 });
+      expect(asr.nativeElement.style.width).toBe('40%');
+      expect(
+        asr.nativeElement.classList.contains(
+          'bundle-list__progress--preparing',
+        ),
+      ).toBe(false);
+
+      const [decode] = run({ stage: 'decode', progress: 0.7 });
+      expect(decode.nativeElement.style.width).toBe('100%');
+      expect(
+        decode.nativeElement.classList.contains(
+          'bundle-list__progress--preparing',
+        ),
+      ).toBe(true);
+
+      // Only the running row has a bar.
+      expect(run({ stage: 'asr', progress: 0.4 }).length).toBe(1);
+    });
+
     it('labels a model download as such, not as transcription', () => {
       store.setState({
         ...initialState,
@@ -611,11 +714,32 @@ describe('BundleListComponent', () => {
       expect(pipelineQueueService.cancelActive).toHaveBeenCalled();
     });
 
-    it('renders no status element for a bundle with no run entry', () => {
+    it('says whether a never-run bundle has text yet, with or without its audio', () => {
       fixture.detectChanges();
-      expect(
-        fixture.debugElement.queryAll(By.css('.bundle-list__status')).length,
-      ).toBe(0);
+      // bundle-a is awaiting its audio; its transcript state shows anyway.
+      const labels = fixture.debugElement
+        .queryAll(By.css('.bundle-list__transcript .bundle-list__status--idle'))
+        .map((el) => el.nativeElement.textContent.trim());
+      expect(labels).toEqual([
+        'workbench.bundle_list.status.no_transcript',
+        'workbench.bundle_list.status.no_transcript',
+      ]);
+    });
+
+    it('puts select-all beside the column headings, above the rows', () => {
+      fixture.detectChanges();
+      const bar = fixture.debugElement.query(By.css('.bundle-list__bar'));
+      expect(bar.query(By.css('.bundle-list__select-all'))).toBeTruthy();
+      // Audio, then the bundle's name, then its transcript.
+      const headings = bar
+        .query(By.css('.bundle-list__columns'))
+        .queryAll(By.css('span'))
+        .map((el) => el.nativeElement.textContent.trim());
+      expect(headings).toEqual([
+        'workbench.bundle_list.column_audio',
+        'workbench.bundle_list.column_file',
+        'workbench.bundle_list.column_status',
+      ]);
     });
 
     // F4 (final whole-branch review fix wave): the status/retry block used
@@ -714,9 +838,76 @@ describe('BundleListComponent', () => {
         'GPU out of memory',
       );
     });
+
+    it('calls a stopped file cancelled, not failed, and offers to retry it', () => {
+      store.setState({
+        ...initialState,
+        pipelineQueue: {
+          queue: [],
+          activeId: null,
+          mode: 'idle',
+          runs: {
+            'bundle-b': {
+              state: 'failed',
+              error: { kind: 'cancelled', message: 'Run cancelled.' },
+            },
+          },
+        },
+      } as unknown as RootState);
+      fixture.detectChanges();
+
+      const status = fixture.debugElement.query(
+        By.css('.bundle-list__status--cancelled'),
+      );
+      expect(status.nativeElement.textContent.trim()).toBe(
+        'workbench.bundle_list.error.cancelled',
+      );
+      expect(
+        fixture.debugElement.query(By.css('.bundle-list__error')),
+      ).toBeNull();
+      expect(
+        fixture.debugElement.query(By.css('.bundle-list__retry')),
+      ).not.toBeNull();
+    });
   });
 
   describe('bulk actions', () => {
+    it('names the archive button for the ticked bundles, else for all', () => {
+      const button = () =>
+        fixture.debugElement.query(By.css('.bundle-list__export-catalogue'))
+          .nativeElement as HTMLButtonElement;
+      const rows = () =>
+        fixture.debugElement.queryAll(By.css('.bundle-list__item-checkbox'));
+      expect(button().textContent?.trim()).toBe(
+        'workbench.bundle_list.export_catalogue',
+      );
+
+      rows()[0].nativeElement.click();
+      fixture.detectChanges();
+      expect(button().textContent?.trim()).toBe(
+        'workbench.bundle_list.export_catalogue_selected_one',
+      );
+
+      rows()[1].nativeElement.click();
+      fixture.detectChanges();
+      expect(button().textContent?.trim()).toBe(
+        'workbench.bundle_list.export_catalogue_selected',
+      );
+    });
+
+    it('counts the archive button in, singular for one bundle', () => {
+      const label = fixture.componentInstance.exportLabel;
+      expect(label()).toEqual({
+        key: 'workbench.bundle_list.export_catalogue',
+        count: 2,
+      });
+      fixture.componentInstance.toggleSelected(bundleA.bundleId);
+      expect(label()).toEqual({
+        key: 'workbench.bundle_list.export_catalogue_selected_one',
+        count: 1,
+      });
+    });
+
     it('select-all checks every row, and unchecking it clears the selection', () => {
       const selectAll = fixture.debugElement.query(
         By.css('.bundle-list__select-all'),
@@ -815,20 +1006,37 @@ describe('BundleListComponent', () => {
       );
     });
 
-    it('disables remove while nothing is checked', () => {
+    it('turns the headings into a selection bar while rows are checked', () => {
       fixture.detectChanges();
+      const q = (css: string) => fixture.debugElement.query(By.css(css));
+      expect(q('.bundle-list__remove')).toBeNull();
+      expect(q('.bundle-list__columns')).toBeTruthy();
+
+      fixture.debugElement
+        .queryAll(By.css('.bundle-list__item-checkbox'))[0]
+        .nativeElement.click();
+      fixture.detectChanges();
+      expect(q('.bundle-list__columns')).toBeNull();
       expect(
-        fixture.debugElement.query(By.css('.bundle-list__remove')).nativeElement
-          .disabled,
-      ).toBe(true);
+        q('.bundle-list__selected-count').nativeElement.textContent.trim(),
+      ).toBe('workbench.bundle_list.selected_count_one');
+      expect(q('.bundle-list__remove')).toBeTruthy();
+      // Some rows ticked: select-all shows the mixed state.
+      expect(q('.bundle-list__select-all').nativeElement.indeterminate).toBe(
+        true,
+      );
+
+      q('.bundle-list__deselect').nativeElement.click();
+      fixture.detectChanges();
+      expect(fixture.componentInstance.selectedCount()).toBe(0);
+      expect(q('.bundle-list__remove')).toBeNull();
+      expect(q('.bundle-list__columns')).toBeTruthy();
     });
 
     it('remove is a no-op when nothing is checked', async () => {
       modalService.openModal.mockResolvedValue('yes');
       const dispatchSpy = jest.spyOn(store, 'dispatch');
-      fixture.debugElement
-        .query(By.css('.bundle-list__remove'))
-        .nativeElement.click();
+      await fixture.componentInstance.onRemoveSelected();
       await fixture.whenStable();
       expect(dispatchSpy).not.toHaveBeenCalledWith(
         expect.objectContaining({ type: LoginModeActions.removeBundles.type }),
@@ -1001,7 +1209,15 @@ describe('BundleListComponent', () => {
       expect(modalService.openModal).toHaveBeenCalledWith(
         CatalogueExportModalComponent,
         CatalogueExportModalComponent.options,
-        { bundleIds: [bundleB.bundleId], wasAllBundlesDefault: true },
+        {
+          bundles: [
+            expect.objectContaining({
+              bundleId: bundleB.bundleId,
+              hasAudio: false,
+            }),
+          ],
+          wasAllBundlesDefault: true,
+        },
       );
     });
 
@@ -1050,7 +1266,15 @@ describe('BundleListComponent', () => {
       expect(modalService.openModal).toHaveBeenCalledWith(
         CatalogueExportModalComponent,
         CatalogueExportModalComponent.options,
-        { bundleIds: [bundleB.bundleId], wasAllBundlesDefault: false },
+        {
+          bundles: [
+            expect.objectContaining({
+              bundleId: bundleB.bundleId,
+              hasAudio: false,
+            }),
+          ],
+          wasAllBundlesDefault: false,
+        },
       );
     });
   });

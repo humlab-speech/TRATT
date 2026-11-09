@@ -1,0 +1,134 @@
+// In the rail, under its upload and record tabs. The text keeps the
+// tabs' column; credits and footer span the rail, like any page's.
+:host {
+  display: flex;
+  flex-direction: column;
+}
+
+.welcome {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  inline-size: 100%;
+  max-inline-size: 35rem;
+  margin: 0 auto;
+  padding-bottom: 2.5rem;
+  text-align: center;
+}
+
+.welcome__options {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  inline-size: 100%;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--tratt-border);
+  font-size: 0.8125rem;
+  color: var(--tratt-text-muted);
+
+  p {
+    margin: 0;
+  }
+
+  > .welcome__link {
+    margin-bottom: 0.4rem;
+    font-size: 0.875rem;
+  }
+}
+
+// Small underlined text buttons/links in the interactive colour.
+.welcome__link {
+  --bs-btn-padding-x: 0;
+  --bs-btn-padding-y: 0;
+  --bs-btn-font-size: inherit;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  vertical-align: baseline;
+  color: var(--tratt-interactive-text);
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+
+  &:hover {
+    color: var(--tratt-interactive-text);
+    text-decoration-thickness: 2px;
+  }
+}
+
+.welcome__privacy {
+  display: flex;
+  gap: 0.6rem;
+  margin: 1.25rem 0 0;
+  font-size: 0.875rem;
+  text-align: start;
+
+  i {
+    margin-top: 0.2rem;
+    color: var(--tratt-interactive-text);
+  }
+}
+
+.welcome__facts {
+  margin: 1rem 0 0;
+  font-size: 0.8125rem;
+  color: var(--tratt-text-muted);
+
+  .welcome__link {
+    margin-inline-start: 0.75rem;
+  }
+}
+
+.welcome__steps {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+  inline-size: 100%;
+  margin: 2rem 0 0;
+  padding: 0;
+  list-style: none;
+  text-align: start;
+}
+
+.welcome__step {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+}
+
+.welcome__step-number {
+  display: grid;
+  flex: none;
+  place-items: center;
+  inline-size: 1.6rem;
+  block-size: 1.6rem;
+  border: 1.5px solid var(--tratt-border-control);
+  border-radius: 50%;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--tratt-text-muted);
+}
+
+.welcome__step--current .welcome__step-number {
+  border-color: var(--tratt-interactive-text);
+  background: var(--tratt-interactive-text);
+  color: var(--tratt-on-color);
+}
+
+.welcome__step-title {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.welcome__step-text {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--tratt-text-muted);
+}
+
+@media (max-width: 575.98px) {
+  .welcome__steps {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

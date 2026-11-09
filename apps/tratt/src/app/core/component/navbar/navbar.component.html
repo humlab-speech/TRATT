@@ -13,7 +13,7 @@
       } @else {
         <a
           class="navbar-brand tratt-header__brand"
-          [routerLink]="homeLink"
+          routerLink="/"
           [queryParamsHandling]="'merge'"
         >
           <tratt-logo [tagline]="true" />
@@ -54,7 +54,7 @@
               <li [routerLinkActive]="['active']" class="nav-item active">
                 <a
                   [queryParamsHandling]="'merge'"
-                  [routerLink]="['/local']"
+                  routerLink="/"
                   class="nav-link"
                   (click)="isCollapsed = true"
                   >{{ 'g.login' | transloco }}</a
@@ -62,21 +62,6 @@
               </li>
             }
 
-            @if (
-              environment.workbenchEnabled && localOnly && homeLink === '/local'
-            ) {
-              <li class="nav-item">
-                <a
-                  class="nav-link"
-                  routerLink="/workbench"
-                  [queryParamsHandling]="'merge'"
-                  (click)="isCollapsed = true"
-                >
-                  <i class="fa-solid fa-layer-group" aria-hidden="true"></i>
-                  {{ 'shell.header.workbench' | transloco }}
-                </a>
-              </li>
-            }
             <li class="nav-item">
               <a
                 class="nav-link"

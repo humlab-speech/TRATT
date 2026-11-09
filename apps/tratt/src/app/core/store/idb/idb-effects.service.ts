@@ -35,6 +35,11 @@ import {
   IIDBApplicationOptions,
   IIDBModeOptions,
 } from '../../shared/tratt-database';
+import {
+  launchQuery,
+  workspaceDatabaseName,
+} from '../../shared/workspace/workspace';
+import { WorkspaceService } from '../../shared/workspace/workspace.service';
 import { ApplicationActions } from '../application/application.actions';
 import { AuthenticationActions } from '../authentication';
 import { getModeState, LoginMode, RootState } from '../index';
@@ -60,8 +65,25 @@ export class IDBEffects {
       ofType(ApplicationActions.initApplication.setSessionStorageOptions),
       withLatestFrom(this.store),
       exhaustMap(([action, state]) => {
-        const databaseName =
+        const baseName =
           state.application.appConfiguration?.tratt.database.name;
+        const resolution = this.workspaceService.resolve(
+          launchQuery(),
+          state.application.appConfiguration,
+        );
+        if (!resolution.ok) {
+          // A VISP link this installation cannot serve: say so on the loading
+          // page (nothing listens for loadOptions.fail) instead of hanging,
+          // and never fall back to the offline workspace.
+          this.store.dispatch(
+            ApplicationActions.addError({ error: resolution.error }),
+          );
+          return of(IDBActions.loadOptions.fail({ error: resolution.error }));
+        }
+        const workspace = resolution.workspace;
+        const databaseName = baseName
+          ? workspaceDatabaseName(baseName, workspace)
+          : undefined;
 
         if (!databaseName) {
           return of(
@@ -72,7 +94,7 @@ export class IDBEffects {
         }
 
         return this.idbService
-          .initialize(databaseName)
+          .initialize(databaseName, workspace.kind === 'local' ? undefined : [])
           .pipe(
             map(() => {
               this.store.dispatch(
@@ -1058,7 +1080,7 @@ export class IDBEffects {
       this.actions$.pipe(
         ofType(LoginModeActions.removeBundles),
         // mergeMap, not exhaustMap: exhaustMap silently DROPPED a second
-        // removal (e.g. "Clear finished" then "Remove" in quick succession)
+        // removal (e.g. "Delete done" then "Remove" in quick succession)
         // while the first delete was still in flight, so those bundles
         // resurrected on the next reload.
         mergeMap((action) =>
@@ -1101,6 +1123,10 @@ export class IDBEffects {
       ),
     { dispatch: false },
   );
+
+  // Not injected: specs construct this class with `new`. Workspace state is
+  // shared by every WorkspaceService (module level), so this is the same one.
+  private workspaceService = new WorkspaceService();
 
   constructor(
     private actions$: Actions,

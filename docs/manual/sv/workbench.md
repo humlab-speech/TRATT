@@ -48,16 +48,16 @@ två arbetssätten för ett givet material och håll dig till det.
 Fyra saker ligger till vänster, uppifrån och ned:
 
 1. **Filer** med antalet inspelningar, och knapparna **Exportera alla**,
-   **Rensa klara** och **Ta bort**.
+   **Radera klara** och **Ta bort**.
 2. Flikarna **Ladda upp fil** och **Spela in nu** över en släppyta:
    *Släpp ljudfiler eller tidigare exporterat arkiv här*.
 3. **Pipelineinställningar**: vad som händer med en fil automatiskt, och knappen
    som startar kön.
 4. Två kapacitetsmätare: **Webbläsarlagring** och **Arbetsminne (uppskattat)**.
 
-Resten av fönstret är den inspelning du valt. Dess namn och uppgifter visas i
-dataväljaren i sidhuvudets mitt; klicka på den för att öppna fillistan, vilket
-också är det snabbaste sättet att byta inspelning på en smal skärm. Ovanför vyn
+Resten av fönstret är det inspelningspaket du valt i listan. Listan är det enda
+stället där du byter inspelningspaket; håll pekaren över ett för att se ljudets
+uppgifter. Ovanför vyn
 finns en rad med vyflikarna, **Genvägar**, **Översikt**, **Hjälp** och, längst
 till höger, **Exportera den här transkriptionen**. Under den kommer själva vyn.
 
@@ -155,10 +155,9 @@ En misslyckad fil säger vad som gick fel (*Kunde inte läsa ljudet*,
 
 ## Att redigera ett resultat
 
-Klicka på en inspelning i listan för att öppna den. Dataväljaren (*Välj fil*) i
-sidhuvudets mitt ger mediefilens namn och uppgifter, till exempel
-`interview_a.mp3 · 1:45 · 16 kHz mono · 3.369 MB`, och var filen ligger i
-listan, till exempel *2 av 4*. Klicka på den för att välja en annan fil.
+Klicka på ett inspelningspaket i listan för att öppna det. Håll pekaren över det
+för att se ljudets uppgifter, till exempel `1:45 · 16 kHz mono · 3.4 MB`. Är
+ljudet inte bifogat står det *Ljud inte bifogat*.
 
 Därefter är du i den vanliga redigeringsmiljön. Du väljer 2D Vy, Diktafon-vy eller
 Linjär vy med vyflikarna och arbetar som beskrivs under
@@ -212,7 +211,7 @@ webbläsare rapporterar inte användning alls, och mätaren är då otillgängli
 Varje inspelning vars ljud är bifogat tar minne så länge det
 är bifogat. Är du nära taket, eller misslyckas en fil med *Minnet tog slut*, arbeta
 igenom materialet i mindre grupper, exportera och
-[Rensa klara](#housekeeping), bifoga sedan de nästkommande.
+[Radera klara](#housekeeping), bifoga sedan de nästkommande.
 
 ---
 
@@ -238,5 +237,5 @@ Vad arkivet innehåller, och hur du läser in det igen, beskrivs under
 
 ## Att hålla ordning
 
-**Rensa klara** tar bort de färdiga inspelningarna ur listan. **Ta bort** tar bort
+**Radera klara** raderar inspelningspaketen markerade *Klar*, transkriptionerna också. **Ta bort** tar bort
 dem du markerat, och kryssrutan i Filer-rubriken markerar alla. Åtgärderna kan inte ångras.

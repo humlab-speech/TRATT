@@ -121,7 +121,7 @@ const NAV = [
       'checking-your-work',
     ],
   },
-  { section: 'many', pages: ['workbench'] },
+  { section: 'many', pages: ['workbench', 'visp-projects'] },
   { section: 'results', pages: ['exporting', 'using-tools'] },
   {
     section: 'reference',
@@ -141,6 +141,7 @@ const NAV_LABELS = {
     'coming-from-octra': 'Coming from OCTRA',
     privacy: 'Privacy',
     workbench: 'The Workbench',
+    'visp-projects': 'VISP projects',
   },
   sv: {
     index: 'Översikt',
@@ -149,6 +150,7 @@ const NAV_LABELS = {
     'coming-from-octra': 'Från OCTRA-manualen',
     privacy: 'Integritet',
     workbench: 'Arbetsbänken',
+    'visp-projects': 'VISP-projekt',
   },
 };
 

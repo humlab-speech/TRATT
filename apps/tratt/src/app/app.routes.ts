@@ -7,35 +7,29 @@ import {
   CONFIG_LOADED_GUARD,
 } from './core/shared/guard/appconfig-load.guard';
 import { IDB_LOADED_GUARD } from './core/shared/guard/idb.activateguard';
-import { WORKBENCH_ENABLED_GUARD } from './core/shared/guard/workbench-enabled.guard';
 import { WORKBENCH_SESSION_GUARD } from './core/shared/guard/workbench-session.guard';
 
 export const APP_ROUTES: Routes = [
   { path: 'load', component: LoadingComponent },
-  { path: '', redirectTo: '/local', pathMatch: 'full' },
+  // The workbench is the start page. With no file loaded it shows the
+  // welcome view (the old /local page); see WorkbenchWelcomeComponent.
   {
-    path: 'login',
-    component: LoginComponent,
-    canActivate: [APP_INITIALIZED_GUARD, ALoginGuard],
-  },
-  {
-    path: 'local',
-    component: LoginComponent,
-    canActivate: [APP_INITIALIZED_GUARD, ALoginGuard],
-    data: { localOnly: true },
-  },
-  {
-    path: 'workbench',
+    path: '',
+    pathMatch: 'full',
     loadComponent: () =>
       import('./core/pages/workbench/workbench.component').then(
         (m) => m.WorkbenchComponent,
       ),
-    canActivate: [
-      APP_INITIALIZED_GUARD,
-      WORKBENCH_SESSION_GUARD,
-      WORKBENCH_ENABLED_GUARD,
-    ],
+    canActivate: [APP_INITIALIZED_GUARD, WORKBENCH_SESSION_GUARD],
     data: { localOnly: true },
+  },
+  // Old addresses of the start page and the workbench.
+  { path: 'local', redirectTo: '' },
+  { path: 'workbench', redirectTo: '' },
+  {
+    path: 'login',
+    component: LoginComponent,
+    canActivate: [APP_INITIALIZED_GUARD, ALoginGuard],
   },
   {
     path: 'intern',

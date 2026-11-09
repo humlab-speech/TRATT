@@ -3,12 +3,16 @@ import { Action, Store } from '@ngrx/store';
 import { TrattAnnotation } from '@tratt/annotation';
 import { map, Observable, Subject, Subscription, tap } from 'rxjs';
 import { LoginMode, RootState } from '../../store/index';
-import { selectAllBundleSummaries } from '../../store/login-mode/annotation/annotation.selectors';
+import {
+  selectAllBundleSummaries,
+  selectLocalMode,
+} from '../../store/login-mode/annotation/annotation.selectors';
 import { LoginModeActions } from '../../store/login-mode/login-mode.actions';
 import {
   BundleRunError,
   computeReadyBundleIds,
   runStatusOf,
+  transcriptFingerprint,
 } from '../../store/pipeline-queue';
 import {
   bundleRunErrorFromPipelineEvent,
@@ -104,6 +108,16 @@ export class PipelineQueueService {
   private queueState = this.store.selectSignal(selectPipelineQueueFeature);
   private runs = this.store.selectSignal(selectAllRunStatuses);
   private summaries = this.store.selectSignal(selectAllBundleSummaries);
+  private localMode = this.store.selectSignal(selectLocalMode);
+
+  /**
+   * Bundles the user asked to transcribe again (`replace()`), with the
+   * fingerprint of the transcript they agreed to replace. A result may
+   * overwrite that transcript, and only while it is unchanged: anything
+   * typed after the confirmation is kept and the result discarded. Kept
+   * after a failure, so the row's Retry still replaces.
+   */
+  private replaceApproved = new Map<string, string>();
 
   constructor(
     private store: Store<RootState>,
@@ -170,6 +184,11 @@ export class PipelineQueueService {
     if (eligible.length === 0) {
       return;
     }
+    // An approval left by an earlier, failed re-transcription must not
+    // apply to a now-empty file transcribed normally.
+    for (const bundleId of eligible) {
+      this.replaceApproved.delete(bundleId);
+    }
     const wasIdle = this.runSub === null && this.queueState().activeId === null;
     this.store.dispatch(PipelineQueueActions.enqueued({ bundleIds: eligible }));
     if (wasIdle) {
@@ -198,9 +217,48 @@ export class PipelineQueueService {
     }
   }
 
+  /**
+   * Transcribe bundles again, replacing the transcript they have now — the
+   * caller has already warned the user and had it confirmed. Like
+   * `retry()`, bypasses `enqueue()`'s eligibility filter; bundles already
+   * queued or running are left alone.
+   */
+  replace(bundleIds: string[]): void {
+    const runs = this.runs();
+    const eligible = bundleIds.filter((bundleId) => {
+      const state = runStatusOf(runs, bundleId).state;
+      return state !== 'queued' && state !== 'running';
+    });
+    if (eligible.length === 0) {
+      return;
+    }
+    const entities = this.localMode().bundles.entities;
+    for (const bundleId of eligible) {
+      this.replaceApproved.set(
+        bundleId,
+        transcriptFingerprint(entities[bundleId]?.transcript),
+      );
+    }
+    const wasIdle = this.runSub === null && this.queueState().activeId === null;
+    this.store.dispatch(PipelineQueueActions.enqueued({ bundleIds: eligible }));
+    if (wasIdle) {
+      this.activateNext();
+    }
+  }
+
   /** Finish the in-flight bundle, then stop; don't drain the rest. */
   stop(): void {
     this.store.dispatch(PipelineQueueActions.pause());
+  }
+
+  /**
+   * Stop now: cancel the in-flight bundle and don't drain the rest. Pausing
+   * first means the cancelled run's `advance()` stops the queue instead of
+   * starting the next bundle.
+   */
+  abort(): void {
+    this.stop();
+    this.cancelActive();
   }
 
   /**
@@ -434,14 +492,23 @@ export class PipelineQueueService {
       transcript.changeCurrentLevelIndex(0);
     }
 
-    // The bundle was empty when it was enqueued, but the user may have
-    // started transcribing it by hand while it waited or ran. Never replace
-    // human work with a machine result. Commit any typing still inside the
-    // editor's debounce window first so the check below sees it (a no-op
-    // unless this bundle is the one open in the workbench editor).
+    // The bundle was empty when it was enqueued (or, for `replace()`, held
+    // the transcript the user agreed to replace), but the user may have
+    // edited it while it waited or ran. Never replace that work with a
+    // machine result. Commit any typing still inside the editor's debounce
+    // window first so the check below sees it (a no-op unless this bundle
+    // is the one open in the workbench editor).
     this.pendingEdits.flush();
-    const current = this.summaries().find((b) => b.bundleId === bundleId);
-    if (current?.hasAnnotationContent) {
+    const approved = this.replaceApproved.get(bundleId);
+    this.replaceApproved.delete(bundleId);
+    const editedMeanwhile =
+      approved === undefined
+        ? this.summaries().find((b) => b.bundleId === bundleId)
+            ?.hasAnnotationContent
+        : transcriptFingerprint(
+            this.localMode().bundles.entities[bundleId]?.transcript,
+          ) !== approved;
+    if (editedMeanwhile) {
       this.store.dispatch(
         PipelineQueueActions.bundleFailed({
           bundleId,

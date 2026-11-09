@@ -242,6 +242,27 @@ describe('PipelineQueueService', () => {
     expect(queueState().runs['b']).toEqual({ state: 'idle' });
   });
 
+  it('abort() cancels the active bundle and does not start the next one', async () => {
+    service.enqueue(['a', 'b']);
+    await Promise.resolve();
+    runner.cancel.mockImplementation(() => {
+      events[0].next({ stage: 'pipeline', type: 'cancelled' });
+      events[0].complete();
+    });
+
+    service.abort();
+    await Promise.resolve();
+
+    expect(runner.run).toHaveBeenCalledTimes(1);
+    expect(queueState().runs['a']).toEqual({
+      state: 'failed',
+      error: { kind: 'cancelled', message: 'Run cancelled.' },
+    });
+    expect(queueState().mode).toBe('idle');
+    expect(queueState().queue).toEqual([]);
+    expect(queueState().runs['b']).toEqual({ state: 'idle' });
+  });
+
   it('applies the skip rule on enqueue but not on retry', async () => {
     store.dispatch(
       PipelineQueueActions.restoreInterrupted({
@@ -576,6 +597,106 @@ describe('PipelineQueueService', () => {
 
     expect(queueState().runs['a'].state).toBe('failed');
     expect(replaced).toEqual([]);
+  });
+
+  describe('replace(): transcribing again', () => {
+    const result = (): PipelineEvent => ({
+      stage: 'pipeline',
+      type: 'result',
+      annotJson: new OAnnotJSON('c.wav', 'c', 16000, []),
+      diarizationWarning: null,
+    });
+    const withC = (c: object) => {
+      localModeState = {
+        ...LOCAL_MODE_STATE,
+        bundles: {
+          ...LOCAL_MODE_STATE.bundles,
+          entities: { ...LOCAL_MODE_STATE.bundles.entities, c },
+        },
+      };
+      store.dispatch({ type: '[test] refresh' });
+    };
+
+    it('replaces a transcript that has text, which enqueue() never runs', async () => {
+      const replaced: string[] = [];
+      service.transcriptReplaced$.subscribe((id) => replaced.push(id));
+      service.enqueue(['c']);
+      expect(runner.run).not.toHaveBeenCalled();
+
+      service.replace(['c']);
+      await Promise.resolve();
+      events[0].next(result());
+      await Promise.resolve();
+
+      expect(queueState().runs['c'].state).toBe('done');
+      expect(replaced).toEqual(['c']);
+    });
+
+    it('keeps edits made after the user agreed, and discards the result', async () => {
+      const replaced: string[] = [];
+      service.transcriptReplaced$.subscribe((id) => replaced.push(id));
+      service.replace(['c']);
+      await Promise.resolve();
+
+      withC({
+        ...LOCAL_MODE_STATE.bundles.entities.c,
+        transcript: {
+          levels: [{ items: [{ labels: [{ name: 'L', value: 'hello!' }] }] }],
+        },
+      });
+      events[0].next(result());
+      await Promise.resolve();
+
+      expect(queueState().runs['c'].state).toBe('failed');
+      expect(replaced).toEqual([]);
+    });
+
+    it('does not count listening (a passage marked verified) as an edit', async () => {
+      service.replace(['c']);
+      await Promise.resolve();
+
+      withC({
+        ...LOCAL_MODE_STATE.bundles.entities.c,
+        transcript: {
+          levels: [
+            {
+              items: [
+                { labels: [{ name: 'L', value: 'hello' }], verified: true },
+              ],
+            },
+          ],
+        },
+      });
+      events[0].next(result());
+      await Promise.resolve();
+
+      expect(queueState().runs['c'].state).toBe('done');
+    });
+
+    it('still replaces when a failed re-transcription is retried', async () => {
+      service.replace(['c']);
+      await Promise.resolve();
+      events[0].error(new Error('WASM allocation failed'));
+      await Promise.resolve();
+      expect(queueState().runs['c'].state).toBe('failed');
+
+      service.retry('c');
+      await Promise.resolve();
+      events[1].next(result());
+      await Promise.resolve();
+
+      expect(queueState().runs['c'].state).toBe('done');
+    });
+
+    it('leaves a bundle that is already queued or running alone', async () => {
+      service.enqueue(['a']);
+      await Promise.resolve();
+      service.replace(['a']);
+      await Promise.resolve();
+
+      expect(runner.run).toHaveBeenCalledTimes(1);
+      expect(queueState().queue).toEqual([]);
+    });
   });
 
   it('announces a replaced transcript so a host can remount its editor', async () => {

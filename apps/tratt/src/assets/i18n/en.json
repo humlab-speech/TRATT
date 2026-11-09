@@ -456,10 +456,6 @@
       "norwegian fine-tuned hint": "Norwegian uses a model optimised for Norwegian speech."
     },
     "app description": "Tratt is a free web-application for plain text (orthographic) transcription of speech recordings. It has three different editors that cater for different needs when transcribing, and you may switch between them freely in a session.",
-    "hero": {
-      "part_of": "A tool in Visp – Språkbanken's speech research platform",
-      "privacy": "Your recording never leaves your computer. Automatic transcription runs locally too."
-    },
     "funding support and development": "Funders and collaborations",
     "groups that developed the language models": "Developers of the language models used"
   },
@@ -505,8 +501,8 @@
     "bundle reattach mismatch": {
       "actual": "You picked:",
       "expected": "Expected:",
-      "header": "This doesn't look like the same file",
-      "text": "The file you picked doesn't match what was originally recorded for this bundle. Use it anyway?",
+      "header": "This doesn't look like the same audio",
+      "text": "The file you picked doesn't match the audio this recording bundle was made from. Use it anyway?",
       "use anyway": "Use anyway",
       "modified": "modified {{date}}",
       "only modified differs": "Same name and size, but the file was modified at a different time — e.g. a copy, or re-exported audio."
@@ -606,7 +602,7 @@
         "delete old": "Delete previous transcription",
         "header": "Create a new transcription?",
         "text": "Do you really want to delete the previous transcription and create a new one?<br><br>Your progress on the previous transcription will be deleted. This action can not be reverted.",
-        "workbench note": "Note: the Workbench file list shares this slot, so “{{name}}” will also be replaced there."
+        "workbench note": "Note: the Workbench’s list of recording bundles shares this slot, so “{{name}}” will also be replaced there."
       },
       "demoEnd": {
         "exportText": "You can export your transcript if you click on \"Back\" and then on \"Export\":",
@@ -807,28 +803,37 @@
     "editor_header": {
       "mono": "mono",
       "stereo": "stereo",
-      "export": "Export this transcription",
-      "export_unavailable": "Nothing to export yet: this file has no transcript and its audio isn't attached.",
+      "export": "Download transcript",
+      "export_unavailable": "Nothing to download yet: this recording bundle has no transcript, and its audio isn't attached.",
+      "save_recording": "Save audio",
       "audio_not_attached": "audio not attached"
     },
-    "data_selector": {
-      "label": "Choose file",
-      "position": "{{index}} of {{total}}"
-    },
     "bundle_list": {
-      "title": "Files",
-      "reattach": "Attach file…",
+      "title": "Recording bundles",
+      "reattach": "Attach audio…",
+      "attach": "Attach",
+      "audio_attached": "Audio attached",
       "select_all": "Select all",
-      "clear_finished": "Clear finished",
+      "delete_done": "Delete done",
+      "delete_done_hint": "Delete every recording bundle marked Done, with its transcript and any edits. This cannot be undone, so save them as .zip first if you still need them. Your audio files are not touched.",
       "remove": "Remove",
-      "export_catalogue": "Export all",
+      "selected_count": "{{count}} selected",
+      "selected_count_one": "1 selected",
+      "deselect": "Deselect",
+      "export_catalogue": "Save all as .zip",
+      "export_catalogue_one": "Save as .zip",
+      "export_catalogue_selected": "Save {{count}} as .zip",
+      "export_catalogue_selected_one": "Save 1 as .zip",
+      "export_catalogue_hint": "Save the recording bundles in one .zip: their transcripts, the audio that is attached, and a list of them. Drop it here later to pick up where you left off.",
       "retry": "Retry",
       "status": {
         "queued": "Queued",
         "running": "Running",
         "done": "Done",
         "failed": "Failed",
-        "interrupted": "Interrupted"
+        "interrupted": "Interrupted",
+        "has_transcript": "Has text",
+        "no_transcript": "Not transcribed"
       },
       "error": {
         "decode": "Could not read the audio",
@@ -837,7 +842,7 @@
         "cancelled": "Cancelled",
         "unknown": "Failed"
       },
-      "cancel": "Stop transcribing this file",
+      "cancel": "Stop transcribing this recording bundle",
       "stage": {
         "decode": "Preparing",
         "download": "Loading model",
@@ -845,52 +850,93 @@
         "diarization": "Separating speakers",
         "translation": "Translating"
       },
-      "confirm_remove": "Remove {{count}} file(s) from the list? Their transcripts and any edits will be deleted and cannot be restored."
+      "confirm_remove": "Remove {{count}} recording bundle(s)? Their transcripts and any edits are deleted and cannot be restored. Your audio files are not touched.",
+      "column_file": "Recording bundle",
+      "column_file_hint": "A recording bundle is one recording: its audio and its transcript. Tratt keeps the transcript in this browser. The audio stays on your disk and is only attached while you work.",
+      "column_audio": "Audio",
+      "column_status": "Transcript",
+      "audio_details_not_attached": "Audio not attached",
+      "audio_details_pending": "Audio details appear once the audio has loaded"
     },
     "queue": {
-      "run": "Transcribe {{count}} file(s)",
-      "pause": "Pause queue",
-      "options_title": "Pipeline settings",
-      "no_options_hint": "No transcription options configured — enable auto transcription first."
+      "run": "Transcribe {{count}}",
+      "stop": "Stop transcribing",
+      "progress": "Transcribing {{current}} of {{total}}",
+      "options_title": "Transcription",
+      "run_hint": "Transcribe the recording bundles that have no transcript yet, one after the other. Those whose audio isn't attached are skipped.",
+      "stop_hint": "Stops the recording bundle being transcribed and the ones waiting after it. You’re asked first.",
+      "stop_confirm": "Stop transcribing “{{name}}” now? What has been transcribed of it so far is lost.",
+      "stop_confirm_waiting": "The {{count}} recording bundle(s) still waiting are not transcribed either.",
+      "unavailable_hint": "Transcription isn't available in this browser (Safari). Try Chrome, Edge or Firefox.",
+      "nothing_hint": "Every recording bundle already has a transcript, or needs its audio attached first. To transcribe one again, for example with a larger model, tick it in the list and click Transcribe.",
+      "run_selected": "Transcribe {{count}} selected",
+      "run_none": "Transcribe",
+      "run_selected_hint": "Transcribe the ticked recording bundles with the current settings. Those that already have a transcript are transcribed again, after you confirm.",
+      "selection_unavailable": "The ticked recording bundles can’t be transcribed right now: they are already queued, or their audio isn’t attached.",
+      "replace_confirm_one": "Transcribe “{{name}}” again? Its current transcript will be replaced, and this can’t be undone.",
+      "replace_confirm_other": "Transcribe {{count}} recording bundles again? Their current transcripts will be replaced, and this can’t be undone.",
+      "replace_confirm_checked": "That includes {{count}} passage(s) a person has corrected or checked by listening.",
+      "replace_confirm_export": "To keep a copy, use “Save as .zip” first.",
+      "auto_on": "Auto-transcribe on",
+      "auto_hint": "New recording bundles are transcribed as soon as you add them. To transcribe one again, for example with a larger model, tick it in the list and click here. Turn this off in the settings (the sliders icon)."
     },
     "capacity": {
       "storage_label": "Browser storage",
       "storage_text": "{{used}} of {{quota}}",
-      "storage_note": "Estimate: models ~{{models}} for the current pipeline + annotations ~{{annotations}}. Media is never written to storage.",
+      "storage_note": "Estimate: models ~{{models}} for the current pipeline + transcripts ~{{annotations}}. Tratt saves transcripts, never audio.",
       "storage_unavailable": "This browser does not report storage usage.",
       "storage_breakdown_unavailable": "Storage breakdown unavailable until a pipeline is configured.",
       "memory_label": "Working memory (est.)",
       "memory_text": "{{used}} of ~{{budget}}",
-      "memory_note": "Decoded audio for {{count}} resident file(s). This, not storage, is what limits how much media you can hold at once."
+      "memory_note": "The attached audio of {{count}} recording bundle(s), decoded. This, not storage, is what limits how much audio you can have attached at once.",
+      "title": "Storage and memory",
+      "near_limit": "Close to the limit",
+      "near_limit_toast": "Tratt is running low on browser memory or storage. See “Storage and memory” at the bottom of the left panel.",
+      "near_limit_callout": "Tratt is running low on browser memory or storage. The figures are below.",
+      "near_limit_dismiss": "Dismiss"
     },
     "catalogue_export": {
-      "title": "Export catalogue",
+      "title": "Save as .zip",
       "formats_label": "Formats",
-      "bundles_label": "{{count}} file(s) selected",
+      "native_format": "Tratt (_annot.json, always)",
+      "native_hint": "Tratt’s own transcript file, always included. Drop the .zip on Tratt later to load the transcripts back.",
+      "contents_label": "What goes in the .zip",
+      "summary_with_audio": "{{count}} with audio and transcript",
+      "summary_transcript_only": "{{count}} transcript only",
+      "summary_left_out": "{{count}} left out",
+      "badge_with_audio": "audio + transcript",
+      "badge_transcript_only": "transcript only",
+      "no_audio_file": "no audio: it isn’t attached",
+      "manifest_hint": "— a list of the recording bundles",
+      "nothing_to_save": "None of these recording bundles has a transcript yet, so there is nothing to save.",
+      "left_out": "Left out, no transcript yet: {{names}}",
+      "bundles_label": "{{count}} recording bundle(s) selected",
+      "missing_audio": "{{count}} of them have no audio attached and are saved without it. Attach their audio first for a complete copy.",
       "time_aligned_required": "Select at least one time-aligned format (e.g. ELAN or SRT).",
-      "all_bundles_hint": "No files checked — exporting all {{count}}.",
-      "export": "Export",
+      "all_bundles_hint": "No recording bundles ticked — saving all {{count}}.",
+      "export": "Save",
       "cancel": "Cancel",
-      "started": "Exporting {{count}} file(s)… The download starts when the archive is ready.",
-      "progress": "Exporting {{current}} of {{total}}…",
+      "started": "Saving {{count}} recording bundle(s)… The download starts when the .zip is ready.",
+      "progress": "Saving {{current}} of {{total}}…",
       "warnings_title": "Completed with warnings",
-      "done": "Done — {{count}} file(s) archived.",
-      "failed": "Export failed: {{message}}"
+      "done": "Done — {{count}} recording bundle(s) saved.",
+      "failed": "Saving failed: {{message}}"
     },
-    "dropzone_placeholder": "Drop audio files or a previously exported archive here",
+    "dropzone_placeholder": "Drop audio or video files here, or a .zip saved from Tratt",
+    "dropzone_attach": "Drop audio or video files here. A recording bundle’s own audio file attaches to it.",
     "editor": {
       "loading_audio": "Loading audio…",
-      "awaiting_media": "This file’s audio isn’t loaded in this session. Use “Attach file…” in the list to re-attach it."
+      "awaiting_media": "This recording bundle’s audio isn’t attached. Tratt saves transcripts, never audio, so attach it again on each visit."
     },
     "empty": {
-      "title": "No files yet",
-      "text": "Drop one or more audio files on the left, or record directly. Every file gets its own transcript, and with Auto-transcribe switched on new files are transcribed automatically.",
+      "title": "No recording bundles yet",
+      "text": "Drop one or more audio files on the left, or record directly. Each becomes a recording bundle: the audio plus its own transcript. With Auto-transcribe on, new ones are transcribed automatically.",
       "restored_title": "Welcome back",
-      "restored_text": "Your files from the last session are listed on the left. Re-attach a file’s audio with “Attach file…” to keep editing it, or drop new files."
+      "restored_text": "Tratt kept your transcripts from last time, but not your audio: it never saves audio. To listen and correct, attach each recording bundle’s audio with “Attach” in the list, or drop the same audio files here."
     },
     "dropzone": {
       "already_loaded": "Already in the list, not added again: {{names}}",
-      "transcript_no_recording": "No recording named “{{name}}”. Drop the transcript together with its audio file, or name it like the recording.",
+      "transcript_no_recording": "No recording bundle named “{{name}}”. Drop the transcript together with its audio file, or name it like the recording bundle.",
       "transcript_needs_audio": "Attach the audio of “{{name}}” first, then drop its transcript again.",
       "transcript_already_used": "Another transcript for “{{name}}” in this drop is already used."
     },
@@ -899,17 +945,84 @@
       "applied": "Loaded {{file}} into {{name}}."
     },
     "pipeline": {
-      "on": "Auto-transcribe on",
-      "off": "Auto-transcribe off",
-      "off_detail": "New files are not transcribed automatically.",
+      "on": "Automatic transcription on",
+      "off": "Automatic transcription off",
       "speakers_one": "1 speaker",
       "speakers_other": "{{count}} speakers",
       "speakers_auto": "Speakers: auto",
       "translate_to": "→ {{language}}",
-      "edit": "Pipeline settings",
-      "dialog_title": "Pipeline settings",
+      "edit": "Transcription settings",
+      "dialog_title": "Transcription settings",
       "done": "Done",
-      "close": "Close"
+      "close": "Close",
+      "unavailable": "Transcription unavailable",
+      "automatic_label": "Transcribe new recording bundles automatically"
+    },
+    "welcome": {
+      "title": "Turn speech into text",
+      "lead": "Add an audio or video file and Tratt will transcribe it for you — right here in your browser.",
+      "drop": "Drop an audio or video file here",
+      "or": "or",
+      "choose": "Choose a file",
+      "demo": "Try a demo recording",
+      "demo_failed": "The demo recording could not be loaded.",
+      "language": "Transcription language: {{language}}",
+      "change_settings": "Change",
+      "manual_prompt": "Prefer to type it yourself?",
+      "manual": "Transcribe by hand, without AI",
+      "privacy_title": "Private by design.",
+      "privacy": "Your audio never leaves your computer — automatic transcription runs locally in your browser too.",
+      "facts": "Free to use · Works with MP3, WAV, M4A, MP4, MOV and more",
+      "how": "How does Tratt work?",
+      "steps": {
+        "add": {
+          "title": "Add a file",
+          "text": "Audio or video"
+        },
+        "transcribe": {
+          "title": "Transcribe",
+          "text": "One click, fully automatic"
+        },
+        "edit": {
+          "title": "Edit & download",
+          "text": "Text, Word or subtitles"
+        }
+      }
+    },
+    "visp": {
+      "title": "Assigned recording bundles",
+      "refresh": "Refresh",
+      "loading": "Loading your recording bundles from VISP…",
+      "empty": "No recording bundles are assigned to you in this project. Ask the project owner to assign some in VISP, then press Refresh.",
+      "assigned_list": "Recording bundles assigned to you:",
+      "save": "Save to VISP",
+      "retry": "Retry",
+      "finished": "Finished",
+      "comment": "Comment",
+      "keep_mine": "Keep my version",
+      "use_theirs": "Use the VISP version",
+      "unassigned": "No longer assigned to you. Your unsaved changes are kept here until you remove this recording bundle; download the transcript first if you need it.",
+      "remove_unassigned": "Remove",
+      "sync": {
+        "saved": "Saved",
+        "unsaved": "Unsaved changes",
+        "saving": "Saving…",
+        "failed": "Not saved"
+      },
+      "error": {
+        "not_signed_in": "You are no longer signed in to VISP. Sign in again in VISP, then reload TRATT.",
+        "not_member": "You are not a member of this project. Ask the project owner to add you.",
+        "no_transcription_level": "This project has no transcription level, so TRATT cannot open its recording bundles. Ask the project owner to add one in VISP.",
+        "level_linked": "The transcription level is linked to other levels, so TRATT cannot edit it safely. Ask the project owner to unlink it.",
+        "unreachable": "VISP cannot be reached. Your changes are kept in this browser; try again in a moment.",
+        "stale": "This recording bundle was changed in VISP or in another tab while you worked on it. Your changes are kept in this browser. Keep your version (only the transcript is replaced), or use the VISP version and drop your changes.",
+        "unassigned": "This recording bundle is no longer assigned to you, so it cannot be saved.",
+        "unknown": "Something went wrong when talking to VISP."
+      },
+      "pane_title": "Select a recording bundle",
+      "pane_text": "Choose one in the list on the left. Its audio and transcript come from VISP, and Save in the list writes your transcript back to VISP.",
+      "pane_readonly_title": "Nothing to open in TRATT",
+      "pane_readonly_text": "TRATT can open this project's recording bundles once the project has a transcription level."
     }
   },
   "shell": {
@@ -928,8 +1041,14 @@
     },
     "header": {
       "label": "Main navigation",
-      "theme_toggle": "Switch between light and dark mode",
-      "workbench": "Workbench"
+      "theme_toggle": "Switch between light and dark mode"
     }
+  },
+  "pane_splitter": {
+    "resize": "Resize the panels (drag, or use the arrow keys)",
+    "narrower": "Make the left panel narrower",
+    "wider": "Make the left panel wider",
+    "hide": "Hide the left panel",
+    "show": "Show the left panel"
   }
 }

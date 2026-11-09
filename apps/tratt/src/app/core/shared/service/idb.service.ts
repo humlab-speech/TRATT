@@ -30,8 +30,11 @@ export class IDBService {
    * call this function after appSettings were loaded.
    * @param dbName
    */
-  public initialize(dbName: string): Observable<void> {
-    return from(resolveDatabaseName(dbName, LEGACY_DB_NAMES)).pipe(
+  public initialize(
+    dbName: string,
+    legacyNames: string[] = LEGACY_DB_NAMES,
+  ): Observable<void> {
+    return from(resolveDatabaseName(dbName, legacyNames)).pipe(
       switchMap((resolvedName) => {
         this.database = new TrattDatabase(resolvedName);
         return from(this.database.init());

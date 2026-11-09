@@ -333,10 +333,6 @@
       "speaker separation label": "说话人分离"
     },
     "app description": "Tratt是一款免费的网络应用程序，用于将语音录音转录为纯文本（正字法）。它提供三种不同的编辑器以满足不同的转录需求，您可以在同一会话中自由切换。",
-    "hero": {
-      "part_of": "A tool in Visp – Språkbanken's speech research platform",
-      "privacy": "Your recording never leaves your computer. Automatic transcription runs locally too."
-    },
     "funding support and development": "资助方与合作",
     "groups that developed the language models": "所用语言模型的开发者",
     "tabs": {
@@ -408,7 +404,7 @@
         "delete old": "删除之前的标注",
         "header": "要新建标注吗？",
         "text": "你确定要删除已标注的内容，重新创建一个吗？<br><br>你之前的标注记录会被完全删除。此操作不可恢复。",
-        "workbench note": "注意：工作台文件列表与此共用同一位置，因此“{{name}}”在工作台中也会被替换。"
+        "workbench note": "注意：工作台的录音包列表与此共用同一位置，因此“{{name}}”在工作台中也会被替换。"
       },
       "demoEnd": {
         "exportText": "你可以点击“后退”，然后点击“导出”，来导出标注：",
@@ -520,19 +516,31 @@
       "record": "立即录音"
     },
     "bundle_list": {
-      "title": "文件",
-      "reattach": "关联文件…",
+      "title": "录音包",
+      "reattach": "关联音频…",
+      "attach": "关联",
+      "audio_attached": "已关联音频",
       "select_all": "全选",
-      "clear_finished": "清除已完成",
+      "delete_done": "删除已完成",
+      "delete_done_hint": "删除所有标为“已完成”的录音包，连同它们的转写和所有编辑。此操作无法撤销，如仍需要，请先保存为 .zip。你的音频文件不受影响。",
       "remove": "移除",
-      "export_catalogue": "全部导出",
+      "selected_count": "已选 {{count}} 个",
+      "selected_count_one": "已选 1 个",
+      "deselect": "取消选择",
+      "export_catalogue": "全部保存为 .zip",
+      "export_catalogue_one": "保存为 .zip",
+      "export_catalogue_selected": "将 {{count}} 个保存为 .zip",
+      "export_catalogue_selected_one": "将 1 个保存为 .zip",
+      "export_catalogue_hint": "将录音包保存到一个 .zip 中：转写、已关联的音频以及录音包列表。之后把它拖到这里即可继续工作。",
       "retry": "重试",
       "status": {
         "queued": "排队中",
         "running": "运行中",
         "done": "已完成",
         "failed": "失败",
-        "interrupted": "已中断"
+        "interrupted": "已中断",
+        "has_transcript": "有文本",
+        "no_transcript": "未转写"
       },
       "error": {
         "decode": "无法读取音频",
@@ -541,7 +549,7 @@
         "cancelled": "已取消",
         "unknown": "失败"
       },
-      "cancel": "停止转写此文件",
+      "cancel": "停止转写此录音包",
       "stage": {
         "decode": "准备中",
         "download": "正在加载模型",
@@ -549,61 +557,99 @@
         "diarization": "正在分离说话人",
         "translation": "翻译中"
       },
-      "confirm_remove": "要从列表中移除 {{count}} 个文件吗？它们的转写及所有编辑内容将被删除，且无法恢复。"
+      "confirm_remove": "移除 {{count}} 个录音包？它们的转写和所有编辑都将被删除且无法恢复。你的音频文件不受影响。",
+      "column_file": "录音包",
+      "column_file_hint": "录音包就是一段录音：它的音频和转写。Tratt 将转写保存在此浏览器中。音频保留在你的磁盘上，只在你工作时关联。",
+      "column_audio": "音频",
+      "column_status": "转写",
+      "audio_details_not_attached": "未关联音频",
+      "audio_details_pending": "音频加载后会显示音频信息"
     },
     "queue": {
-      "run": "转写 {{count}} 个文件",
-      "pause": "暂停队列",
-      "options_title": "流程设置",
-      "no_options_hint": "尚未配置转写选项——请先启用自动转写。"
+      "run": "转写 {{count}} 个",
+      "stop": "停止转写",
+      "progress": "正在转写 {{current}}/{{total}}",
+      "options_title": "转写",
+      "run_hint": "依次转写尚无转写的录音包。未关联音频的录音包会被跳过。",
+      "stop_hint": "停止当前正在转写的录音包以及其后等待的录音包。会先请你确认。",
+      "stop_confirm": "现在停止转写“{{name}}”？已转写的部分将会丢失。",
+      "stop_confirm_waiting": "正在等待的 {{count}} 个录音包也不会被转写。",
+      "unavailable_hint": "此浏览器（Safari）不支持转写。请尝试 Chrome、Edge 或 Firefox。",
+      "nothing_hint": "每个录音包都已有转写，或需要先关联音频。如需重新转写（例如使用更大的模型），请在列表中勾选它并点击“转写”。",
+      "run_selected": "转写所选 {{count}} 个",
+      "run_none": "转写",
+      "run_selected_hint": "使用当前设置转写已勾选的录音包。已有转写的录音包会在你确认后重新转写。",
+      "selection_unavailable": "已勾选的录音包目前无法转写：它们已在队列中，或未关联音频。",
+      "replace_confirm_one": "重新转写“{{name}}”？当前转写稿将被替换，且无法撤销。",
+      "replace_confirm_other": "重新转写 {{count}} 个录音包？它们当前的转写将被替换，且无法撤销。",
+      "replace_confirm_checked": "其中包括 {{count}} 个经人工修改或听音核对过的片段。",
+      "replace_confirm_export": "如需保留副本，请先使用“保存为 .zip”。",
+      "auto_on": "自动转写已开启",
+      "auto_hint": "新录音包一添加就会被转写。如需重新转写（例如使用更大的模型），请在列表中勾选它并点击此处。可在设置（滑块图标）中关闭。"
     },
     "capacity": {
       "storage_label": "浏览器存储",
       "storage_text": "已用 {{used}}，共 {{quota}}",
-      "storage_note": "估算：当前流程的模型约 {{models}} + 标注约 {{annotations}}。媒体文件不会写入存储。",
+      "storage_note": "估算：当前流程的模型约 {{models}} + 转写约 {{annotations}}。Tratt 只保存转写，从不保存音频。",
       "storage_unavailable": "此浏览器不报告存储使用情况。",
       "storage_breakdown_unavailable": "配置流程后才能显示存储明细。",
       "memory_label": "工作内存（估算）",
       "memory_text": "已用 {{used}}，约共 {{budget}}",
-      "memory_note": "{{count}} 个驻留文件的已解码音频。限制您能同时保留多少媒体的是它，而不是存储空间。"
+      "memory_note": "{{count}} 个录音包已关联的音频（已解码）。限制你能同时关联多少音频的是它，而不是存储。",
+      "title": "存储和内存",
+      "near_limit": "接近上限",
+      "near_limit_toast": "Tratt 的浏览器内存或存储空间即将不足。请查看左侧面板底部的“存储和内存”。",
+      "near_limit_callout": "Tratt 的浏览器内存或存储空间即将不足。具体数据见下方。",
+      "near_limit_dismiss": "关闭"
     },
     "catalogue_export": {
-      "title": "导出目录",
+      "title": "保存为 .zip",
       "formats_label": "格式",
-      "bundles_label": "已选择 {{count}} 个文件",
-      "all_bundles_hint": "未勾选任何文件——将导出全部 {{count}} 个。",
-      "export": "导出",
+      "native_format": "Tratt（_annot.json，始终包含）",
+      "native_hint": "Tratt 自有的转写文件，始终包含。之后把 .zip 拖到 Tratt 即可重新载入转写。",
+      "contents_label": ".zip 中包含的内容",
+      "summary_with_audio": "{{count}} 个含音频和转写",
+      "summary_transcript_only": "{{count}} 个仅含转写",
+      "summary_left_out": "{{count}} 个未包含",
+      "badge_with_audio": "音频 + 转写",
+      "badge_transcript_only": "仅转写",
+      "no_audio_file": "无音频：未关联",
+      "manifest_hint": "——录音包列表",
+      "nothing_to_save": "这些录音包都还没有转写，因此没有可保存的内容。",
+      "left_out": "未包含（尚无转写）：{{names}}",
+      "bundles_label": "已选择 {{count}} 个录音包",
+      "missing_audio": "其中 {{count}} 个未关联音频，将在不含音频的情况下保存。如需完整副本，请先关联它们的音频。",
+      "all_bundles_hint": "未勾选任何录音包——将保存全部 {{count}} 个。",
+      "export": "保存",
       "cancel": "取消",
-      "progress": "正在导出第 {{current}} 个，共 {{total}} 个…",
+      "progress": "正在保存第 {{current}} 个，共 {{total}} 个…",
       "warnings_title": "已完成，但有警告",
-      "done": "完成——已归档 {{count}} 个文件。",
-      "failed": "导出失败：{{message}}"
+      "done": "完成——已保存 {{count}} 个录音包。",
+      "failed": "保存失败：{{message}}"
     },
-    "dropzone_placeholder": "将音频文件拖放到此处，或点击浏览。可以一次放入多个。",
+    "dropzone_placeholder": "将音频或视频文件拖放到此处，或拖入从 Tratt 保存的 .zip",
+    "dropzone_attach": "将音频或视频文件拖放到此处。录音包自己的音频文件会关联到该录音包。",
     "editor": {
       "loading_audio": "正在加载音频…",
-      "awaiting_media": "此文件的音频未在本次会话中加载。请使用列表中的“关联文件…”重新关联。"
+      "awaiting_media": "此录音包未关联音频。Tratt 只保存转写，从不保存音频，因此每次使用时都需重新关联。"
     },
     "empty": {
-      "title": "还没有文件",
-      "text": "将一个或多个音频文件拖放到左侧，或直接录音。每个文件都有各自的转写；开启自动转写后，新文件会自动转写。",
+      "title": "还没有录音包",
+      "text": "在左侧拖入一个或多个音频文件，或直接录音。每个文件都会成为一个录音包：音频加上它自己的转写。开启自动转写后，新录音包会被自动转写。",
       "restored_title": "欢迎回来",
-      "restored_text": "上次会话的文件列在左侧。使用“关联文件…”重新关联文件的音频以继续编辑，或拖入新文件。"
+      "restored_text": "Tratt 保留了你上次的转写，但没有保留音频：它从不保存音频。如需收听和校对，请在列表中用“关联”为每个录音包关联音频，或把相同的音频文件拖到这里。"
     },
     "editor_header": {
       "mono": "单声道",
       "stereo": "立体声",
-      "export": "导出此转写",
-      "export_unavailable": "暂无可导出内容：此文件没有转写，且未附加音频。",
+      "export": "下载转写",
+      "export_unavailable": "暂无可下载的内容：此录音包没有转写，且未关联音频。",
+      "save_recording": "保存音频",
       "audio_not_attached": "未附加音频"
-    },
-    "data_selector": {
-      "label": "选择文件",
-      "position": "第 {{index}} 个，共 {{total}} 个"
     },
     "dropzone": {
       "already_loaded": "已在列表中，未重复添加：{{names}}",
-      "transcript_no_recording": "没有名为“{{name}}”的录音。请将转写与其音频文件一起拖入，或按录音命名。",
+      "transcript_no_recording": "没有名为“{{name}}”的录音包。请将转写与其音频文件一起拖入，或将其命名为与录音包相同的名称。",
       "transcript_needs_audio": "请先附加“{{name}}”的音频，然后再次拖入其转写。",
       "transcript_already_used": "本次拖入中已有另一个“{{name}}”的转写被使用。"
     },
@@ -614,15 +660,82 @@
     "pipeline": {
       "on": "自动转写已开启",
       "off": "自动转写已关闭",
-      "off_detail": "新文件不会自动转写。",
       "speakers_one": "1 位说话人",
       "speakers_other": "{{count}} 位说话人",
       "speakers_auto": "说话人：自动",
       "translate_to": "→ {{language}}",
-      "edit": "流程设置",
-      "dialog_title": "流程设置",
+      "edit": "转写设置",
+      "dialog_title": "转写设置",
       "done": "完成",
-      "close": "关闭"
+      "close": "关闭",
+      "unavailable": "转写不可用",
+      "automatic_label": "自动转写新录音包"
+    },
+    "welcome": {
+      "title": "将语音转为文字",
+      "lead": "添加音频或视频文件，Tratt 将直接在您的浏览器中为您转写。",
+      "drop": "将音频或视频文件拖放到此处",
+      "or": "或",
+      "choose": "选择文件",
+      "demo": "试用示例录音",
+      "demo_failed": "无法加载示例录音。",
+      "language": "转写语言：{{language}}",
+      "change_settings": "更改",
+      "manual_prompt": "更想自己输入？",
+      "manual": "手动转写，不使用 AI",
+      "privacy_title": "隐私优先。",
+      "privacy": "你的音频不会离开你的电脑——自动转写也在浏览器本地运行。",
+      "facts": "免费使用 · 支持 MP3、WAV、M4A、MP4、MOV 等格式",
+      "how": "Tratt 如何工作？",
+      "steps": {
+        "add": {
+          "title": "添加文件",
+          "text": "音频或视频"
+        },
+        "transcribe": {
+          "title": "转写",
+          "text": "一键完成，全自动"
+        },
+        "edit": {
+          "title": "编辑并下载",
+          "text": "文本、Word 或字幕"
+        }
+      }
+    },
+    "visp": {
+      "title": "已分配的录音包",
+      "refresh": "刷新",
+      "loading": "正在从 VISP 加载你的录音包…",
+      "empty": "此项目中没有分配给你的录音包。请项目负责人在 VISP 中为你分配，然后点击刷新。",
+      "assigned_list": "分配给你的录音包：",
+      "save": "保存到 VISP",
+      "retry": "重试",
+      "finished": "已完成",
+      "comment": "备注",
+      "keep_mine": "保留我的版本",
+      "use_theirs": "使用 VISP 版本",
+      "unassigned": "已不再分配给你。在你移除此录音包之前，未保存的更改会保留在这里；如有需要，请先下载转写稿。",
+      "remove_unassigned": "移除",
+      "sync": {
+        "saved": "已保存",
+        "unsaved": "有未保存的更改",
+        "saving": "正在保存…",
+        "failed": "未保存"
+      },
+      "error": {
+        "not_signed_in": "你已不再登录 VISP。请在 VISP 中重新登录，然后重新加载 TRATT。",
+        "not_member": "你不是此项目的成员。请项目负责人添加你。",
+        "no_transcription_level": "此项目没有转写层，因此 TRATT 无法打开其录音包。请项目负责人在 VISP 中添加一个。",
+        "level_linked": "转写层与其他层相关联，因此 TRATT 无法安全地编辑它。请项目负责人解除关联。",
+        "unreachable": "无法连接 VISP。你的更改保留在此浏览器中，请稍后再试。",
+        "stale": "你编辑期间，此录音包已在 VISP 或其他标签页中被更改。你的更改保留在此浏览器中。可以保留你的版本（只替换转写稿），或使用 VISP 版本并放弃你的更改。",
+        "unassigned": "此录音包已不再分配给你，因此无法保存。",
+        "unknown": "与 VISP 通信时出错。"
+      },
+      "pane_title": "请选择一个录音包",
+      "pane_text": "在左侧列表中选择一个。音频和转写稿来自 VISP，点击列表中的保存会把你的转写稿写回 VISP。",
+      "pane_readonly_title": "TRATT 中没有可打开的内容",
+      "pane_readonly_text": "项目有了转写层之后，TRATT 才能打开此项目的录音包。"
     }
   },
   "shell": {
@@ -640,8 +753,14 @@
       "version": "Version"
     },
     "header": {
-      "label": "Main navigation",
-      "workbench": "Workbench"
+      "label": "Main navigation"
     }
+  },
+  "pane_splitter": {
+    "resize": "调整面板大小（拖动或使用方向键）",
+    "narrower": "缩窄左侧面板",
+    "wider": "加宽左侧面板",
+    "hide": "隐藏左侧面板",
+    "show": "显示左侧面板"
   }
 }

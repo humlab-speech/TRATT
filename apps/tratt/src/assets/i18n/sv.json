@@ -422,10 +422,6 @@
       "diarization failed": "Talarseparation misslyckades: {{message}}"
     },
     "app description": "Tratt är ett fritt tillgängligt webbprogram för transkription av talinspelningar till text (ortografiskt). Det har tre olika redigerare som tillgodoser olika behov vid transkribering, och du kan fritt växla mellan dem under en session.",
-    "hero": {
-      "part_of": "Ett verktyg i Visp – Språkbankens talforskningsplattform",
-      "privacy": "Inspelningen lämnar aldrig din dator. Även den automatiska transkriberingen körs lokalt."
-    },
     "funding support and development": "Finansiärer och samarbeten",
     "groups that developed the language models": "Utvecklare av språkmodellerna som används",
     "tabs": {
@@ -453,8 +449,8 @@
     "bundle reattach mismatch": {
       "actual": "Du valde:",
       "expected": "Förväntad:",
-      "header": "Det här verkar inte vara samma fil",
-      "text": "Filen du valde matchar inte det som ursprungligen spelades in för det här paketet. Vill du använda den ändå?",
+      "header": "Det här ser inte ut som samma ljud",
+      "text": "Filen du valde stämmer inte med ljudet som inspelningspaketet skapades från. Vill du använda den ändå?",
       "use anyway": "Använd ändå",
       "modified": "ändrad {{date}}",
       "only modified differs": "Samma namn och storlek, men filen ändrades vid en annan tidpunkt – till exempel en kopia eller nyexporterat ljud."
@@ -554,7 +550,7 @@
         "delete old": "Ta bort tidigare transkription",
         "header": "Skapa en ny transkription?",
         "text": "Vill du verkligen ta bort den tidigare transkriptionen och skapa en ny?<br><br>Din framgång på den tidigare transkriptionen kommer att tas bort. Den här åtgärden kan inte ångras.",
-        "workbench note": "Obs: filistan i Workbench delar den här platsen, så ”{{name}}” ersätts även där."
+        "workbench note": "Obs: listan över inspelningspaket i Workbench delar den här platsen, så ”{{name}}” ersätts även där."
       },
       "demoEnd": {
         "exportText": "Du kan exportera din transkript om du klickar på \"Tillbaka\" och sedan på \"Exportera\":",
@@ -755,28 +751,37 @@
     "editor_header": {
       "mono": "mono",
       "stereo": "stereo",
-      "export": "Exportera den här transkriptionen",
-      "export_unavailable": "Inget att exportera än: filen har ingen transkription och dess ljud är inte bifogat.",
+      "export": "Ladda ned transkriptionen",
+      "export_unavailable": "Inget att ladda ned ännu: inspelningspaketet har ingen transkription, och dess ljud är inte bifogat.",
+      "save_recording": "Spara ljudet",
       "audio_not_attached": "ljudet är inte bifogat"
     },
-    "data_selector": {
-      "label": "Välj fil",
-      "position": "{{index}} av {{total}}"
-    },
     "bundle_list": {
-      "title": "Filer",
-      "reattach": "Bifoga fil…",
+      "title": "Inspelningspaket",
+      "reattach": "Bifoga ljud…",
+      "attach": "Bifoga",
+      "audio_attached": "Ljud bifogat",
       "select_all": "Markera alla",
-      "clear_finished": "Rensa klara",
+      "delete_done": "Radera klara",
+      "delete_done_hint": "Radera alla inspelningspaket markerade Klar, med deras transkriptioner och alla ändringar. Det går inte att ångra, så spara dem som .zip först om du fortfarande behöver dem. Dina ljudfiler påverkas inte.",
       "remove": "Ta bort",
-      "export_catalogue": "Exportera alla",
+      "selected_count": "{{count}} markerade",
+      "selected_count_one": "1 markerat",
+      "deselect": "Avmarkera",
+      "export_catalogue": "Spara alla som .zip",
+      "export_catalogue_one": "Spara som .zip",
+      "export_catalogue_selected": "Spara {{count}} som .zip",
+      "export_catalogue_selected_one": "Spara 1 som .zip",
+      "export_catalogue_hint": "Spara inspelningspaketen i en .zip: deras transkriptioner, det ljud som är bifogat och en lista över dem. Släpp den här senare för att fortsätta där du slutade.",
       "retry": "Försök igen",
       "status": {
         "queued": "I kö",
         "running": "Körs",
         "done": "Klar",
         "failed": "Misslyckades",
-        "interrupted": "Avbruten"
+        "interrupted": "Avbruten",
+        "has_transcript": "Har text",
+        "no_transcript": "Ej transkriberad"
       },
       "error": {
         "decode": "Kunde inte läsa ljudet",
@@ -785,7 +790,7 @@
         "cancelled": "Avbruten",
         "unknown": "Misslyckades"
       },
-      "cancel": "Avbryt transkriberingen av den här filen",
+      "cancel": "Sluta transkribera det här inspelningspaketet",
       "stage": {
         "decode": "Förbereder",
         "download": "Laddar modell",
@@ -793,52 +798,93 @@
         "diarization": "Separerar talare",
         "translation": "Översätter"
       },
-      "confirm_remove": "Ta bort {{count}} fil(er) från listan? Deras transkriptioner och ändringar raderas och kan inte återställas."
+      "confirm_remove": "Ta bort {{count}} inspelningspaket? Deras transkriptioner och alla ändringar raderas och kan inte återställas. Dina ljudfiler påverkas inte.",
+      "column_file": "Inspelningspaket",
+      "column_file_hint": "Ett inspelningspaket är en inspelning: dess ljud och dess transkription. Tratt sparar transkriptionen i den här webbläsaren. Ljudet stannar på din disk och är bara bifogat medan du arbetar.",
+      "column_audio": "Ljud",
+      "column_status": "Transkription",
+      "audio_details_not_attached": "Ljud inte bifogat",
+      "audio_details_pending": "Ljudets detaljer visas när ljudet har lästs in"
     },
     "queue": {
-      "run": "Transkribera {{count}} fil(er)",
-      "pause": "Pausa kön",
-      "options_title": "Pipelineinställningar",
-      "no_options_hint": "Inga transkriptionsalternativ inställda — aktivera automatisk transkribering först."
+      "run": "Transkribera {{count}}",
+      "stop": "Stoppa transkriberingen",
+      "progress": "Transkriberar {{current}} av {{total}}",
+      "options_title": "Transkription",
+      "run_hint": "Transkribera inspelningspaketen som saknar transkription, ett i taget. De vars ljud inte är bifogat hoppas över.",
+      "stop_hint": "Stoppar inspelningspaketet som transkriberas och de som väntar efter det. Du får bekräfta först.",
+      "stop_confirm": "Sluta transkribera ”{{name}}” nu? Det som hunnit transkriberas av filen går förlorat.",
+      "stop_confirm_waiting": "De {{count}} inspelningspaket som väntar transkriberas inte heller.",
+      "unavailable_hint": "Transkription är inte tillgänglig i den här webbläsaren (Safari). Prova Chrome, Edge eller Firefox.",
+      "nothing_hint": "Alla inspelningspaket har redan en transkription eller behöver sitt ljud bifogat först. Om du vill transkribera ett igen, till exempel med en större modell, markera det i listan och klicka på Transkribera.",
+      "run_selected": "Transkribera {{count}} markerade",
+      "run_none": "Transkribera",
+      "run_selected_hint": "Transkribera de markerade inspelningspaketen med nuvarande inställningar. De som redan har en transkription transkriberas igen, efter att du bekräftat.",
+      "selection_unavailable": "De markerade inspelningspaketen kan inte transkriberas just nu: de står redan i kö, eller så är deras ljud inte bifogat.",
+      "replace_confirm_one": "Transkribera ”{{name}}” igen? Den nuvarande transkriptionen ersätts, och det går inte att ångra.",
+      "replace_confirm_other": "Transkribera {{count}} inspelningspaket igen? Deras nuvarande transkriptioner ersätts, och det går inte att ångra.",
+      "replace_confirm_checked": "Det gäller även {{count}} avsnitt som en person har rättat eller kontrollyssnat.",
+      "replace_confirm_export": "Använd ”Spara som .zip” först om du vill behålla en kopia.",
+      "auto_on": "Autotranskribering på",
+      "auto_hint": "Nya inspelningspaket transkriberas så fort du lägger till dem. Om du vill transkribera ett igen, till exempel med en större modell, markera det i listan och klicka här. Stäng av detta i inställningarna (reglageikonen)."
     },
     "capacity": {
       "storage_label": "Webbläsarlagring",
       "storage_text": "{{used}} av {{quota}}",
-      "storage_note": "Uppskattning: modeller ca {{models}} för nuvarande pipeline + annoteringar ca {{annotations}}. Media skrivs aldrig till lagringen.",
+      "storage_note": "Uppskattning: modeller ca {{models}} för nuvarande pipeline + transkriptioner ca {{annotations}}. Tratt sparar transkriptioner, aldrig ljud.",
       "storage_unavailable": "Den här webbläsaren rapporterar inte lagringsanvändning.",
       "storage_breakdown_unavailable": "Lagringsfördelning otillgänglig tills en pipeline är konfigurerad.",
       "memory_label": "Arbetsminne (uppskattat)",
       "memory_text": "{{used}} av ~{{budget}}",
-      "memory_note": "Avkodat ljud för {{count}} fil(er) i minnet. Det är detta, inte lagringen, som begränsar hur mycket media du kan ha igång samtidigt."
+      "memory_note": "Det bifogade ljudet för {{count}} inspelningspaket, avkodat. Det är detta, inte lagringen, som begränsar hur mycket ljud du kan ha bifogat samtidigt.",
+      "title": "Lagring och minne",
+      "near_limit": "Nära gränsen",
+      "near_limit_toast": "Tratt börjar få ont om minne eller lagringsutrymme i webbläsaren. Se ”Lagring och minne” längst ned i vänsterpanelen.",
+      "near_limit_callout": "Tratt börjar få ont om minne eller lagringsutrymme i webbläsaren. Siffrorna finns nedan.",
+      "near_limit_dismiss": "Stäng"
     },
     "catalogue_export": {
-      "title": "Exportera katalog",
+      "title": "Spara som .zip",
       "formats_label": "Format",
-      "bundles_label": "{{count}} fil(er) markerade",
+      "native_format": "Tratt (_annot.json, alltid)",
+      "native_hint": "Tratts egen transkriptionsfil, alltid med. Släpp .zip-filen i Tratt senare för att läsa in transkriptionerna igen.",
+      "contents_label": "Det här hamnar i .zip-filen",
+      "summary_with_audio": "{{count}} med ljud och transkription",
+      "summary_transcript_only": "{{count}} bara transkription",
+      "summary_left_out": "{{count}} utelämnade",
+      "badge_with_audio": "ljud + transkription",
+      "badge_transcript_only": "bara transkription",
+      "no_audio_file": "inget ljud: det är inte bifogat",
+      "manifest_hint": "— en lista över inspelningspaketen",
+      "nothing_to_save": "Inget av de här inspelningspaketen har någon transkription än, så det finns inget att spara.",
+      "left_out": "Utelämnade, ingen transkription än: {{names}}",
+      "bundles_label": "{{count}} inspelningspaket markerade",
+      "missing_audio": "{{count}} av dem har inget bifogat ljud och sparas utan det. Bifoga deras ljud först för en komplett kopia.",
       "time_aligned_required": "Välj minst ett tidsstyrt format (t.ex. ELAN eller SRT).",
-      "all_bundles_hint": "Inga filer markerade — exporterar alla {{count}}.",
-      "export": "Exportera",
+      "all_bundles_hint": "Inga inspelningspaket markerade — sparar alla {{count}}.",
+      "export": "Spara",
       "cancel": "Avbryt",
-      "started": "Exporterar {{count}} fil(er)… Nedladdningen startar när arkivet är klart.",
-      "progress": "Exporterar {{current}} av {{total}}…",
+      "started": "Sparar {{count}} inspelningspaket… Nedladdningen startar när .zip-filen är klar.",
+      "progress": "Sparar {{current}} av {{total}}…",
       "warnings_title": "Klar med varningar",
-      "done": "Klar — {{count}} fil(er) arkiverade.",
-      "failed": "Exporten misslyckades: {{message}}"
+      "done": "Klart — {{count}} inspelningspaket sparade.",
+      "failed": "Det gick inte att spara: {{message}}"
     },
-    "dropzone_placeholder": "Släpp ljudfiler eller tidigare exporterat arkiv här",
+    "dropzone_placeholder": "Släpp ljud- eller videofiler här, eller en .zip som du sparat från Tratt",
+    "dropzone_attach": "Släpp ljud- eller videofiler här. Ett inspelningspakets egen ljudfil bifogas till det.",
     "editor": {
       "loading_audio": "Läser in ljud…",
-      "awaiting_media": "Ljudet för den här filen är inte inläst i den här sessionen. Använd ”Bifoga fil…” i listan för att koppla det igen."
+      "awaiting_media": "Det här inspelningspaketets ljud är inte bifogat. Tratt sparar transkriptioner, aldrig ljud, så bifoga det igen vid varje besök."
     },
     "empty": {
-      "title": "Inga filer ännu",
-      "text": "Släpp en eller flera ljudfiler till vänster, eller spela in direkt. Varje fil får en egen transkription, och med automatisk transkribering påslagen transkriberas nya filer automatiskt.",
+      "title": "Inga inspelningspaket ännu",
+      "text": "Släpp en eller flera ljudfiler till vänster, eller spela in direkt. Varje fil blir ett inspelningspaket: ljudet plus en egen transkription. Med automatisk transkribering påslagen transkriberas nya automatiskt.",
       "restored_title": "Välkommen tillbaka",
-      "restored_text": "Filerna från din förra session finns i listan till vänster. Koppla en fils ljud igen med ”Bifoga fil…” för att fortsätta redigera, eller släpp nya filer."
+      "restored_text": "Tratt har kvar dina transkriptioner från förra gången, men inte ditt ljud: ljud sparas aldrig. För att lyssna och rätta, bifoga varje inspelningspakets ljud med ”Bifoga” i listan, eller släpp samma ljudfiler här."
     },
     "dropzone": {
       "already_loaded": "Finns redan i listan och lades inte till igen: {{names}}",
-      "transcript_no_recording": "Ingen inspelning heter ”{{name}}”. Släpp transkriptionen tillsammans med ljudfilen, eller döp den som inspelningen.",
+      "transcript_no_recording": "Inget inspelningspaket heter ”{{name}}”. Släpp transkriptionen tillsammans med sin ljudfil, eller ge den samma namn som inspelningspaketet.",
       "transcript_needs_audio": "Bifoga ljudet för ”{{name}}” först och släpp sedan transkriptionen igen.",
       "transcript_already_used": "En annan transkription för ”{{name}}” i samma släpp används redan."
     },
@@ -847,17 +893,84 @@
       "applied": "{{file}} laddades in i {{name}}."
     },
     "pipeline": {
-      "on": "Automatisk transkribering på",
-      "off": "Automatisk transkribering av",
-      "off_detail": "Nya filer transkriberas inte automatiskt.",
+      "on": "Automatisk transkription på",
+      "off": "Automatisk transkription av",
       "speakers_one": "1 talare",
       "speakers_other": "{{count}} talare",
       "speakers_auto": "Talare: automatiskt",
       "translate_to": "→ {{language}}",
-      "edit": "Pipelineinställningar",
-      "dialog_title": "Pipelineinställningar",
+      "edit": "Transkriptionsinställningar",
+      "dialog_title": "Transkriptionsinställningar",
       "done": "Klar",
-      "close": "Stäng"
+      "close": "Stäng",
+      "unavailable": "Transkription inte tillgänglig",
+      "automatic_label": "Transkribera nya inspelningspaket automatiskt"
+    },
+    "welcome": {
+      "title": "Gör tal till text",
+      "lead": "Lägg till en ljud- eller videofil så transkriberar Tratt den åt dig – direkt här i webbläsaren.",
+      "drop": "Släpp en ljud- eller videofil här",
+      "or": "eller",
+      "choose": "Välj en fil",
+      "demo": "Prova med en exempelinspelning",
+      "demo_failed": "Exempelinspelningen kunde inte laddas.",
+      "language": "Transkriptionsspråk: {{language}}",
+      "change_settings": "Ändra",
+      "manual_prompt": "Vill du hellre skriva själv?",
+      "manual": "Transkribera för hand, utan AI",
+      "privacy_title": "Privat från grunden.",
+      "privacy": "Ditt ljud lämnar aldrig din dator — automatisk transkribering körs också lokalt i din webbläsare.",
+      "facts": "Gratis att använda · Fungerar med MP3, WAV, M4A, MP4, MOV med flera",
+      "how": "Hur fungerar Tratt?",
+      "steps": {
+        "add": {
+          "title": "Lägg till en fil",
+          "text": "Ljud eller video"
+        },
+        "transcribe": {
+          "title": "Transkribera",
+          "text": "Ett klick, helt automatiskt"
+        },
+        "edit": {
+          "title": "Redigera och ladda ner",
+          "text": "Text, Word eller undertexter"
+        }
+      }
+    },
+    "visp": {
+      "title": "Tilldelade inspelningspaket",
+      "refresh": "Uppdatera",
+      "loading": "Hämtar dina inspelningspaket från VISP…",
+      "empty": "Inga inspelningspaket är tilldelade dig i det här projektet. Be projektägaren tilldela några i VISP och tryck sedan på Uppdatera.",
+      "assigned_list": "Inspelningspaket som är tilldelade dig:",
+      "save": "Spara till VISP",
+      "retry": "Försök igen",
+      "finished": "Klar",
+      "comment": "Kommentar",
+      "keep_mine": "Behåll min version",
+      "use_theirs": "Använd versionen i VISP",
+      "unassigned": "Inte längre tilldelat dig. Dina osparade ändringar finns kvar här tills du tar bort inspelningspaketet; ladda ner transkriptet först om du behöver det.",
+      "remove_unassigned": "Ta bort",
+      "sync": {
+        "saved": "Sparad",
+        "unsaved": "Osparade ändringar",
+        "saving": "Sparar…",
+        "failed": "Inte sparad"
+      },
+      "error": {
+        "not_signed_in": "Du är inte längre inloggad i VISP. Logga in igen i VISP och ladda om TRATT.",
+        "not_member": "Du är inte medlem i det här projektet. Be projektägaren lägga till dig.",
+        "no_transcription_level": "Projektet saknar transkriptionsnivå, så TRATT kan inte öppna dess inspelningspaket. Be projektägaren lägga till en i VISP.",
+        "level_linked": "Transkriptionsnivån är länkad till andra nivåer, så TRATT kan inte redigera den säkert. Be projektägaren ta bort länkarna.",
+        "unreachable": "VISP kan inte nås. Dina ändringar finns kvar i den här webbläsaren; försök igen om en stund.",
+        "stale": "Inspelningspaketet ändrades i VISP eller i en annan flik medan du arbetade med det. Dina ändringar finns kvar i den här webbläsaren. Behåll din version (bara transkriptet ersätts) eller använd versionen i VISP och släpp dina ändringar.",
+        "unassigned": "Inspelningspaketet är inte längre tilldelat dig och kan därför inte sparas.",
+        "unknown": "Något gick fel vid kontakten med VISP."
+      },
+      "pane_title": "Välj ett inspelningspaket",
+      "pane_text": "Välj ett i listan till vänster. Ljudet och transkriptet hämtas från VISP, och Spara i listan skriver tillbaka ditt transkript till VISP.",
+      "pane_readonly_title": "Inget att öppna i TRATT",
+      "pane_readonly_text": "TRATT kan öppna projektets inspelningspaket när projektet har en transkriptionsnivå."
     }
   },
   "shell": {
@@ -876,8 +989,14 @@
     },
     "header": {
       "label": "Huvudnavigering",
-      "theme_toggle": "Växla mellan ljust och mörkt läge",
-      "workbench": "Arbetsbänk"
+      "theme_toggle": "Växla mellan ljust och mörkt läge"
     }
+  },
+  "pane_splitter": {
+    "resize": "Ändra panelernas storlek (dra, eller använd piltangenterna)",
+    "narrower": "Gör den vänstra panelen smalare",
+    "wider": "Gör den vänstra panelen bredare",
+    "hide": "Dölj den vänstra panelen",
+    "show": "Visa den vänstra panelen"
   }
 }

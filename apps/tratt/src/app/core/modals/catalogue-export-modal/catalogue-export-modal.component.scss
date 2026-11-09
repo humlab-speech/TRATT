@@ -18,3 +18,202 @@
   color: var(--tratt-text-primary);
   font-size: 0.85rem;
 }
+
+.catalogue-export__missing-audio {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--tratt-radius);
+  background: var(--sb-blue-tint);
+  color: var(--tratt-text-primary);
+  font-size: 0.875rem;
+
+  i {
+    margin-top: 0.2rem;
+    color: var(--tratt-interactive-text);
+  }
+}
+
+// Formats on the left, the archive's contents on the right; stacked when
+// the dialog is narrow.
+.catalogue-export__layout {
+  display: grid;
+  grid-template-columns: minmax(9rem, auto) 1fr;
+  gap: 1.5rem;
+  margin: 1rem 0;
+
+  @media (max-width: 575.98px) {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+
+  .catalogue-export__formats {
+    margin: 0;
+  }
+}
+
+.catalogue-export__format-option--fixed {
+  cursor: default;
+  color: var(--tratt-text-muted);
+}
+
+.catalogue-export__time-hint {
+  margin: 0.5rem 0 0;
+  font-size: 0.85rem;
+}
+
+.catalogue-export__contents {
+  min-width: 0;
+}
+
+.catalogue-export__contents-title {
+  margin-bottom: 0.5rem;
+  font-size: 1rem;
+}
+
+.catalogue-export__summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+  margin: 0 0 0.5rem;
+  padding: 0;
+  list-style: none;
+}
+
+.catalogue-export__tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.125rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  border: 1px solid var(--tratt-border);
+  background: var(--tratt-surface-subtle);
+  color: var(--tratt-text-primary);
+
+  &--audio {
+    border-color: var(--tratt-interactive);
+    background: var(--sb-blue-tint);
+    i {
+      color: var(--tratt-interactive-text);
+    }
+  }
+
+  &--out i {
+    color: var(--tratt-text-muted);
+  }
+}
+
+// The file tree. Scrolls on its own so a long list keeps the buttons in view.
+.catalogue-export__tree {
+  max-height: 20rem;
+  overflow: auto;
+  margin: 0;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--tratt-border);
+  border-radius: var(--tratt-radius);
+  background: var(--tratt-surface-subtle);
+  font-family: var(--tratt-font-data);
+  font-size: 0.8rem;
+  list-style: none;
+
+  ul {
+    margin: 0;
+    padding-left: 1.1rem;
+    list-style: none;
+  }
+
+  i {
+    width: 1rem;
+    text-align: center;
+    color: var(--tratt-text-muted);
+  }
+}
+
+.catalogue-export__node {
+  padding: 0.125rem 0;
+  overflow-wrap: anywhere;
+
+  &--zip {
+    font-weight: 600;
+
+    > ul {
+      font-weight: normal;
+      margin-top: 0.25rem;
+    }
+  }
+
+  &--folder {
+    margin-bottom: 0.25rem;
+  }
+
+  &--manifest {
+    color: var(--tratt-text-muted);
+  }
+}
+
+.catalogue-export__folder-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.375rem;
+
+  > i {
+    color: var(--tratt-interactive-text);
+  }
+}
+
+.catalogue-export__folder-name {
+  font-weight: 600;
+}
+
+.catalogue-export__badge {
+  padding: 0 0.375rem;
+  border-radius: var(--tratt-radius);
+  border: 1px solid var(--tratt-border-control);
+  font-family: var(--tratt-font-ui);
+  font-size: 0.72rem;
+  color: var(--tratt-text-muted);
+
+  &--audio {
+    border-color: var(--tratt-interactive);
+    background: var(--sb-blue-tint);
+    color: var(--tratt-interactive-text);
+  }
+}
+
+.catalogue-export__file {
+  display: flex;
+  align-items: baseline;
+  gap: 0.25rem;
+
+  &--audio {
+    font-weight: 600;
+
+    i {
+      color: var(--tratt-interactive-text);
+    }
+  }
+
+  &--native {
+    color: var(--tratt-text-muted);
+  }
+
+  &--missing {
+    color: var(--tratt-text-muted);
+    font-family: var(--tratt-font-ui);
+    font-style: italic;
+  }
+}
+
+.catalogue-export__note {
+  margin-left: 0.25rem;
+  font-family: var(--tratt-font-ui);
+}
+
+.catalogue-export__empty,
+.catalogue-export__left-out {
+  margin: 0.5rem 0 0;
+  font-size: 0.85rem;
+  color: var(--tratt-text-muted);
+}

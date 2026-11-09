@@ -1,27 +1,41 @@
+import { HttpClient } from '@angular/common/http';
 import { TestBed } from '@angular/core/testing';
 import { Router } from '@angular/router';
+import {
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  jest,
+} from '@jest/globals';
+import { TranslocoService } from '@jsverse/transloco';
 import { provideMockActions } from '@ngrx/effects/testing';
 import { MockStore, provideMockStore } from '@ngrx/store/testing';
-import { describe, expect, it, jest, beforeEach } from '@jest/globals';
-import { HttpClient } from '@angular/common/http';
-import { TranslocoService } from '@jsverse/transloco';
 import { OctraAPIService } from '@octra/ngx-octra-api';
 import { ReplaySubject, Subject } from 'rxjs';
-import { AlertService, AudioService, UserInteractionsService } from '../../../shared/service';
+import { AppInfo } from '../../../../app.info';
+import { TrattModalService } from '../../../modals/tratt-modal.service';
+import {
+  AlertService,
+  AudioService,
+  UserInteractionsService,
+} from '../../../shared/service';
 import { AppStorageService } from '../../../shared/service/appstorage.service';
 import { RoutingService } from '../../../shared/service/routing.service';
-import { TrattModalService } from '../../../modals/tratt-modal.service';
 import { LoginMode, RootState } from '../../index';
-import { AnnotationActions } from './annotation.actions';
-import { AnnotationLoadEffects, isWorkbenchRoute } from './annotation-load.effects';
+import { AnnotationLoadEffects } from './annotation-load.effects';
 import { AnnotationMaintenanceService } from './annotation-maintenance.service';
-import { AppInfo } from '../../../../app.info';
+import { AnnotationActions } from './annotation.actions';
 
 // jest can't parse the ESM build of 'mime' shipped in node_modules (it's not
 // matched by this app's jest transformIgnorePatterns). AnnotationLoadEffects
 // only uses it outside onAudioLoad$ (mediaType detection), so a stub is safe
 // for the code path this spec exercises.
-jest.mock('mime', () => ({ __esModule: true, default: { getType: () => undefined } }));
+jest.mock('mime', () => ({
+  __esModule: true,
+  default: { getType: () => undefined },
+}));
 
 describe('AnnotationLoadEffects.onAudioLoad$', () => {
   let effects: AnnotationLoadEffects;
@@ -45,9 +59,15 @@ describe('AnnotationLoadEffects.onAudioLoad$', () => {
         { provide: HttpClient, useValue: {} },
         { provide: AlertService, useValue: { showAlert: () => undefined } },
         { provide: RoutingService, useValue: { navigate: () => undefined } },
-        { provide: TrattModalService, useValue: { openModal: () => undefined } },
+        {
+          provide: TrattModalService,
+          useValue: { openModal: () => undefined },
+        },
         { provide: AudioService, useValue: audioStub },
-        { provide: UserInteractionsService, useValue: { afteradd: new Subject() } },
+        {
+          provide: UserInteractionsService,
+          useValue: { afteradd: new Subject() },
+        },
         { provide: AppStorageService, useValue: {} },
         { provide: TranslocoService, useValue: {} },
         { provide: AnnotationMaintenanceService, useValue: {} },
@@ -132,9 +152,15 @@ describe('AnnotationLoadEffects.onAudioLoad$ LOCAL mode — multi-bundle readine
         { provide: HttpClient, useValue: {} },
         { provide: AlertService, useValue: { showAlert: () => undefined } },
         { provide: RoutingService, useValue: { navigate: () => undefined } },
-        { provide: TrattModalService, useValue: { openModal: () => undefined } },
+        {
+          provide: TrattModalService,
+          useValue: { openModal: () => undefined },
+        },
         { provide: AudioService, useValue: audioStub },
-        { provide: UserInteractionsService, useValue: { afteradd: new Subject() } },
+        {
+          provide: UserInteractionsService,
+          useValue: { afteradd: new Subject() },
+        },
         { provide: AppStorageService, useValue: {} },
         { provide: TranslocoService, useValue: {} },
         { provide: AnnotationMaintenanceService, useValue: {} },
@@ -165,7 +191,9 @@ describe('AnnotationLoadEffects.onAudioLoad$ LOCAL mode — multi-bundle readine
       }),
     );
     expect(store.dispatch).not.toHaveBeenCalledWith(
-      expect.objectContaining({ type: AnnotationActions.loadAudio.success.type }),
+      expect.objectContaining({
+        type: AnnotationActions.loadAudio.success.type,
+      }),
     );
 
     subscription.unsubscribe();
@@ -176,22 +204,23 @@ describe('AnnotationLoadEffects.loadSegmentsSuccess$', () => {
   let effects: AnnotationLoadEffects;
   let actions$: ReplaySubject<unknown>;
   let routingService: { navigate: jest.Mock };
-  let router: { url: string };
+  let router: { url: string; navigated: boolean };
 
   const initialState = {
     application: { mode: LoginMode.LOCAL },
   } as unknown as RootState;
 
-  const successPayloadFixture = AnnotationActions.initTranscriptionService.success({
-    mode: LoginMode.LOCAL,
-    transcript: {} as any,
-    saveToDB: true,
-  });
+  const successPayloadFixture =
+    AnnotationActions.initTranscriptionService.success({
+      mode: LoginMode.LOCAL,
+      transcript: {} as any,
+      saveToDB: true,
+    });
 
   beforeEach(() => {
     actions$ = new ReplaySubject(1);
     routingService = { navigate: jest.fn() };
-    router = { url: '/local' };
+    router = { url: '/login', navigated: true };
 
     TestBed.configureTestingModule({
       providers: [
@@ -202,9 +231,15 @@ describe('AnnotationLoadEffects.loadSegmentsSuccess$', () => {
         { provide: HttpClient, useValue: {} },
         { provide: AlertService, useValue: { showAlert: () => undefined } },
         { provide: RoutingService, useValue: routingService },
-        { provide: TrattModalService, useValue: { openModal: () => undefined } },
+        {
+          provide: TrattModalService,
+          useValue: { openModal: () => undefined },
+        },
         { provide: AudioService, useValue: { loadAudio: jest.fn() } },
-        { provide: UserInteractionsService, useValue: { afteradd: new Subject() } },
+        {
+          provide: UserInteractionsService,
+          useValue: { afteradd: new Subject() },
+        },
         { provide: AppStorageService, useValue: {} },
         { provide: TranslocoService, useValue: {} },
         { provide: AnnotationMaintenanceService, useValue: {} },
@@ -215,8 +250,8 @@ describe('AnnotationLoadEffects.loadSegmentsSuccess$', () => {
     effects = TestBed.inject(AnnotationLoadEffects);
   });
 
-  it('navigates to /intern/transcr when the current URL is /local', (done) => {
-    router.url = '/local';
+  it('navigates to /intern/transcr when the current URL is not the workbench', (done) => {
+    router.url = '/login';
     actions$.next(successPayloadFixture);
 
     effects.loadSegmentsSuccess$.subscribe(() => {
@@ -229,8 +264,8 @@ describe('AnnotationLoadEffects.loadSegmentsSuccess$', () => {
     });
   });
 
-  it('does not navigate to /intern/transcr when the current URL is /workbench', (done) => {
-    router.url = '/workbench';
+  it('does not navigate to /intern/transcr on the workbench (/)', (done) => {
+    router.url = '/';
     actions$.next(successPayloadFixture);
 
     effects.loadSegmentsSuccess$.subscribe(() => {
@@ -239,8 +274,8 @@ describe('AnnotationLoadEffects.loadSegmentsSuccess$', () => {
     });
   });
 
-  it('does not navigate to /intern/transcr when the current URL is /workbench with a query string', (done) => {
-    router.url = '/workbench?foo=bar';
+  it('does not navigate to /intern/transcr on the workbench with a query string', (done) => {
+    router.url = '/?foo=bar';
     actions$.next(successPayloadFixture);
 
     effects.loadSegmentsSuccess$.subscribe(() => {
@@ -262,26 +297,38 @@ describe('AnnotationLoadEffects.loadSegmentsSuccess$', () => {
       done();
     });
   });
-});
 
-describe('isWorkbenchRoute', () => {
-  it('matches the bare /workbench route', () => {
-    expect(isWorkbenchRoute('/workbench')).toBe(true);
-  });
+  // Before the first navigation router.url is '/' (the workbench's route)
+  // whatever page is loading; only the address bar tells them apart.
+  describe('while booting (no navigation yet)', () => {
+    afterEach(() => window.history.replaceState({}, '', '/'));
 
-  it('matches /workbench sub-paths, query strings and hashes', () => {
-    expect(isWorkbenchRoute('/workbench/session')).toBe(true);
-    expect(isWorkbenchRoute('/workbench?foo=bar')).toBe(true);
-    expect(isWorkbenchRoute('/workbench#section')).toBe(true);
-  });
+    it('navigates when the browser is loading another page', (done) => {
+      router.url = '/';
+      router.navigated = false;
+      window.history.replaceState({}, '', '/intern/transcr');
+      actions$.next(successPayloadFixture);
 
-  it('does NOT match lookalike routes that merely start with /workbench', () => {
-    expect(isWorkbenchRoute('/workbench-v2')).toBe(false);
-    expect(isWorkbenchRoute('/workbenches')).toBe(false);
-  });
+      effects.loadSegmentsSuccess$.subscribe(() => {
+        expect(routingService.navigate).toHaveBeenCalledWith(
+          'transcription initialized',
+          ['/intern/transcr'],
+          AppInfo.queryParamsHandling,
+        );
+        done();
+      });
+    });
 
-  it('does not match unrelated routes', () => {
-    expect(isWorkbenchRoute('/local')).toBe(false);
-    expect(isWorkbenchRoute('/intern/transcr')).toBe(false);
+    it('stays put when the browser is loading the workbench', (done) => {
+      router.url = '/';
+      router.navigated = false;
+      window.history.replaceState({}, '', '/');
+      actions$.next(successPayloadFixture);
+
+      effects.loadSegmentsSuccess$.subscribe(() => {
+        expect(routingService.navigate).not.toHaveBeenCalled();
+        done();
+      });
+    });
   });
 });

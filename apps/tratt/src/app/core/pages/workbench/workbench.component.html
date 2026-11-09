@@ -1,236 +1,399 @@
-<div class="workbench">
-  <ng-template trattHeaderCenter>
-    @if (hasAnyBundles() && selectedBundleHeader; as header) {
-      <tratt-data-selector
-        [header]="header"
-        [files]="headerFiles()"
-        [selectedId]="selectedBundleId()"
-        (selectFile)="selectFileFromHeader($event)"
-      />
-    }
-  </ng-template>
-  <div class="workbench__left">
-    @if (hasAnyBundles()) {
-      <!-- Moved above the upload/record tabs (step 6): the bundle list is
-           the primary "what's loaded" surface once anything exists; the
-           dropzone below is now just the ingest affordance, not the list. -->
-      <tratt-bundle-list></tratt-bundle-list>
-    }
-    <ul
-      ngbNav
-      #workbenchNav="ngbNav"
-      [(activeId)]="activeTab"
-      [destroyOnHide]="false"
-      class="nav-tabs tratt-tabs"
-    >
-      <li [ngbNavItem]="'upload'">
-        <button ngbNavLink type="button">
-          <i class="fa-solid fa-folder-open me-1"></i>
-          {{ 'workbench.tabs.upload' | transloco }}
-        </button>
-        <ng-template ngbNavContent>
-          <div class="pt-2">
-            <!-- height shrunk from 180px (step 6): consumeEntry() removes a
-                 row from this table the instant it's bundled, so this table
-                 only ever shows rows still mid-decode or failed — the
-                 bundle list above now owns "the list of files." -->
-            <!-- Each dropped transcript is paired with the recording of its
-                 name (in the same drop or already in the list). -->
-            <tratt-dropzone
-              height="112px"
-              [allowMultipleAudio]="true"
-              [pairTranscriptsByBasename]="true"
-              [externalAudioFor]="audioForTranscript"
-              [acceptExportArchive]="true"
-              (archiveLoaded)="onArchiveLoaded()"
-              placeholderKey="workbench.dropzone_placeholder"
-            ></tratt-dropzone>
-          </div>
-        </ng-template>
-      </li>
-      <li [ngbNavItem]="'record'">
-        <button ngbNavLink type="button">
-          <i class="fa-solid fa-microphone me-1"></i>
-          {{ 'workbench.tabs.record' | transloco }}
-        </button>
-        <ng-template ngbNavContent>
-          <div class="pt-2">
-            <tratt-recording-panel
-              (useRecording)="onUseRecording($event)"
-            ></tratt-recording-panel>
-          </div>
-        </ng-template>
-      </li>
-    </ul>
-    <div [ngbNavOutlet]="workbenchNav"></div>
-
-    <!-- One persistent pipeline configuration for the queue (step 6). The
-         rail shows only a summary of it; the settings open in a dialog from
-         the icon. Changing them only affects files added/run afterwards. -->
-    <div class="workbench__queue">
-      <h6 class="workbench__queue-title">
-        {{ 'workbench.queue.options_title' | transloco }}
-      </h6>
-      @let summary = pipelineSummary();
-      <div
-        class="workbench__pipeline"
-        [class.workbench__pipeline--off]="!summary.on"
+<div
+  #workbenchGrid
+  class="workbench"
+  [class.workbench--welcome]="welcomeLayout()"
+  [class.workbench--welcome-changing]="welcomeChanging()"
+>
+  <!-- A native dialog, not NgbModal: its content exists while it is
+       closed, and the two settings components must stay mounted — they
+       restore the remembered choices (persistKey) and hand them to the
+       queue in their own ngOnInit. Created only on open, the queue would
+       have no options (auto-transcription off) until it was opened.
+       Outside the rail, and before it: the start page's language line reads
+       what the settings component restores on init. Closed, it takes no
+       place in the grid. -->
+  <dialog
+    #pipelineDialog
+    id="workbench-pipeline-dialog"
+    class="workbench__pipeline-dialog"
+    aria-labelledby="workbench-pipeline-dialog-title"
+    (click)="onPipelineDialogClick($event)"
+    (close)="onPipelineDialogClosed()"
+  >
+    <div class="workbench__pipeline-dialog-header">
+      <h2
+        id="workbench-pipeline-dialog-title"
+        class="workbench__pipeline-dialog-title"
       >
-        <span class="workbench__pipeline-dot" aria-hidden="true"></span>
-        <div class="workbench__pipeline-text">
-          <div class="workbench__pipeline-state">
-            {{
-              (summary.on ? 'workbench.pipeline.on' : 'workbench.pipeline.off')
-                | transloco
-            }}
-          </div>
-          @if (summary.on) {
-            <ul class="workbench__pipeline-chips">
-              <li>{{ summary.model }}</li>
-              @if (summary.language) {
-                <li>{{ summary.language }}</li>
-              }
-              @if (summary.speakers === 'auto') {
-                <li>{{ 'workbench.pipeline.speakers_auto' | transloco }}</li>
-              } @else if (summary.speakers === 1) {
-                <li>{{ 'workbench.pipeline.speakers_one' | transloco }}</li>
-              } @else if (summary.speakers) {
-                <li>
-                  {{
-                    'workbench.pipeline.speakers_other'
-                      | transloco: { count: summary.speakers }
-                  }}
-                </li>
-              }
-              @if (summary.translateTo) {
-                <li>
-                  {{
-                    'workbench.pipeline.translate_to'
-                      | transloco: { language: summary.translateTo }
-                  }}
-                </li>
-              }
-            </ul>
-          } @else {
-            <div class="workbench__pipeline-detail">
-              {{ 'workbench.pipeline.off_detail' | transloco }}
-            </div>
-          }
-        </div>
-        <button
-          #pipelineButton
-          type="button"
-          class="btn btn-sm btn-outline-secondary workbench__pipeline-edit"
-          aria-haspopup="dialog"
-          aria-controls="workbench-pipeline-dialog"
-          [attr.aria-label]="'workbench.pipeline.edit' | transloco"
-          [attr.title]="'workbench.pipeline.edit' | transloco"
-          (click)="openPipelineSettings()"
-        >
-          <i class="fa-solid fa-sliders" aria-hidden="true"></i>
-        </button>
-      </div>
-
-      <!-- A native dialog, not NgbModal: its content exists while it is
-           closed, and the two settings components must stay mounted — they
-           restore the remembered choices (persistKey) and hand them to the
-           queue in their own ngOnInit. Created only on open, the queue would
-           have no options (auto-transcription off) until it was opened. -->
-      <dialog
-        #pipelineDialog
-        id="workbench-pipeline-dialog"
-        class="workbench__pipeline-dialog"
-        aria-labelledby="workbench-pipeline-dialog-title"
-        (click)="onPipelineDialogClick($event)"
-        (close)="onPipelineDialogClosed()"
-      >
-        <div class="workbench__pipeline-dialog-header">
-          <h2
-            id="workbench-pipeline-dialog-title"
-            class="workbench__pipeline-dialog-title"
-          >
-            {{ 'workbench.pipeline.dialog_title' | transloco }}
-          </h2>
-          <button
-            type="button"
-            class="btn-close"
-            [attr.aria-label]="'workbench.pipeline.close' | transloco"
-            (click)="closePipelineSettings()"
-          ></button>
-        </div>
-        <div class="workbench__pipeline-dialog-body">
-          <!-- Choices are remembered per browser (persistKey), so a reload
-               doesn't switch auto-transcription off again. -->
-          <tratt-auto-transcribe-options
-            idPrefix="queue-"
-            persistKey="tratt.workbench.pipeline.transcribe"
-            [audioLoaded]="true"
-            [annotationAlreadyLoaded]="false"
-            [compact]="true"
-            (optionsChange)="onQueueOptionsChange($event)"
-          ></tratt-auto-transcribe-options>
-          <tratt-auto-translate-options
-            persistKey="tratt.workbench.pipeline.translate"
-            [annotationAlreadyLoaded]="false"
-            [transcribeWillRun]="queueOptions() !== null"
-            [sourceLanguageHint]="queueOptions()?.language"
-            [compact]="true"
-            (optionsChange)="onQueueTranslateOptionsChange($event)"
-          ></tratt-auto-translate-options>
-        </div>
-        <div class="workbench__pipeline-dialog-footer">
-          <button
-            type="button"
-            class="btn btn-primary btn-sm"
-            (click)="closePipelineSettings()"
-          >
-            {{ 'workbench.pipeline.done' | transloco }}
-          </button>
-        </div>
-      </dialog>
-
+        {{ 'workbench.pipeline.dialog_title' | transloco }}
+      </h2>
       <button
         type="button"
-        [class]="
-          queueRunning()
-            ? 'btn btn-outline-secondary workbench__queue-run'
-            : 'btn btn-next-lg workbench__queue-run'
-        "
-        [disabled]="
-          !queueRunning() &&
-          (readyBundleIds().length === 0 || queueOptions() === null)
-        "
-        [attr.title]="
-          !queueRunning() && queueOptions() === null
-            ? ('workbench.queue.no_options_hint' | transloco)
-            : null
-        "
-        (click)="onRunPauseClick()"
+        class="btn-close"
+        [attr.aria-label]="'workbench.pipeline.close' | transloco"
+        (click)="closePipelineSettings()"
+      ></button>
+    </div>
+    <div class="workbench__pipeline-dialog-body">
+      <!-- Choices are remembered per browser (persistKey), so a reload
+           doesn't switch auto-transcription off again. -->
+      <tratt-auto-transcribe-options
+        idPrefix="queue-"
+        persistKey="tratt.workbench.pipeline.transcribe"
+        [audioLoaded]="true"
+        [annotationAlreadyLoaded]="false"
+        [compact]="true"
+        [automatic]="true"
+        (optionsChange)="onQueueOptionsChange($event)"
+      ></tratt-auto-transcribe-options>
+      <tratt-auto-translate-options
+        persistKey="tratt.workbench.pipeline.translate"
+        [annotationAlreadyLoaded]="false"
+        [transcribeWillRun]="queueOptions() !== null"
+        [sourceLanguageHint]="queueOptions()?.language"
+        [compact]="true"
+        (optionsChange)="onQueueTranslateOptionsChange($event)"
+      ></tratt-auto-translate-options>
+    </div>
+    <div class="workbench__pipeline-dialog-footer">
+      <button
+        type="button"
+        class="btn btn-primary btn-sm"
+        (click)="closePipelineSettings()"
       >
-        @if (queueRunning()) {
-          <i class="fa-solid fa-pause me-1"></i>
-          {{ 'workbench.queue.pause' | transloco }}
-        } @else {
-          <i class="fa-solid fa-play me-1"></i>
-          {{
-            'workbench.queue.run'
-              | transloco: { count: readyBundleIds().length }
-          }}
-        }
+        {{ 'workbench.pipeline.done' | transloco }}
       </button>
     </div>
+  </dialog>
 
-    <!-- Deliberately OUTSIDE any session-state gate: cached ML models are
+  <!-- With no file loaded the rail is the start page: it fills the
+       workbench, its own column centred, around the same tabs and
+       dropzone. The first file in the list folds the start page away and
+       slides the editor in (see welcomeLayout). -->
+  <div id="workbench-rail" class="workbench__left">
+    <div class="workbench__fold workbench__fold--welcome">
+      <div class="workbench__fold-content">
+        <tratt-workbench-welcome-intro
+          (compatibility)="compatibleBrowser.set($event)"
+        />
+      </div>
+    </div>
+
+    @if (isVisp()) {
+      <div class="workbench__visp" role="region">
+        <div class="workbench__visp-bar">
+          <span class="workbench__visp-title">{{
+            'workbench.visp.title' | transloco
+          }}</span>
+          <button
+            type="button"
+            class="btn btn-sm btn-outline-secondary"
+            [disabled]="visp.loading()"
+            (click)="visp.refresh()"
+          >
+            <i class="fa-solid fa-rotate" aria-hidden="true"></i>
+            {{ 'workbench.visp.refresh' | transloco }}
+          </button>
+        </div>
+        @if (visp.loading()) {
+          <p role="status">{{ 'workbench.visp.loading' | transloco }}</p>
+        }
+        @if (visp.readOnly(); as why) {
+          <p class="alert alert-warning" role="alert">
+            {{ 'workbench.visp.error.' + why | transloco }}
+          </p>
+          @if (visp.readOnlyRefs().length > 0) {
+            <p class="mb-1">{{ 'workbench.visp.assigned_list' | transloco }}</p>
+            <ul class="workbench__visp-assigned">
+              @for (ref of visp.readOnlyRefs(); track ref.session + '/' + ref.name) {
+                <li>{{ ref.name }} <span class="text-muted">({{ ref.session }})</span></li>
+              }
+            </ul>
+          }
+        }
+        @if (visp.problem(); as problem) {
+          <p class="alert alert-danger" role="alert">
+            {{ 'workbench.visp.error.' + problem.kind | transloco }}
+            @if (problem.kind === 'unknown') {
+              <span class="d-block small">{{ problem.message }}</span>
+            }
+          </p>
+        }
+        @if (
+          !visp.loading() &&
+          !visp.problem() &&
+          !visp.readOnly() &&
+          !hasAnyBundles()
+        ) {
+          <p>{{ 'workbench.visp.empty' | transloco }}</p>
+        }
+      </div>
+    }
+
+    <!-- An unsupported browser gets the browser check instead. -->
+    @if (!isVisp()) {
+      <div
+        class="workbench__ingest"
+        [class.d-none]="welcomeLayout() && compatibleBrowser() === false"
+      >
+        <ul
+          ngbNav
+          #workbenchNav="ngbNav"
+          [(activeId)]="activeTab"
+          [destroyOnHide]="false"
+          class="workbench__modes"
+        >
+          <li [ngbNavItem]="'upload'">
+            <button
+              ngbNavLink
+              type="button"
+              [attr.title]="'workbench.tabs.upload' | transloco"
+            >
+              <i class="fa-solid fa-folder-open" aria-hidden="true"></i>
+              <span class="workbench__mode-label">{{
+                'workbench.tabs.upload' | transloco
+              }}</span>
+            </button>
+            <ng-template ngbNavContent>
+              <div>
+                <!-- In the work rail the height follows the text (a fixed one
+                 hid longer messages behind a scrollbar). consumeEntry()
+                 removes a row from this table the instant it's bundled, so
+                 this table only ever shows rows still mid-decode or failed —
+                 the bundle list below owns "the list of files." -->
+                <!-- Each dropped transcript is paired with the recording of its
+                 name (in the same drop or already in the list). -->
+                <tratt-dropzone
+                  [height]="welcomeLayout() ? '15rem' : 'auto'"
+                  [allowMultipleAudio]="true"
+                  [pairTranscriptsByBasename]="true"
+                  [externalAudioFor]="audioForTranscript"
+                  [acceptExportArchive]="true"
+                  (archiveLoaded)="onArchiveLoaded()"
+                  (filesDropped)="onFilesDropped($event)"
+                  [placeholderKey]="
+                    welcomeLayout()
+                      ? 'workbench.welcome.drop'
+                      : anyAwaitingAudio()
+                        ? 'workbench.dropzone_attach'
+                        : 'workbench.dropzone_placeholder'
+                  "
+                >
+                  @if (welcomeLayout()) {
+                    <!-- Looks like a button; the whole box is the button. -->
+                    <span class="workbench__drop-or">{{
+                      'workbench.welcome.or' | transloco
+                    }}</span>
+                    <span class="btn btn-next-lg workbench__drop-choose">{{
+                      'workbench.welcome.choose' | transloco
+                    }}</span>
+                  }
+                </tratt-dropzone>
+              </div>
+            </ng-template>
+          </li>
+          <li [ngbNavItem]="'record'">
+            <button
+              ngbNavLink
+              type="button"
+              [attr.title]="'workbench.tabs.record' | transloco"
+            >
+              <i class="fa-solid fa-microphone" aria-hidden="true"></i>
+              <span class="workbench__mode-label">{{
+                'workbench.tabs.record' | transloco
+              }}</span>
+            </button>
+            <ng-template ngbNavContent>
+              <div>
+                <tratt-recording-panel
+                  [framed]="false"
+                  (useRecording)="onUseRecording($event)"
+                ></tratt-recording-panel>
+              </div>
+            </ng-template>
+          </li>
+        </ul>
+        <div class="workbench__mode-panel" [ngbNavOutlet]="workbenchNav"></div>
+      </div>
+    }
+
+    <div class="workbench__fold workbench__fold--welcome">
+      <div class="workbench__fold-content">
+        <tratt-workbench-welcome
+          [language]="welcomeLanguage"
+          [demoLoading]="demoLoading() !== undefined"
+          (addByHand)="onWelcomeFiles($event, false)"
+          (startDemo)="startDemo()"
+          (openSettings)="openPipelineSettings()"
+        />
+      </div>
+    </div>
+
+    <div class="workbench__fold workbench__fold--work">
+      <div class="workbench__fold-content workbench__work">
+        <!-- The rail reads top to bottom: add files, the files, transcribe
+         them. The dropzone above is just the ingest affordance; this list
+         is the "what's loaded" surface once anything exists. -->
+        @if (hasAnyBundles()) {
+          <tratt-bundle-list></tratt-bundle-list>
+        }
+
+        <!-- One persistent pipeline configuration for the queue (step 6),
+         behind the settings half of this split button; its tooltip names
+         what a run would use. The button itself is always clickable and
+         says why when there is nothing to do: it transcribes the files
+         ticked in the list (again, after confirming, for files that have
+         text), or with none ticked every file without a transcript. -->
+        <div class="workbench__queue" [class.d-none]="visp.readOnly()">
+          <!-- Why a click did nothing: beside the whole split button, pointing
+           at it, rather than over the file list it may refer to. Opened
+           from code only; Esc or a click elsewhere closes it. -->
+          <ng-template #runPopoverContent>
+            <span role="status">{{ runMessage() ?? '' | transloco }}</span>
+          </ng-template>
+          <div
+            #runPopover="ngbPopover"
+            class="btn-group workbench__queue-split"
+            role="group"
+            [attr.aria-label]="'workbench.queue.options_title' | transloco"
+            [ngbPopover]="runPopoverContent"
+            triggers="manual"
+            autoClose="outside"
+            placement="end top bottom"
+            container="body"
+          >
+            @let checked = checkedBundleIds().length;
+            <button
+              type="button"
+              [class]="
+                queueRunning() || autoWaiting()
+                  ? 'btn btn-outline-secondary workbench__queue-run workbench__queue--quiet'
+                  : 'btn btn-next-lg workbench__queue-run'
+              "
+              [attr.title]="
+                (queueRunning()
+                  ? 'workbench.queue.stop_hint'
+                  : queueOptions() === null
+                    ? 'workbench.queue.unavailable_hint'
+                    : checked > 0
+                      ? 'workbench.queue.run_selected_hint'
+                      : readyBundleIds().length > 0
+                        ? 'workbench.queue.run_hint'
+                        : autoTranscribe()
+                          ? 'workbench.queue.auto_hint'
+                          : 'workbench.queue.nothing_hint'
+                ) | transloco
+              "
+              (click)="onRunStopClick()"
+            >
+              @if (queueRunning()) {
+                <!-- The button is the run's progress bar; a click stops the
+                     run, after asking. While the current file is prepared
+                     (decoded, its model loaded) its share pulses. -->
+                @if (runProgress(); as progress) {
+                  <span
+                    class="workbench__queue-fill"
+                    [style.width.%]="progress.fraction * 100"
+                    aria-hidden="true"
+                  ></span>
+                  @if (progress.preparing) {
+                    <span
+                      class="workbench__queue-preparing"
+                      [style.inset-inline-start.%]="progress.fraction * 100"
+                      [style.width.%]="100 / progress.total"
+                      aria-hidden="true"
+                    ></span>
+                  }
+                  <span class="workbench__queue-label">
+                    <i class="fa-solid fa-stop me-1" aria-hidden="true"></i>
+                    <span class="visually-hidden"
+                      >{{ 'workbench.queue.stop' | transloco }}:
+                    </span>
+                    {{
+                      'workbench.queue.progress'
+                        | transloco
+                          : { current: progress.current, total: progress.total }
+                    }}
+                  </span>
+                } @else {
+                  <i class="fa-solid fa-stop me-1" aria-hidden="true"></i>
+                  {{ 'workbench.queue.stop' | transloco }}
+                }
+              } @else if (autoWaiting()) {
+                <!-- Nothing waiting, and new files are transcribed on arrival:
+                 say so rather than offer a run with nothing in it. -->
+                <svg
+                  class="workbench__auto-icon me-1"
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                >
+                  <path
+                    class="workbench__auto-icon-line"
+                    d="M3.63 13.48A8.5 8.5 0 0 1 18.01 5.99M20.37 10.52A8.5 8.5 0 0 1 5.99 18.01M9.6 15.6 12 8.6l2.4 7M10.4 13.3h3.2"
+                  />
+                  <path
+                    class="workbench__auto-icon-head"
+                    d="M19.85 7.83 19.57 4.43 16.45 7.55ZM4.15 16.17 4.43 19.57 7.55 16.45Z"
+                  />
+                </svg>
+                {{ 'workbench.queue.auto_on' | transloco }}
+              } @else {
+                <i class="fa-solid fa-play me-1" aria-hidden="true"></i>
+                @if (checked > 0) {
+                  {{
+                    'workbench.queue.run_selected'
+                      | transloco: { count: checked }
+                  }}
+                } @else if (readyBundleIds().length > 0) {
+                  {{
+                    'workbench.queue.run'
+                      | transloco: { count: readyBundleIds().length }
+                  }}
+                } @else {
+                  {{ 'workbench.queue.run_none' | transloco }}
+                }
+              }
+            </button>
+            <button
+              #pipelineButton
+              type="button"
+              [class]="
+                queueRunning() || autoWaiting()
+                  ? 'btn btn-outline-secondary workbench__queue-settings workbench__queue--quiet'
+                  : 'btn btn-next-lg workbench__queue-settings'
+              "
+              aria-haspopup="dialog"
+              aria-controls="workbench-pipeline-dialog"
+              [attr.aria-label]="'workbench.pipeline.edit' | transloco"
+              [attr.title]="pipelineTooltip()"
+              (click)="openPipelineSettings()"
+            >
+              <i class="fa-solid fa-sliders" aria-hidden="true"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Deliberately OUTSIDE any session-state gate: cached ML models are
          the dominant browser-storage consumer and can exist long before
          this workbench has a single bundle, so the storage readout has to
          render on an empty workbench too. -->
-    <div class="workbench__capacity">
-      <tratt-capacity-indicator></tratt-capacity-indicator>
+        <div class="workbench__capacity">
+          <tratt-capacity-indicator></tratt-capacity-indicator>
+        </div>
+        <tratt-humlab-logo class="workbench__humlab-logo" variant="left" />
+      </div>
     </div>
-    <tratt-humlab-logo class="workbench__humlab-logo" variant="left" />
   </div>
+  <!-- Drag, click or arrow-key the rail's width; programmatic changes
+       animate in CSS (see PaneSplitterComponent). -->
+  <tratt-pane-splitter
+    class="workbench__splitter"
+    [container]="workbenchGrid"
+    controls="workbench-rail"
+    storageKey="tratt.workbench.railWidth"
+  />
   @if (sessionReady) {
-    <div class="workbench__right">
+    <div class="workbench__right" [attr.inert]="hasAnyBundles() ? null : ''">
       @if (hasAnyBundles()) {
         <div class="workbench__pane-bar">
           <div
@@ -294,12 +457,25 @@
                 class="fa-solid fa-wave-square workbench__empty-icon"
                 aria-hidden="true"
               ></i>
-              <h2 class="workbench__empty-title">
-                {{ 'workbench.empty.title' | transloco }}
-              </h2>
-              <p class="workbench__empty-text">
-                {{ 'workbench.empty.text' | transloco }}
-              </p>
+              @if (isVisp()) {
+                <h2 class="workbench__empty-title">
+                  {{ (visp.readOnly()
+                    ? 'workbench.visp.pane_readonly_title'
+                    : 'workbench.visp.pane_title') | transloco }}
+                </h2>
+                <p class="workbench__empty-text">
+                  {{ (visp.readOnly()
+                    ? 'workbench.visp.pane_readonly_text'
+                    : 'workbench.visp.pane_text') | transloco }}
+                </p>
+              } @else {
+                <h2 class="workbench__empty-title">
+                  {{ 'workbench.empty.title' | transloco }}
+                </h2>
+                <p class="workbench__empty-text">
+                  {{ 'workbench.empty.text' | transloco }}
+                </p>
+              }
             </div>
           </div>
         } @else if (editorPlaceholder() !== 'none') {
@@ -313,6 +489,14 @@
             } @else {
               <i class="fa-solid fa-paperclip fs-4" aria-hidden="true"></i>
               <span>{{ 'workbench.editor.awaiting_media' | transloco }}</span>
+              <button
+                type="button"
+                class="btn btn-outline-primary workbench__attach-audio"
+                (click)="attachAudio()"
+              >
+                <i class="fa-solid fa-paperclip me-1" aria-hidden="true"></i>
+                {{ 'workbench.bundle_list.reattach' | transloco }}
+              </button>
             }
           </div>
         }
@@ -448,7 +632,10 @@
     </div>
   } @else {
     <!-- No session yet: say what to do instead of an empty pane. -->
-    <div class="workbench__right workbench__empty">
+    <div
+      class="workbench__right workbench__empty"
+      [attr.inert]="hasAnyBundles() ? null : ''"
+    >
       @if (hasAnyBundles() && selectedBundleHeader; as header) {
         <!-- No session yet: the project config isn't loaded, but the
              workbench is LOCAL-only, whose config allows export. -->
@@ -466,7 +653,18 @@
           class="fa-solid fa-wave-square workbench__empty-icon"
           aria-hidden="true"
         ></i>
-        @if (hasAnyBundles()) {
+        @if (isVisp()) {
+          <h2 class="workbench__empty-title">
+            {{ (visp.readOnly()
+              ? 'workbench.visp.pane_readonly_title'
+              : 'workbench.visp.pane_title') | transloco }}
+          </h2>
+          <p class="workbench__empty-text">
+            {{ (visp.readOnly()
+              ? 'workbench.visp.pane_readonly_text'
+              : 'workbench.visp.pane_text') | transloco }}
+          </p>
+        } @else if (hasAnyBundles()) {
           <h2 class="workbench__empty-title">
             {{ 'workbench.empty.restored_title' | transloco }}
           </h2>
@@ -486,16 +684,26 @@
   }
 </div>
 
-<!-- The selected file's per-file actions (name and media details live in
-     the header's data selector). Also
-     shown before a session exists (welcome back), so a restored file can be
-     exported before its audio is re-attached. -->
+<!-- The selected recording bundle's actions (name and media details live in
+     the header's data selector). Also shown before a session exists
+     (welcome back), so a restored bundle can be downloaded, or have its
+     audio attached, from there. -->
 <ng-template #fileActions let-header let-showExport="showExport">
   @let ownRecording = recordedFileService.recordedFile?.name === header.name;
-  @if (showExport || ownRecording) {
-    <!-- Per-file actions live with the file they act on; exporting
-           several files at once is "Export all" in the list. -->
+  @if (showExport || ownRecording || selectedAwaitingAudio()) {
+    <!-- Actions on one bundle live with it; saving several at once is
+         "Save as .zip" in the list. -->
     <div class="workbench__editor-header-actions">
+      @if (selectedAwaitingAudio()) {
+        <button
+          (click)="attachAudio()"
+          class="btn btn-sm btn-outline-primary workbench__attach-audio"
+          type="button"
+        >
+          <i class="fa-solid fa-paperclip me-1" aria-hidden="true"></i>
+          {{ 'workbench.bundle_list.reattach' | transloco }}
+        </button>
+      }
       @if (ownRecording) {
         <!-- Media is never stored, so a fresh recording stays exportable
                before it has a transcript. -->
@@ -505,7 +713,7 @@
           type="button"
         >
           <i class="fa-solid fa-microphone me-1" aria-hidden="true"></i>
-          {{ 'g.export recording' | transloco }}
+          {{ 'workbench.editor_header.save_recording' | transloco }}
         </button>
       }
       @if (showExport) {

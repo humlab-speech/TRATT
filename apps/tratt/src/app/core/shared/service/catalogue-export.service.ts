@@ -8,7 +8,11 @@ import { AppInfo } from '../../../app.info';
 import { BUILD_INFO } from '../../../build-info';
 import { audioBasename } from '../../component/tratt-dropzone/transcript-pairing';
 import { RootState } from '../../store/index';
-import { selectLocalMode } from '../../store/login-mode/annotation/annotation.selectors';
+import {
+  breakMarkerCodeOf,
+  selectLocalMode,
+  transcriptHasContent,
+} from '../../store/login-mode/annotation/annotation.selectors';
 import { IdentifiedAnnotationState } from '../../store/login-mode/annotation/local-bundle-collection';
 import { transcriptEnd } from '../transcript-timing';
 import { AudioService } from './audio.service';
@@ -37,6 +41,25 @@ export function archiveFileName(count: number, when = new Date()): string {
   const p = (n: number) => String(n).padStart(2, '0');
   const date = `${when.getFullYear()}${p(when.getMonth() + 1)}${p(when.getDate())}`;
   return `tratt_${count}_${date}@${p(when.getHours())}${p(when.getMinutes())}.zip`;
+}
+
+/**
+ * The folder a recording bundle gets under `bundles/` in the archive. Matches
+ * step 2.7's basename-collision handling: first writer keeps the bare slug,
+ * later same-name bundles get a `-2`, `-3`, ... suffix. Exported so the save
+ * dialog can preview the archive's contents with the same names.
+ */
+export function archiveFolderName(fileName: string, used: Set<string>): string {
+  const base = fileName
+    .replace(/\.[^.]+$/, '')
+    .replace(/[^a-zA-Z0-9_-]+/g, '_');
+  let slug = base;
+  let n = 2;
+  while (used.has(slug)) {
+    slug = `${base}-${n++}`;
+  }
+  used.add(slug);
+  return slug;
 }
 
 interface ManifestRow {
@@ -164,8 +187,16 @@ export class CatalogueExportService {
 
       // A bundle that never produced a transcript (failed, cancelled, or not
       // run yet) would only yield empty DOCX/SRT/ELAN files: leave it out and
-      // say so, rather than archiving blank "transcriptions".
-      if (unitCounts === 0) {
+      // say so, rather than archiving blank "transcriptions". Same rule as
+      // the list's "Not transcribed" (a new bundle is seeded with one empty
+      // segment), so the save dialog's preview matches what is written.
+      if (
+        unitCounts === 0 ||
+        !transcriptHasContent(
+          entity.transcript,
+          breakMarkerCodeOf(entity.guidelines),
+        )
+      ) {
         warnings.push(
           `Skipped ${entity.sessionFile?.name ?? bundleId}: it has no transcript yet.`,
         );
@@ -412,19 +443,8 @@ export class CatalogueExportService {
     return path;
   }
 
-  /** Matches step 2.7's basename-collision handling: first writer keeps the
-   * bare slug, later same-name bundles get a `-2`, `-3`, ... suffix. */
   private uniqueSlug(fileName: string, used: Set<string>): string {
-    const base = fileName
-      .replace(/\.[^.]+$/, '')
-      .replace(/[^a-zA-Z0-9_-]+/g, '_');
-    let slug = base;
-    let n = 2;
-    while (used.has(slug)) {
-      slug = `${base}-${n++}`;
-    }
-    used.add(slug);
-    return slug;
+    return archiveFolderName(fileName, used);
   }
 
   private toCsv(rows: ManifestRow[]): string {

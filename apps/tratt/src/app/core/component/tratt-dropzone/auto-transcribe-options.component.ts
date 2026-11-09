@@ -357,18 +357,26 @@ interface SavedTranscribeSettings {
             {{ 'login.auto-transcription.safari warning' | transloco }}
           </div>
         }
-        <div class="ato-head">
-          <i
-            class="fa-solid ato-chevron"
-            [class.fa-chevron-down]="enabled()"
-            [class.fa-chevron-right]="!enabled()"
-            aria-hidden="true"
-          ></i>
+        <div class="ato-head" [class.ato-head--automatic]="automatic()">
+          @if (!automatic()) {
+            <i
+              class="fa-solid ato-chevron"
+              [class.fa-chevron-down]="enabled()"
+              [class.fa-chevron-right]="!enabled()"
+              aria-hidden="true"
+            ></i>
+          }
           <label
             class="ato-title"
+            [class.ato-title--automatic]="automatic()"
             [attr.for]="idPrefix() + 'autoTranscribeCheck'"
           >
-            {{ 'login.auto-transcription.auto-transcribe label' | transloco }}
+            {{
+              (automatic()
+                ? 'workbench.pipeline.automatic_label'
+                : 'login.auto-transcription.auto-transcribe label'
+              ) | transloco
+            }}
           </label>
           <div class="form-check form-switch ms-auto mb-0">
             <input
@@ -390,7 +398,7 @@ interface SavedTranscribeSettings {
           </small>
         }
 
-        @if (enabled()) {
+        @if (enabled() || automatic()) {
           <div class="d-flex flex-column gap-1">
             <div class="mb-2">
               <label
@@ -585,6 +593,15 @@ interface SavedTranscribeSettings {
         font-size: 1.0625rem;
         margin: 0;
       }
+      .ato-title--automatic {
+        font-size: 0.9375rem;
+      }
+      /* "When" (the switch) apart from "how" (the settings below). */
+      .ato-head--automatic {
+        margin-bottom: 0.75rem;
+        padding-bottom: 0.75rem;
+        border-bottom: 1px solid var(--tratt-border);
+      }
       .form-check-input.safari-disabled {
         opacity: 0.6;
         cursor: not-allowed;
@@ -621,6 +638,15 @@ export class AutoTranscribeOptionsComponent implements OnInit {
    * (default) keeps /local starting from the defaults every time.
    */
   readonly persistKey = input<string | undefined>(undefined);
+
+  /**
+   * The workbench's mode: the settings are always shown and always emitted
+   * (the queue can run whenever the user asks), and the switch only decides
+   * whether NEW files are transcribed automatically — read it from
+   * `enabled()`. Off (default): the switch turns transcription itself on/off,
+   * and `null` is emitted while it is off (/login's single-file flow).
+   */
+  readonly automatic = input<boolean>(false);
 
   private readonly transloco = inject(TranslocoService);
   private readonly destroyRef = inject(DestroyRef);
@@ -708,6 +734,9 @@ export class AutoTranscribeOptionsComponent implements OnInit {
       this.emitChange();
     }
     this.isSafari.set(isSafariOrWebKit());
+    if (this.automatic() && this.isSafari()) {
+      this.emitChange(); // no transcription in Safari: emit null
+    }
     try {
       const nav = navigator as Navigator & {
         gpu?: { requestAdapter(): Promise<unknown> | null };
@@ -800,6 +829,13 @@ export class AutoTranscribeOptionsComponent implements OnInit {
     this.emitChange();
   }
 
+  /** Switch auto-transcription on (and remember it), e.g. when the user picks
+   * a file on the welcome page to have it transcribed. */
+  enable(): void {
+    this.enabled.set(true);
+    this.emitChange();
+  }
+
   emitChange(): void {
     if (this.settingsRestored) {
       savePipelineSettings<SavedTranscribeSettings>(this.persistKey(), {
@@ -815,7 +851,7 @@ export class AutoTranscribeOptionsComponent implements OnInit {
     const opts = buildTranscriptionOptions({
       audioLoaded: this.audioLoaded(),
       annotationAlreadyLoaded: this.annotationAlreadyLoaded(),
-      enabled: this.enabled(),
+      enabled: this.automatic() ? !this.isSafari() : this.enabled(),
       modelId: this.selectedModelId,
       useWebGPU: this.hasWebGpu(),
       dtype,

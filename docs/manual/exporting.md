@@ -6,7 +6,7 @@ Tratt keeps your work in the browser. **Exporting a file is the only
 way your transcript leaves the browser.** Export your work everytime you exit an editing session.
 
 Click **Export** (the download icon in the header, or the button along the bottom
-of the editor). In the [Workbench](workbench.md) it is **Export this transcription**, at the right end of the bar with the editor tabs. The dialog is headed *Export transcriptions*. Click a format to
+of the editor). In the [Workbench](workbench.md) it is **Download transcript**, at the right end of the bar with the editor tabs. The dialog is headed *Export transcriptions*. Click a format to
 expand its options, then **Download**.
 
 ![The export dialog](../assets/visp_tratt_export_formats.png)
@@ -126,8 +126,8 @@ and playback history), not part of the transcript.
 ## Exporting an archive
 
 One export covers a whole batch, and it is the only export that can be loaded
-back directly. **Export all** in the [Workbench](workbench.md) file list opens
-**Export catalogue**: tick the formats you want and Tratt writes a single `.zip` archive of the session.
+back directly. **Save as .zip** in the [Workbench](workbench.md) list of recording bundles opens
+a dialog of the same name: tick the formats you want and Tratt writes a single `.zip` archive of the session.
 
 The file is named after what is in it and when it was made, for example
 `tratt_12_20261008@1923.zip`, wich means that the archieve contains twelve recordings, and was written on the October 8th, 2026, at 19:23 local time.
@@ -147,9 +147,10 @@ the drop zone restores the whole batch, audio attached and transcripts in place.
 Loading it switches automatic transcription off so your corrections are not
 overwritten. See [The Workbench](workbench.md#loading-an-archive).
 
-A recording whose audio was not attached at export time has no audio file in the
-archive, only its transcript. Dropping the archive loads that transcript into the
-file of the same name already in the list (attach the audio there). 
+A recording bundle whose audio was not attached at export time has no audio file in the
+archive, only its transcript; the **Save as .zip** dialog says how many that applies to
+before you save. Dropping the archive loads that transcript into the
+recording bundle of the same name already in the list (attach the audio there). 
 Tratt indicates which ones failed to be loaded by showing *Completed with warnings* rather than
 failing the whole export.
 

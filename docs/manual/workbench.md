@@ -40,23 +40,47 @@ of working for a given piece of material and stay with it.
 
 ---
 
+## Recording bundles
+
+Each entry in the Workbench list is a **recording bundle**: a recording's audio
+together with its transcript. The two parts behave differently:
+
+- The **transcript** is saved in the browser as you work, and is still there
+  when you come back.
+- The **audio** is never saved. Tratt reads it from your computer while the page
+  is open, so after a reload a recording bundle has its transcript but no audio
+  until you attach the audio again.
+
+The list shows both parts: the **Audio** column has a speaker when the audio is
+attached and **Attach** when it is not, and the **Transcript** column says where
+the transcript stands. In this manual, *file* means only a file on your
+computer: one you drop, choose or download.
+
+The name comes from the Emu database format, where a *bundle* is an audio file
+together with the files that describe it.
+
+---
+
 ## The layout
 
 Four things sit on the left, from top to bottom:
 
-1. **Files** with the number of recordings, and the buttons **Export all**,
-   **Clear finished** and **Remove**.
+1. **Recording bundles** with their number, and the buttons **Save as .zip**,
+   **Delete done** and **Remove**.
 2. The **Upload file** and **Record now** tabs over a drop area:
-   *Drop audio files or a previously exported archive here*.
-3. **Pipeline settings**: what happens to a file automatically, and the button
+   *Drop audio or video files here, or a .zip saved from Tratt*. While a
+   recording bundle is waiting for its audio, the drop area says that dropping
+   that audio file attaches it.
+3. **Transcription**: the transcription settings, whether new files are
+   transcribed automatically, and — when some file is waiting — the button
    that starts the queue.
 4. Two capacity meters: **Browser storage** and **Working memory (est.)**.
 
-The rest of the window is the recording you have selected. Its name and details
-are in the data selector in the middle of the header; click it to open the list
-of files, which is also the quickest way to switch recording on a narrow screen.
+The rest of the window is the recording bundle you have selected in the list.
+The list is the only place to switch between recording bundles; hover over one
+to see its audio details.
 Above the editor, one bar holds the editor tabs, **Shortcuts**, **Overview**,
-**Help** and, at the right end, **Export this transcription**. Below it is the
+**Help** and, at the right end, **Download transcript**. Below it is the
 editor itself.
 
 ![The Workbench with four recordings loaded](../assets/visp_tratt_workbench.png)
@@ -99,45 +123,63 @@ and is ignored when loaded back into Tratt.
 
 ---
 
-## The pipeline
+## Transcribing
 
-**Pipeline settings** describes what will happen to a file when it
-runs. With nothing configured it reads **Auto-transcribe off**, and *New files are
-not transcribed automatically*. Click the sliders icon to open the settings.
+The large orange **Transcribe** button, under the file list, is a
+split button. Its left part starts transcription; its right part (the sliders
+icon) opens the **Transcription settings**: the model, the transcription
+language, speaker separation and local translation, described in
+[Automatic draft transcription](automatic-transcription.md). Hover over the
+sliders icon to see the current settings without opening them.
 
-The settings are the same controls as on the `https://tratt.demo.humlab.umu.se/local` start page. The user may select a transcription model, the
-transcription language, speaker separation and local translation. They are
-described in [Automatic draft transcription](automatic-transcription.md). Close
-the dialog with **Done** and the summary line shows what you chose, for example:
+**Transcribe new files automatically** is a switch at the top of the settings.
+When it is on, files are transcribed as they arrive: you can drop several
+recordings and wait for them all to be processed. With nothing left to do, the
+button then reads **Auto-transcribe on**.
 
-> Auto-transcribe on · Whisper Medium · Swedish · 2 speakers · → English
+When it is off, new recording bundles wait. The button reads **Transcribe N**
+and runs the queue over every recording bundle that has no transcript yet,
+skipping those whose audio is not attached. While the queue is
+running, files are transcribed one at a time and the button becomes the run's
+progress bar: *Transcribing 2 of 5*, filling up as the files are done. While a
+file is prepared (its audio read, and the first time, its model loaded) its part
+of the bar pulses. Clicking the button stops the run after you confirm: the file
+in progress is cancelled, and the files still waiting are not transcribed.
 
-**With auto-transcribe on, files are transcribed as they arrive.** You can drop
-several recordings into the application and then wait for the processing to be performed on them all.
+The button can always be clicked. When there is nothing for it to do, it says
+why, and its tooltip says so too.
 
-**With Auto-transcribe off**, nothing will happen until you press the button at the bottom of the
-panel (**Transcribe N file(s)**) and runs the queue over the files that
-have no transcript yet. While the queue is running the same button becomes
-**Pause queue**; pausing lets the file in progress finish and holds the rest.
+### Transcribing a file again
 
-If the button is disabled, its tooltip explains why: *No transcription options
-configured, enable auto transcription first.*
+To transcribe a file again, for example with a larger model or other settings,
+tick it in the file list. The button then reads **Transcribe N selected**.
+Files that already have a transcript are only transcribed again after you
+confirm. Their current transcript is **replaced and cannot be restored**,
+including any corrections you made, so use **Save as .zip** first if you want to
+keep a copy. The confirmation says how many passages a person has already
+corrected or checked by listening.
+
+If you edit a file's transcript while it is being transcribed again, your edits
+are kept and the new result is discarded.
 
 ---
 
 ## Watching it work
 
-Each row in **Files** shows the status of the recording with regards to the pipeline:
+Each row in **Recording bundles** shows, in its **Transcript** column, where the
+transcript stands:
 
 | Status | Means |
 | --- | --- |
 | **Queued** | Waiting its turn |
-| **Running** | Being worked on now, with the current stage and a progress bar |
+| **Running** | Being worked on now, with the current stage and how far it has come, e.g. *Transcribing 40%* |
 | **Done** | Finished |
 | **Failed** | Stopped on an error, with **Retry** on the row |
+| **Cancelled** | Stopped by you, with **Retry** on the row |
+| **Has text** / **Not transcribed** | Never run: whether the transcript has any text yet (imported, or typed by hand) |
 | **Interrupted** | The page was closed or reloaded part-way |
 
-The button on the row stops that one file (*Stop transcribing this file*) and leaves the rest of the
+The button on the row stops that one recording bundle (*Stop transcribing this recording bundle*) and leaves the rest of the
 queue alone.
 
 A failed file says what went wrong (*Could not read the audio*,
@@ -149,10 +191,10 @@ A failed file says what went wrong (*Could not read the audio*,
 
 ## Editing a result
 
-Click a recording in the list to open it. The data selector (*Choose file*) in
-the middle of the header gives the media file name and details, for example
-`interview_a.mp3 · 1:45 · 16 kHz mono · 3.369 MB`, and where the file sits in the
-list, for example *2 of 4*. Click it to pick another file.
+Click a recording bundle in the list to open it. Hover over it to see its audio
+details, for example `1:45 · 16 kHz mono · 3.4 MB`. When the audio is not
+attached, they read *Audio not attached*, and **Attach audio…** sits next to
+**Download transcript**.
 
 From there you are in the ordinary editor. You select the 2D, Dictaphone, or Linear editor with the
 editor tabs, and work as described in
@@ -162,23 +204,24 @@ editor tabs, and work as described in
 Playing a unit or editing its text marks it
 [verified](checking-your-work.md#verified-transcriptions).
 
-Edits are saved as you type, per recording. Switching to another file in the list
+Edits are saved as you type, per recording bundle. Switching to another one in the list
 does not make Tratt lose data.
 
 ---
 
 ## Coming back later
 
-Tratt will remembeer the list of media file names but never store the media files themselves. 
-When you return, a **Welcome
-back** panel greets you: *Your files from the last session are listed on the left.
-Re-attach a file's audio with "Attach file…" to keep editing it, or drop new
-files.*  Pick the same file
-from disk and editing continues where you left off. Until then the editor says
-*This file's audio isn't loaded in this session.*
+Tratt keeps your recording bundles' transcripts but never their audio. When you
+return, a **Welcome back** panel greets you: *Tratt kept your transcripts from
+last time, but not your audio: it never saves audio. To listen and correct,
+attach each recording bundle's audio with "Attach" in the list, or drop the same
+audio files here.* Pick the same file from disk (with **Attach** in the list,
+**Attach audio…** in the header, or by dropping it) and editing continues where
+you left off. Until then the editor says *This recording bundle's audio isn't
+attached*, with an **Attach audio…** button.
 
 If the file you pick does not look like the one the entry was made from, Tratt
-stops to ask: *This doesn't look like the same file*, with what you picked and
+stops to ask: *This doesn't look like the same audio*, with what you picked and
 what it expected side by side, and **Use anyway**. When only the modification
 time differs, Tratts indicates that, since that is usually a copy or re-exported audio rather
 than the wrong recording.
@@ -206,20 +249,21 @@ not report usage at all, and the indicator is then unavailable.
 Every recording whose audio is attached occupies memory for as long as it
 is attached. If you are near the budget, or a file fails with *Ran out of memory*,
 work through the material in smaller groups,  export and
-[Clear finished](#housekeeping), then attach the next few.
+[Delete done](#housekeeping), then attach the next few.
 
 ---
 
 ## Getting results out
 
-**One recording.** With a transcript on screen, the orange **Export this
-transcription** button at the right end of the bar with the editor tabs opens the usual export dialog, described in
+**One recording.** With a transcript on screen, the orange **Download
+transcript** button at the right end of the bar with the editor tabs opens the usual export dialog, described in
 [Exporting](exporting.md). It works even when the audio is not attached. It is
-hidden until there is something to export.
+dimmed until there is something to export.
 
-**All of them.** **Export all** in the Files header opens **Export catalogue**, 
+**All of them.** **Save as .zip** in the Files header opens a dialog of the same name:
 tick the formats you want, and Tratt writes one archive containing every selected
-recording, or all of them when you have ticked none. It reports progress, lists
+recording, or all of them when you have ticked none. The button says which: with
+three files ticked it reads **Save 3 as .zip**. Tratt reports progress, lists
 any recordings it had to skip under *Completed with warnings*, and finishes with
 *Done, N file(s) archived*.
 
@@ -232,6 +276,6 @@ What the archive contains, and how to load it back, is described in
 
 ## Housekeeping
 
-**Clear finished** takes the completed recordings out of the list. **Remove**
+**Delete done** deletes the recording bundles marked *Done*, transcripts included. **Remove**
 takes out the ones you have ticked, and the checkbox in the Files header ticks
 them all. These actions cannot be undone.

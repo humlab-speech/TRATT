@@ -8,21 +8,12 @@ import { Dictionary } from '@ngrx/entity';
  * exclusively to login.component.ts / `/local`. Nothing here touches it.
  */
 export type BundleRunState =
-  | 'idle'
-  | 'queued'
-  | 'running'
-  | 'done'
-  | 'failed'
-  | 'interrupted';
+  'idle' | 'queued' | 'running' | 'done' | 'failed' | 'interrupted';
 
 export type BundleRunStage = 'decode' | 'asr' | 'diarization' | 'translation';
 
 export type BundleRunErrorKind =
-  | 'decode'
-  | 'model-load'
-  | 'oom'
-  | 'cancelled'
-  | 'unknown';
+  'decode' | 'model-load' | 'oom' | 'cancelled' | 'unknown';
 
 export interface BundleRunError {
   kind: BundleRunErrorKind;
@@ -72,6 +63,38 @@ export function runStatusOf(
   return runs[bundleId] ?? IDLE_RUN_STATUS;
 }
 
+/**
+ * One file's share of its run, 0–1, that never goes back: its stages each
+ * report their own 0–1, so only speech recognition counts, as the bulk of
+ * the work. Decoding and the model download come before it (0); speaker
+ * separation and translation after it (1). The list rows' bars and the run
+ * button's total both use it, so the rows add up to the total.
+ */
+export function fileFraction(status: BundleRunStatus): number {
+  switch (status.stage) {
+    case 'asr':
+      return status.downloading ? 0 : (status.progress ?? 0);
+    case 'diarization':
+    case 'translation':
+      return 1;
+    default:
+      return 0;
+  }
+}
+
+/**
+ * The file is being prepared (decoded, or its model loaded): work that
+ * `fileFraction` can't show yet.
+ */
+export function isPreparing(status: BundleRunStatus): boolean {
+  return (
+    status.state === 'running' &&
+    (status.stage === undefined ||
+      status.stage === 'decode' ||
+      (status.stage === 'asr' && !!status.downloading))
+  );
+}
+
 export interface BundleSummaryForQueue {
   bundleId: string;
   awaitingMedia: boolean;
@@ -108,4 +131,33 @@ export function computeReadyBundleIds(
       return state !== 'queued' && state !== 'running' && state !== 'done';
     })
     .map((summary) => summary.bundleId);
+}
+
+/**
+ * What a re-transcription compares to tell whether the transcript changed
+ * while the file waited or ran: every level's segment boundaries and label
+ * text. Deliberately not the object identity — listening to a passage marks
+ * it verified (a new transcript object), which is no reason to throw a
+ * requested result away.
+ */
+export function transcriptFingerprint(
+  transcript:
+    | {
+        levels?: {
+          items: {
+            time?: { samples?: number };
+            labels?: { name?: string; value?: string }[];
+          }[];
+        }[];
+      }
+    | undefined,
+): string {
+  return JSON.stringify(
+    (transcript?.levels ?? []).map((level) =>
+      level.items.map((item) => [
+        item.time?.samples,
+        (item.labels ?? []).map((label) => [label.name, label.value]),
+      ]),
+    ),
+  );
 }

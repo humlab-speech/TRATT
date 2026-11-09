@@ -48,7 +48,6 @@ import { ToolsModalComponent } from '../../modals/tools-modal/tools-modal.compon
 import { TranslateLinkedLevelModalComponent } from '../../modals/translate-linked-level-modal/translate-linked-level-modal.component';
 import { TrattModalService } from '../../modals/tratt-modal.service';
 import { YesNoModalComponent } from '../../modals/yes-no-modal/yes-no-modal.component';
-import { homeLinkFor } from '../../shared/home-link';
 import {
   AudioService,
   ManualLinkService,
@@ -125,11 +124,6 @@ export class NavigationComponent extends DefaultComponent implements OnInit {
   }
 
   protected readonly LoginMode = LoginMode;
-
-  /** The logo links to the start of the current mode (Språkbanken profile). */
-  public get homeLink(): string {
-    return homeLinkFor(this.router.url);
-  }
 
   public get AppInfo(): any {
     return AppInfo;

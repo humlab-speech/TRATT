@@ -1,5 +1,6 @@
 import { Injectable, NgZone, OnDestroy } from '@angular/core';
 import { TranslocoService } from '@jsverse/transloco';
+import { WorkspaceService } from '../workspace/workspace.service';
 import { IFile, OAnnotJSON, srtTimestamp } from '@tratt/annotation';
 import { OAudiofile } from '@tratt/media';
 import { AudioManager, prepareMonoAudioForMlModel } from '@tratt/web-media';
@@ -70,6 +71,8 @@ export interface TranscriptionOptions {
 export class LocalTranscriptionService implements OnDestroy {
   private worker: Worker | null = null;
   private subject: Subject<TranscriptionEvent> | null = null;
+
+  private readonly workspaceService = new WorkspaceService();
 
   constructor(
     private ngZone: NgZone,
@@ -292,8 +295,20 @@ export class LocalTranscriptionService implements OnDestroy {
 
     return finalizeTranscriptionAnnotJson(result.annotjson, {
       ...options,
-      defaultLevelName: this.transloco.translate('translation.default tier'),
+      defaultLevelName: this.resultLevelName(),
     });
+  }
+
+  /**
+   * The tier a run's result goes into. In the VISP workspace it must be the
+   * project's transcription level — the only level TRATT saves there; offline
+   * it follows the UI language.
+   */
+  private resultLevelName(): string {
+    const workspace = this.workspaceService.workspace();
+    return workspace.kind === 'visp'
+      ? workspace.transcriptionLevel
+      : this.transloco.translate('translation.default tier');
   }
 
   private chunksToSrt(

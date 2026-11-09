@@ -39,5 +39,8 @@
 }
 
 .toast {
+  // Bootstrap's toast background is 85 % opaque: page content showing
+  // through made the text hard to read.
+  --bs-toast-bg: var(--tratt-surface-page);
   color: var(--tratt-text-primary);
 }

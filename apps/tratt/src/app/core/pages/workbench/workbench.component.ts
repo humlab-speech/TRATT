@@ -1,3 +1,5 @@
+import { VispWorkspaceService } from '../../shared/workspace/visp-workspace.service';
+import { WorkspaceService } from '../../shared/workspace/workspace.service';
 import { NgTemplateOutlet } from '@angular/common';
 import {
   AfterViewInit,
@@ -17,12 +19,16 @@ import {
   Type,
   untracked,
   ViewChild,
+  viewChild,
 } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
-import { HumlabLogoComponent } from '../../component/humlab-logo/humlab-logo.component';
-import { NgbModalRef, NgbNavModule } from '@ng-bootstrap/ng-bootstrap';
+import {
+  NgbModalRef,
+  NgbNavModule,
+  NgbPopover,
+} from '@ng-bootstrap/ng-bootstrap';
 import { Store } from '@ngrx/store';
 import {
   AnnotJSONConverter,
@@ -33,11 +39,8 @@ import {
   TrattAnnotationSegment,
 } from '@tratt/annotation';
 import { OAudiofile } from '@tratt/media';
-import {
-  formatMinutesSeconds,
-  getFileSize,
-} from '@tratt/utilities';
-import { AudioManager, normalizeMimeType } from '@tratt/web-media';
+import { formatMinutesSeconds, getFileSize } from '@tratt/utilities';
+import { AudioManager, FileInfo, normalizeMimeType } from '@tratt/web-media';
 import { timer } from 'rxjs';
 import { AppInfo } from '../../../app.info';
 import { editorComponents } from '../../../editors/components';
@@ -46,11 +49,11 @@ import {
   TrattEditorRequirements,
 } from '../../../editors/tratt-editor';
 import { BundleListComponent } from '../../component/bundle-list/bundle-list.component';
-import { selectLocalBundle } from '../../component/bundle-list/select-local-bundle';
 import { CapacityIndicatorComponent } from '../../component/capacity-indicator/capacity-indicator.component';
-import { DataSelectorComponent } from '../../component/data-selector/data-selector.component';
 import { DefaultComponent } from '../../component/default.component';
+import { HumlabLogoComponent } from '../../component/humlab-logo/humlab-logo.component';
 import { NavbarService } from '../../component/navbar/navbar.service';
+import { PaneSplitterComponent } from '../../component/pane-splitter/pane-splitter.component';
 import { RecordingPanelComponent } from '../../component/recording-panel/recording-panel.component';
 import { FastbarComponent } from '../../component/taskbar/taskbar.component';
 import { AutoTranscribeOptionsComponent } from '../../component/tratt-dropzone/auto-transcribe-options.component';
@@ -80,7 +83,6 @@ import { YesNoModalComponent } from '../../modals/yes-no-modal/yes-no-modal.comp
 import { FileProgress } from '../../obj/objects';
 import { SessionFile } from '../../obj/SessionFile';
 import { ProjectSettings } from '../../obj/Settings';
-import { HeaderCenterDirective } from '../../shared/directive/header-center.directive';
 import { LoadeditorDirective } from '../../shared/directive/loadeditor.directive';
 import { postToParent } from '../../shared/post-to-parent';
 import { SettingsService, UserInteractionsService } from '../../shared/service';
@@ -116,12 +118,24 @@ import {
   generateBundleId,
 } from '../../store/login-mode/annotation/local-bundle-collection';
 import { LoginModeActions } from '../../store/login-mode/login-mode.actions';
-import { computeReadyBundleIds } from '../../store/pipeline-queue';
+import { computeReadyBundleIds, runStatusOf } from '../../store/pipeline-queue';
 import {
+  selectActiveBundleId,
   selectAllRunStatuses,
+  selectQueuedBundleIds,
   selectQueueMode,
 } from '../../store/pipeline-queue/pipeline-queue.selectors';
-import { describePipeline } from './pipeline-summary';
+import { describePipeline, languageName } from './pipeline-summary';
+import { runProgress } from './run-progress';
+import { WorkbenchWelcomeIntroComponent } from './workbench-welcome/workbench-welcome-intro.component';
+import { WorkbenchWelcomeComponent } from './workbench-welcome/workbench-welcome.component';
+
+/**
+ * How long the move between the start page and the workbench takes: the
+ * start page folds away (200ms), then the columns slide (400ms), or the
+ * reverse. Matches the transitions in workbench.component.scss.
+ */
+const WELCOME_CHANGE_MS = 600;
 
 @Component({
   selector: 'tratt-workbench',
@@ -132,18 +146,20 @@ import { describePipeline } from './pipeline-summary';
     HumlabLogoComponent,
     TrattDropzoneComponent,
     BundleListComponent,
+    PaneSplitterComponent,
     RecordingPanelComponent,
     TranslocoPipe,
     FastbarComponent,
     LoadeditorDirective,
     FormsModule,
     NgbNavModule,
+    NgbPopover,
     AutoTranscribeOptionsComponent,
     AutoTranslateOptionsComponent,
     CapacityIndicatorComponent,
     NgTemplateOutlet,
-    HeaderCenterDirective,
-    DataSelectorComponent,
+    WorkbenchWelcomeComponent,
+    WorkbenchWelcomeIntroComponent,
   ],
 })
 export class WorkbenchComponent
@@ -151,7 +167,8 @@ export class WorkbenchComponent
   implements OnInit, AfterViewInit, OnDestroy
 {
   @ViewChild(TrattDropzoneComponent) dropzone?: TrattDropzoneComponent;
-  @ViewChild(AutoTranscribeOptionsComponent)
+  // Static: the start page's language line reads it on the first check.
+  @ViewChild(AutoTranscribeOptionsComponent, { static: true })
   private transcribeOptions?: AutoTranscribeOptionsComponent;
   @ViewChild(AutoTranslateOptionsComponent)
   private translateOptions?: AutoTranslateOptionsComponent;
@@ -206,28 +223,14 @@ export class WorkbenchComponent
 
   protected selectedBundleId = this.store.selectSignal(selectSelectedBundleId);
 
-  /**
-   * The data selector's list: same source, order and phantom-row filter as
-   * the bundle list (`BundleListComponent.bundles`).
-   */
-  readonly headerFiles = computed(() =>
-    this.bundleSummaries()
-      .filter((b) => b.name !== undefined)
-      .map((b) => ({ id: b.bundleId, name: b.name as string })),
-  );
-
-  selectFileFromHeader(bundleId: string): void {
-    selectLocalBundle(
-      this.store,
-      this.pendingEdits,
-      this.selectedBundleId(),
-      bundleId,
-    );
-  }
   private localMode = this.store.selectSignal(selectLocalMode);
   private alertService = inject(AlertService);
   private saveTracker = inject(AnnotationSaveTracker);
   private catalogueExport = inject(CatalogueExportService);
+  private readonly workspaceService = inject(WorkspaceService);
+  readonly visp = inject(VispWorkspaceService);
+  /** True in the VISP workspace: the list is the server-side assignment. */
+  readonly isVisp = this.workspaceService.isVisp;
   private selectedLevelIndex = computed(
     () =>
       this.localMode()?.bundles.entities[this.selectedBundleId()]?.transcript
@@ -292,11 +295,45 @@ export class WorkbenchComponent
     this.bundleSummaries().some((b) => b.name !== undefined),
   );
 
+  /**
+   * The rail is the start page: no file in the list. Follows
+   * hasAnyBundles(), but set together with welcomeChanging so the page
+   * gets both classes in the same frame (the move's transitions differ
+   * from a splitter change's). The first value is set, without the move,
+   * before the first render.
+   */
+  readonly welcomeLayout = signal(true);
+  /** True while the page moves between the start page and the workbench. */
+  readonly welcomeChanging = signal(false);
+  private welcomeChangeTimer: ReturnType<typeof setTimeout> | undefined;
+  /** False hides the tabs on the start page (the browser check says why). */
+  readonly compatibleBrowser = signal<boolean | undefined>(undefined);
+
   private queueMode = this.store.selectSignal(selectQueueMode);
   private runStatuses = this.store.selectSignal(selectAllRunStatuses);
 
   /** True while a bundle is in flight — the run button becomes "pause". */
   queueRunning = computed(() => this.queueMode() !== 'idle');
+
+  private queuedBundleIds = this.store.selectSignal(selectQueuedBundleIds);
+  private activeBundleId = this.store.selectSignal(selectActiveBundleId);
+  /**
+   * Every file in the current run, finished ones included: the queue
+   * forgets a file once it has run, but the progress bar counts it.
+   */
+  private readonly runBatch = signal<ReadonlySet<string>>(new Set());
+
+  /** The current run's progress, shown on the run button. */
+  readonly runProgress = computed(() =>
+    this.queueRunning()
+      ? runProgress(
+          this.runBatch(),
+          this.queuedBundleIds() ?? [],
+          this.activeBundleId() ?? null,
+          this.runStatuses() ?? {},
+        )
+      : null,
+  );
 
   /**
    * The bundles a "run" would actually enqueue. Computed in the component
@@ -321,16 +358,65 @@ export class WorkbenchComponent
     ),
   );
 
+  private readonly bundleList = viewChild(BundleListComponent);
+
+  /** Files ticked in the list: the Transcribe button acts on these. */
+  readonly checkedBundleIds = computed(
+    () => this.bundleList()?.selectedIds() ?? [],
+  );
+
+  /** The selected recording bundle's audio isn't attached. */
+  readonly selectedAwaitingAudio = computed(
+    () =>
+      this.bundleList()
+        ?.bundles()
+        .find((b) => b.bundleId === this.selectedBundleId())?.awaitingMedia ??
+      false,
+  );
+
+  /** Some recording bundle is waiting for its audio. */
+  readonly anyAwaitingAudio = computed(
+    () =>
+      this.bundleList()
+        ?.bundles()
+        .some((b) => b.awaitingMedia) ?? false,
+  );
+
+  /** Opens the file picker that attaches the selected bundle's audio. */
+  attachAudio(): void {
+    this.bundleList()?.pickAudio(this.selectedBundleId());
+  }
+
+  /**
+   * Nothing to run by hand: new files are transcribed as they arrive. The
+   * run button then says so, quietly, instead of offering a next step.
+   */
+  readonly autoWaiting = computed(
+    () =>
+      !this.queueRunning() &&
+      this.checkedBundleIds().length === 0 &&
+      this.readyBundleIds().length === 0 &&
+      this.queueOptions() !== null &&
+      this.autoTranscribe(),
+  );
+
   /**
    * Tracks the last options emitted by the queue's AutoTranscribeOptionsComponent
    * mount, mirroring what `PipelineQueueService.setTranscribeOptions()` holds
-   * (that service's own copy isn't readable from here). `null` means the run
-   * button must be disabled — see F1 in the step 3b-i final-review fix wave:
-   * previously the template only checked `readyBundleIds().length`, so
-   * clicking "Transcribe N file(s)" before ever ticking "Auto-transcribe"
-   * enqueued and then immediately failed every ready bundle.
+   * (that service's own copy isn't readable from here). The settings run in
+   * `automatic` mode, so these are set whether or not new files are
+   * transcribed automatically; `null` means transcription is unavailable in
+   * this browser (Safari), and the run button must be disabled — enqueueing
+   * then would fail every ready bundle (F1, step 3b-i final-review fix wave).
    */
   queueOptions = signal<TranscriptionOptions | null>(null);
+
+  /**
+   * "Transcribe new files automatically" in the settings. The options above
+   * are set either way (the run button can always start the queue); this
+   * only decides whether a newly added file is queued on arrival.
+   */
+  autoTranscribe = signal(false);
 
   /**
    * One global pipeline configuration for the whole queue (the spec's "one
@@ -345,6 +431,8 @@ export class WorkbenchComponent
    * a bigger model sees the models segment move immediately.
    */
   onQueueOptionsChange(options: TranscriptionOptions | null): void {
+    // Every switch flip re-emits, so this tracks it.
+    this.autoTranscribe.set(this.transcribeOptions?.enabled() ?? false);
     this.queueOptions.set(options);
     this.pipelineQueueService.setTranscribeOptions(options);
     this.capacityService.setConfiguredOptions(options);
@@ -380,6 +468,55 @@ export class WorkbenchComponent
       this.uiLang(),
     ),
   );
+
+  // Re-evaluates the settings tooltip once the UI language's strings load.
+  private readonly translations = toSignal(
+    inject(TranslocoService).selectTranslation(),
+  );
+
+  /**
+   * The settings half of the Transcribe button names what a run would use,
+   * one item per line, since the rail no longer shows it.
+   */
+  readonly pipelineTooltip = computed(() => {
+    this.translations();
+    const t = (key: string, params?: Record<string, unknown>) =>
+      this.transloco.translate(key, params);
+    const summary = this.pipelineSummary();
+    const lines = [t('workbench.pipeline.edit')];
+    if (!summary.on) {
+      lines.push(t('workbench.pipeline.unavailable'));
+      return lines.join('\n');
+    }
+    lines.push(
+      t(
+        this.autoTranscribe()
+          ? 'workbench.pipeline.on'
+          : 'workbench.pipeline.off',
+      ),
+    );
+    if (summary.model) {
+      lines.push(summary.model);
+    }
+    if (summary.language) {
+      lines.push(summary.language);
+    }
+    if (summary.speakers === 'auto') {
+      lines.push(t('workbench.pipeline.speakers_auto'));
+    } else if (summary.speakers === 1) {
+      lines.push(t('workbench.pipeline.speakers_one'));
+    } else if (summary.speakers) {
+      lines.push(
+        t('workbench.pipeline.speakers_other', { count: summary.speakers }),
+      );
+    }
+    if (summary.translateTo) {
+      lines.push(
+        t('workbench.pipeline.translate_to', { language: summary.translateTo }),
+      );
+    }
+    return lines.join('\n');
+  });
 
   @ViewChild('pipelineDialog')
   private pipelineDialog?: ElementRef<HTMLDialogElement>;
@@ -424,6 +561,95 @@ export class WorkbenchComponent
   /** Done, ×, Esc or the backdrop: back to the icon that opened it. */
   onPipelineDialogClosed(): void {
     this.pipelineButton?.nativeElement.focus();
+  }
+
+  // Files picked with "Transcribe by hand, without AI": never auto-queued.
+  private untranscribedFiles = new WeakSet<File>();
+  // The demo recording's file name while it is being fetched.
+  protected demoLoading = signal<string | undefined>(undefined);
+
+  /** The language new files are transcribed in, for the start page. */
+  get welcomeLanguage(): string | undefined {
+    const code = this.transcribeOptions?.selectedLanguage;
+    return code ? languageName(code, this.uiLang()) : undefined;
+  }
+
+  /** Files from the start page's demo and "Transcribe by hand" links. */
+  onWelcomeFiles(files: File[], transcribe: boolean): void {
+    if (transcribe) {
+      this.promiseTranscript();
+    } else {
+      files.forEach((file) => this.untranscribedFiles.add(file));
+    }
+    for (const file of files) {
+      this.dropzone?.addFile(file);
+    }
+  }
+
+  /** Dropped on, or picked in, the dropzone. */
+  onFilesDropped(files: File[]): void {
+    if (this.welcomeLayout() && files.length > 0) {
+      this.promiseTranscript();
+    }
+  }
+
+  /**
+   * The start page promises a transcript: switch the pipeline on (with the
+   * remembered model and language). New files are then queued as soon as
+   * they are in the list.
+   */
+  private promiseTranscript(): void {
+    this.transcribeOptions?.enable();
+  }
+
+  /**
+   * Plays the move between the start page and the workbench: both classes
+   * change in this one update, and `resize` tells the editors their pane
+   * has its final size.
+   */
+  private changeWelcomeLayout(welcome: boolean): void {
+    this.welcomeLayout.set(welcome);
+    this.welcomeChanging.set(true);
+    clearTimeout(this.welcomeChangeTimer);
+    this.welcomeChangeTimer = setTimeout(() => {
+      this.welcomeChanging.set(false);
+      window.dispatchEvent(new Event('resize'));
+    }, WELCOME_CHANGE_MS);
+  }
+
+  /**
+   * "Try a demo recording": the configured example for the UI language,
+   * fetched and added like a file of the user's own.
+   */
+  async startDemo(): Promise<void> {
+    const example = this.settingsService.getAudioExample(
+      this.transloco.getActiveLang(),
+    );
+    if (!example) {
+      return;
+    }
+    const name = FileInfo.fromURL(example.url).fullname;
+    this.demoLoading.set(name);
+    try {
+      const response = await fetch(example.url);
+      if (!response.ok) {
+        throw new Error(`${response.status} ${response.statusText}`);
+      }
+      const blob = await response.blob();
+      if (this.demoLoading() !== name) {
+        return; // removed from the list meanwhile
+      }
+      this.onWelcomeFiles([new File([blob], name, { type: blob.type })], true);
+    } catch (error) {
+      console.error(error);
+      void this.alertService.showAlert(
+        'danger',
+        this.transloco.translate('workbench.welcome.demo_failed'),
+      );
+    } finally {
+      this.demoLoading.set(undefined);
+      this.cd.markForCheck();
+    }
   }
 
   // Step 6 continuous ingestion bookkeeping.
@@ -545,12 +771,161 @@ export class WorkbenchComponent
     this.translateOptions?.disable();
   }
 
-  onRunPauseClick(): void {
+  /**
+   * Always clickable: stops a running queue, after asking; otherwise
+   * transcribes the ticked files, or with none ticked every file without a
+   * transcript, and says why when there is nothing it can do.
+   */
+  async onRunStopClick(): Promise<void> {
     if (this.queueRunning()) {
-      this.pipelineQueueService.stop();
+      // The run may have ended while the question was open.
+      if ((await this.confirmStop()) && this.queueRunning()) {
+        this.pipelineQueueService.abort();
+      }
       return;
     }
-    this.pipelineQueueService.enqueue(this.readyBundleIds());
+    if (this.queueOptions() === null) {
+      this.explainRun('workbench.queue.unavailable_hint');
+      return;
+    }
+    const checked = this.checkedBundleIds();
+    if (checked.length > 0) {
+      await this.transcribeChecked(checked);
+      return;
+    }
+    const ready = this.readyBundleIds();
+    if (ready.length === 0) {
+      this.explainRun(
+        this.autoTranscribe()
+          ? 'workbench.queue.auto_hint'
+          : 'workbench.queue.nothing_hint',
+      );
+      return;
+    }
+    this.pipelineQueueService.enqueue(ready);
+  }
+
+  /**
+   * Transcribes the ticked files, whether or not they have a transcript:
+   * how a file is transcribed again (another try, a larger model, other
+   * settings). Replacing text is confirmed first, naming how much of it a
+   * person has already corrected or listened to.
+   */
+  private async transcribeChecked(checked: string[]): Promise<void> {
+    // So the confirmation, and the transcript it approves, include typing
+    // still in the editor's debounce.
+    this.pendingEdits.flush();
+    const summaries = new Map(
+      this.bundleSummaries().map((b) => [b.bundleId, b]),
+    );
+    const runs = this.runStatuses();
+    const runnable = checked.filter((bundleId) => {
+      const state = runStatusOf(runs, bundleId).state;
+      const summary = summaries.get(bundleId);
+      return (
+        summary !== undefined &&
+        state !== 'queued' &&
+        state !== 'running' &&
+        (!summary.awaitingMedia || this.audioService.canRestore(bundleId))
+      );
+    });
+    if (runnable.length === 0) {
+      this.explainRun('workbench.queue.selection_unavailable');
+      return;
+    }
+    const withText = runnable.filter(
+      (bundleId) => summaries.get(bundleId)?.hasAnnotationContent,
+    );
+    if (withText.length > 0 && !(await this.confirmReplace(withText))) {
+      return;
+    }
+    this.pipelineQueueService.replace(runnable);
+    this.bundleList()?.clearSelection();
+  }
+
+  /** Stopping loses the current file's work so far: ask first. */
+  private async confirmStop(): Promise<boolean> {
+    const name =
+      this.localMode()?.bundles.entities[this.activeBundleId() ?? '']
+        ?.sessionFile?.name ?? '';
+    const waiting = this.queuedBundleIds()?.length ?? 0;
+    const message = [
+      this.transloco.translate('workbench.queue.stop_confirm', { name }),
+      waiting > 0
+        ? this.transloco.translate('workbench.queue.stop_confirm_waiting', {
+            count: waiting,
+          })
+        : '',
+    ]
+      .filter(Boolean)
+      .join(' ');
+    try {
+      const answer = await this.modService.openModal(
+        YesNoModalComponent,
+        YesNoModalComponent.options,
+        { message },
+      );
+      return answer === 'yes';
+    } catch {
+      return false;
+    }
+  }
+
+  private async confirmReplace(bundleIds: string[]): Promise<boolean> {
+    const entities = this.localMode()?.bundles.entities ?? {};
+    let checkedSegments = 0;
+    for (const bundleId of bundleIds) {
+      for (const level of entities[bundleId]?.transcript?.levels ?? []) {
+        for (const item of level.items) {
+          if ((item as TrattAnnotationSegment).verified) {
+            checkedSegments++;
+          }
+        }
+      }
+    }
+    const t = (key: string, params?: Record<string, unknown>) =>
+      this.transloco.translate(key, params);
+    const message = [
+      bundleIds.length === 1
+        ? t('workbench.queue.replace_confirm_one', {
+            name: entities[bundleIds[0]]?.sessionFile?.name ?? '',
+          })
+        : t('workbench.queue.replace_confirm_other', {
+            count: bundleIds.length,
+          }),
+      checkedSegments > 0
+        ? t('workbench.queue.replace_confirm_checked', {
+            count: checkedSegments,
+          })
+        : '',
+      t('workbench.queue.replace_confirm_export'),
+    ]
+      .filter(Boolean)
+      .join(' ');
+    try {
+      const answer = await this.modService.openModal(
+        YesNoModalComponent,
+        YesNoModalComponent.options,
+        { message },
+      );
+      return answer === 'yes';
+    } catch {
+      return false;
+    }
+  }
+
+  /** Why the last click on Transcribe did nothing (a translation key). */
+  readonly runMessage = signal<string | undefined>(undefined);
+  @ViewChild('runPopover') private runPopover?: NgbPopover;
+
+  /**
+   * Says why a click did nothing in a popover on the button itself, not a
+   * toast in the far corner: the answer appears where the user is looking.
+   */
+  private explainRun(key: string): void {
+    // The popover's text reads this signal, so an open one updates too.
+    this.runMessage.set(key);
+    this.runPopover?.open();
   }
 
   get useMode(): string {
@@ -593,6 +968,41 @@ export class WorkbenchComponent
     segmentVerificationService: SegmentVerificationService,
   ) {
     super();
+
+    let firstLayout = true;
+    effect(() => {
+      // The VISP workspace has no drop-a-file start page.
+      const welcome = !this.hasAnyBundles() && !this.isVisp();
+      untracked(() => {
+        if (firstLayout) {
+          firstLayout = false;
+          this.welcomeLayout.set(welcome);
+        } else if (welcome !== this.welcomeLayout()) {
+          this.changeWelcomeLayout(welcome);
+        }
+      });
+    });
+
+    // A run collects every file queued while it lasts; a new one starts
+    // empty.
+    effect(() => {
+      const running = this.queueRunning();
+      const active = this.activeBundleId();
+      const ids = [
+        ...(this.queuedBundleIds() ?? []),
+        ...(active ? [active] : []),
+      ];
+      untracked(() => {
+        const batch = this.runBatch();
+        if (!running) {
+          if (batch.size > 0) {
+            this.runBatch.set(new Set());
+          }
+        } else if (ids.some((id) => !batch.has(id))) {
+          this.runBatch.set(new Set([...batch, ...ids]));
+        }
+      });
+    });
 
     // Keep the mounted editor in lock-step with the selected bundle. Reads
     // are reactive: `getManager()`/`canRestore()` track AudioService's
@@ -639,6 +1049,7 @@ export class WorkbenchComponent
     effect(() => {
       const summaries = this.bundleSummaries();
       const options = this.queueOptions();
+      const automatic = this.autoTranscribe();
       if (this.pendingAutoEnqueueIds.size === 0) {
         return;
       }
@@ -648,7 +1059,7 @@ export class WorkbenchComponent
           summary.name !== undefined
         ) {
           this.pendingAutoEnqueueIds.delete(summary.bundleId);
-          if (options !== null) {
+          if (options !== null && automatic) {
             this.pipelineQueueService.enqueue([summary.bundleId]);
           }
         }
@@ -687,6 +1098,10 @@ export class WorkbenchComponent
     // tab row. Force it off, same pattern as news.component.ts and
     // transcription-end.component.ts.
     this.navbarServ.showInterfaces = false;
+
+    if (this.isVisp()) {
+      void this.visp.start();
+    }
 
     this.unregisterPendingEdits = this.pendingEdits.register(() =>
       this.flushMountedEditor(),
@@ -1292,6 +1707,7 @@ export class WorkbenchComponent
    * cleanly rather than relying on that bound.
    */
   override ngOnDestroy(): void {
+    clearTimeout(this.welcomeChangeTimer);
     this.capacityService.setConfiguredOptions(null);
     this.unregisterPendingEdits?.();
     super.ngOnDestroy();
@@ -1485,7 +1901,9 @@ export class WorkbenchComponent
     audioBundleIds.forEach((id, i) => {
       const paired = transcripts[i]?.annotation;
       if (paired === undefined) {
-        this.pendingAutoEnqueueIds.add(id);
+        if (!this.untranscribedFiles.has(files[i])) {
+          this.pendingAutoEnqueueIds.add(id);
+        }
       } else if (i > 0) {
         this.pendingTranscriptsByBundle.set(id, paired);
       }
@@ -1554,15 +1972,16 @@ export class WorkbenchComponent
         // A new, empty file: its own transcript goes straight in, and it
         // is not transcribed.
         this.applyTranscript(bundleId, paired);
-      } else {
+      } else if (!this.untranscribedFiles.has(nativeFile)) {
         this.pendingAutoEnqueueIds.add(bundleId);
       }
       this.dropzone!.consumeEntry(entry.id);
     });
   }
 
-  // Mirrors login.component.ts's onUseRecording() exactly (the only other
-  // mount point for RecordingPanelComponent's (useRecording) output): stage
+  // Mirrors login.component.ts's onUseRecording() (the only other mount
+  // point for RecordingPanelComponent's (useRecording) output), except that
+  // on the start page it promises a transcript, like a drop there: stage
   // the finished recording as a plain File on the dropzone's pending-file
   // list via its existing addFile() method, and record it on
   // RecordedFileService so the rest of the app (e.g. the "export recording"
@@ -1570,6 +1989,9 @@ export class WorkbenchComponent
   // user immediately sees the recording land in the dropzone's list.
   onUseRecording(file: File): void {
     this.recordedFileService.recordedFile = file;
+    if (this.welcomeLayout()) {
+      this.promiseTranscript();
+    }
     this.dropzone?.addFile(file);
     this.activeTab = 'upload';
   }

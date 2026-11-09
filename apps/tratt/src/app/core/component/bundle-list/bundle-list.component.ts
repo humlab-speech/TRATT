@@ -2,18 +2,23 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
+  ElementRef,
   inject,
   signal,
 } from '@angular/core';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { Store } from '@ngrx/store';
+import { formatMinutesSeconds, getFileSize } from '@tratt/utilities';
 import { AudioManager, normalizeMimeType } from '@tratt/web-media';
 import { filter, firstValueFrom } from 'rxjs';
 import {
   BundleReattachMismatchAnswer,
   BundleReattachMismatchModalComponent,
 } from '../../modals/bundle-reattach-mismatch-modal/bundle-reattach-mismatch-modal.component';
-import { CatalogueExportModalComponent } from '../../modals/catalogue-export-modal/catalogue-export-modal.component';
+import {
+  CatalogueExportBundle,
+  CatalogueExportModalComponent,
+} from '../../modals/catalogue-export-modal/catalogue-export-modal.component';
 import { TrattModalService } from '../../modals/tratt-modal.service';
 import { YesNoModalComponent } from '../../modals/yes-no-modal/yes-no-modal.component';
 import { SessionFile } from '../../obj/SessionFile';
@@ -27,9 +32,15 @@ import {
   selectLocalMode,
 } from '../../store/login-mode/annotation/annotation.selectors';
 import { LoginModeActions } from '../../store/login-mode/login-mode.actions';
-import { runStatusOf } from '../../store/pipeline-queue';
+import {
+  fileFraction,
+  isPreparing,
+  runStatusOf,
+} from '../../store/pipeline-queue';
 import { selectAllRunStatuses } from '../../store/pipeline-queue/pipeline-queue.selectors';
 import { selectLocalBundle } from './select-local-bundle';
+import { VispWorkspaceService } from '../../shared/workspace/visp-workspace.service';
+import { WorkspaceService } from '../../shared/workspace/workspace.service';
 
 /**
  * Lists the bundles created over the course of a session — the first-wave
@@ -92,11 +103,86 @@ export class BundleListComponent {
 
   private _selected = signal<Set<string>>(new Set());
 
-  /** Checked rows that still exist (the Remove button is disabled at 0). */
-  selectedCount = computed(() => {
-    const live = new Set(this.bundles().map((b) => b.bundleId));
-    return [...this._selected()].filter((id) => live.has(id)).length;
+  /**
+   * Checked rows that still exist, in list order. The workbench's Transcribe
+   * button acts on these when there are any.
+   */
+  readonly selectedIds = computed(() =>
+    this.bundles()
+      .map((b) => b.bundleId)
+      .filter((id) => this._selected().has(id)),
+  );
+
+  /** Checked rows that still exist (Remove is offered only above 0). */
+  selectedCount = computed(() => this.selectedIds().length);
+
+  /** The Save button names what it saves: the ticked bundles, else all. */
+  readonly exportLabel = computed(() => {
+    const selected = this.selectedCount();
+    const count = selected || this.bundles().length;
+    const key = selected ? 'export_catalogue_selected' : 'export_catalogue';
+    return {
+      key: `workbench.bundle_list.${key}${count === 1 ? '_one' : ''}`,
+      count,
+    };
   });
+
+  readonly workspaceService = inject(WorkspaceService);
+  readonly visp = inject(VispWorkspaceService);
+  readonly isVisp = this.workspaceService.isVisp;
+
+  /**
+   * The audio's technical details for a row's tooltip: duration, sample rate,
+   * channels and size. Only known once the audio has been decoded in this
+   * session (offline: attached; VISP: loaded from the server).
+   */
+  audioDetails(bundleId: string, awaitingMedia: boolean): string {
+    const t = (key: string) => this.transloco.translate(key);
+    const info = this.audioService.getMediaInfo(bundleId);
+    if (!info) {
+      return t(
+        awaitingMedia
+          ? 'workbench.bundle_list.audio_details_not_attached'
+          : 'workbench.bundle_list.audio_details_pending',
+      );
+    }
+    const size = getFileSize(info.size);
+    // getFileSize() keeps three decimals ("128.044 KB"); one is plenty here.
+    const sizeText = `${+Number(size.size).toFixed(1)} ${size.label}`;
+    const khz = +(info.sampleRate / 1000).toFixed(1);
+    const channels =
+      info.channels === 1
+        ? t('workbench.editor_header.mono')
+        : t('workbench.editor_header.stereo');
+    return `${formatMinutesSeconds(info.duration.seconds)} · ${khz} kHz ${channels} · ${sizeText}`;
+  }
+
+  /** Per-row VISP state, keyed by bundleId. */
+  vispInfo(bundleId: string) {
+    return this.visp.bundles()[bundleId];
+  }
+
+  onVispSave(bundleId: string): void {
+    void this.visp.saveBundle(bundleId);
+  }
+
+  onVispFinished(bundleId: string, finished: boolean): void {
+    void this.visp.saveBundle(bundleId, { finishedEditing: finished });
+  }
+
+  onVispComment(bundleId: string, event: Event): void {
+    const comment = (event.target as HTMLInputElement).value;
+    void this.visp.saveBundle(bundleId, { comment });
+  }
+
+  /** The bundle changed in VISP meanwhile: keep the user's or VISP's version. */
+  onVispResolve(bundleId: string, choice: 'mine' | 'theirs'): void {
+    void this.visp.resolveStale(bundleId, choice);
+  }
+
+  onVispRemoveUnassigned(bundleId: string): void {
+    void this.visp.removeUnassigned(bundleId);
+  }
 
   isSelected(bundleId: string): boolean {
     return this._selected().has(bundleId);
@@ -126,7 +212,12 @@ export class BundleListComponent {
     );
   }
 
+  clearSelection(): void {
+    this._selected.set(new Set());
+  }
+
   private transloco = inject(TranslocoService);
+  private host: ElementRef<HTMLElement> = inject(ElementRef);
 
   /**
    * Removing a bundle deletes its transcript (and edits) for good, so both
@@ -180,6 +271,10 @@ export class BundleListComponent {
       this.audioService.forget(id);
     }
   }
+
+  /** A running row's bar: the run button's rule, per file. */
+  protected readonly fileFraction = fileFraction;
+  protected readonly isPreparing = isPreparing;
 
   progressPercent(progress: number): number {
     return Math.round(Math.min(1, Math.max(0, progress)) * 100);
@@ -316,17 +411,33 @@ export class BundleListComponent {
     const liveIds = new Set(this.bundles().map((b) => b.bundleId));
     const selected = [...this._selected()].filter((id) => liveIds.has(id));
     const wasAllBundlesDefault = selected.length === 0;
-    const ids = wasAllBundlesDefault
-      ? this.bundles().map((b) => b.bundleId)
-      : selected;
+    const chosen = new Set(selected);
+    const rows = wasAllBundlesDefault
+      ? this.bundles()
+      : this.bundles().filter((b) => chosen.has(b.bundleId));
+    // The dialog previews the archive: audio goes in only where it is
+    // attached, and a bundle without a transcript is left out.
+    const bundles: CatalogueExportBundle[] = rows.map((b) => ({
+      bundleId: b.bundleId,
+      name: b.name ?? b.bundleId,
+      hasAudio: !!this.audioService.getSourceFile(b.bundleId),
+      hasTranscript: b.hasAnnotationContent,
+    }));
     this.modService.openModal(
       CatalogueExportModalComponent,
       CatalogueExportModalComponent.options,
-      {
-        bundleIds: ids,
-        wasAllBundlesDefault,
-      },
+      { bundles, wasAllBundlesDefault },
     );
+  }
+
+  /**
+   * Opens the file picker that attaches audio to a bundle waiting for it,
+   * for the "Attach audio" buttons outside the list.
+   */
+  pickAudio(bundleId: string): void {
+    this.host.nativeElement
+      .querySelector<HTMLInputElement>(`[id="bundle-reattach-${bundleId}"]`)
+      ?.click();
   }
 
   // Only consulted from onReattachFileSelected() (not template-bound) to look
@@ -343,6 +454,17 @@ export class BundleListComponent {
   ) {}
 
   selectBundle(bundleId: string): void {
+    if (this.isVisp()) {
+      // Leaving a bundle with unsaved changes saves it first.
+      const current = this.localMode().selectedBundleId;
+      if (
+        current !== bundleId &&
+        this.visp.info(current)?.sync === 'unsaved'
+      ) {
+        void this.visp.saveBundle(current);
+      }
+      void this.visp.open(bundleId);
+    }
     selectLocalBundle(
       this.store,
       this.pendingEdits,

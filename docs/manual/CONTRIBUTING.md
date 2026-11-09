@@ -66,7 +66,7 @@ The application deep-links into the manual. These targets must keep working:
 
 `ROUTE_PAGES` is the second half of the contract. It decides which chapter the
 header's **Manual** link and the Help dialog open from a given route:
-`/workbench` opens `workbench`, and a route with no entry opens the manual's
+the start page `/` (the Workbench) opens `workbench`, and a route with no entry opens the manual's
 front page. Both doors read the same table, so they cannot disagree. Add a route
 there and the page it names must exist; the link check fails if it does not.
 
@@ -296,7 +296,6 @@ Check these against the source when Tratt is updated:
 | Markers                                                 | `apps/tratt/src/config/localmode/guidelines/guidelines_*.json`                                                                        |
 | Which editors and tools are enabled                     | `apps/tratt/src/config/localmode/projectconfig.json`, `editors/components.ts`                                                         |
 | Workbench statuses, stages, errors and capacity wording | `workbench.*` in `apps/tratt/src/assets/i18n/en.json`                                                                                 |
-| Whether the Workbench is reachable                      | `workbenchEnabled` in `apps/tratt/src/environments/*.ts`, `shared/guard/workbench-enabled.guard.ts`                                   |
 | Which chapter "Manual" and Help open from a given route | `shared/service/manual-link.service.ts`                                                                                               |
 | Pipeline summary line                                   | `core/pages/workbench/pipeline-summary.ts`                                                                                            |
 | Archive name and contents                               | `core/shared/service/catalogue-export.service.ts`, `catalogue-import.ts`                                                              |

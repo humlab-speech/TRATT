@@ -1,0 +1,26 @@
+@let tratt = trattSettings;
+@let maintenance = tratt?.maintenanceNotification;
+@if (maintenance?.active === 'active') {
+  <tratt-maint-banner
+    [serverURL]="maintenance!.apiURL"
+    [language]="appStorage.language"
+  ></tratt-maint-banner>
+}
+@if (tratt?.oldVersion?.url; as oldVersionUrl) {
+  <div class="alert alert-info mb-0 py-1 small">
+    <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+    {{ 'login.old version.notice' | transloco }}
+    <a [href]="oldVersionUrl">{{
+      'login.old version.click here' | transloco
+    }}</a>
+  </div>
+}
+
+<header class="intro">
+  <h1 class="intro__title">{{ 'workbench.welcome.title' | transloco }}</h1>
+  <p class="intro__lead">{{ 'workbench.welcome.lead' | transloco }}</p>
+</header>
+
+@if (compatibleBrowser() === false) {
+  <tratt-browser-test></tratt-browser-test>
+}

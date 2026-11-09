@@ -24,6 +24,32 @@ export const AppConfigSchema: JSONSchema4 = {
       },
       type: 'object',
     },
+    visp: {
+      description:
+        'VISP integration (deployment-mounted). Only used when TRATT is opened with ?workspace=visp&projectId=<id>; stand-alone installations leave it out.',
+      type: 'object',
+      required: ['serverUrl', 'mediaOrigin', 'transcriptionLevel'],
+      properties: {
+        serverUrl: {
+          type: 'string',
+          pattern: '^wss?://',
+          description:
+            "emu-webapp-server's websocket, proxied on TRATT's own host, e.g. wss://tratt.example.org/emu-ws",
+        },
+        mediaOrigin: {
+          type: 'string',
+          pattern: '^https?://',
+          description:
+            'The origin emu-webapp-server puts in audio URLs (its MEDIA_FILE_BASE_URL), e.g. https://artic.example.org. Audio is fetched from the same path on TRATT\'s own host.',
+        },
+        transcriptionLevel: {
+          type: 'string',
+          minLength: 1,
+          description:
+            "The SEGMENT level in each project's VISP_DBconfig.json that TRATT transcribes into. Every other level is left untouched.",
+        },
+      },
+    },
     tratt: {
       required: ['database', 'supportEmail', 'allowed_browsers', 'languages'],
       properties: {

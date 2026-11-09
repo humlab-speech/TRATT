@@ -81,7 +81,14 @@ describe('CatalogueExportModalComponent', () => {
     }).compileComponents();
 
     fixture = TestBed.createComponent(CatalogueExportModalComponent);
-    fixture.componentInstance.bundleIds = ['bundle-1'];
+    fixture.componentInstance.bundles = [
+      {
+        bundleId: 'bundle-1',
+        name: 'a.wav',
+        hasAudio: true,
+        hasTranscript: true,
+      },
+    ];
     fixture.detectChanges();
   });
 
@@ -89,10 +96,131 @@ describe('CatalogueExportModalComponent', () => {
     jest.restoreAllMocks();
   });
 
+  it('says how many bundles go without audio, and only when some do', () => {
+    expect(
+      fixture.debugElement.query(By.css('.catalogue-export__missing-audio')),
+    ).toBeNull();
+
+    fixture.componentInstance.bundles = [
+      { bundleId: 'b1', name: 'a.wav', hasAudio: false, hasTranscript: true },
+      { bundleId: 'b2', name: 'b.wav', hasAudio: false, hasTranscript: true },
+      // Left out (no transcript), so not counted as "saved without audio".
+      { bundleId: 'b3', name: 'c.wav', hasAudio: false, hasTranscript: false },
+    ];
+    fixture.detectChanges();
+    expect(fixture.componentInstance.withoutAudio()).toBe(2);
+    expect(
+      fixture.debugElement.query(By.css('.catalogue-export__missing-audio'))
+        .nativeElement.textContent,
+    ).toContain('workbench.catalogue_export.missing_audio');
+  });
+
+  describe('contents preview', () => {
+    const files = (folder: number) =>
+      fixture.debugElement
+        .queryAll(By.css('.catalogue-export__node--folder'))
+        [folder].queryAll(By.css('.catalogue-export__file'))
+        .map((el) => (el.nativeElement as HTMLElement).textContent?.trim());
+
+    beforeEach(() => {
+      fixture.componentInstance.bundles = [
+        {
+          bundleId: 'b1',
+          name: 'talk one.wav',
+          hasAudio: true,
+          hasTranscript: true,
+        },
+        {
+          bundleId: 'b2',
+          name: 'talk.mp3',
+          hasAudio: false,
+          hasTranscript: true,
+        },
+        {
+          bundleId: 'b3',
+          name: 'empty.wav',
+          hasAudio: true,
+          hasTranscript: false,
+        },
+      ];
+      fixture.detectChanges();
+    });
+
+    it('lists the audio only for recording bundles whose audio is attached', () => {
+      expect(files(0)).toEqual([
+        'talk one.wav',
+        'talk one.docx',
+        'talk one.srt',
+        'talk one.eaf',
+        'talk one_annot.json',
+      ]);
+      expect(files(1)).toEqual([
+        'talk.docx',
+        'talk.srt',
+        'talk.eaf',
+        'talk_annot.json',
+        'workbench.catalogue_export.no_audio_file',
+      ]);
+      const badges = fixture.debugElement
+        .queryAll(By.css('.catalogue-export__badge'))
+        .map((el) => (el.nativeElement as HTMLElement).textContent?.trim());
+      expect(badges).toEqual([
+        'workbench.catalogue_export.badge_with_audio',
+        'workbench.catalogue_export.badge_transcript_only',
+      ]);
+    });
+
+    it('uses the archive folder names and leaves out bundles without a transcript', () => {
+      const c = fixture.componentInstance.contents();
+      expect(c.folders.map((f) => f.folder)).toEqual(['talk_one', 'talk']);
+      expect(c.leftOut).toEqual(['empty.wav']);
+      expect(c.withAudio).toBe(1);
+      expect(c.transcriptOnly).toBe(1);
+      expect(c.archiveName).toMatch(/^tratt_2_/);
+    });
+
+    it('follows the ticked formats', () => {
+      fixture.componentInstance.toggleConverter('DOCX');
+      fixture.componentInstance.toggleConverter('WebVTT');
+      fixture.detectChanges();
+      expect(files(1)).toEqual([
+        'talk.srt',
+        'talk.eaf',
+        'talk.vtt',
+        'talk_annot.json',
+        'workbench.catalogue_export.no_audio_file',
+      ]);
+    });
+
+    it('does not offer AnnotJSON as a checkbox, since it is always written', () => {
+      expect(
+        fixture.componentInstance.exportableConverters.map((c) => c.name),
+      ).not.toContain('AnnotJSON');
+    });
+
+    it('disables Save when no recording bundle has a transcript', () => {
+      fixture.componentInstance.bundles = [
+        {
+          bundleId: 'b3',
+          name: 'empty.wav',
+          hasAudio: true,
+          hasTranscript: false,
+        },
+      ];
+      fixture.detectChanges();
+      expect(
+        fixture.debugElement.query(By.css('.catalogue-export__empty')),
+      ).toBeTruthy();
+      expect(
+        fixture.debugElement.query(By.css('.catalogue-export__export'))
+          .nativeElement.disabled,
+      ).toBe(true);
+    });
+  });
+
   it('marks Export as the next-step button', () => {
-    const btn = fixture.debugElement.query(
-      By.css('.catalogue-export__export'),
-    ).nativeElement as HTMLElement;
+    const btn = fixture.debugElement.query(By.css('.catalogue-export__export'))
+      .nativeElement as HTMLElement;
     expect(btn.classList).toContain('btn-next');
   });
 

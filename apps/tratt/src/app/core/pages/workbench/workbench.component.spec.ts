@@ -59,8 +59,11 @@ jest.mock('../../component/tratt-dropzone/tratt-dropzone.component', () => {
     @Input() pairTranscriptsByBasename = false;
     @Input() externalAudioFor: unknown;
     @Input() acceptExportArchive = false;
+    @Input() height = '';
+    @Input() placeholderKey = '';
     @Output() archiveLoaded = new EventEmitter();
     @Output() filesAdded = new EventEmitter();
+    @Output() filesDropped = new EventEmitter();
     hasAnnotation = false;
     oannotation = undefined;
     reset = jest.fn();
@@ -76,9 +79,16 @@ jest.mock('../../component/tratt-dropzone/tratt-dropzone.component', () => {
 // with a minimal standalone stand-in, same rationale/pattern as the tratt-dropzone
 // mock above.
 jest.mock('../../component/bundle-list/bundle-list.component', () => {
-  const { Component } = require('@angular/core');
+  const { Component, signal } = require('@angular/core');
   @Component({ selector: 'tratt-bundle-list', template: '' })
-  class BundleListComponent {}
+  class BundleListComponent {
+    // The ticked rows, which the workbench's Transcribe button acts on.
+    selectedIds = signal<string[]>([]);
+    clearSelection = jest.fn(() => this.selectedIds.set([]));
+    // The rows, which say whether a bundle's audio is attached.
+    bundles = signal<{ bundleId: string; awaitingMedia: boolean }[]>([]);
+    pickAudio = jest.fn();
+  }
   return { BundleListComponent };
 });
 
@@ -91,9 +101,10 @@ jest.mock('../../component/bundle-list/bundle-list.component', () => {
 // standalone stand-in exposing the one `(useRecording)` output, same
 // rationale/pattern as the tratt-dropzone/bundle-list mocks above.
 jest.mock('../../component/recording-panel/recording-panel.component', () => {
-  const { Component, EventEmitter, Output } = require('@angular/core');
+  const { Component, EventEmitter, Input, Output } = require('@angular/core');
   @Component({ selector: 'tratt-recording-panel', template: '' })
   class RecordingPanelComponent {
+    @Input() framed = true;
     @Output() useRecording = new EventEmitter();
   }
   return { RecordingPanelComponent };
@@ -129,6 +140,7 @@ import { randomUUID } from 'node:crypto';
 import { BehaviorSubject, of } from 'rxjs';
 import { editorComponents } from '../../../editors/components';
 import { NavbarService } from '../../component/navbar/navbar.service';
+import { AutoTranscribeOptionsComponent } from '../../component/tratt-dropzone/auto-transcribe-options.component';
 import { ExportFilesModalComponent } from '../../modals/export-files-modal/export-files-modal.component';
 import { TrattModalService } from '../../modals/tratt-modal.service';
 import { YesNoModalComponent } from '../../modals/yes-no-modal/yes-no-modal.component';
@@ -241,7 +253,9 @@ describe('WorkbenchComponent', () => {
     setTranslateOptions: jest.Mock;
     enqueue: jest.Mock;
     stop: jest.Mock;
+    abort: jest.Mock;
     retry: jest.Mock;
+    replace: jest.Mock;
     readyBundleIds: jest.Mock;
   };
   // Step 3c: WorkbenchComponent now mounts CapacityIndicatorComponent, which
@@ -286,8 +300,10 @@ describe('WorkbenchComponent', () => {
       setTranscribeOptions: jest.fn(),
       setTranslateOptions: jest.fn(),
       enqueue: jest.fn(),
+      abort: jest.fn(),
       stop: jest.fn(),
       retry: jest.fn(),
+      replace: jest.fn(),
       readyBundleIds: jest.fn(() => []),
     };
     capacityService = {
@@ -364,6 +380,7 @@ describe('WorkbenchComponent', () => {
             langChanges$: of('en'),
             translate: (key: string) => key,
             selectTranslate: () => of(''),
+            selectTranslation: () => of({}),
             config: { reRenderOnLangChange: false },
             // AutoTranscribeOptionsComponent's own template (mounted a
             // second time in the queue panel) resolves its translation
@@ -1169,7 +1186,7 @@ describe('WorkbenchComponent', () => {
       expect(exportButton().nativeElement.disabled).toBe(false);
     });
 
-    it('keeps "Export recording" for a fresh recording without a transcript', () => {
+    it('keeps "Save audio" for a fresh recording without a transcript', () => {
       startLocalSession([named], null);
       (component as any).recordedFileService = {
         recordedFile: { name: 'a.wav' },
@@ -1183,7 +1200,9 @@ describe('WorkbenchComponent', () => {
         By.css('.workbench__editor-header-actions'),
       );
       expect(actions).toBeTruthy();
-      expect(actions.nativeElement.textContent).toContain('g.export recording');
+      expect(actions.nativeElement.textContent).toContain(
+        'workbench.editor_header.save_recording',
+      );
       expect(
         actions.query(By.css('.workbench__export')).nativeElement.disabled,
       ).toBe(true);
@@ -1202,6 +1221,39 @@ describe('WorkbenchComponent', () => {
 
       await component.exportSelected();
       expect(openModalRef).toHaveBeenCalled();
+    });
+
+    it('offers to attach the audio where it is missing: header, editor and drop area', () => {
+      startLocalSession([{ ...named, awaitingMedia: true }]);
+      const list = fixture.debugElement.query(By.css('tratt-bundle-list'))
+        .componentInstance as {
+        bundles: WritableSignal<{ bundleId: string; awaitingMedia: boolean }[]>;
+        pickAudio: jest.Mock;
+      };
+      list.bundles.set([{ bundleId: DEFAULT_BUNDLE_ID, awaitingMedia: true }]);
+      component.editorPlaceholder.set('awaiting-media');
+      (component as any).cd.markForCheck();
+      fixture.detectChanges();
+
+      const buttons = fixture.debugElement.queryAll(
+        By.css('.workbench__attach-audio'),
+      );
+      // One with the bundle's actions, one in the editor's place.
+      expect(buttons.length).toBe(2);
+      buttons[0].nativeElement.click();
+      expect(list.pickAudio).toHaveBeenCalledWith(DEFAULT_BUNDLE_ID);
+      expect(
+        fixture.debugElement.query(By.css('tratt-dropzone')).componentInstance
+          .placeholderKey,
+      ).toBe('workbench.dropzone_attach');
+
+      list.bundles.set([{ bundleId: DEFAULT_BUNDLE_ID, awaitingMedia: false }]);
+      component.editorPlaceholder.set('none');
+      (component as any).cd.markForCheck();
+      fixture.detectChanges();
+      expect(
+        fixture.debugElement.query(By.css('.workbench__attach-audio')),
+      ).toBeNull();
     });
 
     it('explains instead of opening an empty dialog when there is nothing to export', async () => {
@@ -1423,7 +1475,7 @@ describe('WorkbenchComponent', () => {
       fixture.detectChanges();
 
       expect(component.readyBundleIds()).toEqual(['bundle-a', 'bundle-b']);
-      component.onRunPauseClick();
+      component.onRunStopClick();
       expect(pipelineQueueService.enqueue).toHaveBeenCalledWith([
         'bundle-a',
         'bundle-b',
@@ -1431,7 +1483,7 @@ describe('WorkbenchComponent', () => {
       expect(pipelineQueueService.stop).not.toHaveBeenCalled();
     });
 
-    it('pauses instead of enqueuing when the queue is already running', () => {
+    it('stops the running queue after asking, instead of enqueuing', async () => {
       bundleSummaries = [
         {
           bundleId: 'bundle-a',
@@ -1451,9 +1503,34 @@ describe('WorkbenchComponent', () => {
       fixture.detectChanges();
 
       expect(component.queueRunning()).toBe(true);
-      component.onRunPauseClick();
-      expect(pipelineQueueService.stop).toHaveBeenCalledTimes(1);
+      const openModal = jest.fn<any>().mockResolvedValueOnce('no');
+      (TestBed.inject(TrattModalService) as any).openModal = openModal;
+
+      await component.onRunStopClick();
+      expect(openModal).toHaveBeenCalledTimes(1);
+      expect(pipelineQueueService.abort).not.toHaveBeenCalled();
+
+      openModal.mockResolvedValueOnce('yes');
+      await component.onRunStopClick();
+      expect(pipelineQueueService.abort).toHaveBeenCalledTimes(1);
       expect(pipelineQueueService.enqueue).not.toHaveBeenCalled();
+    });
+
+    it('does not stop a run that ended while it was asking', async () => {
+      // The store stubs here aren't reactive; drive the computed directly.
+      const running = signal(true);
+      (component as any).queueRunning = running;
+      let answer!: (value: string) => void;
+      (TestBed.inject(TrattModalService) as any).openModal = jest.fn(
+        () => new Promise((resolve) => (answer = resolve)),
+      );
+
+      const click = component.onRunStopClick();
+      running.set(false);
+      answer('yes');
+      await click;
+
+      expect(pipelineQueueService.abort).not.toHaveBeenCalled();
     });
 
     it('switches the pipeline off and pauses the queue when an export archive is loaded', () => {
@@ -1463,6 +1540,219 @@ describe('WorkbenchComponent', () => {
       component.onArchiveLoaded();
       expect(transcribe.enabled()).toBe(false);
       expect(pipelineQueueService.stop).toHaveBeenCalledTimes(1);
+    });
+
+    describe('clicking Transcribe', () => {
+      const options = { modelId: 'm', useWebGPU: false } as any;
+      const file = (bundleId: string, extra: object = {}) => ({
+        bundleId,
+        name: `${bundleId}.wav`,
+        selected: false,
+        awaitingMedia: false,
+        hasAnnotationContent: false,
+        ...extra,
+      });
+      let showAlert: jest.SpiedFunction<AlertService['showAlert']>;
+      let openModal: jest.Mock<any>;
+
+      beforeEach(() => {
+        showAlert = jest
+          .spyOn(TestBed.inject(AlertService), 'showAlert')
+          .mockResolvedValue(undefined as never);
+        openModal = jest.fn();
+        (TestBed.inject(TrattModalService) as any).openModal = openModal;
+      });
+
+      // The reason a click did nothing, in the popover on the button.
+      const popoverText = () => {
+        fixture.detectChanges();
+        return document
+          .querySelector('ngb-popover-window')
+          ?.textContent?.trim();
+      };
+
+      it('shows no popover for a click that starts a run', async () => {
+        bundleSummaries = [file('bundle-a')];
+        fixture.detectChanges();
+        component.onQueueOptionsChange(options);
+
+        await component.onRunStopClick();
+
+        expect(pipelineQueueService.enqueue).toHaveBeenCalledWith(['bundle-a']);
+        expect(popoverText()).toBeUndefined();
+      });
+
+      it('points the popover at the button, and closes it on Escape', async () => {
+        bundleSummaries = [file('bundle-a')];
+        runStatuses = { 'bundle-a': { state: 'done' } };
+        fixture.detectChanges();
+        component.onQueueOptionsChange(options);
+
+        await component.onRunStopClick();
+        const split = fixture.debugElement.query(
+          By.css('.workbench__queue-split'),
+        ).nativeElement as HTMLElement;
+        const popover = document.querySelector('ngb-popover-window')!;
+        expect(split.getAttribute('aria-describedby')).toBe(popover.id);
+
+        document.dispatchEvent(
+          new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }),
+        );
+        // The fade-out finishes on a timer.
+        await new Promise((resolve) => setTimeout(resolve, 50));
+        expect(popoverText()).toBeUndefined();
+      });
+
+      // The stand-in list; its ticked rows drive the button.
+      const tick = (...ids: string[]) => {
+        const list = fixture.debugElement.query(By.css('tratt-bundle-list'))
+          .componentInstance as {
+          selectedIds: WritableSignal<string[]>;
+          clearSelection: jest.Mock;
+        };
+        list.selectedIds.set(ids);
+        fixture.detectChanges();
+        return list;
+      };
+
+      it('says there is nothing to transcribe when every file is done', async () => {
+        bundleSummaries = [file('bundle-a')];
+        runStatuses = { 'bundle-a': { state: 'done' } };
+        fixture.detectChanges();
+        component.onQueueOptionsChange(options);
+
+        await component.onRunStopClick();
+
+        expect(popoverText()).toBe('workbench.queue.nothing_hint');
+        expect(showAlert).not.toHaveBeenCalled();
+        expect(pipelineQueueService.enqueue).not.toHaveBeenCalled();
+      });
+
+      it('explains automatic transcription when it is on and nothing waits', async () => {
+        bundleSummaries = [file('bundle-a')];
+        runStatuses = { 'bundle-a': { state: 'done' } };
+        fixture.detectChanges();
+        component.onQueueOptionsChange(options);
+        component.autoTranscribe.set(true);
+
+        await component.onRunStopClick();
+
+        expect(popoverText()).toBe('workbench.queue.auto_hint');
+        expect(showAlert).not.toHaveBeenCalled();
+      });
+
+      it('says transcription is unavailable in Safari', async () => {
+        bundleSummaries = [file('bundle-a')];
+        fixture.detectChanges();
+        component.onQueueOptionsChange(null);
+
+        await component.onRunStopClick();
+
+        expect(popoverText()).toBe('workbench.queue.unavailable_hint');
+        expect(showAlert).not.toHaveBeenCalled();
+        expect(pipelineQueueService.enqueue).not.toHaveBeenCalled();
+      });
+
+      it('transcribes ticked files without text straight away, then unticks them', async () => {
+        bundleSummaries = [file('bundle-a'), file('bundle-b')];
+        runStatuses = { 'bundle-a': { state: 'done' } };
+        fixture.detectChanges();
+        component.onQueueOptionsChange(options);
+        const list = tick('bundle-a');
+
+        await component.onRunStopClick();
+
+        expect(openModal).not.toHaveBeenCalled();
+        expect(pipelineQueueService.replace).toHaveBeenCalledWith(['bundle-a']);
+        expect(pipelineQueueService.enqueue).not.toHaveBeenCalled();
+        expect(list.clearSelection).toHaveBeenCalled();
+      });
+
+      it('asks before replacing a transcript, counting passages a person checked', async () => {
+        bundleSummaries = [file('bundle-a', { hasAnnotationContent: true })];
+        localModeState = {
+          bundles: {
+            entities: {
+              'bundle-a': {
+                sessionFile: { name: 'a.wav' },
+                transcript: {
+                  levels: [
+                    {
+                      items: [
+                        { verified: true },
+                        { verified: false },
+                        { verified: true },
+                      ],
+                    },
+                  ],
+                },
+              },
+            },
+          },
+        };
+        fixture.detectChanges();
+        component.onQueueOptionsChange(options);
+        const translate = jest.spyOn(
+          TestBed.inject(TranslocoService),
+          'translate',
+        );
+        tick('bundle-a');
+        openModal.mockResolvedValue('yes' as never);
+
+        await component.onRunStopClick();
+
+        expect(translate).toHaveBeenCalledWith(
+          'workbench.queue.replace_confirm_one',
+          { name: 'a.wav' },
+        );
+        expect(translate).toHaveBeenCalledWith(
+          'workbench.queue.replace_confirm_checked',
+          { count: 2 },
+        );
+        expect(openModal).toHaveBeenCalledWith(
+          YesNoModalComponent,
+          YesNoModalComponent.options,
+          {
+            message: expect.stringContaining(
+              'workbench.queue.replace_confirm_export',
+            ),
+          },
+        );
+        expect(pipelineQueueService.replace).toHaveBeenCalledWith(['bundle-a']);
+      });
+
+      it('keeps the transcript when replacing is declined or dismissed', async () => {
+        bundleSummaries = [file('bundle-a', { hasAnnotationContent: true })];
+        fixture.detectChanges();
+        component.onQueueOptionsChange(options);
+        const list = tick('bundle-a');
+
+        openModal.mockResolvedValueOnce('no' as never);
+        await component.onRunStopClick();
+        openModal.mockRejectedValueOnce(new Error('dismissed') as never);
+        await component.onRunStopClick();
+
+        expect(openModal).toHaveBeenCalledTimes(2);
+        expect(pipelineQueueService.replace).not.toHaveBeenCalled();
+        expect(list.clearSelection).not.toHaveBeenCalled();
+      });
+
+      it('leaves out ticked files that are queued or have no audio, and says so when none are left', async () => {
+        bundleSummaries = [
+          file('bundle-a'),
+          file('bundle-b', { awaitingMedia: true }),
+        ];
+        runStatuses = { 'bundle-a': { state: 'queued' } };
+        fixture.detectChanges();
+        component.onQueueOptionsChange(options);
+        tick('bundle-a', 'bundle-b');
+
+        await component.onRunStopClick();
+
+        expect(pipelineQueueService.replace).not.toHaveBeenCalled();
+        expect(popoverText()).toBe('workbench.queue.selection_unavailable');
+        expect(showAlert).not.toHaveBeenCalled();
+      });
     });
 
     it('excludes already-done bundles from the ready set', () => {
@@ -1538,7 +1828,7 @@ describe('WorkbenchComponent', () => {
     // is reachable before the audio is re-attached.
     // After a reload no session exists yet ("welcome back"); the selected
     // restored file's header — with its export — is shown anyway.
-    it('shows the selected restored file, with "Export this transcription", before any session', () => {
+    it('offers "Export this transcription" for the selected restored file before any session, with nothing in the header', () => {
       audioService.current = undefined;
       localModeState = {
         bundles: {
@@ -1566,16 +1856,10 @@ describe('WorkbenchComponent', () => {
       fixture.detectChanges();
 
       expect(component.sessionReady).toBe(false);
+      // The list is the only way to pick a recording bundle: the header's
+      // centre stays empty.
       const slots = TestBed.inject(HeaderSlotService);
-      const tpl = slots.center();
-      expect(tpl).toBeTruthy();
-      const view = tpl!.createEmbeddedView({});
-      view.detectChanges();
-      const text = view.rootNodes
-        .map((n: Node) => n.textContent ?? '')
-        .join(' ');
-      expect(text).toContain('restored.wav');
-      expect(text).toContain('workbench.editor_header.audio_not_attached');
+      expect(slots.center()).toBeNull();
       expect(
         fixture.debugElement.query(
           By.css(
@@ -1583,7 +1867,6 @@ describe('WorkbenchComponent', () => {
           ),
         ),
       ).toBeTruthy();
-      view.destroy();
 
       fixture.destroy();
       expect(slots.center()).toBeNull();
@@ -2939,6 +3222,7 @@ describe('WorkbenchComponent', () => {
       component.dropzone = makeDropzone() as any;
       component.ngAfterViewInit();
       component.onQueueOptionsChange({ modelId: 'm', useWebGPU: false } as any);
+      component.autoTranscribe.set(true);
 
       component.dropzone!.filesAdded.emit({
         statistics: {} as any,
@@ -2970,6 +3254,38 @@ describe('WorkbenchComponent', () => {
       expect(pipelineQueueService.enqueue).toHaveBeenCalledWith([
         DEFAULT_BUNDLE_ID,
       ]);
+    });
+
+    it('does not auto-enqueue while automatic transcription is off', () => {
+      component.dropzone = makeDropzone() as any;
+      component.ngAfterViewInit();
+      // Settings are set (the run button could start them), but new files
+      // wait for the user.
+      component.onQueueOptionsChange({ modelId: 'm', useWebGPU: false } as any);
+      component.autoTranscribe.set(false);
+
+      component.dropzone!.filesAdded.emit({
+        statistics: {} as any,
+        addedFiles: [
+          fileProgress(1, new File(['a'], 'a.wav'), {
+            status: 'valid',
+            audioManager: {} as any,
+            oaudiofile: {},
+          }),
+        ],
+      });
+      bundleSummaries = [
+        {
+          bundleId: DEFAULT_BUNDLE_ID,
+          name: 'a.wav',
+          selected: true,
+          awaitingMedia: false,
+          hasAnnotationContent: false,
+        },
+      ];
+      fixture.detectChanges();
+
+      expect(pipelineQueueService.enqueue).not.toHaveBeenCalled();
     });
 
     it('does not auto-enqueue when no pipeline options are configured', () => {
@@ -3087,6 +3403,7 @@ describe('WorkbenchComponent with real default LOCAL store state', () => {
             enqueue: jest.fn(),
             stop: jest.fn(),
             retry: jest.fn(),
+            replace: jest.fn(),
             readyBundleIds: jest.fn(() => []),
           },
         },
@@ -3124,6 +3441,7 @@ describe('WorkbenchComponent with real default LOCAL store state', () => {
             langChanges$: of('en'),
             translate: (key: string) => key,
             selectTranslate: () => of(''),
+            selectTranslation: () => of({}),
             config: { reRenderOnLangChange: false },
             _loadDependencies: () => of({}),
           },
@@ -3190,10 +3508,9 @@ describe('WorkbenchComponent with real default LOCAL store state', () => {
     const q = (fx: ComponentFixture<WorkbenchComponent>, css: string) =>
       fx.debugElement.query(By.css(css))?.nativeElement as
         HTMLElement | undefined;
-    const chips = (fx: ComponentFixture<WorkbenchComponent>) =>
-      fx.debugElement
-        .queryAll(By.css('.workbench__pipeline-chips li'))
-        .map((li) => (li.nativeElement as HTMLElement).textContent!.trim());
+    // The settings half of the split button names the settings, a line each.
+    const settingsLines = (fx: ComponentFixture<WorkbenchComponent>) =>
+      q(fx, '.workbench__queue-settings')!.title.split('\n');
 
     it('keeps the settings mounted while the dialog is closed, so remembered choices still reach the queue', async () => {
       const fx = await createWithLocalMode(oneFile());
@@ -3210,14 +3527,74 @@ describe('WorkbenchComponent with real default LOCAL store state', () => {
       ).toBeFalsy();
     });
 
-    it('says auto-transcription is off when no options are set', async () => {
+    it('says transcription is unavailable when no options are emitted (Safari)', async () => {
       const fx = await createWithLocalMode(oneFile());
+      fx.componentInstance.onQueueOptionsChange(null);
+      fx.detectChanges();
 
-      expect(q(fx, '.workbench__pipeline-state')!.textContent!.trim()).toBe(
+      expect(settingsLines(fx)).toEqual([
+        'workbench.pipeline.edit',
+        'workbench.pipeline.unavailable',
+      ]);
+    });
+
+    it('orders the rail: add files, the files, transcribe, storage', async () => {
+      const fx = await createWithLocalMode(oneFile());
+      const order = [
+        '.workbench__left .workbench__modes',
+        '.workbench__left tratt-bundle-list',
+        '.workbench__left .workbench__queue',
+        '.workbench__left .workbench__capacity',
+      ].map((css) => q(fx, css)!);
+
+      expect(order.every(Boolean)).toBe(true);
+      order
+        .slice(1)
+        .forEach((el, i) =>
+          expect(
+            order[i].compareDocumentPosition(el) &
+              Node.DOCUMENT_POSITION_FOLLOWING,
+          ).toBeTruthy(),
+        );
+    });
+
+    it('has no status box above the button any more', async () => {
+      const fx = await createWithLocalMode(oneFile());
+      expect(q(fx, '.workbench__pipeline')).toBeFalsy();
+      expect(
+        q(fx, '.workbench__queue-split .workbench__queue-run'),
+      ).toBeTruthy();
+    });
+
+    it('names the settings, and that automatic is off, in the settings tooltip', async () => {
+      const fx = await createWithLocalMode(oneFile());
+      fx.componentInstance.onQueueOptionsChange({
+        modelId: 'onnx-community/whisper-tiny-ONNX',
+        useWebGPU: true,
+        language: 'en',
+      } as any);
+      fx.componentInstance.autoTranscribe.set(false);
+      fx.detectChanges();
+
+      expect(settingsLines(fx)).toEqual([
+        'workbench.pipeline.edit',
         'workbench.pipeline.off',
-      );
-      expect(q(fx, '.workbench__pipeline--off')).toBeTruthy();
-      expect(chips(fx)).toEqual([]);
+        'Whisper Tiny',
+        'English',
+      ]);
+    });
+
+    it('runs the settings in automatic mode: they always apply', async () => {
+      const fx = await createWithLocalMode(oneFile());
+      const options = fx.debugElement.query(
+        By.css('tratt-auto-transcribe-options'),
+      ).componentInstance as AutoTranscribeOptionsComponent;
+
+      expect(options.automatic()).toBe(true);
+      // Emitted on init although the switch is off.
+      expect(options.enabled()).toBe(false);
+      expect(fx.componentInstance.queueOptions()).not.toBeNull();
+      expect(fx.componentInstance.autoTranscribe()).toBe(false);
     });
 
     it('summarises model, language, speakers and translation', async () => {
@@ -3228,6 +3605,7 @@ describe('WorkbenchComponent with real default LOCAL store state', () => {
         language: 'en',
         diarization: { modelId: 'd', useWebGPU: false, numSpeakers: 2 },
       } as any);
+      fx.componentInstance.autoTranscribe.set(true);
       // The real translation panel re-emits (off) when the transcribe
       // options reach it; set the translation after that.
       fx.detectChanges();
@@ -3237,10 +3615,9 @@ describe('WorkbenchComponent with real default LOCAL store state', () => {
       });
       fx.detectChanges();
 
-      expect(q(fx, '.workbench__pipeline-state')!.textContent!.trim()).toBe(
+      expect(settingsLines(fx)).toEqual([
+        'workbench.pipeline.edit',
         'workbench.pipeline.on',
-      );
-      expect(chips(fx)).toEqual([
         'Whisper Tiny',
         'English',
         'workbench.pipeline.speakers_other',
@@ -3248,10 +3625,10 @@ describe('WorkbenchComponent with real default LOCAL store state', () => {
       ]);
     });
 
-    it('opens from the icon and closes with Done, back on the icon', async () => {
+    it('opens from the settings half of the button and closes with Done, back on it', async () => {
       const fx = await createWithLocalMode(oneFile());
       const dialog = q(fx, 'dialog.workbench__pipeline-dialog')!;
-      const icon = q(fx, '.workbench__pipeline-edit') as HTMLButtonElement;
+      const icon = q(fx, '.workbench__queue-settings') as HTMLButtonElement;
 
       icon.click();
       expect(dialog.hasAttribute('open')).toBe(true);
@@ -3284,7 +3661,7 @@ describe('WorkbenchComponent with real default LOCAL store state', () => {
         .nativeElement as HTMLButtonElement;
     }
 
-    it('is disabled with the play icon when the queue is idle and nothing is ready', async () => {
+    it('stays enabled, and says why, when nothing is ready', async () => {
       const localMode = {
         bundles: bundlesState([
           { bundleId: DEFAULT_BUNDLE_ID, sessionFile: undefined },
@@ -3298,11 +3675,66 @@ describe('WorkbenchComponent with real default LOCAL store state', () => {
       };
 
       const fx = await createWithLocalMode(localMode);
+      fx.componentInstance.onQueueOptionsChange({
+        modelId: 'm',
+        useWebGPU: false,
+      } as any);
+      fx.detectChanges();
       const button = runButton(fx);
 
-      expect(button.disabled).toBe(true);
-      expect(button.querySelector('.fa-play')).toBeTruthy();
-      expect(button.querySelector('.fa-pause')).toBeFalsy();
+      expect(button.disabled).toBe(false);
+      expect(button.title).toBe('workbench.queue.nothing_hint');
+      expect(button.textContent!.trim()).toBe('workbench.queue.run_none');
+    });
+
+    it('says auto-transcribe is on, with its icon, when nothing waits', async () => {
+      const localMode = {
+        bundles: bundlesState([
+          { bundleId: DEFAULT_BUNDLE_ID, sessionFile: undefined },
+          { bundleId: 'bundle-a', sessionFile: { name: 'a.wav' } },
+        ]),
+        selectedBundleId: DEFAULT_BUNDLE_ID,
+      };
+      const fx = await createWithLocalMode(localMode);
+      fx.componentInstance.onQueueOptionsChange({
+        modelId: 'm',
+        useWebGPU: false,
+      } as any);
+      fx.componentInstance.autoTranscribe.set(true);
+      fx.detectChanges();
+      const button = runButton(fx);
+
+      expect(button.textContent!.trim()).toBe('workbench.queue.auto_on');
+      expect(button.title).toBe('workbench.queue.auto_hint');
+      expect(button.querySelector('.workbench__auto-icon')).toBeTruthy();
+      expect(button.querySelector('.fa-play')).toBeFalsy();
+      // Not a next step: neutral, not the brand orange.
+      expect(button.classList).toContain('btn-outline-secondary');
+      expect(button.classList).not.toContain('btn-next-lg');
+    });
+
+    it('names the ticked files when any are ticked', async () => {
+      const localMode = {
+        bundles: bundlesState([
+          { bundleId: DEFAULT_BUNDLE_ID, sessionFile: undefined },
+          { bundleId: 'bundle-a', sessionFile: { name: 'a.wav' } },
+        ]),
+        selectedBundleId: DEFAULT_BUNDLE_ID,
+      };
+      const fx = await createWithLocalMode(localMode, ['bundle-a']);
+      fx.componentInstance.onQueueOptionsChange({
+        modelId: 'm',
+        useWebGPU: false,
+      } as any);
+      (
+        fx.debugElement.query(By.css('tratt-bundle-list')).componentInstance
+          .selectedIds as WritableSignal<string[]>
+      ).set(['bundle-a']);
+      fx.detectChanges();
+      const button = runButton(fx);
+
+      expect(button.title).toBe('workbench.queue.run_selected_hint');
+      expect(button.textContent!.trim()).toBe('workbench.queue.run_selected');
     });
 
     it('is enabled with the play icon when a bundle is ready and the queue is idle', async () => {
@@ -3331,8 +3763,9 @@ describe('WorkbenchComponent with real default LOCAL store state', () => {
       const button = runButton(fx);
 
       expect(button.disabled).toBe(false);
+      expect(button.title).toBe('workbench.queue.run_hint');
       expect(button.querySelector('.fa-play')).toBeTruthy();
-      expect(button.querySelector('.fa-pause')).toBeFalsy();
+      expect(button.querySelector('.fa-stop')).toBeFalsy();
     });
 
     // F1 (final whole-branch review fix wave): the run button must stay
@@ -3340,7 +3773,7 @@ describe('WorkbenchComponent with real default LOCAL store state', () => {
     // ARE ready — previously only `readyBundleIds().length` gated it, so a
     // user could enqueue and immediately fail every ready bundle without
     // ever ticking "Auto-transcribe".
-    it('stays disabled with a ready bundle when no pipeline options are configured', async () => {
+    it('stays enabled, and says why, with a ready bundle when transcription is unavailable', async () => {
       const localMode = {
         bundles: bundlesState([
           { bundleId: DEFAULT_BUNDLE_ID, sessionFile: undefined },
@@ -3350,15 +3783,18 @@ describe('WorkbenchComponent with real default LOCAL store state', () => {
       };
 
       const fx = await createWithLocalMode(localMode, ['bundle-a']);
+      // What the settings emit in Safari.
+      fx.componentInstance.onQueueOptionsChange(null);
+      fx.detectChanges();
       const button = runButton(fx);
 
       expect(fx.componentInstance.readyBundleIds()).toEqual(['bundle-a']);
       expect(fx.componentInstance.queueOptions()).toBeNull();
-      expect(button.disabled).toBe(true);
-      expect(button.title).toBe('workbench.queue.no_options_hint');
+      expect(button.disabled).toBe(false);
+      expect(button.title).toBe('workbench.queue.unavailable_hint');
     });
 
-    it('is enabled with the pause icon while the queue is running', async () => {
+    it('is enabled with the stop icon while the queue is running', async () => {
       const localMode = {
         bundles: bundlesState([
           { bundleId: DEFAULT_BUNDLE_ID, sessionFile: undefined },
@@ -3376,11 +3812,51 @@ describe('WorkbenchComponent with real default LOCAL store state', () => {
       const button = runButton(fx);
 
       expect(button.disabled).toBe(false);
-      expect(button.querySelector('.fa-pause')).toBeTruthy();
+      expect(button.querySelector('.fa-stop')).toBeTruthy();
       expect(button.querySelector('.fa-play')).toBeFalsy();
     });
 
-    it('flips from disabled to enabled when the store transitions from not-ready to ready', async () => {
+    it('shows the run as a progress bar, counting finished files', async () => {
+      const localMode = {
+        bundles: bundlesState([
+          { bundleId: DEFAULT_BUNDLE_ID, sessionFile: undefined },
+          { bundleId: 'bundle-a', sessionFile: { name: 'a.wav' } },
+          { bundleId: 'bundle-b', sessionFile: { name: 'b.wav' } },
+        ]),
+        selectedBundleId: DEFAULT_BUNDLE_ID,
+      };
+      const fx = await createWithLocalMode(localMode, ['bundle-a'], {
+        queue: ['bundle-b'],
+        activeId: 'bundle-a',
+        mode: 'running',
+        runs: {
+          'bundle-a': { state: 'running', stage: 'asr', progress: 0.5 },
+          'bundle-b': { state: 'queued' },
+        },
+      });
+      fx.detectChanges();
+      const button = runButton(fx);
+
+      expect(fx.componentInstance.runProgress()).toEqual({
+        current: 1,
+        total: 2,
+        fraction: 0.25,
+        preparing: false,
+      });
+      expect(
+        button.querySelector<HTMLElement>('.workbench__queue-fill')!.style
+          .width,
+      ).toBe('25%');
+      expect(button.textContent).toContain('workbench.queue.progress');
+      // Its name says what a click does.
+      expect(button.querySelector('.visually-hidden')!.textContent).toContain(
+        'workbench.queue.stop',
+      );
+      expect(button.querySelector('.workbench__queue-preparing')).toBeNull();
+      expect(button.classList).toContain('btn-outline-secondary');
+    });
+
+    it('counts the files once the store transitions from not-ready to ready', async () => {
       const localMode = {
         bundles: bundlesState([
           { bundleId: DEFAULT_BUNDLE_ID, sessionFile: undefined },
@@ -3393,7 +3869,9 @@ describe('WorkbenchComponent with real default LOCAL store state', () => {
       };
 
       const fx = await createWithLocalMode(localMode);
-      expect(runButton(fx).disabled).toBe(true);
+      expect(runButton(fx).textContent!.trim()).toBe(
+        'workbench.queue.run_none',
+      );
 
       // Real reactivity, not a fresh fixture: proves the SAME component
       // instance's computed()s re-evaluate when the underlying store state
@@ -3416,7 +3894,7 @@ describe('WorkbenchComponent with real default LOCAL store state', () => {
       } as any);
       fx.detectChanges();
 
-      expect(runButton(fx).disabled).toBe(false);
+      expect(runButton(fx).textContent!.trim()).toBe('workbench.queue.run');
     });
   });
 
@@ -3458,7 +3936,9 @@ describe('WorkbenchComponent with real default LOCAL store state', () => {
   // TestBed probe during this task's self-review. Reading
   // bundleSummaries()/queueOptions() unconditionally, before that early
   // return, is what keeps this effect alive across exactly this ordering.
-  it('still auto-enqueues after an initial change-detection flush happened while no file had been dropped yet', async () => {
+  // An empty workbench (only the bundle-1 sentinel) with the queue and the
+  // login chain mocked; the session is not ready yet.
+  async function createEmptyWorkbench() {
     const localMode = {
       bundles: bundlesState([
         { bundleId: DEFAULT_BUNDLE_ID, sessionFile: undefined },
@@ -3471,6 +3951,7 @@ describe('WorkbenchComponent with real default LOCAL store state', () => {
       enqueue: jest.fn(),
       stop: jest.fn(),
       retry: jest.fn(),
+      replace: jest.fn(),
       readyBundleIds: jest.fn(() => []),
     };
 
@@ -3541,6 +4022,7 @@ describe('WorkbenchComponent with real default LOCAL store state', () => {
             langChanges$: of('en'),
             translate: (key: string) => key,
             selectTranslate: () => of(''),
+            selectTranslation: () => of({}),
             config: { reRenderOnLangChange: false },
             _loadDependencies: () => of({}),
           },
@@ -3549,6 +4031,43 @@ describe('WorkbenchComponent with real default LOCAL store state', () => {
     }).compileComponents();
 
     const fx = TestBed.createComponent(WorkbenchComponent);
+    return { fx, pipelineQueueServiceMock, authStoreServiceMock };
+  }
+
+  // What the dropzone emits once `file` has been decoded.
+  function decodedEntry(file: File, id = 1) {
+    return {
+      id,
+      status: 'valid',
+      checked_converters: 0,
+      progress: 1,
+      file: {
+        file,
+        fullname: file.name,
+        type: file.type,
+        size: file.size,
+      },
+      audioManager: { id: `m${id}` } as any,
+      oaudiofile: {},
+    };
+  }
+
+  // The async loginLocal chain "lands" `name` in bundle-1.
+  function landFirstBundle(name: string) {
+    const store = TestBed.inject(Store) as MockStore;
+    store.setState({
+      localMode: {
+        bundles: bundlesState([
+          { bundleId: DEFAULT_BUNDLE_ID, sessionFile: { name } },
+        ]),
+        selectedBundleId: DEFAULT_BUNDLE_ID,
+      },
+      pipelineQueue: { queue: [], activeId: null, mode: 'idle', runs: {} },
+    } as any);
+  }
+
+  it('still auto-enqueues after an initial change-detection flush happened while no file had been dropped yet', async () => {
+    const { fx, pipelineQueueServiceMock } = await createEmptyWorkbench();
     // First-ever flush, with no file dropped yet and pendingAutoEnqueueIds
     // still empty — the exact real-app ordering under test.
     fx.detectChanges();
@@ -3557,6 +4076,7 @@ describe('WorkbenchComponent with real default LOCAL store state', () => {
       modelId: 'm',
       useWebGPU: false,
     } as any);
+    fx.componentInstance.autoTranscribe.set(true);
     const nativeFile = new File(['a'], 'a.wav');
     (fx.componentInstance.dropzone as any).filesAdded.emit({
       statistics: {} as any,
@@ -3596,5 +4116,117 @@ describe('WorkbenchComponent with real default LOCAL store state', () => {
     expect(pipelineQueueServiceMock.enqueue).toHaveBeenCalledWith([
       DEFAULT_BUNDLE_ID,
     ]);
+  });
+
+  describe('start page (no file loaded)', () => {
+    it('is the rail itself, filling the workbench, with the editor pane inert', async () => {
+      const { fx } = await createEmptyWorkbench();
+      fx.detectChanges();
+      const el = fx.nativeElement as HTMLElement;
+      const grid = el.querySelector('.workbench')!;
+      expect(grid.classList).toContain('workbench--welcome');
+      // Loaded as the start page: nothing to animate.
+      expect(grid.classList).not.toContain('workbench--welcome-changing');
+      const rail = el.querySelector('.workbench__left')!;
+      expect(rail.hasAttribute('inert')).toBe(false);
+      expect(
+        rail.querySelector('tratt-workbench-welcome-intro'),
+      ).not.toBeNull();
+      expect(rail.querySelector('tratt-workbench-welcome')).not.toBeNull();
+      expect(rail.querySelector('tratt-dropzone')).not.toBeNull();
+      expect(el.querySelector('.workbench__right')!.hasAttribute('inert')).toBe(
+        true,
+      );
+    });
+
+    it('moves to the workbench once the first file is in the list', async () => {
+      const { fx } = await createEmptyWorkbench();
+      fx.detectChanges();
+      const grid = (fx.nativeElement as HTMLElement).querySelector(
+        '.workbench',
+      )!;
+      const resize = jest.fn();
+      window.addEventListener('resize', resize);
+      jest.useFakeTimers();
+      try {
+        landFirstBundle('a.wav');
+        fx.detectChanges();
+        // Both in the same update: the move has its own transitions.
+        expect(grid.classList).not.toContain('workbench--welcome');
+        expect(grid.classList).toContain('workbench--welcome-changing');
+        expect(resize).not.toHaveBeenCalled();
+
+        jest.advanceTimersByTime(600);
+        fx.detectChanges();
+        expect(grid.classList).not.toContain('workbench--welcome-changing');
+        // The editors size themselves to their pane.
+        expect(resize).toHaveBeenCalled();
+      } finally {
+        jest.useRealTimers();
+        window.removeEventListener('resize', resize);
+      }
+    });
+
+    it('switches auto-transcription on for files dropped or recorded on the start page only', async () => {
+      const { fx } = await createEmptyWorkbench();
+      fx.detectChanges();
+      const component = fx.componentInstance;
+      const enable = jest
+        .spyOn((component as any).transcribeOptions, 'enable')
+        .mockImplementation(() => undefined);
+      const file = new File(['a'], 'a.wav');
+
+      component.onFilesDropped([file]);
+      component.onUseRecording(file);
+      expect(enable).toHaveBeenCalledTimes(2);
+
+      enable.mockClear();
+      component.welcomeLayout.set(false);
+      component.onFilesDropped([file]);
+      component.onUseRecording(file);
+      expect(enable).not.toHaveBeenCalled();
+    });
+
+    it('switches auto-transcription on for files picked to be transcribed', async () => {
+      const { fx } = await createEmptyWorkbench();
+      fx.detectChanges();
+      const component = fx.componentInstance;
+      const enable = jest
+        .spyOn((component as any).transcribeOptions, 'enable')
+        .mockImplementation(() => undefined);
+      const addFile = jest
+        .spyOn(component.dropzone!, 'addFile')
+        .mockImplementation(() => undefined);
+      const files = [new File(['a'], 'a.wav'), new File(['b'], 'b.wav')];
+
+      component.onWelcomeFiles(files, true);
+
+      expect(enable).toHaveBeenCalled();
+      expect(addFile.mock.calls.map(([f]) => f)).toEqual(files);
+    });
+
+    it('never queues files picked to transcribe by hand, even with the pipeline on', async () => {
+      const { fx, pipelineQueueServiceMock } = await createEmptyWorkbench();
+      fx.detectChanges();
+      const component = fx.componentInstance;
+      component.onQueueOptionsChange({ modelId: 'm', useWebGPU: false } as any);
+      component.autoTranscribe.set(true);
+      const enable = jest.spyOn((component as any).transcribeOptions, 'enable');
+      jest
+        .spyOn(component.dropzone!, 'addFile')
+        .mockImplementation(() => undefined);
+      const nativeFile = new File(['a'], 'a.wav');
+
+      component.onWelcomeFiles([nativeFile], false);
+      (component.dropzone as any).filesAdded.emit({
+        statistics: {} as any,
+        addedFiles: [decodedEntry(nativeFile)],
+      });
+      landFirstBundle('a.wav');
+      fx.detectChanges();
+
+      expect(enable).not.toHaveBeenCalled();
+      expect(pipelineQueueServiceMock.enqueue).not.toHaveBeenCalled();
+    });
   });
 });

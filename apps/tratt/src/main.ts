@@ -13,6 +13,7 @@ import {
   withEnabledBlockingInitialNavigation,
 } from '@angular/router';
 import { provideServiceWorker } from '@angular/service-worker';
+import { rememberLaunchSearch } from './app/core/shared/workspace/workspace';
 import {
   NgbCollapseModule,
   NgbDropdownModule,
@@ -76,7 +77,13 @@ import { environment } from './environments/environment';
 // Matomo and other trackers inject params (pk_vid, link_addon, etc.) that
 // confuse Angular's router and cause NG04002 errors.
 (function stripUnknownQueryParams() {
+  // The workspace is resolved later, after the app has moved to /load and the
+  // query is gone, so keep the one the page was opened with.
+  rememberLaunchSearch(window.location.search);
   const KNOWN_PARAMS = new Set([
+    // VISP workspace launch: ?workspace=visp&projectId=<id>
+    'workspace',
+    'projectId',
     'audio_url',
     'audio_name',
     'audio_type',

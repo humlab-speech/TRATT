@@ -318,7 +318,6 @@ describe('LoginComponent (pipeline runner characterization)', () => {
           { testCompability: jest.fn(async () => true) } as any, // compatibilityService
           pipelineRunnerService,
           store,
-          { snapshot: { data: {} } } as any, // route
           recordedFileService as any,
         ),
     );

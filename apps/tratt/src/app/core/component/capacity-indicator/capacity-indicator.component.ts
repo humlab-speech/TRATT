@@ -1,11 +1,18 @@
 import {
+  afterNextRender,
   ChangeDetectionStrategy,
   Component,
   computed,
+  effect,
+  ElementRef,
   inject,
+  Injector,
+  signal,
+  untracked,
 } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
+import { AlertService } from '../../shared/service/alert.service';
 import { CapacityService } from '../../shared/service/capacity.service';
 
 /**
@@ -37,6 +44,8 @@ export function formatBytes(bytes: number, locale = 'en'): string {
 const MEMORY_WARN_RATIO = 0.55;
 /** Fraction of the RAM budget at which the bar turns red. */
 const MEMORY_DANGER_RATIO = 0.8;
+/** Fraction of the storage quota counted as "nearly full". */
+const STORAGE_DANGER_RATIO = 0.8;
 
 /**
  * Two bars in the `/workbench` left rail: browser storage, and estimated
@@ -68,6 +77,20 @@ export class CapacityIndicatorComponent {
 
   private readonly storage = this.capacity.storage;
   private readonly memory = this.capacity.residentMemory;
+  private readonly alertService = inject(AlertService);
+  private readonly transloco = inject(TranslocoService);
+
+  private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
+  private readonly injector = inject(Injector);
+
+  /** Folded by default: the figures are for those who ask for them. */
+  readonly expanded = signal(false);
+
+  /**
+   * The flashing note above the figures, pointing at them: up from crossing
+   * a limit until dismissed, or until usage drops below it again.
+   */
+  readonly callout = signal(false);
 
   /** False when the browser exposes no storage estimate at all. */
   readonly storageAvailable = computed(() => this.storage().quotaBytes > 0);
@@ -118,6 +141,68 @@ export class CapacityIndicatorComponent {
     }
     return 'ok';
   });
+
+  /**
+   * The worst of the two: 'danger' when memory is in the red or storage is
+   * nearly full, 'warn' while memory is amber.
+   */
+  readonly level = computed<'ok' | 'warn' | 'danger'>(() => {
+    const { usedBytes, quotaBytes } = this.storage();
+    const storageFull =
+      quotaBytes > 0 && usedBytes / quotaBytes > STORAGE_DANGER_RATIO;
+    return storageFull ? 'danger' : this.memoryLevel();
+  });
+
+  constructor() {
+    // Reaching a limit unfolds the figures and points at them, once per
+    // crossing. Out of sight (a hidden rail), a toast says where to look.
+    let warned = false;
+    effect(() => {
+      const danger = this.level() === 'danger';
+      if (danger && !warned) {
+        untracked(() => {
+          this.expanded.set(true);
+          this.callout.set(true);
+          afterNextRender(() => this.bringIntoView(), {
+            injector: this.injector,
+          });
+        });
+      } else if (!danger && warned) {
+        untracked(() => this.callout.set(false));
+      }
+      warned = danger;
+    });
+  }
+
+  dismissCallout(): void {
+    this.callout.set(false);
+  }
+
+  private bringIntoView(): void {
+    const el = this.host.nativeElement;
+    if (!this.isRendered(el)) {
+      void this.alertService.showAlert(
+        'warning',
+        this.transloco.translate('workbench.capacity.near_limit_toast'),
+      );
+      return;
+    }
+    const reduce = window.matchMedia?.(
+      '(prefers-reduced-motion: reduce)',
+    ).matches;
+    // Within the rail's own scroll: the page itself never jumps.
+    el.scrollIntoView?.({
+      block: 'nearest',
+      behavior: reduce ? 'auto' : 'smooth',
+    });
+  }
+
+  /** False in a hidden rail (or one not laid out at all). */
+  protected isRendered(el: HTMLElement): boolean {
+    return el.checkVisibility
+      ? el.checkVisibility({ visibilityProperty: true })
+      : el.getClientRects().length > 0;
+  }
 
   readonly storageUsedText = computed(() =>
     formatBytes(this.storage().usedBytes, this.uiLang()),

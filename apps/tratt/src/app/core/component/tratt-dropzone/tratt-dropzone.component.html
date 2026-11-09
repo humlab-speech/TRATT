@@ -124,6 +124,9 @@
     <span class="dropzone-placeholder position-relative">{{
       placeholderKey | transloco
     }}</span>
+    <!-- More of the empty state, from the host (the whole box is the
+         button, so nothing projected here should be interactive). -->
+    <ng-content></ng-content>
   }
 </tratt-drop-zone>
 

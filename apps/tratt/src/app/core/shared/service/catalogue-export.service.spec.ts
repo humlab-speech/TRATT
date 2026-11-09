@@ -434,6 +434,21 @@ describe('CatalogueExportService', () => {
     expect(manifest.map((m: any) => m.sourceFilename)).toEqual(['b.wav']);
   });
 
+  it('skips a new bundle holding only its one empty seeded segment, like the list\'s "Not transcribed"', async () => {
+    const seeded = makeBundle('bundle-1', 'seeded.wav');
+    seeded.transcript = new TrattAnnotation([segmentLevel(1, 'OCTRA_1', '')]);
+    const { service } = setup([seeded, makeBundle('bundle-2', 'b.wav')]);
+
+    const last = await lastValueFrom(
+      service.exportBundles(['bundle-1', 'bundle-2'], ['SRT']),
+    );
+
+    expect(last.warnings.some((w) => w.includes('seeded.wav'))).toBe(true);
+    const entries = Object.keys(unzipSync(last.archive!));
+    expect(entries.some((e) => e.startsWith('bundles/seeded/'))).toBe(false);
+    expect(last.exportedCount).toBe(1);
+  });
+
   it('writes one single-tier file (e.g. SRT) per segment tier, so a translation tier is not dropped', async () => {
     const bundle = makeBundle('bundle-1', 'a.wav');
     bundle.transcript = new TrattAnnotation([

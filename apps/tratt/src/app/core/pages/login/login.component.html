@@ -1,22 +1,6 @@
-<!-- Intro of the start page. Shown in the left column of the /local layout (or
-     alone above the browser notice when the browser is unsupported). -->
-<ng-template #localHero>
-  <section class="local-hero">
-    <p class="local-hero__context">{{ 'login.hero.part_of' | transloco }}</p>
-    <h1 class="local-hero__title">{{ 'login.local mode' | transloco }}</h1>
-    <p class="local-hero__lead tratt-prose">
-      {{ 'login.app description' | transloco }}
-    </p>
-    <p class="local-hero__privacy">
-      <i class="fa-solid fa-user-lock" aria-hidden="true"></i>
-      {{ 'login.hero.privacy' | transloco }}
-    </p>
-  </section>
-</ng-template>
-
 <!-- No flex `order` here: credits and footer follow in DOM order, and an
      `order` on this block would sort them above the work area. -->
-<div [class]="localOnly ? 'section' : 'section tratt-page'" id="login">
+<div class="section tratt-page" id="login">
   <div class="row">
     <div class="col-12" style="text-align: center">
       @if (
@@ -48,97 +32,79 @@
     </div>
   }
 
-  @if (localOnly) {
-    <ng-template trattHeaderCenter>
-      <tratt-humlab-logo class="local-humlab-logo" variant="centered" org="umu" />
-    </ng-template>
-  }
-
   @if (compatibleBrowser !== false) {
-    <!-- /local: two columns on wide screens (intro + notes | work card) so the
-         upload box is visible without scrolling; one column below `lg`
-         (intro, work card, notes). Online mode keeps the Bootstrap row. -->
-    <div [class]="localOnly ? 'local-layout' : 'row'" id="loginrow">
-      @if (localOnly) {
-        <ng-container *ngTemplateOutlet="localHero" />
-      }
-      @if (!localOnly) {
-        <div class="col-md-6">
-          <div
-            class="card login-card d-flex flex-column flex-fill h-100"
-            #onlinemode
-          >
-            <div class="card-body">
-              <section class="d-flex flex-column flex-fill h-100">
-                <h4>{{ 'login.online mode' | transloco }}</h4>
-                <p style="text-align: center">
-                  {{ 'login.online mode description' | transloco }}
-                </p>
-                @if (
-                  !apc.tratt.login?.enabled ||
-                  !apc.api?.url ||
-                  !apc.api?.appToken
-                ) {
+    <div class="row" id="loginrow">
+      <div class="col-md-6">
+        <div
+          class="card login-card d-flex flex-column flex-fill h-100"
+          #onlinemode
+        >
+          <div class="card-body">
+            <section class="d-flex flex-column flex-fill h-100">
+              <h4>{{ 'login.online mode' | transloco }}</h4>
+              <p style="text-align: center">
+                {{ 'login.online mode description' | transloco }}
+              </p>
+              @if (
+                !apc.tratt.login?.enabled || !apc.api?.url || !apc.api?.appToken
+              ) {
+                <div
+                  id="login-disabled"
+                  style="
+                    display: table-cell;
+                    height: 100%;
+                    align-content: center;
+                  "
+                >
+                  <i class="fa-solid fa-plug-circle-xmark fs-1"></i><br />
+                  {{ 'login.online mode disabled' | transloco }}
+                </div>
+              } @else if (
+                (authStoreService.serverOnline$ | async) === undefined
+                  ? true
+                  : (authStoreService.serverOnline$ | async)
+              ) {
+                <div class="form-horizontal">
+                  <tratt-authentication-component
+                    [showTitle]="false"
+                    (submitClick)="onOnlineSubmit($event)"
+                    [authentications]="api.appProperties?.authentications"
+                    [passwordReset]="api.appProperties?.reset_password"
+                    [registrations]="api.appProperties?.registrations"
+                  ></tratt-authentication-component>
+                </div>
+              } @else {
+                <div
+                  class="text-center justify-content-center d-flex flex-column flex-fill h-100 p-3 opacity-75"
+                >
+                  <i
+                    class="fa-solid fa-triangle-exclamation text-warning fs-1"
+                  ></i>
                   <div
-                    id="login-disabled"
-                    style="
-                      display: table-cell;
-                      height: 100%;
-                      align-content: center;
+                    [innerHTML]="
+                      'login.api not available'
+                        | transloco
+                          : {
+                              email_link: email_link,
+                            }
                     "
-                  >
-                    <i class="fa-solid fa-plug-circle-xmark fs-1"></i><br />
-                    {{ 'login.online mode disabled' | transloco }}
-                  </div>
-                } @else if (
-                  (authStoreService.serverOnline$ | async) === undefined
-                    ? true
-                    : (authStoreService.serverOnline$ | async)
-                ) {
-                  <div class="form-horizontal">
-                    <tratt-authentication-component
-                      [showTitle]="false"
-                      (submitClick)="onOnlineSubmit($event)"
-                      [authentications]="api.appProperties?.authentications"
-                      [passwordReset]="api.appProperties?.reset_password"
-                      [registrations]="api.appProperties?.registrations"
-                    ></tratt-authentication-component>
-                  </div>
-                } @else {
-                  <div
-                    class="text-center justify-content-center d-flex flex-column flex-fill h-100 p-3 opacity-75"
-                  >
-                    <i
-                      class="fa-solid fa-triangle-exclamation text-warning fs-1"
-                    ></i>
-                    <div
-                      [innerHTML]="
-                        'login.api not available'
-                          | transloco
-                            : {
-                                email_link: email_link,
-                              }
-                      "
-                    ></div>
-                  </div>
-                }
-                <br />
-              </section>
-            </div>
+                  ></div>
+                </div>
+              }
+              <br />
+            </section>
           </div>
         </div>
-      }
-      <div [class]="localOnly ? 'local-main' : 'col-md-6'">
-        <div class="card login-card" [class.local-card]="localOnly" #localmode>
+      </div>
+      <div class="col-md-6">
+        <div class="card login-card" #localmode>
           <div class="card-body">
             <section>
-              @if (!localOnly) {
-                <h4>{{ 'login.local mode' | transloco }}</h4>
-                <div
-                  class="tratt-prose"
-                  [innerHTML]="'login.local mode description' | transloco"
-                ></div>
-              }
+              <h4>{{ 'login.local mode' | transloco }}</h4>
+              <div
+                class="tratt-prose"
+                [innerHTML]="'login.local mode description' | transloco"
+              ></div>
               <div>
                 @if (appStorage.sessionfile !== undefined) {
                   <div
@@ -167,7 +133,7 @@
                         <div class="pt-3">
                           <tratt-dropzone
                             #dropzone
-                            [height]="localOnly ? '200px' : '147px'"
+                            height="147px"
                             [oldFiles]="sessionfile ? [sessionfile] : []"
                             [showAutoTranscribe]="true"
                           ></tratt-dropzone>
@@ -642,21 +608,8 @@
           </div>
         </div>
       </div>
-      @if (localOnly) {
-        <section class="local-details">
-          <div
-            class="tratt-prose"
-            [innerHTML]="'login.local mode description' | transloco"
-          ></div>
-        </section>
-      }
     </div>
   } @else {
-    @if (localOnly) {
-      <div class="local-layout local-layout--hero-only">
-        <ng-container *ngTemplateOutlet="localHero" />
-      </div>
-    }
     <tratt-browser-test></tratt-browser-test>
   }
 </div>

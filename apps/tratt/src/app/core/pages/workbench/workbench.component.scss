@@ -12,17 +12,73 @@
 }
 
 .workbench {
+  position: relative;
   display: grid;
-  grid-template-columns: 340px minmax(0, 1fr);
+  // The rail's width comes from the splitter (--pane-splitter-size); the
+  // editor always keeps 24rem. A programmatic change animates here, in CSS:
+  // the handle sits on the column edge and follows it for free.
+  grid-template-columns:
+    min(var(--pane-splitter-size, 340px), calc(100% - 24rem))
+    minmax(0, 1fr);
   grid-template-rows: minmax(0, 1fr);
   flex: 1 1 0;
   min-height: 0;
+  transition: grid-template-columns 220ms cubic-bezier(0.2, 0, 0, 1);
+
+  // Dragging: the column follows the pointer directly.
+  &[data-pane-resizing] {
+    transition: none;
+    cursor: col-resize;
+    user-select: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
+}
+
+.workbench__left {
+  grid-area: 1 / 1;
+}
+
+.workbench__right {
+  grid-area: 1 / 2;
+}
+
+.workbench__splitter {
+  grid-area: 1 / 2;
+  justify-self: start;
+}
+
+// Hidden rail: once the column has closed, out of sight and out of the tab
+// order (visibility switches at the end of the transition).
+@media (min-width: 769px) {
+  // The splitter's pill (~26px) straddles the rail's edge, so half of it
+  // lies over the rail: clear that half on top of the usual gutter, or it
+  // sits flush against full-width controls such as the Transcribe button.
+  .workbench:not(.workbench--welcome) > .workbench__left {
+    padding-inline-end: calc(0.75rem + 0.875rem);
+  }
+
+  .workbench[data-pane-hidden] > .workbench__left {
+    visibility: hidden;
+    transition: visibility 0s 220ms;
+  }
+
+  // The splitter's grab edge (0.5rem, pane-splitter.component.scss) sits at
+  // the container's start while the rail is hidden: keep the editor clear of
+  // it, so the bar never covers the editor's first pixels.
+  .workbench[data-pane-hidden] > .workbench__right {
+    margin-inline-start: 0.5rem;
+  }
 }
 
 .workbench__left {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  // Never narrower than this, also while the column closes: the rail then
+  // slides under the editor instead of re-wrapping on every frame.
+  min-width: 260px;
   min-height: 0;
   overflow-y: auto;
   padding: 0.75rem 0.75rem 1rem;
@@ -36,6 +92,298 @@
   }
 }
 
+// The tabs and the dropzone: on the start page a centred column; in the
+// workbench the rail's width, once the columns have settled.
+.workbench__ingest {
+  inline-size: 100%;
+  max-inline-size: 100%;
+  margin-inline: auto;
+}
+
+// Upload or record: folder tabs over the panel they switch. The selected
+// tab takes the panel's fill and border and runs into it, so tab and
+// control read as one surface.
+.workbench__ingest {
+  --workbench-mode-fill: color-mix(
+    in srgb,
+    var(--sb-blue) 8%,
+    var(--tint-base)
+  );
+  // From the theme's border, not the page: stays visible in dark mode.
+  --workbench-mode-border: color-mix(
+    in srgb,
+    var(--sb-blue) 35%,
+    var(--tratt-border)
+  );
+}
+
+.workbench__modes {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, max-content);
+  justify-content: start;
+  gap: 0.25rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  // The rail is narrow: icons go first, then long labels are cut.
+  container-type: inline-size;
+
+  .nav-link {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    inline-size: 100%;
+    padding: 0.45rem 0.9rem;
+    border: 1px solid transparent;
+    border-bottom: 0;
+    border-radius: var(--tratt-radius) var(--tratt-radius) 0 0;
+    color: var(--tratt-interactive-text);
+    font-size: 0.9375rem;
+    font-weight: 500;
+
+    &:hover {
+      background: var(--tratt-surface-subtle);
+    }
+
+    // Not colour-only: the selected one is outlined and joined to the
+    // panel (it covers the panel's top border below it).
+    &.active {
+      z-index: 1;
+      margin-bottom: -1px;
+      padding-bottom: calc(0.45rem + 1px);
+      border-color: var(--workbench-mode-border);
+      background: var(--workbench-mode-fill);
+      color: var(--tratt-text-primary);
+    }
+  }
+}
+
+.workbench__mode-panel {
+  padding: 0.75rem;
+  border: 1px solid var(--workbench-mode-border);
+  border-radius: calc(var(--tratt-radius) + 0.25rem);
+  background: var(--workbench-mode-fill);
+
+  // The panel's corner under the first tab is the tab's edge: square it.
+  .workbench__modes:has(> li:first-child > .active) + & {
+    border-start-start-radius: 0;
+  }
+
+  // The recording controls sit on the panel's fill; the drop target keeps
+  // its own white well.
+  ::ng-deep .recording-panel {
+    background-color: transparent;
+  }
+}
+
+// In the work rail the drop area is as tall as its text. Its sizes
+// normally scale with a fixed height (container units), so they are fixed
+// here instead; the start page keeps its fixed, scaled box.
+.workbench:not(.workbench--welcome) .workbench__mode-panel ::ng-deep {
+  .dropzone {
+    container-type: normal;
+    min-height: 0;
+    padding: 0.75rem;
+  }
+
+  .dropzone .dragndrop {
+    font-size: 1.75rem;
+  }
+
+  .dropzone-placeholder {
+    font-size: 0.875rem;
+  }
+}
+
+.workbench__mode-label {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+@container (max-width: 17rem) {
+  .workbench__modes .nav-link i {
+    display: none;
+  }
+}
+
+// The start page's drop target also offers the file picker as a button
+// (the whole box is the button; this one only looks like one).
+.workbench__drop-or {
+  font-size: 0.8125rem;
+  color: var(--tratt-text-muted);
+}
+
+.workbench__drop-choose {
+  --bs-btn-font-size: 1.0625rem;
+  --bs-btn-padding-x: 1.5rem;
+  --bs-btn-padding-y: 0.55rem;
+  border-radius: var(--tratt-radius);
+}
+
+// Parts of the rail only one layout shows: the start page's (--welcome)
+// and the workbench's (--work). Folded rather than removed, so they can
+// animate: the row closes to 0fr while the content fades out.
+.workbench__fold {
+  display: grid;
+  grid-template-rows: 1fr;
+  min-width: 0;
+}
+
+.workbench__fold-content {
+  min-width: 0;
+  min-height: 0;
+  padding-top: 0.75rem;
+}
+
+.workbench__fold--welcome:first-child > .workbench__fold-content {
+  padding: 0 0 1.25rem;
+}
+
+// Grows so the logo, last, sits at the bottom of the rail.
+.workbench__fold--work {
+  flex: 1 0 auto;
+}
+
+.workbench__work {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.workbench--welcome .workbench__fold--work,
+.workbench:not(.workbench--welcome) .workbench__fold--welcome {
+  grid-template-rows: 0fr;
+  opacity: 0;
+  visibility: hidden;
+}
+
+.workbench--welcome .workbench__fold--work > .workbench__fold-content,
+.workbench:not(.workbench--welcome)
+  .workbench__fold--welcome
+  > .workbench__fold-content,
+.workbench--welcome-changing .workbench__fold-content {
+  overflow: hidden;
+}
+
+// The start page (no file loaded): the rail fills the workbench and the
+// editor pane, still mounted, has no width. Its content keeps a centred
+// column of its own.
+.workbench.workbench--welcome > .workbench__left {
+  border-color: transparent;
+  background: var(--tratt-surface-subtle);
+  // A rail the user hid comes back as the start page.
+  visibility: visible;
+}
+
+.workbench--welcome > .workbench__right,
+.workbench--welcome > .workbench__splitter {
+  visibility: hidden;
+}
+
+// The editor pane never shrinks with its column (an editor mounted at a
+// fraction of its width does not recover): on the start page and during
+// the move it keeps its final size, out of the grid, and slides in or out
+// beside the rail's edge. The rail's edge is the first column's final
+// width; translate moves the pane by its own width.
+.workbench--welcome,
+.workbench--welcome-changing {
+  overflow: clip;
+
+  > .workbench__right {
+    position: absolute;
+    // Auto: the containing block is the whole grid, not a grid area.
+    grid-area: auto;
+    inset-block: 0;
+    left: min(var(--pane-splitter-size, 340px), calc(100% - 24rem));
+    width: calc(
+      100% - min(var(--pane-splitter-size, 340px), calc(100% - 24rem))
+    );
+  }
+}
+
+.workbench--welcome > .workbench__right {
+  translate: 100% 0;
+}
+
+.workbench--welcome .workbench__ingest,
+.workbench--welcome-changing .workbench__ingest {
+  max-inline-size: 35rem;
+}
+
+.workbench--welcome .workbench__modes .nav-link {
+  gap: 0.5rem;
+  padding: 0.65rem 0.75rem;
+  font-size: 1.0625rem;
+}
+
+.workbench--welcome ::ng-deep .dropzone-placeholder {
+  font-size: 1.25rem;
+}
+
+// The move between the two (welcomeChanging): leaving the start page, it
+// folds away (200ms) and then the columns slide (400ms); coming back, the
+// columns slide first and the start page unfolds after.
+@media (prefers-reduced-motion: no-preference) {
+  .workbench.workbench--welcome-changing {
+    transition:
+      grid-template-columns 400ms cubic-bezier(0.2, 0, 0, 1) 200ms,
+      grid-template-rows 400ms cubic-bezier(0.2, 0, 0, 1) 200ms;
+  }
+
+  .workbench.workbench--welcome.workbench--welcome-changing {
+    transition-delay: 0s;
+  }
+
+  .workbench__fold {
+    transition:
+      grid-template-rows 200ms cubic-bezier(0.2, 0, 0, 1),
+      opacity 200ms,
+      visibility 0s;
+  }
+
+  .workbench--welcome .workbench__fold--work,
+  .workbench:not(.workbench--welcome) .workbench__fold--welcome {
+    transition:
+      grid-template-rows 200ms cubic-bezier(0.2, 0, 0, 1),
+      opacity 200ms,
+      visibility 0s 200ms;
+  }
+
+  .workbench--welcome .workbench__fold--welcome {
+    transition-delay: 400ms;
+  }
+
+  .workbench__left {
+    transition:
+      background-color 400ms,
+      border-color 400ms;
+  }
+
+  .workbench--welcome-changing > .workbench__right {
+    transition: translate 400ms cubic-bezier(0.2, 0, 0, 1) 200ms;
+  }
+
+  .workbench--welcome-changing.workbench--welcome > .workbench__right {
+    transition:
+      translate 400ms cubic-bezier(0.2, 0, 0, 1),
+      visibility 0s 400ms;
+  }
+
+  .workbench--welcome-changing.workbench--welcome > .workbench__splitter {
+    transition: visibility 0s 400ms;
+  }
+
+  .workbench__ingest {
+    transition: max-inline-size 220ms cubic-bezier(0.2, 0, 0, 1);
+  }
+}
+
 // Narrow viewports: a fixed 340px rail would squeeze the editor to a sliver
 // (at ~420px wide it collapsed to ~100px). Stack the rail above the editor
 // instead; each part scrolls on its own.
@@ -46,8 +394,42 @@
   }
 
   .workbench__left {
+    grid-area: 1 / 1;
     border-right: 0;
     border-bottom: 1px solid var(--tratt-border);
+  }
+
+  .workbench__right {
+    grid-area: 2 / 1;
+  }
+
+  .workbench__splitter {
+    display: none;
+  }
+
+  // The start page: the rail takes the whole height, and the editor pane
+  // waits below it.
+  .workbench--welcome {
+    grid-template-rows: minmax(0, 100%) minmax(0, 1fr);
+  }
+
+  .workbench--welcome,
+  .workbench--welcome-changing {
+    > .workbench__right {
+      inset-block: 45% 0;
+      left: 0;
+      width: 100%;
+    }
+  }
+
+  .workbench--welcome > .workbench__right {
+    translate: 0 100%;
+  }
+}
+
+@media (min-width: 769px) {
+  .workbench--welcome {
+    grid-template-columns: 100% minmax(0, 1fr);
   }
 }
 
@@ -60,6 +442,8 @@
 .workbench__right {
   position: relative;
   display: flex;
+  // Covers the rail sliding underneath while it closes.
+  background: var(--tratt-surface-page);
   flex-direction: column;
   min-height: 0;
   min-width: 0;
@@ -130,15 +514,6 @@
 .workbench__queue {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
-}
-
-.workbench__queue-title {
-  margin-bottom: 0.25rem;
-  font-weight: 500;
-  font-size: 0.8125rem;
-  letter-spacing: 0.02em;
-  color: var(--tratt-text-muted);
 }
 
 .workbench__export {
@@ -148,74 +523,108 @@
   --bs-btn-padding-x: 0.9rem;
 }
 
-.workbench__queue-run {
+// Split button: Transcribe, and the settings it runs with.
+.workbench__queue-split {
   width: 100%;
-  margin-top: 0.25rem;
 }
 
-// Pipeline summary: what new files go through, at a glance. The settings
-// themselves open in .workbench__pipeline-dialog.
-.workbench__pipeline {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.6rem;
-  padding: 0.5rem 0.6rem;
-  border: 1px solid var(--tratt-border);
-  border-radius: var(--tratt-radius);
-  background: var(--tratt-surface-page);
-}
-
-.workbench__pipeline-dot {
-  flex: none;
-  width: 8px;
-  height: 8px;
-  margin-top: 0.35rem;
-  border-radius: 50%;
-  background: var(--tratt-success);
-}
-
-.workbench__pipeline--off .workbench__pipeline-dot {
-  background: var(--tratt-border-control);
-}
-
-.workbench__pipeline-text {
+.workbench__queue-run {
   flex: 1;
   min-width: 0;
 }
 
-.workbench__pipeline-state {
-  font-size: 0.85rem;
-  font-weight: 600;
+.workbench__queue-settings {
+  flex: none;
+  // A hairline between the halves; both share the same fill.
+  border-left-color: color-mix(in srgb, var(--tratt-on-color) 45%, transparent);
 }
 
-.workbench__pipeline-detail {
-  margin-top: 0.15rem;
-  font-size: 0.78rem;
-  color: var(--tratt-text-muted);
+// "Auto-transcribe is on": two arrows round an A, sized like an FA icon.
+.workbench__auto-icon {
+  width: 1.35em;
+  height: 1.35em;
+  vertical-align: -0.3em;
 }
 
-.workbench__pipeline-chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.25rem;
-  margin: 0.3rem 0 0;
-  padding: 0;
-  list-style: none;
+.workbench__auto-icon-line {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
 
-  li {
-    padding: 0 0.55rem;
-    border-radius: 999px;
-    background: var(--tratt-surface-sunken);
-    color: var(--tratt-text-primary);
-    font-family: var(--tratt-font-data);
-    font-size: 0.75rem;
-    line-height: 1.5;
-    white-space: nowrap;
+.workbench__auto-icon-head {
+  fill: currentColor;
+  stroke: currentColor;
+  stroke-width: 0.8;
+  stroke-linejoin: round;
+}
+
+.workbench__queue-settings.btn-outline-secondary {
+  border-left-color: var(--bs-btn-border-color);
+}
+
+// Running, or waiting for new files: no call to action. Hover only tints,
+// so the progress fill and its text stay readable.
+.workbench__queue--quiet {
+  --bs-btn-color: var(--tratt-text-primary);
+  --bs-btn-hover-color: var(--tratt-text-primary);
+  --bs-btn-hover-bg: var(--tratt-surface-subtle);
+  --bs-btn-hover-border-color: var(--bs-btn-border-color);
+  --bs-btn-active-color: var(--tratt-text-primary);
+  --bs-btn-active-bg: var(--tratt-surface-subtle);
+  --bs-btn-active-border-color: var(--bs-btn-border-color);
+}
+
+// The run button as a progress bar: the fill behind the label.
+.workbench__queue-run {
+  position: relative;
+  overflow: hidden;
+}
+
+// The whole run's progress: every file in it, finished ones included. The
+// bottom edge matches the bars under the list's running rows.
+.workbench__queue-fill {
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: 0;
+  background: var(--sb-blue-tint);
+  box-shadow: inset 0 -3px 0 var(--tratt-interactive);
+
+  @media (prefers-reduced-motion: no-preference) {
+    transition: width 400ms linear;
   }
 }
 
-.workbench__pipeline-edit {
-  flex: none;
+// Painted over the fill (later in the DOM, both positioned).
+.workbench__queue-label {
+  position: relative;
+}
+
+// The current file's share while it is prepared, which the fill can't
+// show yet. Its first run loads the model, which can take minutes.
+.workbench__queue-preparing {
+  position: absolute;
+  inset-block: 0;
+  background: var(--sb-blue-tint);
+  box-shadow: inset 0 -3px 0 var(--tratt-interactive);
+  opacity: 0.5;
+
+  @media (prefers-reduced-motion: no-preference) {
+    animation: workbench-queue-preparing 1.4s ease-in-out infinite;
+  }
+}
+
+@keyframes workbench-queue-preparing {
+  0%,
+  100% {
+    opacity: 0.2;
+  }
+
+  50% {
+    opacity: 0.8;
+  }
 }
 
 .workbench__pipeline-dialog {
@@ -306,4 +715,27 @@
     gap: 0.5rem 1rem;
     padding-block: 0.25rem;
   }
+}
+
+// VISP workspace: the assignment's header (title + Refresh) above the list.
+.workbench__visp {
+  margin-bottom: 0.75rem;
+}
+
+.workbench__visp-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.workbench__visp-title {
+  font-weight: 600;
+}
+
+.workbench__visp-assigned {
+  margin: 0;
+  padding-left: 1.25rem;
 }

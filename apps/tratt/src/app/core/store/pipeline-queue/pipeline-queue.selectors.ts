@@ -15,6 +15,12 @@ export const selectActiveBundleId = createSelector(
   (s) => s.activeId,
 );
 
+/** Waiting to run, oldest first. */
+export const selectQueuedBundleIds = createSelector(
+  selectPipelineQueueFeature,
+  (s) => s.queue,
+);
+
 /**
  * The whole `runs` dictionary in one read. Consumers index it via
  * `runStatusOf(runs, bundleId)` (which applies the "absent ⇒ idle" default).

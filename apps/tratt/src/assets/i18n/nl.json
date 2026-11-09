@@ -333,10 +333,6 @@
       "speaker separation label": "Sprekerscheiding"
     },
     "app description": "Tratt is een gratis webapplicatie voor transcriptie van spraakopnamen in platte tekst (orthografisch). Het beschikt over drie verschillende editors die tegemoetkomen aan uiteenlopende behoeften bij het transcriberen, en u kunt er tijdens een sessie vrij tussen wisselen.",
-    "hero": {
-      "part_of": "A tool in Visp – Språkbanken's speech research platform",
-      "privacy": "Your recording never leaves your computer. Automatic transcription runs locally too."
-    },
     "funding support and development": "Financiers en samenwerkingen",
     "groups that developed the language models": "Ontwikkelaars van de gebruikte taalmodellen",
     "tabs": {
@@ -408,7 +404,7 @@
         "delete old": "Verwijder de vorige transcriptie",
         "header": "Maak een nieuwe transcriptie?",
         "text": "Wilt u werkelijk de vorige transcriptie verwijderen en een nieuwe maken? <br><br> Uw voortgang van de vorige transcriptie  zal verwijderd worden. Deze actie kan niet ongedaan gemaakt worden.",
-        "workbench note": "Let op: de bestandenlijst van de Workbench deelt deze plek, dus “{{name}}” wordt daar ook vervangen."
+        "workbench note": "Let op: de lijst met opnamebundels van de Workbench deelt deze plek, dus “{{name}}” wordt daar ook vervangen."
       },
       "demoEnd": {
         "exportText": "U kunt uw transcript exporteren door op \"Terug\" en vervolgens op \"Exporteren\" te klikken:",
@@ -520,19 +516,31 @@
       "record": "Nu opnemen"
     },
     "bundle_list": {
-      "title": "Bestanden",
-      "reattach": "Bestand koppelen…",
+      "title": "Opnamebundels",
+      "reattach": "Audio koppelen…",
+      "attach": "Koppelen",
+      "audio_attached": "Audio gekoppeld",
       "select_all": "Alles selecteren",
-      "clear_finished": "Voltooide wissen",
+      "delete_done": "Klare verwijderen",
+      "delete_done_hint": "Verwijdert alle opnamebundels gemarkeerd als Klaar, met hun transcripties en alle bewerkingen. Dit kan niet ongedaan worden gemaakt, dus sla ze eerst op als .zip als je ze nog nodig hebt. Je audiobestanden blijven onaangeroerd.",
       "remove": "Verwijderen",
-      "export_catalogue": "Alles exporteren",
+      "selected_count": "{{count}} geselecteerd",
+      "selected_count_one": "1 geselecteerd",
+      "deselect": "Deselecteren",
+      "export_catalogue": "Alle opslaan als .zip",
+      "export_catalogue_one": "Opslaan als .zip",
+      "export_catalogue_selected": "{{count}} opslaan als .zip",
+      "export_catalogue_selected_one": "1 opslaan als .zip",
+      "export_catalogue_hint": "Slaat de opnamebundels op in één .zip: hun transcripties, de gekoppelde audio en een lijst ervan. Sleep die later hierheen om verder te gaan waar je gebleven was.",
       "retry": "Opnieuw proberen",
       "status": {
         "queued": "In wachtrij",
         "running": "Bezig",
         "done": "Klaar",
         "failed": "Mislukt",
-        "interrupted": "Onderbroken"
+        "interrupted": "Onderbroken",
+        "has_transcript": "Heeft tekst",
+        "no_transcript": "Niet getranscribeerd"
       },
       "error": {
         "decode": "Kan de audio niet lezen",
@@ -541,7 +549,7 @@
         "cancelled": "Geannuleerd",
         "unknown": "Mislukt"
       },
-      "cancel": "Transcriberen van dit bestand stoppen",
+      "cancel": "Stoppen met het transcriberen van deze opnamebundel",
       "stage": {
         "decode": "Voorbereiden",
         "download": "Model laden",
@@ -549,61 +557,99 @@
         "diarization": "Sprekers scheiden",
         "translation": "Vertalen"
       },
-      "confirm_remove": "{{count}} bestand(en) uit de lijst verwijderen? De transcripten en alle wijzigingen worden gewist en kunnen niet worden hersteld."
+      "confirm_remove": "{{count}} opnamebundel(s) verwijderen? Hun transcripties en alle bewerkingen worden verwijderd en kunnen niet worden hersteld. Je audiobestanden blijven onaangeroerd.",
+      "column_file": "Opnamebundel",
+      "column_file_hint": "Een opnamebundel is één opname: de audio en de transcriptie. Tratt bewaart de transcriptie in deze browser. De audio blijft op je schijf en is alleen gekoppeld terwijl je werkt.",
+      "column_audio": "Audio",
+      "column_status": "Transcriptie",
+      "audio_details_not_attached": "Audio niet gekoppeld",
+      "audio_details_pending": "De audiogegevens verschijnen zodra de audio is geladen"
     },
     "queue": {
-      "run": "{{count}} bestand(en) transcriberen",
-      "pause": "Wachtrij pauzeren",
-      "options_title": "Pipeline-instellingen",
-      "no_options_hint": "Geen transcriptieopties ingesteld – schakel eerst automatische transcriptie in."
+      "run": "{{count}} transcriberen",
+      "stop": "Transcriberen stoppen",
+      "progress": "Transcriberen {{current}} van {{total}}",
+      "options_title": "Transcriptie",
+      "run_hint": "Transcribeer de opnamebundels die nog geen transcriptie hebben, een voor een. Bundels zonder gekoppelde audio worden overgeslagen.",
+      "stop_hint": "Stopt de opnamebundel die nu wordt getranscribeerd en de bundels die daarna wachten. Je wordt eerst om bevestiging gevraagd.",
+      "stop_confirm": "Het transcriberen van “{{name}}” nu stoppen? Wat er tot nu toe van is getranscribeerd, gaat verloren.",
+      "stop_confirm_waiting": "De {{count}} wachtende opnamebundel(s) worden ook niet getranscribeerd.",
+      "unavailable_hint": "Transcriptie is niet beschikbaar in deze browser (Safari). Probeer Chrome, Edge of Firefox.",
+      "nothing_hint": "Elke opnamebundel heeft al een transcriptie, of moet eerst zijn audio gekoppeld krijgen. Om er een opnieuw te transcriberen, bijvoorbeeld met een groter model, vink je hem aan in de lijst en klik je op Transcriberen.",
+      "run_selected": "{{count}} geselecteerde transcriberen",
+      "run_none": "Transcriberen",
+      "run_selected_hint": "Transcribeer de aangevinkte opnamebundels met de huidige instellingen. Bundels die al een transcriptie hebben, worden na je bevestiging opnieuw getranscribeerd.",
+      "selection_unavailable": "De aangevinkte opnamebundels kunnen nu niet worden getranscribeerd: ze staan al in de wachtrij, of hun audio is niet gekoppeld.",
+      "replace_confirm_one": "“{{name}}” opnieuw transcriberen? De huidige transcriptie wordt vervangen, en dat kan niet ongedaan worden gemaakt.",
+      "replace_confirm_other": "{{count}} opnamebundels opnieuw transcriberen? Hun huidige transcripties worden vervangen, en dit kan niet ongedaan worden gemaakt.",
+      "replace_confirm_checked": "Dat geldt ook voor {{count}} fragment(en) die iemand heeft gecorrigeerd of door luisteren heeft gecontroleerd.",
+      "replace_confirm_export": "Gebruik eerst “Opslaan als .zip” als je een kopie wilt bewaren.",
+      "auto_on": "Auto-transcriptie aan",
+      "auto_hint": "Nieuwe opnamebundels worden getranscribeerd zodra je ze toevoegt. Om er een opnieuw te transcriberen, bijvoorbeeld met een groter model, vink je hem aan in de lijst en klik je hier. Zet dit uit in de instellingen (het schuifregelaarpictogram)."
     },
     "capacity": {
       "storage_label": "Browseropslag",
       "storage_text": "{{used}} van {{quota}}",
-      "storage_note": "Schatting: modellen ca. {{models}} voor de huidige pipeline + annotaties ca. {{annotations}}. Media worden nooit in de opslag geschreven.",
+      "storage_note": "Schatting: modellen ca. {{models}} voor de huidige pipeline + transcripties ca. {{annotations}}. Tratt bewaart transcripties, nooit audio.",
       "storage_unavailable": "Deze browser meldt het opslaggebruik niet.",
       "storage_breakdown_unavailable": "De opslagverdeling is pas beschikbaar als een pipeline is ingesteld.",
       "memory_label": "Werkgeheugen (geschat)",
       "memory_text": "{{used}} van ca. {{budget}}",
-      "memory_note": "Gedecodeerde audio voor {{count}} geladen bestand(en). Dit, en niet de opslag, bepaalt hoeveel media je tegelijk kunt vasthouden."
+      "memory_note": "De gekoppelde audio van {{count}} opnamebundel(s), gedecodeerd. Dit, en niet de opslag, bepaalt hoeveel audio je tegelijk gekoppeld kunt hebben.",
+      "title": "Opslag en geheugen",
+      "near_limit": "Bijna aan de limiet",
+      "near_limit_toast": "Tratt heeft bijna geen browsergeheugen of opslag meer. Zie ‘Opslag en geheugen’ onderaan het linkerpaneel.",
+      "near_limit_callout": "Tratt heeft bijna geen browsergeheugen of opslagruimte meer. De cijfers staan hieronder.",
+      "near_limit_dismiss": "Sluiten"
     },
     "catalogue_export": {
-      "title": "Catalogus exporteren",
+      "title": "Opslaan als .zip",
       "formats_label": "Formaten",
-      "bundles_label": "{{count}} bestand(en) geselecteerd",
-      "all_bundles_hint": "Geen bestanden aangevinkt – alle {{count}} worden geëxporteerd.",
-      "export": "Exporteren",
+      "native_format": "Tratt (_annot.json, altijd)",
+      "native_hint": "Tratts eigen transcriptiebestand, altijd inbegrepen. Sleep de .zip later naar Tratt om de transcripties weer te laden.",
+      "contents_label": "Wat er in de .zip komt",
+      "summary_with_audio": "{{count}} met audio en transcriptie",
+      "summary_transcript_only": "{{count}} alleen transcriptie",
+      "summary_left_out": "{{count}} weggelaten",
+      "badge_with_audio": "audio + transcriptie",
+      "badge_transcript_only": "alleen transcriptie",
+      "no_audio_file": "geen audio: niet gekoppeld",
+      "manifest_hint": "– een lijst van de opnamebundels",
+      "nothing_to_save": "Geen van deze opnamebundels heeft al een transcriptie, dus er is niets om op te slaan.",
+      "left_out": "Weggelaten, nog geen transcriptie: {{names}}",
+      "bundles_label": "{{count}} opnamebundel(s) geselecteerd",
+      "missing_audio": "{{count}} daarvan hebben geen gekoppelde audio en worden zonder opgeslagen. Koppel eerst hun audio voor een volledige kopie.",
+      "all_bundles_hint": "Geen opnamebundels aangevinkt – alle {{count}} worden opgeslagen.",
+      "export": "Opslaan",
       "cancel": "Annuleren",
-      "progress": "{{current}} van {{total}} exporteren…",
+      "progress": "{{current}} van {{total}} opslaan…",
       "warnings_title": "Voltooid met waarschuwingen",
-      "done": "Klaar – {{count}} bestand(en) gearchiveerd.",
-      "failed": "Export mislukt: {{message}}"
+      "done": "Klaar – {{count}} opnamebundel(s) opgeslagen.",
+      "failed": "Opslaan mislukt: {{message}}"
     },
-    "dropzone_placeholder": "Zet audiobestanden hier neer of klik om te bladeren. Meerdere tegelijk is prima.",
+    "dropzone_placeholder": "Sleep audio- of videobestanden hierheen, of een .zip die je vanuit Tratt hebt opgeslagen",
+    "dropzone_attach": "Sleep audio- of videobestanden hierheen. Het eigen audiobestand van een opnamebundel wordt eraan gekoppeld.",
     "editor": {
       "loading_audio": "Audio laden…",
-      "awaiting_media": "De audio van dit bestand is in deze sessie niet geladen. Gebruik “Bestand koppelen…” in de lijst om het opnieuw te koppelen."
+      "awaiting_media": "De audio van deze opnamebundel is niet gekoppeld. Tratt bewaart transcripties, nooit audio, dus koppel hem bij elk bezoek opnieuw."
     },
     "empty": {
-      "title": "Nog geen bestanden",
-      "text": "Zet links een of meer audiobestanden neer, of neem direct op. Elk bestand krijgt een eigen transcript en met automatische transcriptie ingeschakeld worden nieuwe bestanden automatisch getranscribeerd.",
+      "title": "Nog geen opnamebundels",
+      "text": "Sleep links een of meer audiobestanden neer, of neem direct op. Elk wordt een opnamebundel: de audio plus een eigen transcriptie. Met automatisch transcriberen aan worden nieuwe automatisch getranscribeerd.",
       "restored_title": "Welkom terug",
-      "restored_text": "Je bestanden van de vorige sessie staan links in de lijst. Koppel de audio van een bestand opnieuw met “Bestand koppelen…” om verder te bewerken, of zet nieuwe bestanden neer."
+      "restored_text": "Tratt heeft je transcripties van de vorige keer bewaard, maar niet je audio: audio wordt nooit bewaard. Om te luisteren en te corrigeren, koppel je de audio van elke opnamebundel met “Koppelen” in de lijst, of sleep je dezelfde audiobestanden hierheen."
     },
     "editor_header": {
       "mono": "mono",
       "stereo": "stereo",
-      "export": "Deze transcriptie exporteren",
-      "export_unavailable": "Nog niets te exporteren: dit bestand heeft geen transcriptie en de audio is niet gekoppeld.",
+      "export": "Transcriptie downloaden",
+      "export_unavailable": "Nog niets te downloaden: deze opnamebundel heeft geen transcriptie en de audio is niet gekoppeld.",
+      "save_recording": "Audio opslaan",
       "audio_not_attached": "audio niet gekoppeld"
-    },
-    "data_selector": {
-      "label": "Bestand kiezen",
-      "position": "{{index}} van {{total}}"
     },
     "dropzone": {
       "already_loaded": "Staat al in de lijst, niet opnieuw toegevoegd: {{names}}",
-      "transcript_no_recording": "Geen opname met de naam “{{name}}”. Sleep de transcriptie samen met het audiobestand, of geef haar de naam van de opname.",
+      "transcript_no_recording": "Geen opnamebundel met de naam “{{name}}”. Sleep de transcriptie samen met het audiobestand neer, of geef haar dezelfde naam als de opnamebundel.",
       "transcript_needs_audio": "Koppel eerst de audio van “{{name}}” en sleep de transcriptie daarna opnieuw.",
       "transcript_already_used": "Voor “{{name}}” wordt al een andere transcriptie uit deze drop gebruikt."
     },
@@ -612,17 +658,84 @@
       "applied": "{{file}} geladen in {{name}}."
     },
     "pipeline": {
-      "on": "Automatisch transcriberen aan",
-      "off": "Automatisch transcriberen uit",
-      "off_detail": "Nieuwe bestanden worden niet automatisch getranscribeerd.",
+      "on": "Automatische transcriptie aan",
+      "off": "Automatische transcriptie uit",
       "speakers_one": "1 spreker",
       "speakers_other": "{{count}} sprekers",
       "speakers_auto": "Sprekers: automatisch",
       "translate_to": "→ {{language}}",
-      "edit": "Pipeline-instellingen",
-      "dialog_title": "Pipeline-instellingen",
+      "edit": "Transcriptie-instellingen",
+      "dialog_title": "Transcriptie-instellingen",
       "done": "Klaar",
-      "close": "Sluiten"
+      "close": "Sluiten",
+      "unavailable": "Transcriptie niet beschikbaar",
+      "automatic_label": "Nieuwe opnamebundels automatisch transcriberen"
+    },
+    "welcome": {
+      "title": "Zet spraak om in tekst",
+      "lead": "Voeg een audio- of videobestand toe en Tratt transcribeert het voor je – gewoon hier in je browser.",
+      "drop": "Sleep een audio- of videobestand hierheen",
+      "or": "of",
+      "choose": "Kies een bestand",
+      "demo": "Probeer een voorbeeldopname",
+      "demo_failed": "De voorbeeldopname kon niet worden geladen.",
+      "language": "Transcriptietaal: {{language}}",
+      "change_settings": "Wijzigen",
+      "manual_prompt": "Typ je het liever zelf?",
+      "manual": "Handmatig transcriberen, zonder AI",
+      "privacy_title": "Privé vanaf het begin.",
+      "privacy": "Je audio verlaat nooit je computer — automatisch transcriberen gebeurt ook lokaal in je browser.",
+      "facts": "Gratis te gebruiken · Werkt met MP3, WAV, M4A, MP4, MOV en meer",
+      "how": "Hoe werkt Tratt?",
+      "steps": {
+        "add": {
+          "title": "Bestand toevoegen",
+          "text": "Audio of video"
+        },
+        "transcribe": {
+          "title": "Transcriberen",
+          "text": "Eén klik, volledig automatisch"
+        },
+        "edit": {
+          "title": "Bewerken & downloaden",
+          "text": "Tekst, Word of ondertitels"
+        }
+      }
+    },
+    "visp": {
+      "title": "Toegewezen opnamebundels",
+      "refresh": "Vernieuwen",
+      "loading": "Je opnamebundels worden uit VISP geladen…",
+      "empty": "Er zijn in dit project geen opnamebundels aan je toegewezen. Vraag de projecteigenaar er in VISP een paar toe te wijzen en klik dan op Vernieuwen.",
+      "assigned_list": "Aan jou toegewezen opnamebundels:",
+      "save": "Opslaan in VISP",
+      "retry": "Opnieuw proberen",
+      "finished": "Klaar",
+      "comment": "Opmerking",
+      "keep_mine": "Mijn versie behouden",
+      "use_theirs": "VISP-versie gebruiken",
+      "unassigned": "Niet meer aan jou toegewezen. Je niet-opgeslagen wijzigingen blijven hier tot je deze opnamebundel verwijdert; download eerst het transcript als je het nodig hebt.",
+      "remove_unassigned": "Verwijderen",
+      "sync": {
+        "saved": "Opgeslagen",
+        "unsaved": "Niet-opgeslagen wijzigingen",
+        "saving": "Opslaan…",
+        "failed": "Niet opgeslagen"
+      },
+      "error": {
+        "not_signed_in": "Je bent niet meer aangemeld bij VISP. Meld je opnieuw aan in VISP en laad TRATT daarna opnieuw.",
+        "not_member": "Je bent geen lid van dit project. Vraag de projecteigenaar je toe te voegen.",
+        "no_transcription_level": "Dit project heeft geen transcriptielaag, dus TRATT kan de opnamebundels niet openen. Vraag de projecteigenaar er in VISP een toe te voegen.",
+        "level_linked": "De transcriptielaag is gekoppeld aan andere lagen, dus TRATT kan hem niet veilig bewerken. Vraag de projecteigenaar de koppeling op te heffen.",
+        "unreachable": "VISP is niet bereikbaar. Je wijzigingen blijven in deze browser bewaard; probeer het zo opnieuw.",
+        "stale": "Deze opnamebundel is in VISP of in een ander tabblad gewijzigd terwijl je eraan werkte. Je wijzigingen blijven in deze browser bewaard. Behoud je versie (alleen het transcript wordt vervangen) of gebruik de VISP-versie en laat je wijzigingen vallen.",
+        "unassigned": "Deze opnamebundel is niet meer aan jou toegewezen en kan daarom niet worden opgeslagen.",
+        "unknown": "Er ging iets mis bij de communicatie met VISP."
+      },
+      "pane_title": "Kies een opnamebundel",
+      "pane_text": "Kies er een in de lijst links. De audio en het transcript komen uit VISP, en Opslaan in de lijst schrijft je transcript terug naar VISP.",
+      "pane_readonly_title": "Niets te openen in TRATT",
+      "pane_readonly_text": "TRATT kan de opnamebundels van dit project openen zodra het project een transcriptielaag heeft."
     }
   },
   "shell": {
@@ -640,8 +753,14 @@
       "version": "Version"
     },
     "header": {
-      "label": "Main navigation",
-      "workbench": "Workbench"
+      "label": "Main navigation"
     }
+  },
+  "pane_splitter": {
+    "resize": "Formaat van de panelen wijzigen (slepen, of de pijltjestoetsen gebruiken)",
+    "narrower": "Linkerpaneel smaller maken",
+    "wider": "Linkerpaneel breder maken",
+    "hide": "Linkerpaneel verbergen",
+    "show": "Linkerpaneel tonen"
   }
 }

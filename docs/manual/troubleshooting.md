@@ -130,7 +130,7 @@ option to continue, download the partial file, or discard it.
 **A file failed with "Ran out of memory"**
 You have attached too much decoded audio to the session at once. The **Working memory (est.)** meter
 shows how much storage is being used. Export what is finished,
-**Clear finished** to release it, then attach the next few recordings. Using a smaller
+**Delete done** to release it, then attach the next few recordings. Using a smaller
 transcription model also helps.
 
 **A file failed with "Could not read the audio"**
@@ -146,9 +146,9 @@ row. The rest of the queue is unaffected.
 The page was closed or reloaded while the queue was running. 
 Re-attach the audio and run the queue again. In most cases, nothing is lost in this process.
 
-**The Transcribe button is greyed out**
-No pipeline is configured. Open **Pipeline settings** and tick
-**Auto-transcribe with Whisper** first.
+**Transcribe says there is nothing to transcribe**
+Every file already has a transcript. To transcribe one again, tick it in the
+file list first; see [Transcribing a file again](workbench.md#transcribing-a-file-again).
 
 **Every file says "Attach file…"**
 This is normal after a reload. Tratt keeps a copy of the transcripts in its storage, but not the media. So each recording

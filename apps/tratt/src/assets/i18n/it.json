@@ -333,10 +333,6 @@
       "speaker separation label": "Separazione dei parlanti"
     },
     "app description": "Tratt è un'applicazione web gratuita per la trascrizione in testo normale (ortografica) di registrazioni vocali. Dispone di tre editor diversi che soddisfano esigenze differenti durante la trascrizione e permette di passare liberamente da uno all'altro nel corso di una sessione.",
-    "hero": {
-      "part_of": "A tool in Visp – Språkbanken's speech research platform",
-      "privacy": "Your recording never leaves your computer. Automatic transcription runs locally too."
-    },
     "funding support and development": "Finanziatori e collaborazioni",
     "groups that developed the language models": "Sviluppatori dei modelli linguistici utilizzati",
     "tabs": {
@@ -408,7 +404,7 @@
         "delete old": "Elimina trascrizione precedente",
         "header": "Crea una nuova trascrizione?",
         "text": "Vuoi davvero eliminare la precedente trascrizione e crearne una nuova?<br><br>I tuoi progressi sulla precedente trascrizione saranno eliminati. Quest'azione è irreversibile.",
-        "workbench note": "Nota: l'elenco file del Workbench condivide questo spazio, quindi anche “{{name}}” verrà sostituito lì."
+        "workbench note": "Nota: l'elenco dei pacchetti di registrazione del Workbench condivide questo spazio, quindi anche “{{name}}” verrà sostituito lì."
       },
       "demoEnd": {
         "exportText": "Puoi esportare la tua trascrizione cliccando su \"Indietro\" e poi su \"Esporta\":",
@@ -520,19 +516,31 @@
       "record": "Registra ora"
     },
     "bundle_list": {
-      "title": "File",
-      "reattach": "Collega file…",
+      "title": "Pacchetti di registrazione",
+      "reattach": "Collega audio…",
+      "attach": "Collega",
+      "audio_attached": "Audio collegato",
       "select_all": "Seleziona tutto",
-      "clear_finished": "Rimuovi completati",
+      "delete_done": "Elimina completati",
+      "delete_done_hint": "Elimina tutti i pacchetti di registrazione segnati come Completato, con le loro trascrizioni e tutte le modifiche. Non si può annullare: salvali prima come .zip se ti servono ancora. I tuoi file audio non vengono toccati.",
       "remove": "Rimuovi",
-      "export_catalogue": "Esporta tutto",
+      "selected_count": "{{count}} selezionati",
+      "selected_count_one": "1 selezionato",
+      "deselect": "Deseleziona",
+      "export_catalogue": "Salva tutti come .zip",
+      "export_catalogue_one": "Salva come .zip",
+      "export_catalogue_selected": "Salva {{count}} come .zip",
+      "export_catalogue_selected_one": "Salva 1 come .zip",
+      "export_catalogue_hint": "Salva i pacchetti di registrazione in un unico .zip: le trascrizioni, l'audio collegato e un elenco dei pacchetti. Trascinalo qui più tardi per riprendere da dove avevi lasciato.",
       "retry": "Riprova",
       "status": {
         "queued": "In coda",
         "running": "In corso",
         "done": "Completato",
         "failed": "Non riuscito",
-        "interrupted": "Interrotto"
+        "interrupted": "Interrotto",
+        "has_transcript": "Ha testo",
+        "no_transcript": "Non trascritto"
       },
       "error": {
         "decode": "Impossibile leggere l'audio",
@@ -541,7 +549,7 @@
         "cancelled": "Annullato",
         "unknown": "Non riuscito"
       },
-      "cancel": "Interrompi la trascrizione di questo file",
+      "cancel": "Interrompi la trascrizione di questo pacchetto di registrazione",
       "stage": {
         "decode": "Preparazione",
         "download": "Caricamento del modello",
@@ -549,61 +557,99 @@
         "diarization": "Separazione dei parlanti",
         "translation": "Traduzione"
       },
-      "confirm_remove": "Rimuovere {{count}} file dall'elenco? Le trascrizioni e tutte le modifiche verranno eliminate e non potranno essere ripristinate."
+      "confirm_remove": "Rimuovere {{count}} pacchetti di registrazione? Le loro trascrizioni e tutte le modifiche verranno eliminate e non potranno essere ripristinate. I tuoi file audio non vengono toccati.",
+      "column_file": "Pacchetto di registrazione",
+      "column_file_hint": "Un pacchetto di registrazione è una registrazione: il suo audio e la sua trascrizione. Tratt conserva la trascrizione in questo browser. L'audio resta sul tuo disco ed è collegato solo mentre lavori.",
+      "column_audio": "Audio",
+      "column_status": "Trascrizione",
+      "audio_details_not_attached": "Audio non collegato",
+      "audio_details_pending": "I dettagli dell'audio compaiono quando l'audio è stato caricato"
     },
     "queue": {
-      "run": "Trascrivi {{count}} file",
-      "pause": "Metti in pausa la coda",
-      "options_title": "Impostazioni della pipeline",
-      "no_options_hint": "Nessuna opzione di trascrizione configurata: attiva prima la trascrizione automatica."
+      "run": "Trascrivi {{count}}",
+      "stop": "Interrompi la trascrizione",
+      "progress": "Trascrizione {{current}} di {{total}}",
+      "options_title": "Trascrizione",
+      "run_hint": "Trascrive uno dopo l'altro i pacchetti di registrazione senza trascrizione. Quelli senza audio collegato vengono saltati.",
+      "stop_hint": "Interrompe il pacchetto di registrazione in corso e quelli in attesa dopo di esso. Ti verrà chiesta conferma.",
+      "stop_confirm": "Interrompere ora la trascrizione di «{{name}}»? Quanto trascritto finora andrà perso.",
+      "stop_confirm_waiting": "Anche i {{count}} pacchetti di registrazione in attesa non verranno trascritti.",
+      "unavailable_hint": "La trascrizione non è disponibile in questo browser (Safari). Prova Chrome, Edge o Firefox.",
+      "nothing_hint": "Ogni pacchetto di registrazione ha già una trascrizione, oppure richiede prima di collegare il suo audio. Per trascriverne uno di nuovo, ad esempio con un modello più grande, selezionalo nell'elenco e fai clic su Trascrivi.",
+      "run_selected": "Trascrivi {{count}} selezionati",
+      "run_none": "Trascrivi",
+      "run_selected_hint": "Trascrive i pacchetti di registrazione selezionati con le impostazioni attuali. Quelli che hanno già una trascrizione vengono ritrascritti, dopo la tua conferma.",
+      "selection_unavailable": "I pacchetti di registrazione selezionati non possono essere trascritti ora: sono già in coda, oppure il loro audio non è collegato.",
+      "replace_confirm_one": "Trascrivere di nuovo “{{name}}”? La trascrizione attuale verrà sostituita e l’operazione non si può annullare.",
+      "replace_confirm_other": "Trascrivere di nuovo {{count}} pacchetti di registrazione? Le loro trascrizioni attuali verranno sostituite e l'operazione non può essere annullata.",
+      "replace_confirm_checked": "Sono compresi {{count}} passaggi che una persona ha corretto o verificato ascoltando.",
+      "replace_confirm_export": "Per conservarne una copia, usa prima «Salva come .zip».",
+      "auto_on": "Auto-trascrizione attiva",
+      "auto_hint": "I nuovi pacchetti di registrazione vengono trascritti appena li aggiungi. Per trascriverne uno di nuovo, ad esempio con un modello più grande, selezionalo nell'elenco e fai clic qui. Disattiva questa opzione nelle impostazioni (l'icona dei cursori)."
     },
     "capacity": {
       "storage_label": "Archiviazione del browser",
       "storage_text": "{{used}} di {{quota}}",
-      "storage_note": "Stima: modelli circa {{models}} per la pipeline attuale + annotazioni circa {{annotations}}. I file multimediali non vengono mai scritti nell'archivio.",
+      "storage_note": "Stima: modelli circa {{models}} per la pipeline attuale + trascrizioni circa {{annotations}}. Tratt salva le trascrizioni, mai l'audio.",
       "storage_unavailable": "Questo browser non riporta l'utilizzo dell'archiviazione.",
       "storage_breakdown_unavailable": "Il dettaglio dell'archiviazione non è disponibile finché non è configurata una pipeline.",
       "memory_label": "Memoria di lavoro (stima)",
       "memory_text": "{{used}} di ~{{budget}}",
-      "memory_note": "Audio decodificato per {{count}} file residenti. È questo, non l'archiviazione, a limitare quanti contenuti puoi tenere aperti contemporaneamente."
+      "memory_note": "L'audio collegato di {{count}} pacchetti di registrazione, decodificato. È questo, non l'archivio, a limitare quanto audio puoi avere collegato contemporaneamente.",
+      "title": "Archiviazione e memoria",
+      "near_limit": "Vicino al limite",
+      "near_limit_toast": "Tratt sta esaurendo la memoria o lo spazio di archiviazione del browser. Vedi «Archiviazione e memoria» in fondo al pannello di sinistra.",
+      "near_limit_callout": "Tratt sta esaurendo la memoria o lo spazio di archiviazione del browser. I dati sono qui sotto.",
+      "near_limit_dismiss": "Chiudi"
     },
     "catalogue_export": {
-      "title": "Esporta catalogo",
+      "title": "Salva come .zip",
       "formats_label": "Formati",
-      "bundles_label": "{{count}} file selezionati",
-      "all_bundles_hint": "Nessun file selezionato: verranno esportati tutti i {{count}}.",
-      "export": "Esporta",
+      "native_format": "Tratt (_annot.json, sempre)",
+      "native_hint": "Il file di trascrizione di Tratt, sempre incluso. Trascina il .zip su Tratt più tardi per ricaricare le trascrizioni.",
+      "contents_label": "Contenuto del .zip",
+      "summary_with_audio": "{{count}} con audio e trascrizione",
+      "summary_transcript_only": "{{count}} solo trascrizione",
+      "summary_left_out": "{{count}} esclusi",
+      "badge_with_audio": "audio + trascrizione",
+      "badge_transcript_only": "solo trascrizione",
+      "no_audio_file": "nessun audio: non è collegato",
+      "manifest_hint": "— un elenco dei pacchetti di registrazione",
+      "nothing_to_save": "Nessuno di questi pacchetti di registrazione ha ancora una trascrizione, quindi non c’è nulla da salvare.",
+      "left_out": "Esclusi, ancora senza trascrizione: {{names}}",
+      "bundles_label": "{{count}} pacchetti di registrazione selezionati",
+      "missing_audio": "{{count}} di questi non hanno audio collegato e vengono salvati senza. Collega prima il loro audio per una copia completa.",
+      "all_bundles_hint": "Nessun pacchetto selezionato: verranno salvati tutti i {{count}}.",
+      "export": "Salva",
       "cancel": "Annulla",
-      "progress": "Esportazione di {{current}} su {{total}}…",
+      "progress": "Salvataggio di {{current}} su {{total}}…",
       "warnings_title": "Completato con avvisi",
-      "done": "Fatto: {{count}} file archiviati.",
-      "failed": "Esportazione non riuscita: {{message}}"
+      "done": "Fatto: {{count}} pacchetti di registrazione salvati.",
+      "failed": "Salvataggio non riuscito: {{message}}"
     },
-    "dropzone_placeholder": "Trascina qui i file audio o fai clic per sfogliare. Anche più file insieme.",
+    "dropzone_placeholder": "Trascina qui file audio o video, oppure uno .zip salvato da Tratt",
+    "dropzone_attach": "Trascina qui file audio o video. Il file audio di un pacchetto di registrazione viene collegato al pacchetto.",
     "editor": {
       "loading_audio": "Caricamento audio…",
-      "awaiting_media": "L'audio di questo file non è caricato in questa sessione. Usa “Collega file…” nell'elenco per ricollegarlo."
+      "awaiting_media": "L'audio di questo pacchetto di registrazione non è collegato. Tratt salva le trascrizioni, mai l'audio, quindi collegalo di nuovo a ogni visita."
     },
     "empty": {
-      "title": "Ancora nessun file",
-      "text": "Trascina uno o più file audio a sinistra, oppure registra direttamente. Ogni file ha la propria trascrizione e, con la trascrizione automatica attiva, i nuovi file vengono trascritti automaticamente.",
+      "title": "Ancora nessun pacchetto di registrazione",
+      "text": "Trascina uno o più file audio a sinistra, oppure registra direttamente. Ognuno diventa un pacchetto di registrazione: l'audio più la sua trascrizione. Con la trascrizione automatica attiva, i nuovi vengono trascritti automaticamente.",
       "restored_title": "Bentornato",
-      "restored_text": "I file dell'ultima sessione sono elencati a sinistra. Ricollega l'audio di un file con “Collega file…” per continuare a modificarlo, oppure trascina nuovi file."
+      "restored_text": "Tratt ha conservato le tue trascrizioni dall'ultima volta, ma non il tuo audio: l'audio non viene mai salvato. Per ascoltare e correggere, collega l'audio di ogni pacchetto di registrazione con “Collega” nell'elenco, oppure trascina qui gli stessi file audio."
     },
     "editor_header": {
       "mono": "mono",
       "stereo": "stereo",
-      "export": "Esporta questa trascrizione",
-      "export_unavailable": "Ancora niente da esportare: questo file non ha una trascrizione e il suo audio non è allegato.",
+      "export": "Scarica la trascrizione",
+      "export_unavailable": "Ancora niente da scaricare: questo pacchetto di registrazione non ha una trascrizione e il suo audio non è collegato.",
+      "save_recording": "Salva audio",
       "audio_not_attached": "audio non allegato"
-    },
-    "data_selector": {
-      "label": "Scegli file",
-      "position": "{{index}} di {{total}}"
     },
     "dropzone": {
       "already_loaded": "Già nell'elenco, non aggiunto di nuovo: {{names}}",
-      "transcript_no_recording": "Nessuna registrazione chiamata “{{name}}”. Trascina la trascrizione insieme al suo file audio, oppure chiamala come la registrazione.",
+      "transcript_no_recording": "Nessun pacchetto di registrazione di nome «{{name}}». Trascina la trascrizione insieme al suo file audio, oppure dalle lo stesso nome del pacchetto.",
       "transcript_needs_audio": "Allega prima l'audio di “{{name}}”, poi trascina di nuovo la trascrizione.",
       "transcript_already_used": "Per “{{name}}” è già usata un’altra trascrizione di questo rilascio."
     },
@@ -614,15 +660,82 @@
     "pipeline": {
       "on": "Trascrizione automatica attiva",
       "off": "Trascrizione automatica disattivata",
-      "off_detail": "I nuovi file non vengono trascritti automaticamente.",
       "speakers_one": "1 parlante",
       "speakers_other": "{{count}} parlanti",
       "speakers_auto": "Parlanti: automatico",
       "translate_to": "→ {{language}}",
-      "edit": "Impostazioni della pipeline",
-      "dialog_title": "Impostazioni della pipeline",
+      "edit": "Impostazioni di trascrizione",
+      "dialog_title": "Impostazioni di trascrizione",
       "done": "Fatto",
-      "close": "Chiudi"
+      "close": "Chiudi",
+      "unavailable": "Trascrizione non disponibile",
+      "automatic_label": "Trascrivi automaticamente i nuovi pacchetti di registrazione"
+    },
+    "welcome": {
+      "title": "Trasforma il parlato in testo",
+      "lead": "Aggiungi un file audio o video e Tratt lo trascriverà per te, direttamente nel tuo browser.",
+      "drop": "Trascina qui un file audio o video",
+      "or": "oppure",
+      "choose": "Scegli un file",
+      "demo": "Prova una registrazione di esempio",
+      "demo_failed": "Impossibile caricare la registrazione di esempio.",
+      "language": "Lingua di trascrizione: {{language}}",
+      "change_settings": "Modifica",
+      "manual_prompt": "Preferisci scrivere tu?",
+      "manual": "Trascrivi a mano, senza IA",
+      "privacy_title": "Privato per natura.",
+      "privacy": "Il tuo audio non lascia mai il tuo computer: anche la trascrizione automatica avviene localmente nel browser.",
+      "facts": "Gratuito · Funziona con MP3, WAV, M4A, MP4, MOV e altri",
+      "how": "Come funziona Tratt?",
+      "steps": {
+        "add": {
+          "title": "Aggiungi un file",
+          "text": "Audio o video"
+        },
+        "transcribe": {
+          "title": "Trascrivi",
+          "text": "Un clic, tutto automatico"
+        },
+        "edit": {
+          "title": "Modifica e scarica",
+          "text": "Testo, Word o sottotitoli"
+        }
+      }
+    },
+    "visp": {
+      "title": "Pacchetti di registrazione assegnati",
+      "refresh": "Aggiorna",
+      "loading": "Caricamento dei tuoi pacchetti di registrazione da VISP…",
+      "empty": "In questo progetto non ti è assegnato alcun pacchetto di registrazione. Chiedi al responsabile del progetto di assegnartene in VISP, poi premi Aggiorna.",
+      "assigned_list": "Pacchetti di registrazione assegnati a te:",
+      "save": "Salva in VISP",
+      "retry": "Riprova",
+      "finished": "Completato",
+      "comment": "Commento",
+      "keep_mine": "Mantieni la mia versione",
+      "use_theirs": "Usa la versione di VISP",
+      "unassigned": "Non più assegnato a te. Le modifiche non salvate restano qui finché non rimuovi questo pacchetto di registrazione; scarica prima la trascrizione se ti serve.",
+      "remove_unassigned": "Rimuovi",
+      "sync": {
+        "saved": "Salvato",
+        "unsaved": "Modifiche non salvate",
+        "saving": "Salvataggio…",
+        "failed": "Non salvato"
+      },
+      "error": {
+        "not_signed_in": "Non hai più eseguito l'accesso a VISP. Accedi di nuovo in VISP, poi ricarica TRATT.",
+        "not_member": "Non sei membro di questo progetto. Chiedi al responsabile del progetto di aggiungerti.",
+        "no_transcription_level": "Questo progetto non ha un livello di trascrizione, quindi TRATT non può aprirne i pacchetti di registrazione. Chiedi al responsabile del progetto di aggiungerne uno in VISP.",
+        "level_linked": "Il livello di trascrizione è collegato ad altri livelli, quindi TRATT non può modificarlo in sicurezza. Chiedi al responsabile del progetto di scollegarlo.",
+        "unreachable": "VISP non è raggiungibile. Le tue modifiche restano in questo browser; riprova tra poco.",
+        "stale": "Questo pacchetto di registrazione è stato modificato in VISP o in un'altra scheda mentre ci lavoravi. Le tue modifiche restano in questo browser. Mantieni la tua versione (viene sostituita solo la trascrizione) oppure usa la versione di VISP e scarta le tue modifiche.",
+        "unassigned": "Questo pacchetto di registrazione non ti è più assegnato, quindi non può essere salvato.",
+        "unknown": "Si è verificato un errore nella comunicazione con VISP."
+      },
+      "pane_title": "Seleziona un pacchetto di registrazione",
+      "pane_text": "Scegline uno nell'elenco a sinistra. L'audio e la trascrizione provengono da VISP, e Salva nell'elenco riscrive la tua trascrizione in VISP.",
+      "pane_readonly_title": "Niente da aprire in TRATT",
+      "pane_readonly_text": "TRATT potrà aprire i pacchetti di registrazione di questo progetto quando il progetto avrà un livello di trascrizione."
     }
   },
   "shell": {
@@ -640,8 +753,14 @@
       "version": "Version"
     },
     "header": {
-      "label": "Main navigation",
-      "workbench": "Workbench"
+      "label": "Main navigation"
     }
+  },
+  "pane_splitter": {
+    "resize": "Ridimensiona i pannelli (trascina o usa i tasti freccia)",
+    "narrower": "Restringi il pannello sinistro",
+    "wider": "Allarga il pannello sinistro",
+    "hide": "Nascondi il pannello sinistro",
+    "show": "Mostra il pannello sinistro"
   }
 }

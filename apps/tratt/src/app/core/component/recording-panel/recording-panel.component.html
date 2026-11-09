@@ -7,7 +7,13 @@
   ></tratt-recording-recovery-banner>
 }
 
-<div class="recording-panel border rounded p-2 mt-2">
+<div
+  class="recording-panel"
+  [class.border]="framed()"
+  [class.rounded]="framed()"
+  [class.p-2]="framed()"
+  [class.mt-2]="framed()"
+>
   <div class="recording-toolbar">
     @if (service.state$ | async; as state) {
       @if (!staged) {
