@@ -682,8 +682,11 @@
 
 .workbench__pane-bar {
   display: flex;
+  // When even the fastbar's icons no longer fit, the file actions move to a
+  // second row; the editor tabs never wrap.
+  flex-wrap: wrap;
   align-items: center;
-  gap: 1.5rem;
+  gap: 0.5rem 1.5rem;
   min-block-size: 3.25rem;
   padding: 0 1rem 0 0.75rem;
   border-bottom: 1px solid var(--tratt-border);
@@ -693,10 +696,25 @@
   align-self: stretch;
   border-bottom: 0;
   padding: 0;
+  // The editor tabs keep their size and stay on one line; the shortcuts,
+  // overview and help links next to them give up room instead.
+  flex: none;
+  flex-wrap: nowrap;
+}
+
+.workbench__pane-bar .workbench__editor-tab {
+  white-space: nowrap;
 }
 
 .workbench__fastbar {
   margin-left: auto;
+}
+
+// What the tabs and the file actions leave over; the fastbar compacts itself
+// to fit it (FastbarComponent.fit), down to its three icons.
+.workbench__pane-bar .workbench__fastbar {
+  flex: 1 1 0;
+  min-width: 5.5rem;
 }
 
 .workbench__editor-header-actions {

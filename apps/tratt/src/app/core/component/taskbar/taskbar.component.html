@@ -1,5 +1,5 @@
-<div id="fastbar" [class.fastbar--inline]="variant === 'inline'">
-  <div class="btn-group w-100 p-2">
+<div id="fastbar" #bar [class.fastbar--inline]="variant === 'inline'">
+  <div class="btn-group w-100 p-2" #buttons>
     <button
       type="button"
       (click)="shortcutbtnclicked.emit()"
@@ -7,10 +7,20 @@
     >
       <i class="fa-solid fa-keyboard align-middle"></i>
       @if (!appStorage.easyMode) {
-        <span class="d-none d-md-inline"> {{ buttonLabels.shortcuts }}</span>
+        <span
+          [class]="
+            variant === 'inline' ? 'fastbar__label' : 'd-none d-md-inline'
+          "
+        >
+          {{ buttonLabels.shortcuts }}</span
+        >
       }
       @if (!appStorage.easyMode) {
-        <span class="d-none d-lg-inline"> <kbd>Alt+8</kbd></span>
+        <span
+          [class]="variant === 'inline' ? 'fastbar__kbd' : 'd-none d-lg-inline'"
+        >
+          <kbd>Alt+8</kbd></span
+        >
       }
     </button>
     <button
@@ -20,16 +30,32 @@
     >
       <i class="fa-solid fa-eye"></i>
       @if (!appStorage.easyMode) {
-        <span class="d-none d-md-inline"> {{ buttonLabels.overview }}</span>
+        <span
+          [class]="
+            variant === 'inline' ? 'fastbar__label' : 'd-none d-md-inline'
+          "
+        >
+          {{ buttonLabels.overview }}</span
+        >
       }
       @if (!appStorage.easyMode) {
-        <span class="d-none d-lg-inline"> <kbd>Alt+0</kbd></span>
+        <span
+          [class]="variant === 'inline' ? 'fastbar__kbd' : 'd-none d-lg-inline'"
+        >
+          <kbd>Alt+0</kbd></span
+        >
       }
     </button>
     <button type="button" (click)="openHelpModal()" class="btn btn-link w-100">
       <i class="fa-solid fa-circle-question"></i>
       @if (!appStorage.easyMode) {
-        <span class="d-none d-md-inline"> {{ buttonLabels.help }}</span>
+        <span
+          [class]="
+            variant === 'inline' ? 'fastbar__label' : 'd-none d-md-inline'
+          "
+        >
+          {{ buttonLabels.help }}</span
+        >
       }
     </button>
   </div>
