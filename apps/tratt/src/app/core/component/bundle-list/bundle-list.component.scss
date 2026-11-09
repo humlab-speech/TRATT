@@ -48,6 +48,8 @@
   position: relative;
   overflow: hidden;
   display: flex;
+  // The whole row selects its bundle (onRowClick).
+  cursor: pointer;
   align-items: center;
   gap: 0.4rem;
   border: 1px solid var(--tratt-border);

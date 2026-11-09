@@ -476,6 +476,27 @@ export class BundleListComponent {
     private pendingEdits: PendingEditsService,
   ) {}
 
+  /**
+   * A click anywhere on a row selects its bundle, not only on the name. Clicks
+   * on the row's own controls (checkbox, attach, save, status, stop, …) do
+   * what those controls do; the name is a button and selects by itself. A
+   * drag that selected text is not a click on the row.
+   */
+  onRowClick(bundleId: string, event: MouseEvent): void {
+    const target = event.target as Element | null;
+    if (
+      target?.closest(
+        'button, a, input, label, select, textarea, [role="button"]',
+      )
+    ) {
+      return;
+    }
+    if (window.getSelection()?.toString()) {
+      return;
+    }
+    this.selectBundle(bundleId);
+  }
+
   selectBundle(bundleId: string): void {
     if (this.isVisp()) {
       // Leaving a bundle with unsaved changes saves it first.

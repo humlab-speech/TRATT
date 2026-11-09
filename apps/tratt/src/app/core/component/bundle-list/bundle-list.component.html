@@ -88,6 +88,7 @@
           [class.bundle-list__item--awaiting]="bundle.awaitingMedia"
           [class.bundle-list__item--visp]="isVisp()"
           [attr.title]="audioDetails(bundle.bundleId, bundle.awaitingMedia)"
+          (click)="onRowClick(bundle.bundleId, $event)"
         >
           <input
             type="checkbox"

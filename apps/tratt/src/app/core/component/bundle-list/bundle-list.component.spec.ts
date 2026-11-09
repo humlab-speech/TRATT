@@ -201,6 +201,58 @@ describe('BundleListComponent', () => {
     );
   });
 
+  describe('clicking a row', () => {
+    const rowOf = (name: string) =>
+      fixture.debugElement
+        .queryAll(By.css('.bundle-list__item'))
+        .find((r) => r.nativeElement.textContent.includes(name))!;
+
+    beforeEach(() => {
+      store.setState({
+        ...initialState,
+        localMode: { ...initialState.localMode, selectedBundleId: 'bundle-a' },
+      } as unknown as RootState);
+      fixture.detectChanges();
+    });
+
+    it('selects its bundle, not only a click on the name', () => {
+      const dispatchSpy = jest.spyOn(store, 'dispatch');
+      rowOf('b.wav')
+        .nativeElement.querySelector('.bundle-list__transcript')
+        .click();
+      expect(dispatchSpy).toHaveBeenCalledWith(
+        LoginModeActions.selectBundle({
+          mode: LoginMode.LOCAL,
+          bundleId: 'bundle-b',
+        }),
+      );
+    });
+
+    it('selects once when the name is clicked', () => {
+      const dispatchSpy = jest.spyOn(store, 'dispatch');
+      rowOf('b.wav')
+        .nativeElement.querySelector('.bundle-list__item-btn')
+        .click();
+      expect(
+        dispatchSpy.mock.calls.filter(
+          ([action]) =>
+            (action as { type: string }).type ===
+            LoginModeActions.selectBundle.type,
+        ),
+      ).toHaveLength(1);
+    });
+
+    it("leaves the row's own controls alone", () => {
+      const dispatchSpy = jest.spyOn(store, 'dispatch');
+      rowOf('b.wav')
+        .nativeElement.querySelector('.bundle-list__item-checkbox')
+        .click();
+      expect(dispatchSpy).not.toHaveBeenCalledWith(
+        expect.objectContaining({ type: LoginModeActions.selectBundle.type }),
+      );
+    });
+  });
+
   it('commits pending editor typing before switching bundles', () => {
     store.setState({
       ...initialState,
@@ -333,9 +385,9 @@ describe('BundleListComponent', () => {
       expect(row('b.wav').title).toBe(
         'workbench.bundle_list.audio_details_pending',
       );
-      expect(
-        fixture.componentInstance.audioDetails('bundle-b', true),
-      ).toBe('workbench.bundle_list.audio_details_not_attached');
+      expect(fixture.componentInstance.audioDetails('bundle-b', true)).toBe(
+        'workbench.bundle_list.audio_details_not_attached',
+      );
     });
   });
 
