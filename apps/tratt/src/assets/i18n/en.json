@@ -999,6 +999,12 @@
       "retry": "Retry",
       "finished": "Finished",
       "comment": "Comment",
+      "status": {
+        "button": "Finished and comment",
+        "intro": "The project owner sees this in VISP.",
+        "finished": "I am finished with this recording bundle",
+        "comment_placeholder": "A note to the project owner"
+      },
       "keep_mine": "Keep my version",
       "use_theirs": "Use the VISP version",
       "unassigned": "No longer assigned to you. Your unsaved changes are kept here until you remove this recording bundle; download the transcript first if you need it.",

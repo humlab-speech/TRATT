@@ -20,11 +20,17 @@ import {
   CatalogueExportModalComponent,
 } from '../../modals/catalogue-export-modal/catalogue-export-modal.component';
 import { TrattModalService } from '../../modals/tratt-modal.service';
+import {
+  VispBundleStatus,
+  VispBundleStatusModalComponent,
+} from '../../modals/visp-bundle-status-modal/visp-bundle-status-modal.component';
 import { YesNoModalComponent } from '../../modals/yes-no-modal/yes-no-modal.component';
 import { SessionFile } from '../../obj/SessionFile';
 import { AudioService } from '../../shared/service/audio.service';
 import { PendingEditsService } from '../../shared/service/pending-edits.service';
 import { PipelineQueueService } from '../../shared/service/pipeline-queue.service';
+import { VispWorkspaceService } from '../../shared/workspace/visp-workspace.service';
+import { WorkspaceService } from '../../shared/workspace/workspace.service';
 import { AuthenticationActions } from '../../store/authentication';
 import { LoginMode, RootState } from '../../store/index';
 import {
@@ -39,8 +45,6 @@ import {
 } from '../../store/pipeline-queue';
 import { selectAllRunStatuses } from '../../store/pipeline-queue/pipeline-queue.selectors';
 import { selectLocalBundle } from './select-local-bundle';
-import { VispWorkspaceService } from '../../shared/workspace/visp-workspace.service';
-import { WorkspaceService } from '../../shared/workspace/workspace.service';
 
 /**
  * Lists the bundles created over the course of a session — the first-wave
@@ -166,13 +170,32 @@ export class BundleListComponent {
     void this.visp.saveBundle(bundleId);
   }
 
-  onVispFinished(bundleId: string, finished: boolean): void {
-    void this.visp.saveBundle(bundleId, { finishedEditing: finished });
-  }
-
-  onVispComment(bundleId: string, event: Event): void {
-    const comment = (event.target as HTMLInputElement).value;
-    void this.visp.saveBundle(bundleId, { comment });
+  /** Finished and comment, edited in a modal; saved (with the transcript) only when changed. */
+  async onVispStatus(bundleId: string, bundleName: string): Promise<void> {
+    const ref = this.vispInfo(bundleId)?.ref;
+    if (!ref) return;
+    let result: VispBundleStatus | undefined;
+    try {
+      result = (await this.modService.openModal(
+        VispBundleStatusModalComponent,
+        VispBundleStatusModalComponent.options,
+        {
+          bundleName,
+          finishedEditing: ref.finishedEditing === true,
+          comment: ref.comment ?? '',
+        },
+      )) as VispBundleStatus | undefined;
+    } catch {
+      return; // dismissed
+    }
+    if (
+      !result ||
+      (result.finishedEditing === (ref.finishedEditing === true) &&
+        result.comment === (ref.comment ?? ''))
+    ) {
+      return;
+    }
+    void this.visp.saveBundle(bundleId, result);
   }
 
   /** The bundle changed in VISP meanwhile: keep the user's or VISP's version. */
@@ -457,10 +480,7 @@ export class BundleListComponent {
     if (this.isVisp()) {
       // Leaving a bundle with unsaved changes saves it first.
       const current = this.localMode().selectedBundleId;
-      if (
-        current !== bundleId &&
-        this.visp.info(current)?.sync === 'unsaved'
-      ) {
+      if (current !== bundleId && this.visp.info(current)?.sync === 'unsaved') {
         void this.visp.saveBundle(current);
       }
       void this.visp.open(bundleId);

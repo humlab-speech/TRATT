@@ -947,6 +947,12 @@
       "retry": "Försök igen",
       "finished": "Klar",
       "comment": "Kommentar",
+      "status": {
+        "button": "Klar och kommentar",
+        "intro": "Projektägaren ser detta i VISP.",
+        "finished": "Jag är klar med det här inspelningspaketet",
+        "comment_placeholder": "En anteckning till projektägaren"
+      },
       "keep_mine": "Behåll min version",
       "use_theirs": "Använd versionen i VISP",
       "unassigned": "Inte längre tilldelat dig. Dina osparade ändringar finns kvar här tills du tar bort inspelningspaketet; ladda ner transkriptet först om du behöver det.",

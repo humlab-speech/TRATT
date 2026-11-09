@@ -337,30 +337,42 @@
                     ) | transloco
                   }}
                 </button>
-                <label class="bundle-list__finished">
-                  <input
-                    type="checkbox"
-                    class="form-check-input"
-                    [checked]="v.ref.finishedEditing"
-                    [disabled]="v.sync === 'saving' || !v.opened"
-                    (change)="
-                      onVispFinished(
-                        bundle.bundleId,
-                        $any($event.target).checked
-                      )
+                <!-- Finished and comment: what the project owner sees in VISP,
+                     kept behind a small button so the row stays quiet. -->
+                <button
+                  type="button"
+                  class="btn btn-sm btn-text bundle-list__status"
+                  [class.bundle-list__status--set]="
+                    v.ref.finishedEditing || v.ref.comment
+                  "
+                  [disabled]="v.sync === 'saving' || !v.opened"
+                  [attr.aria-label]="'workbench.visp.status.button' | transloco"
+                  [attr.title]="
+                    v.ref.comment
+                      ? v.ref.comment
+                      : ('workbench.visp.status.button' | transloco)
+                  "
+                  (click)="onVispStatus(bundle.bundleId, v.ref.name)"
+                >
+                  <i
+                    [class]="
+                      v.ref.comment
+                        ? 'fa-solid fa-comment-dots'
+                        : 'fa-regular fa-comment'
                     "
-                  />
-                  {{ 'workbench.visp.finished' | transloco }}
-                </label>
-                <input
-                  type="text"
-                  class="form-control form-control-sm bundle-list__comment"
-                  [value]="v.ref.comment ?? ''"
-                  [disabled]="!v.opened"
-                  [attr.aria-label]="'workbench.visp.comment' | transloco"
-                  [attr.placeholder]="'workbench.visp.comment' | transloco"
-                  (change)="onVispComment(bundle.bundleId, $event)"
-                />
+                    aria-hidden="true"
+                  ></i>
+                  @if (v.ref.finishedEditing) {
+                    <i
+                      class="fa-solid fa-circle-check bundle-list__status-finished"
+                      [attr.title]="'workbench.visp.finished' | transloco"
+                      aria-hidden="true"
+                    ></i>
+                    <span class="visually-hidden">{{
+                      'workbench.visp.finished' | transloco
+                    }}</span>
+                  }
+                </button>
                 @if (v.sync === 'failed' && v.error; as err) {
                   <span class="bundle-list__visp-error" role="alert">
                     {{ 'workbench.visp.error.' + err.kind | transloco }}

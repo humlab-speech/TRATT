@@ -475,7 +475,18 @@
   flex: 1 0 100%;
 }
 
-.bundle-list__comment {
-  flex: 1 1 8rem;
-  min-width: 6rem;
+.bundle-list__status {
+  // Discreet: muted until the bundle has a mark or a comment.
+  color: var(--tratt-text-muted);
+  padding: 0 0.35rem;
+  line-height: 1;
+}
+
+.bundle-list__status--set {
+  color: var(--tratt-text-primary);
+}
+
+.bundle-list__status-finished {
+  margin-left: 0.25rem;
+  color: var(--bs-success);
 }
