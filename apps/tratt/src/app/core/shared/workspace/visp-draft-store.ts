@@ -44,8 +44,12 @@ class DraftDatabase extends Dexie {
 export class IndexedDbDraftStore implements VispDraftStore {
   private readonly db: DraftDatabase;
 
-  constructor(serverUrl: string, projectId: string) {
-    this.db = new DraftDatabase(`tratt-visp-drafts:${serverUrl}:${projectId}`);
+  constructor(serverUrl: string, projectId: string, level: string) {
+    // Per level: a draft holds the edited level, which must never be spliced
+    // into another level after the user relaunches TRATT on a different one.
+    this.db = new DraftDatabase(
+      `tratt-visp-drafts:${serverUrl}:${projectId}:${level}`,
+    );
   }
 
   get(ref: BundleRef) {

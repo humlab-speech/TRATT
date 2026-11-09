@@ -6,9 +6,12 @@ export interface AppSettings {
   };
   /** Deployment-mounted VISP integration; absent for stand-alone TRATT. */
   visp?: {
+    /** `wss://…`, or a path on TRATT's own host such as `/annotation-ws`. */
     serverUrl: string;
-    mediaOrigin: string;
-    transcriptionLevel: string;
+    /** Origin of the server's audio URLs, if not TRATT's own. */
+    mediaOrigin?: string;
+    /** Level used when the launch link names none. */
+    transcriptionLevel?: string;
   };
   tratt: {
     database: {

@@ -1,7 +1,7 @@
 import { WebSocketServer } from 'ws';
 
 /**
- * In-memory stand-in for emu-webapp-server's websocket protocol, for tests.
+ * In-memory stand-in for the VISP annotation server's websocket protocol, for tests.
  * Like the real server it stores the whole annotation on SAVEBUNDLE and
  * serializes it with JSON.stringify(…, null, 2).
  */

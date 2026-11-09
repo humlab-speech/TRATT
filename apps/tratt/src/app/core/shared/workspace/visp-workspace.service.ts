@@ -123,8 +123,7 @@ export function ownedLevelOf(
     new SampleUnit(0, sampleRate),
   );
   return json.levels.find((l) => l.name === levelName) as
-    | ISegmentLevel
-    | undefined;
+    ISegmentLevel | undefined;
 }
 
 const DRAFT_WRITE_DELAY_MS = 400;
@@ -226,7 +225,11 @@ export class VispWorkspaceService {
       }
       this.drafts ??=
         typeof indexedDB !== 'undefined'
-          ? new IndexedDbDraftStore(w.serverUrl, w.projectId)
+          ? new IndexedDbDraftStore(
+              w.serverUrl,
+              w.projectId,
+              w.transcriptionLevel,
+            )
           : new MemoryDraftStore();
 
       const editability = await this.source.editability();
@@ -570,8 +573,7 @@ export class VispWorkspaceService {
     this.store.select(selectLocalMode).subscribe((local) => {
       for (const id of Object.keys(this._bundles())) {
         const entity = local.bundles.entities[id] as
-          | IdentifiedAnnotationState
-          | undefined;
+          IdentifiedAnnotationState | undefined;
         const t = entity?.transcript;
         if (t && seen.get(id) !== t) {
           seen.set(id, t);
@@ -766,7 +768,10 @@ export class VispWorkspaceService {
       }
     };
     await Promise.all(
-      Array.from({ length: Math.min(PREPARE_CONCURRENCY, items.length) }, worker),
+      Array.from(
+        { length: Math.min(PREPARE_CONCURRENCY, items.length) },
+        worker,
+      ),
     );
   }
 
@@ -781,8 +786,7 @@ export class VispWorkspaceService {
 
   private entity(bundleId: string): IdentifiedAnnotationState | undefined {
     return this.localState()?.bundles.entities[bundleId] as
-      | IdentifiedAnnotationState
-      | undefined;
+      IdentifiedAnnotationState | undefined;
   }
 
   private setInfo(bundleId: string, info: VispBundleInfo) {

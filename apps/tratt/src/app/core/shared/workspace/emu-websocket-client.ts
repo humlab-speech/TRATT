@@ -1,5 +1,5 @@
 /**
- * Client for the EMU-webApp websocket protocol spoken by `emu-webapp-server`:
+ * Client for the EMU-webApp websocket protocol spoken by the VISP annotation server:
  * JSON requests `{type, callbackID, ...}` paired with responses carrying the
  * same `callbackID` and `status.type` SUCCESS | ERROR.
  */

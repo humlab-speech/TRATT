@@ -13,7 +13,6 @@ import {
   withEnabledBlockingInitialNavigation,
 } from '@angular/router';
 import { provideServiceWorker } from '@angular/service-worker';
-import { rememberLaunchSearch } from './app/core/shared/workspace/workspace';
 import {
   NgbCollapseModule,
   NgbDropdownModule,
@@ -56,6 +55,7 @@ import { BugReportService } from './app/core/shared/service/bug-report.service';
 import { CompatibilityService } from './app/core/shared/service/compatibility.service';
 import { IDBService } from './app/core/shared/service/idb.service';
 import { LOCAL_DIARIZATION_WORKER_FACTORY } from './app/core/shared/service/local-diarization-worker.token';
+import { rememberLaunchSearch } from './app/core/shared/workspace/workspace';
 import { APIEffects } from './app/core/store/api';
 import { ApplicationInitEffects } from './app/core/store/application/application-init.effects';
 import { ApplicationSessionEffects } from './app/core/store/application/application-session.effects';
@@ -81,9 +81,10 @@ import { environment } from './environments/environment';
   // query is gone, so keep the one the page was opened with.
   rememberLaunchSearch(window.location.search);
   const KNOWN_PARAMS = new Set([
-    // VISP workspace launch: ?workspace=visp&projectId=<id>
+    // VISP workspace launch: ?workspace=visp&projectId=<id>&level=<name>
     'workspace',
     'projectId',
+    'level',
     'audio_url',
     'audio_name',
     'audio_type',
@@ -111,7 +112,8 @@ import { environment } from './environments/environment';
 bootstrapApplication(AppComponent, {
   providers: [
     // Routing
-    provideZoneChangeDetection(),provideRouter(APP_ROUTES, withEnabledBlockingInitialNavigation()),
+    provideZoneChangeDetection(),
+    provideRouter(APP_ROUTES, withEnabledBlockingInitialNavigation()),
 
     // Forms
     FormsModule,

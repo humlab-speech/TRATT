@@ -26,27 +26,27 @@ export const AppConfigSchema: JSONSchema4 = {
     },
     visp: {
       description:
-        'VISP integration (deployment-mounted). Only used when TRATT is opened with ?workspace=visp&projectId=<id>; stand-alone installations leave it out.',
+        'VISP integration (deployment-mounted). Only used when TRATT is opened with ?workspace=visp&projectId=<id>&level=<name>; stand-alone installations leave it out.',
       type: 'object',
-      required: ['serverUrl', 'mediaOrigin', 'transcriptionLevel'],
+      required: ['serverUrl'],
       properties: {
         serverUrl: {
           type: 'string',
-          pattern: '^wss?://',
+          pattern: '^(wss?://|/(?!/))',
           description:
-            "emu-webapp-server's websocket, proxied on TRATT's own host, e.g. wss://tratt.example.org/emu-ws",
+            "The VISP annotation server's websocket, proxied on TRATT's own host: a path such as /annotation-ws (resolved against TRATT's host), or an absolute wss:// URL.",
         },
         mediaOrigin: {
           type: 'string',
           pattern: '^https?://',
           description:
-            'The origin emu-webapp-server puts in audio URLs (its MEDIA_FILE_BASE_URL), e.g. https://artic.example.org. Audio is fetched from the same path on TRATT\'s own host.',
+            "Another origin the server may put in audio URLs (besides TRATT's own), e.g. https://artic.example.org. Audio is always fetched from the same path on TRATT's own host.",
         },
         transcriptionLevel: {
           type: 'string',
           minLength: 1,
           description:
-            "The SEGMENT level in each project's VISP_DBconfig.json that TRATT transcribes into. Every other level is left untouched.",
+            "Level to transcribe into when the launch link names none (VISP's launch dialog always does). It must be an unlinked SEGMENT level in the project's VISP_DBconfig.json; every other level is left untouched.",
         },
       },
     },
@@ -95,9 +95,20 @@ export const AppConfigSchema: JSONSchema4 = {
           properties: {
             node: {
               properties: {
-                name: { type: 'string', description: 'Name of the hosting node, used as the logo’s alt text.' },
-                logo: { type: 'string', description: 'URL or asset path of the node’s logo (SVG preferred).' },
-                url: { type: 'string', description: 'Where the logo links to.' },
+                name: {
+                  type: 'string',
+                  description:
+                    'Name of the hosting node, used as the logo’s alt text.',
+                },
+                logo: {
+                  type: 'string',
+                  description:
+                    'URL or asset path of the node’s logo (SVG preferred).',
+                },
+                url: {
+                  type: 'string',
+                  description: 'Where the logo links to.',
+                },
               },
               required: ['name', 'logo', 'url'],
               type: 'object',
