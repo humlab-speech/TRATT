@@ -9,6 +9,10 @@ inspelningspaket som tilldelats dig i VISP:s dialog **Assign annotation tasks**.
 Du lägger inte till inspelningar själv, och ditt arbete sparas i projektet i
 stället för i filer på din dator.
 
+När du öppnar Tratt frågar VISP vilken av projektets annoteringsnivåer du vill
+transkribera i. Bara segmentnivåer som inte är länkade till andra nivåer kan
+väljas; för att arbeta i en annan nivå öppnar du Tratt från VISP igen.
+
 ---
 
 ## Det här skiljer sig från den fristående Arbetsbänken
@@ -19,7 +23,7 @@ stället för i filer på din dator.
 | Ljudet | Kopplas av dig, igen efter omladdning | Hämtas från VISP när det behövs |
 | Ditt transkript | Sparas i webbläsaren, exporteras som filer | Sparas i projektet med **Spara till VISP** |
 | Lägga till och ta bort | Släppa, spela in, läsa in `.zip`, **Ta bort** | Finns inte; **Uppdatera** läser tilldelningen igen |
-| Nivåer | Alla du skapar | Bara projektets transkriptionsnivå |
+| Nivåer | Alla du skapar | Bara annoteringsnivån du valde när du öppnade Tratt |
 
 Själva transkriberandet är detsamma: redigerarna, kortkommandona och markörerna
 är de som beskrivs i resten av manualen.
@@ -65,7 +69,8 @@ den här datorn och i den här webbläsaren, så spara innan du byter dator.
 
 ## Det här skriver Tratt till projektet
 
-Bara transkriptet, i projektets transkriptionsnivå. Alla andra nivåer (till
+Bara transkriptet, i annoteringsnivån du valde när du öppnade Tratt
+(*transkriptionsnivån* nedan). Alla andra nivåer (till
 exempel en fonetisk segmentering gjord i Artic) och länkarna mellan dem lämnas
 precis som de var. Inom transkriptionsnivån gäller:
 
@@ -125,7 +130,7 @@ hamnar i transkriptionsnivån och sparas som allt du skriver: det visar
 | --- | --- |
 | *Du är inte längre inloggad i VISP. Logga in igen i VISP och ladda om TRATT.* | Dina ändringar finns kvar. Logga in i VISP i en annan flik och ladda sedan om Tratt. |
 | *Du är inte medlem i det här projektet. Be projektägaren lägga till dig.* | Fråga projektägaren. |
-| *Projektet saknar transkriptionsnivå, så TRATT kan inte öppna dess inspelningspaket. Be projektägaren lägga till en i VISP.* | Listan visar din tilldelning med namn, men inget kan öppnas förrän projektet har en transkriptionsnivå. |
-| *Transkriptionsnivån är länkad till andra nivåer, så TRATT kan inte redigera den säkert. Be projektägaren ta bort länkarna.* | Fråga projektägaren. |
+| *Annoteringsnivån som TRATT öppnades med är inte en segmentnivå i projektet, så TRATT kan inte öppna dess inspelningspaket. Öppna TRATT från VISP igen och välj en annan nivå.* | Nivån togs bort eller ändrades i VISP efter att du öppnade Tratt. Öppna Tratt från VISP igen. |
+| *Annoteringsnivån som TRATT öppnades med är länkad till andra nivåer, så TRATT kan inte redigera den säkert. Öppna TRATT från VISP igen och välj en annan nivå.* | Nivån länkades i VISP efter att du öppnade Tratt. Öppna Tratt från VISP igen. |
 | *VISP kan inte nås. Dina ändringar finns kvar i den här webbläsaren; försök igen om en stund.* | Vänta och tryck sedan på **Spara till VISP** eller **Uppdatera** igen. |
 | *This TRATT installation is not configured for VISP.* | Visas i stället för Arbetsbänken (meddelandet är ännu inte översatt). Säg till den som driver VISP. |

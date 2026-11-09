@@ -9,6 +9,10 @@ project, the recording bundles assigned to you in VISP's **Assign annotation
 tasks** dialog. You do not add recordings, and your work goes back into the
 project rather than into files on your computer.
 
+When you open Tratt, VISP asks which annotation level of the project to
+transcribe into. Only segment levels that are not linked to other levels can be
+chosen; to work on another level, open Tratt from VISP again.
+
 ---
 
 ## What is different from the stand-alone Workbench
@@ -19,7 +23,7 @@ project rather than into files on your computer.
 | Audio | Attached by you, again after a reload | Fetched from VISP whenever it is needed |
 | Your transcript | Kept in the browser, exported as files | Saved into the project with **Save to VISP** |
 | Adding and removing | Drop, record, load a `.zip`, **Remove** | Not available; **Refresh** re-reads the assignment |
-| Tiers | Any you create | Only the project's transcription level |
+| Tiers | Any you create | Only the annotation level you chose when opening Tratt |
 
 Everything about transcribing itself is the same: the editors, the shortcuts and
 the markers are the ones described in the rest of this manual.
@@ -64,7 +68,8 @@ only, so save before you move to another one.
 
 ## What Tratt writes into the project
 
-Only the transcript, in the project's transcription level. Every other level
+Only the transcript, in the annotation level you chose when opening Tratt
+(the *transcription level* below). Every other level
 (a phonetic segmentation made in Artic, for example) and the links between them
 are left exactly as they were. Inside the transcription level:
 
@@ -123,7 +128,7 @@ the transcription level and is saved like anything you type: it shows
 | --- | --- |
 | *You are no longer signed in to VISP. Sign in again in VISP, then reload TRATT.* | Your changes are kept. Sign in to VISP in another tab, then reload Tratt. |
 | *You are not a member of this project. Ask the project owner to add you.* | Ask the project owner. |
-| *This project has no transcription level, so TRATT cannot open its recording bundles. Ask the project owner to add one in VISP.* | The list shows your assignment by name, but nothing can be opened until the project has a transcription level. |
-| *The transcription level is linked to other levels, so TRATT cannot edit it safely. Ask the project owner to unlink it.* | Ask the project owner. |
+| *The annotation level TRATT was opened with is not a segment level in this project, so TRATT cannot open its recording bundles. Open TRATT from VISP again and choose another level.* | The level was removed or changed in VISP after you opened Tratt. Open Tratt from VISP again. |
+| *The annotation level TRATT was opened with is linked to other levels, so TRATT cannot edit it safely. Open TRATT from VISP again and choose another level.* | The level was linked in VISP after you opened Tratt. Open Tratt from VISP again. |
 | *VISP cannot be reached. Your changes are kept in this browser; try again in a moment.* | Wait, then press **Save to VISP** or **Refresh** again. |
 | *This TRATT installation is not configured for VISP.* | Shown instead of the Workbench. Tell whoever runs VISP. |

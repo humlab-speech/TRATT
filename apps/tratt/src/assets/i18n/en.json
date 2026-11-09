@@ -1012,8 +1012,8 @@
       "error": {
         "not_signed_in": "You are no longer signed in to VISP. Sign in again in VISP, then reload TRATT.",
         "not_member": "You are not a member of this project. Ask the project owner to add you.",
-        "no_transcription_level": "This project has no transcription level, so TRATT cannot open its recording bundles. Ask the project owner to add one in VISP.",
-        "level_linked": "The transcription level is linked to other levels, so TRATT cannot edit it safely. Ask the project owner to unlink it.",
+        "no_transcription_level": "The annotation level TRATT was opened with is not a segment level in this project, so TRATT cannot open its recording bundles. Open TRATT from VISP again and choose another level.",
+        "level_linked": "The annotation level TRATT was opened with is linked to other levels, so TRATT cannot edit it safely. Open TRATT from VISP again and choose another level.",
         "unreachable": "VISP cannot be reached. Your changes are kept in this browser; try again in a moment.",
         "stale": "This recording bundle was changed in VISP or in another tab while you worked on it. Your changes are kept in this browser. Keep your version (only the transcript is replaced), or use the VISP version and drop your changes.",
         "unassigned": "This recording bundle is no longer assigned to you, so it cannot be saved.",
