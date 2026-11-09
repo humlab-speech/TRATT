@@ -283,107 +283,104 @@
             }
           </span>
           @if (isVisp() && vispInfo(bundle.bundleId); as v) {
-            <!-- VISP workspace: what the server has, and what to do about it. -->
-            <span class="bundle-list__visp">
-              @if (v.unassigned) {
-                <span class="bundle-list__visp-warning" role="status">
-                  {{ 'workbench.visp.unassigned' | transloco }}
-                </span>
-                <button
-                  type="button"
-                  class="btn btn-sm btn-outline-danger"
-                  (click)="onVispRemoveUnassigned(bundle.bundleId)"
-                >
-                  {{ 'workbench.visp.remove_unassigned' | transloco }}
-                </button>
-              } @else if (v.error?.kind === 'stale') {
-                <span class="bundle-list__visp-warning" role="alert">
-                  {{ 'workbench.visp.error.stale' | transloco }}
-                </span>
-                <button
-                  type="button"
-                  class="btn btn-sm btn-outline-primary"
-                  [disabled]="v.sync === 'saving'"
-                  (click)="onVispResolve(bundle.bundleId, 'mine')"
-                >
-                  {{ 'workbench.visp.keep_mine' | transloco }}
-                </button>
-                <button
-                  type="button"
-                  class="btn btn-sm btn-outline-secondary"
-                  [disabled]="v.sync === 'saving'"
-                  (click)="onVispResolve(bundle.bundleId, 'theirs')"
-                >
-                  {{ 'workbench.visp.use_theirs' | transloco }}
-                </button>
-              } @else {
-                <span
-                  class="bundle-list__sync"
-                  [class.bundle-list__sync--failed]="v.sync === 'failed'"
-                  [class.bundle-list__sync--unsaved]="v.sync === 'unsaved'"
-                  [attr.title]="v.error?.message"
-                >
-                  {{ 'workbench.visp.sync.' + v.sync | transloco }}
-                </span>
-                <button
-                  type="button"
-                  class="btn btn-sm btn-outline-primary"
-                  [disabled]="v.sync === 'saving' || !v.opened"
-                  (click)="onVispSave(bundle.bundleId)"
-                >
-                  {{
-                    (v.sync === 'failed'
-                      ? 'workbench.visp.retry'
-                      : 'workbench.visp.save'
-                    ) | transloco
-                  }}
-                </button>
-                <!-- Finished and comment: what the project owner sees in VISP,
-                     kept behind a small button so the row stays quiet. -->
-                <button
-                  type="button"
-                  class="btn btn-sm btn-text bundle-list__status"
-                  [class.bundle-list__status--set]="
-                    v.ref.finishedEditing || v.ref.comment
-                  "
-                  [disabled]="v.sync === 'saving' || !v.opened"
-                  [attr.aria-label]="'workbench.visp.status.button' | transloco"
-                  [attr.title]="
+            @if (!v.unassigned && v.error?.kind !== 'stale') {
+              <!-- Finished and comment: what the project owner sees in VISP,
+                   kept behind a small button so the row stays quiet. -->
+              <button
+                type="button"
+                class="btn btn-sm btn-text bundle-list__note"
+                [class.bundle-list__note--set]="
+                  v.ref.finishedEditing || v.ref.comment
+                "
+                [disabled]="!v.opened"
+                [attr.aria-label]="'workbench.visp.status.button' | transloco"
+                [attr.title]="
+                  v.ref.comment
+                    ? v.ref.comment
+                    : ('workbench.visp.status.button' | transloco)
+                "
+                (click)="onVispStatus(bundle.bundleId, v.ref.name)"
+              >
+                <i
+                  [class]="
                     v.ref.comment
-                      ? v.ref.comment
-                      : ('workbench.visp.status.button' | transloco)
+                      ? 'fa-solid fa-comment-dots'
+                      : 'fa-regular fa-comment'
                   "
-                  (click)="onVispStatus(bundle.bundleId, v.ref.name)"
-                >
+                  aria-hidden="true"
+                ></i>
+                @if (v.ref.finishedEditing) {
                   <i
-                    [class]="
-                      v.ref.comment
-                        ? 'fa-solid fa-comment-dots'
-                        : 'fa-regular fa-comment'
-                    "
+                    class="fa-solid fa-circle-check bundle-list__note-finished"
+                    [attr.title]="'workbench.visp.finished' | transloco"
                     aria-hidden="true"
                   ></i>
-                  @if (v.ref.finishedEditing) {
-                    <i
-                      class="fa-solid fa-circle-check bundle-list__status-finished"
-                      [attr.title]="'workbench.visp.finished' | transloco"
-                      aria-hidden="true"
-                    ></i>
-                    <span class="visually-hidden">{{
-                      'workbench.visp.finished' | transloco
-                    }}</span>
-                  }
-                </button>
-                @if (v.sync === 'failed' && v.error; as err) {
-                  <span class="bundle-list__visp-error" role="alert">
-                    {{ 'workbench.visp.error.' + err.kind | transloco }}
-                    @if (err.kind === 'unknown') {
-                      {{ err.message }}
-                    }
-                  </span>
+                  <span class="visually-hidden">{{
+                    'workbench.visp.finished' | transloco
+                  }}</span>
                 }
-              }
-            </span>
+              </button>
+            }
+          }
+          @if (isVisp() && vispInfo(bundle.bundleId); as v) {
+            @if (v.unassigned || v.sync === 'failed') {
+              <!-- VISP workspace: only when something needs the user (a failed
+                 save, a conflict with VISP, a bundle no longer assigned). -->
+              <span class="bundle-list__visp">
+                @if (v.unassigned) {
+                  <span class="bundle-list__visp-warning" role="status">
+                    {{ 'workbench.visp.unassigned' | transloco }}
+                  </span>
+                  <button
+                    type="button"
+                    class="btn btn-sm btn-outline-danger"
+                    (click)="onVispRemoveUnassigned(bundle.bundleId)"
+                  >
+                    {{ 'workbench.visp.remove_unassigned' | transloco }}
+                  </button>
+                } @else if (v.error?.kind === 'stale') {
+                  <span class="bundle-list__visp-warning" role="alert">
+                    {{ 'workbench.visp.error.stale' | transloco }}
+                  </span>
+                  <button
+                    type="button"
+                    class="btn btn-sm btn-outline-primary"
+                    [disabled]="v.sync === 'saving'"
+                    (click)="onVispResolve(bundle.bundleId, 'mine')"
+                  >
+                    {{ 'workbench.visp.keep_mine' | transloco }}
+                  </button>
+                  <button
+                    type="button"
+                    class="btn btn-sm btn-outline-secondary"
+                    [disabled]="v.sync === 'saving'"
+                    (click)="onVispResolve(bundle.bundleId, 'theirs')"
+                  >
+                    {{ 'workbench.visp.use_theirs' | transloco }}
+                  </button>
+                } @else {
+                  <!-- Saving is automatic; a row only speaks up when a save
+                     failed (the message is below), with a way to try again. -->
+                  @if (v.sync === 'failed') {
+                    <button
+                      type="button"
+                      class="btn btn-sm btn-outline-danger"
+                      (click)="onVispSave(bundle.bundleId)"
+                    >
+                      {{ 'workbench.visp.retry' | transloco }}
+                    </button>
+                  }
+                  @if (v.sync === 'failed' && v.error; as err) {
+                    <span class="bundle-list__visp-error" role="alert">
+                      {{ 'workbench.visp.error.' + err.kind | transloco }}
+                      @if (err.kind === 'unknown') {
+                        {{ err.message }}
+                      }
+                    </span>
+                  }
+                }
+              </span>
+            }
           }
           @if (bundle.run.state === 'running') {
             <!-- How far this file has come: its share of the run button's

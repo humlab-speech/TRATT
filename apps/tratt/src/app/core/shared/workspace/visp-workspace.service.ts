@@ -34,6 +34,7 @@ import {
   toPlainOwnedLevel,
 } from './emu-annotation-splice';
 import { EmuWebsocketClient } from './emu-websocket-client';
+import { AutoSaveTimers, KeyedQueue } from './visp-auto-save';
 import {
   FetchedBundle,
   StaleBundleError,
@@ -127,12 +128,19 @@ export function ownedLevelOf(
 }
 
 const DRAFT_WRITE_DELAY_MS = 400;
+/** A bundle is saved to VISP this long after its last edit. */
+export const AUTO_SAVE_DELAY_MS = 2000;
+/** While VISP cannot be reached, an unsaved bundle is tried again this often. */
+export const AUTO_SAVE_RETRY_MS = 15000;
 const PREPARE_CONCURRENCY = 4;
 
 /**
  * Drives the VISP workspace: mirrors the user's assignment into the workbench's
  * bundle list, keeps unsaved work in the browser, and saves bundles back
- * through `VispBundleSource`.
+ * through `VispBundleSource` on its own: AUTO_SAVE_DELAY_MS after the last
+ * edit, when the user switches bundles, and when the page is hidden. Only a
+ * failed save is shown; a conflict with VISP (stale) or an unassigned bundle
+ * waits for the user.
  *
  * Every assigned bundle's annotation is read when the list loads (audio only
  * when needed), so the list and the Transcribe queue know which bundles
@@ -163,6 +171,13 @@ export class VispWorkspaceService {
     string,
     ReturnType<typeof setTimeout>
   >();
+  /** Saves of one bundle run one after another (see saveBundle). */
+  private readonly saveQueue = new KeyedQueue<boolean>();
+  /** Pending auto-saves, per bundle id. */
+  private readonly autoSaves = new AutoSaveTimers(
+    (bundleId) => void this.autoSave(bundleId),
+    AUTO_SAVE_DELAY_MS,
+  );
 
   private readonly _bundles = signal<Record<string, VispBundleInfo>>({});
   private readonly _problem = signal<VispProblem | undefined>(undefined);
@@ -210,6 +225,14 @@ export class VispWorkspaceService {
   async start(): Promise<void> {
     if (this.started) return;
     this.started = true;
+    if (typeof window !== 'undefined') {
+      // Leaving or hiding the page saves now rather than after the delay; the
+      // draft in the browser covers a save that does not get through.
+      window.addEventListener('pagehide', () => this.autoSaves.flush());
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'hidden') this.autoSaves.flush();
+      });
+    }
     const w = this.workspace;
     this._loading.set(true);
     try {
@@ -460,13 +483,32 @@ export class VispWorkspaceService {
     }
   }
 
-  /** Saves a bundle from the store's current transcript. */
-  async saveBundle(
+  /**
+   * Saves a bundle from the store's current transcript. Saves of one bundle
+   * run one after another: an auto-save, a bundle switch and the Finished /
+   * comment modal can ask at the same time, and a second save that started
+   * before the first landed would see the first one's write as a change made
+   * in VISP (a false conflict).
+   */
+  saveBundle(
     bundleId: string,
     meta: { finishedEditing?: boolean; comment?: string } = {},
     options: { force?: boolean } = {},
   ): Promise<boolean> {
+    return this.saveQueue.run(
+      bundleId,
+      () => this.saveNow(bundleId, meta, options),
+      false,
+    );
+  }
+
+  private async saveNow(
+    bundleId: string,
+    meta: { finishedEditing?: boolean; comment?: string },
+    options: { force?: boolean },
+  ): Promise<boolean> {
     this.pendingEdits.flush();
+    this.autoSaves.cancel(bundleId);
     const entity = this.entity(bundleId);
     const b = this.info(bundleId);
     if (!b) return false;
@@ -507,9 +549,17 @@ export class VispWorkspaceService {
         ref: { ...b.ref, ...meta },
       });
       this._problem.set(undefined);
+      // Edits made while the save was on its way were not noted (noteEdited
+      // skips a saving bundle): compare again, which saves them in turn.
+      const after = this.entity(bundleId);
+      if (after?.transcript) this.noteEdited(bundleId, after);
       return true;
     } catch (e) {
-      this.patch(bundleId, { sync: 'failed', error: this.describe(e) });
+      const error = this.describe(e);
+      this.patch(bundleId, { sync: 'failed', error });
+      if (error.kind === 'unreachable') {
+        this.autoSaves.schedule(bundleId, AUTO_SAVE_RETRY_MS);
+      }
       // A stale bundle is the row's business (it offers the choice).
       if (!(e instanceof StaleBundleError)) this.fail(e);
       return false;
@@ -601,6 +651,11 @@ export class VispWorkspaceService {
       void this.drafts?.delete(b.ref);
     }
     const current = this.info(bundleId)!;
+    if (dirty && this.savesOnItsOwn(current)) {
+      this.autoSaves.schedule(bundleId);
+    } else if (!dirty) {
+      this.autoSaves.cancel(bundleId);
+    }
     // A failed save stays failed (with its message) until it is resolved or
     // the changes are undone.
     if (current.sync === 'failed' && dirty) return;
@@ -736,6 +791,23 @@ export class VispWorkspaceService {
         if (base) void this.drafts?.put(ref, level, base);
       }, DRAFT_WRITE_DELAY_MS),
     );
+  }
+
+  /** Whether edits to this bundle are saved without asking the user. */
+  private savesOnItsOwn(b: VispBundleInfo): boolean {
+    if (b.unassigned) return false;
+    // A conflict with VISP needs the user's choice (keep mine / use VISP's).
+    return !(b.sync === 'failed' && b.error?.kind === 'stale');
+  }
+
+  private async autoSave(bundleId: string): Promise<void> {
+    const b = this.info(bundleId);
+    if (!b || !this.savesOnItsOwn(b) || b.sync === 'saved') return;
+    if (b.sync === 'saving') {
+      // Another save is on its way; it re-checks for edits when it lands.
+      return;
+    }
+    await this.saveBundle(bundleId);
   }
 
   private cancelDraftWrite(bundleId: string) {

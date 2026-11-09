@@ -462,12 +462,10 @@
   font-size: 0.85rem;
 }
 
-.bundle-list__sync--failed,
 .bundle-list__visp-error {
   color: var(--bs-danger-text-emphasis, #58151c);
 }
 
-.bundle-list__sync--unsaved,
 .bundle-list__visp-warning {
   color: var(--bs-warning-text-emphasis, #664d03);
 }
@@ -477,18 +475,19 @@
   flex: 1 0 100%;
 }
 
-.bundle-list__status {
+.bundle-list__note {
+  flex: none;
   // Discreet: muted until the bundle has a mark or a comment.
   color: var(--tratt-text-muted);
   padding: 0 0.35rem;
   line-height: 1;
 }
 
-.bundle-list__status--set {
+.bundle-list__note--set {
   color: var(--tratt-text-primary);
 }
 
-.bundle-list__status-finished {
+.bundle-list__note-finished {
   margin-left: 0.25rem;
   color: var(--bs-success);
 }
