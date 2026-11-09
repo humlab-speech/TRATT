@@ -1,5 +1,11 @@
 const { execSync, spawn } = require('child_process');
-const { readFile, readdir, writeFile } = require('node:fs/promises');
+const {
+  mkdir,
+  readFile,
+  readdir,
+  rename,
+  writeFile,
+} = require('node:fs/promises');
 const { dirname, join } = require('node:path');
 
 // The nx CLI as its package declares it: nx 22 moved it from bin/nx.js to
@@ -102,6 +108,9 @@ async function main() {
       process.exit(code ?? 1);
     }
 
+    // Before media/ can be removed below, and before the stylesheets move.
+    await moveStylesheetMedia();
+
     if (isUpdate) {
       execSync(
         `rm -rf "./${buildDir}config" "./${buildDir}media" "./${buildDir}.htaccess"`,
@@ -135,6 +144,45 @@ async function main() {
 
     await prepareManifestJSON();
   });
+}
+
+/**
+ * Angular writes the files stylesheets reference (fonts, images) to media/
+ * and points at them relative to the stylesheet: url("./media/<file>"). The
+ * loop above moves the stylesheets into assets/ but leaves media/ at the root,
+ * because the demo audio lives there (appconfig audioExamples: ./media/...),
+ * so every font resolved to assets/media/ and got index.html instead. Move
+ * exactly the files the stylesheets name to assets/media/, where they resolve
+ * once the stylesheets are in assets/. Runs while the stylesheets are still
+ * at the root (an update build deletes media/ afterwards).
+ */
+async function moveStylesheetMedia() {
+  const assetsDir = join(buildDir, targetFolder);
+  const referenced = new Set();
+  for (const file of await readdir(buildDir)) {
+    if (!file.endsWith('.css')) continue;
+    const css = await readFile(join(buildDir, file), 'utf8');
+    for (const match of css.matchAll(/url\(\s*["']?\.\/media\/([^"')?#]+)/g)) {
+      referenced.add(match[1]);
+    }
+  }
+  if (referenced.size === 0) return;
+  await mkdir(join(assetsDir, 'media'), { recursive: true });
+  let moved = 0;
+  for (const name of referenced) {
+    try {
+      await rename(
+        join(buildDir, 'media', name),
+        join(assetsDir, 'media', name),
+      );
+      moved++;
+    } catch (e) {
+      if (e.code !== 'ENOENT') throw e;
+    }
+  }
+  console.log(
+    `Moved ${moved} stylesheet media file(s) to ${targetFolder}/media`,
+  );
 }
 
 function getDateTimeString() {
