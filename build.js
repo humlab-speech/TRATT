@@ -1,6 +1,14 @@
 const { execSync, spawn } = require('child_process');
 const { readFile, readdir, writeFile } = require('node:fs/promises');
-const { join } = require('node:path');
+const { dirname, join } = require('node:path');
+
+// The nx CLI as its package declares it: nx 22 moved it from bin/nx.js to
+// dist/bin/nx.js, so a hard-coded path breaks on the next layout change.
+function nxCli() {
+  const pkgPath = require.resolve('nx/package.json');
+  const { bin } = require(pkgPath);
+  return join(dirname(pkgPath), typeof bin === 'string' ? bin : bin.nx);
+}
 
 const buildDir = 'dist/apps/tratt/';
 const targetFolder = 'assets';
@@ -56,7 +64,7 @@ async function main() {
   console.log(`Remove dist...`);
   execSync(`rm -rf "./${buildDir}"`);
   const command = [
-    './node_modules/nx/bin/nx.js',
+    nxCli(),
     'build',
     'tratt',
     '--prod',
@@ -87,7 +95,12 @@ async function main() {
   });
 
   node.on('exit', async function (code) {
-    console.log('child process exited with code ' + code.toString());
+    console.log('child process exited with code ' + String(code));
+    if (code !== 0) {
+      // Stop here: the post-processing below only hides the failure behind
+      // "no such file" errors about the dist folder nx never wrote.
+      process.exit(code ?? 1);
+    }
 
     if (isUpdate) {
       execSync(
