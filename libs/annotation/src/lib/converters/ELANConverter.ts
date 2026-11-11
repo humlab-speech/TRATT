@@ -12,6 +12,11 @@ import {
 } from './Converter';
 import { appendNotCheckMark, stripNotCheckMark } from './not-check-mark';
 import {
+  SpeakerImportOptions,
+  speakerImportSchema,
+  splitSpeaker,
+} from './speaker';
+import {
   BASWebservicesApplication,
   ELANApplication,
   OctraApplication,
@@ -211,10 +216,14 @@ export class ELANConverter extends Converter {
     file: IFile,
     audiofile: OAudiofile,
   ): any | undefined {
-    return undefined;
+    return speakerImportSchema();
   }
 
-  public import(file: IFile, audiofile: OAudiofile): ImportResult {
+  public import(
+    file: IFile,
+    audiofile: OAudiofile,
+    options: SpeakerImportOptions = new SpeakerImportOptions(),
+  ): ImportResult {
     if (!audiofile?.sampleRate) {
       return {
         error: 'Missing sample rate',
@@ -297,14 +306,22 @@ export class ELANConverter extends Converter {
               }
 
               // correct segment
-              const { text: annotationText, verified } = stripNotCheckMark(
+              const split = splitSpeaker(
                 annotationElement.ALIGNABLE_ANNOTATION.ANNOTATION_VALUE,
+                options.speakerIdentifierPattern,
               );
+              const { text: annotationText, verified } = stripNotCheckMark(
+                split.text,
+              );
+              const labels = [new OLabel(tier._TIER_ID, annotationText)];
+              if (split.speaker) {
+                labels.push(new OLabel(SPEAKER_LABEL, split.speaker));
+              }
               const segment = new OSegment(
                 counter++,
                 t1,
                 t2 - t1,
-                [new OLabel(tier._TIER_ID, annotationText)],
+                labels,
                 verified,
               );
               (level.items as OSegment[]).push(segment);

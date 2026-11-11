@@ -19,20 +19,14 @@ function diarized(): OAnnotJSON {
         1,
         0,
         SR,
-        [
-          new OLabel(name, a),
-          new OLabel('Speaker', 'Speaker 1'),
-        ],
+        [new OLabel(name, a), new OLabel('Speaker', 'Speaker 1')],
         true,
       ),
       new OSegment(
         2,
         SR,
         SR * 2,
-        [
-          new OLabel(name, b),
-          new OLabel('Speaker', 'Speaker 2'),
-        ],
+        [new OLabel(name, b), new OLabel('Speaker', 'Speaker 2')],
         true,
       ),
     ]);
@@ -134,5 +128,28 @@ describe('ELANConverter — speakers', () => {
     expect((levels[0].items[0] as OSegment).labels.map((a) => a.name)).toEqual([
       'words',
     ]);
+  });
+
+  it('reads a leading [Name] / <v Name> prefix as the Speaker label', () => {
+    const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<ANNOTATION_DOCUMENT AUTHOR="" DATE="2026-01-01T00:00:00Z" FORMAT="3.0" VERSION="3.0">
+  <HEADER TIME_UNITS="milliseconds"/>
+  <TIME_ORDER>
+    <TIME_SLOT TIME_SLOT_ID="ts1" TIME_VALUE="0"/>
+    <TIME_SLOT TIME_SLOT_ID="ts2" TIME_VALUE="1000"/>
+    <TIME_SLOT TIME_SLOT_ID="ts3" TIME_VALUE="3000"/>
+  </TIME_ORDER>
+  <TIER LINGUISTIC_TYPE_REF="default" TIER_ID="words">
+    <ANNOTATION><ALIGNABLE_ANNOTATION ANNOTATION_ID="a1" TIME_SLOT_REF1="ts1" TIME_SLOT_REF2="ts2"><ANNOTATION_VALUE>[Ann] hello</ANNOTATION_VALUE></ALIGNABLE_ANNOTATION></ANNOTATION>
+    <ANNOTATION><ALIGNABLE_ANNOTATION ANNOTATION_ID="a2" TIME_SLOT_REF1="ts2" TIME_SLOT_REF2="ts3"><ANNOTATION_VALUE>&lt;v Bob&gt; hi</ANNOTATION_VALUE></ALIGNABLE_ANNOTATION></ANNOTATION>
+  </TIER>
+  <LINGUISTIC_TYPE LINGUISTIC_TYPE_ID="default" TIME_ALIGNABLE="true"/>
+</ANNOTATION_DOCUMENT>`;
+    const items = new ELANConverter().import(eaf(xml), audio).annotjson!
+      .levels[0].items as OSegment[];
+    const read = (i: number) =>
+      Object.fromEntries(items[i].labels.map((l) => [l.name, l.value]));
+    expect(read(0)).toEqual({ words: 'hello', Speaker: 'Ann' });
+    expect(read(1)).toEqual({ words: 'hi', Speaker: 'Bob' });
   });
 });
