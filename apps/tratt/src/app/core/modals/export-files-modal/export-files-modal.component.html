@@ -576,7 +576,11 @@
                           </p>
                         </div>
                       }
-                      @if (item.converter.name === 'SRT') {
+                      @if (
+                        ['SRT', 'TextGrid', 'PraatTextTable', 'CTM', 'BASPartitur'].includes(
+                          item.converter.name
+                        )
+                      ) {
                         <div class="timestamp-options">
                           <table>
                             <tbody>
@@ -584,7 +588,7 @@
                                 <td style="vertical-align: top">
                                   <input
                                     type="checkbox"
-                                    id="srt-speaker-id-{{ item.index }}"
+                                    id="speaker-id-{{ item.index }}"
                                     [(ngModel)]="
                                       item.converter.options.addSpeakerId
                                     "
@@ -595,7 +599,7 @@
                                 </td>
                                 <td style="vertical-align: top">
                                   <label
-                                    for="srt-speaker-id-{{ item.index }}"
+                                    for="speaker-id-{{ item.index }}"
                                     >{{
                                       'export.options.mark speaker id'
                                         | transloco

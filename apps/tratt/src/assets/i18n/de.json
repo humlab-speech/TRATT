@@ -60,6 +60,46 @@
           "description": "Erstellt eine separate Annotationsebene für jeden in der Datei gefundenen Sprecher."
         }
       }
+    },
+    "PlainText": {
+      "options": {
+        "speakerIdentifierPattern": {
+          "description": "Regulärer Ausdruck (mit einer Gruppe) der dem Sprecherpräfix am Anfang einer Cue-Zeile entspricht. Die erste Gruppe wird als Sprechername verwendet.",
+          "title": "Regulärer Ausdruck für Sprecheridentifikation"
+        }
+      }
+    },
+    "TextGrid": {
+      "options": {
+        "speakerIdentifierPattern": {
+          "description": "Regulärer Ausdruck (mit einer Gruppe) der dem Sprecherpräfix am Anfang einer Cue-Zeile entspricht. Die erste Gruppe wird als Sprechername verwendet.",
+          "title": "Regulärer Ausdruck für Sprecheridentifikation"
+        }
+      }
+    },
+    "PraatTextTable": {
+      "options": {
+        "speakerIdentifierPattern": {
+          "description": "Regulärer Ausdruck (mit einer Gruppe) der dem Sprecherpräfix am Anfang einer Cue-Zeile entspricht. Die erste Gruppe wird als Sprechername verwendet.",
+          "title": "Regulärer Ausdruck für Sprecheridentifikation"
+        }
+      }
+    },
+    "CTM": {
+      "options": {
+        "speakerIdentifierPattern": {
+          "description": "Regulärer Ausdruck (mit einer Gruppe) der dem Sprecherpräfix am Anfang einer Cue-Zeile entspricht. Die erste Gruppe wird als Sprechername verwendet.",
+          "title": "Regulärer Ausdruck für Sprecheridentifikation"
+        }
+      }
+    },
+    "BASPartitur": {
+      "options": {
+        "speakerIdentifierPattern": {
+          "description": "Regulärer Ausdruck (mit einer Gruppe) der dem Sprecherpräfix am Anfang einer Cue-Zeile entspricht. Die erste Gruppe wird als Sprechername verwendet.",
+          "title": "Regulärer Ausdruck für Sprecheridentifikation"
+        }
+      }
     }
   },
   "custom": {

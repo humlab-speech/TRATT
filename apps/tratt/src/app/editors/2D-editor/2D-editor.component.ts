@@ -460,9 +460,11 @@ export class TwoDEditorComponent
 
     this.subscribe(this.annotationStoreService.importOptions$, {
       next: (importOptions) => {
-        if (importOptions && Object.keys(importOptions).includes('SRT')) {
-          this.viewer.settings.speakerPattern =
-            importOptions['SRT']?.speakerIdentifierPattern;
+        const pattern = Object.values(importOptions ?? {}).find(
+          (o) => o?.speakerIdentifierPattern,
+        )?.speakerIdentifierPattern;
+        if (pattern) {
+          this.viewer.settings.speakerPattern = pattern;
         }
       },
     });

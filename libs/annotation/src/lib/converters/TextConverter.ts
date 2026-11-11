@@ -14,6 +14,12 @@ import {
   OctraApplication,
   WordApplication,
 } from './SupportedApplications';
+import {
+  SpeakerImportOptions,
+  speakerImportSchema,
+  SPEAKER_LABEL,
+  splitSpeaker,
+} from './speaker';
 
 // https://clarin.phonetik.uni-muenchen.de/BASWebServices/#/services/WebMAUSBasic
 export class TextConverter extends Converter {
@@ -232,10 +238,14 @@ export class TextConverter extends Converter {
     file: IFile,
     audiofile: OAudiofile,
   ): any | undefined {
-    return undefined;
+    return speakerImportSchema();
   }
 
-  public import(file: IFile, audiofile: OAudiofile): ImportResult {
+  public import(
+    file: IFile,
+    audiofile: OAudiofile,
+    options: SpeakerImportOptions = new SpeakerImportOptions(),
+  ): ImportResult {
     const hasTextExtension = this._extensions.some((ext) =>
       file.name.toLowerCase().endsWith(ext),
     );
@@ -275,6 +285,25 @@ export class TextConverter extends Converter {
       [],
     );
     const olevel = new OSegmentLevel('OCTRA_1');
+    // drop the acknowledgement preamble written by export
+    const separator = '─'.repeat(64);
+    const preambleEnd = file.content.indexOf(`${separator}\n\n`);
+    if (preambleEnd > -1) {
+      file = {
+        ...file,
+        content: file.content.slice(preambleEnd + separator.length + 2),
+      };
+    }
+    const textLabels = (raw: string): OLabel[] => {
+      const { speaker, text } = splitSpeaker(
+        this.cleanTranscript(raw),
+        options.speakerIdentifierPattern,
+      );
+      return [
+        new OLabel('OCTRA_1', text),
+        ...(speaker ? [new OLabel(SPEAKER_LABEL, speaker)] : []),
+      ];
+    };
 
     if (file.content.indexOf('<ts') > -1 || file.content.indexOf('<sp') > -1) {
       // segments available
@@ -325,9 +354,7 @@ export class TextConverter extends Converter {
             }
           }
 
-          olabels.push(
-            new OLabel('OCTRA_1', this.cleanTranscript(transcripts[i])),
-          );
+          olabels.push(...textLabels(transcripts[i]));
           const sampleDuration = samplePoint - sampleStart;
           const osegment = new OSegment(
             1 + i,
@@ -344,9 +371,7 @@ export class TextConverter extends Converter {
 
         if (i < transcripts.length) {
           const olabels: OLabel[] = [];
-          olabels.push(
-            new OLabel('OCTRA_1', this.cleanTranscript(transcripts[i])),
-          );
+          olabels.push(...textLabels(transcripts[i]));
           const osegment = new OSegment(
             1 + i,
             sampleStart,

@@ -60,6 +60,46 @@
           "description": "Skapar en separat anteckningsnivå för varje talare som hittas i filen."
         }
       }
+    },
+    "PlainText": {
+      "options": {
+        "speakerIdentifierPattern": {
+          "description": "Reguljärt uttryck (med en grupp) som matchar talarprefix i början av en cue-rad. Den första gruppen används som talarnamn.",
+          "title": "Reguljärt uttryck för talaridentifikation"
+        }
+      }
+    },
+    "TextGrid": {
+      "options": {
+        "speakerIdentifierPattern": {
+          "description": "Reguljärt uttryck (med en grupp) som matchar talarprefix i början av en cue-rad. Den första gruppen används som talarnamn.",
+          "title": "Reguljärt uttryck för talaridentifikation"
+        }
+      }
+    },
+    "PraatTextTable": {
+      "options": {
+        "speakerIdentifierPattern": {
+          "description": "Reguljärt uttryck (med en grupp) som matchar talarprefix i början av en cue-rad. Den första gruppen används som talarnamn.",
+          "title": "Reguljärt uttryck för talaridentifikation"
+        }
+      }
+    },
+    "CTM": {
+      "options": {
+        "speakerIdentifierPattern": {
+          "description": "Reguljärt uttryck (med en grupp) som matchar talarprefix i början av en cue-rad. Den första gruppen används som talarnamn.",
+          "title": "Reguljärt uttryck för talaridentifikation"
+        }
+      }
+    },
+    "BASPartitur": {
+      "options": {
+        "speakerIdentifierPattern": {
+          "description": "Reguljärt uttryck (med en grupp) som matchar talarprefix i början av en cue-rad. Den första gruppen används som talarnamn.",
+          "title": "Reguljärt uttryck för talaridentifikation"
+        }
+      }
     }
   },
   "custom": {
