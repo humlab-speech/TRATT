@@ -104,12 +104,10 @@ export class WebVTTConverter extends Converter {
           const escapedText = this.escapeXml(
             appendNotCheckMark(rawText, item.verified),
           );
-          const speakerPrefix =
-            this.options.addSpeakerId && speaker ? `[${speaker}] ` : '';
-          const prefixedText = speakerPrefix + escapedText;
+          // the <v Name> voice tag is the speaker prefix used by all formats
           const cueText = speaker
-            ? `<v ${speaker}>${prefixedText}</v>`
-            : prefixedText;
+            ? `<v ${speaker}>${escapedText}</v>`
+            : escapedText;
 
           const start = this.getTimeStringFromSamples(
             item.sampleStart!,

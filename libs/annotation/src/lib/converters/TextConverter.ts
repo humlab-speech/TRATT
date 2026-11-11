@@ -17,6 +17,7 @@ import {
 import {
   SpeakerImportOptions,
   speakerImportSchema,
+  speakerPrefix,
   SPEAKER_LABEL,
   splitSpeaker,
 } from './speaker';
@@ -100,8 +101,7 @@ export class TextConverter extends Converter {
       !this.options.showTimestampString && !this.options.showTimestampSamples;
 
     const speakerPrefixOf = (item: OSegment) => {
-      const speakerId = item.labels?.find((l) => l.name === 'Speaker')?.value;
-      return this.options.addSpeakerId && speakerId ? `[${speakerId}] ` : '';
+      return speakerPrefix(item, this.options.addSpeakerId);
     };
 
     const timestampSuffixOf = (item: OSegment) => {

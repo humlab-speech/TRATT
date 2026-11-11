@@ -449,8 +449,4 @@ export class ExportFilesModalComponent extends TrattModal implements OnInit {
   onSRTOptionChanged(converter: Converter) {
     this.updateParentFormat(converter, this.selectedLevel);
   }
-
-  onWebVTTOptionChanged(converter: Converter) {
-    this.updateParentFormat(converter, this.selectedLevel);
-  }
 }

@@ -58,7 +58,7 @@ describe('speaker IDs round-trip in time-aligned formats', () => {
     };
     const exported = converter.export(source(), audio as any, 0);
     expect(exported.error).toBeFalsy();
-    expect(exported.file!.content).toContain('[Anna] ');
+    expect(exported.file!.content).toContain('<v Anna>');
 
     const imported = converter.import(
       {
@@ -112,4 +112,22 @@ describe('import without speaker prefixes', () => {
       expect(speakers.length > 0).toBe(converter.name === 'WebVTT');
     },
   );
+});
+
+describe('legacy [Name] prefix', () => {
+  it('is still read on import', () => {
+    const srt = new SRTConverter();
+    const res = srt.import(
+      {
+        name: 'spk.srt',
+        type: 'text/plain',
+        content: '1\n00:00:00,000 --> 00:00:02,000\n[Anna]: hello\n\n',
+        encoding: 'UTF-8',
+      },
+      audio as any,
+    );
+    const seg = res.annotjson!.levels[0].items[0] as OSegment;
+    expect(seg.labels.find((l) => l.name === 'Speaker')?.value).toBe('Anna');
+    expect(seg.getFirstLabelWithoutName('Speaker')?.value).toBe('hello');
+  });
 });

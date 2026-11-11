@@ -5,15 +5,15 @@ export const SPEAKER_LABEL = 'Speaker';
 
 /**
  * Default speaker prefix pattern used by every time-aligned text format on
- * import: `[Name] ` (optionally followed by a colon) at the start of a unit.
- * Must match what `speakerPrefix` writes on export.
+ * import: a WebVTT voice tag `<v Name>` (what `speakerPrefix` writes) or the
+ * legacy `[Name]`, optionally followed by a colon, at the start of a unit.
  */
-export const DEFAULT_SPEAKER_PATTERN = '\\[([^\\]]+)\\] *:? *';
+export const DEFAULT_SPEAKER_PATTERN = '(?:<v +|\\[)([^>\\]]+)[>\\]] *:? *';
 
-/** `[Name] ` when `enabled` and the segment has a speaker, else ''. */
+/** `<v Name> ` when `enabled` and the segment has a speaker, else ''. */
 export function speakerPrefix(item: OSegment, enabled: boolean): string {
   const speaker = item.labels?.find((l) => l.name === SPEAKER_LABEL)?.value;
-  return enabled && speaker ? `[${speaker}] ` : '';
+  return enabled && speaker ? `<v ${speaker}> ` : '';
 }
 
 /**

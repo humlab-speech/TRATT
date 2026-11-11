@@ -611,37 +611,6 @@
                           </table>
                         </div>
                       }
-                      @if (item.converter.name === 'WebVTT') {
-                        <div class="timestamp-options">
-                          <table>
-                            <tbody>
-                              <tr class="option">
-                                <td style="vertical-align: top">
-                                  <input
-                                    type="checkbox"
-                                    id="webvtt-speaker-id-{{ item.index }}"
-                                    [(ngModel)]="
-                                      item.converter.options.addSpeakerId
-                                    "
-                                    (ngModelChange)="
-                                      onWebVTTOptionChanged(item.converter)
-                                    "
-                                  />
-                                </td>
-                                <td style="vertical-align: top">
-                                  <label
-                                    for="webvtt-speaker-id-{{ item.index }}"
-                                    >{{
-                                      'export.options.mark speaker id'
-                                        | transloco
-                                    }}</label
-                                  >
-                                </td>
-                              </tr>
-                            </tbody>
-                          </table>
-                        </div>
-                      }
                     </div>
                   }
                   @if (

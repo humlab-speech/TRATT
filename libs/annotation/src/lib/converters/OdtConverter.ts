@@ -9,6 +9,7 @@ import {
   TrattAnnotationFormatType,
 } from './Converter';
 import { LibreOfficeApplication } from './SupportedApplications';
+import { speakerPrefix as speakerPrefixOf } from './speaker';
 import {
   NON_VERIFIED_COLOR,
   VERIFIED_COLOR,
@@ -117,9 +118,7 @@ export class OdtConverter extends Converter {
       const tsPrefix = this.options.addTimestamps
         ? `[${this.msToTimeString(Math.round((seg.sampleStart / audiofile.sampleRate) * 1000))}] `
         : '';
-      const speakerId = seg.labels?.find((l) => l.name === 'Speaker')?.value;
-      const speakerPrefix =
-        this.options.addSpeakerId && speakerId ? `[${speakerId}] ` : '';
+      const speakerPrefix = speakerPrefixOf(seg, this.options.addSpeakerId);
       return {
         text: (prefix ?? '') + tsPrefix + speakerPrefix + text.trim(),
         verified: seg.verified,

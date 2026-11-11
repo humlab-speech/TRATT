@@ -10,6 +10,7 @@ import {
   TrattAnnotationFormatType,
 } from './Converter';
 import { appendNotCheckMark, stripNotCheckMark } from './not-check-mark';
+import { DEFAULT_SPEAKER_PATTERN, speakerPrefix } from './speaker';
 import {
   AnyTextEditor,
   AnyVideoPlayer,
@@ -20,7 +21,7 @@ import {
 export class SRTConverterImportOptions {
   sortSpeakerSegments = false;
   combineSegmentsWithSameSpeakerThreshold?: number;
-  speakerIdentifierPattern = '\\[([^\\]]+)\\] *:? *';
+  speakerIdentifierPattern = DEFAULT_SPEAKER_PATTERN;
 
   constructor(partial?: Partial<SRTConverterImportOptions>) {
     if (partial) Object.assign(this, partial);
@@ -132,14 +133,12 @@ export class SRTConverter extends Converter {
           );
 
           if (transcript !== '') {
-            const speaker = item.labels?.find(
-              (l) => l.name === 'Speaker',
-            )?.value;
-            const speakerPrefix =
-              this.options.addSpeakerId && speaker ? `[${speaker}] ` : '';
             result += `${counter}\n`;
             result += `${start} --> ${end}\n`;
-            result += `${speakerPrefix}${appendNotCheckMark(
+            result += `${speakerPrefix(
+              item,
+              this.options.addSpeakerId,
+            )}${appendNotCheckMark(
               transcript,
               item.verified,
             )}\n\n`;
@@ -177,7 +176,7 @@ export class SRTConverter extends Converter {
           title: 'speakerIdentifierPattern',
           toggleable: true,
           type: 'string',
-          default: '\\[([^\\]]+)\\] *:? *',
+          default: DEFAULT_SPEAKER_PATTERN,
           description:
             'Regular expression (with one capture group) matching the speaker prefix at the start of a cue line. The first capture group becomes the speaker name.',
         },
