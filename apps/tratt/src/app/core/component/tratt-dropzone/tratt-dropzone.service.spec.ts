@@ -480,6 +480,28 @@ item []:
     createSpy = undefined;
   });
 
+  it('asks for import options once per drop', async () => {
+    createSpy = jest
+      .spyOn(AudioManager, 'create')
+      .mockReturnValueOnce(
+        of({ audioManager: manager(1), progress: 1 }) as never,
+      )
+      .mockReturnValueOnce(
+        of({ audioManager: manager(2), progress: 1 }) as never,
+      );
+    const service = newService();
+    const openModal = (service as any).modService.openModal as jest.Mock;
+
+    service.add(transcriptFile('a.TextGrid', 'text of a'));
+    service.add(transcriptFile('b.TextGrid', 'text of b'));
+    service.add(audioFile('a.wav'));
+    service.add(audioFile('b.wav'));
+    await flush();
+
+    expect(entry(service, 'b.TextGrid').status).toBe('valid');
+    expect(openModal).toHaveBeenCalledTimes(1);
+  });
+
   it('pairs each transcript with the recording of its name, whatever the decode order', async () => {
     createSpy = jest
       .spyOn(AudioManager, 'create')
