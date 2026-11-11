@@ -440,7 +440,8 @@ item []:
   };
   const newService = () => {
     const service = new TrattDropzoneService(
-      {} as never,
+      // TextGrid import asks for speaker options; dismiss it, defaults apply.
+      { openModal: jest.fn().mockResolvedValue({ action: 'cancel' }) } as never,
       { dispatch: jest.fn() } as never,
       { translate: (key: string) => key } as never,
     );
