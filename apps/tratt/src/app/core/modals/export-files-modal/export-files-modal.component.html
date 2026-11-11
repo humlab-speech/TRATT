@@ -118,8 +118,8 @@
                   ) {
                     <div class="tier-selection" style="margin-bottom: 10px">
                       <span style="margin-left: 10px; font-weight: bold"
-                        >Select tiers to include:
-                      </span>
+                        >{{ 'export.options.select tiers' | transloco }}:</span
+                      >
                       @for (
                         level of annotationStoreService.transcript!.levels;
                         track level;
@@ -197,9 +197,9 @@
                                   />
                                 </td>
                                 <td>
-                                  <label for="docx-separate-{{ item.index }}"
-                                    >Each sentence on a separate line</label
-                                  >
+                                  <label for="docx-separate-{{ item.index }}">{{
+                                    'export.options.separate lines' | transloco
+                                  }}</label>
                                 </td>
                               </tr>
                               <tr class="option">
@@ -216,8 +216,12 @@
                                   />
                                 </td>
                                 <td>
-                                  <label for="docx-continuous-{{ item.index }}"
-                                    >Continuous text</label
+                                  <label
+                                    for="docx-continuous-{{ item.index }}"
+                                    >{{
+                                      'export.options.continuous text'
+                                        | transloco
+                                    }}</label
                                   >
                                 </td>
                               </tr>
@@ -258,9 +262,12 @@
                                   />
                                 </td>
                                 <td style="vertical-align: top">
-                                  <label for="docx-timestamps-{{ item.index }}"
-                                    >Add timestamp at beginning of each
-                                    sentence</label
+                                  <label
+                                    for="docx-timestamps-{{ item.index }}"
+                                    >{{
+                                      'export.options.sentence timestamps'
+                                        | transloco
+                                    }}</label
                                   >
                                 </td>
                               </tr>
@@ -281,8 +288,10 @@
                                   <td style="vertical-align: top">
                                     <label
                                       for="docx-group-by-tier-{{ item.index }}"
-                                      >Collect annotations according to
-                                      transcription tier in the output</label
+                                      >{{
+                                        'export.options.group by tier'
+                                          | transloco
+                                      }}</label
                                     >
                                   </td>
                                 </tr>
@@ -309,9 +318,9 @@
                                   />
                                 </td>
                                 <td>
-                                  <label for="odt-separate-{{ item.index }}"
-                                    >Each sentence on a separate line</label
-                                  >
+                                  <label for="odt-separate-{{ item.index }}">{{
+                                    'export.options.separate lines' | transloco
+                                  }}</label>
                                 </td>
                               </tr>
                               <tr class="option">
@@ -328,8 +337,12 @@
                                   />
                                 </td>
                                 <td>
-                                  <label for="odt-continuous-{{ item.index }}"
-                                    >Continuous text</label
+                                  <label
+                                    for="odt-continuous-{{ item.index }}"
+                                    >{{
+                                      'export.options.continuous text'
+                                        | transloco
+                                    }}</label
                                   >
                                 </td>
                               </tr>
@@ -370,9 +383,12 @@
                                   />
                                 </td>
                                 <td style="vertical-align: top">
-                                  <label for="odt-timestamps-{{ item.index }}"
-                                    >Add timestamp at beginning of each
-                                    sentence</label
+                                  <label
+                                    for="odt-timestamps-{{ item.index }}"
+                                    >{{
+                                      'export.options.sentence timestamps'
+                                        | transloco
+                                    }}</label
                                   >
                                 </td>
                               </tr>
@@ -393,8 +409,10 @@
                                   <td style="vertical-align: top">
                                     <label
                                       for="odt-group-by-tier-{{ item.index }}"
-                                      >Collect annotations according to
-                                      transcription tier in the output</label
+                                      >{{
+                                        'export.options.group by tier'
+                                          | transloco
+                                      }}</label
                                     >
                                   </td>
                                 </tr>
@@ -538,8 +556,10 @@
                                       for="plaintext-group-by-tier-{{
                                         item.index
                                       }}"
-                                      >Collect annotations according to
-                                      transcription tier in the output</label
+                                      >{{
+                                        'export.options.group by tier'
+                                          | transloco
+                                      }}</label
                                     >
                                   </td>
                                 </tr>

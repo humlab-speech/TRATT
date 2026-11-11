@@ -150,7 +150,12 @@
       "add samplepoints": "Separate transcription units by sample points (e.g. 123456)",
       "add timestamps": "Separate transcription units by readable timestamps (HH:MM:SS.s)",
       "mark speaker id": "Mark speaker ID at the beginning of sentences",
-      "timestamp notice": "If you check both options, both time formats will be inserted:"
+      "timestamp notice": "If you check both options, both time formats will be inserted:",
+      "separate lines": "Each sentence on a separate line",
+      "continuous text": "Continuous text",
+      "sentence timestamps": "Add timestamp at beginning of each sentence",
+      "group by tier": "Collect annotations according to transcription tier in the output",
+      "select tiers": "Select tiers to include"
     },
     "category general": "General output formats (only SRT supports re-uploading to this app when you want to continue your work)",
     "category linguistic": "Linguistic formats (all support re-uploading to this app)",

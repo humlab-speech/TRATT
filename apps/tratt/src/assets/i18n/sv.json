@@ -150,7 +150,12 @@
       "add samplepoints": "Separera transkriptionsenheter med sampelpunkter (t.ex. 123456)",
       "add timestamps": "Separera transkriptionsenheter med läsbara tidsstämplar (HH:MM:SS.s)",
       "mark speaker id": "Markera talar-ID i början av meningar",
-      "timestamp notice": "Om du markerar båda alternativen kommer båda tidsformaten att infogas:"
+      "timestamp notice": "Om du markerar båda alternativen kommer båda tidsformaten att infogas:",
+      "separate lines": "Varje mening på en egen rad",
+      "continuous text": "Löpande text",
+      "sentence timestamps": "Lägg till tidsstämpel i början av varje mening",
+      "group by tier": "Samla annoteringar efter transkriptionsnivå i utdata",
+      "select tiers": "Välj nivåer att inkludera"
     },
     "category general": "Allmänna utdataformat (endast SRT kan laddas upp igen i den här appen när du vill fortsätta ditt arbete)",
     "category linguistic": "Språkvetenskapliga format (alla kan laddas upp igen i den här appen)",

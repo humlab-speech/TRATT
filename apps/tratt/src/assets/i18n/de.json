@@ -148,7 +148,12 @@
       "add samplepoints": "Trenne Transkriptionseinheiten durch Zeitstempel im Sample-Format (z.B. 123456)",
       "add timestamps": "Trenne Transkriptionseinheiten durch Zeitstempel im lesbaren Format (HH:MM:SS.s)",
       "mark speaker id": "Sprecher-ID am Anfang von Sätzen markieren",
-      "timestamp notice": "Wenn Du beide Optionen aktivierst, werden beide Formate eingefügt:"
+      "timestamp notice": "Wenn Du beide Optionen aktivierst, werden beide Formate eingefügt:",
+      "separate lines": "Jeder Satz in einer eigenen Zeile",
+      "continuous text": "Fließtext",
+      "sentence timestamps": "Zeitstempel am Anfang jedes Satzes hinzufügen",
+      "group by tier": "Annotationen im Ausgabedokument nach Transkriptionsebene gruppieren",
+      "select tiers": "Zu berücksichtigende Ebenen auswählen"
     },
     "category general": "Allgemeine Ausgabeformate (nur SRT kann wieder in diese App hochgeladen werden, wenn Sie Ihre Arbeit fortsetzen möchten)",
     "category linguistic": "Linguistische Formate (alle können wieder in diese App hochgeladen werden)",
