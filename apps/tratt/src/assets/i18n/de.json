@@ -77,6 +77,14 @@
         }
       }
     },
+    "ELAN": {
+      "options": {
+        "speakerIdentifierPattern": {
+          "description": "Regulärer Ausdruck (mit einer Gruppe) der dem Sprecherpräfix am Anfang einer Cue-Zeile entspricht. Die erste Gruppe wird als Sprechername verwendet.",
+          "title": "Regulärer Ausdruck für Sprecheridentifikation"
+        }
+      }
+    },
     "PraatTextTable": {
       "options": {
         "speakerIdentifierPattern": {

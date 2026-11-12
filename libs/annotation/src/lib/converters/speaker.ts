@@ -47,6 +47,7 @@ export const speakerImportSchema = () => ({
     speakerIdentifierPattern: {
       title: 'speakerIdentifierPattern',
       toggleable: true,
+      toggledByDefault: true,
       type: 'string',
       default: DEFAULT_SPEAKER_PATTERN,
       description:

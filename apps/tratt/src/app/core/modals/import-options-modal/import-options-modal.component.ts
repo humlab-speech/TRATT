@@ -35,20 +35,34 @@ export class ImportOptionsModalComponent extends TrattModal implements OnInit {
 
   ngOnInit() {
     if (this.schema && this.converter) {
+      // A toggleable option is on when its key is present in the value, so
+      // seed the ones that start on; stored options (a value) are kept as is.
+      const seed: Record<string, unknown> = {};
       const root = `converters.${this.converter.name}.options`;
       for (const key of Object.keys(this.schema.properties)) {
         const propertyDefinition = this.schema.properties[key];
         if (propertyDefinition.title) {
-          propertyDefinition.title =
-            this.transloco.translate(`${root}.${key}.title`) ??
-            propertyDefinition.title;
-          propertyDefinition.description =
-            this.transloco.translate(`${root}.${key}.description`) ??
-            propertyDefinition.description;
+          propertyDefinition.title = this.translateOr(
+            `${root}.${key}.title`,
+            propertyDefinition.title,
+          );
+          propertyDefinition.description = this.translateOr(
+            `${root}.${key}.description`,
+            propertyDefinition.description,
+          );
+        }
+        if (propertyDefinition.toggledByDefault) {
+          seed[key] = propertyDefinition.default;
         }
       }
+      this.value ??= seed;
     }
     this.jsonText = JSON.stringify(this.value);
+  }
+
+  private translateOr(key: string, fallback: string): string {
+    const translated = this.transloco.translate(key);
+    return translated === key ? fallback : translated;
   }
 
   public override close(action?: string) {

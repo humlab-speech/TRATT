@@ -77,6 +77,14 @@
         }
       }
     },
+    "ELAN": {
+      "options": {
+        "speakerIdentifierPattern": {
+          "description": "Regular expression (with one capture group) matching the speaker prefix at the start of a cue line. The first capture group becomes the speaker name.",
+          "title": "Regular expression for speaker identification"
+        }
+      }
+    },
     "PraatTextTable": {
       "options": {
         "speakerIdentifierPattern": {

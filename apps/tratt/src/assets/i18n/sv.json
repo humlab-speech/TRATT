@@ -77,6 +77,14 @@
         }
       }
     },
+    "ELAN": {
+      "options": {
+        "speakerIdentifierPattern": {
+          "description": "Reguljärt uttryck (med en grupp) som matchar talarprefix i början av en cue-rad. Den första gruppen används som talarnamn.",
+          "title": "Reguljärt uttryck för talaridentifikation"
+        }
+      }
+    },
     "PraatTextTable": {
       "options": {
         "speakerIdentifierPattern": {

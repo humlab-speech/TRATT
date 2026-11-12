@@ -138,10 +138,7 @@ export class SRTConverter extends Converter {
             result += `${speakerPrefix(
               item,
               this.options.addSpeakerId,
-            )}${appendNotCheckMark(
-              transcript,
-              item.verified,
-            )}\n\n`;
+            )}${appendNotCheckMark(transcript, item.verified)}\n\n`;
             counter++;
           }
         }
@@ -175,6 +172,7 @@ export class SRTConverter extends Converter {
         speakerIdentifierPattern: {
           title: 'speakerIdentifierPattern',
           toggleable: true,
+          toggledByDefault: true,
           type: 'string',
           default: DEFAULT_SPEAKER_PATTERN,
           description:
