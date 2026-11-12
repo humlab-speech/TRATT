@@ -85,6 +85,11 @@
           @if (fileProgress.status === 'invalid' && fileProgress.error) {
             <div class="dropzone-error">{{ fileProgress.error }}</div>
           }
+          @if (fileProgress.status === 'waiting') {
+            <div class="dropzone-hint">
+              {{ 'dropzone.waiting for audio' | transloco }}
+            </div>
+          }
         </td>
         <td>
           <button
