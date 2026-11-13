@@ -588,7 +588,8 @@
           @if (
             appStorage.loggedIn &&
             appStorage.audioLoaded &&
-            navbarServ.showExport
+            navbarServ.showExport &&
+            appStorage.useMode !== LoginMode.URL
           ) {
             <li class="nav-item">
               <button

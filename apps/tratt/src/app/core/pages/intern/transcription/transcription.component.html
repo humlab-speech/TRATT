@@ -1,5 +1,19 @@
 <ng-template trattHeaderCenter>
-  <tratt-humlab-logo class="transcription-humlab-logo" variant="centered" />
+  @if (useMode === 'url') {
+    <!-- Embedded in Visp: shortcuts/overview/help share the header row. -->
+    <tratt-fastbar
+      variant="inline"
+      (overviewbtnclicked)="openOverview()"
+      (shortcutbtnclicked)="openShortcutsModal()"
+      [buttonLabels]="{
+        shortcuts: 'g.shortcuts' | transloco,
+        overview: 'g.overview' | transloco,
+        help: 'g.help' | transloco,
+      }"
+    ></tratt-fastbar>
+  } @else {
+    <tratt-humlab-logo class="transcription-humlab-logo" variant="centered" />
+  }
 </ng-template>
 @if (useMode === 'online' || useMode === 'demo') {
   <div class="panel" id="subnav">
@@ -50,15 +64,17 @@
       ></i>
     }
   </span>
-  <tratt-fastbar
-    (overviewbtnclicked)="openOverview()"
-    (shortcutbtnclicked)="openShortcutsModal()"
-    [buttonLabels]="{
-      shortcuts: 'g.shortcuts' | transloco,
-      overview: 'g.overview' | transloco,
-      help: 'g.help' | transloco,
-    }"
-  ></tratt-fastbar>
+  @if (useMode !== 'url') {
+    <tratt-fastbar
+      (overviewbtnclicked)="openOverview()"
+      (shortcutbtnclicked)="openShortcutsModal()"
+      [buttonLabels]="{
+        shortcuts: 'g.shortcuts' | transloco,
+        overview: 'g.overview' | transloco,
+        help: 'g.help' | transloco,
+      }"
+    ></tratt-fastbar>
+  }
 
   <div class="flex transcription-editor">
     @if (
