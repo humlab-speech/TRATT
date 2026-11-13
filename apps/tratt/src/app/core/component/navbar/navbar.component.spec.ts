@@ -33,26 +33,28 @@ describe('NavigationComponent header shell', () => {
 
   it('language toggle is a keyboard-reachable button named by its visible text', () => {
     const start = html.indexOf('<!-- languageDropdown -->');
-    const toggle = html.slice(html.indexOf('<button', start), html.indexOf('</button>', start));
+    const toggle = html.slice(
+      html.indexOf('<button', start),
+      html.indexOf('</button>', start),
+    );
     expect(toggle).toContain('ngbDropdownToggle');
     expect(toggle).toContain('type="button"');
     expect(toggle).not.toContain('aria-label');
   });
 
-  it('logo is a span, not a link, when embedded in Visp (LoginMode.URL)', () => {
+  it('logo is a link, and omitted when embedded in Visp (LoginMode.URL)', () => {
     const branch = html.slice(
-      html.indexOf('@if (appStorage.useMode === LoginMode.URL)'),
+      html.indexOf('@if (appStorage.useMode !== LoginMode.URL)'),
     );
-    const embedded = branch.slice(0, branch.indexOf('} @else {'));
-    expect(embedded).toContain('<tratt-logo [tagline]="false" />');
-    const linked = branch.slice(branch.indexOf('} @else {'));
-    expect(embedded).toContain(
-      '<span class="navbar-brand tratt-header__brand">',
+    const brand = branch.slice(
+      0,
+      branch.indexOf('<div class="tratt-header__center">'),
     );
-    expect(embedded).not.toContain('<a');
-    expect(embedded).not.toContain('routerLink');
-    expect(linked).toContain('<a');
-    expect(linked).toContain('[routerLink]="homeLink"');
+    expect(brand).toContain('<a');
+    expect(brand).toContain('[routerLink]="homeLink"');
+    expect(html).toContain(
+      '[class.tratt-header--embedded]="appStorage.useMode === LoginMode.URL"',
+    );
     expect(ts).toContain('protected readonly LoginMode = LoginMode;');
   });
 });

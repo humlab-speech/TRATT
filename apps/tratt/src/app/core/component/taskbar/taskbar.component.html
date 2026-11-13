@@ -1,36 +1,51 @@
 <div id="fastbar" [class.fastbar--inline]="variant === 'inline'">
   <div class="btn-group w-100 p-2">
-    <button
-      type="button"
-      (click)="shortcutbtnclicked.emit()"
-      class="btn btn-link w-100"
-    >
-      <i class="fa-solid fa-keyboard align-middle"></i>
-      @if (!appStorage.easyMode) {
-        <span class="d-none d-md-inline"> {{ buttonLabels.shortcuts }}</span>
-      }
-      @if (!appStorage.easyMode) {
-        <span class="d-none d-lg-inline"> <kbd>Alt+8</kbd></span>
-      }
-    </button>
-    <button
-      type="button"
-      (click)="overviewbtnclicked.emit()"
-      class="btn btn-link w-100"
-    >
-      <i class="fa-solid fa-eye"></i>
-      @if (!appStorage.easyMode) {
-        <span class="d-none d-md-inline"> {{ buttonLabels.overview }}</span>
-      }
-      @if (!appStorage.easyMode) {
-        <span class="d-none d-lg-inline"> <kbd>Alt+0</kbd></span>
-      }
-    </button>
-    <button type="button" (click)="openHelpModal()" class="btn btn-link w-100">
-      <i class="fa-solid fa-circle-question"></i>
-      @if (!appStorage.easyMode) {
-        <span class="d-none d-md-inline"> {{ buttonLabels.help }}</span>
-      }
-    </button>
+    @if (variant === 'inline') {
+      <ng-container [ngTemplateOutlet]="help" />
+      <ng-container [ngTemplateOutlet]="shortcuts" />
+      <ng-container [ngTemplateOutlet]="overview" />
+    } @else {
+      <ng-container [ngTemplateOutlet]="shortcuts" />
+      <ng-container [ngTemplateOutlet]="overview" />
+      <ng-container [ngTemplateOutlet]="help" />
+    }
   </div>
 </div>
+<ng-template #shortcuts>
+  <button
+    type="button"
+    (click)="shortcutbtnclicked.emit()"
+    class="btn btn-link w-100"
+  >
+    <i class="fa-solid fa-keyboard align-middle"></i>
+    @if (!appStorage.easyMode) {
+      <span class="d-none d-md-inline"> {{ buttonLabels.shortcuts }}</span>
+    }
+    @if (!appStorage.easyMode) {
+      <span class="d-none d-lg-inline"> <kbd>Alt+8</kbd></span>
+    }
+  </button>
+</ng-template>
+<ng-template #overview>
+  <button
+    type="button"
+    (click)="overviewbtnclicked.emit()"
+    class="btn btn-link w-100"
+  >
+    <i class="fa-solid fa-eye"></i>
+    @if (!appStorage.easyMode) {
+      <span class="d-none d-md-inline"> {{ buttonLabels.overview }}</span>
+    }
+    @if (!appStorage.easyMode) {
+      <span class="d-none d-lg-inline"> <kbd>Alt+0</kbd></span>
+    }
+  </button>
+</ng-template>
+<ng-template #help>
+  <button type="button" (click)="openHelpModal()" class="btn btn-link w-100">
+    <i class="fa-solid fa-circle-question"></i>
+    @if (!appStorage.easyMode) {
+      <span class="d-none d-md-inline"> {{ buttonLabels.help }}</span>
+    }
+  </button>
+</ng-template>

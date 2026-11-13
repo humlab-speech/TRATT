@@ -1,16 +1,13 @@
 @if (appStorage.snapshot.application.loading.status !== 'WAITING') {
   <nav
     class="navbar fixed-top navbar-expand-md tratt-header"
+    [class.tratt-header--embedded]="appStorage.useMode === LoginMode.URL"
     [attr.aria-label]="'shell.header.label' | transloco"
     #navbar
     id="navbar"
   >
     <div class="container-fluid">
-      @if (appStorage.useMode === LoginMode.URL) {
-        <span class="navbar-brand tratt-header__brand">
-          <tratt-logo [tagline]="false" />
-        </span>
-      } @else {
+      @if (appStorage.useMode !== LoginMode.URL) {
         <a
           class="navbar-brand tratt-header__brand"
           [routerLink]="homeLink"

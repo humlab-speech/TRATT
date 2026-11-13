@@ -164,6 +164,14 @@
   .tratt-header .navbar-collapse {
     justify-self: end;
   }
+
+  // Embedded in Visp: no logo, shortcuts/overview/help sit at the left.
+  .tratt-header--embedded > .container-fluid {
+    grid-template-columns: auto 1fr;
+  }
+  .tratt-header--embedded .tratt-header__center {
+    justify-self: start;
+  }
 }
 
 @media (max-width: 767.98px) {
@@ -184,5 +192,9 @@
       align-items: center;
       justify-content: center;
     }
+  }
+
+  .tratt-header--embedded .tratt-header__center:not(:empty) {
+    justify-content: flex-start;
   }
 }

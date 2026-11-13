@@ -1,3 +1,4 @@
+import { NgTemplateOutlet } from '@angular/common';
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { HelpModalComponent } from '../../modals/help-modal/help-modal.component';
 import { TrattModalService } from '../../modals/tratt-modal.service';
@@ -6,6 +7,7 @@ import { ApplicationStoreService } from '../../store/application/application-sto
 
 @Component({
   selector: 'tratt-fastbar',
+  imports: [NgTemplateOutlet],
   templateUrl: './taskbar.component.html',
   styleUrls: ['./taskbar.component.scss'],
 })
