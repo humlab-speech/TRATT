@@ -886,6 +886,7 @@
       "manifest_hint": "– eine Liste der Aufnahmepakete",
       "nothing_to_export": "Keines dieser Aufnahmepakete hat bisher ein Transkript, daher gibt es nichts zu exportieren.",
       "only_audio": "Keines dieser Aufnahmepakete hat bisher ein Transkript. Haken Sie „Audio mitnehmen“ an, um ihr Audio zu exportieren.",
+      "audio_only": "Noch kein Transkript, daher wird nur das Audio exportiert, ohne die angehakten Formate: {{names}}. Transkribieren Sie zuerst, um sie zu erhalten.",
       "no_format": "Haken Sie mindestens ein Format an.",
       "left_out": "Ausgelassen, noch kein Transkript: {{names}}",
       "missing_audio": "{{count}} davon haben kein angehängtes Audio und werden ohne exportiert. Hängen Sie zuerst ihr Audio an, um eine vollständige Kopie zu erhalten.",

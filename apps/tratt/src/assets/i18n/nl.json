@@ -615,6 +615,7 @@
       "manifest_hint": "– een lijst van de opnamebundels",
       "nothing_to_export": "Geen van deze opnamebundels heeft al een transcriptie, dus er is niets om te exporteren.",
       "only_audio": "Geen van deze opnamebundels heeft al een transcriptie. Vink “Audio meenemen” aan om hun audio te exporteren.",
+      "audio_only": "Nog geen transcriptie, dus alleen de audio wordt geëxporteerd, zonder de aangevinkte formaten: {{names}}. Transcribeer eerst om ze te krijgen.",
       "no_format": "Vink minstens één formaat aan.",
       "left_out": "Weggelaten, nog geen transcriptie: {{names}}",
       "missing_audio": "{{count}} daarvan hebben geen gekoppelde audio en worden zonder geëxporteerd. Koppel eerst hun audio voor een volledige kopie.",

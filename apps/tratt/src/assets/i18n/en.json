@@ -959,6 +959,7 @@
       "manifest_hint": "— a list of the recording bundles",
       "nothing_to_export": "None of these recording bundles has a transcript yet, so there is nothing to export.",
       "only_audio": "None of these recording bundles has a transcript yet. Tick “Include the audio” to export their audio.",
+      "audio_only": "No transcript yet, so only the audio is exported, without the ticked formats: {{names}}. Transcribe first to get them.",
       "no_format": "Tick at least one format.",
       "left_out": "Left out, no transcript yet: {{names}}",
       "missing_audio": "{{count}} of them have no audio attached and are exported without it. Attach their audio first for a complete copy.",

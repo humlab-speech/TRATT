@@ -386,6 +386,7 @@ export class ExportFilesModalComponent
     const used = new Set<string>();
     const folders: ExportEntryFolder[] = [];
     const leftOut: string[] = [];
+    const audioOnly: string[] = [];
     let chosen = 0;
     for (const bundle of this.scopedBundles()) {
       const hasAudio = withAudio && bundle.hasAudio;
@@ -393,6 +394,7 @@ export class ExportFilesModalComponent
         // Its formats would be blank: it goes along for its audio alone.
         if (hasAudio) {
           chosen += 1;
+          audioOnly.push(bundle.name);
           folders.push({
             folder: archiveFolderName(bundle.name, used),
             hasAudio,
@@ -453,6 +455,12 @@ export class ExportFilesModalComponent
         : archiveFileName(1),
       folders,
       leftOut,
+      /**
+       * Recordings exported for their audio alone because they have no
+       * transcript yet; worth saying when formats are ticked, which they
+       * then do not get.
+       */
+      audioOnly: formats.length > 0 ? audioOnly : [],
     };
   });
 

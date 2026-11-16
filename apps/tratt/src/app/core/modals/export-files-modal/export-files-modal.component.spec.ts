@@ -300,6 +300,17 @@ describe('ExportFilesModalComponent', () => {
         name: 'a.wav',
         kind: 'audio',
       });
+      // DOCX is ticked but there is no transcript: the dialog says so.
+      expect(component.contents().audioOnly).toEqual(['a.wav']);
+      expect(
+        fixture.debugElement.query(By.css('.export__audio-only')).nativeElement
+          .textContent,
+      ).toContain('workbench.export.audio_only');
+
+      // With no format ticked there is nothing to warn about.
+      component.toggleFormat('DOCX');
+      expect(component.contents().audioOnly).toEqual([]);
+      component.toggleFormat('DOCX');
 
       component.setScope('all');
       expect(

@@ -280,6 +280,24 @@
             </ul>
           }
 
+          @if (toc.audioOnly.length > 0) {
+            <!-- Ticked formats that these recordings will not get: say so
+                 before the download, not after. -->
+            <p class="export__audio-only" role="status">
+              <i
+                class="fa-solid fa-triangle-exclamation"
+                aria-hidden="true"
+              ></i>
+              {{
+                'workbench.export.audio_only'
+                  | transloco
+                    : {
+                        count: toc.audioOnly.length,
+                        names: toc.audioOnly.join(', '),
+                      }
+              }}
+            </p>
+          }
           @if (toc.leftOut.length > 0) {
             <p class="export__left-out">
               {{

@@ -907,6 +907,7 @@
       "manifest_hint": "– en lista över inspelningspaketen",
       "nothing_to_export": "Inget av de här inspelningspaketen har någon transkription än, så det finns inget att exportera.",
       "only_audio": "Inget av de här inspelningspaketen har någon transkription än. Markera ”Ta med ljudet” för att exportera deras ljud.",
+      "audio_only": "Ingen transkription än, så bara ljudet exporteras, utan de markerade formaten: {{names}}. Transkribera först för att få dem.",
       "no_format": "Markera minst ett format.",
       "left_out": "Utelämnade, ingen transkription än: {{names}}",
       "missing_audio": "{{count}} av dem har inget bifogat ljud och exporteras utan. Bifoga deras ljud först för en fullständig kopia.",
