@@ -816,7 +816,7 @@
       "select_all": "Select all",
       "delete_done": "Delete done",
       "delete_done_hint": "Delete every recording bundle marked Done, with its transcript and any edits. This cannot be undone, so save them as .zip first if you still need them. Your audio files are not touched.",
-      "remove": "Remove",
+      "remove": "Delete",
       "selected_count": "{{count}} selected",
       "selected_count_one": "1 selected",
       "deselect": "Deselect",
@@ -850,7 +850,7 @@
         "diarization": "Separating speakers",
         "translation": "Translating"
       },
-      "confirm_remove": "Remove {{count}} recording bundle(s)? Their transcripts and any edits are deleted and cannot be restored. Your audio files are not touched.",
+      "confirm_remove": "Delete {{count}} recording bundle(s)? Their transcripts and any edits are deleted and cannot be restored. Your audio files are not touched.",
       "column_file": "Recording bundle",
       "column_file_hint": "A recording bundle is one recording: its audio and its transcript. Tratt keeps the transcript in this browser. The audio stays on your disk and is only attached while you work.",
       "column_audio": "Audio",

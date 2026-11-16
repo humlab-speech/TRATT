@@ -66,7 +66,7 @@ together with the files that describe it.
 Four things sit on the left, from top to bottom:
 
 1. **Recording bundles** with their number, and the buttons **Save as .zip**,
-   **Delete done** and **Remove**.
+   **Delete done** and **Delete**.
 2. The **Upload file** and **Record now** tabs over a drop area:
    *Drop audio or video files here, or a .zip saved from Tratt*. While a
    recording bundle is waiting for its audio, the drop area says that dropping
@@ -276,6 +276,6 @@ What the archive contains, and how to load it back, is described in
 
 ## Housekeeping
 
-**Delete done** deletes the recording bundles marked *Done*, transcripts included. **Remove**
+**Delete done** deletes the recording bundles marked *Done*, transcripts included. **Delete**
 takes out the ones you have ticked, and the checkbox in the Files header ticks
 them all. These actions cannot be undone.

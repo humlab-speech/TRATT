@@ -22,7 +22,7 @@ chosen; to work on another level, open Tratt from VISP again.
 | The list | The files you add | Your assignment in the project |
 | Audio | Attached by you, again after a reload | Fetched from VISP whenever it is needed |
 | Your transcript | Kept in the browser, exported as files | Saved into the project as you work |
-| Adding and removing | Drop, record, load a `.zip`, **Remove** | Not available: the list is your assignment |
+| Adding and removing | Drop, record, load a `.zip`, **Delete** | Not available: the list is your assignment |
 | Tiers | Any you create | Only the annotation level you chose when opening Tratt |
 
 Everything about transcribing itself is the same: the editors, the shortcuts and
