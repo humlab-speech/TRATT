@@ -80,7 +80,7 @@ The rest of the window is the recording bundle you have selected in the list.
 The list is the only place to switch between recording bundles; hover over one
 to see its audio details.
 Above the editor, one bar holds the editor tabs, **Shortcuts**, **Overview**,
-**Help** and, at the right end, **Download transcript**. Below it is the
+**Help** and, at the right end, **Download this transcript**. Below it is the
 editor itself.
 
 ![The Workbench with four recordings loaded](../assets/visp_tratt_workbench.png)
@@ -194,7 +194,7 @@ A failed file says what went wrong (*Could not read the audio*,
 Click a recording bundle in the list to open it. Hover over it to see its audio
 details, for example `1:45 · 16 kHz mono · 3.4 MB`. When the audio is not
 attached, they read *Audio not attached*, and **Attach audio…** sits next to
-**Download transcript**.
+**Download this transcript**.
 
 From there you are in the ordinary editor. You select the 2D, Dictaphone, or Linear editor with the
 editor tabs, and work as described in

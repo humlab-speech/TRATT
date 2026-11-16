@@ -803,7 +803,7 @@
     "editor_header": {
       "mono": "mono",
       "stereo": "stereo",
-      "export": "Download transcript",
+      "export": "Download this transcript",
       "export_unavailable": "Nothing to download yet: this recording bundle has no transcript, and its audio isn't attached.",
       "save_recording": "Save audio",
       "audio_not_attached": "audio not attached"

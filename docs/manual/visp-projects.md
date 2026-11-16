@@ -107,7 +107,7 @@ see the change. A recording bundle that is no longer assigned to you can no
 longer be saved to VISP: saving it fails, and your changes stay in this browser.
 Download the transcript if you need it.
 
-It can no longer be saved to the project. Use **Download transcript** if you
+It can no longer be saved to the project. Use **Download this transcript** if you
 want to keep the text, then **Remove**.
 
 ---
