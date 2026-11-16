@@ -245,7 +245,8 @@
   padding: 0 0 1.25rem;
 }
 
-// Grows so the logo, last, sits at the bottom of the rail.
+// Grows so Storage and memory and the logo, last, sit at the bottom of the
+// rail.
 .workbench__fold--work {
   flex: 1 0 auto;
 }
@@ -433,8 +434,13 @@
   }
 }
 
-.workbench__humlab-logo {
+// Storage and memory, then the logo, sit at the bottom of the rail: the
+// work fold grows to fill it (see .workbench__fold--work).
+.workbench__capacity {
   margin-top: auto;
+}
+
+.workbench__humlab-logo {
   height: 3.5rem;
   width: fit-content;
 }
