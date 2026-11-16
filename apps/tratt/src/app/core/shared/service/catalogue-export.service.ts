@@ -399,7 +399,16 @@ export class CatalogueExportService {
       let audioPath = '';
       let audioType = '';
       if (includeAudio) {
-        const source = this.audioService.getSourceFile(bundleId);
+        // The attached file, or (VISP) the recording fetched from the server.
+        let source: File | undefined;
+        let audioProblem = 'audio not attached';
+        if (this.audioService.hasAudioFile(bundleId)) {
+          try {
+            source = await this.audioService.getAudioFile(bundleId);
+          } catch (error) {
+            audioProblem = `audio could not be fetched (${error instanceof Error ? error.message : String(error)})`;
+          }
+        }
         if (source) {
           audioPath = `${dir}/${source.name}`;
           audioType = source.type;
@@ -413,7 +422,7 @@ export class CatalogueExportService {
           });
         } else {
           warnings.push(
-            `${label}: audio not attached, so it is not in the export. Its transcript is, and loads into the file of the same name in the list.`,
+            `${label}: ${audioProblem}, so it is not in the export. Its transcript is, and loads into the file of the same name in the list.`,
           );
         }
       }

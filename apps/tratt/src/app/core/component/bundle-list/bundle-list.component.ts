@@ -426,7 +426,8 @@ export class BundleListComponent {
     const bundles: ExportBundle[] = this.bundles().map((b) => ({
       bundleId: b.bundleId,
       name: b.name ?? b.bundleId,
-      hasAudio: !!this.audioService.getSourceFile(b.bundleId),
+      // Attached, or (VISP) fetched from the server when exported.
+      hasAudio: this.audioService.hasAudioFile(b.bundleId),
       hasTranscript: b.hasAnnotationContent,
       levels: (entities[b.bundleId]?.transcript?.levels ?? []).map((l) => ({
         name: l.name,

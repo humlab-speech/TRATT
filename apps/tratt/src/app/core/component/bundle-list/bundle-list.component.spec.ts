@@ -125,6 +125,8 @@ describe('BundleListComponent', () => {
       canRestore: jest.fn((id: unknown) => audioService.hasResident(id)),
       // The file a bundle's audio came from; none in these fixtures.
       getSourceFile: jest.fn(() => undefined),
+      // Attached or fetchable audio, for the export dialog; none here.
+      hasAudioFile: jest.fn(() => false),
       getMediaInfo: jest.fn(() => undefined),
       forget: jest.fn(),
     };
@@ -934,6 +936,20 @@ describe('BundleListComponent', () => {
         .nativeElement.click();
       fixture.detectChanges();
       expect(button().textContent?.trim()).toBe('workbench.bundle_list.export');
+    });
+
+    it('offers audio the workspace can fetch (VISP) for export, not only attached files', () => {
+      audioService.hasAudioFile.mockImplementation(
+        (id: unknown) => id === bundleA.bundleId,
+      );
+      fixture.componentInstance.onExport();
+      const data = modalService.openModal.mock.calls.at(-1)![2] as {
+        bundles: { bundleId: string; hasAudio: boolean }[];
+      };
+      expect(data.bundles.map((b) => [b.bundleId, b.hasAudio])).toEqual([
+        [bundleA.bundleId, true],
+        [bundleB.bundleId, false],
+      ]);
     });
 
     it('select-all checks every row, and unchecking it clears the selection', () => {

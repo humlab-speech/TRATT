@@ -108,6 +108,10 @@ describe('CatalogueExportService', () => {
       getMediaInfo: jest.fn((): any => undefined),
       canRestore: jest.fn(() => true),
       getSourceFile: jest.fn((): any => undefined),
+      hasAudioFile: jest.fn((id: string) => !!audioService.getSourceFile(id)),
+      getAudioFile: jest.fn(async (id: string) =>
+        audioService.getSourceFile(id),
+      ),
     };
     const pipelineQueueService = {
       getTranscribeOptions: jest.fn(() => ({ modelId: 'm1', language: 'en' })),
@@ -490,7 +494,12 @@ describe('CatalogueExportService', () => {
 });
 
 describe('CatalogueExportService: one file or a .zip', () => {
-  function setup(bundles: ReturnType<typeof makeBundle>[], source?: any) {
+  function setup(
+    bundles: ReturnType<typeof makeBundle>[],
+    source?: any,
+    // VISP: no attached file, but the recording is fetched from the server.
+    fetched?: any,
+  ) {
     let bundleCollection = localBundleAdapter.getInitialState();
     for (const b of bundles) {
       bundleCollection = localBundleAdapter.setOne(b, bundleCollection);
@@ -514,6 +523,11 @@ describe('CatalogueExportService: one file or a .zip', () => {
             getMediaInfo: jest.fn((): any => undefined),
             canRestore: jest.fn(() => true),
             getSourceFile: jest.fn((): any => source),
+            hasAudioFile: jest.fn(() => !!source || !!fetched),
+            getAudioFile: jest.fn(async () => {
+              if (fetched instanceof Error) throw fetched;
+              return source ?? fetched;
+            }),
           },
         },
         {
@@ -569,6 +583,31 @@ describe('CatalogueExportService: one file or a .zip', () => {
         'manifest.json',
       ]),
     );
+  });
+
+  it('includes audio fetched from VISP, which has no attached file', async () => {
+    const service = setup([makeBundle('bundle-1', 'a.wav')], undefined, wav);
+    const last = await lastValueFrom(
+      service.exportBundles(['bundle-1'], ['SRT'], { includeAudio: true }),
+    );
+    const entries = unzipSync(zipBytes(last));
+    expect(Array.from(entries['bundles/a/a.wav'])).toEqual([1, 2, 3]);
+    expect(last.warnings).toEqual([]);
+  });
+
+  it('says so, and still exports the transcript, when fetching the audio fails', async () => {
+    const service = setup(
+      [makeBundle('bundle-1', 'a.wav')],
+      undefined,
+      new Error('offline'),
+    );
+    const last = await lastValueFrom(
+      service.exportBundles(['bundle-1'], ['SRT'], { includeAudio: true }),
+    );
+    expect(last.download?.name).toMatch(/\.srt$/);
+    expect(last.warnings).toEqual([
+      expect.stringContaining('audio could not be fetched (offline)'),
+    ]);
   });
 
   it('leaves the audio out, without a warning, when it is not asked for', async () => {

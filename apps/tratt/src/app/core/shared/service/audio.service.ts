@@ -148,6 +148,29 @@ export class AudioService {
 
   /** Media metadata captured at registration; survives LRU eviction. */
   /** The `File` the bundle's audio was registered from, if still retained. */
+  /**
+   * Whether the bundle's audio file can be had, e.g. to export it: a file
+   * the user attached, or a recording the workspace can fetch (VISP).
+   */
+  public hasAudioFile(bundleId: string): boolean {
+    return (
+      this._sourceFiles.has(bundleId) || this._audioProviders.has(bundleId)
+    );
+  }
+
+  /**
+   * The bundle's audio as a file: the attached one, else fetched again from
+   * where the workspace keeps it. Undefined when there is neither.
+   */
+  public async getAudioFile(bundleId: string): Promise<File | undefined> {
+    const retained = this._sourceFiles.get(bundleId);
+    if (retained) {
+      return retained;
+    }
+    const provider = this._audioProviders.get(bundleId);
+    return provider ? provider() : undefined;
+  }
+
   public getSourceFile(bundleId: string): File | undefined {
     return this._sourceFiles.get(bundleId);
   }
