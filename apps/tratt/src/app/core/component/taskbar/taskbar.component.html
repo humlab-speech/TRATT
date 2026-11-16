@@ -4,6 +4,7 @@
       type="button"
       (click)="shortcutbtnclicked.emit()"
       class="btn btn-link w-100"
+      [attr.title]="buttonLabels.shortcuts"
     >
       <i class="fa-solid fa-keyboard align-middle"></i>
       @if (!appStorage.easyMode) {
@@ -27,6 +28,7 @@
       type="button"
       (click)="overviewbtnclicked.emit()"
       class="btn btn-link w-100"
+      [attr.title]="buttonLabels.overview"
     >
       <i class="fa-solid fa-eye"></i>
       @if (!appStorage.easyMode) {
@@ -46,7 +48,12 @@
         >
       }
     </button>
-    <button type="button" (click)="openHelpModal()" class="btn btn-link w-100">
+    <button
+      type="button"
+      (click)="openHelpModal()"
+      class="btn btn-link w-100"
+      [attr.title]="buttonLabels.help"
+    >
       <i class="fa-solid fa-circle-question"></i>
       @if (!appStorage.easyMode) {
         <span

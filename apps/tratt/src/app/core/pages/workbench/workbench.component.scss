@@ -727,6 +727,78 @@
   }
 }
 
+// The same tabs and actions lent to the header (appBarInHeader): the tabs
+// run the header's full height, so the active one's underline sits on its
+// bottom edge.
+.workbench__header-tabs {
+  display: flex;
+  align-items: stretch;
+
+  .workbench__editor-tabs {
+    flex-wrap: nowrap;
+    border-bottom: 0;
+    padding: 0;
+  }
+
+  .workbench__editor-tab {
+    margin-bottom: 0;
+    padding-inline: 0.85rem;
+    font-size: 1rem;
+    white-space: nowrap;
+  }
+
+  // Text tabs: the icons only help when the tabs sit in a pane of their own.
+  .workbench__editor-tab i {
+    display: none;
+  }
+}
+
+.workbench__header-actions {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+
+  .workbench__fastbar {
+    margin-left: 0;
+  }
+}
+
+.workbench__header-tabs .workbench__editor-tabs,
+.workbench__header-actions {
+  flex-shrink: 0;
+}
+
+.workbench__header-actions .workbench__export {
+  padding: 0.45rem 1rem;
+  font-size: 1rem;
+  white-space: nowrap;
+}
+
+// Inside VISP the header also holds TRATT's own menu, so below the widest
+// screens the shortcuts, overview and help links show their icons only. Their
+// labels stay for screen readers, and as tooltips.
+@media (max-width: 1799.98px) {
+  .workbench__header-actions ::ng-deep #fastbar .btn-link > span {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+
+  .workbench__header-actions ::ng-deep .fastbar--inline .btn-group {
+    gap: 0.25rem;
+  }
+
+  .workbench__header-actions ::ng-deep .fastbar--inline .btn-link {
+    justify-content: center;
+    min-width: 2.25rem;
+    min-height: 2.25rem;
+    font-size: 1.05rem;
+  }
+}
+
 @media (max-width: 991.98px) {
   .workbench__pane-bar {
     flex-wrap: wrap;

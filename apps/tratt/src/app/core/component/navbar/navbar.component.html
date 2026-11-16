@@ -1,6 +1,7 @@
 @if (appStorage.snapshot.application.loading.status !== 'WAITING') {
   <nav
     class="navbar fixed-top navbar-expand-md tratt-header"
+    [class.tratt-header--app-bar]="headerSlots.start() || headerSlots.end()"
     [attr.aria-label]="'shell.header.label' | transloco"
     #navbar
     id="navbar"
@@ -25,11 +26,21 @@
           }
         </a>
       }
+      @if (headerSlots.start(); as tpl) {
+        <div class="tratt-header__start">
+          <ng-container [ngTemplateOutlet]="tpl" />
+        </div>
+      }
       <div class="tratt-header__center">
         @if (headerSlots.center(); as tpl) {
           <ng-container [ngTemplateOutlet]="tpl" />
         }
       </div>
+      @if (headerSlots.end(); as tpl) {
+        <div class="tratt-header__end">
+          <ng-container [ngTemplateOutlet]="tpl" />
+        </div>
+      }
       <button
         class="navbar-toggler"
         type="button"

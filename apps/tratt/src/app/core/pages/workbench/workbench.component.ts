@@ -83,6 +83,10 @@ import { YesNoModalComponent } from '../../modals/yes-no-modal/yes-no-modal.comp
 import { FileProgress } from '../../obj/objects';
 import { SessionFile } from '../../obj/SessionFile';
 import { ProjectSettings } from '../../obj/Settings';
+import {
+  HeaderEndDirective,
+  HeaderStartDirective,
+} from '../../shared/directive/header-slot.directive';
 import { LoadeditorDirective } from '../../shared/directive/loadeditor.directive';
 import { postToParent } from '../../shared/post-to-parent';
 import { SettingsService, UserInteractionsService } from '../../shared/service';
@@ -160,6 +164,8 @@ const WELCOME_CHANGE_MS = 600;
     NgTemplateOutlet,
     WorkbenchWelcomeComponent,
     WorkbenchWelcomeIntroComponent,
+    HeaderStartDirective,
+    HeaderEndDirective,
   ],
 })
 export class WorkbenchComponent
@@ -231,6 +237,27 @@ export class WorkbenchComponent
   readonly visp = inject(VispWorkspaceService);
   /** True in the VISP workspace: the list is the server-side assignment. */
   readonly isVisp = this.workspaceService.isVisp;
+  /** Wide enough for the editor tabs and actions to share the header row. */
+  private readonly wideHeader = signal(WorkbenchComponent.matchWideHeader());
+  /**
+   * Inside VISP, whose own bar sits above TRATT, the editor tabs and actions
+   * move into TRATT's header so the two read as one platform bar and one app
+   * bar. Elsewhere, and on narrow screens, they stay in the pane's own bar.
+   */
+  readonly appBarInHeader = computed(() => this.isVisp() && this.wideHeader());
+  private wideHeaderQuery?: MediaQueryList;
+  private readonly onWideHeaderChange = (event: MediaQueryListEvent) =>
+    this.wideHeader.set(event.matches);
+
+  private static readonly WIDE_HEADER_QUERY = '(min-width: 1400px)';
+
+  private static matchWideHeader(): boolean {
+    return (
+      typeof window !== 'undefined' &&
+      typeof window.matchMedia === 'function' &&
+      window.matchMedia(WorkbenchComponent.WIDE_HEADER_QUERY).matches
+    );
+  }
   private selectedLevelIndex = computed(
     () =>
       this.localMode()?.bundles.entities[this.selectedBundleId()]?.transcript
@@ -1088,6 +1115,15 @@ export class WorkbenchComponent
   }
 
   ngOnInit(): void {
+    if (
+      typeof window !== 'undefined' &&
+      typeof window.matchMedia === 'function'
+    ) {
+      this.wideHeaderQuery = window.matchMedia(
+        WorkbenchComponent.WIDE_HEADER_QUERY,
+      );
+      this.wideHeaderQuery.addEventListener('change', this.onWideHeaderChange);
+    }
     // navbarServ.showInterfaces is app-singleton state, only ever set true by
     // the old /intern/transcr page (transcription.component.ts) and never
     // reset there — so it stays true across an in-app navigation to
@@ -1707,6 +1743,10 @@ export class WorkbenchComponent
    * cleanly rather than relying on that bound.
    */
   override ngOnDestroy(): void {
+    this.wideHeaderQuery?.removeEventListener(
+      'change',
+      this.onWideHeaderChange,
+    );
     clearTimeout(this.welcomeChangeTimer);
     this.capacityService.setConfiguredOptions(null);
     this.unregisterPendingEdits?.();

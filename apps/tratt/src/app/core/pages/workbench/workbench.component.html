@@ -386,53 +386,25 @@
   @if (sessionReady) {
     <div class="workbench__right" [attr.inert]="hasAnyBundles() ? null : ''">
       @if (hasAnyBundles()) {
-        <div class="workbench__pane-bar">
-          <div
-            class="workbench__editor-tabs nav nav-tabs tratt-tabs"
-            role="toolbar"
-          >
-            @for (entry of editorComponentsList; track entry.name) {
-              <button
-                type="button"
-                class="nav-link workbench__editor-tab"
-                [class.active]="activeEditorName() === entry.name"
-                [class.workbench__editor-tab--active]="
-                  activeEditorName() === entry.name
-                "
-                [attr.aria-pressed]="activeEditorName() === entry.name"
-                (click)="changeEditor(entry.name)"
-              >
-                <i [class]="entry.icon" aria-hidden="true"></i>
-                {{ entry.translate | transloco }}
-              </button>
-            }
+        @if (appBarInHeader()) {
+          <!-- In VISP, under VISP's own bar: TRATT's header becomes the one
+               app bar, holding the editor tabs and actions. -->
+          <ng-template trattHeaderStart>
+            <div class="workbench__header-tabs">
+              <ng-container *ngTemplateOutlet="editorTabs"></ng-container>
+            </div>
+          </ng-template>
+          <ng-template trattHeaderEnd>
+            <div class="workbench__header-actions">
+              <ng-container *ngTemplateOutlet="paneActions"></ng-container>
+            </div>
+          </ng-template>
+        } @else {
+          <div class="workbench__pane-bar">
+            <ng-container *ngTemplateOutlet="editorTabs"></ng-container>
+            <ng-container *ngTemplateOutlet="paneActions"></ng-container>
           </div>
-          <tratt-fastbar
-            variant="inline"
-            class="workbench__fastbar"
-            (overviewbtnclicked)="openOverview()"
-            (shortcutbtnclicked)="openShortcutsModal()"
-            [buttonLabels]="{
-              shortcuts: 'g.shortcuts' | transloco,
-              overview: 'g.overview' | transloco,
-              help: 'g.help' | transloco,
-            }"
-          ></tratt-fastbar>
-          @if (selectedBundleHeader; as header) {
-            <!-- Not gated on exportEnabled: that is read once when the
-                 session becomes ready, which can be before the project config
-                 has loaded. LOCAL's config always allows export. -->
-            <ng-container
-              *ngTemplateOutlet="
-                fileActions;
-                context: {
-                  $implicit: header,
-                  showExport: useMode === 'local',
-                }
-              "
-            ></ng-container>
-          }
-        </div>
+        }
       }
 
       <!-- The editor host stays in the DOM even with an empty list, so the
@@ -674,6 +646,56 @@
     </div>
   }
 </div>
+
+<!-- The editor tabs and the pane's actions: in the pane's own bar, or in the
+     header (see appBarInHeader). -->
+<ng-template #editorTabs>
+  <div class="workbench__editor-tabs nav nav-tabs tratt-tabs" role="toolbar">
+    @for (entry of editorComponentsList; track entry.name) {
+      <button
+        type="button"
+        class="nav-link workbench__editor-tab"
+        [class.active]="activeEditorName() === entry.name"
+        [class.workbench__editor-tab--active]="
+          activeEditorName() === entry.name
+        "
+        [attr.aria-pressed]="activeEditorName() === entry.name"
+        (click)="changeEditor(entry.name)"
+      >
+        <i [class]="entry.icon" aria-hidden="true"></i>
+        {{ entry.translate | transloco }}
+      </button>
+    }
+  </div>
+</ng-template>
+
+<ng-template #paneActions>
+  <tratt-fastbar
+    variant="inline"
+    class="workbench__fastbar"
+    (overviewbtnclicked)="openOverview()"
+    (shortcutbtnclicked)="openShortcutsModal()"
+    [buttonLabels]="{
+      shortcuts: 'g.shortcuts' | transloco,
+      overview: 'g.overview' | transloco,
+      help: 'g.help' | transloco,
+    }"
+  ></tratt-fastbar>
+  @if (selectedBundleHeader; as header) {
+    <!-- Not gated on exportEnabled: that is read once when the session
+         becomes ready, which can be before the project config has loaded.
+         LOCAL's config always allows export. -->
+    <ng-container
+      *ngTemplateOutlet="
+        fileActions;
+        context: {
+          $implicit: header,
+          showExport: useMode === 'local',
+        }
+      "
+    ></ng-container>
+  }
+</ng-template>
 
 <!-- The selected recording bundle's actions (name and media details live in
      the header's data selector). Also shown before a session exists

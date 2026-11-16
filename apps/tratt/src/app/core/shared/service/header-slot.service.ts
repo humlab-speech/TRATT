@@ -1,19 +1,39 @@
 import { Injectable, signal, TemplateRef } from '@angular/core';
 
-/** Lets a page lend the header its centre (the data selector, per profile). */
+export type HeaderSlot = 'start' | 'center' | 'end';
+
+/**
+ * Lets a page lend content to the header: its centre (the data selector, per
+ * profile), or, for an app bar that replaces the page's own toolbar, the
+ * start (after the brand) and the end (before the header's menu).
+ */
 @Injectable({ providedIn: 'root' })
 export class HeaderSlotService {
-  private readonly _center = signal<TemplateRef<unknown> | null>(null);
-  readonly center = this._center.asReadonly();
+  private readonly slots = {
+    start: signal<TemplateRef<unknown> | null>(null),
+    center: signal<TemplateRef<unknown> | null>(null),
+    end: signal<TemplateRef<unknown> | null>(null),
+  };
+  readonly start = this.slots.start.asReadonly();
+  readonly center = this.slots.center.asReadonly();
+  readonly end = this.slots.end.asReadonly();
 
-  setCenter(tpl: TemplateRef<unknown>): void {
-    this._center.set(tpl);
+  set(slot: HeaderSlot, tpl: TemplateRef<unknown>): void {
+    this.slots[slot].set(tpl);
   }
 
   /** Only clears if `tpl` is still the registered one (route transitions overlap). */
-  clearCenter(tpl: TemplateRef<unknown>): void {
-    if (this._center() === tpl) {
-      this._center.set(null);
+  clear(slot: HeaderSlot, tpl: TemplateRef<unknown>): void {
+    if (this.slots[slot]() === tpl) {
+      this.slots[slot].set(null);
     }
+  }
+
+  setCenter(tpl: TemplateRef<unknown>): void {
+    this.set('center', tpl);
+  }
+
+  clearCenter(tpl: TemplateRef<unknown>): void {
+    this.clear('center', tpl);
   }
 }

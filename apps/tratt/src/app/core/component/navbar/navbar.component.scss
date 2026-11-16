@@ -166,6 +166,51 @@
   }
 }
 
+// A page's app bar (see HeaderSlotService): the brand, then the page's start
+// content; its end content, then the header's menu, at the right. Only lent
+// on wide screens, so this has no narrow-screen layout.
+@media (min-width: 768px) {
+  .tratt-header.tratt-header--app-bar > .container-fluid {
+    display: flex;
+    align-items: stretch;
+    gap: 1.75rem;
+  }
+  .tratt-header--app-bar {
+    .tratt-header__brand {
+      align-self: center;
+    }
+    .tratt-header__center {
+      display: none;
+    }
+    .tratt-header__start {
+      display: flex;
+      align-items: stretch;
+      flex-shrink: 0;
+    }
+    .tratt-header__end {
+      display: flex;
+      align-items: center;
+      margin-left: auto;
+    }
+    .navbar-collapse {
+      flex-grow: 0;
+    }
+  }
+}
+
+// The app bar leaves less room for the menu: below the widest screens its
+// labels (Manual, Export, …) show as icons, as the others already do.
+@media (min-width: 768px) and (max-width: 1799.98px) {
+  .tratt-header--app-bar .navbar-nav .nav-link .d-xxl-inline {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+}
+
 @media (max-width: 767.98px) {
   .tratt-header__center {
     order: 3;

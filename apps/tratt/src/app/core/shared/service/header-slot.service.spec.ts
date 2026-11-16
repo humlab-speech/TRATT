@@ -22,4 +22,19 @@ describe('HeaderSlotService', () => {
     slots.clearCenter(a);
     expect(slots.center()).toBeNull();
   });
+
+  it('keeps the start, centre and end slots apart', () => {
+    slots.set('start', a);
+    slots.set('end', b);
+    expect(slots.start()).toBe(a);
+    expect(slots.end()).toBe(b);
+    expect(slots.center()).toBeNull();
+
+    slots.clear('start', b);
+    expect(slots.start()).toBe(a);
+    slots.clear('start', a);
+    slots.clear('end', b);
+    expect(slots.start()).toBeNull();
+    expect(slots.end()).toBeNull();
+  });
 });
