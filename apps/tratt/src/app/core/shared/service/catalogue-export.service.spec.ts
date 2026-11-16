@@ -32,6 +32,7 @@ import { localBundleAdapter } from '../../store/login-mode/annotation/local-bund
 import { AudioService } from './audio.service';
 import {
   archiveFileName,
+  CatalogueExportProgress,
   CatalogueExportService,
 } from './catalogue-export.service';
 import { PipelineQueueService } from './pipeline-queue.service';
@@ -76,6 +77,12 @@ function makeManager(durationSamples: number, sampleRate: number) {
       }),
     },
   } as any;
+}
+
+/** The final emission's .zip; fails the test when it is a single file. */
+function zipBytes(event: CatalogueExportProgress): Uint8Array {
+  expect(event.download?.archive).toBe(true);
+  return event.download!.bytes;
 }
 
 describe('CatalogueExportService', () => {
@@ -130,8 +137,10 @@ describe('CatalogueExportService', () => {
       type: 'audio/wav',
       arrayBuffer: async () => new Uint8Array([1, 2, 3]).buffer,
     });
-    const last = await lastValueFrom(service.exportBundles(['bundle-1'], []));
-    const entries = unzipSync(last.archive!);
+    const last = await lastValueFrom(
+      service.exportBundles(['bundle-1'], ['SRT']),
+    );
+    const entries = unzipSync(zipBytes(last));
     expect(Array.from(entries['bundles/a/a.wav'])).toEqual([1, 2, 3]);
     expect(Object.keys(entries)).toContain('bundles/a/a_annot.json');
     expect(last.exportedCount).toBe(1);
@@ -147,8 +156,8 @@ describe('CatalogueExportService', () => {
       service.exportBundles(['bundle-1', 'bundle-2'], ['AnnotJSON']),
     );
 
-    expect(last.archive).toBeDefined();
-    const entries = Object.keys(unzipSync(last.archive!));
+    expect(last.download).toBeDefined();
+    const entries = Object.keys(unzipSync(zipBytes(last)));
     expect(entries).toContain('manifest.json');
     expect(entries).toContain('manifest.csv');
     expect(
@@ -175,18 +184,18 @@ describe('CatalogueExportService', () => {
     expect(events[0].completedBundles).toBe(1);
     expect(events[1].completedBundles).toBe(2);
     expect(events[1].totalBundles).toBe(2);
-    expect(events[1].archive).toBeDefined();
+    expect(events[1].download).toBeDefined();
   });
 
   it('skips a bundle removed from the store before its turn, with a warning, and continues', async () => {
     const { service } = setup([makeBundle('bundle-1', 'a.wav')]);
     // 'bundle-ghost' was never added to the store.
     const last = await lastValueFrom(
-      service.exportBundles(['bundle-ghost', 'bundle-1'], ['AnnotJSON']),
+      service.exportBundles(['bundle-ghost', 'bundle-1'], ['AnnotJSON', 'SRT']),
     );
 
     expect(last.warnings.some((w) => w.includes('bundle-ghost'))).toBe(true);
-    const entries = Object.keys(unzipSync(last.archive!));
+    const entries = Object.keys(unzipSync(zipBytes(last)));
     expect(entries.some((e) => e.startsWith('bundles/a/'))).toBe(true);
   });
 
@@ -201,7 +210,7 @@ describe('CatalogueExportService', () => {
       service.exportBundles(['bundle-1', 'bundle-2'], ['AnnotJSON']),
     );
 
-    const entries = Object.keys(unzipSync(last.archive!));
+    const entries = Object.keys(unzipSync(zipBytes(last)));
     expect(entries.some((e) => e.startsWith('bundles/b/'))).toBe(true);
     expect(
       entries.some(
@@ -210,7 +219,7 @@ describe('CatalogueExportService', () => {
     ).toBe(true);
   });
 
-  it('records a warning and continues when one converter errors on one bundle, but still writes files from the other requested converter', async () => {
+  it('records a warning and continues when one converter errors on one bundle, but still exports the other requested converter', async () => {
     const { service } = setup([makeBundle('bundle-1', 'a.wav')]);
     const annotJsonConverter = AppInfo.converters.find(
       (c) => c.name === 'AnnotJSON',
@@ -224,14 +233,9 @@ describe('CatalogueExportService', () => {
     );
 
     expect(last.warnings.some((w) => w.includes('AnnotJSON'))).toBe(true);
-    const entries = Object.keys(unzipSync(last.archive!));
-    expect(
-      entries.some((e) => e.startsWith('bundles/a/') && e.endsWith('.srt')),
-    ).toBe(true);
-    // Only the native annotation is left; the failed converter wrote none.
-    expect(
-      entries.filter((e) => e.startsWith('bundles/a/') && e.endsWith('.json')),
-    ).toHaveLength(1);
+    // Only the SRT is left, so it downloads as it is.
+    expect(last.download?.archive).toBe(false);
+    expect(last.download?.name.endsWith('.srt')).toBe(true);
 
     exportSpy.mockRestore();
   });
@@ -246,7 +250,7 @@ describe('CatalogueExportService', () => {
       service.exportBundles(['bundle-1', 'bundle-2'], ['AnnotJSON']),
     );
 
-    const entries = Object.keys(unzipSync(last.archive!));
+    const entries = Object.keys(unzipSync(zipBytes(last)));
     const interviewDirs = new Set(
       entries
         .filter((e) => e.startsWith('bundles/interview'))
@@ -269,7 +273,7 @@ describe('CatalogueExportService', () => {
     const last = await lastValueFrom(
       service.exportBundles(['bundle-1'], ['AnnotJSON']),
     );
-    expect(last.archive).toBeDefined();
+    expect(last.download).toBeDefined();
     expect(last.exportedCount).toBe(1);
     expect(last.warnings.some((w) => w.startsWith('Skipped'))).toBe(false);
   });
@@ -281,7 +285,7 @@ describe('CatalogueExportService', () => {
     });
 
     await expect(
-      lastValueFrom(service.exportBundles(['bundle-1'], ['AnnotJSON'])),
+      lastValueFrom(service.exportBundles(['bundle-1'], ['AnnotJSON', 'SRT'])),
     ).rejects.toThrow('csv boom');
   });
 
@@ -289,11 +293,11 @@ describe('CatalogueExportService', () => {
     const { service } = setup([makeBundle('bundle-1', 'a.wav')]);
 
     const last = await lastValueFrom(
-      service.exportBundles(['bundle-1'], ['AnnotJSON']),
+      service.exportBundles(['bundle-1'], ['AnnotJSON', 'SRT']),
     );
 
     const manifest = JSON.parse(
-      new TextDecoder().decode(unzipSync(last.archive!)['manifest.json']),
+      new TextDecoder().decode(unzipSync(zipBytes(last))['manifest.json']),
     );
     expect(manifest[0].model).toBe('m1');
     expect(manifest[0].language).toBe('en');
@@ -311,7 +315,7 @@ describe('CatalogueExportService', () => {
     });
 
     const last = await lastValueFrom(
-      service.exportBundles(['bundle-1'], ['AnnotJSON']),
+      service.exportBundles(['bundle-1'], ['AnnotJSON', 'SRT']),
     );
 
     expect(audioService.ensureResident).not.toHaveBeenCalled();
@@ -319,7 +323,7 @@ describe('CatalogueExportService', () => {
       expect.stringContaining('audio not attached'),
     ]);
     const manifest = JSON.parse(
-      strFromU8(unzipSync(last.archive!)['manifest.json']),
+      strFromU8(unzipSync(zipBytes(last))['manifest.json']),
     );
     expect(manifest[0].durationSamples).toBe(32000);
   });
@@ -337,7 +341,7 @@ describe('CatalogueExportService', () => {
     audioService.canRestore.mockReturnValue(false);
 
     const last = await lastValueFrom(
-      service.exportBundles(['bundle-1'], ['AnnotJSON']),
+      service.exportBundles(['bundle-1'], ['AnnotJSON', 'SRT']),
     );
 
     expect(audioService.ensureResident).not.toHaveBeenCalled();
@@ -345,13 +349,12 @@ describe('CatalogueExportService', () => {
       expect.stringContaining('audio not attached'),
     ]);
     const manifest = JSON.parse(
-      strFromU8(unzipSync(last.archive!)['manifest.json']),
+      strFromU8(unzipSync(zipBytes(last))['manifest.json']),
     );
     expect(manifest[0].durationSamples).toBe(48000);
     expect(manifest[0].sampleRate).toBe(16000);
   });
 
-  // Used by the workbench's per-file "Export this transcription".
   describe('uniquePath (zip-slip)', () => {
     it.each(['../../evil.txt', '/etc/passwd', 'a\\..\\b.txt', '..'])(
       'keeps %s inside the bundle directory',
@@ -405,12 +408,12 @@ describe('CatalogueExportService', () => {
     const { service } = setup([broken, makeBundle('bundle-2', 'b.wav')]);
 
     const last = await lastValueFrom(
-      service.exportBundles(['bundle-1', 'bundle-2'], ['AnnotJSON']),
+      service.exportBundles(['bundle-1', 'bundle-2'], ['AnnotJSON', 'SRT']),
     );
 
-    expect(last.archive).toBeDefined();
+    expect(last.download).toBeDefined();
     expect(last.warnings.some((w) => w.includes('boom'))).toBe(true);
-    const entries = Object.keys(unzipSync(last.archive!));
+    const entries = Object.keys(unzipSync(zipBytes(last)));
     expect(entries.some((e) => e.startsWith('bundles/b/'))).toBe(true);
   });
 
@@ -421,15 +424,15 @@ describe('CatalogueExportService', () => {
     ]);
 
     const last = await lastValueFrom(
-      service.exportBundles(['bundle-1', 'bundle-2'], ['AnnotJSON']),
+      service.exportBundles(['bundle-1', 'bundle-2'], ['AnnotJSON', 'SRT']),
     );
 
     expect(last.warnings.some((w) => w.includes('empty.wav'))).toBe(true);
-    const entries = Object.keys(unzipSync(last.archive!));
+    const entries = Object.keys(unzipSync(zipBytes(last)));
     expect(entries.some((e) => e.startsWith('bundles/empty/'))).toBe(false);
     expect(entries.some((e) => e.startsWith('bundles/b/'))).toBe(true);
     const manifest = JSON.parse(
-      strFromU8(unzipSync(last.archive!)['manifest.json']),
+      strFromU8(unzipSync(zipBytes(last))['manifest.json']),
     );
     expect(manifest.map((m: any) => m.sourceFilename)).toEqual(['b.wav']);
   });
@@ -440,11 +443,11 @@ describe('CatalogueExportService', () => {
     const { service } = setup([seeded, makeBundle('bundle-2', 'b.wav')]);
 
     const last = await lastValueFrom(
-      service.exportBundles(['bundle-1', 'bundle-2'], ['SRT']),
+      service.exportBundles(['bundle-1', 'bundle-2'], ['SRT', 'ELAN']),
     );
 
     expect(last.warnings.some((w) => w.includes('seeded.wav'))).toBe(true);
-    const entries = Object.keys(unzipSync(last.archive!));
+    const entries = Object.keys(unzipSync(zipBytes(last)));
     expect(entries.some((e) => e.startsWith('bundles/seeded/'))).toBe(false);
     expect(last.exportedCount).toBe(1);
   });
@@ -461,7 +464,7 @@ describe('CatalogueExportService', () => {
       service.exportBundles(['bundle-1'], ['SRT']),
     );
 
-    const files = unzipSync(last.archive!);
+    const files = unzipSync(zipBytes(last));
     const srts = Object.keys(files).filter(
       (e) => e.startsWith('bundles/a/') && e.endsWith('.srt'),
     );
@@ -477,12 +480,190 @@ describe('CatalogueExportService', () => {
     queue.getTranslateOptions.mockReturnValue({ targetLanguage: 'en' });
 
     const last = await lastValueFrom(
-      service.exportBundles(['bundle-1'], ['AnnotJSON']),
+      service.exportBundles(['bundle-1'], ['AnnotJSON', 'SRT']),
     );
     const manifest = JSON.parse(
-      strFromU8(unzipSync(last.archive!)['manifest.json']),
+      strFromU8(unzipSync(zipBytes(last))['manifest.json']),
     );
     expect(manifest[0].stagesRun).toEqual(['asr', 'translation']);
+  });
+});
+
+describe('CatalogueExportService: one file or a .zip', () => {
+  function setup(bundles: ReturnType<typeof makeBundle>[], source?: any) {
+    let bundleCollection = localBundleAdapter.getInitialState();
+    for (const b of bundles) {
+      bundleCollection = localBundleAdapter.setOne(b, bundleCollection);
+    }
+    TestBed.configureTestingModule({
+      providers: [
+        CatalogueExportService,
+        provideMockStore({
+          initialState: {
+            localMode: {
+              bundles: bundleCollection,
+              selectedBundleId: bundles[0].bundleId,
+            },
+          } as unknown as RootState,
+        }),
+        {
+          provide: AudioService,
+          useValue: {
+            ensureResident: jest.fn(async () => true),
+            getManager: jest.fn(() => makeManager(16000, 16000)),
+            getMediaInfo: jest.fn((): any => undefined),
+            canRestore: jest.fn(() => true),
+            getSourceFile: jest.fn((): any => source),
+          },
+        },
+        {
+          provide: PipelineQueueService,
+          useValue: {
+            getTranscribeOptions: jest.fn((): any => null),
+            getTranslateOptions: jest.fn((): any => null),
+          },
+        },
+      ],
+    });
+    return TestBed.inject(CatalogueExportService);
+  }
+
+  const wav = {
+    name: 'a.wav',
+    type: 'audio/wav',
+    arrayBuffer: async () => new Uint8Array([1, 2, 3]).buffer,
+  };
+
+  it("downloads a single file as it is, without Tratt's own file or manifests", async () => {
+    const service = setup([makeBundle('bundle-1', 'a.wav')]);
+    const last = await lastValueFrom(
+      service.exportBundles(['bundle-1'], ['SRT'], { includeAudio: false }),
+    );
+    expect(last.download?.archive).toBe(false);
+    expect(last.download?.name).toMatch(/\.srt$/);
+    expect(strFromU8(last.download!.bytes)).toContain('hello');
+    expect(last.warnings).toEqual([]);
+  });
+
+  it("downloads Tratt's own format alone when that is the one file", async () => {
+    const service = setup([makeBundle('bundle-1', 'a.wav')]);
+    const last = await lastValueFrom(
+      service.exportBundles(['bundle-1'], ['AnnotJSON'], {
+        includeAudio: false,
+      }),
+    );
+    expect(last.download?.archive).toBe(false);
+    expect(last.download?.name).toMatch(/_annot\.json$/);
+  });
+
+  it('makes a .zip with the audio when audio and a format are asked for', async () => {
+    const service = setup([makeBundle('bundle-1', 'a.wav')], wav);
+    const last = await lastValueFrom(
+      service.exportBundles(['bundle-1'], ['SRT'], { includeAudio: true }),
+    );
+    const entries = Object.keys(unzipSync(zipBytes(last)));
+    expect(entries).toEqual(
+      expect.arrayContaining([
+        'bundles/a/a.wav',
+        'bundles/a/a_annot.json',
+        'manifest.json',
+      ]),
+    );
+  });
+
+  it('leaves the audio out, without a warning, when it is not asked for', async () => {
+    const service = setup(
+      [makeBundle('bundle-1', 'a.wav'), makeBundle('bundle-2', 'b.wav')],
+      wav,
+    );
+    const last = await lastValueFrom(
+      service.exportBundles(['bundle-1', 'bundle-2'], ['SRT'], {
+        includeAudio: false,
+      }),
+    );
+    const entries = Object.keys(unzipSync(zipBytes(last)));
+    expect(entries.some((e) => e.endsWith('.wav'))).toBe(false);
+    expect(last.warnings).toEqual([]);
+  });
+
+  it("does not write Tratt's own file twice when it is ticked", async () => {
+    const service = setup([
+      makeBundle('bundle-1', 'a.wav'),
+      makeBundle('bundle-2', 'b.wav'),
+    ]);
+    const last = await lastValueFrom(
+      service.exportBundles(['bundle-1', 'bundle-2'], ['AnnotJSON'], {
+        includeAudio: false,
+      }),
+    );
+    const entries = Object.keys(unzipSync(zipBytes(last)));
+    expect(entries.filter((e) => e.startsWith('bundles/a/'))).toHaveLength(1);
+  });
+
+  it('puts every tier in one file for a format that holds several (DOCX)', async () => {
+    const bundle = makeBundle('bundle-1', 'a.wav');
+    bundle.transcript = new TrattAnnotation([
+      segmentLevel(1, 'OCTRA_1', 'hello'),
+      segmentLevel(2, 'Spanish (es)', 'hola'),
+    ]);
+    const service = setup([bundle]);
+    const docx = AppInfo.converters.find((c) => c.name === 'DOCX')!;
+    const spy = jest.spyOn(docx, 'export');
+
+    const last = await lastValueFrom(
+      service.exportBundles(['bundle-1'], ['DOCX'], { includeAudio: false }),
+    );
+
+    expect(last.download?.archive).toBe(false);
+    expect(spy).toHaveBeenCalledTimes(1);
+    expect(spy.mock.calls[0][3]).toEqual([0, 1]);
+    spy.mockRestore();
+  });
+
+  it('downloads nothing when no recording has a transcript', async () => {
+    const service = setup([makeBundle('bundle-1', 'a.wav', false)]);
+    const last = await lastValueFrom(
+      service.exportBundles(['bundle-1'], ['SRT']),
+    );
+    expect(last.download).toBeUndefined();
+    expect(last.exportedCount).toBe(0);
+  });
+
+  describe('exportTranscript (the transcript on screen)', () => {
+    const audio = { name: 'a.wav', sampleRate: 16000, duration: 16000 } as any;
+    function annot() {
+      return new TrattAnnotation([
+        segmentLevel(1, 'OCTRA_1', 'hello'),
+      ]).serialize('a.wav', 16000, new SampleUnit(16000, 16000));
+    }
+
+    it('downloads one format as it is', () => {
+      const service = setup([makeBundle('bundle-1', 'a.wav')]);
+      const { download } = service.exportTranscript(
+        annot(),
+        audio,
+        ['SRT'],
+        '<P>',
+      );
+      expect(download?.archive).toBe(false);
+      expect(download?.name).toMatch(/\.srt$/);
+    });
+
+    it("zips several formats with Tratt's own file, and no manifests", () => {
+      const service = setup([makeBundle('bundle-1', 'a.wav')]);
+      const { download } = service.exportTranscript(
+        annot(),
+        audio,
+        ['SRT', 'ELAN'],
+        '<P>',
+      );
+      expect(download?.archive).toBe(true);
+      const entries = Object.keys(unzipSync(download!.bytes));
+      expect(entries.some((e) => e.endsWith('.srt'))).toBe(true);
+      expect(entries.some((e) => e.endsWith('.eaf'))).toBe(true);
+      expect(entries.some((e) => e.endsWith('_annot.json'))).toBe(true);
+      expect(entries).not.toContain('manifest.json');
+    });
   });
 });
 

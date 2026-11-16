@@ -66,7 +66,6 @@ import {
 } from '../../component/tratt-dropzone/transcript-pairing';
 import { TrattDropzoneComponent } from '../../component/tratt-dropzone/tratt-dropzone.component';
 import { DropzoneStatistics } from '../../component/tratt-dropzone/tratt-dropzone.service';
-import { ExportFilesModalComponent } from '../../modals/export-files-modal/export-files-modal.component';
 import { OverviewModalComponent } from '../../modals/overview-modal/overview-modal.component';
 import { ShortcutsModalComponent } from '../../modals/shortcuts-modal/shortcuts-modal.component';
 import {
@@ -746,47 +745,6 @@ export class WorkbenchComponent
    * level, or one still waiting for its transcription. A getter, like
    * `selectedBundleHeader`, so it follows every store change.
    */
-  get hasTranscriptToExport(): boolean {
-    const entity = this.localMode()?.bundles.entities[this.selectedBundleId()];
-    return (
-      !!entity &&
-      transcriptHasContent(
-        entity.transcript,
-        breakMarkerCodeOf(entity.guidelines),
-      )
-    );
-  }
-
-  /**
-   * "Export this transcription". Resolves the selected file's media the way
-   * the catalogue export does — registration-time info, a resident or
-   * re-decodable manager, else the transcript's own timing — so a file can
-   * be exported before (or without) re-attaching its audio.
-   */
-  async exportSelected(): Promise<void> {
-    // Export what is on screen, including typing still in the debounce.
-    this.pendingEdits.flush();
-    const media = await this.catalogueExport.resolveBundleMedia(
-      this.selectedBundleId(),
-    );
-    if (!media) {
-      this.alertService
-        .showAlert(
-          'warning',
-          this.transloco.translate(
-            'workbench.editor_header.export_unavailable',
-          ),
-        )
-        .catch((error) => console.error(error));
-      return;
-    }
-    this.modService.openModalRef(
-      ExportFilesModalComponent,
-      ExportFilesModalComponent.options,
-      { uiService: this.uiService, media },
-    );
-  }
-
   /**
    * An exported archive is being loaded into the dropzone: switch the pipeline
    * off (and pause the queue), because the archive's transcripts are final and
@@ -1194,9 +1152,9 @@ export class WorkbenchComponent
             (this._useMode === 'online' || this._useMode === 'demo');
           this.exportEnabled =
             this.settingsService.projectsettings?.navigation?.export === true;
-          // LOCAL: exporting is a per-file action in the file header
-          // ("Export this transcription"); a second, unlabelled "Export" in
-          // the top bar read as exporting everything.
+          // LOCAL: exporting is "Export…" in the list, which also covers
+          // the open recording bundle; a second "Export" in the top bar
+          // would only duplicate it.
           this.navbarServ.showExport =
             this.exportEnabled && this._useMode !== 'local';
 

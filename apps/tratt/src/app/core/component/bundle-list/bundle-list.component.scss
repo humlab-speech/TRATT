@@ -377,25 +377,25 @@
   flex: none;
 }
 
-.bundle-list__export-catalogue {
+.bundle-list__export {
   margin-inline-start: auto;
   --bs-btn-bg: var(--tratt-surface-page);
 }
 
 // The rail: Remove keeps its icon (and its name, as title and label) so
-// the count beside it stays whole; Save gets a line of its own.
+// the count beside it stays whole; Export gets a line of its own.
 @container bundle-list (max-width: 20rem) {
   .bundle-list__remove-label {
     display: none;
   }
 
-  .bundle-list__export-catalogue {
+  .bundle-list__export {
     flex: 1 0 100%;
   }
 }
 
 @container bundle-list (max-width: 16rem) {
-  .bundle-list__export-catalogue i {
+  .bundle-list__export i {
     display: none;
   }
 }

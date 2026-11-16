@@ -516,13 +516,6 @@
   flex-direction: column;
 }
 
-.workbench__export {
-  // Compact `.btn-next-lg`: keeps the large-text size (brand-orange contrast),
-  // trims the padding to fit the pane bar.
-  --bs-btn-padding-y: 0.3rem;
-  --bs-btn-padding-x: 0.9rem;
-}
-
 // Split button: Transcribe, and the settings it runs with.
 .workbench__queue-split {
   width: 100%;
@@ -766,12 +759,6 @@
 .workbench__header-tabs .workbench__editor-tabs,
 .workbench__header-actions {
   flex-shrink: 0;
-}
-
-.workbench__header-actions .workbench__export {
-  padding: 0.45rem 1rem;
-  font-size: 1rem;
-  white-space: nowrap;
 }
 
 // Inside VISP the header also holds TRATT's own menu, so below the widest

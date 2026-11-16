@@ -65,7 +65,7 @@ together with the files that describe it.
 
 Four things sit on the left, from top to bottom:
 
-1. **Recording bundles** with their number, and the buttons **Save as .zip**,
+1. **Recording bundles** with their number, and the buttons **Export…**,
    **Delete done** and **Delete**.
 2. The **Upload file** and **Record now** tabs over a drop area:
    *Drop audio or video files here, or a .zip saved from Tratt*. While a
@@ -79,9 +79,8 @@ Four things sit on the left, from top to bottom:
 The rest of the window is the recording bundle you have selected in the list.
 The list is the only place to switch between recording bundles; hover over one
 to see its audio details.
-Above the editor, one bar holds the editor tabs, **Shortcuts**, **Overview**,
-**Help** and, at the right end, **Download this transcript**. Below it is the
-editor itself.
+Above the editor, one bar holds the editor tabs, **Shortcuts**, **Overview** and
+**Help**. Below it is the editor itself.
 
 ![The Workbench with four recordings loaded](../assets/visp_tratt_workbench.png)
 
@@ -155,7 +154,7 @@ To transcribe a file again, for example with a larger model or other settings,
 tick it in the file list. The button then reads **Transcribe N selected**.
 Files that already have a transcript are only transcribed again after you
 confirm. Their current transcript is **replaced and cannot be restored**,
-including any corrections you made, so use **Save as .zip** first if you want to
+including any corrections you made, so use **Export…** first if you want to
 keep a copy. The confirmation says how many passages a person has already
 corrected or checked by listening.
 
@@ -193,8 +192,8 @@ A failed file says what went wrong (*Could not read the audio*,
 
 Click a recording bundle in the list to open it. Hover over it to see its audio
 details, for example `1:45 · 16 kHz mono · 3.4 MB`. When the audio is not
-attached, they read *Audio not attached*, and **Attach audio…** sits next to
-**Download this transcript**.
+attached, they read *Audio not attached*, and **Attach audio…** sits at the right
+end of the bar with the editor tabs.
 
 From there you are in the ordinary editor. You select the 2D, Dictaphone, or Linear editor with the
 editor tabs, and work as described in
@@ -255,17 +254,14 @@ work through the material in smaller groups,  export and
 
 ## Getting results out
 
-**One recording.** With a transcript on screen, the orange **Download
-transcript** button at the right end of the bar with the editor tabs opens the usual export dialog, described in
-[Exporting](exporting.md). It works even when the audio is not attached. It is
-dimmed until there is something to export.
+**Export…** under the list opens the export dialog, described in
+[Exporting](exporting.md). Choose there what to export: the recording bundle open
+in the editor, the ones you have ticked, or all of them. It works even when the
+audio is not attached. Recording bundles without a transcript are left out.
 
-**All of them.** **Save as .zip** in the Files header opens a dialog of the same name:
-tick the formats you want, and Tratt writes one archive containing every selected
-recording, or all of them when you have ticked none. The button says which: with
-three files ticked it reads **Save 3 as .zip**. Tratt reports progress, lists
-any recordings it had to skip under *Completed with warnings*, and finishes with
-*Done, N file(s) archived*.
+One recording in one format downloads as that file; anything more comes as one
+archive. The dialog closes when you click **Download**, and the download starts
+when the files are ready. Recordings Tratt had to skip are listed in a warning.
 
 What the archive contains, and how to load it back, is described in
 [Exporting an archive](exporting.md#exporting-an-archive).

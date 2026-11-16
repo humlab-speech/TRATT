@@ -16,9 +16,9 @@ import {
   BundleReattachMismatchModalComponent,
 } from '../../modals/bundle-reattach-mismatch-modal/bundle-reattach-mismatch-modal.component';
 import {
-  CatalogueExportBundle,
-  CatalogueExportModalComponent,
-} from '../../modals/catalogue-export-modal/catalogue-export-modal.component';
+  ExportBundle,
+  ExportFilesModalComponent,
+} from '../../modals/export-files-modal/export-files-modal.component';
 import { TrattModalService } from '../../modals/tratt-modal.service';
 import {
   VispBundleStatus,
@@ -119,17 +119,6 @@ export class BundleListComponent {
 
   /** Checked rows that still exist (Remove is offered only above 0). */
   selectedCount = computed(() => this.selectedIds().length);
-
-  /** The Save button names what it saves: the ticked bundles, else all. */
-  readonly exportLabel = computed(() => {
-    const selected = this.selectedCount();
-    const count = selected || this.bundles().length;
-    const key = selected ? 'export_catalogue_selected' : 'export_catalogue';
-    return {
-      key: `workbench.bundle_list.${key}${count === 1 ? '_one' : ''}`,
-      count,
-    };
-  });
 
   readonly workspaceService = inject(WorkspaceService);
   readonly visp = inject(VispWorkspaceService);
@@ -425,31 +414,34 @@ export class BundleListComponent {
     (targets[next] as HTMLElement | undefined)?.focus();
   }
 
-  onExportCatalogue(): void {
-    // Final whole-branch review fix: intersect the selection with the live
-    // bundle ids rather than trusting `_selected()` raw — belt-and-braces
-    // alongside onClearFinished() now clearing it, so a dead id can never
-    // leak into an export even if `_selected` goes stale again for some
-    // other reason in the future.
-    const liveIds = new Set(this.bundles().map((b) => b.bundleId));
-    const selected = [...this._selected()].filter((id) => liveIds.has(id));
-    const wasAllBundlesDefault = selected.length === 0;
-    const chosen = new Set(selected);
-    const rows = wasAllBundlesDefault
-      ? this.bundles()
-      : this.bundles().filter((b) => chosen.has(b.bundleId));
-    // The dialog previews the archive: audio goes in only where it is
-    // attached, and a bundle without a transcript is left out.
-    const bundles: CatalogueExportBundle[] = rows.map((b) => ({
+  /**
+   * The one export dialog: the open recording bundle, the ticked ones or all
+   * of them, chosen there. Audio goes in only where it is attached, and a
+   * bundle without a transcript is left out.
+   */
+  onExport(): void {
+    // Export what is on screen, including typing still in the debounce.
+    this.pendingEdits.flush();
+    const entities = this.localMode().bundles.entities;
+    const bundles: ExportBundle[] = this.bundles().map((b) => ({
       bundleId: b.bundleId,
       name: b.name ?? b.bundleId,
       hasAudio: !!this.audioService.getSourceFile(b.bundleId),
       hasTranscript: b.hasAnnotationContent,
+      levels: (entities[b.bundleId]?.transcript?.levels ?? []).map((l) => ({
+        name: l.name,
+        segment: l.type === 'SEGMENT',
+      })),
     }));
     this.modService.openModal(
-      CatalogueExportModalComponent,
-      CatalogueExportModalComponent.options,
-      { bundles, wasAllBundlesDefault },
+      ExportFilesModalComponent,
+      ExportFilesModalComponent.options,
+      {
+        bundles,
+        // selectedIds() already drops ticks on rows that no longer exist.
+        tickedIds: this.selectedIds(),
+        openBundleId: this.localMode().selectedBundleId,
+      },
     );
   }
 

@@ -26,7 +26,7 @@ import { MockStore, provideMockStore } from '@ngrx/store/testing';
 import { AudioManager } from '@tratt/web-media';
 import { of } from 'rxjs';
 import { BundleReattachMismatchAnswer } from '../../modals/bundle-reattach-mismatch-modal/bundle-reattach-mismatch-modal.component';
-import { CatalogueExportModalComponent } from '../../modals/catalogue-export-modal/catalogue-export-modal.component';
+import { ExportFilesModalComponent } from '../../modals/export-files-modal/export-files-modal.component';
 import { TrattModalService } from '../../modals/tratt-modal.service';
 import { YesNoModalComponent } from '../../modals/yes-no-modal/yes-no-modal.component';
 import { SessionFile } from '../../obj/SessionFile';
@@ -924,40 +924,16 @@ describe('BundleListComponent', () => {
   });
 
   describe('bulk actions', () => {
-    it('names the archive button for the ticked bundles, else for all', () => {
+    it('has one Export button, whatever is ticked', () => {
       const button = () =>
-        fixture.debugElement.query(By.css('.bundle-list__export-catalogue'))
+        fixture.debugElement.query(By.css('.bundle-list__export'))
           .nativeElement as HTMLButtonElement;
-      const rows = () =>
-        fixture.debugElement.queryAll(By.css('.bundle-list__item-checkbox'));
-      expect(button().textContent?.trim()).toBe(
-        'workbench.bundle_list.export_catalogue',
-      );
-
-      rows()[0].nativeElement.click();
+      expect(button().textContent?.trim()).toBe('workbench.bundle_list.export');
+      fixture.debugElement
+        .queryAll(By.css('.bundle-list__item-checkbox'))[0]
+        .nativeElement.click();
       fixture.detectChanges();
-      expect(button().textContent?.trim()).toBe(
-        'workbench.bundle_list.export_catalogue_selected_one',
-      );
-
-      rows()[1].nativeElement.click();
-      fixture.detectChanges();
-      expect(button().textContent?.trim()).toBe(
-        'workbench.bundle_list.export_catalogue_selected',
-      );
-    });
-
-    it('counts the archive button in, singular for one bundle', () => {
-      const label = fixture.componentInstance.exportLabel;
-      expect(label()).toEqual({
-        key: 'workbench.bundle_list.export_catalogue',
-        count: 2,
-      });
-      fixture.componentInstance.toggleSelected(bundleA.bundleId);
-      expect(label()).toEqual({
-        key: 'workbench.bundle_list.export_catalogue_selected_one',
-        count: 1,
-      });
+      expect(button().textContent?.trim()).toBe('workbench.bundle_list.export');
     });
 
     it('select-all checks every row, and unchecking it clears the selection', () => {
@@ -1142,7 +1118,7 @@ describe('BundleListComponent', () => {
 
     // Finding #3 (final whole-branch review fix wave): onClearFinished()
     // used to leave `_selected` holding the now-dead id, which could then
-    // leak into onExportCatalogue()'s "no selection = all" fallback.
+    // leak into onExport()'s ticked bundles.
     it('clear finished also clears the selection', async () => {
       modalService.openModal.mockResolvedValue('yes');
       store.setState({
@@ -1209,12 +1185,12 @@ describe('BundleListComponent', () => {
 
   // Finding #3 (final whole-branch review fix wave): the exact reported
   // sequence — check a bundle, it becomes 'done', clear finished, then
-  // export catalogue with nothing visibly checked. Before the fix, the
-  // stale `_selected` id could leak into the export even after removal;
-  // this exercises the full round trip through onClearFinished() and
-  // onExportCatalogue() together.
+  // export with nothing visibly checked. Before the fix, the stale
+  // `_selected` id could leak into the export even after removal; this
+  // exercises the full round trip through onClearFinished() and onExport()
+  // together.
   describe("Finding #3: clear-finished doesn't leak a stale id into export", () => {
-    it('opens the export modal with only the live remaining bundle ids and wasAllBundlesDefault true', async () => {
+    it('opens the export dialog with only the live bundles and nothing ticked', async () => {
       modalService.openModal.mockResolvedValue('yes');
       store.setState({
         ...initialState,
@@ -1255,12 +1231,12 @@ describe('BundleListComponent', () => {
       fixture.detectChanges();
 
       fixture.debugElement
-        .query(By.css('.bundle-list__export-catalogue'))
+        .query(By.css('.bundle-list__export'))
         .nativeElement.click();
 
       expect(modalService.openModal).toHaveBeenCalledWith(
-        CatalogueExportModalComponent,
-        CatalogueExportModalComponent.options,
+        ExportFilesModalComponent,
+        ExportFilesModalComponent.options,
         {
           bundles: [
             expect.objectContaining({
@@ -1268,12 +1244,13 @@ describe('BundleListComponent', () => {
               hasAudio: false,
             }),
           ],
-          wasAllBundlesDefault: true,
+          tickedIds: [],
+          openBundleId: 'bundle-b',
         },
       );
     });
 
-    it('does not fall back to "all" when a live bundle is still genuinely checked after clear-finished', async () => {
+    it('keeps a live bundle ticked after clear-finished', async () => {
       modalService.openModal.mockResolvedValue('yes');
       store.setState({
         ...initialState,
@@ -1312,12 +1289,12 @@ describe('BundleListComponent', () => {
       fixture.detectChanges();
 
       fixture.debugElement
-        .query(By.css('.bundle-list__export-catalogue'))
+        .query(By.css('.bundle-list__export'))
         .nativeElement.click();
 
       expect(modalService.openModal).toHaveBeenCalledWith(
-        CatalogueExportModalComponent,
-        CatalogueExportModalComponent.options,
+        ExportFilesModalComponent,
+        ExportFilesModalComponent.options,
         {
           bundles: [
             expect.objectContaining({
@@ -1325,7 +1302,8 @@ describe('BundleListComponent', () => {
               hasAudio: false,
             }),
           ],
-          wasAllBundlesDefault: false,
+          tickedIds: [bundleB.bundleId],
+          openBundleId: 'bundle-b',
         },
       );
     });

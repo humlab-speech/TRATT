@@ -111,9 +111,10 @@ edited its text, then green. Use it to see what is left to check
 
 ## 7. Export
 
-Click **Export**: the download icon in the header, and also a button along the
-bottom of the editor. The dialog is headed *Export transcriptions*. Choose a
-format and click **Download**.
+Click **Export…** under the list of recording bundles. The dialog is headed
+*Export*. Tick a format and click **Download**: one recording in one format
+downloads as that file, and anything more comes as a `.zip`
+([details](exporting.md)).
 
 ![Export formats](../assets/visp_tratt_export_formats.png)
 

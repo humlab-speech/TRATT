@@ -482,7 +482,7 @@
         </div>
       }
       <!-- LOCAL mode has no bottom bar on the workbench: "Quit" logged the
-           session out, and export is a per-file action in the header. -->
+           session out, and export is "Export…" in the list. -->
       @if (useMode !== 'local') {
         <div class="row" id="bottom-navigation" role="group">
           <div class="btn-group w-100">
@@ -600,14 +600,9 @@
       [attr.inert]="hasAnyBundles() ? null : ''"
     >
       @if (hasAnyBundles() && selectedBundleHeader; as header) {
-        <!-- No session yet: the project config isn't loaded, but the
-             workbench is LOCAL-only, whose config allows export. -->
         <div class="workbench__empty-header">
           <ng-container
-            *ngTemplateOutlet="
-              fileActions;
-              context: { $implicit: header, showExport: true }
-            "
+            *ngTemplateOutlet="fileActions; context: { $implicit: header }"
           ></ng-container>
         </div>
       }
@@ -682,17 +677,8 @@
     }"
   ></tratt-fastbar>
   @if (selectedBundleHeader; as header) {
-    <!-- Not gated on exportEnabled: that is read once when the session
-         becomes ready, which can be before the project config has loaded.
-         LOCAL's config always allows export. -->
     <ng-container
-      *ngTemplateOutlet="
-        fileActions;
-        context: {
-          $implicit: header,
-          showExport: useMode === 'local',
-        }
-      "
+      *ngTemplateOutlet="fileActions; context: { $implicit: header }"
     ></ng-container>
   }
 </ng-template>
@@ -701,11 +687,10 @@
      the header's data selector). Also shown before a session exists
      (welcome back), so a restored bundle can be downloaded, or have its
      audio attached, from there. -->
-<ng-template #fileActions let-header let-showExport="showExport">
+<ng-template #fileActions let-header>
   @let ownRecording = recordedFileService.recordedFile?.name === header.name;
-  @if (showExport || ownRecording || selectedAwaitingAudio()) {
-    <!-- Actions on one bundle live with it; saving several at once is
-         "Save as .zip" in the list. -->
+  @if (ownRecording || selectedAwaitingAudio()) {
+    <!-- Exporting, of this bundle or several, is "Export…" in the list. -->
     <div class="workbench__editor-header-actions">
       @if (selectedAwaitingAudio()) {
         <button
@@ -727,20 +712,6 @@
         >
           <i class="fa-solid fa-microphone me-1" aria-hidden="true"></i>
           {{ 'workbench.editor_header.save_recording' | transloco }}
-        </button>
-      }
-      @if (showExport) {
-        <!-- Dimmed until there is something to export: not for audio alone
-               (a fresh file, or one still being transcribed). Works without
-               the file's audio (see exportSelected()). -->
-        <button
-          (click)="exportSelected()"
-          [disabled]="!hasTranscriptToExport"
-          class="btn btn-next-lg workbench__export"
-          type="button"
-        >
-          <i class="fa-solid fa-download me-1" aria-hidden="true"></i>
-          {{ 'workbench.editor_header.export' | transloco }}
         </button>
       }
     </div>

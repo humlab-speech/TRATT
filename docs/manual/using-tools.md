@@ -71,8 +71,8 @@ partway.
 
 ## The Table Configurator: custom table export
 
-**Where it is:** open **Export transcriptions**, then look under **Custom formats**
-at the bottom of the dialog.
+**Where it is:** open **Export…** with *This recording bundle* chosen, then look
+under *More for this transcript* at the bottom of the dialog.
 
 **The problem it solves.** None of the built-in formats has exactly the columns your
 analysis script wants.

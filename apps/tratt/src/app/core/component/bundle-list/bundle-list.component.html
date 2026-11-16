@@ -410,15 +410,15 @@
           {{ 'workbench.bundle_list.delete_done' | transloco }}
         </button>
       }
-      <!-- Names its scope and size: the ticked bundles, else all of them. -->
+      <!-- One export for everything: which bundles is chosen in the dialog. -->
       <button
         type="button"
-        class="btn btn-sm btn-outline-primary bundle-list__export-catalogue"
-        [attr.title]="'workbench.bundle_list.export_catalogue_hint' | transloco"
-        (click)="onExportCatalogue()"
+        class="btn btn-sm btn-outline-primary bundle-list__export"
+        [attr.title]="'workbench.bundle_list.export_hint' | transloco"
+        (click)="onExport()"
       >
-        <i class="fa-solid fa-file-zipper" aria-hidden="true"></i>
-        {{ exportLabel().key | transloco: { count: exportLabel().count } }}
+        <i class="fa-solid fa-download" aria-hidden="true"></i>
+        {{ 'workbench.bundle_list.export' | transloco }}
       </button>
     </div>
   </div>

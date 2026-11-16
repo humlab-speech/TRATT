@@ -71,8 +71,8 @@ avbryta halvvägs.
 
 ## Tabellkonfiguratorn: egen tabellexport
 
-**Var den finns:** öppna **Exportera transkriptioner** och titta under
-**Egna format** längst ned i dialogen.
+**Var den finns:** öppna **Exportera…** med *Det här inspelningspaketet* valt, och
+titta under *Mer för den här transkriptionen* längst ned i dialogen.
 
 **Problemet den löser.** Inget av de inbyggda formaten har precis de kolumner ditt
 analysskript vill ha.

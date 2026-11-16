@@ -114,9 +114,10 @@ kontrollera ([mer](checking-your-work.md#verified-transcriptions)).
 
 ## 7. Exportera
 
-Klicka på **Exportera**: nedladdningsikonen i sidhuvudet, och även en knapp
-längst ned i redigeraren. Dialogen heter *Exportera transkriptioner*. Välj format
-och klicka på **Ladda ner**.
+Klicka på **Exportera…** under listan med inspelningspaket. Dialogen heter
+*Exportera*. Markera ett format och klicka på **Ladda ned**: en inspelning i ett
+format laddas ned som den filen, och allt mer kommer som en `.zip`
+([detaljer](exporting.md)).
 
 ![Exportformat](../../assets/visp_tratt_export_formats.png)
 

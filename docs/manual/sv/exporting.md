@@ -6,9 +6,29 @@ Tratt håller ditt arbete i webbläsaren. **Att exportera en fil är
 det enda sättet ditt transkript lämnar webbläsaren.** Exportera ditt arbete varje
 gång du avslutar ett redigeringspass.
 
-Klicka **Exportera** (nedladdningsikonen i sidhuvudet, eller knappen längst
-ned i redigeraren). I [Arbetsbänken](workbench.md) heter den **Exportera den här transkriptionen** och ligger längst till höger i raden med vyflikarna. Dialogen heter *Exportera transkriptioner*. Klicka på ett
-format för att fälla ut dess alternativ, och sedan på **Ladda ner**.
+I [Arbetsbänken](workbench.md) klickar du på **Exportera…** under listan med
+inspelningspaket. (Där Tratt inte har någon lista heter den **Exportera**,
+nedladdningsikonen i sidhuvudet.) Dialogen heter *Exportera*:
+
+1. **Vad som ska exporteras**: *Det här inspelningspaketet* (det som är öppet i
+   redigeraren), *De markerade inspelningspaketen* eller *Alla inspelningspaket*.
+   Den börjar på de markerade om du har markerat några, och visas inte när det
+   bara finns en inspelning.
+2. **Format**: markera ett eller flera. Ett markerat format visar sina
+   [alternativ](#alternativ) under sig.
+3. **Ta med ljudet**: lägger varje inspelnings ljud bredvid dess transkriptioner.
+   Det är markerat från början när du exporterar mer än en inspelning, och
+   erbjuds bara när något ljud är bifogat.
+4. **Det här får du** visar resultatet fil för fil innan du laddar ned det.
+5. **Ladda ned**.
+
+**En fil eller en .zip.** När dina val ger exakt en fil, till exempel en
+inspelning som DOCX, laddas den ned som den filen. Allt mer (flera format, flera
+inspelningar, ljudet, eller ett format med en nivå för en inspelning med flera
+nivåer) kommer som en `.zip`; se [Att exportera ett arkiv](#exporting-an-archive).
+Knappen säger vilket: **Ladda ned** eller **Ladda ned .zip**.
+
+Tratt minns de format du markerade till nästa export.
 
 ![Exportdialogen](../../assets/visp_tratt_export_formats.png)
 
@@ -36,7 +56,7 @@ Alla dessa kan läsas tillbaka in i Tratt.
 
 | Format | Fil | Bra för |
 | --- | --- | --- |
-| **AnnotJSON** | `_annot.json` | **Tratts eget format**, och är Emu SDMS-kompatibelt. Behåller allt: nivåer, gränser, talare och markörer. Exportera det vid sidan av vad du annars behöver. |
+| **Tratts eget format** (AnnotJSON) | `_annot.json` | Emu SDMS-kompatibelt. Behåller allt: nivåer, gränser, talare och markörer. Varje `.zip` innehåller det. |
 | **TextGrid** | `.TextGrid` | Praats primära annoteringsformat |
 | **ELAN** | `.eaf` | ELAN. Lägg `.eaf`-filen i samma mapp som ljudet, annars hittar ELAN inte mediet. |
 | **PraatTextTable** | `.Table` | Praats tabellformat |
@@ -49,9 +69,11 @@ Alla dessa kan läsas tillbaka in i Tratt.
 | **BASPartitur** | `.par` | BAS-webbtjänsterna. Exporten skriver ORT- och TRN-rader ur transkriptionen. |
 | **CTM** | `.ctm` | Verktyg för utvärdering av taligenkänning. Konfidensvärdet skrivs alltid som 1. Tratt håller inte reda på det. |
 
-> **Ta alltid en AnnotJSON-kopia.** DOCX och ODT är enkelriktade: de läses bra och
-> importeras illa. Kan du behöva rätta transkriptet om ett halvår är det
-> AnnotJSON-filen plus originalinspelningen som gör det möjligt.
+> **Behåll Tratts eget format.** DOCX och ODT är enkelriktade: de läses bra och
+> importeras illa. Kan du behöva rätta transkriptet om ett halvår är det Tratts
+> egen fil plus originalinspelningen som gör det möjligt. Varje `.zip` innehåller
+> den redan; med en ensam DOCX markerar du **Tratts eget format** också, så kommer
+> båda i en `.zip`.
 
 ---
 
@@ -64,7 +86,7 @@ Alla dessa kan läsas tillbaka in i Tratt.
 | **Each sentence on a separate line** / **Continuous text** | En transkriptionsenhet per rad, eller allt sammanskrivet som löpande text |
 | **Markera talar-ID i början av meningar** | Sätter talaretiketten först i varje enhet |
 | **Add timestamp at beginning of each sentence** | Sätter starttiden först i varje enhet |
-| **Collect annotations according to transcription tier in the output** | Visas när du valt fler än en nivå: grupperar utdata nivå för nivå i stället för att blanda |
+| **Collect annotations according to transcription tier in the output** | Visas när en inspelning har fler än en nivå: grupperar utdata nivå för nivå i stället för att blanda |
 
 Varje mening börjar med ett färgat streck i de exporterade Word- (DOCX) och
 ODT-filerna, och en nyckelrad under tacktexten förklarar färgerna: ett
@@ -91,7 +113,7 @@ kommer in som overifierade, omarkerade som verifierade.
 | **Lägg till en radbrytning efter varje transkriptionsenhet** | En enhet per rad |
 | **Separera transkriptionsenheter med läsbara tidsstämplar (HH:MM:SS.s)** | Läsbara tider mellan enheter |
 | **Separera transkriptionsenheter med sampelpunkter** | Sampellägen mellan enheter, för att lägga texten mot signalen någon annanstans |
-| **Collect annotations according to transcription tier in the output** | Visas när fler än en nivå är vald |
+| **Collect annotations according to transcription tier in the output** | Visas när en inspelning har fler än en nivå |
 
 Markerar du båda tidsalternativen infogas båda.
 
@@ -102,21 +124,26 @@ Markerar du båda tidsalternativen infogas båda.
 | **Move units with speaker label to separate levels** | En nivå per talare i stället för en blandad nivå |
 | **Combine empty units with max duration (ms) between units of the same speaker** *(SRT)* | Slår ihop en kort lucka mellan två turer av samma person. Tomt stänger av det. |
 
-### Att välja nivåer
+### Nivåer
 
-Detta blir aktuellt först när ditt transkript har mer än en nivå.
+Alla nivåer exporteras; det finns inget att välja. Det spelar bara roll när ett
+transkript har mer än en nivå, till exempel en översättning.
 
-- **AnnotJSON, TextGrid, PraatTextTable, ELAN** bär flera nivåer i sig själva och
-  exporterar hela transkriptet. Inget val att göra.
-- **SubRip, WebVTT, BASPartitur, CTM** rymmer en nivå och ber dig **Välj en nivå**.
-- **DOCX, ODT och PlainText** visar **Select tiers to include** med en kryssruta
-  per nivå. Alternativet *Collect annotations according to transcription tier*
-  avgör sedan om utdata grupperas nivå för nivå eller blandas.
+- **Tratts eget format, TextGrid, PraatTextTable, ELAN** bär flera nivåer i sig
+  själva: en fil med alla.
+- **DOCX, ODT och PlainText** lägger alla nivåer i en fil. Alternativet *Collect
+  annotations according to transcription tier* avgör om de grupperas nivå för
+  nivå eller blandas.
+- **SubRip, WebVTT, BASPartitur, CTM** rymmer en nivå och skriver därför en fil
+  per nivå, namngiven efter den: `intervju-Transcript.srt` och
+  `intervju-Swedish (sv).srt`. Med mer än en fil kommer exporten som en `.zip`.
 
 ### Metadata
 
-Dialogen erbjuder också de metadata som loggats medan du arbetade. De finns bara
-om **Logga användaråtgärder** var på i Inställningar. Det är ett
+När du exporterar inspelningspaketet som är öppet i redigeraren erbjuder dialogen
+också, under *Mer för den här transkriptionen*, de metadata som loggats medan du
+arbetade (**Protocol**). De finns bara om **Logga användaråtgärder** var på i
+Inställningar. Det är ett
 forskningsmaterial (tangent- och uppspelningshistorik), inte en del av
 transkriptet.
 
@@ -126,10 +153,9 @@ transkriptet.
 
 ## Att exportera ett arkiv
 
-En enda export täcker en hel omgång, och det är den enda export som kan läsas in
-direkt igen. **Exportera alla** i [Arbetsbänkens](workbench.md) fillista
-öppnar **Exportera katalog**: markera de format du vill ha så skriver Tratt en
-enda `.zip`-fil med hela sessionen.
+När en export ger mer än en fil packar Tratt dem i ett `.zip`-arkiv. Det är den
+enda export som kan läsas in komplett igen: ett arkiv kan rymma en hel omgång
+inspelningspaket.
 
 Filen namnges efter vad den innehåller och när den gjordes, till exempel
 `tratt_12_20261008@1923.zip`, vilket betyder att arkivet innehåller tolv
@@ -137,21 +163,22 @@ inspelningar och skrevs den 8 oktober 2026 klockan 19:23 lokal tid.
 
 Inuti arkivet har varje inspelning en egen mapp under `bundles/` som innehåller
 
-- **källjudet** som du angav det,
-- en förlustfri **`_annot.json`** av dess transkription, och
-- de övriga format du markerade när du exporterade sessionen.
+- **källjudet** som du angav det, när **Ta med ljudet** var markerat,
+- **Tratts egen fil** (`_annot.json`) med dess transkription, alltid, och
+- de format du markerade.
 
 Två manifestfiler ligger i arkivets rot: **`manifest.json`** och **`manifest.csv`**.
 De listar varje inspelning med sökvägar och uppgifter. CSV-filen öppnas i ett kalkylprogram,
 vilket gör den till ett behändigt register över en korpus.
 
-Eftersom ljudet och AnnotJSON är samlade tillsammans återställer ett släpp av arkivet på
+Eftersom ljudet och Tratts egna fil är samlade tillsammans återställer ett släpp av arkivet på
 släppytan hela omgången, med ljudet bifogat och transkriptionerna på plats. Att
 läsa in det stänger av automatisk transkribering så att dina rättelser inte
 skrivs över. Se [Arbetsbänken](workbench.md#loading-an-archive).
 
 En inspelning vars ljud inte var bifogat vid exporten får ingen ljudfil i
-arkivet, men väl sin transkription. Den läses in i filen med samma namn i
+arkivet, men väl sin transkription; exportdialogen säger hur många det gäller
+innan du laddar ned. Den läses in i filen med samma namn i
 listan (bifoga ljudet där).
 Tratt visar vilka som inte kunde läsas in genom *Klar med varningar* i stället för att låta
 hela exporten misslyckas.
@@ -187,6 +214,7 @@ DOCX- och ODT-filer kan inte importeras till Tratt.
 
 ## Egna tabeller
 
-Har inget av ovanstående de kolumner du behöver, bygg din egen under **Egna
-format** längst ned i exportdialogen. Se
+Har inget av ovanstående de kolumner du behöver, bygg din egen med
+**Table-Configurator**, under *Mer för den här transkriptionen* längst ned i
+exportdialogen när du exporterar inspelningspaketet som är öppet i redigeraren. Se
 [Verktyg → Tabellkonfiguratorn](using-tools.md#table-configurator).

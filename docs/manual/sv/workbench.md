@@ -47,7 +47,7 @@ två arbetssätten för ett givet material och håll dig till det.
 
 Fyra saker ligger till vänster, uppifrån och ned:
 
-1. **Filer** med antalet inspelningar, och knapparna **Exportera alla**,
+1. **Filer** med antalet inspelningar, och knapparna **Exportera…**,
    **Radera klara** och **Ta bort**.
 2. Flikarna **Ladda upp fil** och **Spela in nu** över en släppyta:
    *Släpp ljudfiler eller tidigare exporterat arkiv här*.
@@ -58,8 +58,8 @@ Fyra saker ligger till vänster, uppifrån och ned:
 Resten av fönstret är det inspelningspaket du valt i listan. Listan är det enda
 stället där du byter inspelningspaket; håll pekaren över ett för att se ljudets
 uppgifter. Ovanför vyn
-finns en rad med vyflikarna, **Genvägar**, **Översikt**, **Hjälp** och, längst
-till höger, **Exportera den här transkriptionen**. Under den kommer själva vyn.
+finns en rad med vyflikarna, **Genvägar**, **Översikt** och **Hjälp**. Under den
+kommer själva vyn.
 
 ![Arbetsbänken med fyra inspelningar inlästa](../../assets/visp_tratt_workbench.png)
 
@@ -217,16 +217,15 @@ igenom materialet i mindre grupper, exportera och
 
 ## Att få ut resultaten
 
-**En inspelning.** Med en transkription på skärmen öppnar den orangea knappen **Exportera den här
-transkriptionen** längst till höger i raden med vyflikarna den vanliga exportdialogen, som beskrivs under
-[Exportera](exporting.md). Den fungerar även när ljudet inte är bifogat. Den är
-dold tills det finns något att exportera.
+**Exportera…** under listan öppnar exportdialogen, som beskrivs under
+[Exportera](exporting.md). Där väljer du vad som ska exporteras: inspelningspaketet
+som är öppet i redigeraren, de du har markerat, eller alla. Den fungerar även när
+ljudet inte är bifogat. Inspelningspaket utan transkription utelämnas.
 
-**Alla.** **Exportera alla** i Filer-rubriken öppnar **Exportera katalog**,
-markera de format du vill ha, och Tratt skriver ett arkiv med varje markerad inspelning,
-eller alla när du inte markerat någon. Den visar förloppet, listar inspelningar
-som måste hoppas över under *Klar med varningar*, och avslutar med *Klar, N
-fil(er) arkiverade*.
+En inspelning i ett format laddas ned som den filen; allt mer kommer som ett
+arkiv. Dialogen stängs när du klickar på **Ladda ned**, och nedladdningen startar
+när filerna är klara. Inspelningar som Tratt måste hoppa över listas i en
+varning.
 
 Vad arkivet innehåller, och hur du läser in det igen, beskrivs under
 [Att exportera ett arkiv](exporting.md#exporting-an-archive).

@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { OAnnotJSON } from '@tratt/annotation';
+import { Converter, ExportResult, OAnnotJSON } from '@tratt/annotation';
 import { OAudiofile, SampleUnit } from '@tratt/media';
 import { strToU8, Zippable, zipSync } from 'fflate';
 import { Observable } from 'rxjs';
@@ -18,16 +18,118 @@ import { transcriptEnd } from '../transcript-timing';
 import { AudioService } from './audio.service';
 import { PipelineQueueService } from './pipeline-queue.service';
 
+/** What an export hands the browser to save: one file as it is, or a .zip. */
+export interface ExportDownload {
+  name: string;
+  bytes: Uint8Array;
+  type: string;
+  /** True when several files were packed into a .zip. */
+  archive: boolean;
+}
+
 export interface CatalogueExportProgress {
   completedBundles: number;
   totalBundles: number;
   currentBundleName: string | null;
-  /** Set only on the final emission. */
-  archive?: Uint8Array;
-  /** Recordings actually in the archive (skipped bundles excluded); set with `archive`. */
+  /** Set only on the final emission; absent when nothing could be exported. */
+  download?: ExportDownload;
+  /** Recordings actually exported (skipped bundles excluded); set on the final emission. */
   exportedCount?: number;
   /** Per-bundle/per-file problems that didn't abort the export. */
   warnings: string[];
+}
+
+export interface ExportOptions {
+  /** Put each recording's attached audio next to its transcripts. */
+  includeAudio?: boolean;
+}
+
+/** One file an export produces, before it is decided whether to zip. */
+interface ExportedFile {
+  name: string;
+  bytes: Uint8Array;
+  type: string;
+}
+
+/** Tratt's own transcript format: added to every .zip so it loads back. */
+export const NATIVE_FORMAT = 'AnnotJSON';
+
+/**
+ * The level numbers a converter is called with to export every tier:
+ * once with all segment tiers for a format that holds several (DOCX, ODT,
+ * plain text), once per segment tier for a single-tier one (SRT, WebVTT,
+ * ...), and once without a level for one that carries the whole annotation
+ * in its own structure (ELAN, TextGrid, ...).
+ */
+export function exportCalls(
+  converter: Converter,
+  annot: OAnnotJSON,
+): { levelnum?: number; levelnums?: number[] }[] {
+  const segments = annot.levels
+    .map((l, idx) => (l.type === 'SEGMENT' ? idx : -1))
+    .filter((idx) => idx >= 0);
+  // A file without any segment tier is still attempted with level 0.
+  const tiers = segments.length > 0 ? segments : [0];
+  if (converter.multiTierExport) {
+    return [{ levelnums: tiers }];
+  }
+  if (converter.multitiers) {
+    return [{}];
+  }
+  return tiers.map((levelnum) => ({ levelnum }));
+}
+
+/**
+ * Converts one recording's annotation into a file per format (several for a
+ * single-tier format and several tiers). Failures become warnings.
+ */
+export function convertAnnotation(
+  annot: OAnnotJSON,
+  audio: OAudiofile,
+  converters: Converter[],
+  label: string,
+  warnings: string[],
+): ExportedFile[] {
+  const out: ExportedFile[] = [];
+  for (const converter of converters) {
+    for (const call of exportCalls(converter, annot)) {
+      let result: ExportResult;
+      try {
+        result = converter.export(annot, audio, call.levelnum, call.levelnums);
+      } catch (error) {
+        result = {
+          error: error instanceof Error ? error.message : String(error),
+        } as ExportResult;
+      }
+      if (result.error || !result.file) {
+        warnings.push(
+          `${label}: ${converter.name} export failed — ${result.error ?? 'no file produced'}.`,
+        );
+        continue;
+      }
+      out.push({
+        name: result.file.name,
+        bytes:
+          result.file.encoding === 'binary'
+            ? (result.file.content as unknown as Uint8Array)
+            : strToU8(result.file.content),
+        type: result.file.type || 'application/octet-stream',
+      });
+    }
+  }
+  return out;
+}
+
+/** Sets the per-recording converter options every export depends on. */
+export function prepareConverters(
+  converters: Converter[],
+  breakMarkerCode: string,
+): void {
+  for (const converter of converters) {
+    if (converter.options && 'breakMarkerCode' in converter.options) {
+      converter.options.breakMarkerCode = breakMarkerCode;
+    }
+  }
 }
 
 export interface ResolvedMedia {
@@ -78,8 +180,10 @@ interface ManifestRow {
 }
 
 /**
- * Turns N bundles into one downloadable zip: `bundles/<slug>/<name>.<ext>`
- * per requested converter format, plus `manifest.json`/`manifest.csv`.
+ * Exports N bundles: one file per requested format and tier (plus the audio,
+ * if asked for). Exactly one such file downloads as it is; more go in one
+ * zip, `bundles/<slug>/<name>.<ext>`, with Tratt's own transcript per bundle
+ * and `manifest.json`/`manifest.csv`, so the zip loads back into Tratt.
  *
  * Deliberately sequential (one bundle `ensureResident()`d at a time, never
  * `forkJoin`'d) — see the spec's Step 4 design, finding #5: this is the
@@ -104,47 +208,109 @@ export class CatalogueExportService {
   exportBundles(
     bundleIds: string[],
     converterNames: string[],
+    options: ExportOptions = {},
   ): Observable<CatalogueExportProgress> {
     return new Observable<CatalogueExportProgress>((subscriber) => {
-      this.run(bundleIds, converterNames, subscriber).catch((err) =>
+      this.run(bundleIds, converterNames, options, subscriber).catch((err) =>
         subscriber.error(err),
       );
     });
   }
 
+  /**
+   * Exports the transcript on screen outside the list (online, demo and URL
+   * modes): no audio, no manifests. One file downloads as it is; several
+   * (formats, or tiers of a single-tier format) go in a .zip with Tratt's
+   * own transcript file.
+   */
+  exportTranscript(
+    annot: OAnnotJSON,
+    audio: OAudiofile,
+    converterNames: string[],
+    breakMarkerCode: string,
+  ): { download?: ExportDownload; warnings: string[] } {
+    const converters = AppInfo.converters.filter((c) =>
+      converterNames.includes(c.name),
+    );
+    prepareConverters(converters, breakMarkerCode);
+    const warnings: string[] = [];
+    const files = convertAnnotation(
+      annot,
+      audio,
+      converters,
+      audio.name,
+      warnings,
+    );
+    if (files.length === 0) {
+      return { warnings };
+    }
+    if (files.length === 1) {
+      return { download: { ...files[0], archive: false }, warnings };
+    }
+    const zip: Zippable = {};
+    for (const file of files) {
+      zip[this.uniquePath(zip, '', file.name)] = file.bytes;
+    }
+    if (!converterNames.includes(NATIVE_FORMAT)) {
+      zip[this.uniquePath(zip, '', annot.name + '_annot.json')] = strToU8(
+        JSON.stringify(annot),
+      );
+    }
+    return {
+      download: {
+        name: archiveFileName(1),
+        bytes: zipSync(zip),
+        type: 'application/zip',
+        archive: true,
+      },
+      warnings,
+    };
+  }
+
   private async run(
     bundleIds: string[],
     converterNames: string[],
+    options: ExportOptions,
     subscriber: {
       next: (v: CatalogueExportProgress) => void;
       complete: () => void;
       error: (e: unknown) => void;
     },
   ): Promise<void> {
+    const includeAudio = options.includeAudio ?? true;
     const converters = AppInfo.converters.filter((c) =>
       converterNames.includes(c.name),
     );
-    const files: Zippable = {};
+    const nativeTicked = converterNames.includes(NATIVE_FORMAT);
+    // What the user asked for: files per format, and audio. Only these
+    // count towards "one file, or a .zip".
+    const chosen: { dir: string; file: ExportedFile }[] = [];
+    // Tratt's own transcript per recording, added only to a .zip.
+    const natives: { dir: string; file: ExportedFile }[] = [];
     const manifestRows: ManifestRow[] = [];
     const warnings: string[] = [];
     const usedSlugs = new Set<string>();
 
+    const progress = (i: number, name: string | null) => {
+      if (i < bundleIds.length - 1) {
+        subscriber.next({
+          completedBundles: i + 1,
+          totalBundles: bundleIds.length,
+          currentBundleName: name,
+          warnings: [...warnings],
+        });
+      }
+    };
+
     for (let i = 0; i < bundleIds.length; i++) {
       const bundleId = bundleIds[i];
-      const isLast = i === bundleIds.length - 1;
       const entity = this.localMode().bundles.entities[bundleId];
       if (!entity) {
         warnings.push(`Skipped ${bundleId}: bundle no longer exists.`);
-        if (!isLast) {
-          subscriber.next({
-            completedBundles: i + 1,
-            totalBundles: bundleIds.length,
-            currentBundleName: null,
-            warnings: [...warnings],
-          });
-        }
+        progress(i, null);
         continue;
       }
+      const label = entity.sessionFile?.name ?? bundleId;
 
       let media: ResolvedMedia | undefined;
       let oannotjson: OAnnotJSON | undefined;
@@ -160,7 +326,7 @@ export class CatalogueExportService {
         }
       } catch (error) {
         // One unreadable bundle must not abort (or, as before, silently
-        // hang) the whole catalogue: record it and carry on.
+        // hang) the whole export: record it and carry on.
         skipReason = error instanceof Error ? error.message : String(error);
         media = undefined;
         oannotjson = undefined;
@@ -169,14 +335,7 @@ export class CatalogueExportService {
         warnings.push(
           `Skipped ${bundleId} (${entity.sessionFile?.name ?? 'unknown file'}): ${skipReason}.`,
         );
-        if (!isLast) {
-          subscriber.next({
-            completedBundles: i + 1,
-            totalBundles: bundleIds.length,
-            currentBundleName: entity.sessionFile?.name ?? null,
-            warnings: [...warnings],
-          });
-        }
+        progress(i, entity.sessionFile?.name ?? null);
         continue;
       }
 
@@ -187,9 +346,9 @@ export class CatalogueExportService {
 
       // A bundle that never produced a transcript (failed, cancelled, or not
       // run yet) would only yield empty DOCX/SRT/ELAN files: leave it out and
-      // say so, rather than archiving blank "transcriptions". Same rule as
+      // say so, rather than exporting blank "transcriptions". Same rule as
       // the list's "Not transcribed" (a new bundle is seeded with one empty
-      // segment), so the save dialog's preview matches what is written.
+      // segment), so the dialog's preview matches what is written.
       if (
         unitCounts === 0 ||
         !transcriptHasContent(
@@ -197,91 +356,73 @@ export class CatalogueExportService {
           breakMarkerCodeOf(entity.guidelines),
         )
       ) {
-        warnings.push(
-          `Skipped ${entity.sessionFile?.name ?? bundleId}: it has no transcript yet.`,
-        );
-        if (!isLast) {
-          subscriber.next({
-            completedBundles: i + 1,
-            totalBundles: bundleIds.length,
-            currentBundleName: entity.sessionFile?.name ?? null,
-            warnings: [...warnings],
-          });
-        }
+        warnings.push(`Skipped ${label}: it has no transcript yet.`);
+        progress(i, entity.sessionFile?.name ?? null);
         continue;
       }
 
-      const slug = this.uniqueSlug(
-        entity.sessionFile?.name ?? bundleId,
-        usedSlugs,
+      const dir = `bundles/${this.uniqueSlug(label, usedSlugs)}`;
+      prepareConverters(
+        converters,
+        breakMarkerCodeOf(entity.guidelines) ?? '<P>',
       );
-      const oAudioFile = media.oAudioFile;
+      for (const file of convertAnnotation(
+        oannotjson,
+        media.oAudioFile,
+        converters,
+        label,
+        warnings,
+      )) {
+        chosen.push({ dir, file });
+      }
 
-      for (const converter of converters) {
-        // Multitier converters (ELAN, JSON, ...) take all levels at once.
-        // Single-tier ones (SRT, DOCX, ...) need an explicit level number —
-        // export every segment tier (e.g. the transcript AND its translation)
-        // so a translated bundle gets translated subtitles too, not just tier 0.
-        const levelnums: (number | undefined)[] = converter.multitiers
-          ? [undefined]
-          : this.segmentLevelNumbers(oannotjson);
-        for (const levelnum of levelnums) {
-          let result;
-          try {
-            result = converter.export(oannotjson, oAudioFile, levelnum);
-          } catch (error) {
-            result = {
-              error: error instanceof Error ? error.message : String(error),
-              file: undefined,
-            };
-          }
-          if (result.error || !result.file) {
-            warnings.push(
-              `${entity.sessionFile?.name ?? bundleId}: ${converter.name} export failed — ${result.error ?? 'no file produced'}.`,
-            );
-            continue;
-          }
-          const bytes =
-            result.file.encoding === 'binary'
-              ? (result.file.content as unknown as Uint8Array)
-              : strToU8(result.file.content);
-          files[this.uniquePath(files, `bundles/${slug}`, result.file.name)] =
-            bytes;
+      // The native annotation goes in every .zip whatever formats were
+      // ticked: it is the lossless one, and it is the only transcript an
+      // archive without this recording's audio can still hand back (see
+      // filesFromExportZip). With audio next to it the archive re-loads
+      // whole.
+      if (!nativeTicked) {
+        const source = this.audioService.getSourceFile(bundleId);
+        natives.push({
+          dir,
+          file: {
+            name:
+              audioBasename(
+                source?.name ?? entity.sessionFile?.name ?? bundleId,
+              ) + '_annot.json',
+            bytes: strToU8(JSON.stringify(oannotjson)),
+            type: 'application/json',
+          },
+        });
+      }
+
+      let audioPath = '';
+      let audioType = '';
+      if (includeAudio) {
+        const source = this.audioService.getSourceFile(bundleId);
+        if (source) {
+          audioPath = `${dir}/${source.name}`;
+          audioType = source.type;
+          chosen.push({
+            dir,
+            file: {
+              name: source.name,
+              bytes: new Uint8Array(await source.arrayBuffer()),
+              type: source.type || 'application/octet-stream',
+            },
+          });
+        } else {
+          warnings.push(
+            `${label}: audio not attached, so it is not in the export. Its transcript is, and loads into the file of the same name in the list.`,
+          );
         }
       }
 
-      // The native annotation is written whatever formats were ticked: it is
-      // the lossless one, and it is the only transcript an archive without
-      // this recording's audio can still hand back (see filesFromExportZip).
-      // With audio next to it the archive re-loads whole. Audio is already
-      // compressed, so it is stored, not deflated.
-      let audioPath = '';
-      let audioType = '';
-      const source = this.audioService.getSourceFile(bundleId);
-      const annotName =
-        audioBasename(source?.name ?? entity.sessionFile?.name ?? bundleId) +
-        '_annot.json';
-      if (source) {
-        audioPath = this.uniquePath(files, `bundles/${slug}`, source.name);
-        audioType = source.type;
-        files[audioPath] = [
-          new Uint8Array(await source.arrayBuffer()),
-          { level: 0 },
-        ];
-      } else {
-        warnings.push(
-          `${entity.sessionFile?.name ?? bundleId}: audio not attached, so it is not in the archive. Its transcript is, and loads into the file of the same name in the list.`,
-        );
-      }
-      files[this.uniquePath(files, `bundles/${slug}`, annotName)] = strToU8(
-        JSON.stringify(oannotjson),
-      );
-
-      const options = this.pipelineQueueService.getTranscribeOptions();
+      const pipeline = this.pipelineQueueService.getTranscribeOptions();
       const stagesRun: string[] = [];
-      if (options) {
+      if (pipeline) {
         stagesRun.push('asr');
-        if (options.diarization) {
+        if (pipeline.diarization) {
           stagesRun.push('diarization');
         }
         if (this.pipelineQueueService.getTranslateOptions()) {
@@ -293,8 +434,8 @@ export class CatalogueExportService {
         sourceFilename: entity.sessionFile?.name ?? '',
         durationSamples: media.duration.samples,
         sampleRate: media.sampleRate,
-        model: options?.modelId ?? null,
-        language: options?.language ?? null,
+        model: pipeline?.modelId ?? null,
+        language: pipeline?.language ?? null,
         stagesRun,
         unitCounts,
         appVersion: BUILD_INFO.version,
@@ -302,29 +443,43 @@ export class CatalogueExportService {
         audioType,
       });
 
-      if (!isLast) {
-        subscriber.next({
-          completedBundles: i + 1,
-          totalBundles: bundleIds.length,
-          currentBundleName: entity.sessionFile?.name ?? null,
-          warnings: [...warnings],
-        });
-      }
+      progress(i, entity.sessionFile?.name ?? null);
     }
 
-    // One emission per bundle overall: the loop above emits the first
-    // N-1 (or fewer, for a skipped/failed final bundle), and this is
-    // always the final ("N-th") emission — the one that carries the
-    // archive, per CatalogueExportProgress's own doc comment.
-    files['manifest.json'] = strToU8(JSON.stringify(manifestRows, null, 2));
-    files['manifest.csv'] = strToU8(this.toCsv(manifestRows));
-
-    const archive = zipSync(files);
+    // The final ("N-th") emission always comes from here, carrying the
+    // download: the one file as it is, or everything in a .zip.
+    let download: ExportDownload | undefined;
+    if (chosen.length === 1) {
+      const file = chosen[0].file;
+      download = {
+        ...file,
+        name: this.uniquePath({}, '', file.name),
+        archive: false,
+      };
+    } else if (chosen.length > 1) {
+      const files: Zippable = {};
+      for (const { dir, file } of [...chosen, ...natives]) {
+        const path = this.uniquePath(files, dir, file.name);
+        // Audio is already compressed, so it is stored, not deflated.
+        files[path] =
+          file.type.startsWith('audio/') || file.type.startsWith('video/')
+            ? [file.bytes, { level: 0 }]
+            : file.bytes;
+      }
+      files['manifest.json'] = strToU8(JSON.stringify(manifestRows, null, 2));
+      files['manifest.csv'] = strToU8(this.toCsv(manifestRows));
+      download = {
+        name: archiveFileName(manifestRows.length),
+        bytes: zipSync(files),
+        type: 'application/zip',
+        archive: true,
+      };
+    }
     subscriber.next({
       completedBundles: bundleIds.length,
       totalBundles: bundleIds.length,
       currentBundleName: null,
-      archive,
+      download,
       exportedCount: manifestRows.length,
       warnings: [...warnings],
     });
@@ -418,27 +573,19 @@ export class CatalogueExportService {
     );
   }
 
-  /** Indices of the levels a single-tier converter can export (segment tiers);
-   * falls back to level 0 so a file without any is still attempted. */
-  private segmentLevelNumbers(annot: OAnnotJSON): number[] {
-    const nums = annot.levels
-      .map((l, idx) => (l.type === 'SEGMENT' ? idx : -1))
-      .filter((idx) => idx >= 0);
-    return nums.length > 0 ? nums : [0];
-  }
-
   /** `dir/name`, or `dir/name-2.ext`, ... when two tiers map to one name. */
   private uniquePath(files: Zippable, dir: string, name: string): string {
     // Converter file names derive from imported file names: strip directory
     // parts so `../` or `/` can't escape `dir` inside the zip (zip-slip).
     name = name.replace(/^.*[\\/]/, '').replace(/^\.+$/, '') || 'file';
-    let path = `${dir}/${name}`;
+    const prefix = dir ? `${dir}/` : '';
+    let path = `${prefix}${name}`;
     const dot = name.lastIndexOf('.');
     const stem = dot > 0 ? name.slice(0, dot) : name;
     const ext = dot > 0 ? name.slice(dot) : '';
     let n = 2;
     while (path in files) {
-      path = `${dir}/${stem}-${n++}${ext}`;
+      path = `${prefix}${stem}-${n++}${ext}`;
     }
     return path;
   }

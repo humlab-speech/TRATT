@@ -35,8 +35,7 @@ into ordinary language.
 | **File** | Only something on your computer: what you drop, choose or download. |
 | **Pipeline** | What runs on a recording automatically: speech recognition, then optionally speaker separation and translation. The Workbench's **Pipeline settings** are the same controls as the start page's. |
 | **Queue** | The order the Workbench works through recordings in. One runs at a time. |
-| **Archive** | A `.zip` written by **Save as .zip**, holding every recording bundle's transcript, its audio where attached, and the formats you ticked. The only export that can be loaded back complete. |
-| **Catalogue export** | The dialog that writes that archive. |
+| **Archive** | The `.zip` an export makes when it has more than one file: each recording bundle's transcript in Tratt's own format, the formats you ticked, and the audio if you included it. The only export that can be loaded back complete. |
 | **Manifest** | `manifest.json` and `manifest.csv` at the root of an archive: one row per recording, with paths and details. |
 | **Working memory** | Decoded audio held in the browser tab. The Workbench meters it, because it, and not disk storage, limits how many recordings you can have attached at once. |
 | **OCTRA** | The upstream project Tratt is forked from, at LMU Munich. |

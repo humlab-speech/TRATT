@@ -141,7 +141,6 @@ import { BehaviorSubject, of } from 'rxjs';
 import { editorComponents } from '../../../editors/components';
 import { NavbarService } from '../../component/navbar/navbar.service';
 import { AutoTranscribeOptionsComponent } from '../../component/tratt-dropzone/auto-transcribe-options.component';
-import { ExportFilesModalComponent } from '../../modals/export-files-modal/export-files-modal.component';
 import { TrattModalService } from '../../modals/tratt-modal.service';
 import { YesNoModalComponent } from '../../modals/yes-no-modal/yes-no-modal.component';
 import { SessionFile } from '../../obj/SessionFile';
@@ -1070,120 +1069,17 @@ describe('WorkbenchComponent', () => {
       loading$.next({ status: LoadingStatus.FINISHED });
     }
 
-    function exportStubs(media: unknown) {
-      const resolveBundleMedia = jest.fn(async () => media);
-      (component as any).catalogueExport = { resolveBundleMedia };
-      const openModalRef = jest.fn();
-      (component as any).modService = { openModalRef };
-      const showAlert = jest
-        .spyOn(TestBed.inject(AlertService), 'showAlert')
-        .mockResolvedValue({ id: 1, component: undefined });
-      return { resolveBundleMedia, openModalRef, showAlert };
-    }
-
-    it('shows "Export this transcription" next to the editor even when the project config loads after the session is ready', () => {
-      bundleSummaries = [named];
-      localModeState = {
-        bundles: {
-          entities: {
-            [DEFAULT_BUNDLE_ID]: { transcript: transcriptWithText() },
-          },
-        },
-      };
-      audioService.current = undefined;
-      audioService.getMediaInfo.mockReturnValue({
-        fullname: 'a.wav',
-        duration: { seconds: 2 },
-        sampleRate: 44100,
-        channels: 1,
-        size: 1000,
-      });
-      fixture.detectChanges();
-      component.appStorage = { useMode: 'local', interface: undefined } as any;
-      // Not loaded yet at the moment the session becomes ready.
-      const settings: any = {
-        projectsettings: undefined,
-        isTheme: jest.fn().mockReturnValue(false),
-      };
-      (component as any).settingsService = settings;
-      jest.spyOn(component, 'changeEditor').mockImplementation(() => undefined);
-      loading$.next({ status: LoadingStatus.FINISHED });
-      settings.projectsettings = { navigation: { export: true } };
-      component.editorPlaceholder.set('none');
-      fixture.detectChanges();
-
-      expect(component.sessionReady).toBe(true);
-      expect(
-        fixture.debugElement.query(
-          By.css(
-            '.workbench__right:not(.workbench__empty) .workbench__editor-header-actions .workbench__export',
-          ),
-        ),
-      ).toBeTruthy();
-    });
-
-    it('offers "Export this transcription" in the file header and has no bottom bar', async () => {
+    it('has no download button in the header (export is in the list) and no bottom bar', () => {
       startLocalSession([named]);
       component.editorPlaceholder.set('none');
       fixture.detectChanges();
-      const media = { sampleRate: 44100 };
-      const { resolveBundleMedia, openModalRef } = exportStubs(media);
 
-      const button = fixture.debugElement.query(
-        By.css(
-          '.workbench__pane-bar .workbench__editor-header-actions .workbench__export',
-        ),
-      );
-      expect(button.nativeElement.textContent).toContain(
-        'workbench.editor_header.export',
-      );
-      expect(button.nativeElement.disabled).toBe(false);
+      expect(
+        fixture.debugElement.query(By.css('.workbench__export')),
+      ).toBeNull();
       expect(
         fixture.debugElement.query(By.css('#bottom-navigation')),
       ).toBeNull();
-
-      await component.exportSelected();
-      expect(resolveBundleMedia).toHaveBeenCalledWith(DEFAULT_BUNDLE_ID);
-      expect(openModalRef).toHaveBeenCalledWith(
-        ExportFilesModalComponent,
-        ExportFilesModalComponent.options,
-        expect.objectContaining({ media }),
-      );
-    });
-
-    // Used to be disabled until the audio was re-attached: after a reload
-    // nothing could be exported per file.
-    it('is not offered for audio alone: a blank level, or no transcript yet', () => {
-      const blank = new TrattAnnotation<any>();
-      const level = blank.createSegmentLevel('words');
-      level.items.push(
-        blank.createSegment(new SampleUnit(32000, 16000), [
-          new OLabel('words', ''),
-        ]),
-      );
-      blank.addLevel(level);
-      startLocalSession([named], blank);
-      component.editorPlaceholder.set('none');
-      fixture.detectChanges();
-
-      const exportButton = () =>
-        fixture.debugElement.query(
-          By.css('.workbench__editor-header-actions .workbench__export'),
-        );
-      expect(component.selectedBundleHeader?.name).toBe('a.wav');
-      expect(exportButton().nativeElement.disabled).toBe(true);
-
-      // The transcription arrives (or the user types): now it is offered.
-      localModeState = {
-        bundles: {
-          entities: {
-            [DEFAULT_BUNDLE_ID]: { transcript: transcriptWithText() },
-          },
-        },
-      };
-      (component as any).cd.markForCheck();
-      fixture.detectChanges();
-      expect(exportButton().nativeElement.disabled).toBe(false);
     });
 
     it('keeps "Save audio" for a fresh recording without a transcript', () => {
@@ -1203,24 +1099,6 @@ describe('WorkbenchComponent', () => {
       expect(actions.nativeElement.textContent).toContain(
         'workbench.editor_header.save_recording',
       );
-      expect(
-        actions.query(By.css('.workbench__export')).nativeElement.disabled,
-      ).toBe(true);
-    });
-
-    it('stays available while the file has no audio, exporting from the transcript', async () => {
-      startLocalSession([named]);
-      component.editorPlaceholder.set('awaiting-media');
-      fixture.detectChanges();
-      const { openModalRef } = exportStubs({ sampleRate: 16000 });
-
-      const button = fixture.debugElement.query(
-        By.css('.workbench__editor-header-actions .workbench__export'),
-      );
-      expect(button.nativeElement.disabled).toBe(false);
-
-      await component.exportSelected();
-      expect(openModalRef).toHaveBeenCalled();
     });
 
     it('offers to attach the audio where it is missing: header, editor and drop area', () => {
@@ -1254,29 +1132,6 @@ describe('WorkbenchComponent', () => {
       expect(
         fixture.debugElement.query(By.css('.workbench__attach-audio')),
       ).toBeNull();
-    });
-
-    it('explains instead of opening an empty dialog when there is nothing to export', async () => {
-      startLocalSession([named]);
-      const { openModalRef, showAlert } = exportStubs(undefined);
-
-      await component.exportSelected();
-
-      expect(openModalRef).not.toHaveBeenCalled();
-      expect(showAlert).toHaveBeenCalledWith(
-        'warning',
-        'workbench.editor_header.export_unavailable',
-      );
-    });
-
-    it('commits pending typing before exporting', async () => {
-      startLocalSession([named]);
-      exportStubs({ sampleRate: 16000 });
-      const flush = jest.spyOn(TestBed.inject(PendingEditsService), 'flush');
-
-      await component.exportSelected();
-
-      expect(flush).toHaveBeenCalled();
     });
 
     it('shows the "no files" state, not an attach prompt, once every file was removed', () => {
@@ -1860,13 +1715,6 @@ describe('WorkbenchComponent', () => {
       // centre stays empty.
       const slots = TestBed.inject(HeaderSlotService);
       expect(slots.center()).toBeNull();
-      expect(
-        fixture.debugElement.query(
-          By.css(
-            '.workbench__empty .workbench__editor-header-actions .workbench__export',
-          ),
-        ),
-      ).toBeTruthy();
 
       fixture.destroy();
       expect(slots.center()).toBeNull();
