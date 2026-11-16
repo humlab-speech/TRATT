@@ -857,7 +857,8 @@
         "mark_done": "Klar",
         "mark_done_hint": "Klicka för att markera som klar (projektägaren ser det i Visp)",
         "unmark_done_hint": "Klicka för att markera som inte klar"
-      }
+      },
+      "reattach_hint": "Tratt sparar dina transkriptioner i webbläsaren, men inte ljudfilerna. Efter en omladdning är ljudet borta: bifoga samma fil igen för att fortsätta."
     },
     "queue": {
       "run": "Transkribera {{count}}",

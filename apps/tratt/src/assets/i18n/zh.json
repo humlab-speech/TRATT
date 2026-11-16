@@ -565,7 +565,8 @@
         "mark_done": "完成",
         "mark_done_hint": "点击标记为完成（项目负责人可在 Visp 中看到）",
         "unmark_done_hint": "点击标记为未完成"
-      }
+      },
+      "reattach_hint": "Tratt 会在此浏览器中保存你的转写，但不保存音频文件。重新加载后音频会消失：重新关联同一个文件即可继续工作。"
     },
     "queue": {
       "run": "转写 {{count}} 个",

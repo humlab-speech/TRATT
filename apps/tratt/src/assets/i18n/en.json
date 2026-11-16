@@ -909,7 +909,8 @@
         "mark_done": "Done",
         "mark_done_hint": "Click to mark as done (the project owner sees this in Visp)",
         "unmark_done_hint": "Click to mark as not done"
-      }
+      },
+      "reattach_hint": "Tratt keeps your transcripts in this browser, but not the audio files. After a reload the audio is gone: attach the same file again to keep working."
     },
     "queue": {
       "run": "Transcribe {{count}}",

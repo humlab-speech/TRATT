@@ -565,7 +565,8 @@
         "mark_done": "Completato",
         "mark_done_hint": "Fai clic per segnare come completato (il responsabile del progetto lo vede in Visp)",
         "unmark_done_hint": "Fai clic per segnare come non completato"
-      }
+      },
+      "reattach_hint": "Tratt conserva le trascrizioni in questo browser, ma non i file audio. Dopo un ricaricamento l'audio non c'è più: collega di nuovo lo stesso file per continuare."
     },
     "queue": {
       "run": "Trascrivi {{count}}",

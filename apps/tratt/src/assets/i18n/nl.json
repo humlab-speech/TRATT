@@ -565,7 +565,8 @@
         "mark_done": "Klaar",
         "mark_done_hint": "Klik om als klaar te markeren (de projecteigenaar ziet dit in Visp)",
         "unmark_done_hint": "Klik om als niet klaar te markeren"
-      }
+      },
+      "reattach_hint": "Tratt bewaart je transcripties in deze browser, maar niet de audiobestanden. Na herladen is de audio weg: koppel hetzelfde bestand opnieuw om verder te werken."
     },
     "queue": {
       "run": "{{count}} transcriberen",

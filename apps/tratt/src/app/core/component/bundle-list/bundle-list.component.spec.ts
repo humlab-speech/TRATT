@@ -342,6 +342,13 @@ describe('BundleListComponent', () => {
     ).toBeNull();
   });
 
+  it('explains on hover why audio needs attaching again', () => {
+    const attach = fixture.debugElement.query(By.css('.bundle-list__attach'));
+    expect(attach.nativeElement.getAttribute('title')).toBe(
+      'workbench.bundle_list.reattach_hint',
+    );
+  });
+
   it('opens the attach picker for a bundle on request', () => {
     const input = fixture.debugElement.query(
       By.css('[id="bundle-reattach-bundle-a"]'),

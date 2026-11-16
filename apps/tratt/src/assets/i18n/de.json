@@ -836,7 +836,8 @@
         "mark_done": "Fertig",
         "mark_done_hint": "Klicken, um als fertig zu markieren (die Projektleitung sieht das in Visp)",
         "unmark_done_hint": "Klicken, um als nicht fertig zu markieren"
-      }
+      },
+      "reattach_hint": "Tratt speichert deine Transkripte in diesem Browser, aber nicht die Audiodateien. Nach dem Neuladen fehlt das Audio: hänge dieselbe Datei erneut an, um weiterzuarbeiten."
     },
     "queue": {
       "run": "{{count}} transkribieren",
