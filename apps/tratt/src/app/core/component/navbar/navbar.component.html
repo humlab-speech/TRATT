@@ -3,6 +3,7 @@
     class="navbar fixed-top navbar-expand-md tratt-header"
     [class.tratt-header--embedded]="appStorage.useMode === LoginMode.URL"
     [class.tratt-header--app-bar]="headerSlots.start() || headerSlots.end()"
+    [class.tratt-header--in-visp]="isVisp()"
     [attr.aria-label]="'shell.header.label' | transloco"
     #navbar
     id="navbar"

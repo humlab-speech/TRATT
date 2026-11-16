@@ -123,6 +123,14 @@
   border-bottom: 1px solid var(--tratt-border);
   font-family: var(--tratt-font-ui);
 
+  // Every link fills its item's height and centres its contents. Without
+  // this an inline link is only as tall as its contents: an icon-only one
+  // (info, theme) came out 8px shorter than links with a label, even a
+  // hidden one, and sat 4px high.
+  .nav-item {
+    display: flex;
+  }
+
   .nav-link {
     display: inline-flex;
     align-items: center;
@@ -137,6 +145,19 @@
 
   .dropdown-toggle::after {
     display: none;
+  }
+}
+
+// Inside Visp, Tratt sits right under Visp's menu bar: start the logo where
+// Visp's starts, so the two line up. Visp pads its bar 1.25rem (1rem at
+// 900px and narrower; the iframe is as wide as Visp's window, so the same
+// breakpoint applies); the extra pixel makes up for the "T", which reaches
+// 1px left of the logo's box.
+.tratt-header--in-visp > .container-fluid {
+  padding-inline-start: calc(1.25rem + 1px);
+
+  @media (max-width: 900px) {
+    padding-inline-start: calc(1rem + 1px);
   }
 }
 

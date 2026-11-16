@@ -73,6 +73,7 @@ import { AuthenticationStoreService } from '../../store/authentication';
 import { AnnotationStoreService } from '../../store/login-mode/annotation/annotation.store.service';
 import { DefaultComponent } from '../default.component';
 import { TrattLogoComponent } from '../tratt-logo/tratt-logo.component';
+import { WorkspaceService } from '../../shared/workspace/workspace.service';
 import { NavbarService } from './navbar.service';
 
 @Component({
@@ -100,6 +101,8 @@ import { NavbarService } from './navbar.service';
 })
 export class NavigationComponent extends DefaultComponent implements OnInit {
   readonly speakerService = inject(SpeakerManagementService);
+  /** Inside Visp, under Visp's own menu bar (see .tratt-header--in-visp). */
+  readonly isVisp = inject(WorkspaceService).isVisp;
 
   modalexport?: NgbModalRef;
   modalTools?: NgbModalRef;
