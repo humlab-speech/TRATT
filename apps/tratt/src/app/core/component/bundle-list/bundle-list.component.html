@@ -60,13 +60,13 @@
           </button>
         }
       } @else {
-        <!-- A recording bundle is its audio plus its transcript; the
-             headings name the two, since the audio comes and goes (it is
-             never saved). -->
         <span class="bundle-list__columns">
-          <span class="bundle-list__column-audio">
-            {{ 'workbench.bundle_list.column_audio' | transloco }}
-          </span>
+          @if (showAudioColumn()) {
+            <!-- No heading: beside the select-all checkbox any word read as
+                 its label. The empty slot keeps the headings over their
+                 columns. -->
+            <span class="bundle-list__column-audio" aria-hidden="true"></span>
+          }
           <!-- The one term a newcomer won't know: hover says what it is. -->
           <span
             class="bundle-list__column-name bundle-list__column-name--explained"
@@ -97,46 +97,38 @@
             [attr.aria-label]="bundle.name"
             (change)="toggleSelected(bundle.bundleId)"
           />
-          <span class="bundle-list__audio">
-            @if (bundle.awaitingMedia) {
-              <label
-                class="bundle-list__attach"
-                [attr.for]="'bundle-reattach-' + bundle.bundleId"
-                [attr.title]="'workbench.bundle_list.reattach' | transloco"
-              >
-                <i class="fa-solid fa-paperclip" aria-hidden="true"></i>
-                <span class="bundle-list__attach-text">{{
-                  'workbench.bundle_list.attach' | transloco
-                }}</span>
-              </label>
-              <!-- Visually hidden; reached through the label above, by Tab on
-                   the active row, and by pickAudio(). -->
-              <input
-                type="file"
-                accept="audio/*,video/*,.wma,.asf,.opus,.aac,.mka,.mp2,.amr,.3gp"
-                [id]="'bundle-reattach-' + bundle.bundleId"
-                class="bundle-list__reattach-input"
-                [attr.aria-label]="
-                  bundle.name +
-                  ' — ' +
-                  ('workbench.bundle_list.reattach' | transloco)
-                "
-                [attr.tabindex]="rowTabIndex(i)"
-                (change)="onReattachFileSelected(bundle.bundleId, $event)"
-              />
-            } @else {
-              <i
-                class="fa-solid fa-volume-high bundle-list__audio-on"
-                role="img"
-                [attr.aria-label]="
-                  'workbench.bundle_list.audio_attached' | transloco
-                "
-                [attr.title]="
-                  audioDetails(bundle.bundleId, bundle.awaitingMedia)
-                "
-              ></i>
-            }
-          </span>
+          @if (showAudioColumn()) {
+            <!-- Only a row whose audio is missing shows anything here. -->
+            <span class="bundle-list__audio">
+              @if (bundle.awaitingMedia) {
+                <label
+                  class="bundle-list__attach"
+                  [attr.for]="'bundle-reattach-' + bundle.bundleId"
+                  [attr.title]="'workbench.bundle_list.reattach' | transloco"
+                >
+                  <i class="fa-solid fa-paperclip" aria-hidden="true"></i>
+                  <span class="bundle-list__attach-text">{{
+                    'workbench.bundle_list.attach' | transloco
+                  }}</span>
+                </label>
+                <!-- Visually hidden; reached through the label above, by Tab on
+                     the active row, and by pickAudio(). -->
+                <input
+                  type="file"
+                  accept="audio/*,video/*,.wma,.asf,.opus,.aac,.mka,.mp2,.amr,.3gp"
+                  [id]="'bundle-reattach-' + bundle.bundleId"
+                  class="bundle-list__reattach-input"
+                  [attr.aria-label]="
+                    bundle.name +
+                    ' — ' +
+                    ('workbench.bundle_list.reattach' | transloco)
+                  "
+                  [attr.tabindex]="rowTabIndex(i)"
+                  (change)="onReattachFileSelected(bundle.bundleId, $event)"
+                />
+              }
+            </span>
+          }
           <!-- A bundle whose audio isn't attached (restored after a reload) is
                still selectable: its transcript can be viewed in the header,
                downloaded, or replaced by a dropped transcript. -->
@@ -195,13 +187,16 @@
               >
                 <i class="fa-solid fa-stop" aria-hidden="true"></i>
               </button>
-            } @else if (bundle.run.state !== 'idle') {
+            } @else if (
+              bundle.run.state !== 'idle' && bundle.run.state !== 'done'
+            ) {
+              <!-- States that need the user (waiting, failed, stopped) keep
+                   their words; everything else is the coverage ring below. -->
               <span
                 class="bundle-list__status"
                 [class.bundle-list__status--queued]="
                   bundle.run.state === 'queued'
                 "
-                [class.bundle-list__status--done]="bundle.run.state === 'done'"
                 [class.bundle-list__status--error]="
                   (bundle.run.state === 'failed' &&
                     bundle.run.error?.kind !== 'cancelled') ||
@@ -212,9 +207,7 @@
                   bundle.run.error?.kind === 'cancelled'
                 "
               >
-                @if (bundle.run.state === 'done') {
-                  <i class="fa-solid fa-check" aria-hidden="true"></i>
-                } @else if (
+                @if (
                   (bundle.run.state === 'failed' &&
                     bundle.run.error?.kind !== 'cancelled') ||
                   bundle.run.state === 'interrupted'
@@ -233,16 +226,82 @@
                 }}
               </span>
             } @else {
-              <!-- Never run: whether it has text (imported, or typed by hand)
-                 tells the user if there is anything to transcribe. -->
-              <span class="bundle-list__status bundle-list__status--idle">
-                {{
-                  (bundle.hasAnnotationContent
-                    ? 'workbench.bundle_list.status.has_transcript'
-                    : 'workbench.bundle_list.status.no_transcript'
-                  ) | transloco
-                }}
-              </span>
+              <!-- How much of the audio has text, filling a ring; a check in
+                   it when done (VISP: marked by the user, who toggles it
+                   here; offline: transcribed by a run). The number is the
+                   segments with text. -->
+              @let done = isDone(bundle.bundleId, bundle.run.state);
+              @let pct = coveragePercent(bundle.coverage);
+              @let label = coverageText(bundle.coverage, done);
+              <ng-template #ring>
+                <svg
+                  class="bundle-list__ring"
+                  [class.bundle-list__ring--done]="done"
+                  viewBox="0 0 20 20"
+                  aria-hidden="true"
+                >
+                  <circle
+                    class="bundle-list__ring-track"
+                    cx="10"
+                    cy="10"
+                    r="8"
+                  />
+                  @if (pct > 0) {
+                    <circle
+                      class="bundle-list__ring-fill"
+                      cx="10"
+                      cy="10"
+                      r="8"
+                      pathLength="100"
+                      [attr.stroke-dasharray]="pct + ' 100'"
+                    />
+                  }
+                  @if (done) {
+                    <path
+                      class="bundle-list__ring-check"
+                      d="M6.2 10.3l2.6 2.6 5-5.2"
+                    />
+                  }
+                </svg>
+                @if (bundle.coverage?.withText) {
+                  <span class="bundle-list__ring-count">{{
+                    bundle.coverage?.withText
+                  }}</span>
+                }
+              </ng-template>
+              @if (canToggleDone(bundle.bundleId)) {
+                <button
+                  type="button"
+                  class="bundle-list__coverage bundle-list__coverage--toggle"
+                  [attr.aria-pressed]="done"
+                  [attr.aria-label]="
+                    label +
+                    ' — ' +
+                    ('workbench.bundle_list.coverage.mark_done' | transloco)
+                  "
+                  [attr.title]="
+                    label +
+                    '\n' +
+                    ((done
+                      ? 'workbench.bundle_list.coverage.unmark_done_hint'
+                      : 'workbench.bundle_list.coverage.mark_done_hint'
+                    ) | transloco)
+                  "
+                  [disabled]="!canToggleDoneNow(bundle.bundleId)"
+                  (click)="onToggleDone(bundle.bundleId)"
+                >
+                  <ng-container [ngTemplateOutlet]="ring" />
+                </button>
+              } @else {
+                <span
+                  class="bundle-list__coverage"
+                  role="img"
+                  [attr.aria-label]="label"
+                  [attr.title]="label"
+                >
+                  <ng-container [ngTemplateOutlet]="ring" />
+                </span>
+              }
             }
             @if (
               bundle.run.state === 'failed' &&
@@ -282,46 +341,6 @@
               </button>
             }
           </span>
-          @if (isVisp() && vispInfo(bundle.bundleId); as v) {
-            @if (!v.unassigned && v.error?.kind !== 'stale') {
-              <!-- Finished and comment: what the project owner sees in VISP,
-                   kept behind a small button so the row stays quiet. -->
-              <button
-                type="button"
-                class="btn btn-sm btn-text bundle-list__note"
-                [class.bundle-list__note--set]="
-                  v.ref.finishedEditing || v.ref.comment
-                "
-                [disabled]="!v.opened"
-                [attr.aria-label]="'workbench.visp.status.button' | transloco"
-                [attr.title]="
-                  v.ref.comment
-                    ? v.ref.comment
-                    : ('workbench.visp.status.button' | transloco)
-                "
-                (click)="onVispStatus(bundle.bundleId, v.ref.name)"
-              >
-                <i
-                  [class]="
-                    v.ref.comment
-                      ? 'fa-solid fa-comment-dots'
-                      : 'fa-regular fa-comment'
-                  "
-                  aria-hidden="true"
-                ></i>
-                @if (v.ref.finishedEditing) {
-                  <i
-                    class="fa-solid fa-circle-check bundle-list__note-finished"
-                    [attr.title]="'workbench.visp.finished' | transloco"
-                    aria-hidden="true"
-                  ></i>
-                  <span class="visually-hidden">{{
-                    'workbench.visp.finished' | transloco
-                  }}</span>
-                }
-              </button>
-            }
-          }
           @if (isVisp() && vispInfo(bundle.bundleId); as v) {
             @if (v.unassigned || v.sync === 'failed') {
               <!-- VISP workspace: only when something needs the user (a failed

@@ -519,7 +519,6 @@
       "title": "녹음 번들",
       "reattach": "오디오 연결…",
       "attach": "연결",
-      "audio_attached": "오디오 연결됨",
       "select_all": "모두 선택",
       "delete_done": "완료 항목 삭제",
       "delete_done_hint": "완료로 표시된 모든 녹음 번들을 전사본 및 모든 편집 내용과 함께 삭제합니다. 되돌릴 수 없으므로 아직 필요하면 먼저 내보내세요. 오디오 파일은 그대로 유지됩니다.",
@@ -535,9 +534,7 @@
         "running": "실행 중",
         "done": "완료",
         "failed": "실패",
-        "interrupted": "중단됨",
-        "has_transcript": "텍스트 있음",
-        "no_transcript": "전사 안 됨"
+        "interrupted": "중단됨"
       },
       "error": {
         "decode": "오디오를 읽을 수 없습니다",
@@ -557,10 +554,18 @@
       "confirm_remove": "녹음 번들 {{count}}개를 제거할까요? 전사본과 모든 편집 내용이 삭제되며 복원할 수 없습니다. 오디오 파일은 그대로 유지됩니다.",
       "column_file": "녹음 번들",
       "column_file_hint": "녹음 번들은 하나의 녹음, 즉 오디오와 전사본입니다. Tratt는 전사본을 이 브라우저에 보관합니다. 오디오는 디스크에 그대로 있으며 작업하는 동안에만 연결됩니다.",
-      "column_audio": "오디오",
       "column_status": "전사본",
       "audio_details_not_attached": "오디오가 연결되지 않음",
-      "audio_details_pending": "오디오를 불러오면 오디오 정보가 표시됩니다"
+      "audio_details_pending": "오디오를 불러오면 오디오 정보가 표시됩니다",
+      "coverage": {
+        "none": "아직 텍스트 없음",
+        "partial": "{{segments}}개 세그먼트 중 {{withText}}개에 텍스트 있음 · 오디오의 {{percent}}%",
+        "done_visp": "완료로 표시됨",
+        "done_run": "전사됨",
+        "mark_done": "완료",
+        "mark_done_hint": "클릭하여 완료로 표시 (프로젝트 소유자가 Visp에서 볼 수 있음)",
+        "unmark_done_hint": "클릭하여 미완료로 표시"
+      }
     },
     "queue": {
       "run": "{{count}}개 전사",
@@ -708,8 +713,6 @@
       "assigned_list": "배정된 녹음 번들:",
       "save": "VISP에 저장",
       "retry": "다시 시도",
-      "finished": "완료",
-      "comment": "메모",
       "keep_mine": "내 버전 유지",
       "use_theirs": "VISP 버전 사용",
       "unassigned": "더 이상 배정되지 않았습니다. 이 녹음 번들을 제거할 때까지 저장하지 않은 변경 내용은 여기에 남아 있습니다. 필요하면 먼저 전사본을 내려받으세요.",

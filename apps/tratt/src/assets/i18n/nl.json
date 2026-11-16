@@ -519,7 +519,6 @@
       "title": "Opnamebundels",
       "reattach": "Audio koppelen…",
       "attach": "Koppelen",
-      "audio_attached": "Audio gekoppeld",
       "select_all": "Alles selecteren",
       "delete_done": "Klare verwijderen",
       "delete_done_hint": "Verwijdert alle opnamebundels gemarkeerd als Klaar, met hun transcripties en alle bewerkingen. Dit kan niet ongedaan worden gemaakt, dus exporteer ze eerst als je ze nog nodig hebt. Je audiobestanden blijven onaangeroerd.",
@@ -535,9 +534,7 @@
         "running": "Bezig",
         "done": "Klaar",
         "failed": "Mislukt",
-        "interrupted": "Onderbroken",
-        "has_transcript": "Heeft tekst",
-        "no_transcript": "Niet getranscribeerd"
+        "interrupted": "Onderbroken"
       },
       "error": {
         "decode": "Kan de audio niet lezen",
@@ -557,10 +554,18 @@
       "confirm_remove": "{{count}} opnamebundel(s) verwijderen? Hun transcripties en alle bewerkingen worden verwijderd en kunnen niet worden hersteld. Je audiobestanden blijven onaangeroerd.",
       "column_file": "Opnamebundel",
       "column_file_hint": "Een opnamebundel is één opname: de audio en de transcriptie. Tratt bewaart de transcriptie in deze browser. De audio blijft op je schijf en is alleen gekoppeld terwijl je werkt.",
-      "column_audio": "Audio",
       "column_status": "Transcriptie",
       "audio_details_not_attached": "Audio niet gekoppeld",
-      "audio_details_pending": "De audiogegevens verschijnen zodra de audio is geladen"
+      "audio_details_pending": "De audiogegevens verschijnen zodra de audio is geladen",
+      "coverage": {
+        "none": "Nog geen tekst",
+        "partial": "{{withText}} van {{segments}} segmenten hebben tekst · {{percent}}% van de audio",
+        "done_visp": "Gemarkeerd als klaar",
+        "done_run": "Getranscribeerd",
+        "mark_done": "Klaar",
+        "mark_done_hint": "Klik om als klaar te markeren (de projecteigenaar ziet dit in Visp)",
+        "unmark_done_hint": "Klik om als niet klaar te markeren"
+      }
     },
     "queue": {
       "run": "{{count}} transcriberen",
@@ -708,8 +713,6 @@
       "assigned_list": "Aan jou toegewezen opnamebundels:",
       "save": "Opslaan in VISP",
       "retry": "Opnieuw proberen",
-      "finished": "Klaar",
-      "comment": "Opmerking",
       "keep_mine": "Mijn versie behouden",
       "use_theirs": "VISP-versie gebruiken",
       "unassigned": "Niet meer aan jou toegewezen. Je niet-opgeslagen wijzigingen blijven hier tot je deze opnamebundel verwijdert; download eerst het transcript als je het nodig hebt.",

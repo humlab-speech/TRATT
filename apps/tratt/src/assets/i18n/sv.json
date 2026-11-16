@@ -811,7 +811,6 @@
       "title": "Inspelningspaket",
       "reattach": "Bifoga ljud…",
       "attach": "Bifoga",
-      "audio_attached": "Ljud bifogat",
       "select_all": "Markera alla",
       "delete_done": "Radera klara",
       "delete_done_hint": "Radera alla inspelningspaket markerade Klar, med deras transkriptioner och alla ändringar. Det går inte att ångra, så exportera dem först om du fortfarande behöver dem. Dina ljudfiler påverkas inte.",
@@ -827,9 +826,7 @@
         "running": "Körs",
         "done": "Klar",
         "failed": "Misslyckades",
-        "interrupted": "Avbruten",
-        "has_transcript": "Har text",
-        "no_transcript": "Ej transkriberad"
+        "interrupted": "Avbruten"
       },
       "error": {
         "decode": "Kunde inte läsa ljudet",
@@ -849,10 +846,18 @@
       "confirm_remove": "Ta bort {{count}} inspelningspaket? Deras transkriptioner och alla ändringar raderas och kan inte återställas. Dina ljudfiler påverkas inte.",
       "column_file": "Inspelningspaket",
       "column_file_hint": "Ett inspelningspaket är en inspelning: dess ljud och dess transkription. Tratt sparar transkriptionen i den här webbläsaren. Ljudet stannar på din disk och är bara bifogat medan du arbetar.",
-      "column_audio": "Ljud",
       "column_status": "Transkription",
       "audio_details_not_attached": "Ljud inte bifogat",
-      "audio_details_pending": "Ljudets detaljer visas när ljudet har lästs in"
+      "audio_details_pending": "Ljudets detaljer visas när ljudet har lästs in",
+      "coverage": {
+        "none": "Ingen text än",
+        "partial": "{{withText}} av {{segments}} segment har text · {{percent}} % av ljudet",
+        "done_visp": "Markerad som klar",
+        "done_run": "Transkriberad",
+        "mark_done": "Klar",
+        "mark_done_hint": "Klicka för att markera som klar (projektägaren ser det i Visp)",
+        "unmark_done_hint": "Klicka för att markera som inte klar"
+      }
     },
     "queue": {
       "run": "Transkribera {{count}}",
@@ -994,14 +999,6 @@
       "assigned_list": "Inspelningspaket som är tilldelade dig:",
       "save": "Spara till VISP",
       "retry": "Försök igen",
-      "finished": "Klar",
-      "comment": "Kommentar",
-      "status": {
-        "button": "Klar och kommentar",
-        "intro": "Projektägaren ser detta i VISP.",
-        "finished": "Jag är klar med det här inspelningspaketet",
-        "comment_placeholder": "En anteckning till projektägaren"
-      },
       "keep_mine": "Behåll min version",
       "use_theirs": "Använd versionen i VISP",
       "unassigned": "Inte längre tilldelat dig. Dina osparade ändringar finns kvar här tills du tar bort inspelningspaketet; ladda ner transkriptet först om du behöver det.",

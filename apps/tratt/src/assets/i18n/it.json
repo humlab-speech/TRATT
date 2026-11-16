@@ -519,7 +519,6 @@
       "title": "Pacchetti di registrazione",
       "reattach": "Collega audio…",
       "attach": "Collega",
-      "audio_attached": "Audio collegato",
       "select_all": "Seleziona tutto",
       "delete_done": "Elimina completati",
       "delete_done_hint": "Elimina tutti i pacchetti di registrazione segnati come Completato, con le loro trascrizioni e tutte le modifiche. Non si può annullare: esportali prima se ti servono ancora. I tuoi file audio non vengono toccati.",
@@ -535,9 +534,7 @@
         "running": "In corso",
         "done": "Completato",
         "failed": "Non riuscito",
-        "interrupted": "Interrotto",
-        "has_transcript": "Ha testo",
-        "no_transcript": "Non trascritto"
+        "interrupted": "Interrotto"
       },
       "error": {
         "decode": "Impossibile leggere l'audio",
@@ -557,10 +554,18 @@
       "confirm_remove": "Rimuovere {{count}} pacchetti di registrazione? Le loro trascrizioni e tutte le modifiche verranno eliminate e non potranno essere ripristinate. I tuoi file audio non vengono toccati.",
       "column_file": "Pacchetto di registrazione",
       "column_file_hint": "Un pacchetto di registrazione è una registrazione: il suo audio e la sua trascrizione. Tratt conserva la trascrizione in questo browser. L'audio resta sul tuo disco ed è collegato solo mentre lavori.",
-      "column_audio": "Audio",
       "column_status": "Trascrizione",
       "audio_details_not_attached": "Audio non collegato",
-      "audio_details_pending": "I dettagli dell'audio compaiono quando l'audio è stato caricato"
+      "audio_details_pending": "I dettagli dell'audio compaiono quando l'audio è stato caricato",
+      "coverage": {
+        "none": "Ancora nessun testo",
+        "partial": "{{withText}} di {{segments}} segmenti hanno testo · {{percent}}% dell'audio",
+        "done_visp": "Segnato come completato",
+        "done_run": "Trascritto",
+        "mark_done": "Completato",
+        "mark_done_hint": "Fai clic per segnare come completato (il responsabile del progetto lo vede in Visp)",
+        "unmark_done_hint": "Fai clic per segnare come non completato"
+      }
     },
     "queue": {
       "run": "Trascrivi {{count}}",
@@ -708,8 +713,6 @@
       "assigned_list": "Pacchetti di registrazione assegnati a te:",
       "save": "Salva in VISP",
       "retry": "Riprova",
-      "finished": "Completato",
-      "comment": "Commento",
       "keep_mine": "Mantieni la mia versione",
       "use_theirs": "Usa la versione di VISP",
       "unassigned": "Non più assegnato a te. Le modifiche non salvate restano qui finché non rimuovi questo pacchetto di registrazione; scarica prima la trascrizione se ti serve.",

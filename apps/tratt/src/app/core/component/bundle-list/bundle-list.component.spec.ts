@@ -1,3 +1,4 @@
+import { signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import {
@@ -33,6 +34,8 @@ import { SessionFile } from '../../obj/SessionFile';
 import { AudioService } from '../../shared/service/audio.service';
 import { PendingEditsService } from '../../shared/service/pending-edits.service';
 import { PipelineQueueService } from '../../shared/service/pipeline-queue.service';
+import { VispWorkspaceService } from '../../shared/workspace/visp-workspace.service';
+import { WorkspaceService } from '../../shared/workspace/workspace.service';
 import { AuthenticationActions } from '../../store/authentication';
 import { LoginMode, RootState } from '../../store/index';
 import { localBundleAdapter } from '../../store/login-mode/annotation/local-bundle-collection';
@@ -308,17 +311,35 @@ describe('BundleListComponent', () => {
     expect(audio.query(By.css('input[type="file"]'))).toBeTruthy();
   });
 
-  it('shows a bundle with its audio attached as such', () => {
+  it('shows nothing for attached audio, only the way to attach missing audio', () => {
     const row = fixture.debugElement
       .queryAll(By.css('.bundle-list__item'))
       .find((r) => r.nativeElement.textContent.includes('b.wav'))!;
-    const icon = row.query(
-      By.css('.bundle-list__audio .bundle-list__audio-on'),
-    );
-    expect(icon.nativeElement.getAttribute('aria-label')).toBe(
-      'workbench.bundle_list.audio_attached',
-    );
-    expect(row.query(By.css('.bundle-list__attach'))).toBeNull();
+    // bundle-a still needs its audio, so the column is there, but b's slot
+    // is empty: an icon on every attached row read as meaning something.
+    const slot = row.query(By.css('.bundle-list__audio'));
+    expect(slot.nativeElement.textContent.trim()).toBe('');
+    expect(slot.children.length).toBe(0);
+  });
+
+  it('drops the audio column when no row needs its audio attached', () => {
+    store.setState({
+      ...initialState,
+      localMode: {
+        ...initialState.localMode,
+        bundles: localBundleAdapter.setAll(
+          [{ ...bundleA, audio: { loaded: true } }, bundleB],
+          localBundleAdapter.getInitialState(),
+        ),
+      },
+    } as unknown as RootState);
+    fixture.detectChanges();
+    expect(
+      fixture.debugElement.query(By.css('.bundle-list__audio')),
+    ).toBeNull();
+    expect(
+      fixture.debugElement.query(By.css('.bundle-list__column-audio')),
+    ).toBeNull();
   });
 
   it('opens the attach picker for a bundle on request', () => {
@@ -768,29 +789,115 @@ describe('BundleListComponent', () => {
       expect(pipelineQueueService.cancelActive).toHaveBeenCalled();
     });
 
-    it('says whether a never-run bundle has text yet, with or without its audio', () => {
+    /** Each row's coverage ring: its label, fill, check and count. */
+    function rings() {
+      return fixture.debugElement
+        .queryAll(By.css('.bundle-list__transcript .bundle-list__coverage'))
+        .map((el) => ({
+          label: el.nativeElement.getAttribute('aria-label'),
+          fill:
+            el
+              .query(By.css('.bundle-list__ring-fill'))
+              ?.nativeElement.getAttribute('stroke-dasharray') ?? null,
+          check: !!el.query(By.css('.bundle-list__ring-check')),
+          count:
+            el
+              .query(By.css('.bundle-list__ring-count'))
+              ?.nativeElement.textContent.trim() ?? null,
+        }));
+    }
+
+    it('shows an empty ring for a never-run bundle without text, with or without its audio', () => {
       fixture.detectChanges();
       // bundle-a is awaiting its audio; its transcript state shows anyway.
-      const labels = fixture.debugElement
-        .queryAll(By.css('.bundle-list__transcript .bundle-list__status--idle'))
-        .map((el) => el.nativeElement.textContent.trim());
-      expect(labels).toEqual([
-        'workbench.bundle_list.status.no_transcript',
-        'workbench.bundle_list.status.no_transcript',
+      expect(rings()).toEqual([
+        {
+          label: 'workbench.bundle_list.coverage.none',
+          fill: null,
+          check: false,
+          count: null,
+        },
+        {
+          label: 'workbench.bundle_list.coverage.none',
+          fill: null,
+          check: false,
+          count: null,
+        },
       ]);
+    });
+
+    it('fills the ring by the share of the audio with text and counts those segments', () => {
+      const seg = (end: number, value: string) => ({
+        time: { samples: end },
+        labels: [{ name: 'T', value }],
+      });
+      store.setState({
+        ...initialState,
+        localMode: {
+          ...initialState.localMode,
+          bundles: localBundleAdapter.setAll(
+            [
+              bundleA,
+              {
+                ...bundleB,
+                transcript: {
+                  levels: [
+                    {
+                      name: 'T',
+                      type: 'SEGMENT',
+                      items: [seg(25, 'hi'), seg(75, ''), seg(100, 'there')],
+                    },
+                  ],
+                },
+              },
+            ],
+            localBundleAdapter.getInitialState(),
+          ),
+        },
+      } as unknown as RootState);
+      fixture.detectChanges();
+      expect(rings()[1]).toEqual({
+        label: 'workbench.bundle_list.coverage.partial',
+        fill: '50 100',
+        check: false,
+        count: '2',
+      });
+    });
+
+    it('puts a check in the ring of a bundle a run transcribed (what Delete done removes)', () => {
+      store.setState({
+        ...initialState,
+        pipelineQueue: {
+          ...initialState.pipelineQueue,
+          runs: { [bundleA.bundleId]: { state: 'done' } },
+        },
+      } as unknown as RootState);
+      fixture.detectChanges();
+      expect(rings()[0]).toEqual(
+        expect.objectContaining({
+          label:
+            'workbench.bundle_list.coverage.none · workbench.bundle_list.coverage.done_run',
+          check: true,
+        }),
+      );
+      // Offline the ring only shows; there is nothing to toggle.
+      expect(
+        fixture.debugElement.query(By.css('button.bundle-list__coverage')),
+      ).toBeNull();
     });
 
     it('puts select-all beside the column headings, above the rows', () => {
       fixture.detectChanges();
       const bar = fixture.debugElement.query(By.css('.bundle-list__bar'));
       expect(bar.query(By.css('.bundle-list__select-all'))).toBeTruthy();
-      // Audio, then the bundle's name, then its transcript.
+      // An unlabelled audio slot (a word there read as the checkbox's
+      // label), then the bundle's name, then its transcript.
       const headings = bar
         .query(By.css('.bundle-list__columns'))
         .queryAll(By.css('span'))
         .map((el) => el.nativeElement.textContent.trim());
       expect(headings).toEqual([
-        'workbench.bundle_list.column_audio',
+        '',
         'workbench.bundle_list.column_file',
         'workbench.bundle_list.column_status',
       ]);
@@ -1498,6 +1605,109 @@ describe('BundleListComponent', () => {
       expect(targets.length).toBe(2);
       expect(targets[0].attributes['tabindex']).toBe('-1'); // bundle-b, selected but not arrow-tracked
       expect(targets[1].attributes['tabindex']).toBe('0'); // bundle-c, still the arrow-tracked bundle
+    });
+  });
+
+  describe('in a VISP workspace', () => {
+    let saveBundle: jest.Mock;
+    let vispBundles: ReturnType<typeof signal<Record<string, unknown>>>;
+
+    const vispRow = (over: Record<string, unknown> = {}) => ({
+      ref: { name: 'a', session: 's', finishedEditing: false, comment: 'kept' },
+      sync: 'saved',
+      opened: true,
+      ...over,
+    });
+
+    beforeEach(async () => {
+      TestBed.resetTestingModule();
+      saveBundle = jest.fn(async () => true);
+      vispBundles = signal<Record<string, unknown>>({
+        [bundleA.bundleId]: vispRow(),
+        [bundleB.bundleId]: vispRow({
+          ref: { name: 'b', session: 's', finishedEditing: true },
+        }),
+      });
+      audioService.hasResident.mockReturnValue(true);
+      await TestBed.configureTestingModule({
+        imports: [BundleListComponent],
+        providers: [
+          provideMockStore({ initialState }),
+          { provide: AudioService, useValue: audioService },
+          { provide: TrattModalService, useValue: modalService },
+          { provide: PipelineQueueService, useValue: pipelineQueueService },
+          { provide: WorkspaceService, useValue: { isVisp: signal(true) } },
+          {
+            provide: VispWorkspaceService,
+            useValue: { bundles: vispBundles, saveBundle, info: jest.fn() },
+          },
+          {
+            provide: TranslocoService,
+            useValue: {
+              getActiveLang: () => 'en',
+              langChanges$: of('en'),
+              translate: (key: string) => key,
+              config: { reRenderOnLangChange: false },
+              _loadDependencies: () => of({}),
+            },
+          },
+        ],
+      }).compileComponents();
+      fixture = TestBed.createComponent(BundleListComponent);
+      fixture.detectChanges();
+    });
+
+    const toggles = () =>
+      fixture.debugElement
+        .queryAll(By.css('button.bundle-list__coverage'))
+        .map((el) => el.nativeElement as HTMLButtonElement);
+
+    it('has no comment button any more', () => {
+      expect(
+        fixture.debugElement.query(By.css('.bundle-list__note')),
+      ).toBeNull();
+    });
+
+    it('shows done as a pressed ring with a check, from VISP', () => {
+      const [a, b] = toggles();
+      expect(a.getAttribute('aria-pressed')).toBe('false');
+      expect(b.getAttribute('aria-pressed')).toBe('true');
+      expect(b.querySelector('.bundle-list__ring-check')).toBeTruthy();
+    });
+
+    it('toggles done through a save, leaving the comment to the save', () => {
+      toggles()[0].click();
+      expect(saveBundle).toHaveBeenCalledWith(bundleA.bundleId, {
+        finishedEditing: true,
+      });
+      toggles()[1].click();
+      expect(saveBundle).toHaveBeenCalledWith(bundleB.bundleId, {
+        finishedEditing: false,
+      });
+    });
+
+    it('cannot toggle a bundle never opened, nor while saving', () => {
+      vispBundles.set({
+        [bundleA.bundleId]: vispRow({ opened: false }),
+        [bundleB.bundleId]: vispRow({ sync: 'saving' }),
+      });
+      fixture.detectChanges();
+      expect(toggles().map((b) => b.disabled)).toEqual([true, true]);
+    });
+
+    it('offers no toggle on a bundle no longer assigned or in conflict', () => {
+      vispBundles.set({
+        [bundleA.bundleId]: vispRow({ unassigned: true }),
+        [bundleB.bundleId]: vispRow({ error: { kind: 'stale' } }),
+      });
+      fixture.detectChanges();
+      expect(toggles()).toEqual([]);
+    });
+
+    it('never shows the audio column', () => {
+      expect(
+        fixture.debugElement.query(By.css('.bundle-list__audio')),
+      ).toBeNull();
     });
   });
 });

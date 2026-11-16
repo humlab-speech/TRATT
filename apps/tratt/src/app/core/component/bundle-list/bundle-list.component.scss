@@ -133,8 +133,8 @@
   text-overflow: ellipsis;
 }
 
-// The audio column, first so it lines up down the list: a speaker when
-// attached, else the way to attach it.
+// The audio column, first so it lines up down the list. Present only while
+// some row's audio is missing, and then holds only the way to attach it.
 .bundle-list__audio,
 .bundle-list__column-audio {
   flex: none;
@@ -144,12 +144,6 @@
 .bundle-list__audio {
   display: flex;
   min-width: 0;
-}
-
-.bundle-list__audio-on {
-  padding-inline-start: 0.1rem;
-  font-size: 0.8125rem;
-  color: var(--tratt-text-muted);
 }
 
 .bundle-list__attach {
@@ -198,7 +192,8 @@
   }
 }
 
-// The transcript column: the run status, with its stop, error and retry.
+// The transcript column: how much has text (the ring), or the run status
+// with its stop, error and retry.
 .bundle-list__transcript {
   display: flex;
   flex: 0 1 auto;
@@ -255,14 +250,6 @@
   flex: none;
 }
 
-.bundle-list__status--done {
-  background: var(--sb-green-tint);
-
-  i {
-    color: var(--tratt-success-text);
-  }
-}
-
 .bundle-list__status--error {
   background: var(--sb-red-tint);
 
@@ -271,7 +258,6 @@
   }
 }
 
-.bundle-list__status--idle,
 .bundle-list__status--queued,
 .bundle-list__status--cancelled {
   background: var(--tratt-surface-sunken);
@@ -446,8 +432,8 @@
   flex-shrink: 0;
 }
 
-// VISP rows carry a second line (sync state, save, finished, comment): let
-// it wrap below the name instead of squeezing it.
+// VISP rows may carry a second line (a failed save, a conflict, a bundle no
+// longer assigned): let it wrap below the name instead of squeezing it.
 .bundle-list__item--visp {
   flex-wrap: wrap;
 }
@@ -475,19 +461,85 @@
   flex: 1 0 100%;
 }
 
-.bundle-list__note {
+// Coverage ring: fills with the share of the audio that has text; a check
+// inside when done. The count beside it is the segments with text.
+.bundle-list__coverage {
+  display: inline-flex;
   flex: none;
-  // Discreet: muted until the bundle has a mark or a comment.
-  color: var(--tratt-text-muted);
-  padding: 0 0.35rem;
+  align-items: center;
+  gap: 0.3rem;
+  margin-left: auto;
+  padding: 0.1rem 0.2rem;
+  border: none;
+  border-radius: var(--tratt-radius);
+  background: none;
+  font-family: var(--tratt-font-data);
+  font-size: 0.75rem;
+  font-weight: 600;
   line-height: 1;
+  color: var(--tratt-text-muted);
 }
 
-.bundle-list__note--set {
-  color: var(--tratt-text-primary);
+.bundle-list__coverage--toggle {
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    background: var(--tratt-surface-sunken);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tratt-interactive);
+    outline-offset: 1px;
+  }
+
+  &:disabled {
+    cursor: default;
+  }
 }
 
-.bundle-list__note-finished {
-  margin-left: 0.25rem;
-  color: var(--bs-success);
+.bundle-list__ring {
+  width: 1.125rem;
+  height: 1.125rem;
+  flex: none;
+  // Start the fill at twelve o'clock.
+  transform: rotate(-90deg);
+}
+
+.bundle-list__ring-track,
+.bundle-list__ring-fill {
+  fill: none;
+  stroke-width: 2.5;
+}
+
+.bundle-list__ring-track {
+  stroke: var(--tratt-border);
+}
+
+.bundle-list__ring-fill {
+  stroke: var(--tratt-interactive);
+  stroke-linecap: round;
+
+  @media (prefers-reduced-motion: no-preference) {
+    transition: stroke-dasharray 300ms ease-out;
+  }
+}
+
+.bundle-list__ring--done .bundle-list__ring-fill {
+  stroke: var(--tratt-success);
+}
+
+.bundle-list__ring-check {
+  fill: none;
+  stroke: var(--tratt-success-text);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  // Undo the ring's rotation so the check stands upright.
+  transform: rotate(90deg);
+  transform-origin: 10px 10px;
+}
+
+.bundle-list__ring-count {
+  min-width: 1.5ch;
+  text-align: end;
 }

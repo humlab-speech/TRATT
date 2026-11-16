@@ -863,7 +863,6 @@
       "title": "Recording bundles",
       "reattach": "Attach audio…",
       "attach": "Attach",
-      "audio_attached": "Audio attached",
       "select_all": "Select all",
       "delete_done": "Delete done",
       "delete_done_hint": "Delete every recording bundle marked Done, with its transcript and any edits. This cannot be undone, so export them first if you still need them. Your audio files are not touched.",
@@ -879,9 +878,7 @@
         "running": "Running",
         "done": "Done",
         "failed": "Failed",
-        "interrupted": "Interrupted",
-        "has_transcript": "Has text",
-        "no_transcript": "Not transcribed"
+        "interrupted": "Interrupted"
       },
       "error": {
         "decode": "Could not read the audio",
@@ -901,10 +898,18 @@
       "confirm_remove": "Delete {{count}} recording bundle(s)? Their transcripts and any edits are deleted and cannot be restored. Your audio files are not touched.",
       "column_file": "Recording bundle",
       "column_file_hint": "A recording bundle is one recording: its audio and its transcript. Tratt keeps the transcript in this browser. The audio stays on your disk and is only attached while you work.",
-      "column_audio": "Audio",
       "column_status": "Transcript",
       "audio_details_not_attached": "Audio not attached",
-      "audio_details_pending": "Audio details appear once the audio has loaded"
+      "audio_details_pending": "Audio details appear once the audio has loaded",
+      "coverage": {
+        "none": "No text yet",
+        "partial": "{{withText}} of {{segments}} segments have text · {{percent}}% of the audio",
+        "done_visp": "Marked done",
+        "done_run": "Transcribed",
+        "mark_done": "Done",
+        "mark_done_hint": "Click to mark as done (the project owner sees this in Visp)",
+        "unmark_done_hint": "Click to mark as not done"
+      }
     },
     "queue": {
       "run": "Transcribe {{count}}",
@@ -1046,14 +1051,6 @@
       "assigned_list": "Recording bundles assigned to you:",
       "save": "Save to VISP",
       "retry": "Retry",
-      "finished": "Finished",
-      "comment": "Comment",
-      "status": {
-        "button": "Finished and comment",
-        "intro": "The project owner sees this in VISP.",
-        "finished": "I am finished with this recording bundle",
-        "comment_placeholder": "A note to the project owner"
-      },
       "keep_mine": "Keep my version",
       "use_theirs": "Use the VISP version",
       "unassigned": "No longer assigned to you. Your unsaved changes are kept here until you delete this recording bundle; download the transcript first if you need it.",

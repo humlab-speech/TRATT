@@ -6,6 +6,7 @@ import {
   selectActiveAnnotation,
   selectAllBundleSummaries,
   selectSelectedBundleId,
+  transcriptCoverage,
   transcriptHasContent,
 } from './annotation.selectors';
 import {
@@ -208,5 +209,78 @@ describe('breakMarkerCodeOf', () => {
     expect(
       breakMarkerCodeOf({ selected: { json: { markers: [] } } } as any),
     ).toBeUndefined();
+  });
+});
+
+describe('transcriptCoverage', () => {
+  const seg = (end: number, value?: string, name = 'T') => ({
+    time: { samples: end },
+    labels: value === undefined ? [] : [{ name, value }],
+  });
+  const level = (items: ReturnType<typeof seg>[], name = 'T') => ({
+    name,
+    type: 'SEGMENT',
+    items,
+  });
+
+  it('is undefined with no segment level holding segments', () => {
+    expect(transcriptCoverage(undefined)).toBeUndefined();
+    expect(transcriptCoverage({ levels: [] })).toBeUndefined();
+    expect(
+      transcriptCoverage({ levels: [{ type: 'ITEM', items: [seg(10, 'x')] }] }),
+    ).toBeUndefined();
+    expect(transcriptCoverage({ levels: [level([])] })).toBeUndefined();
+  });
+
+  it('measures by duration, not by segment count', () => {
+    // 3 of 4 segments hold text, but the empty one is 70% of the audio.
+    expect(
+      transcriptCoverage({
+        levels: [
+          level([seg(10, 'a'), seg(20, 'b'), seg(90, ''), seg(100, 'c')]),
+        ],
+      }),
+    ).toEqual({ withText: 3, segments: 4, fraction: 0.3 });
+  });
+
+  it('counts the break marker as no text', () => {
+    expect(
+      transcriptCoverage(
+        { levels: [level([seg(50, '<P>'), seg(100, 'hi')])] },
+        '<P>',
+      ),
+    ).toEqual({ withText: 1, segments: 2, fraction: 0.5 });
+  });
+
+  it("reads the level's own label, not a Speaker label", () => {
+    const item = {
+      time: { samples: 100 },
+      labels: [
+        { name: 'Speaker', value: 'S1' },
+        { name: 'T', value: '' },
+      ],
+    };
+    expect(
+      transcriptCoverage({
+        levels: [{ name: 'T', type: 'SEGMENT', items: [item] }],
+      }),
+    ).toEqual({ withText: 0, segments: 1, fraction: 0 });
+  });
+
+  it('reports the level covering the most audio', () => {
+    expect(
+      transcriptCoverage({
+        levels: [
+          level([seg(50, 'a'), seg(100, '')], 'A'),
+          level([seg(100, 'b')], 'B'),
+        ].map((l) => ({
+          ...l,
+          items: l.items.map((i) => ({
+            ...i,
+            labels: i.labels.map((x) => ({ ...x, name: l.name })),
+          })),
+        })),
+      }),
+    ).toEqual({ withText: 1, segments: 1, fraction: 1 });
   });
 });

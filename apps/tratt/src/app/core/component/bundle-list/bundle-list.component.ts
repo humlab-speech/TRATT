@@ -1,3 +1,4 @@
+import { NgTemplateOutlet } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -20,10 +21,6 @@ import {
   ExportFilesModalComponent,
 } from '../../modals/export-files-modal/export-files-modal.component';
 import { TrattModalService } from '../../modals/tratt-modal.service';
-import {
-  VispBundleStatus,
-  VispBundleStatusModalComponent,
-} from '../../modals/visp-bundle-status-modal/visp-bundle-status-modal.component';
 import { YesNoModalComponent } from '../../modals/yes-no-modal/yes-no-modal.component';
 import { SessionFile } from '../../obj/SessionFile';
 import { AudioService } from '../../shared/service/audio.service';
@@ -36,6 +33,7 @@ import { LoginMode, RootState } from '../../store/index';
 import {
   selectAllBundleSummaries,
   selectLocalMode,
+  TranscriptCoverage,
 } from '../../store/login-mode/annotation/annotation.selectors';
 import { LoginModeActions } from '../../store/login-mode/login-mode.actions';
 import {
@@ -68,7 +66,7 @@ import { selectLocalBundle } from './select-local-bundle';
   templateUrl: './bundle-list.component.html',
   styleUrls: ['./bundle-list.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [TranslocoPipe],
+  imports: [NgTemplateOutlet, TranslocoPipe],
 })
 export class BundleListComponent {
   private bundleSummaries = this.store.selectSignal(selectAllBundleSummaries);
@@ -104,6 +102,16 @@ export class BundleListComponent {
         run: runStatusOf(runs, b.bundleId),
       }));
   });
+
+  /**
+   * The audio column is there only while a row needs its audio attached
+   * (offline, after a reload). Attached audio needs no mark: every row had
+   * the same speaker, which read as meaning something. VISP fetches the
+   * audio itself, so the column never shows there.
+   */
+  readonly showAudioColumn = computed(() =>
+    this.bundles().some((b) => b.awaitingMedia),
+  );
 
   private _selected = signal<Set<string>>(new Set());
 
@@ -159,32 +167,68 @@ export class BundleListComponent {
     void this.visp.saveBundle(bundleId);
   }
 
-  /** Finished and comment, edited in a modal; saved (with the transcript) only when changed. */
-  async onVispStatus(bundleId: string, bundleName: string): Promise<void> {
+  /**
+   * Whether a row counts as done: in VISP, marked finished by the user (what
+   * the project owner sees); offline, transcribed by a completed run (what
+   * "Delete done" removes).
+   */
+  isDone(bundleId: string, runState: string): boolean {
+    return this.isVisp()
+      ? this.vispInfo(bundleId)?.ref.finishedEditing === true
+      : runState === 'done';
+  }
+
+  /**
+   * VISP rows toggle done from the ring. Not for a bundle VISP no longer
+   * assigns or that is in conflict (its row asks the user to resolve that
+   * first), nor for one never opened: it has no transcript to save with it.
+   */
+  canToggleDone(bundleId: string): boolean {
+    const v = this.isVisp() ? this.vispInfo(bundleId) : undefined;
+    return !!v && !v.unassigned && v.error?.kind !== 'stale';
+  }
+
+  canToggleDoneNow(bundleId: string): boolean {
+    const v = this.vispInfo(bundleId);
+    return !!v?.opened && v.sync !== 'saving';
+  }
+
+  /** Saved with the transcript; an existing comment (set in Artic) is kept. */
+  onToggleDone(bundleId: string): void {
     const ref = this.vispInfo(bundleId)?.ref;
     if (!ref) return;
-    let result: VispBundleStatus | undefined;
-    try {
-      result = (await this.modService.openModal(
-        VispBundleStatusModalComponent,
-        VispBundleStatusModalComponent.options,
-        {
-          bundleName,
-          finishedEditing: ref.finishedEditing === true,
-          comment: ref.comment ?? '',
-        },
-      )) as VispBundleStatus | undefined;
-    } catch {
-      return; // dismissed
+    void this.visp.saveBundle(bundleId, {
+      finishedEditing: ref.finishedEditing !== true,
+    });
+  }
+
+  /** The ring's tooltip and accessible name: what it shows, in words. */
+  coverageText(
+    coverage: TranscriptCoverage | undefined,
+    done: boolean,
+  ): string {
+    const t = (key: string, params?: Record<string, unknown>) =>
+      this.transloco.translate('workbench.bundle_list.coverage.' + key, params);
+    const parts = [
+      coverage && coverage.withText > 0
+        ? t('partial', {
+            withText: coverage.withText,
+            segments: coverage.segments,
+            percent: this.coveragePercent(coverage),
+          })
+        : t('none'),
+    ];
+    if (done) {
+      parts.push(t(this.isVisp() ? 'done_visp' : 'done_run'));
     }
-    if (
-      !result ||
-      (result.finishedEditing === (ref.finishedEditing === true) &&
-        result.comment === (ref.comment ?? ''))
-    ) {
-      return;
-    }
-    void this.visp.saveBundle(bundleId, result);
+    return parts.join(' · ');
+  }
+
+  /** Whole percent, but never 0 with text nor 100 with a gap left. */
+  coveragePercent(coverage: TranscriptCoverage | undefined): number {
+    if (!coverage || coverage.withText === 0) return 0;
+    const pct = Math.round(coverage.fraction * 100);
+    return coverage.fraction < 1 ? Math.min(99, Math.max(1, pct)) : 100;
   }
 
   /** The bundle changed in VISP meanwhile: keep the user's or VISP's version. */

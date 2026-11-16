@@ -790,7 +790,6 @@
       "title": "Aufnahmepakete",
       "reattach": "Audio anhängen…",
       "attach": "Anhängen",
-      "audio_attached": "Audio angehängt",
       "select_all": "Alle auswählen",
       "delete_done": "Fertige löschen",
       "delete_done_hint": "Löscht alle als Fertig markierten Aufnahmepakete samt Transkripten und allen Änderungen. Das lässt sich nicht rückgängig machen. Exportieren Sie sie daher zuerst, wenn Sie sie noch brauchen. Ihre Audiodateien bleiben unberührt.",
@@ -806,9 +805,7 @@
         "running": "Läuft",
         "done": "Fertig",
         "failed": "Fehlgeschlagen",
-        "interrupted": "Unterbrochen",
-        "has_transcript": "Hat Text",
-        "no_transcript": "Nicht transkribiert"
+        "interrupted": "Unterbrochen"
       },
       "error": {
         "decode": "Audio konnte nicht gelesen werden",
@@ -828,10 +825,18 @@
       "confirm_remove": "{{count}} Aufnahmepaket(e) entfernen? Ihre Transkripte und alle Änderungen werden gelöscht und können nicht wiederhergestellt werden. Ihre Audiodateien bleiben unberührt.",
       "column_file": "Aufnahmepaket",
       "column_file_hint": "Ein Aufnahmepaket ist eine Aufnahme: ihr Audio und ihr Transkript. Tratt speichert das Transkript in diesem Browser. Das Audio bleibt auf Ihrem Datenträger und ist nur angehängt, während Sie arbeiten.",
-      "column_audio": "Audio",
       "column_status": "Transkript",
       "audio_details_not_attached": "Audio nicht angehängt",
-      "audio_details_pending": "Audiodetails erscheinen, sobald das Audio geladen ist"
+      "audio_details_pending": "Audiodetails erscheinen, sobald das Audio geladen ist",
+      "coverage": {
+        "none": "Noch kein Text",
+        "partial": "{{withText}} von {{segments}} Segmenten haben Text · {{percent}} % des Audios",
+        "done_visp": "Als fertig markiert",
+        "done_run": "Transkribiert",
+        "mark_done": "Fertig",
+        "mark_done_hint": "Klicken, um als fertig zu markieren (die Projektleitung sieht das in Visp)",
+        "unmark_done_hint": "Klicken, um als nicht fertig zu markieren"
+      }
     },
     "queue": {
       "run": "{{count}} transkribieren",
@@ -979,8 +984,6 @@
       "assigned_list": "Dir zugewiesene Aufnahmepakete:",
       "save": "In VISP speichern",
       "retry": "Erneut versuchen",
-      "finished": "Fertig",
-      "comment": "Kommentar",
       "keep_mine": "Meine Version behalten",
       "use_theirs": "VISP-Version verwenden",
       "unassigned": "Nicht mehr dir zugewiesen. Deine ungespeicherten Änderungen bleiben hier, bis du dieses Aufnahmepaket entfernst; lade das Transkript vorher herunter, falls du es brauchst.",

@@ -519,7 +519,6 @@
       "title": "录音包",
       "reattach": "关联音频…",
       "attach": "关联",
-      "audio_attached": "已关联音频",
       "select_all": "全选",
       "delete_done": "删除已完成",
       "delete_done_hint": "删除所有标为“已完成”的录音包，连同它们的转写和所有编辑。此操作无法撤销，如仍需要，请先导出。你的音频文件不受影响。",
@@ -535,9 +534,7 @@
         "running": "运行中",
         "done": "已完成",
         "failed": "失败",
-        "interrupted": "已中断",
-        "has_transcript": "有文本",
-        "no_transcript": "未转写"
+        "interrupted": "已中断"
       },
       "error": {
         "decode": "无法读取音频",
@@ -557,10 +554,18 @@
       "confirm_remove": "移除 {{count}} 个录音包？它们的转写和所有编辑都将被删除且无法恢复。你的音频文件不受影响。",
       "column_file": "录音包",
       "column_file_hint": "录音包就是一段录音：它的音频和转写。Tratt 将转写保存在此浏览器中。音频保留在你的磁盘上，只在你工作时关联。",
-      "column_audio": "音频",
       "column_status": "转写",
       "audio_details_not_attached": "未关联音频",
-      "audio_details_pending": "音频加载后会显示音频信息"
+      "audio_details_pending": "音频加载后会显示音频信息",
+      "coverage": {
+        "none": "尚无文本",
+        "partial": "{{segments}} 个片段中有 {{withText}} 个有文本 · 占音频的 {{percent}}%",
+        "done_visp": "已标记为完成",
+        "done_run": "已转写",
+        "mark_done": "完成",
+        "mark_done_hint": "点击标记为完成（项目负责人可在 Visp 中看到）",
+        "unmark_done_hint": "点击标记为未完成"
+      }
     },
     "queue": {
       "run": "转写 {{count}} 个",
@@ -708,8 +713,6 @@
       "assigned_list": "分配给你的录音包：",
       "save": "保存到 VISP",
       "retry": "重试",
-      "finished": "已完成",
-      "comment": "备注",
       "keep_mine": "保留我的版本",
       "use_theirs": "使用 VISP 版本",
       "unassigned": "已不再分配给你。在你移除此录音包之前，未保存的更改会保留在这里；如有需要，请先下载转写稿。",
