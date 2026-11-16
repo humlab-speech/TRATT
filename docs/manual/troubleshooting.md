@@ -197,7 +197,7 @@ This pave is not linked to from the interface: add `/help-tools` to Tratt's addr
 | Tool | Use it when |
 | --- | --- |
 | **Refresh App** | Tratt is behaving oddly after an update. It forces a reload and refreshes the cache |
-| **Clear all Storage Data** | You are finished on a shared machine, or storage is corrupt. It removes the transcript, logs and settings permanently. |
+| **Clear all Storage Data** | You are finished on a shared machine, or storage is corrupt. It deletes the transcript, logs and settings permanently. |
 | **Stresstest** | Checking whether this browser and machine can cope |
 | **Backup local data** | Before clearing anything, or before a browser update. It downloads a zip of Tratt's local data |
 | **Restore local backup** | Restoring the previous state from a zip file |

@@ -22,7 +22,7 @@ chosen; to work on another level, open Tratt from VISP again.
 | The list | The files you add | Your assignment in the project |
 | Audio | Attached by you, again after a reload | Fetched from VISP whenever it is needed |
 | Your transcript | Kept in the browser, exported as files | Saved into the project as you work |
-| Adding and removing | Drop, record, load a `.zip`, **Delete** | Not available: the list is your assignment |
+| Adding and deleting | Drop, record, load a `.zip`, **Delete** | Not available: the list is your assignment |
 | Tiers | Any you create | Only the annotation level you chose when opening Tratt |
 
 Everything about transcribing itself is the same: the editors, the shortcuts and
@@ -62,7 +62,7 @@ or closing it and opening it again from VISP, does not lose them, and they are
 saved once Tratt is open again. They are kept on this computer and in this
 browser only.
 
-> **Caution.** Clearing the browser's site data for Tratt removes unsaved
+> **Caution.** Clearing the browser's site data for Tratt deletes unsaved
 > changes. What is saved to VISP is not affected.
 
 ---
@@ -108,7 +108,7 @@ longer be saved to VISP: saving it fails, and your changes stay in this browser.
 Download the transcript if you need it.
 
 It can no longer be saved to the project. Use **Download this transcript** if you
-want to keep the text, then **Remove**.
+want to keep the text, then **Delete**.
 
 ---
 
@@ -127,7 +127,7 @@ the transcription level and is saved like anything you type. See
 | --- | --- |
 | *You are no longer signed in to VISP. Sign in again in VISP, then reload TRATT.* | Your changes are kept. Sign in to VISP in another tab, then reload Tratt. |
 | *You are not a member of this project. Ask the project owner to add you.* | Ask the project owner. |
-| *The annotation level TRATT was opened with is not a segment level in this project, so TRATT cannot open its recording bundles. Open TRATT from VISP again and choose another level.* | The level was removed or changed in VISP after you opened Tratt. Open Tratt from VISP again. |
+| *The annotation level TRATT was opened with is not a segment level in this project, so TRATT cannot open its recording bundles. Open TRATT from VISP again and choose another level.* | The level was deleted or changed in VISP after you opened Tratt. Open Tratt from VISP again. |
 | *The annotation level TRATT was opened with is linked to other levels, so TRATT cannot edit it safely. Open TRATT from VISP again and choose another level.* | The level was linked in VISP after you opened Tratt. Open Tratt from VISP again. |
 | *VISP cannot be reached. Your changes are kept in this browser; try again in a moment.* | Wait: Tratt tries again by itself. **Retry** on the recording bundle tries at once. |
 | *This TRATT installation is not configured for VISP.* | Shown instead of the Workbench. Tell whoever runs VISP. |

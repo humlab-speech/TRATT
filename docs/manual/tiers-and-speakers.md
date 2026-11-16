@@ -82,7 +82,7 @@ The speaker menu in the header lists every speaker with its colour swatch.
 | --- | --- |
 | Rename a speaker everywhere | Type a new name in its field and click away; every unit carrying the old label is updated |
 | Add a speaker | The **+** row at the bottom. It becomes available for cycling even before any unit uses it. |
-| Remove a speaker | The bin icon (**only offered for speakers that no unit is using**). Reassign the units first. |
+| Delete a speaker | The bin icon (**only offered for speakers that no unit is using**). Reassign the units first. |
 
 Rename early. Turning `SPEAKER_00` and `SPEAKER_01` into `Interviewer` and
 `Participant` before you start correcting makes every later pass easier to read, and

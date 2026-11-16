@@ -751,7 +751,7 @@
     "editor_header": {
       "mono": "mono",
       "stereo": "stereo",
-      "export": "Ladda ned transkriptionen",
+      "export": "Ladda ned den här transkriptionen",
       "export_unavailable": "Inget att ladda ned ännu: inspelningspaketet har ingen transkription, och dess ljud är inte bifogat.",
       "save_recording": "Spara ljudet",
       "audio_not_attached": "ljudet är inte bifogat"

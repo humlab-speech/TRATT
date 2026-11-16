@@ -326,10 +326,10 @@
       "record": "Record now"
     },
     "last used": "recently used",
-    "local and remove": "Remove online mode data & continue",
+    "local and remove": "Delete online mode data & continue",
     "local mode": "Transcribe conversations locally in your web browser",
     "local mode description": "<p>Start transcription of your sound or video file by loading it with the upload box. You can use an automatic transcription model to provide a draft transcription that you then edit by choosing that option below the upload box.</p><p>The transcription work by models will be performed on your computer, and the models available to you will therefore depend on your browser's support for the WebGPU extension and the graphics card of your computer. Video files will be converted to sound only, which may take some additional time.</p><p>Tratt will save your last transcription session in your browser but never the sound or video file, which means that you will have to upload the media file again when you want to continue your previous session.</p>",
-    "login and remove": "Remove local mode data & login",
+    "login and remove": "Delete local mode data & login",
     "offline mode data warning": "There is local data available that was created in online mode. If you want to continue in local mode this data will be overwritten.",
     "old file found": "There is data from a previous transcription available. If you would like to continue your work, just drag & drop the following file to the box below:<br/><br/>{{file_label}}",
     "old version": {
@@ -619,7 +619,7 @@
       },
       "stop": {
         "header": "Stop Transcription",
-        "text": "Do you really want to quit the transcription? During the transcription Tratt saves your progress in a local storage of this web browser.<br><br>Decide on one of the following options:<ul class='mt-2'><li class='mt-1'><b>Quit & release</b><br/>Your progress will be discarded and the task offered to other transcribers if necessary.</li><li class='mt-1'><b>Quit & continue later</b><br/>Your current progress will be transferred to the server. You can log in later with the same credentials and continue transcribing. Important: Do not remove your web browser's data otherwise you will lose your progress.</li><li class='mt-1'><b>Continue transcription:</b><br/>Choose this option if you want to continue now.</li></ul>",
+        "text": "Do you really want to quit the transcription? During the transcription Tratt saves your progress in a local storage of this web browser.<br><br>Decide on one of the following options:<ul class='mt-2'><li class='mt-1'><b>Quit & release</b><br/>Your progress will be discarded and the task offered to other transcribers if necessary.</li><li class='mt-1'><b>Quit & continue later</b><br/>Your current progress will be transferred to the server. You can log in later with the same credentials and continue transcribing. Important: Do not delete your web browser's data otherwise you will lose your progress.</li><li class='mt-1'><b>Continue transcription:</b><br/>Choose this option if you want to continue now.</li></ul>",
         "url text": "Do you really want to finish the transcription? You are now using the URL mode. Your progress is not saved in this mode. <br/><br/><b>Make sure you export your annotation before you close Tratt.</b>"
       }
     }
@@ -664,10 +664,10 @@
   "projects-list": {
     "introduction": "Please select a project that you want to transcribe and click on \"START\".",
     "no remaining tasks": "This project does not have any free tasks.",
-    "other user logged in": "There is some data locally saved by another user (<b>{{username}}</b>) from a previous session. If you start a new task the data from that previous session is going to be removed.",
+    "other user logged in": "There is some data locally saved by another user (<b>{{username}}</b>) from a previous session. If you start a new task the data from that previous session is going to be deleted.",
     "project creation wanted": "I want to create a new project",
     "resume transcription": "Continue transcription",
-    "same user free task": "There are remaining date from a previous unfinished session (project: {{project}}). Click on \"{{resumeTranscription}}\" in order to resume the previous transcription or start a new task. <b>Starting a new task removes data from that previous session</b>"
+    "same user free task": "There are remaining date from a previous unfinished session (project: {{project}}). Click on \"{{resumeTranscription}}\" in order to resume the previous transcription or start a new task. <b>Starting a new task deletes data from that previous session</b>"
   },
   "reload-file": {
     "another file selected": "Another file selected. Please select the same file as before or start a new transcription.\n\nWanted: '{{file}}'",
@@ -1007,8 +1007,8 @@
       },
       "keep_mine": "Keep my version",
       "use_theirs": "Use the VISP version",
-      "unassigned": "No longer assigned to you. Your unsaved changes are kept here until you remove this recording bundle; download the transcript first if you need it.",
-      "remove_unassigned": "Remove",
+      "unassigned": "No longer assigned to you. Your unsaved changes are kept here until you delete this recording bundle; download the transcript first if you need it.",
+      "remove_unassigned": "Delete",
       "sync": {
         "saved": "Saved",
         "unsaved": "Unsaved changes",

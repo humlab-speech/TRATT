@@ -110,7 +110,7 @@ se ändringen. Ett inspelningspaket som inte längre är tilldelat dig kan inte
 längre sparas till VISP: sparandet misslyckas och dina ändringar finns kvar i den
 här webbläsaren. Ladda ner transkriptet om du behöver det.
 
-Det kan inte längre sparas till projektet. Använd **Ladda ned transkriptionen** om du
+Det kan inte längre sparas till projektet. Använd **Ladda ned den här transkriptionen** om du
 vill behålla texten och sedan **Ta bort**.
 
 ---
