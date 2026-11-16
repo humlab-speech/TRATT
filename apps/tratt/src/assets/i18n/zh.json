@@ -606,6 +606,7 @@
       "scope_ticked": "已勾选的录音包（{{count}}）",
       "scope_all": "全部录音包（{{count}}）",
       "formats_label": "格式",
+      "no_formats": "尚无转写，因此没有可按格式导出的内容。请先转写；在此之前只能导出音频。",
       "native_format": "Tratt 格式",
       "native_hint": "Tratt 自有的转写文件，每个 .zip 都包含。之后把 .zip 拖到 Tratt 即可重新载入转写。",
       "include_audio": "包含音频",

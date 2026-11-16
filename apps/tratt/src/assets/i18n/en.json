@@ -950,6 +950,7 @@
       "scope_ticked": "The ticked recording bundles ({{count}})",
       "scope_all": "All recording bundles ({{count}})",
       "formats_label": "Formats",
+      "no_formats": "No transcript yet, so there is nothing to export in a format. Transcribe first; until then only the audio can be exported.",
       "native_format": "Tratt’s own format",
       "native_hint": "Tratt’s own transcript file, in every .zip. Drop the .zip on Tratt later to load the transcripts back.",
       "include_audio": "Include the audio",

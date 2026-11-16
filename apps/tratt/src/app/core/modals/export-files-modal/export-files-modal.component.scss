@@ -40,6 +40,24 @@ legend {
   min-width: 0;
 }
 
+.export__no-formats-title {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.export__no-formats-text {
+  display: flex;
+  gap: 0.5rem;
+  margin: 0;
+  color: var(--tratt-text-muted);
+  font-size: 0.9rem;
+
+  i {
+    margin-top: 0.2rem;
+  }
+}
+
 .export__category {
   margin: 0.75rem 0 0.25rem;
   padding-bottom: 0.25rem;

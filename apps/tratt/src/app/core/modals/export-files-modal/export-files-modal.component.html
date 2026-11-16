@@ -54,125 +54,140 @@
 
     <div class="export__layout">
       <!-- Formats, each with its options once ticked. -->
-      <fieldset class="export__formats">
-        <legend>{{ 'workbench.export.formats_label' | transloco }}</legend>
-        @for (cat of categoryOrder; track cat) {
-          @if (formatsByCategory.get(cat)!.length > 0) {
-            <h6 class="export__category">
-              {{ 'export.category ' + cat | transloco }}
-            </h6>
-            @for (
-              converter of formatsByCategory.get(cat)!;
-              track converter.name
-            ) {
-              <div
-                class="export__format"
-                [class.export__format--checked]="isChecked(converter.name)"
-              >
-                <label class="export__format-option">
-                  <input
-                    type="checkbox"
-                    [checked]="isChecked(converter.name)"
-                    (change)="toggleFormat(converter.name)"
-                  />
-                  <span class="export__format-name">
-                    @if (converter.name === NATIVE_FORMAT) {
-                      {{ 'workbench.export.native_format' | transloco }}
-                    } @else {
-                      {{ converter.name }}
-                    }
-                  </span>
-                  <span class="export__format-ext">{{
-                    converter.extensions.join(', ')
-                  }}</span>
-                  @if (converter.notice !== '') {
-                    <i
-                      class="fa-solid fa-circle-info export__format-notice"
-                      [ngbTooltip]="converter.notice"
-                    ></i>
-                  }
-                </label>
-                @if (converter.applications.length > 0) {
-                  <div class="export__format-apps">
-                    @for (app of converter.applications; track app) {
-                      @if (app.application.homepage) {
-                        <a [href]="app.application.homepage" target="_blank">{{
-                          app.application.name
-                        }}</a>
+      @if (hasAnyTranscript()) {
+        <fieldset class="export__formats">
+          <legend>{{ 'workbench.export.formats_label' | transloco }}</legend>
+          @for (cat of categoryOrder; track cat) {
+            @if (formatsByCategory.get(cat)!.length > 0) {
+              <h6 class="export__category">
+                {{ 'export.category ' + cat | transloco }}
+              </h6>
+              @for (
+                converter of formatsByCategory.get(cat)!;
+                track converter.name
+              ) {
+                <div
+                  class="export__format"
+                  [class.export__format--checked]="isChecked(converter.name)"
+                >
+                  <label class="export__format-option">
+                    <input
+                      type="checkbox"
+                      [checked]="isChecked(converter.name)"
+                      (change)="toggleFormat(converter.name)"
+                    />
+                    <span class="export__format-name">
+                      @if (converter.name === NATIVE_FORMAT) {
+                        {{ 'workbench.export.native_format' | transloco }}
                       } @else {
-                        <span>{{ app.application.name }}</span>
+                        {{ converter.name }}
                       }
-                      @if (app.recommended) {
-                        <i
-                          class="fa-solid fa-certificate text-success recommended"
-                          [ngbPopover]="'g.recommended' | transloco"
-                          triggers="mouseenter:mouseleave"
-                        ></i>
-                      }
-                      @if (!$last) {
-                        <span>, </span>
-                      }
+                    </span>
+                    <span class="export__format-ext">{{
+                      converter.extensions.join(', ')
+                    }}</span>
+                    @if (converter.notice !== '') {
+                      <i
+                        class="fa-solid fa-circle-info export__format-notice"
+                        [ngbTooltip]="converter.notice"
+                      ></i>
                     }
-                  </div>
-                }
-                @if (
-                  isChecked(converter.name) && optionsOf(converter).length > 0
-                ) {
-                  <div
-                    class="export__options"
-                    [@fadeInExpandOnEnter]
-                    [@fadeOutCollapseOnLeave]
-                  >
-                    @for (option of optionsOf(converter); track option.key) {
-                      @if (option.choices) {
-                        @for (choice of option.choices; track choice.value) {
+                  </label>
+                  @if (converter.applications.length > 0) {
+                    <div class="export__format-apps">
+                      @for (app of converter.applications; track app) {
+                        @if (app.application.homepage) {
+                          <a
+                            [href]="app.application.homepage"
+                            target="_blank"
+                            >{{ app.application.name }}</a
+                          >
+                        } @else {
+                          <span>{{ app.application.name }}</span>
+                        }
+                        @if (app.recommended) {
+                          <i
+                            class="fa-solid fa-certificate text-success recommended"
+                            [ngbPopover]="'g.recommended' | transloco"
+                            triggers="mouseenter:mouseleave"
+                          ></i>
+                        }
+                        @if (!$last) {
+                          <span>, </span>
+                        }
+                      }
+                    </div>
+                  }
+                  @if (
+                    isChecked(converter.name) && optionsOf(converter).length > 0
+                  ) {
+                    <div
+                      class="export__options"
+                      [@fadeInExpandOnEnter]
+                      [@fadeOutCollapseOnLeave]
+                    >
+                      @for (option of optionsOf(converter); track option.key) {
+                        @if (option.choices) {
+                          @for (choice of option.choices; track choice.value) {
+                            <label class="export__option">
+                              <input
+                                type="radio"
+                                [name]="converter.name + '-' + option.key"
+                                [value]="choice.value"
+                                [(ngModel)]="converter.options[option.key]"
+                              />
+                              {{ choice.label | transloco }}
+                            </label>
+                          }
+                        } @else {
                           <label class="export__option">
                             <input
-                              type="radio"
-                              [name]="converter.name + '-' + option.key"
-                              [value]="choice.value"
+                              type="checkbox"
                               [(ngModel)]="converter.options[option.key]"
                             />
-                            {{ choice.label | transloco }}
+                            <span>
+                              {{ option.label! | transloco }}
+                              @if (option.example) {
+                                <code class="export__option-example">{{
+                                  option.example
+                                }}</code>
+                              }
+                            </span>
                           </label>
                         }
-                      } @else {
-                        <label class="export__option">
-                          <input
-                            type="checkbox"
-                            [(ngModel)]="converter.options[option.key]"
-                          />
-                          <span>
-                            {{ option.label! | transloco }}
-                            @if (option.example) {
-                              <code class="export__option-example">{{
-                                option.example
-                              }}</code>
-                            }
-                          </span>
-                        </label>
                       }
-                    }
-                    @if (
-                      converter.name === 'PlainText' &&
-                      converter.options.showTimestampString &&
-                      converter.options.showTimestampSamples
-                    ) {
-                      <p class="export__option-note">
-                        {{ 'export.options.timestamp notice' | transloco }}
-                        <code>
-                          This is an example &lt;ts="00:00:03.222" sp="379736">
-                          of a transcript.
-                        </code>
-                      </p>
-                    }
-                  </div>
-                }
-              </div>
+                      @if (
+                        converter.name === 'PlainText' &&
+                        converter.options.showTimestampString &&
+                        converter.options.showTimestampSamples
+                      ) {
+                        <p class="export__option-note">
+                          {{ 'export.options.timestamp notice' | transloco }}
+                          <code>
+                            This is an example &lt;ts="00:00:03.222"
+                            sp="379736"> of a transcript.
+                          </code>
+                        </p>
+                      }
+                    </div>
+                  }
+                </div>
+              }
             }
           }
-        }
-      </fieldset>
+        </fieldset>
+      } @else {
+        <!-- No transcript in scope: no format would get anything to write. -->
+        <section class="export__formats export__no-formats">
+          <h6 class="export__no-formats-title">
+            {{ 'workbench.export.formats_label' | transloco }}
+          </h6>
+          <p class="export__no-formats-text">
+            <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+            {{ 'workbench.export.no_formats' | transloco }}
+          </p>
+        </section>
+      }
 
       <div class="export__side">
         @if (audioAvailable()) {

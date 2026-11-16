@@ -898,6 +898,7 @@
       "scope_ticked": "De markerade inspelningspaketen ({{count}})",
       "scope_all": "Alla inspelningspaket ({{count}})",
       "formats_label": "Format",
+      "no_formats": "Ingen transkription än, så det finns inget att exportera i något format. Transkribera först; till dess kan bara ljudet exporteras.",
       "native_format": "Tratts eget format",
       "native_hint": "Tratts egen transkriptionsfil, med i varje .zip. Släpp .zip-filen i Tratt senare för att läsa in transkriptionerna igen.",
       "include_audio": "Ta med ljudet",

@@ -877,6 +877,7 @@
       "scope_ticked": "Die angehakten Aufnahmepakete ({{count}})",
       "scope_all": "Alle Aufnahmepakete ({{count}})",
       "formats_label": "Formate",
+      "no_formats": "Noch kein Transkript, daher gibt es nichts, das in einem Format exportiert werden könnte. Transkribieren Sie zuerst; bis dahin kann nur das Audio exportiert werden.",
       "native_format": "Tratt-Format",
       "native_hint": "Tratts eigene Transkriptdatei, in jeder .zip. Legen Sie die .zip später in Tratt ab, um die Transkripte wieder zu laden.",
       "include_audio": "Audio mitnehmen",

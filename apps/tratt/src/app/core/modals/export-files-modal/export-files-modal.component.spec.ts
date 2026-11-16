@@ -300,17 +300,15 @@ describe('ExportFilesModalComponent', () => {
         name: 'a.wav',
         kind: 'audio',
       });
-      // DOCX is ticked but there is no transcript: the dialog says so.
-      expect(component.contents().audioOnly).toEqual(['a.wav']);
+      // No transcript at all: no formats panel, and nothing to warn about.
+      expect(component.hasAnyTranscript()).toBe(false);
       expect(
-        fixture.debugElement.query(By.css('.export__audio-only')).nativeElement
-          .textContent,
-      ).toContain('workbench.export.audio_only');
-
-      // With no format ticked there is nothing to warn about.
-      component.toggleFormat('DOCX');
+        fixture.debugElement.query(By.css('fieldset.export__formats')),
+      ).toBeNull();
+      expect(
+        fixture.debugElement.query(By.css('.export__no-formats')),
+      ).not.toBeNull();
       expect(component.contents().audioOnly).toEqual([]);
-      component.toggleFormat('DOCX');
 
       component.setScope('all');
       expect(
@@ -322,6 +320,26 @@ describe('ExportFilesModalComponent', () => {
         ['DOCX'],
         { includeAudio: true },
       );
+    });
+
+    it('keeps the formats, and names the recordings that only send their audio, when some have a transcript', () => {
+      openFromList([
+        bundle('b1', 'a.wav', { hasTranscript: false }),
+        bundle('b2', 'b.wav'),
+      ]);
+      fixture.detectChanges();
+      expect(
+        fixture.debugElement.query(By.css('fieldset.export__formats')),
+      ).not.toBeNull();
+      expect(component.contents().audioOnly).toEqual(['a.wav']);
+      expect(
+        fixture.debugElement.query(By.css('.export__audio-only')).nativeElement
+          .textContent,
+      ).toContain('workbench.export.audio_only');
+
+      // With no format ticked there is nothing to warn about.
+      component.toggleFormat('DOCX');
+      expect(component.contents().audioOnly).toEqual([]);
     });
 
     it('disables Download with no format ticked', () => {

@@ -606,6 +606,7 @@
       "scope_ticked": "De aangevinkte opnamebundels ({{count}})",
       "scope_all": "Alle opnamebundels ({{count}})",
       "formats_label": "Formaten",
+      "no_formats": "Nog geen transcriptie, dus er is niets om in een formaat te exporteren. Transcribeer eerst; tot dan kan alleen de audio worden geëxporteerd.",
       "native_format": "Tratt-formaat",
       "native_hint": "Tratts eigen transcriptiebestand, in elke .zip. Sleep de .zip later naar Tratt om de transcripties weer te laden.",
       "include_audio": "Audio meenemen",

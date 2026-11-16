@@ -330,6 +330,14 @@ export class ExportFilesModalComponent
     };
   }
 
+  /**
+   * Some recording in scope has a transcript. Without one there is nothing
+   * to write in any format, so the formats are not offered at all.
+   */
+  readonly hasAnyTranscript = computed(() =>
+    this.scopedBundles().some((b) => b.hasTranscript),
+  );
+
   /** Some recording in scope has more than one tier. */
   readonly hasSeveralTiers = computed(() =>
     this.scopedBundles().some(
@@ -460,7 +468,9 @@ export class ExportFilesModalComponent
        * transcript yet; worth saying when formats are ticked, which they
        * then do not get.
        */
-      audioOnly: formats.length > 0 ? audioOnly : [],
+      // Only beside the formats panel, which is hidden when nothing in
+      // scope has a transcript (see hasAnyTranscript).
+      audioOnly: formats.length > 0 && this.hasAnyTranscript() ? audioOnly : [],
     };
   });
 
@@ -488,6 +498,7 @@ export class ExportFilesModalComponent
   readonly showMore = computed(
     () =>
       !!this.annotationStoreService.transcript &&
+      this.hasAnyTranscript() &&
       (!this.listMode() || this.scope() === 'open'),
   );
   public tools = {
