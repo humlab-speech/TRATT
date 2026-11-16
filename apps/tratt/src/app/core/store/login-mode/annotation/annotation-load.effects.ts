@@ -64,7 +64,7 @@ import { resolveLocalBundleState } from './local-bundle-collection';
 import { FileInfo } from '@tratt/web-media';
 import mime from 'mime';
 import { FeedBackForm } from '../../../obj/FeedbackForm/FeedBackForm';
-import { isWorkbenchRoute } from '../../../shared/home-link';
+import { isWorkbenchRoute } from '../../../shared/workbench-route';
 
 export { isWorkbenchRoute };
 
@@ -73,12 +73,30 @@ function isLoadRoute(url: string): boolean {
 }
 
 /**
+ * The app route the browser's address shows: its path below the base href,
+ * e.g. `/` for `https://host/apps/tratt/` deployed under `/apps/tratt/`.
+ */
+function locationRoute(): string {
+  // Not document.baseURI: without a <base> element that is the page itself.
+  const baseHref = document.querySelector('base')?.href;
+  const base = baseHref ? new URL(baseHref).pathname : '/';
+  const path = window.location.pathname;
+  if (`${path}/` === base) {
+    return '/';
+  }
+  return path.startsWith(base)
+    ? `/${path.slice(base.length)}`
+    : path.replace(/^\/?/, '/');
+}
+
+/**
  * Like `isWorkbenchRoute(router.url)`, but also correct while the app is
- * still booting. On a page reload `router.url` is '/' until the initial
- * navigation finishes — and the LOCAL boot chain (prepareTaskData ->
- * loadAudio.fail, because a reload never has audio in memory) runs before
- * that, so the old check redirected every reload of /workbench to the
- * legacy /intern/transcr/reload-file page. Checks, in order: the URL of a
+ * still booting. On a page reload `router.url` is '/' — the workbench's own
+ * route — until the initial navigation finishes, whatever page is being
+ * loaded; and the LOCAL boot chain (prepareTaskData -> loadAudio.fail,
+ * because a reload never has audio in memory) runs before that, so a check
+ * of `router.url` alone sent every reload of the workbench to the legacy
+ * /intern/transcr/reload-file page. Checks, in order: the URL of a
  * navigation in progress, the settled router URL, and — before the first
  * navigation has completed — the browser location (base-href agnostic).
  */
@@ -90,8 +108,7 @@ export function isOnWorkbench(
   // the user actually reloaded is then only known from last_page_path.
   const onLoadPage =
     isLoadRoute(router.url) ||
-    (typeof window !== 'undefined' &&
-      /\/load\/?$/.test(window.location.pathname));
+    (typeof window !== 'undefined' && isLoadRoute(locationRoute()));
   if (onLoadPage && lastPagePath && isWorkbenchRoute(lastPagePath)) {
     return true;
   }
@@ -102,13 +119,10 @@ export function isOnWorkbench(
       return true;
     }
   }
-  if (isWorkbenchRoute(router.url)) {
-    return true;
+  if (router.navigated) {
+    return isWorkbenchRoute(router.url);
   }
-  if (!router.navigated && typeof window !== 'undefined') {
-    return /\/workbench\/?$/.test(window.location.pathname);
-  }
-  return false;
+  return typeof window !== 'undefined' && isWorkbenchRoute(locationRoute());
 }
 
 @Injectable()
@@ -119,13 +133,18 @@ export class AnnotationLoadEffects {
   private sessionStorage = inject(SessionStorageService, { optional: true });
 
   /**
-   * True when the user is working in /workbench, in which case LOCAL-mode
-   * redirects to the legacy /intern/transcr pages must not happen. If the
-   * app is still parked on /load by APP_INITIALIZED_GUARD (page reload), it
-   * is sent back to /workbench here — nothing else would, and the user was
-   * left on a "Please wait…" screen.
+   * True when the user is working in the workbench (`/`), in which case
+   * LOCAL-mode redirects to the legacy /intern/transcr pages must not happen.
+   * If the app is still parked on /load by APP_INITIALIZED_GUARD (page
+   * reload), it is sent back to the workbench here — nothing else would, and
+   * the user was left on a "Please wait…" screen.
    */
-  private keepOnWorkbench(): boolean {
+  private keepOnWorkbench(mode?: LoginMode): boolean {
+    // Only the offline workbench lives at `/`. URL/online modes must go on to
+    // the transcription editor, even if the saved launch page looks like `/`.
+    if (mode !== undefined && mode !== LoginMode.LOCAL) {
+      return false;
+    }
     if (!isOnWorkbench(this.router, this.lastPagePath())) {
       return false;
     }
@@ -134,11 +153,7 @@ export class AnnotationLoadEffects {
       !this.router.currentNavigation?.()
     ) {
       this.routingService
-        .navigate(
-          'back to workbench',
-          ['/workbench'],
-          AppInfo.queryParamsHandling,
-        )
+        .navigate('back to workbench', ['/'], AppInfo.queryParamsHandling)
         .catch((error) => console.error(error));
     }
     return true;
@@ -519,7 +534,7 @@ export class AnnotationLoadEffects {
         withLatestFrom(this.store),
         tap(([a, state]) => {
           if (state.application.mode === LoginMode.LOCAL) {
-            if (!this.keepOnWorkbench()) {
+            if (!this.keepOnWorkbench(state.application.mode)) {
               this.routingService
                 .navigate(
                   'reload audio local',
@@ -556,7 +571,7 @@ export class AnnotationLoadEffects {
         ofType(AnnotationActions.initTranscriptionService.success),
         withLatestFrom(this.store),
         tap(([action, state]) => {
-          if (!this.keepOnWorkbench()) {
+          if (!this.keepOnWorkbench(state.application.mode)) {
             this.routingService.navigate(
               'transcription initialized',
               ['/intern/transcr'],
@@ -1018,8 +1033,9 @@ export class AnnotationLoadEffects {
     () =>
       this.actions$.pipe(
         ofType(AnnotationActions.redirectToTranscription.do),
-        tap((a) => {
-          if (!this.keepOnWorkbench()) {
+        withLatestFrom(this.store),
+        tap(([a, state]) => {
+          if (!this.keepOnWorkbench(state.application.mode)) {
             this.routingService.navigate(
               'redirect to transcription loadOnlineInformationAfterIDBLoaded',
               ['/intern/transcr'],

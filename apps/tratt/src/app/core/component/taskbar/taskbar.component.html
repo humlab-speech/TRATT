@@ -1,5 +1,5 @@
-<div id="fastbar" [class.fastbar--inline]="variant === 'inline'">
-  <div class="btn-group w-100 p-2">
+<div id="fastbar" #bar [class.fastbar--inline]="variant === 'inline'">
+  <div class="btn-group w-100 p-2" #buttons>
     @if (variant === 'inline') {
       <ng-container [ngTemplateOutlet]="help" />
       <ng-container [ngTemplateOutlet]="shortcuts" />
@@ -16,13 +16,22 @@
     type="button"
     (click)="shortcutbtnclicked.emit()"
     class="btn btn-link w-100"
+    [attr.title]="buttonLabels.shortcuts"
   >
     <i class="fa-solid fa-keyboard align-middle"></i>
     @if (!appStorage.easyMode) {
-      <span class="d-none d-md-inline"> {{ buttonLabels.shortcuts }}</span>
+      <span
+        [class]="variant === 'inline' ? 'fastbar__label' : 'd-none d-md-inline'"
+      >
+        {{ buttonLabels.shortcuts }}</span
+      >
     }
     @if (!appStorage.easyMode) {
-      <span class="d-none d-lg-inline"> <kbd>Alt+8</kbd></span>
+      <span
+        [class]="variant === 'inline' ? 'fastbar__kbd' : 'd-none d-lg-inline'"
+      >
+        <kbd>Alt+8</kbd></span
+      >
     }
   </button>
 </ng-template>
@@ -31,21 +40,39 @@
     type="button"
     (click)="overviewbtnclicked.emit()"
     class="btn btn-link w-100"
+    [attr.title]="buttonLabels.overview"
   >
     <i class="fa-solid fa-eye"></i>
     @if (!appStorage.easyMode) {
-      <span class="d-none d-md-inline"> {{ buttonLabels.overview }}</span>
+      <span
+        [class]="variant === 'inline' ? 'fastbar__label' : 'd-none d-md-inline'"
+      >
+        {{ buttonLabels.overview }}</span
+      >
     }
     @if (!appStorage.easyMode) {
-      <span class="d-none d-lg-inline"> <kbd>Alt+0</kbd></span>
+      <span
+        [class]="variant === 'inline' ? 'fastbar__kbd' : 'd-none d-lg-inline'"
+      >
+        <kbd>Alt+0</kbd></span
+      >
     }
   </button>
 </ng-template>
 <ng-template #help>
-  <button type="button" (click)="openHelpModal()" class="btn btn-link w-100">
+  <button
+    type="button"
+    (click)="openHelpModal()"
+    class="btn btn-link w-100"
+    [attr.title]="buttonLabels.help"
+  >
     <i class="fa-solid fa-circle-question"></i>
     @if (!appStorage.easyMode) {
-      <span class="d-none d-md-inline"> {{ buttonLabels.help }}</span>
+      <span
+        [class]="variant === 'inline' ? 'fastbar__label' : 'd-none d-md-inline'"
+      >
+        {{ buttonLabels.help }}</span
+      >
     }
   </button>
 </ng-template>

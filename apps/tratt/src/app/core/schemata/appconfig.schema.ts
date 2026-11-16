@@ -24,6 +24,32 @@ export const AppConfigSchema: JSONSchema4 = {
       },
       type: 'object',
     },
+    visp: {
+      description:
+        'VISP integration (deployment-mounted). Only used when TRATT is opened with ?workspace=visp&projectId=<id>&level=<name>; stand-alone installations leave it out.',
+      type: 'object',
+      required: ['serverUrl'],
+      properties: {
+        serverUrl: {
+          type: 'string',
+          pattern: '^(wss?://|/(?!/))',
+          description:
+            "The VISP annotation server's websocket, proxied on TRATT's own host: a path such as /annotation-ws (resolved against TRATT's host), or an absolute wss:// URL.",
+        },
+        mediaOrigin: {
+          type: 'string',
+          pattern: '^https?://',
+          description:
+            "Another origin the server may put in audio URLs (besides TRATT's own), e.g. https://artic.example.org. Audio is always fetched from the same path on TRATT's own host.",
+        },
+        transcriptionLevel: {
+          type: 'string',
+          minLength: 1,
+          description:
+            "Level to transcribe into when the launch link names none (VISP's launch dialog always does). It must be an unlinked SEGMENT level in the project's VISP_DBconfig.json; every other level is left untouched.",
+        },
+      },
+    },
     tratt: {
       required: ['database', 'supportEmail', 'allowed_browsers', 'languages'],
       properties: {
@@ -69,9 +95,20 @@ export const AppConfigSchema: JSONSchema4 = {
           properties: {
             node: {
               properties: {
-                name: { type: 'string', description: 'Name of the hosting node, used as the logo’s alt text.' },
-                logo: { type: 'string', description: 'URL or asset path of the node’s logo (SVG preferred).' },
-                url: { type: 'string', description: 'Where the logo links to.' },
+                name: {
+                  type: 'string',
+                  description:
+                    'Name of the hosting node, used as the logo’s alt text.',
+                },
+                logo: {
+                  type: 'string',
+                  description:
+                    'URL or asset path of the node’s logo (SVG preferred).',
+                },
+                url: {
+                  type: 'string',
+                  description: 'Where the logo links to.',
+                },
               },
               required: ['name', 'logo', 'url'],
               type: 'object',

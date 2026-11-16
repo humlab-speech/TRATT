@@ -1,5 +1,12 @@
 import { NgStyle } from '@angular/common';
-import { Component, Input, OnDestroy, Output, ViewChild } from '@angular/core';
+import {
+  Component,
+  EventEmitter,
+  Input,
+  OnDestroy,
+  Output,
+  ViewChild,
+} from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { NgbPopover } from '@ng-bootstrap/ng-bootstrap';
 import { OAnnotJSON } from '@tratt/annotation';
@@ -127,6 +134,8 @@ export class TrattDropzoneComponent
   }
   @Output() archiveLoaded = this.trattDropzoneService.archiveLoaded;
   @Output() filesAdded = this.trattDropzoneService.filesChange;
+  /** Files dropped or picked here, before they are read. */
+  @Output() filesDropped = new EventEmitter<File[]>();
 
   get AppInfo(): AppInfo {
     return AppInfo;
@@ -185,10 +194,16 @@ export class TrattDropzoneComponent
 
   public afterDrop = async () => {
     const files = this.dropzone.files!;
+    this.filesDropped.emit(files);
     for (const file of files) {
       this.trattDropzoneService.add(file);
     }
   };
+
+  /** Drop an entry from the list, as its delete button does. */
+  public removeEntry(id: number): void {
+    void this.trattDropzoneService.remove(id);
+  }
 
   /** Stage a programmatically supplied file (e.g. from the recording panel). */
   public addFile(file: File): void {

@@ -34,8 +34,7 @@ engelska texten inom parentes.
 | **Bundle** | En inspelning i Arbetsbänkens lista tillsammans med sin transkription. Ordet dyker upp i några meddelanden och i sökvägarna i exporterade arkiv. |
 | **Pipeline** | Det som körs på en inspelning automatiskt: taligenkänning, och valfritt talarseparation och översättning. Arbetsbänkens **Pipelineinställningar** är samma kontroller som startsidans. |
 | **Kö** | Ordningen Arbetsbänken arbetar sig genom inspelningarna i. En i taget. |
-| **Arkiv** | En `.zip` skriven av **Exportera alla**, med varje inspelnings ljud och transkription plus de format du markerat. Den enda exporten som kan läsas in igen i sin helhet. |
-| **Katalogexport** | Dialogen som skriver det arkivet. |
+| **Arkiv** | Den `.zip` en export ger när den har mer än en fil: varje inspelningspakets transkription i Tratts eget format, de format du markerat, och ljudet om du tog med det. Den enda exporten som kan läsas in igen i sin helhet. |
 | **Manifest** | `manifest.json` och `manifest.csv` i arkivets rot: en rad per inspelning, med sökvägar och uppgifter. |
 | **Arbetsminne** | Avkodat ljud som hålls i webbläsarfliken. Arbetsbänken mäter det, eftersom det, och inte disklagringen, begränsar hur många inspelningar du kan ha bifogade samtidigt. |
 | **OCTRA** | Ursprungsprojektet som Tratt är avgrenat från, vid LMU München. |

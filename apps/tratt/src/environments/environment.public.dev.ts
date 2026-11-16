@@ -2,7 +2,6 @@ export const environment = {
   production: true,
   dev_version: true,
   beta_version: false,
-  workbenchEnabled: true,
   useCookies: true,
   debugging: {
     enabled: true,

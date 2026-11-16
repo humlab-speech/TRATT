@@ -1,6 +1,7 @@
 import { SampleUnit } from '@tratt/media';
 import {
   AnnotationLevelType,
+  IItem,
   IItemLevel,
   ISegmentLevel,
   OAnnotJSON,
@@ -763,7 +764,9 @@ export class TrattAnnotation<T extends TrattAnnotationSegment> {
         result.levels.push(
           result.createItemLevel(
             jsonObjectElement.name,
-            jsonObjectElement.items,
+            (jsonObjectElement.items as IItem[]).map((a) =>
+              OItem.deserialize(a),
+            ),
           ),
         );
       }

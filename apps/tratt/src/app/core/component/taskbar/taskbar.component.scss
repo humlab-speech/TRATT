@@ -31,3 +31,40 @@
   align-items: center;
   gap: 0.4rem;
 }
+
+// The inline bar takes the width its parent leaves over and compacts itself
+// to fit it (FastbarComponent.fit): first the keyboard hints go, then the
+// labels, which stay for screen readers (and as the buttons' tooltips).
+:host {
+  display: block;
+  min-width: 0;
+}
+
+#fastbar.fastbar--inline {
+  text-align: end;
+  overflow: hidden;
+}
+
+.fastbar--no-kbd .fastbar__kbd {
+  display: none;
+}
+
+.fastbar--icons .fastbar__label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.fastbar--inline .fastbar__label,
+.fastbar--inline .fastbar__kbd {
+  white-space: nowrap;
+}
+
+// Icons only: closer together, so the three fit about 5.5rem
+// (.workbench__pane-bar keeps the fastbar at least that wide).
+.fastbar--icons .btn-group {
+  gap: 0.75rem;
+}

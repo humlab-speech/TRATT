@@ -137,7 +137,7 @@ kassera.
 **En fil misslyckades med "Minnet tog slut"**
 Du har bifogat för mycket avkodat ljud till sessionen samtidigt. Mätaren **Arbetsminne (uppskattat)**
 visar hur mycket som används. Exportera det som är klart,
-**Rensa klara** för att frigöra minnet, och bifoga sedan de nästkommande
+**Radera klara** för att frigöra minnet, och bifoga sedan de nästkommande
 inspelningarna. En mindre transkriptionsmodell hjälper också.
 
 **En fil misslyckades med "Kunde inte läsa ljudet"**

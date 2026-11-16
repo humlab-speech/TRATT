@@ -8,7 +8,8 @@ import {
   resolveLocalBundleState,
 } from './local-bundle-collection';
 
-const { selectAll: selectAllBundleEntities } = localBundleAdapter.getSelectors();
+const { selectAll: selectAllBundleEntities } =
+  localBundleAdapter.getSelectors();
 
 // Per-mode feature selectors
 export const selectOnlineMode =
@@ -41,8 +42,97 @@ export const selectAllBundleSummaries = createSelector(
         b.transcript,
         breakMarkerCodeOf(b.guidelines),
       ),
+      coverage: transcriptCoverage(
+        b.transcript,
+        breakMarkerCodeOf(b.guidelines),
+      ),
     })),
 );
+
+/** How much of a bundle's audio its transcript covers with text. */
+export interface TranscriptCoverage {
+  /** Segments holding text (not empty, not just the break marker). */
+  withText: number;
+  /** All segments of the tier. */
+  segments: number;
+  /** Share of the audio, 0–1, lying in segments that hold text. */
+  fraction: number;
+}
+
+/** The levels of a transcript, as far as coverage and tiers need them. */
+interface TextLevels {
+  levels?: {
+    name?: string;
+    type?: string;
+    items: {
+      time?: { samples: number };
+      labels?: { name?: string; value?: string }[];
+    }[];
+  }[];
+}
+
+/**
+ * A segment's text: the label named after its tier, else the first one that
+ * is not a Speaker label (as the VISP save writes it). Empty and break-marker
+ * values are no text, as in {@link transcriptHasContent}.
+ */
+function segmentText(
+  item: { labels?: { name?: string; value?: string }[] },
+  tierName: string | undefined,
+  breakMarkerCode: string | undefined,
+): string | undefined {
+  const labels = item.labels ?? [];
+  const text = (
+    labels.find((l) => l.name === tierName) ??
+    labels.find((l) => l.name !== 'Speaker')
+  )?.value?.trim();
+  return text && text !== breakMarkerCode ? text : undefined;
+}
+
+/**
+ * Coverage of the segment tier that covers the most audio with text, or
+ * `undefined` when there is no segment tier with segments.
+ *
+ * Measured by duration rather than by counting segments, so one long
+ * untranscribed stretch does not read as nearly done. Segment tiers cover the
+ * whole recording and each segment stores only its end sample, so the last
+ * segment's end is the audio's length — no decoded audio is needed.
+ */
+export function transcriptCoverage(
+  transcript: TextLevels | undefined,
+  breakMarkerCode?: string,
+): TranscriptCoverage | undefined {
+  let best: TranscriptCoverage | undefined;
+  for (const level of transcript?.levels ?? []) {
+    if (level.type !== 'SEGMENT' || level.items.length === 0) continue;
+    const total = level.items[level.items.length - 1].time?.samples ?? 0;
+    let start = 0;
+    let covered = 0;
+    let withText = 0;
+    for (const item of level.items) {
+      const end = item.time?.samples ?? start;
+      if (segmentText(item, level.name, breakMarkerCode)) {
+        withText++;
+        covered += Math.max(0, end - start);
+      }
+      start = end;
+    }
+    const candidate: TranscriptCoverage = {
+      withText,
+      segments: level.items.length,
+      fraction: total > 0 ? Math.min(1, covered / total) : 0,
+    };
+    if (
+      !best ||
+      candidate.fraction > best.fraction ||
+      (candidate.fraction === best.fraction &&
+        candidate.withText > best.withText)
+    ) {
+      best = candidate;
+    }
+  }
+  return best;
+}
 
 /** The guidelines' break ("silence") marker code, e.g. `<P>`, if any. */
 export function breakMarkerCodeOf(
@@ -50,8 +140,7 @@ export function breakMarkerCodeOf(
 ): string | undefined {
   const markers = (
     guidelines?.selected?.json as
-      | { markers?: { type?: string; code?: string }[] }
-      | undefined
+      { markers?: { type?: string; code?: string }[] } | undefined
   )?.markers;
   return markers?.find((m) => m.type === 'break')?.code;
 }

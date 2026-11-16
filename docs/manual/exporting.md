@@ -5,9 +5,29 @@
 Tratt keeps your work in the browser. **Exporting a file is the only
 way your transcript leaves the browser.** Export your work everytime you exit an editing session.
 
-Click **Export** (the download icon in the header, or the button along the bottom
-of the editor). In the [Workbench](workbench.md) it is **Export this transcription**, at the right end of the bar with the editor tabs. The dialog is headed *Export transcriptions*. Click a format to
-expand its options, then **Download**.
+In the [Workbench](workbench.md), click **Export…** under the list of recording
+bundles. (Where Tratt has no list, it is **Export**, the download icon in the
+header.) The dialog is headed *Export*:
+
+1. **What to export**: *This recording bundle* (the one open in the editor),
+   *The ticked recording bundles*, or *All recording bundles*. It starts on the
+   ticked ones when you have ticked any, and is not shown when there is only one
+   recording.
+2. **Formats**: tick one or more. A ticked format shows its
+   [options](#options) underneath.
+3. **Include the audio**: puts each recording's audio next to its transcripts.
+   It is ticked to begin with when you export more than one recording, and only
+   offered when some audio is attached.
+4. **What you get** shows the result before you download it, file by file.
+5. **Download**.
+
+**One file or a .zip.** When your choices make exactly one file, for example one
+recording as DOCX, it downloads as that file. Anything more (several formats,
+several recordings, the audio, or a one-tier format for a recording with several
+tiers) comes as one `.zip`; see [Exporting an archive](#exporting-an-archive).
+The button says which: **Download** or **Download .zip**.
+
+Tratt remembers the formats you ticked for the next export.
 
 ![The export dialog](../assets/visp_tratt_export_formats.png)
 
@@ -35,7 +55,7 @@ All of these can be loaded back into Tratt.
 
 | Format | File | Good for |
 | --- | --- | --- |
-| **AnnotJSON** | `_annot.json` | **Tratt's own format.**, and is Emu SDMS compliant. Keeps everything: tiers, boundaries, speakers, and markers. Export this alongside whatever else you need. |
+| **Tratt's own format** (AnnotJSON) | `_annot.json` | Emu SDMS compliant. Keeps everything: tiers, boundaries, speakers, and markers. Every `.zip` includes it. |
 | **TextGrid** | `.TextGrid` | Praat's primary annotation file format |
 | **ELAN** | `.eaf` | ELAN. Put the `.eaf` in the same folder as the audio or ELAN will not find the media. |
 | **PraatTextTable** | `.Table` | Praat's table format |
@@ -48,9 +68,11 @@ All of these can be loaded back into Tratt.
 | **BASPartitur** | `.par` | BAS web services. Export writes ORT and TRN lines from the transcription. |
 | **CTM** | `.ctm` | Speech-recognition scoring tools. Confidence is always written as 1; Tratt does not track it. |
 
-> **Always take an AnnotJSON copy.** DOCX and ODT are one-way: they read well and
-> import badly. If you might need to correct the transcript in six months, the
-> AnnotJSON file plus the original recording is what lets you.
+> **Keep Tratt's own format.** DOCX and ODT are one-way: they read well and
+> import badly. If you might need to correct the transcript in six months, Tratt's
+> own file plus the original recording is what lets you. Every `.zip` already
+> holds it; with a single DOCX, tick **Tratt's own format** as well, and both come
+> in a `.zip`.
 
 ---
 
@@ -63,7 +85,7 @@ All of these can be loaded back into Tratt.
 | **Each sentence on a separate line** / **Continuous text** | One transcription unit per line, or everything run together as prose |
 | **Mark speaker ID at the beginning of sentences** | Prefixes each unit with its speaker as a voice tag, `<v Name>`. The same tag is read back on import (the older `[Name]` form is still recognised). WebVTT always writes the tag. |
 | **Add timestamp at beginning of each sentence** | Prefixes each unit with its start time |
-| **Collect annotations according to transcription tier in the output** | Shown when you have selected more than one tier: groups the output tier by tier instead of interleaving |
+| **Collect annotations according to transcription tier in the output** | Shown when a recording has more than one tier: groups the output tier by tier instead of interleaving |
 
 Each sentence starts with a coloured bar in the exported Word (DOCX) and ODT
 documents, and a one-line key under the acknowledgement explains the colours: a **green**
@@ -90,7 +112,7 @@ sentences come in as non-verified, unmarked ones as verified.
 | **Add a line break after each transcription unit** | One unit per line |
 | **Separate transcription units by readable timestamps (HH:MM:SS.s)** | Human-readable times between units |
 | **Separate transcription units by sample points** | Sample positions between units, for lining up against the signal elsewhere |
-| **Collect annotations according to transcription tier in the output** | Shown when more than one tier is selected |
+| **Collect annotations according to transcription tier in the output** | Shown when a recording has more than one tier |
 
 Ticking both time options inserts both.
 
@@ -101,23 +123,28 @@ Ticking both time options inserts both.
 | **Move units with speaker label to separate levels** | One tier per speaker instead of one mixed tier |
 | **Combine empty units with max duration (ms) between units of the same speaker** *(SRT)* | Merges a short gap between two turns by the same person. Blank switches it off. |
 
-### Choosing tiers
+### Tiers
 
-This only comes up when your transcript has more than one tier.
+Every tier is exported; there is nothing to choose. This only matters when a
+transcript has more than one tier, for example a translation.
 
-- **AnnotJSON, TextGrid, Praat Table, ELAN** carry several tiers natively and export
-  the whole transcript. No choice to make.
-- **SubRip, WebVTT, BAS Partitur, CTM** hold one tier, and ask you to
-  **Select one tier**.
-- **DOCX, ODT and plain text** show **Select tiers to include** with a checkbox per
-  tier. The *Collect annotations according to transcription tier* option then
-  decides whether the output is grouped tier by tier or interleaved.
+- **Tratt's own format, TextGrid, Praat Table, ELAN** carry several tiers natively:
+  one file with all of them.
+- **DOCX, ODT and plain text** put all tiers in one file. The *Collect annotations
+  according to transcription tier* option decides whether they are grouped tier
+  by tier or interleaved.
+- **SubRip, WebVTT, BAS Partitur, CTM** hold one tier, so they write one file per
+  tier, named after it: `interview-Transcript.srt` and
+  `interview-Swedish (sv).srt`. With more than one file, the export comes as a
+  `.zip`.
 
 ### Meta data
 
-The dialog also offers the meta data logged while you worked. It is only available
-if **Log user actions** was on in Preferences. It is a research artefact (keystroke
-and playback history), not part of the transcript.
+When you export the recording bundle open in the editor, the dialog also offers,
+under *More for this transcript*, the meta data logged while you worked
+(**Protocol**). It is only available if **Log user actions** was on in
+Preferences. It is a research artefact (keystroke and playback history), not part
+of the transcript.
 
 ---
 
@@ -125,31 +152,32 @@ and playback history), not part of the transcript.
 
 ## Exporting an archive
 
-One export covers a whole batch, and it is the only export that can be loaded
-back directly. **Export all** in the [Workbench](workbench.md) file list opens
-**Export catalogue**: tick the formats you want and Tratt writes a single `.zip` archive of the session.
+When an export makes more than one file, Tratt packs them into one `.zip`
+archive. It is the only export that can be loaded back complete: one archive can
+hold a whole batch of recording bundles.
 
 The file is named after what is in it and when it was made, for example
 `tratt_12_20261008@1923.zip`, wich means that the archieve contains twelve recordings, and was written on the October 8th, 2026, at 19:23 local time.
 
 Inside the archive, each recording has its own folder under `bundles/` holding
 
-- the **source audio** as you supplied it,
-- a lossless **`_annot.json`** of its transcript, and
-- whatever other formats you ticked when exporting the session.
+- the **source audio** as you supplied it, when **Include the audio** was ticked,
+- **Tratt's own file** (`_annot.json`) of its transcript, always, and
+- the formats you ticked.
 
 Two manifests files are located at the root of the archiive: **`manifest.json`** and **`manifest.csv`**. These files list every
 recording with its paths and details. The CSV opens in a spreadsheet, which makes
 it a convenient index for a corpus.
 
-Because the audio and the AnnotJSON are bundled together, dropping the archive back on
+Because the audio and Tratt's own file are bundled together, dropping the archive back on
 the drop zone restores the whole batch, audio attached and transcripts in place.
 Loading it switches automatic transcription off so your corrections are not
 overwritten. See [The Workbench](workbench.md#loading-an-archive).
 
-A recording whose audio was not attached at export time has no audio file in the
-archive, only its transcript. Dropping the archive loads that transcript into the
-file of the same name already in the list (attach the audio there). 
+A recording bundle whose audio was not attached at export time has no audio file in the
+archive, only its transcript; the export dialog says how many that applies to
+before you download. Dropping the archive loads that transcript into the
+recording bundle of the same name already in the list (attach the audio there). 
 Tratt indicates which ones failed to be loaded by showing *Completed with warnings* rather than
 failing the whole export.
 
@@ -184,6 +212,7 @@ DOCX and ODT files cannot be imported into Tratt.
 
 ## Custom tables
 
-If none of the above has the columns you need, build your own in the
-**Custom formats** section at the bottom of the export dialog. See
+If none of the above has the columns you need, build your own with the
+**Table-Configurator**, under *More for this transcript* at the bottom of the
+export dialog when you export the recording bundle open in the editor. See
 [Tools → The Table Configurator](using-tools.md#table-configurator).

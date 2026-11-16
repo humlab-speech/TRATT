@@ -28,50 +28,50 @@ export class AlertService {
       id: number;
       component: any;
     }>((resolve) => {
-      const alreadyExists =
-        this.queue.findIndex((a) => {
-          if (a.message !== data) {
-            return (
-              typeof data !== 'string' &&
-              a.component !== undefined &&
-              hasProperty(data, 'componentName') &&
-              hasProperty(a.component.class, 'componentName') &&
-              data.componentName === a.component.class.componentName
-            );
-          }
-          return true;
-        }) > -1;
+      const existing = this.queue.find((a) => {
+        if (a.message !== data) {
+          return (
+            typeof data !== 'string' &&
+            a.component !== undefined &&
+            hasProperty(data, 'componentName') &&
+            hasProperty(a.component.class, 'componentName') &&
+            data.componentName === a.component.class.componentName
+          );
+        }
+        return true;
+      });
 
-      if (!unique || !alreadyExists) {
-        const id = ++this.counter;
-
-        const subscription = this.alertInitialized.subscribe((item) => {
-          if (item.id === id) {
-            subscription.unsubscribe();
-            resolve(item);
-          }
-        });
-
-        const entry: AlertEntry = {
-          type,
-          animation: 'opened',
-          autohide: true,
-          duration: duration ? duration : 5000,
-          message: typeof data === 'string' ? data : '',
-          unique,
-          id,
-          component:
-            typeof data !== 'string'
-              ? {
-                  id,
-                  class: data,
-                  instance: undefined,
-                }
-              : undefined,
-        };
-
-        this.queue.push(entry);
+      if (unique && existing) {
+        // The same alert is already up: hand back that one, so closeAlert()
+        // can still take it down.
+        resolve({ id: existing.id, component: existing.component });
+        return;
       }
+
+      const id = ++this.counter;
+      const entry: AlertEntry = {
+        type,
+        animation: 'opened',
+        autohide: true,
+        duration: duration ? duration : 5000,
+        message: typeof data === 'string' ? data : '',
+        unique,
+        id,
+        component:
+          typeof data !== 'string'
+            ? {
+                id,
+                class: data,
+                instance: undefined,
+              }
+            : undefined,
+      };
+
+      this.queue.push(entry);
+      // Resolves once queued. It used to wait for `alertInitialized`, which
+      // nothing emits, so the promise never settled and a caller could never
+      // close its own alert (e.g. the export's progress notice).
+      resolve({ id, component: entry.component });
     });
   }
 

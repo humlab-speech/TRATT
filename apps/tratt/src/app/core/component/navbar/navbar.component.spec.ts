@@ -9,10 +9,10 @@ const ts = readFileSync(join(here, 'navbar.component.ts'), 'utf8');
 // The component pulls in ESM-only modules that jest cannot load, so the shell
 // is checked against its sources.
 describe('NavigationComponent header shell', () => {
-  it('logo links to the workbench on workbench routes, else /local', () => {
-    expect(ts).toContain('public get homeLink(): string');
-    expect(ts).toContain('homeLinkFor(this.router.url)');
-    expect(html).toContain('[routerLink]="homeLink"');
+  it('logo links to the start page, which is the workbench', () => {
+    expect(html).toContain('routerLink="/"');
+    expect(html).not.toContain('routerLink="/workbench"');
+    expect(html).not.toContain("'/local'");
   });
 
   it('uses the profile header, logo and centre slot', () => {
@@ -20,7 +20,6 @@ describe('NavigationComponent header shell', () => {
     expect(html).toContain('<tratt-logo [tagline]="true" />');
     expect(html).toContain('headerSlots.center()');
     expect(html).toContain('id="tratt-theme-slot"');
-    expect(html).toContain('fa-layer-group');
   });
 
   it('no longer carries the old shell bits', () => {
@@ -51,7 +50,7 @@ describe('NavigationComponent header shell', () => {
       branch.indexOf('<div class="tratt-header__center">'),
     );
     expect(brand).toContain('<a');
-    expect(brand).toContain('[routerLink]="homeLink"');
+    expect(brand).toContain('routerLink="/"');
     expect(html).toContain(
       '[class.tratt-header--embedded]="appStorage.useMode === LoginMode.URL"',
     );

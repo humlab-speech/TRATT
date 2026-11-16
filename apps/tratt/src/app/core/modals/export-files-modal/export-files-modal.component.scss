@@ -1,58 +1,343 @@
-#export-table td {
+legend {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.export__scope {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1.5rem;
+  margin-bottom: 1rem;
+
+  legend {
+    width: 100%;
+  }
+}
+
+.export__scope-option {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  cursor: pointer;
+  overflow-wrap: anywhere;
+}
+
+// Formats on the left, audio and the preview on the right; stacked when the
+// dialog is narrow.
+.export__layout {
+  display: grid;
+  grid-template-columns: minmax(16rem, 1fr) minmax(16rem, 1fr);
+  gap: 1.5rem;
+
+  @media (max-width: 767.98px) {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+}
+
+.export__formats {
+  min-width: 0;
+}
+
+.export__no-formats-title {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.export__no-formats-text {
+  display: flex;
+  gap: 0.5rem;
+  margin: 0;
+  color: var(--tratt-text-muted);
+  font-size: 0.9rem;
+
+  i {
+    margin-top: 0.2rem;
+  }
+}
+
+.export__category {
+  margin: 0.75rem 0 0.25rem;
+  padding-bottom: 0.25rem;
+  border-bottom: 1px solid var(--tratt-border);
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--tratt-text-muted);
+
+  &:first-of-type {
+    margin-top: 0;
+  }
+}
+
+.export__format {
+  padding: 0.25rem 0.375rem;
+  border-radius: var(--tratt-radius);
+
+  &--checked {
+    background: var(--tratt-surface-subtle);
+  }
+}
+
+.export__format-option {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
   cursor: pointer;
 }
 
-#export-table a {
-  cursor: pointer;
+.export__format-name {
+  font-weight: 600;
 }
 
-progressbar {
-  height: 20px;
+.export__format-ext {
+  font-family: var(--tratt-font-data);
+  font-size: 0.8rem;
+  color: var(--tratt-text-muted);
 }
 
-.top-tr td {
-  background-color: var(--tratt-surface-sunken);
+.export__format-notice {
+  color: var(--tratt-text-muted);
 }
 
-.options {
-  margin-left: 10px;
-  margin-bottom: 20px;
-  padding: 10px;
-  border: 1px solid var(--tratt-border);
-}
-
-.options table tbody tr td {
-  padding: 3px;
-  border: none;
-}
-
-.options .option {
-  line-height: 0.9;
-}
-
-.options .option td {
-  vertical-align: top;
-}
-
-.options .option label {
-  font-size: 0.9em;
-}
-
-.options .option input {
-  margin-top: 2px;
+.export__format-apps {
+  margin-left: 1.4rem;
+  font-size: 0.8rem;
+  color: var(--tratt-text-muted);
 }
 
 .recommended {
-  margin-left: 2px !important;
+  margin-left: 2px;
   white-space: nowrap;
 }
 
-.category-header td {
-  padding: 12px 8px 4px;
-  border-bottom: 2px solid var(--tratt-border);
-  font-size: 1em;
-  font-weight: bold;
+.export__options {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin: 0.375rem 0 0.25rem 1.4rem;
+  padding: 0.5rem 0.75rem;
+  border-left: 2px solid var(--tratt-interactive);
+}
+
+.export__option {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.375rem;
+  font-size: 0.875rem;
+  cursor: pointer;
+
+  input {
+    margin-top: 0.2rem;
+  }
+}
+
+.export__option-example {
+  display: block;
+  font-size: 0.75rem;
+}
+
+.export__option-note {
+  margin: 0.25rem 0 0;
+  font-size: 0.8rem;
+
+  code {
+    display: block;
+  }
+}
+
+.export__side {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.export__audio {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.export__contents-title {
+  margin-bottom: 0.25rem;
+  font-size: 1rem;
+}
+
+.export__single-hint {
+  margin: 0 0 0.5rem;
+  font-size: 0.85rem;
   color: var(--tratt-text-muted);
-  background-color: transparent !important;
-  cursor: default !important;
+}
+
+// The file tree. Scrolls on its own so a long list keeps the buttons in view.
+.export__tree {
+  max-height: 20rem;
+  overflow: auto;
+  margin: 0;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--tratt-border);
+  border-radius: var(--tratt-radius);
+  background: var(--tratt-surface-subtle);
+  font-family: var(--tratt-font-data);
+  font-size: 0.8rem;
+  list-style: none;
+
+  ul {
+    margin: 0;
+    padding-left: 1.1rem;
+    list-style: none;
+  }
+
+  i {
+    width: 1rem;
+    text-align: center;
+    color: var(--tratt-text-muted);
+  }
+}
+
+.export__files--flat {
+  padding-left: 0 !important;
+}
+
+.export__node {
+  padding: 0.125rem 0;
+  overflow-wrap: anywhere;
+
+  &--zip {
+    font-weight: 600;
+
+    > ul {
+      font-weight: normal;
+      margin-top: 0.25rem;
+    }
+  }
+
+  &--folder {
+    margin-bottom: 0.25rem;
+  }
+
+  &--manifest {
+    color: var(--tratt-text-muted);
+  }
+}
+
+.export__folder-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.375rem;
+
+  > i {
+    color: var(--tratt-interactive-text);
+  }
+}
+
+.export__folder-name {
+  font-weight: 600;
+}
+
+.export__file {
+  display: flex;
+  align-items: baseline;
+  gap: 0.25rem;
+  overflow-wrap: anywhere;
+
+  &--audio {
+    font-weight: 600;
+
+    i {
+      color: var(--tratt-interactive-text);
+    }
+  }
+
+  &--native {
+    color: var(--tratt-text-muted);
+  }
+}
+
+.export__note {
+  margin-left: 0.25rem;
+  font-family: var(--tratt-font-ui);
+}
+
+.export__empty,
+.export__left-out {
+  margin: 0.5rem 0 0;
+  font-size: 0.85rem;
+  color: var(--tratt-text-muted);
+}
+
+.export__audio-only {
+  display: flex;
+  gap: 0.5rem;
+  margin: 0.5rem 0 0;
+  padding: 0.5rem 0.75rem;
+  border-left: 3px solid var(--tratt-warning);
+  border-radius: var(--tratt-radius);
+  background: var(--sb-yellow-tint);
+  font-size: 0.875rem;
+  color: var(--tratt-text-primary);
+  overflow-wrap: anywhere;
+
+  i {
+    margin-top: 0.2rem;
+  }
+}
+
+.export__missing-audio {
+  display: flex;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--tratt-radius);
+  background: var(--sb-blue-tint);
+  color: var(--tratt-text-primary);
+  font-size: 0.875rem;
+
+  i {
+    margin-top: 0.2rem;
+    color: var(--tratt-interactive-text);
+  }
+}
+
+.export__more-title {
+  margin: 1.5rem 0 0.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--tratt-border);
+  font-size: 1rem;
+}
+
+.export__more {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.export__more-toggle {
+  padding: 0;
+  margin-right: 0.5rem;
+  font-weight: 600;
+  text-decoration: none;
+
+  i {
+    width: 1rem;
+  }
+}
+
+.export__more-text {
+  font-size: 0.85rem;
+  color: var(--tratt-text-muted);
+}
+
+.export__more-card {
+  margin-top: 0.5rem;
+  padding: 10px;
+}
+
+.export__protocol-link {
+  margin-left: 0.5rem;
 }

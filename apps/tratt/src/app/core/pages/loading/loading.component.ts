@@ -63,7 +63,7 @@ export class LoadingComponent extends DefaultComponent implements OnInit {
 
   goBack() {
     this.appStorage.logout();
-    navigateTo(this.router, ['/local'], AppInfo.queryParamsHandling).catch(
+    navigateTo(this.router, ['/'], AppInfo.queryParamsHandling).catch(
       (error) => {
         console.error(error);
       },

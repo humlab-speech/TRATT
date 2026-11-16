@@ -143,7 +143,7 @@ label to the next known speaker. This is the quickest way to fix a mis-assigned 
 when you have used the automatic speaker assignment model, which may be very inaccurate. You
 can also click the badge to cycle though the speakers labels.
 
-How to add, rename and remove speakers, and splitting speakers onto separate tiers,
+How to add, rename and delete speakers, and splitting speakers onto separate tiers,
 are covered in [Tiers and speakers](tiers-and-speakers.md).
 
 ---

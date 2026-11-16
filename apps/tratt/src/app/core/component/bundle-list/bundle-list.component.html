@@ -8,229 +8,439 @@
 -->
 @if (bundles().length > 0) {
   <div class="bundle-list__header">
-    <label class="bundle-list__select-all-label">
+    <span class="bundle-list__title">
+      {{ 'workbench.bundle_list.title' | transloco }}
+      <span class="bundle-list__count">{{ bundles().length }}</span>
+    </span>
+  </div>
+  <!-- One card: the column headings (or, with rows ticked, what to do with
+       them), the rows, and the actions on the whole list. -->
+  <div class="bundle-list__card">
+    <div
+      class="bundle-list__bar"
+      [class.bundle-list__bar--selecting]="selectedCount() > 0"
+    >
+      <!-- Select-all sits right above the rows' checkboxes; part-ticked
+           while only some rows are. -->
       <input
         type="checkbox"
         class="form-check-input bundle-list__select-all"
         [checked]="allSelected()"
+        [indeterminate]="selectedCount() > 0 && !allSelected()"
         [attr.aria-label]="'workbench.bundle_list.select_all' | transloco"
+        [attr.title]="'workbench.bundle_list.select_all' | transloco"
         (change)="toggleSelectAll()"
       />
-      <span class="bundle-list__title">
-        {{ 'workbench.bundle_list.title' | transloco }}
-        <span class="bundle-list__count">{{ bundles().length }}</span>
-      </span>
-    </label>
-    <button
-      type="button"
-      class="btn btn-sm btn-outline-primary bundle-list__export-catalogue"
-      [attr.title]="'workbench.bundle_list.export_catalogue' | transloco"
-      (click)="onExportCatalogue()"
-    >
-      <i class="fa-solid fa-file-zipper" aria-hidden="true"></i>
-      {{ 'workbench.bundle_list.export_catalogue' | transloco }}
-    </button>
-  </div>
-  <div class="bundle-list__bulk-bar" role="toolbar">
-    <button
-      type="button"
-      class="btn btn-sm btn-text bundle-list__clear-finished"
-      [attr.title]="'workbench.bundle_list.clear_finished' | transloco"
-      (click)="onClearFinished()"
-    >
-      <i class="fa-solid fa-check-double" aria-hidden="true"></i>
-      {{ 'workbench.bundle_list.clear_finished' | transloco }}
-    </button>
-    <button
-      type="button"
-      class="btn btn-sm btn-text-danger bundle-list__remove"
-      [disabled]="selectedCount() === 0"
-      [attr.title]="'workbench.bundle_list.remove' | transloco"
-      (click)="onRemoveSelected()"
-    >
-      <i class="fa-solid fa-trash" aria-hidden="true"></i>
-      {{ 'workbench.bundle_list.remove' | transloco }}
       @if (selectedCount() > 0) {
-        ({{ selectedCount() }})
+        <span class="bundle-list__selected-count">{{
+          (selectedCount() === 1
+            ? 'workbench.bundle_list.selected_count_one'
+            : 'workbench.bundle_list.selected_count'
+          ) | transloco: { count: selectedCount() }
+        }}</span>
+        <button
+          type="button"
+          class="btn btn-sm btn-text bundle-list__deselect"
+          (click)="clearSelection()"
+        >
+          {{ 'workbench.bundle_list.deselect' | transloco }}
+        </button>
+        @if (!isVisp()) {
+          <button
+            type="button"
+            class="btn btn-sm btn-outline-danger bundle-list__remove"
+            [attr.title]="'workbench.bundle_list.remove' | transloco"
+            [attr.aria-label]="'workbench.bundle_list.remove' | transloco"
+            (click)="onRemoveSelected()"
+          >
+            <i class="fa-solid fa-trash" aria-hidden="true"></i>
+            <span class="bundle-list__remove-label">{{
+              'workbench.bundle_list.remove' | transloco
+            }}</span>
+          </button>
+        }
+      } @else {
+        <span class="bundle-list__columns">
+          @if (showAudioColumn()) {
+            <!-- No heading: beside the select-all checkbox any word read as
+                 its label. The empty slot keeps the headings over their
+                 columns. -->
+            <span class="bundle-list__column-audio" aria-hidden="true"></span>
+          }
+          <!-- The one term a newcomer won't know: hover says what it is. -->
+          <span
+            class="bundle-list__column-name bundle-list__column-name--explained"
+            [attr.title]="'workbench.bundle_list.column_file_hint' | transloco"
+          >
+            {{ 'workbench.bundle_list.column_file' | transloco }}
+          </span>
+          <span class="bundle-list__column-status">
+            {{ 'workbench.bundle_list.column_status' | transloco }}
+          </span>
+        </span>
       }
-    </button>
+    </div>
+    <ul class="bundle-list" (keydown)="onListKeydown($event)">
+      @for (bundle of bundles(); track bundle.bundleId; let i = $index) {
+        <li
+          class="bundle-list__item"
+          [class.active]="bundle.selected"
+          [class.bundle-list__item--awaiting]="bundle.awaitingMedia"
+          [class.bundle-list__item--visp]="isVisp()"
+          [attr.title]="audioDetails(bundle.bundleId, bundle.awaitingMedia)"
+          (click)="onRowClick(bundle.bundleId, $event)"
+        >
+          <input
+            type="checkbox"
+            class="form-check-input bundle-list__item-checkbox"
+            [checked]="isSelected(bundle.bundleId)"
+            [attr.aria-label]="bundle.name"
+            (change)="toggleSelected(bundle.bundleId)"
+          />
+          @if (showAudioColumn()) {
+            <!-- Only a row whose audio is missing shows anything here. -->
+            <span class="bundle-list__audio">
+              @if (bundle.awaitingMedia) {
+                <label
+                  class="bundle-list__attach"
+                  [attr.for]="'bundle-reattach-' + bundle.bundleId"
+                  [attr.title]="
+                    'workbench.bundle_list.reattach_hint' | transloco
+                  "
+                >
+                  <i class="fa-solid fa-paperclip" aria-hidden="true"></i>
+                  <span class="bundle-list__attach-text">{{
+                    'workbench.bundle_list.attach' | transloco
+                  }}</span>
+                </label>
+                <!-- Visually hidden; reached through the label above, by Tab on
+                     the active row, and by pickAudio(). -->
+                <input
+                  type="file"
+                  accept="audio/*,video/*,.wma,.asf,.opus,.aac,.mka,.mp2,.amr,.3gp"
+                  [id]="'bundle-reattach-' + bundle.bundleId"
+                  class="bundle-list__reattach-input"
+                  [attr.aria-label]="
+                    bundle.name +
+                    ' — ' +
+                    ('workbench.bundle_list.reattach' | transloco)
+                  "
+                  [attr.tabindex]="rowTabIndex(i)"
+                  (change)="onReattachFileSelected(bundle.bundleId, $event)"
+                />
+              }
+            </span>
+          }
+          <!-- A bundle whose audio isn't attached (restored after a reload) is
+               still selectable: its transcript can be viewed in the header,
+               downloaded, or replaced by a dropped transcript. -->
+          <button
+            type="button"
+            class="bundle-list__item-btn bundle-list__item-primary"
+            [attr.tabindex]="rowTabIndex(i)"
+            [attr.aria-description]="
+              audioDetails(bundle.bundleId, bundle.awaitingMedia)
+            "
+            (click)="selectBundle(bundle.bundleId)"
+            (focus)="onRowFocus(bundle.bundleId)"
+          >
+            <!-- `bundle.name` comes from `sessionFile?.name`; sessionFile is a
+                 required prop on the createBundle action, so this is always
+                 populated in practice for LOCAL bundles — no placeholder
+                 fallback needed. -->
+            {{ bundle.name }}
+          </button>
+          <span class="bundle-list__transcript">
+            <!-- Shown whether or not the audio is attached: a bundle restored
+                 after a reload has no audio yet, and its transcript state (or
+                 its 'interrupted' badge) matters most exactly then. -->
+            @if (bundle.run.state === 'running') {
+              <!-- Running rows say WHAT is happening (downloading the model on a
+                 first run can take minutes; a bare "Running" looked stuck) and
+                 can be stopped. -->
+              <span
+                class="bundle-list__status bundle-list__status--running"
+                [attr.title]="
+                  'workbench.bundle_list.stage.' +
+                    (bundle.run.downloading
+                      ? 'download'
+                      : (bundle.run.stage ?? 'decode')) | transloco
+                "
+              >
+                <!-- In a narrow rail the stage is cut, never the percentage. -->
+                <span class="bundle-list__stage">{{
+                  'workbench.bundle_list.stage.' +
+                    (bundle.run.downloading
+                      ? 'download'
+                      : (bundle.run.stage ?? 'decode')) | transloco
+                }}</span>
+                @if (bundle.run.progress !== undefined) {
+                  <span class="bundle-list__percent">
+                    {{ progressPercent(bundle.run.progress) }}%</span
+                  >
+                }
+              </span>
+              <button
+                type="button"
+                class="bundle-list__cancel"
+                [attr.title]="'workbench.bundle_list.cancel' | transloco"
+                [attr.aria-label]="'workbench.bundle_list.cancel' | transloco"
+                (click)="onCancelRun()"
+              >
+                <i class="fa-solid fa-stop" aria-hidden="true"></i>
+              </button>
+            } @else if (
+              bundle.run.state !== 'idle' && bundle.run.state !== 'done'
+            ) {
+              <!-- States that need the user (waiting, failed, stopped) keep
+                   their words; everything else is the coverage ring below. -->
+              <span
+                class="bundle-list__status"
+                [class.bundle-list__status--queued]="
+                  bundle.run.state === 'queued'
+                "
+                [class.bundle-list__status--error]="
+                  (bundle.run.state === 'failed' &&
+                    bundle.run.error?.kind !== 'cancelled') ||
+                  bundle.run.state === 'interrupted'
+                "
+                [class.bundle-list__status--cancelled]="
+                  bundle.run.state === 'failed' &&
+                  bundle.run.error?.kind === 'cancelled'
+                "
+              >
+                @if (
+                  (bundle.run.state === 'failed' &&
+                    bundle.run.error?.kind !== 'cancelled') ||
+                  bundle.run.state === 'interrupted'
+                ) {
+                  <i
+                    class="fa-solid fa-triangle-exclamation"
+                    aria-hidden="true"
+                  ></i>
+                }
+                <!-- Stopped on purpose: says so, rather than "Failed". -->
+                {{
+                  (bundle.run.error?.kind === 'cancelled'
+                    ? 'workbench.bundle_list.error.cancelled'
+                    : 'workbench.bundle_list.status.' + bundle.run.state
+                  ) | transloco
+                }}
+              </span>
+            } @else {
+              <!-- How much of the audio has text, filling a ring; a check in
+                   it when done (VISP: marked by the user, who toggles it
+                   here; offline: transcribed by a run). The number is the
+                   segments with text. -->
+              @let done = isDone(bundle.bundleId, bundle.run.state);
+              @let pct = coveragePercent(bundle.coverage);
+              @let label = coverageText(bundle.coverage, done);
+              <ng-template #ring>
+                <svg
+                  class="bundle-list__ring"
+                  [class.bundle-list__ring--done]="done"
+                  viewBox="0 0 20 20"
+                  aria-hidden="true"
+                >
+                  <circle
+                    class="bundle-list__ring-track"
+                    cx="10"
+                    cy="10"
+                    r="8"
+                  />
+                  @if (pct > 0) {
+                    <circle
+                      class="bundle-list__ring-fill"
+                      cx="10"
+                      cy="10"
+                      r="8"
+                      pathLength="100"
+                      [attr.stroke-dasharray]="pct + ' 100'"
+                    />
+                  }
+                  @if (done) {
+                    <path
+                      class="bundle-list__ring-check"
+                      d="M6.2 10.3l2.6 2.6 5-5.2"
+                    />
+                  }
+                </svg>
+                @if (bundle.coverage?.withText) {
+                  <span class="bundle-list__ring-count">{{
+                    bundle.coverage?.withText
+                  }}</span>
+                }
+              </ng-template>
+              @if (canToggleDone(bundle.bundleId)) {
+                <button
+                  type="button"
+                  class="bundle-list__coverage bundle-list__coverage--toggle"
+                  [attr.aria-pressed]="done"
+                  [attr.aria-label]="
+                    label +
+                    ' — ' +
+                    ('workbench.bundle_list.coverage.mark_done' | transloco)
+                  "
+                  [attr.title]="
+                    label +
+                    '\n' +
+                    ((done
+                      ? 'workbench.bundle_list.coverage.unmark_done_hint'
+                      : 'workbench.bundle_list.coverage.mark_done_hint'
+                    ) | transloco)
+                  "
+                  [disabled]="!canToggleDoneNow(bundle.bundleId)"
+                  (click)="onToggleDone(bundle.bundleId)"
+                >
+                  <ng-container [ngTemplateOutlet]="ring" />
+                </button>
+              } @else {
+                <span
+                  class="bundle-list__coverage"
+                  role="img"
+                  [attr.aria-label]="label"
+                  [attr.title]="label"
+                >
+                  <ng-container [ngTemplateOutlet]="ring" />
+                </span>
+              }
+            }
+            @if (
+              bundle.run.state === 'failed' &&
+              bundle.run.error &&
+              bundle.run.error.kind !== 'cancelled'
+            ) {
+              <!-- The kind is the translated, user-facing summary; the raw
+                 message (often an untranslatable worker/browser string) is
+                 the tooltip, so nothing is hidden from the user. -->
+              <span
+                class="bundle-list__error"
+                [attr.title]="bundle.run.error.message"
+              >
+                {{
+                  'workbench.bundle_list.error.' + bundle.run.error.kind
+                    | transloco
+                }}
+              </span>
+            }
+            @if (
+              !bundle.awaitingMedia &&
+              (bundle.run.state === 'failed' ||
+                bundle.run.state === 'interrupted')
+            ) {
+              <!-- Deliberately gated on !awaitingMedia: retrying a bundle whose
+                 audio isn't resident this session isn't actionable — it would
+                 just fail again as a 'decode' error. The re-attach input above
+                 is the actual escape hatch for an awaitingMedia + interrupted
+                 row; once re-attached the row flips to this branch and the
+                 retry button appears normally. -->
+              <button
+                type="button"
+                class="bundle-list__retry"
+                (click)="onRetry(bundle.bundleId)"
+              >
+                {{ 'workbench.bundle_list.retry' | transloco }}
+              </button>
+            }
+          </span>
+          @if (isVisp() && vispInfo(bundle.bundleId); as v) {
+            @if (v.unassigned || v.sync === 'failed') {
+              <!-- VISP workspace: only when something needs the user (a failed
+                 save, a conflict with VISP, a bundle no longer assigned). -->
+              <span class="bundle-list__visp">
+                @if (v.unassigned) {
+                  <span class="bundle-list__visp-warning" role="status">
+                    {{ 'workbench.visp.unassigned' | transloco }}
+                  </span>
+                  <button
+                    type="button"
+                    class="btn btn-sm btn-outline-danger"
+                    (click)="onVispRemoveUnassigned(bundle.bundleId)"
+                  >
+                    {{ 'workbench.visp.remove_unassigned' | transloco }}
+                  </button>
+                } @else if (v.error?.kind === 'stale') {
+                  <span class="bundle-list__visp-warning" role="alert">
+                    {{ 'workbench.visp.error.stale' | transloco }}
+                  </span>
+                  <button
+                    type="button"
+                    class="btn btn-sm btn-outline-primary"
+                    [disabled]="v.sync === 'saving'"
+                    (click)="onVispResolve(bundle.bundleId, 'mine')"
+                  >
+                    {{ 'workbench.visp.keep_mine' | transloco }}
+                  </button>
+                  <button
+                    type="button"
+                    class="btn btn-sm btn-outline-secondary"
+                    [disabled]="v.sync === 'saving'"
+                    (click)="onVispResolve(bundle.bundleId, 'theirs')"
+                  >
+                    {{ 'workbench.visp.use_theirs' | transloco }}
+                  </button>
+                } @else {
+                  <!-- Saving is automatic; a row only speaks up when a save
+                     failed (the message is below), with a way to try again. -->
+                  @if (v.sync === 'failed') {
+                    <button
+                      type="button"
+                      class="btn btn-sm btn-outline-danger"
+                      (click)="onVispSave(bundle.bundleId)"
+                    >
+                      {{ 'workbench.visp.retry' | transloco }}
+                    </button>
+                  }
+                  @if (v.sync === 'failed' && v.error; as err) {
+                    <span class="bundle-list__visp-error" role="alert">
+                      {{ 'workbench.visp.error.' + err.kind | transloco }}
+                      @if (err.kind === 'unknown') {
+                        {{ err.message }}
+                      }
+                    </span>
+                  }
+                }
+              </span>
+            }
+          }
+          @if (bundle.run.state === 'running') {
+            <!-- How far this file has come: its share of the run button's
+                 total. While it is prepared (decoded, its model loaded),
+                 work the bar can't measure, it pulses. -->
+            <span
+              class="bundle-list__progress"
+              [class.bundle-list__progress--preparing]="isPreparing(bundle.run)"
+              [style.width.%]="
+                isPreparing(bundle.run) ? 100 : fileFraction(bundle.run) * 100
+              "
+              aria-hidden="true"
+            ></span>
+          }
+        </li>
+      }
+    </ul>
+    <div class="bundle-list__footer">
+      @if (!isVisp()) {
+        <button
+          type="button"
+          class="btn btn-sm btn-text bundle-list__clear-finished"
+          [attr.title]="'workbench.bundle_list.delete_done_hint' | transloco"
+          (click)="onClearFinished()"
+        >
+          <i class="fa-solid fa-check-double" aria-hidden="true"></i>
+          {{ 'workbench.bundle_list.delete_done' | transloco }}
+        </button>
+      }
+      <!-- One export for everything: which bundles is chosen in the dialog. -->
+      <button
+        type="button"
+        class="btn btn-sm btn-outline-primary bundle-list__export"
+        [attr.title]="'workbench.bundle_list.export_hint' | transloco"
+        (click)="onExport()"
+      >
+        <i class="fa-solid fa-download" aria-hidden="true"></i>
+        {{ 'workbench.bundle_list.export' | transloco }}
+      </button>
+    </div>
   </div>
 }
-<ul class="bundle-list" (keydown)="onListKeydown($event)">
-  @for (bundle of bundles(); track bundle.bundleId; let i = $index) {
-    <li
-      class="bundle-list__item"
-      [class.active]="bundle.selected"
-      [class.bundle-list__item--awaiting]="bundle.awaitingMedia"
-    >
-      <input
-        type="checkbox"
-        class="form-check-input bundle-list__item-checkbox"
-        [checked]="isSelected(bundle.bundleId)"
-        [attr.aria-label]="bundle.name"
-        (change)="toggleSelected(bundle.bundleId)"
-      />
-      @if (bundle.awaitingMedia) {
-        <!-- A file whose audio isn't loaded (restored after a reload) is
-             still selectable: its transcript can be viewed in the header,
-             exported, or replaced by a dropped transcript. Attaching the
-             audio is a separate control. -->
-        <button
-          type="button"
-          class="bundle-list__item-btn bundle-list__item-primary"
-          [attr.tabindex]="rowTabIndex(i)"
-          (click)="selectBundle(bundle.bundleId)"
-          (focus)="onRowFocus(bundle.bundleId)"
-        >
-          {{ bundle.name }}
-        </button>
-        <label
-          class="bundle-list__reattach-label"
-          [attr.for]="'bundle-reattach-' + bundle.bundleId"
-          [attr.title]="bundle.name"
-        >
-          <i class="fa-solid fa-paperclip" aria-hidden="true"></i>
-          {{ 'workbench.bundle_list.reattach' | transloco }}
-        </label>
-        <!-- Visually hidden; reached through the label above, and by Tab on
-             the active row. -->
-        <input
-          type="file"
-          accept="audio/*,video/*,.wma,.asf,.opus,.aac,.mka,.mp2,.amr,.3gp"
-          [id]="'bundle-reattach-' + bundle.bundleId"
-          class="bundle-list__reattach-input"
-          [attr.aria-label]="
-            bundle.name + ' — ' + ('workbench.bundle_list.reattach' | transloco)
-          "
-          [attr.tabindex]="rowTabIndex(i)"
-          (change)="onReattachFileSelected(bundle.bundleId, $event)"
-        />
-      } @else {
-        <button
-          type="button"
-          class="bundle-list__item-btn bundle-list__item-primary"
-          [attr.tabindex]="rowTabIndex(i)"
-          (click)="selectBundle(bundle.bundleId)"
-          (focus)="onRowFocus(bundle.bundleId)"
-        >
-          <!-- `bundle.name` comes from `sessionFile?.name`; sessionFile is a
-               required prop on the createBundle action, so this is always
-               populated in practice for LOCAL bundles — no placeholder
-               fallback needed. -->
-          {{ bundle.name }}
-        </button>
-      }
-      <!-- Hoisted out of the @else above (F4, final whole-branch review fix
-           wave): a bundle restored from IndexedDB is `awaitingMedia` for the
-           whole first session after a reload (no audio decoded yet), so a
-           status block scoped to the non-awaitingMedia branch never rendered
-           the 'interrupted' badge exactly when it matters most — right after
-           the reload that caused it. Renders in BOTH branches now. -->
-      @if (bundle.run.state === 'running') {
-        <!-- Running rows say WHAT is happening (downloading the model on a
-             first run can take minutes; a bare "Running" looked stuck) and
-             can be stopped. -->
-        <span
-          class="bundle-list__status bundle-list__status--running"
-          [attr.title]="
-            'workbench.bundle_list.stage.' +
-              (bundle.run.downloading
-                ? 'download'
-                : (bundle.run.stage ?? 'decode')) | transloco
-          "
-        >
-          {{
-            'workbench.bundle_list.stage.' +
-              (bundle.run.downloading
-                ? 'download'
-                : (bundle.run.stage ?? 'decode')) | transloco
-          }}
-          @if (bundle.run.progress !== undefined) {
-            {{ progressPercent(bundle.run.progress) }}%
-          }
-        </span>
-        <button
-          type="button"
-          class="bundle-list__cancel"
-          [attr.title]="'workbench.bundle_list.cancel' | transloco"
-          [attr.aria-label]="'workbench.bundle_list.cancel' | transloco"
-          (click)="onCancelRun()"
-        >
-          <i class="fa-solid fa-stop" aria-hidden="true"></i>
-        </button>
-        <span
-          class="bundle-list__progress"
-          [class.bundle-list__progress--indeterminate]="
-            bundle.run.progress === undefined
-          "
-          [style.width.%]="
-            bundle.run.progress === undefined
-              ? 100
-              : progressPercent(bundle.run.progress)
-          "
-          aria-hidden="true"
-        ></span>
-      } @else if (bundle.run.state !== 'idle') {
-        <span
-          class="bundle-list__status"
-          [class.bundle-list__status--queued]="bundle.run.state === 'queued'"
-          [class.bundle-list__status--done]="bundle.run.state === 'done'"
-          [class.bundle-list__status--error]="
-            (bundle.run.state === 'failed' &&
-              bundle.run.error?.kind !== 'cancelled') ||
-            bundle.run.state === 'interrupted'
-          "
-          [class.bundle-list__status--cancelled]="
-            bundle.run.state === 'failed' &&
-            bundle.run.error?.kind === 'cancelled'
-          "
-        >
-          @if (bundle.run.state === 'done') {
-            <i class="fa-solid fa-check" aria-hidden="true"></i>
-          } @else if (
-            (bundle.run.state === 'failed' &&
-              bundle.run.error?.kind !== 'cancelled') ||
-            bundle.run.state === 'interrupted'
-          ) {
-            <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
-          }
-          {{ 'workbench.bundle_list.status.' + bundle.run.state | transloco }}
-        </span>
-      }
-      @if (bundle.run.state === 'failed' && bundle.run.error) {
-        <!-- The kind is the translated, user-facing summary; the raw
-             message (often an untranslatable worker/browser string) is
-             the tooltip, so nothing is hidden from the user. -->
-        <span
-          class="bundle-list__error"
-          [class.bundle-list__error--neutral]="
-            bundle.run.error.kind === 'cancelled'
-          "
-          [attr.title]="bundle.run.error.message"
-        >
-          {{
-            'workbench.bundle_list.error.' + bundle.run.error.kind | transloco
-          }}
-        </span>
-      }
-      @if (
-        !bundle.awaitingMedia &&
-        (bundle.run.state === 'failed' || bundle.run.state === 'interrupted')
-      ) {
-        <!-- Deliberately gated on !awaitingMedia: retrying a bundle whose
-             audio isn't resident this session isn't actionable — it would
-             just fail again as a 'decode' error. The re-attach input above
-             is the actual escape hatch for an awaitingMedia + interrupted
-             row; once re-attached the row flips to this branch and the
-             retry button appears normally. -->
-        <button
-          type="button"
-          class="bundle-list__retry"
-          (click)="onRetry(bundle.bundleId)"
-        >
-          {{ 'workbench.bundle_list.retry' | transloco }}
-        </button>
-      }
-    </li>
-  }
-</ul>

@@ -123,6 +123,14 @@
   border-bottom: 1px solid var(--tratt-border);
   font-family: var(--tratt-font-ui);
 
+  // Every link fills its item's height and centres its contents. Without
+  // this an inline link is only as tall as its contents: an icon-only one
+  // (info, theme) came out 8px shorter than links with a label, even a
+  // hidden one, and sat 4px high.
+  .nav-item {
+    display: flex;
+  }
+
   .nav-link {
     display: inline-flex;
     align-items: center;
@@ -137,6 +145,19 @@
 
   .dropdown-toggle::after {
     display: none;
+  }
+}
+
+// Inside Visp, Tratt sits right under Visp's menu bar: start the logo where
+// Visp's starts, so the two line up. Visp pads its bar 1.25rem (1rem at
+// 900px and narrower; the iframe is as wide as Visp's window, so the same
+// breakpoint applies); the extra pixel makes up for the "T", which reaches
+// 1px left of the logo's box.
+.tratt-header--in-visp > .container-fluid {
+  padding-inline-start: calc(1.25rem + 1px);
+
+  @media (max-width: 900px) {
+    padding-inline-start: calc(1rem + 1px);
   }
 }
 
@@ -174,6 +195,51 @@
   }
 }
 
+// A page's app bar (see HeaderSlotService): the brand, then the page's start
+// content; its end content, then the header's menu, at the right. Only lent
+// on wide screens, so this has no narrow-screen layout.
+@media (min-width: 768px) {
+  .tratt-header.tratt-header--app-bar > .container-fluid {
+    display: flex;
+    align-items: stretch;
+    gap: 1.75rem;
+  }
+  .tratt-header--app-bar {
+    .tratt-header__brand {
+      align-self: center;
+    }
+    .tratt-header__center {
+      display: none;
+    }
+    .tratt-header__start {
+      display: flex;
+      align-items: stretch;
+      flex-shrink: 0;
+    }
+    .tratt-header__end {
+      display: flex;
+      align-items: center;
+      margin-left: auto;
+    }
+    .navbar-collapse {
+      flex-grow: 0;
+    }
+  }
+}
+
+// The app bar leaves less room for the menu: below the widest screens its
+// labels (Manual, Export, …) show as icons, as the others already do.
+@media (min-width: 768px) and (max-width: 1799.98px) {
+  .tratt-header--app-bar .navbar-nav .nav-link .d-xxl-inline {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+}
+
 @media (max-width: 767.98px) {
   .tratt-header__center {
     order: 3;
@@ -196,5 +262,44 @@
 
   .tratt-header--embedded .tratt-header__center:not(:empty) {
     justify-content: flex-start;
+  }
+}
+
+// Speakers menu: a heading, so the menu says what it lists even while empty.
+.speakers-menu__header {
+  padding: 0.6rem 0.75rem 0.4rem;
+  border-bottom: 1px solid var(--tratt-border);
+}
+
+.speakers-menu__title {
+  margin: 0;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--tratt-text-primary);
+}
+
+.speakers-menu__hint {
+  margin: 0.15rem 0 0;
+  font-size: 0.8125rem;
+  color: var(--tratt-text-muted);
+}
+
+.speakers-menu__empty {
+  margin: 0;
+  padding: 0.6rem 0.75rem;
+  font-size: 0.8125rem;
+  color: var(--tratt-text-muted);
+}
+
+// Underline the words only, not the icon and the space before them.
+.speakers-menu__add {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  text-decoration: none;
+
+  &:hover span {
+    text-decoration: underline;
   }
 }

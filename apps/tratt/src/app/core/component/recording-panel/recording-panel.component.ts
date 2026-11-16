@@ -4,6 +4,7 @@ import {
   ChangeDetectorRef,
   Component,
   EventEmitter,
+  input,
   OnDestroy,
   OnInit,
   Output,
@@ -46,6 +47,9 @@ type StagedResult = RecordingResult;
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class RecordingPanelComponent implements OnInit, OnDestroy {
+  /** Draws its own bordered box. Off when a host panel already frames it. */
+  readonly framed = input(true);
+
   @Output() recordingActiveChange = new EventEmitter<boolean>();
   @Output() useRecording = new EventEmitter<File>();
 

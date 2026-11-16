@@ -50,6 +50,7 @@ export class AudioService {
   private _audiomanagers = new Map<string, AudioManager>();
   private _envelopes = new Map<string, AudioEnvelope>();
   private _sourceFiles = new Map<string, File>();
+  private _audioProviders = new Map<string, () => Promise<File>>();
   private _mediaInfo = new Map<string, BundleMediaInfo>();
   private _pendingResidency = new Map<string, Promise<boolean>>();
   /**
@@ -113,7 +114,25 @@ export class AudioService {
    */
   public canRestore(bundleId: string): boolean {
     this._registryVersion();
-    return this._audiomanagers.has(bundleId) || this._sourceFiles.has(bundleId);
+    return (
+      this._audiomanagers.has(bundleId) ||
+      this._sourceFiles.has(bundleId) ||
+      this._audioProviders.has(bundleId)
+    );
+  }
+
+  /**
+   * Registers a way to fetch a bundle's audio on demand (VISP workspace: the
+   * recording lives on the server and can always be fetched again). Replaces
+   * the retained source `File` as the source for `ensureResident()`; nothing
+   * is held in memory beyond the decoded manager.
+   */
+  public registerAudioProvider(
+    bundleId: string,
+    provider: () => Promise<File>,
+  ): void {
+    this._audioProviders.set(bundleId, provider);
+    this.touchRegistry();
   }
 
   /**
@@ -129,6 +148,29 @@ export class AudioService {
 
   /** Media metadata captured at registration; survives LRU eviction. */
   /** The `File` the bundle's audio was registered from, if still retained. */
+  /**
+   * Whether the bundle's audio file can be had, e.g. to export it: a file
+   * the user attached, or a recording the workspace can fetch (VISP).
+   */
+  public hasAudioFile(bundleId: string): boolean {
+    return (
+      this._sourceFiles.has(bundleId) || this._audioProviders.has(bundleId)
+    );
+  }
+
+  /**
+   * The bundle's audio as a file: the attached one, else fetched again from
+   * where the workspace keeps it. Undefined when there is neither.
+   */
+  public async getAudioFile(bundleId: string): Promise<File | undefined> {
+    const retained = this._sourceFiles.get(bundleId);
+    if (retained) {
+      return retained;
+    }
+    const provider = this._audioProviders.get(bundleId);
+    return provider ? provider() : undefined;
+  }
+
   public getSourceFile(bundleId: string): File | undefined {
     return this._sourceFiles.get(bundleId);
   }
@@ -355,6 +397,7 @@ export class AudioService {
   public forget(bundleId: string): void {
     this.evict(bundleId);
     this._sourceFiles.delete(bundleId);
+    this._audioProviders.delete(bundleId);
     this._envelopes.delete(bundleId);
     this._mediaInfo.delete(bundleId);
     this._pinned.delete(bundleId);
@@ -408,12 +451,14 @@ export class AudioService {
     if (pending) {
       return pending;
     }
-    const sourceFile = this._sourceFiles.get(bundleId);
-    if (!sourceFile) {
+    const provider = this._audioProviders.get(bundleId);
+    const retained = this._sourceFiles.get(bundleId);
+    if (!retained && !provider) {
       return false;
     }
     const decode = (async (): Promise<boolean> => {
       try {
+        const sourceFile = retained ?? (await provider!());
         const buffer = await sourceFile.arrayBuffer();
         const result = await firstValueFrom(
           AudioManager.create(sourceFile.name, sourceFile.type, buffer).pipe(
@@ -421,7 +466,11 @@ export class AudioService {
           ),
         );
         if (result.audioManager) {
-          if (this._sourceFiles.get(bundleId) !== sourceFile) {
+          if (
+            retained
+              ? this._sourceFiles.get(bundleId) !== retained
+              : this._audioProviders.get(bundleId) !== provider
+          ) {
             // The bundle was removed (forget()) or re-attached to another
             // file while this decode ran — don't resurrect it.
             result.audioManager.destroy().catch(() => undefined);
@@ -455,6 +504,7 @@ export class AudioService {
     this._audiomanagers.clear();
     this._envelopes.clear();
     this._sourceFiles.clear();
+    this._audioProviders.clear();
     this._mediaInfo.clear();
     this._pinned.clear();
     this.recentBundleIds = [];

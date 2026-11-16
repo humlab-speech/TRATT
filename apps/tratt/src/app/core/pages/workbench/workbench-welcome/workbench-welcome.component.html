@@ -1,0 +1,104 @@
+<div class="welcome">
+  <div class="welcome__options">
+    <button
+      type="button"
+      class="btn btn-link welcome__link"
+      [disabled]="demoLoading()"
+      (click)="startDemo.emit()"
+    >
+      @if (demoLoading()) {
+        <span
+          class="spinner-border spinner-border-sm"
+          aria-hidden="true"
+        ></span>
+      } @else {
+        <i class="fa-regular fa-circle-play" aria-hidden="true"></i>
+      }
+      {{ 'workbench.welcome.demo' | transloco }}
+    </button>
+    @if (language(); as lang) {
+      <p class="welcome__settings">
+        {{ 'workbench.welcome.language' | transloco: { language: lang } }}
+        ·
+        <button
+          type="button"
+          class="btn btn-link welcome__link"
+          (click)="openSettings.emit()"
+        >
+          {{ 'workbench.welcome.change_settings' | transloco }}
+        </button>
+      </p>
+    }
+    <p class="welcome__manual">
+      {{ 'workbench.welcome.manual_prompt' | transloco }}
+      <button
+        type="button"
+        class="btn btn-link welcome__link"
+        (click)="fileInput.click()"
+      >
+        {{ 'workbench.welcome.manual' | transloco }}
+      </button>
+    </p>
+  </div>
+
+  <p class="welcome__privacy">
+    <i class="fa-solid fa-lock" aria-hidden="true"></i>
+    <span>
+      <strong>{{ 'workbench.welcome.privacy_title' | transloco }}</strong>
+      {{ 'workbench.welcome.privacy' | transloco }}
+    </span>
+  </p>
+  <p class="welcome__facts">
+    {{ 'workbench.welcome.facts' | transloco }}
+    <a [href]="manualURL" target="_blank" rel="noopener" class="welcome__link">
+      {{ 'workbench.welcome.how' | transloco }}
+    </a>
+  </p>
+
+  <ol class="welcome__steps">
+    <li class="welcome__step welcome__step--current">
+      <span class="welcome__step-number" aria-hidden="true">1</span>
+      <span>
+        <span class="welcome__step-title">
+          {{ 'workbench.welcome.steps.add.title' | transloco }}
+        </span>
+        <span class="welcome__step-text">
+          {{ 'workbench.welcome.steps.add.text' | transloco }}
+        </span>
+      </span>
+    </li>
+    <li class="welcome__step">
+      <span class="welcome__step-number" aria-hidden="true">2</span>
+      <span>
+        <span class="welcome__step-title">
+          {{ 'workbench.welcome.steps.transcribe.title' | transloco }}
+        </span>
+        <span class="welcome__step-text">
+          {{ 'workbench.welcome.steps.transcribe.text' | transloco }}
+        </span>
+      </span>
+    </li>
+    <li class="welcome__step">
+      <span class="welcome__step-number" aria-hidden="true">3</span>
+      <span>
+        <span class="welcome__step-title">
+          {{ 'workbench.welcome.steps.edit.title' | transloco }}
+        </span>
+        <span class="welcome__step-text">
+          {{ 'workbench.welcome.steps.edit.text' | transloco }}
+        </span>
+      </span>
+    </li>
+  </ol>
+</div>
+
+<tratt-credits />
+<tratt-footer />
+
+<input
+  #fileInput
+  type="file"
+  multiple
+  hidden
+  (change)="onFilesPicked($event)"
+/>

@@ -55,6 +55,7 @@ import { BugReportService } from './app/core/shared/service/bug-report.service';
 import { CompatibilityService } from './app/core/shared/service/compatibility.service';
 import { IDBService } from './app/core/shared/service/idb.service';
 import { LOCAL_DIARIZATION_WORKER_FACTORY } from './app/core/shared/service/local-diarization-worker.token';
+import { rememberLaunchSearch } from './app/core/shared/workspace/workspace';
 import { APIEffects } from './app/core/store/api';
 import { ApplicationInitEffects } from './app/core/store/application/application-init.effects';
 import { ApplicationSessionEffects } from './app/core/store/application/application-session.effects';
@@ -76,7 +77,14 @@ import { environment } from './environments/environment';
 // Matomo and other trackers inject params (pk_vid, link_addon, etc.) that
 // confuse Angular's router and cause NG04002 errors.
 (function stripUnknownQueryParams() {
+  // The workspace is resolved later, after the app has moved to /load and the
+  // query is gone, so keep the one the page was opened with.
+  rememberLaunchSearch(window.location.search);
   const KNOWN_PARAMS = new Set([
+    // VISP workspace launch: ?workspace=visp&projectId=<id>&level=<name>
+    'workspace',
+    'projectId',
+    'level',
     'audio_url',
     'audio_name',
     'audio_type',
@@ -104,7 +112,8 @@ import { environment } from './environments/environment';
 bootstrapApplication(AppComponent, {
   providers: [
     // Routing
-    provideZoneChangeDetection(),provideRouter(APP_ROUTES, withEnabledBlockingInitialNavigation()),
+    provideZoneChangeDetection(),
+    provideRouter(APP_ROUTES, withEnabledBlockingInitialNavigation()),
 
     // Forms
     FormsModule,
@@ -230,7 +239,7 @@ bootstrapApplication(AppComponent, {
   console.error(err);
   document.body.innerHTML = `
     <div style="font-family:sans-serif;padding:2rem;max-width:600px;margin:auto;text-align:center;">
-      <h1 style="color:#c00;">TRATT failed to start</h1>
+      <h1 style="color:#c00;">Tratt failed to start</h1>
       <p>An error occurred during initialization. This may be caused by browser incompatibility or private browsing mode.</p>
       <pre id="tratt-startup-error" style="text-align:left;background:#f5f5f5;padding:1rem;border-radius:4px;overflow:auto;max-height:200px;"></pre>
       <button onclick="location.reload()" style="margin-top:1rem;padding:0.5rem 1.5rem;cursor:pointer;">Retry</button>

@@ -47,7 +47,7 @@ If your machine or network cannot reach the servers where the automatic annotati
 
 Open the hidden maintenance page by adding `/help-tools` to Tratt's address (for
 example `https://tratt.visp.humlab.umu.se/help-tools`) and use **Clear all Storage Data**. It
-removes the stored transcript, logs and settings from this browser permanently. Do
+deletes the stored transcript, logs and settings from this browser permanently. Do
 this on a shared machine when you are finished, after exporting your work. The
 same page can also make a zip backup of your local Tratt data and restore one; see
 [Troubleshooting](troubleshooting.md#the-maintenance-page).

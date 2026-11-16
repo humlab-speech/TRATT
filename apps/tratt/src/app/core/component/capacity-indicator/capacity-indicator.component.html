@@ -1,74 +1,130 @@
-<div class="capacity-indicator">
-  <div class="capacity-indicator__row">
-    <span class="capacity-indicator__label">
-      {{ 'workbench.capacity.storage_label' | transloco }}
-    </span>
-    <span class="capacity-indicator__value">
-      {{
-        'workbench.capacity.storage_text'
-          | transloco: { used: storageUsedText(), quota: storageQuotaText() }
-      }}
-    </span>
+@if (callout()) {
+  <!-- Points down at the figures it is about; flashes until dismissed. -->
+  <div class="capacity-indicator__callout" role="alert">
+    <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
+    <span class="capacity-indicator__callout-text">{{
+      'workbench.capacity.near_limit_callout' | transloco
+    }}</span>
+    <button
+      type="button"
+      class="capacity-indicator__callout-close"
+      [attr.aria-label]="'workbench.capacity.near_limit_dismiss' | transloco"
+      [attr.title]="'workbench.capacity.near_limit_dismiss' | transloco"
+      (click)="dismissCallout()"
+    >
+      <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+    </button>
   </div>
-  <div class="capacity-indicator__bar">
-    <div
-      class="capacity-indicator__storage-models"
-      [style.width.%]="modelsPercent()"
-    ></div>
-    <div
-      class="capacity-indicator__storage-annotations"
-      [style.width.%]="annotationsPercent()"
-    ></div>
-  </div>
-  @if (storageAvailable()) {
-    @if (storageBreakdownKnown()) {
-      <div class="capacity-indicator__note capacity-indicator__storage-note">
+}
+<div
+  class="capacity-indicator"
+  [class.capacity-indicator--collapsed]="!expanded()"
+  [class.capacity-indicator--flagged]="callout()"
+>
+  <!-- Technical figures: folded away unless asked for, or unless a limit
+       is near (then it unfolds itself and a toast points here). -->
+  <button
+    type="button"
+    class="capacity-indicator__toggle"
+    aria-controls="capacity-indicator-details"
+    [attr.aria-expanded]="expanded()"
+    (click)="expanded.set(!expanded())"
+  >
+    <i
+      class="fa-solid capacity-indicator__chevron"
+      [class.fa-chevron-down]="expanded()"
+      [class.fa-chevron-right]="!expanded()"
+      aria-hidden="true"
+    ></i>
+    {{ 'workbench.capacity.title' | transloco }}
+    @if (level() !== 'ok') {
+      <i
+        class="fa-solid fa-triangle-exclamation capacity-indicator__alert"
+        [class.capacity-indicator__alert--danger]="level() === 'danger'"
+        [attr.title]="'workbench.capacity.near_limit' | transloco"
+        aria-hidden="true"
+      ></i>
+      <span class="visually-hidden">
+        {{ 'workbench.capacity.near_limit' | transloco }}
+      </span>
+    }
+  </button>
+  <div
+    id="capacity-indicator-details"
+    class="capacity-indicator__details"
+    [hidden]="!expanded()"
+  >
+    <div class="capacity-indicator__row">
+      <span class="capacity-indicator__label">
+        {{ 'workbench.capacity.storage_label' | transloco }}
+      </span>
+      <span class="capacity-indicator__value">
         {{
-          'workbench.capacity.storage_note'
-            | transloco
-              : { models: modelsText(), annotations: annotationsText() }
+          'workbench.capacity.storage_text'
+            | transloco: { used: storageUsedText(), quota: storageQuotaText() }
         }}
-      </div>
+      </span>
+    </div>
+    <div class="capacity-indicator__bar">
+      <div
+        class="capacity-indicator__storage-models"
+        [style.width.%]="modelsPercent()"
+      ></div>
+      <div
+        class="capacity-indicator__storage-annotations"
+        [style.width.%]="annotationsPercent()"
+      ></div>
+    </div>
+    @if (storageAvailable()) {
+      @if (storageBreakdownKnown()) {
+        <div class="capacity-indicator__note capacity-indicator__storage-note">
+          {{
+            'workbench.capacity.storage_note'
+              | transloco
+                : { models: modelsText(), annotations: annotationsText() }
+          }}
+        </div>
+      } @else {
+        <div
+          class="capacity-indicator__note capacity-indicator__storage-breakdown-unavailable"
+        >
+          {{ 'workbench.capacity.storage_breakdown_unavailable' | transloco }}
+        </div>
+      }
     } @else {
       <div
-        class="capacity-indicator__note capacity-indicator__storage-breakdown-unavailable"
+        class="capacity-indicator__note capacity-indicator__storage-unavailable"
       >
-        {{ 'workbench.capacity.storage_breakdown_unavailable' | transloco }}
+        {{ 'workbench.capacity.storage_unavailable' | transloco }}
       </div>
     }
-  } @else {
-    <div
-      class="capacity-indicator__note capacity-indicator__storage-unavailable"
-    >
-      {{ 'workbench.capacity.storage_unavailable' | transloco }}
-    </div>
-  }
 
-  <div class="capacity-indicator__row capacity-indicator__row--spaced">
-    <span class="capacity-indicator__label">
-      {{ 'workbench.capacity.memory_label' | transloco }}
-    </span>
-    <span class="capacity-indicator__value">
+    <div class="capacity-indicator__row capacity-indicator__row--spaced">
+      <span class="capacity-indicator__label">
+        {{ 'workbench.capacity.memory_label' | transloco }}
+      </span>
+      <span class="capacity-indicator__value">
+        {{
+          'workbench.capacity.memory_text'
+            | transloco: { used: memoryUsedText(), budget: memoryBudgetText() }
+        }}
+      </span>
+    </div>
+    <div class="capacity-indicator__bar">
+      <div
+        class="capacity-indicator__memory-fill"
+        [class.capacity-indicator__memory-fill--ok]="memoryLevel() === 'ok'"
+        [class.capacity-indicator__memory-fill--warn]="memoryLevel() === 'warn'"
+        [class.capacity-indicator__memory-fill--danger]="
+          memoryLevel() === 'danger'
+        "
+        [style.width.%]="memoryPercent()"
+      ></div>
+    </div>
+    <div class="capacity-indicator__note capacity-indicator__memory-note">
       {{
-        'workbench.capacity.memory_text'
-          | transloco: { used: memoryUsedText(), budget: memoryBudgetText() }
+        'workbench.capacity.memory_note' | transloco: { count: residentCount() }
       }}
-    </span>
-  </div>
-  <div class="capacity-indicator__bar">
-    <div
-      class="capacity-indicator__memory-fill"
-      [class.capacity-indicator__memory-fill--ok]="memoryLevel() === 'ok'"
-      [class.capacity-indicator__memory-fill--warn]="memoryLevel() === 'warn'"
-      [class.capacity-indicator__memory-fill--danger]="
-        memoryLevel() === 'danger'
-      "
-      [style.width.%]="memoryPercent()"
-    ></div>
-  </div>
-  <div class="capacity-indicator__note capacity-indicator__memory-note">
-    {{
-      'workbench.capacity.memory_note' | transloco: { count: residentCount() }
-    }}
+    </div>
   </div>
 </div>

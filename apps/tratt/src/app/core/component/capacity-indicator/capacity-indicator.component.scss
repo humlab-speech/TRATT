@@ -1,8 +1,54 @@
+// A block: the callout above the figures needs the host's full width.
+:host {
+  display: block;
+}
+
 .capacity-indicator {
   background: var(--tratt-surface-page);
   border: 1px solid var(--tratt-border);
   border-radius: var(--tratt-radius);
   padding: 0.7rem 0.8rem;
+}
+
+.capacity-indicator--collapsed {
+  padding-block: 0.45rem;
+}
+
+.capacity-indicator__toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  inline-size: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--tratt-text-muted);
+  text-align: start;
+  cursor: pointer;
+
+  &:hover {
+    color: var(--tratt-text-primary);
+  }
+}
+
+.capacity-indicator__chevron {
+  font-size: 0.7em;
+  color: var(--tratt-interactive-text);
+}
+
+.capacity-indicator__alert {
+  margin-inline-start: auto;
+  color: var(--tratt-warning);
+}
+
+.capacity-indicator__alert--danger {
+  color: var(--tratt-danger);
+}
+
+.capacity-indicator__details {
+  margin-top: 0.6rem;
 }
 
 .capacity-indicator__row {
@@ -70,4 +116,93 @@
   font-family: var(--tratt-font-data);
   color: var(--tratt-text-muted);
   line-height: 1.4;
+}
+
+// "Close to the limit": a note above the figures, its arrow on them, and
+// both edges flashing red until the note is dismissed.
+.capacity-indicator__callout {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin-bottom: 0.6rem;
+  padding: 0.5rem 0.5rem 0.5rem 0.7rem;
+  border: 1px solid var(--tratt-danger);
+  border-radius: var(--tratt-radius);
+  background: var(--sb-red-tint);
+  color: var(--tratt-text-primary);
+  font-size: 0.8125rem;
+  line-height: 1.35;
+
+  > i {
+    margin-top: 0.15em;
+    color: var(--tratt-danger-text);
+  }
+
+  // The arrow: a rotated square on the bottom edge, in the note's colours.
+  &::after {
+    content: '';
+    position: absolute;
+    inset-inline-start: 1.1rem;
+    bottom: -0.4rem;
+    width: 0.7rem;
+    height: 0.7rem;
+    border-right: 1px solid var(--tratt-danger);
+    border-bottom: 1px solid var(--tratt-danger);
+    background: var(--sb-red-tint);
+    rotate: 45deg;
+  }
+}
+
+.capacity-indicator__callout-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.capacity-indicator__callout-close {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  margin: -0.15rem 0;
+  padding: 0;
+  border: 0;
+  border-radius: var(--tratt-radius);
+  background: none;
+  color: var(--tratt-text-muted);
+  cursor: pointer;
+
+  &:hover {
+    color: var(--tratt-text-primary);
+    background: color-mix(in srgb, var(--tratt-danger) 15%, transparent);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tratt-interactive);
+    outline-offset: 1px;
+  }
+}
+
+.capacity-indicator--flagged {
+  border-color: var(--tratt-danger);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .capacity-indicator__callout,
+  .capacity-indicator--flagged {
+    animation: capacity-indicator-flash 1.2s ease-in-out infinite;
+  }
+}
+
+@keyframes capacity-indicator-flash {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 transparent;
+  }
+
+  50% {
+    box-shadow: 0 0 0 3px
+      color-mix(in srgb, var(--tratt-danger) 45%, transparent);
+  }
 }

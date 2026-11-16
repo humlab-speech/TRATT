@@ -262,6 +262,10 @@ export class AudioViewerComponent
   private _pendingRetry = false;
   private resizing = false;
   private lastResize = 0;
+  // Follows the viewer's own size, not just the window's: see ngAfterViewInit.
+  private sizeObserver?: ResizeObserver;
+  // The size the signal was last laid out for.
+  private layoutSize?: { width?: number; height?: number };
   private subscrManager: SubscriptionManager<Subscription>;
 
   ngOnInit() {
@@ -318,6 +322,8 @@ export class AudioViewerComponent
   }
 
   ngOnDestroy(): void {
+    this.sizeObserver?.disconnect();
+    this.sizeObserver = undefined;
     this.subscrManager.destroy();
     this.av.destroy();
   }
@@ -387,6 +393,7 @@ export class AudioViewerComponent
 
           await this.av.initializeSettings();
           this.av.initializeView();
+          this.layoutSize = { width: this.width, height: this.height };
           this._avInitialized = true;
           this._initInProgress = false;
         } else {
@@ -454,6 +461,9 @@ export class AudioViewerComponent
             this.resizing = true;
             try {
               this.lastResize = Date.now();
+              if (this.width && this.height) {
+                this.layoutSize = { width: this.width, height: this.height };
+              }
               await this.av.onResize(this.width, this.height);
               this.resizing = false;
             } catch (e) {
@@ -499,6 +509,35 @@ export class AudioViewerComponent
   ngAfterViewInit() {
     if (this.audioChunk && !this._avInitialized) {
       this.afterChunkUpdated(this.audioChunk);
+    }
+
+    // The viewer's size can change without the window resizing, e.g. while
+    // the workbench pane slides in from the welcome layout. Before, nothing
+    // reacted to that: afterChunkUpdated() skips initialization while the
+    // viewer has no width, so a freshly dropped file showed no signal until
+    // its transcription arrived, and a signal laid out mid-slide stayed that
+    // narrow. Initialize once there is a size; afterwards relayout (debounced,
+    // like a window resize) whenever the size really changes.
+    if (typeof ResizeObserver !== 'undefined') {
+      this.sizeObserver = new ResizeObserver(() => {
+        const width = this.width;
+        const height = this.height;
+        if (!this.audioChunk || !width || !height) {
+          return;
+        }
+        if (!this._avInitialized) {
+          this.afterChunkUpdated(this.audioChunk);
+        } else if (
+          width !== this.layoutSize?.width ||
+          height !== this.layoutSize?.height
+        ) {
+          this.onWindowResize();
+        }
+      });
+      this.sizeObserver.observe(this.elementRef.nativeElement);
+      if (this.konvaContainer) {
+        this.sizeObserver.observe(this.konvaContainer.nativeElement);
+      }
     }
 
     // Konva measures text with whatever font is loaded at draw time; redraw once

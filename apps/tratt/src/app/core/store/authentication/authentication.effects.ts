@@ -39,11 +39,11 @@ import { ApplicationActions } from '../application/application.actions';
 import { checkAndThrowError } from '../error.handlers';
 import { IDBActions } from '../idb/idb.actions';
 import { LoginMode, RootState } from '../index';
+import { selectLocalMode } from '../login-mode/annotation/annotation.selectors';
 import {
   DEFAULT_BUNDLE_ID,
   generateBundleId,
 } from '../login-mode/annotation/local-bundle-collection';
-import { selectLocalMode } from '../login-mode/annotation/annotation.selectors';
 import { LoginModeActions } from '../login-mode/login-mode.actions';
 import { AuthenticationActions } from './authentication.actions';
 
@@ -472,7 +472,7 @@ export class AuthenticationEffects {
           } else {
             // mode is undefined
             this.routingService.navigate('redirect because mode is undefined', [
-              '/local',
+              '/',
             ]);
           }
         }),

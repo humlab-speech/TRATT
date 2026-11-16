@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { TranslocoService } from '@jsverse/transloco';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { Store } from '@ngrx/store';
@@ -6,6 +6,7 @@ import { IAnnotJSON } from '@tratt/annotation';
 import { renamePlaceholderLevels } from '@tratt/utilities';
 import {
   catchError,
+  filter,
   forkJoin,
   map,
   Observable,
@@ -16,6 +17,7 @@ import {
 import { SessionFile } from '../../../obj/SessionFile';
 import { IDBService } from '../../../shared/service/idb.service';
 import { IIDBModeOptions } from '../../../shared/tratt-database';
+import { WorkspaceService } from '../../../shared/workspace/workspace.service';
 import { IDBActions } from '../../idb/idb.actions';
 import { LoginMode, RootState } from '../../index';
 import { BundleRunState } from '../../pipeline-queue';
@@ -54,10 +56,14 @@ interface RestoredBundleData {
  */
 @Injectable()
 export class BundleRestoreEffects {
+  private workspaceService = inject(WorkspaceService);
+
   restoreBundles$ = createEffect(
     () =>
       this.actions$.pipe(
         ofType(IDBActions.loadOptions.success),
+        // The VISP workspace's list is exactly the server-side assignment.
+        filter(() => !this.workspaceService.isVisp()),
         switchMap(() =>
           this.idbService.listLocalBundleIds().pipe(
             switchMap((bundleIds) => {

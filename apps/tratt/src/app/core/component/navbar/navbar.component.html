@@ -2,6 +2,8 @@
   <nav
     class="navbar fixed-top navbar-expand-md tratt-header"
     [class.tratt-header--embedded]="appStorage.useMode === LoginMode.URL"
+    [class.tratt-header--app-bar]="headerSlots.start() || headerSlots.end()"
+    [class.tratt-header--in-visp]="isVisp()"
     [attr.aria-label]="'shell.header.label' | transloco"
     #navbar
     id="navbar"
@@ -10,7 +12,7 @@
       @if (appStorage.useMode !== LoginMode.URL) {
         <a
           class="navbar-brand tratt-header__brand"
-          [routerLink]="homeLink"
+          routerLink="/"
           [queryParamsHandling]="'merge'"
         >
           <tratt-logo [tagline]="true" />
@@ -22,11 +24,21 @@
           }
         </a>
       }
+      @if (headerSlots.start(); as tpl) {
+        <div class="tratt-header__start">
+          <ng-container [ngTemplateOutlet]="tpl" />
+        </div>
+      }
       <div class="tratt-header__center">
         @if (headerSlots.center(); as tpl) {
           <ng-container [ngTemplateOutlet]="tpl" />
         }
       </div>
+      @if (headerSlots.end(); as tpl) {
+        <div class="tratt-header__end">
+          <ng-container [ngTemplateOutlet]="tpl" />
+        </div>
+      }
       <button
         class="navbar-toggler"
         type="button"
@@ -51,7 +63,7 @@
               <li [routerLinkActive]="['active']" class="nav-item active">
                 <a
                   [queryParamsHandling]="'merge'"
-                  [routerLink]="['/local']"
+                  routerLink="/"
                   class="nav-link"
                   (click)="isCollapsed = true"
                   >{{ 'g.login' | transloco }}</a
@@ -59,21 +71,6 @@
               </li>
             }
 
-            @if (
-              environment.workbenchEnabled && localOnly && homeLink === '/local'
-            ) {
-              <li class="nav-item">
-                <a
-                  class="nav-link"
-                  routerLink="/workbench"
-                  [queryParamsHandling]="'merge'"
-                  (click)="isCollapsed = true"
-                >
-                  <i class="fa-solid fa-layer-group" aria-hidden="true"></i>
-                  {{ 'shell.header.workbench' | transloco }}
-                </a>
-              </li>
-            }
             <li class="nav-item">
               <a
                 class="nav-link"
@@ -368,9 +365,13 @@
                 ngbDropdownToggle
                 type="button"
                 class="nav-link dropdown-toggle"
+                [attr.title]="'shell.header.speakers.hint' | transloco"
+                [attr.aria-label]="'shell.header.speakers.title' | transloco"
               >
-                <i class="fa-solid fa-users me-1"></i>
-                <span class="d-inline d-md-none mt-2">Speakers</span>
+                <i class="fa-solid fa-users me-1" aria-hidden="true"></i>
+                <span class="d-inline d-md-none mt-2" aria-hidden="true">{{
+                  'shell.header.speakers.title' | transloco
+                }}</span>
               </a>
               <div
                 ngbDropdownMenu
@@ -381,7 +382,22 @@
                 (keydown.enter)="$event.stopPropagation()"
                 (keydown.space)="$event.stopPropagation()"
                 tabindex="0"
+                aria-labelledby="tratt-speakers-title"
               >
+                <!-- Says what the list is, even while it is empty. -->
+                <div class="speakers-menu__header">
+                  <h2 id="tratt-speakers-title" class="speakers-menu__title">
+                    {{ 'shell.header.speakers.title' | transloco }}
+                  </h2>
+                  <p class="speakers-menu__hint">
+                    {{ 'shell.header.speakers.hint' | transloco }}
+                  </p>
+                </div>
+                @if (speakerIds.length === 0) {
+                  <p class="speakers-menu__empty">
+                    {{ 'shell.header.speakers.empty' | transloco }}
+                  </p>
+                }
                 <table class="w-100">
                   <tbody>
                     @for (spk of speakerIds; track spk; let i = $index) {
@@ -409,6 +425,12 @@
                             maxlength="100"
                             type="text"
                             [value]="spk"
+                            [attr.aria-label]="
+                              'shell.header.speakers.name' | transloco
+                            "
+                            [attr.title]="
+                              'shell.header.speakers.rename_hint' | transloco
+                            "
                             style="width: 100%"
                           />
                         </td>
@@ -417,12 +439,18 @@
                             <button
                               type="button"
                               class="btn btn-link p-0"
+                              [attr.title]="
+                                'shell.header.speakers.remove' | transloco
+                              "
                               (click)="onSpeakerRemoveClick(spk)"
                             >
-                              <i class="fa-solid fa-trash"></i>
-                              <span class="visually-hidden"
-                                >Remove speaker</span
-                              >
+                              <i
+                                class="fa-solid fa-trash"
+                                aria-hidden="true"
+                              ></i>
+                              <span class="visually-hidden">{{
+                                'shell.header.speakers.remove' | transloco
+                              }}</span>
                             </button>
                           }
                         </td>
@@ -430,16 +458,18 @@
                     }
                     <tr>
                       <td
-                        colspan="2"
+                        colspan="3"
                         class="level-add-row rounded rounded-bottom-3"
                       >
                         <button
                           type="button"
-                          class="btn btn-link w-100 p-0"
+                          class="btn btn-link w-100 p-0 speakers-menu__add"
                           (click)="onSpeakerAddClick()"
                         >
-                          <i class="fa-solid fa-plus"></i>
-                          <span class="visually-hidden">Add speaker</span>
+                          <i class="fa-solid fa-plus" aria-hidden="true"></i>
+                          <span>{{
+                            'shell.header.speakers.add' | transloco
+                          }}</span>
                         </button>
                       </td>
                     </tr>

@@ -11,7 +11,9 @@ import { AppInfo } from '../../../app.info';
  * docs/manual/CONTRIBUTING.md for the contract between the app and the manual.
  */
 const ROUTE_PAGES: { prefix: string; page: string }[] = [
-  { prefix: '/workbench', page: 'workbench' },
+  // The start page is the workbench. `/` only matches itself, since no route
+  // starts with `//`.
+  { prefix: '/', page: 'workbench' },
 ];
 
 /** The manual page for `url`, or undefined for the front page. */
