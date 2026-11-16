@@ -1,3 +1,4 @@
+import { NgTemplateOutlet } from '@angular/common';
 import {
   AfterViewInit,
   Component,
@@ -25,6 +26,7 @@ export const FASTBAR_COMPACT_CLASSES = [
 
 @Component({
   selector: 'tratt-fastbar',
+  imports: [NgTemplateOutlet],
   templateUrl: './taskbar.component.html',
   styleUrls: ['./taskbar.component.scss'],
 })

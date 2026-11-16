@@ -643,13 +643,11 @@ export class AnnotationStoreService {
       transcript = tidyUp(transcript, guidelines);
 
       // make sure there is only one speaker label for each unit if exists
-      if (
-        this.importOptions$.value &&
-        this.importConverter$.value === 'SRT' &&
-        this.importOptions$.value['SRT']?.speakerIdentifierPattern
-      ) {
-        const pattern =
-          this.importOptions$.value['SRT'].speakerIdentifierPattern;
+      const converter = this.importConverter$.value;
+      const pattern: string | undefined = converter
+        ? this.importOptions$.value?.[converter]?.speakerIdentifierPattern
+        : undefined;
+      if (pattern) {
         const regex = new RegExp(pattern, 'g');
         const matches: RegExpExecArray[] = [];
         let match = regex.exec(transcript);

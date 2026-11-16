@@ -61,7 +61,7 @@ All of these can be loaded back into Tratt.
 | Option | Effect |
 | --- | --- |
 | **Each sentence on a separate line** / **Continuous text** | One transcription unit per line, or everything run together as prose |
-| **Mark speaker ID at the beginning of sentences** | Prefixes each unit with its speaker label |
+| **Mark speaker ID at the beginning of sentences** | Prefixes each unit with its speaker as a voice tag, `<v Name>`. The same tag is read back on import (the older `[Name]` form is still recognised). WebVTT always writes the tag. |
 | **Add timestamp at beginning of each sentence** | Prefixes each unit with its start time |
 | **Collect annotations according to transcription tier in the output** | Shown when you have selected more than one tier: groups the output tier by tier instead of interleaving |
 

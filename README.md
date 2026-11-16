@@ -1,4 +1,4 @@
-# TRATT — a Visible Speech tool for orthographic transcription
+# Tratt: the Visible Speech tool for orthographic transcription
 
 [![OSV-Scanner](https://github.com/humlab-speech/TRATT/actions/workflows/osv-scanner.yml/badge.svg)](https://github.com/humlab-speech/TRATT/actions/workflows/osv-scanner.yml)
 [![CodeQL Advanced](https://github.com/humlab-speech/TRATT/actions/workflows/codeql.yml/badge.svg)](https://github.com/humlab-speech/TRATT/actions/workflows/codeql.yml)

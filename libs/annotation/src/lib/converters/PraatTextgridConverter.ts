@@ -18,6 +18,13 @@ import {
 } from './Converter';
 import { appendNotCheckMark, stripNotCheckMark } from './not-check-mark';
 import {
+  SpeakerImportOptions,
+  speakerImportSchema,
+  speakerPrefix,
+  splitSpeaker,
+  SPEAKER_LABEL,
+} from './speaker';
+import {
   BASWebservicesApplication,
   EMUWebAppApplication,
   OctraApplication,
@@ -26,6 +33,8 @@ import {
 
 export class PraatTextgridConverter extends Converter {
   override _name: TrattAnnotationFormatType = 'TextGrid';
+
+  public override options = { addSpeakerId: false };
 
   public constructor() {
     super();
@@ -112,7 +121,10 @@ export class PraatTextgridConverter extends Converter {
             `        intervals [${j + 1}]:\n` +
             `            xmin = ${secondsStart} \n` +
             `            xmax = ${secondsEnd} \n` +
-            `            text = "${appendNotCheckMark(
+            `            text = "${speakerPrefix(
+              segment,
+              this.options.addSpeakerId,
+            )}${appendNotCheckMark(
               segment.getFirstLabelWithoutName('Speaker')?.value ?? '',
               segment.verified,
             )}" \n`;
@@ -136,10 +148,14 @@ export class PraatTextgridConverter extends Converter {
     file: IFile,
     audiofile: OAudiofile,
   ): any | undefined {
-    return undefined;
+    return speakerImportSchema();
   }
 
-  public import(file: IFile, audiofile: OAudiofile): ImportResult {
+  public import(
+    file: IFile,
+    audiofile: OAudiofile,
+    options: SpeakerImportOptions = new SpeakerImportOptions(),
+  ): ImportResult {
     if (!audiofile?.sampleRate) {
       return {
         error: 'Missing sample rate',
@@ -266,10 +282,18 @@ export class PraatTextgridConverter extends Converter {
                     i++;
                     const text = test[1];
 
-                    const { text: cleanedText, verified } =
-                      stripNotCheckMark(text);
+                    const split = splitSpeaker(
+                      text,
+                      options.speakerIdentifierPattern,
+                    );
+                    const { text: cleanedText, verified } = stripNotCheckMark(
+                      split.text,
+                    );
                     const olabels: OLabel[] = [];
                     olabels.push(new OLabel(lvlName, cleanedText));
+                    if (split.speaker) {
+                      olabels.push(new OLabel(SPEAKER_LABEL, split.speaker));
+                    }
                     const osegment = new OSegment(
                       segNum,
                       Math.round(xmin * audiofile.sampleRate),

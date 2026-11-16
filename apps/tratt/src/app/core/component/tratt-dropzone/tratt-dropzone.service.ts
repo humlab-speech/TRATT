@@ -134,6 +134,7 @@ export class TrattDropzoneService {
     this._files = [];
     this._oaudiofile = undefined;
     this._oannotation = undefined;
+    this.pairingOptions.clear();
     this.updateStatistics();
   }
 
@@ -250,6 +251,8 @@ export class TrattDropzoneService {
 
   private pairing = false;
   private pairAgain = false;
+  /** Options chosen in the import modal, reused for the rest of the drop. */
+  private pairingOptions = new Map<string, unknown>();
 
   private _audioManager?: AudioManager;
 
@@ -323,6 +326,10 @@ export class TrattDropzoneService {
     if (this.acceptExportArchive && isZipFile(file)) {
       void this.addArchive(file);
       return;
+    }
+    // ponytail: a new drop = adding to an empty list; ask the options again.
+    if (this._files.length === 0) {
+      this.pairingOptions.clear();
     }
     const progressFile: FileProgress = {
       id: TrattDropzoneService.id++,
@@ -803,7 +810,12 @@ export class TrattDropzoneService {
       entry.converter = converter;
       entry.needsOptions = converter.needsOptionsForImport(ofile, audio);
       if (entry.needsOptions) {
-        await this.openImportOptionsModal(entry);
+        if (this.pairingOptions.has(converter.name)) {
+          entry.options = this.pairingOptions.get(converter.name);
+        } else {
+          await this.openImportOptionsModal(entry);
+          this.pairingOptions.set(converter.name, entry.options);
+        }
       }
       const result = converter.import(ofile, audio, entry.options);
       if (result?.audiofile !== undefined) {

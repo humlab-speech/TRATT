@@ -66,6 +66,12 @@
   line-height: 1.2;
 }
 
+.dropzone-hint {
+  color: var(--tratt-text-muted);
+  font-size: 0.75rem;
+  line-height: 1.2;
+}
+
 // Yellow on white is only 1.66:1, so the warning icon uses the text colour.
 .dz-icon-warning {
   font-size: 1rem;

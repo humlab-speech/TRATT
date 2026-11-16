@@ -10,10 +10,19 @@ import {
   TrattAnnotationFormatType,
 } from './Converter';
 import { appendNotCheckMark, stripNotCheckMark } from './not-check-mark';
+import {
+  SpeakerImportOptions,
+  speakerImportSchema,
+  speakerPrefix,
+  splitSpeaker,
+  SPEAKER_LABEL,
+} from './speaker';
 import { OctraApplication } from './SupportedApplications';
 
 export class CTMConverter extends Converter {
   override _name: TrattAnnotationFormatType = 'CTM';
+
+  public override options = { addSpeakerId: false };
 
   // http://www1.icsi.berkeley.edu/Speech/docs/sctk-1.2/infmts.htm#ctm_fmt_name_0
 
@@ -74,7 +83,10 @@ export class CTMConverter extends Converter {
         Math.round((levelItem.sampleStart! / audiofile.sampleRate) * 100) / 100;
       const duration =
         Math.round((levelItem.sampleDur! / audiofile.sampleRate) * 100) / 100;
-      result += `${annotation.name} 1 ${start} ${duration} ${appendNotCheckMark(
+      result += `${annotation.name} 1 ${start} ${duration} ${speakerPrefix(
+        levelItem,
+        this.options.addSpeakerId,
+      )}${appendNotCheckMark(
         transcript,
         levelItem.verified,
       )} 1.00\n`;
@@ -96,10 +108,14 @@ export class CTMConverter extends Converter {
     file: IFile,
     audiofile: OAudiofile,
   ): any | undefined {
-    return undefined;
+    return speakerImportSchema();
   }
 
-  public import(file: IFile, audiofile: OAudiofile): ImportResult {
+  public import(
+    file: IFile,
+    audiofile: OAudiofile,
+    options: SpeakerImportOptions = new SpeakerImportOptions(),
+  ): ImportResult {
     if (!audiofile?.sampleRate) {
       return {
         error: 'Missing sample rate',
@@ -168,8 +184,23 @@ export class CTMConverter extends Converter {
           }
 
           const olabels: OLabel[] = [];
-          const { text: cleanedText, verified } = stripNotCheckMark(columns[4]);
+          // the text may hold several words; a trailing numeric column is the confidence
+          const last = columns[columns.length - 1];
+          const words =
+            columns.length >= 6 && last.trim() !== '' && !isNaN(Number(last))
+              ? columns.slice(4, -1)
+              : columns.slice(4);
+          const split = splitSpeaker(
+            words.join(' '),
+            options.speakerIdentifierPattern,
+          );
+          const { text: cleanedText, verified } = stripNotCheckMark(
+            split.text,
+          );
           olabels.push(new OLabel('Tier_1', cleanedText));
+          if (split.speaker) {
+            olabels.push(new OLabel(SPEAKER_LABEL, split.speaker));
+          }
           osegment = new OSegment(
             i + 1,
             Math.round(start * sampleRate),

@@ -17,6 +17,13 @@ import {
 } from './Converter';
 import { appendNotCheckMark, stripNotCheckMark } from './not-check-mark';
 import {
+  SpeakerImportOptions,
+  speakerImportSchema,
+  speakerPrefix,
+  splitSpeaker,
+  SPEAKER_LABEL,
+} from './speaker';
+import {
   BASWebservicesApplication,
   OctraApplication,
 } from './SupportedApplications';
@@ -24,6 +31,8 @@ import {
 // http://www.bas.uni-muenchen.de/Bas/BasFormatsdeu.html
 export class PartiturConverter extends Converter {
   override _name: TrattAnnotationFormatType = 'BASPartitur';
+
+  public override options = { addSpeakerId: false };
 
   public constructor() {
     super();
@@ -92,7 +101,7 @@ LBD:\n`;
           }
         }
         ortCounter += words.length;
-        trnLine += ` ${appendNotCheckMark(
+        trnLine += ` ${speakerPrefix(item, this.options.addSpeakerId)}${appendNotCheckMark(
           item.getFirstLabelWithoutName('Speaker')?.value ?? '',
           item.verified,
         )}\n`;
@@ -122,10 +131,14 @@ LBD:\n`;
     file: IFile,
     audiofile: OAudiofile,
   ): any | undefined {
-    return undefined;
+    return speakerImportSchema();
   }
 
-  public import(file: IFile, audiofile: OAudiofile): ImportResult {
+  public import(
+    file: IFile,
+    audiofile: OAudiofile,
+    options: SpeakerImportOptions = new SpeakerImportOptions(),
+  ): ImportResult {
     if (!audiofile?.sampleRate) {
       return {
         error: 'Missing sample rate',
@@ -211,15 +224,24 @@ LBD:\n`;
             }
 
             if (transcriptArray) {
-              const { text: cleanedText, verified } = stripNotCheckMark(
+              const split = splitSpeaker(
                 transcriptArray[4],
+                options.speakerIdentifierPattern,
+              );
+              const { text: cleanedText, verified } = stripNotCheckMark(
+                split.text,
               );
               level.items.push(
                 new OSegment(
                   counter,
                   Number(transcriptArray[1]),
                   Number(transcriptArray[2]),
-                  [new OLabel(previousTier, cleanedText)],
+                  [
+                    new OLabel(previousTier, cleanedText),
+                    ...(split.speaker
+                      ? [new OLabel(SPEAKER_LABEL, split.speaker)]
+                      : []),
+                  ],
                   verified,
                 ),
               );

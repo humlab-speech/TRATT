@@ -60,6 +60,54 @@
           "description": "Skapar en separat anteckningsnivå för varje talare som hittas i filen."
         }
       }
+    },
+    "PlainText": {
+      "options": {
+        "speakerIdentifierPattern": {
+          "description": "Reguljärt uttryck (med en grupp) som matchar talarprefix i början av en cue-rad. Den första gruppen används som talarnamn.",
+          "title": "Reguljärt uttryck för talaridentifikation"
+        }
+      }
+    },
+    "TextGrid": {
+      "options": {
+        "speakerIdentifierPattern": {
+          "description": "Reguljärt uttryck (med en grupp) som matchar talarprefix i början av en cue-rad. Den första gruppen används som talarnamn.",
+          "title": "Reguljärt uttryck för talaridentifikation"
+        }
+      }
+    },
+    "ELAN": {
+      "options": {
+        "speakerIdentifierPattern": {
+          "description": "Reguljärt uttryck (med en grupp) som matchar talarprefix i början av en cue-rad. Den första gruppen används som talarnamn.",
+          "title": "Reguljärt uttryck för talaridentifikation"
+        }
+      }
+    },
+    "PraatTextTable": {
+      "options": {
+        "speakerIdentifierPattern": {
+          "description": "Reguljärt uttryck (med en grupp) som matchar talarprefix i början av en cue-rad. Den första gruppen används som talarnamn.",
+          "title": "Reguljärt uttryck för talaridentifikation"
+        }
+      }
+    },
+    "CTM": {
+      "options": {
+        "speakerIdentifierPattern": {
+          "description": "Reguljärt uttryck (med en grupp) som matchar talarprefix i början av en cue-rad. Den första gruppen används som talarnamn.",
+          "title": "Reguljärt uttryck för talaridentifikation"
+        }
+      }
+    },
+    "BASPartitur": {
+      "options": {
+        "speakerIdentifierPattern": {
+          "description": "Reguljärt uttryck (med en grupp) som matchar talarprefix i början av en cue-rad. Den första gruppen används som talarnamn.",
+          "title": "Reguljärt uttryck för talaridentifikation"
+        }
+      }
     }
   },
   "custom": {
@@ -150,7 +198,12 @@
       "add samplepoints": "Separera transkriptionsenheter med sampelpunkter (t.ex. 123456)",
       "add timestamps": "Separera transkriptionsenheter med läsbara tidsstämplar (HH:MM:SS.s)",
       "mark speaker id": "Markera talar-ID i början av meningar",
-      "timestamp notice": "Om du markerar båda alternativen kommer båda tidsformaten att infogas:"
+      "timestamp notice": "Om du markerar båda alternativen kommer båda tidsformaten att infogas:",
+      "separate lines": "Varje mening på en egen rad",
+      "continuous text": "Löpande text",
+      "sentence timestamps": "Lägg till tidsstämpel i början av varje mening",
+      "group by tier": "Samla annoteringar efter transkriptionsnivå i utdata",
+      "select tiers": "Välj nivåer att inkludera"
     },
     "category general": "Allmänna utdataformat (endast SRT kan laddas upp igen i den här appen när du vill fortsätta ditt arbete)",
     "category linguistic": "Språkvetenskapliga format (alla kan laddas upp igen i den här appen)",

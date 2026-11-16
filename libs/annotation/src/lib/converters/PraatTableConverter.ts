@@ -17,6 +17,13 @@ import {
 } from './Converter';
 import { appendNotCheckMark, stripNotCheckMark } from './not-check-mark';
 import {
+  SpeakerImportOptions,
+  speakerImportSchema,
+  speakerPrefix,
+  splitSpeaker,
+  SPEAKER_LABEL,
+} from './speaker';
+import {
   BASWebservicesApplication,
   OctraApplication,
   PraatApplication,
@@ -24,6 +31,8 @@ import {
 
 export class PraatTableConverter extends Converter {
   override _name: TrattAnnotationFormatType = 'PraatTextTable';
+
+  public override options = { addSpeakerId: false };
 
   public constructor() {
     super();
@@ -71,7 +80,10 @@ export class PraatTableConverter extends Converter {
       const transcript =
         segment.getFirstLabelWithoutName('Speaker')?.value ?? '';
 
-      return `${res}${tmin}\t${level.name}\t${appendNotCheckMark(
+      return `${res}${tmin}\t${level.name}\t${speakerPrefix(
+        segment,
+        this.options.addSpeakerId,
+      )}${appendNotCheckMark(
         transcript,
         segment.verified,
       )}\t${tmax}\n`;
@@ -104,10 +116,14 @@ export class PraatTableConverter extends Converter {
     file: IFile,
     audiofile: OAudiofile,
   ): any | undefined {
-    return undefined;
+    return speakerImportSchema();
   }
 
-  public import(file: IFile, audiofile: OAudiofile): ImportResult {
+  public import(
+    file: IFile,
+    audiofile: OAudiofile,
+    options: SpeakerImportOptions = new SpeakerImportOptions(),
+  ): ImportResult {
     if (!audiofile?.sampleRate) {
       return {
         error: 'Missing sample rate',
@@ -246,8 +262,14 @@ export class PraatTableConverter extends Converter {
                 id++;
               }
               const olabels: OLabel[] = [];
-              const { text: cleanedText, verified } = stripNotCheckMark(text);
+              const split = splitSpeaker(text, options.speakerIdentifierPattern);
+              const { text: cleanedText, verified } = stripNotCheckMark(
+                split.text,
+              );
               olabels.push(new OLabel(tier, cleanedText));
+              if (split.speaker) {
+                olabels.push(new OLabel(SPEAKER_LABEL, split.speaker));
+              }
               const osegment = new OSegment(
                 id,
                 Math.round(start * sampleRate),

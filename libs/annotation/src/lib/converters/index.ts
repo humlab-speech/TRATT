@@ -9,6 +9,7 @@ export * from './OdtConverter';
 export * from './PartiturConverter';
 export * from './PraatTableConverter';
 export * from './PraatTextgridConverter';
+export * from './speaker';
 export * from './SRTConverter';
 export * from './TextConverter';
 export * from './WebVTTConverter';

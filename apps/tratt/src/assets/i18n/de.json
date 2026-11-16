@@ -60,6 +60,54 @@
           "description": "Erstellt eine separate Annotationsebene für jeden in der Datei gefundenen Sprecher."
         }
       }
+    },
+    "PlainText": {
+      "options": {
+        "speakerIdentifierPattern": {
+          "description": "Regulärer Ausdruck (mit einer Gruppe) der dem Sprecherpräfix am Anfang einer Cue-Zeile entspricht. Die erste Gruppe wird als Sprechername verwendet.",
+          "title": "Regulärer Ausdruck für Sprecheridentifikation"
+        }
+      }
+    },
+    "TextGrid": {
+      "options": {
+        "speakerIdentifierPattern": {
+          "description": "Regulärer Ausdruck (mit einer Gruppe) der dem Sprecherpräfix am Anfang einer Cue-Zeile entspricht. Die erste Gruppe wird als Sprechername verwendet.",
+          "title": "Regulärer Ausdruck für Sprecheridentifikation"
+        }
+      }
+    },
+    "ELAN": {
+      "options": {
+        "speakerIdentifierPattern": {
+          "description": "Regulärer Ausdruck (mit einer Gruppe) der dem Sprecherpräfix am Anfang einer Cue-Zeile entspricht. Die erste Gruppe wird als Sprechername verwendet.",
+          "title": "Regulärer Ausdruck für Sprecheridentifikation"
+        }
+      }
+    },
+    "PraatTextTable": {
+      "options": {
+        "speakerIdentifierPattern": {
+          "description": "Regulärer Ausdruck (mit einer Gruppe) der dem Sprecherpräfix am Anfang einer Cue-Zeile entspricht. Die erste Gruppe wird als Sprechername verwendet.",
+          "title": "Regulärer Ausdruck für Sprecheridentifikation"
+        }
+      }
+    },
+    "CTM": {
+      "options": {
+        "speakerIdentifierPattern": {
+          "description": "Regulärer Ausdruck (mit einer Gruppe) der dem Sprecherpräfix am Anfang einer Cue-Zeile entspricht. Die erste Gruppe wird als Sprechername verwendet.",
+          "title": "Regulärer Ausdruck für Sprecheridentifikation"
+        }
+      }
+    },
+    "BASPartitur": {
+      "options": {
+        "speakerIdentifierPattern": {
+          "description": "Regulärer Ausdruck (mit einer Gruppe) der dem Sprecherpräfix am Anfang einer Cue-Zeile entspricht. Die erste Gruppe wird als Sprechername verwendet.",
+          "title": "Regulärer Ausdruck für Sprecheridentifikation"
+        }
+      }
     }
   },
   "custom": {
@@ -148,7 +196,12 @@
       "add samplepoints": "Trenne Transkriptionseinheiten durch Zeitstempel im Sample-Format (z.B. 123456)",
       "add timestamps": "Trenne Transkriptionseinheiten durch Zeitstempel im lesbaren Format (HH:MM:SS.s)",
       "mark speaker id": "Sprecher-ID am Anfang von Sätzen markieren",
-      "timestamp notice": "Wenn Du beide Optionen aktivierst, werden beide Formate eingefügt:"
+      "timestamp notice": "Wenn Du beide Optionen aktivierst, werden beide Formate eingefügt:",
+      "separate lines": "Jeder Satz in einer eigenen Zeile",
+      "continuous text": "Fließtext",
+      "sentence timestamps": "Zeitstempel am Anfang jedes Satzes hinzufügen",
+      "group by tier": "Annotationen im Ausgabedokument nach Transkriptionsebene gruppieren",
+      "select tiers": "Zu berücksichtigende Ebenen auswählen"
     },
     "category general": "Allgemeine Ausgabeformate (nur SRT kann wieder in diese App hochgeladen werden, wenn Sie Ihre Arbeit fortsetzen möchten)",
     "category linguistic": "Linguistische Formate (alle können wieder in diese App hochgeladen werden)",

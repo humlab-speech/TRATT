@@ -1,6 +1,6 @@
 {
   "name": "tratt-source",
-  "version": "3.3.0",
+  "version": "3.3.1",
   "license": "MIT",
   "author": "Fredrik Nylen, Umeå University. Authors of the original OCTRA: Julian Pömp, Christoph Draxler; Institut für Phonetik und Sprachverarbeitung, LMU München",
   "scripts": {
@@ -18,6 +18,7 @@
     "prebuild:release": "node scripts/generate-build-info.mjs",
     "start": "npm run start:tratt",
     "start:tratt": "nx serve tratt --host 0.0.0.0",
+    "start:visp-sim": "node scripts/visp-sim/server.mjs",
     "start:json-sets-demo": "nx serve json-sets-demo",
     "build": "nx build tratt",
     "build:docs": "typedoc --out typedocs && node runner.js prepare:docs",
