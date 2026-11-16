@@ -885,6 +885,7 @@
       "zip_hint": "Mehr als eine Datei, daher kommen sie in eine .zip, mit Tratts eigener Transkriptdatei für jede Aufnahme. Legen Sie die .zip später in Tratt ab, um sie wieder zu laden.",
       "manifest_hint": "– eine Liste der Aufnahmepakete",
       "nothing_to_export": "Keines dieser Aufnahmepakete hat bisher ein Transkript, daher gibt es nichts zu exportieren.",
+      "only_audio": "Keines dieser Aufnahmepakete hat bisher ein Transkript. Haken Sie „Audio mitnehmen“ an, um ihr Audio zu exportieren.",
       "no_format": "Haken Sie mindestens ein Format an.",
       "left_out": "Ausgelassen, noch kein Transkript: {{names}}",
       "missing_audio": "{{count}} davon haben kein angehängtes Audio und werden ohne exportiert. Hängen Sie zuerst ihr Audio an, um eine vollständige Kopie zu erhalten.",

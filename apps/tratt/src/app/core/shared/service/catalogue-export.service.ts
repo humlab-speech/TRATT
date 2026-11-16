@@ -312,6 +312,47 @@ export class CatalogueExportService {
       }
       const label = entity.sessionFile?.name ?? bundleId;
 
+      // No transcript yet (failed, cancelled, or not run): its formats would
+      // only be blank files, so it goes along for its audio alone, when the
+      // audio is asked for. Same rule as the list's "Not transcribed" (a new
+      // bundle is seeded with one empty segment), so the dialog's preview
+      // matches what is written.
+      if (
+        !transcriptHasContent(
+          entity.transcript,
+          breakMarkerCodeOf(entity.guidelines),
+        )
+      ) {
+        const audio = includeAudio ? await this.audioFor(bundleId) : undefined;
+        if (!audio?.file) {
+          warnings.push(
+            audio
+              ? `Skipped ${label}: it has no transcript yet, and its ${audio.problem}.`
+              : `Skipped ${label}: it has no transcript yet.`,
+          );
+          progress(i, entity.sessionFile?.name ?? null);
+          continue;
+        }
+        const dir = `bundles/${this.uniqueSlug(label, usedSlugs)}`;
+        chosen.push({ dir, file: audio.file });
+        const info = this.audioService.getMediaInfo(bundleId);
+        manifestRows.push({
+          bundleId,
+          sourceFilename: entity.sessionFile?.name ?? '',
+          durationSamples: info?.duration.samples ?? 0,
+          sampleRate: info?.sampleRate ?? 0,
+          model: null,
+          language: null,
+          stagesRun: [],
+          unitCounts: 0,
+          appVersion: BUILD_INFO.version,
+          audioPath: `${dir}/${audio.file.name}`,
+          audioType: audio.file.type,
+        });
+        progress(i, entity.sessionFile?.name ?? null);
+        continue;
+      }
+
       let media: ResolvedMedia | undefined;
       let oannotjson: OAnnotJSON | undefined;
       let skipReason = 'audio could not be made resident';
@@ -342,23 +383,6 @@ export class CatalogueExportService {
       let unitCounts = 0;
       for (const level of oannotjson.levels) {
         unitCounts += (level as { items?: unknown[] }).items?.length ?? 0;
-      }
-
-      // A bundle that never produced a transcript (failed, cancelled, or not
-      // run yet) would only yield empty DOCX/SRT/ELAN files: leave it out and
-      // say so, rather than exporting blank "transcriptions". Same rule as
-      // the list's "Not transcribed" (a new bundle is seeded with one empty
-      // segment), so the dialog's preview matches what is written.
-      if (
-        unitCounts === 0 ||
-        !transcriptHasContent(
-          entity.transcript,
-          breakMarkerCodeOf(entity.guidelines),
-        )
-      ) {
-        warnings.push(`Skipped ${label}: it has no transcript yet.`);
-        progress(i, entity.sessionFile?.name ?? null);
-        continue;
       }
 
       const dir = `bundles/${this.uniqueSlug(label, usedSlugs)}`;
@@ -399,30 +423,14 @@ export class CatalogueExportService {
       let audioPath = '';
       let audioType = '';
       if (includeAudio) {
-        // The attached file, or (VISP) the recording fetched from the server.
-        let source: File | undefined;
-        let audioProblem = 'audio not attached';
-        if (this.audioService.hasAudioFile(bundleId)) {
-          try {
-            source = await this.audioService.getAudioFile(bundleId);
-          } catch (error) {
-            audioProblem = `audio could not be fetched (${error instanceof Error ? error.message : String(error)})`;
-          }
-        }
-        if (source) {
-          audioPath = `${dir}/${source.name}`;
-          audioType = source.type;
-          chosen.push({
-            dir,
-            file: {
-              name: source.name,
-              bytes: new Uint8Array(await source.arrayBuffer()),
-              type: source.type || 'application/octet-stream',
-            },
-          });
+        const audio = await this.audioFor(bundleId);
+        if (audio.file) {
+          audioPath = `${dir}/${audio.file.name}`;
+          audioType = audio.file.type;
+          chosen.push({ dir, file: audio.file });
         } else {
           warnings.push(
-            `${label}: ${audioProblem}, so it is not in the export. Its transcript is, and loads into the file of the same name in the list.`,
+            `${label}: ${audio.problem}, so it is not in the export. Its transcript is, and loads into the file of the same name in the list.`,
           );
         }
       }
@@ -493,6 +501,36 @@ export class CatalogueExportService {
       warnings: [...warnings],
     });
     subscriber.complete();
+  }
+
+  /**
+   * A bundle's audio for the export: the attached file, or (VISP) the
+   * recording fetched from the server. Otherwise, why there is none.
+   */
+  private async audioFor(
+    bundleId: string,
+  ): Promise<{ file?: ExportedFile; problem: string }> {
+    if (!this.audioService.hasAudioFile(bundleId)) {
+      return { problem: 'audio not attached' };
+    }
+    try {
+      const source = await this.audioService.getAudioFile(bundleId);
+      if (!source) {
+        return { problem: 'audio not attached' };
+      }
+      return {
+        file: {
+          name: source.name,
+          bytes: new Uint8Array(await source.arrayBuffer()),
+          type: source.type || 'application/octet-stream',
+        },
+        problem: '',
+      };
+    } catch (error) {
+      return {
+        problem: `audio could not be fetched (${error instanceof Error ? error.message : String(error)})`,
+      };
+    }
   }
 
   /**

@@ -341,7 +341,7 @@ export class ExportFilesModalComponent
 
   /** Some recording in scope has its audio attached, so it can go along. */
   readonly audioAvailable = computed(() =>
-    this.scopedBundles().some((b) => b.hasTranscript && b.hasAudio),
+    this.scopedBundles().some((b) => b.hasAudio),
   );
 
   private readonly chosenAudio = signal<boolean | undefined>(undefined);
@@ -388,8 +388,19 @@ export class ExportFilesModalComponent
     const leftOut: string[] = [];
     let chosen = 0;
     for (const bundle of this.scopedBundles()) {
+      const hasAudio = withAudio && bundle.hasAudio;
       if (!bundle.hasTranscript) {
-        leftOut.push(bundle.name);
+        // Its formats would be blank: it goes along for its audio alone.
+        if (hasAudio) {
+          chosen += 1;
+          folders.push({
+            folder: archiveFolderName(bundle.name, used),
+            hasAudio,
+            files: [{ name: bundle.name, kind: 'audio' }],
+          });
+        } else {
+          leftOut.push(bundle.name);
+        }
         continue;
       }
       const base = audioBasename(bundle.name);
@@ -410,7 +421,6 @@ export class ExportFilesModalComponent
           }
         }
       }
-      const hasAudio = withAudio && bundle.hasAudio;
       if (hasAudio) {
         files.unshift({ name: bundle.name, kind: 'audio' });
       }
@@ -431,6 +441,11 @@ export class ExportFilesModalComponent
     return {
       /** Nothing to export: no format, or no recording with a transcript. */
       empty: chosen === 0,
+      /** No recording in scope has a transcript, but there is audio to tick. */
+      onlyAudio:
+        chosen === 0 &&
+        this.audioAvailable() &&
+        this.scopedBundles().every((b) => !b.hasTranscript),
       /** The one file that downloads as it is, when there is just one. */
       single,
       archiveName: this.listMode()
@@ -595,7 +610,7 @@ export class ExportFilesModalComponent
   /** Bundles from the list: run in the background, the dialog closes. */
   private exportBundles(names: string[]): void {
     const bundleIds = this.scopedBundles()
-      .filter((b) => b.hasTranscript)
+      .filter((b) => b.hasTranscript || (this.includeAudio() && b.hasAudio))
       .map((b) => b.bundleId);
     this.warnings.set([]);
     this.errorMessage.set(null);

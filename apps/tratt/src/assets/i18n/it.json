@@ -614,6 +614,7 @@
       "zip_hint": "Più di un file, quindi arrivano in un unico .zip, con il file di trascrizione di Tratt per ogni registrazione. Trascina il .zip su Tratt più tardi per ricaricarlo.",
       "manifest_hint": "— un elenco dei pacchetti di registrazione",
       "nothing_to_export": "Nessuno di questi pacchetti di registrazione ha ancora una trascrizione, quindi non c’è nulla da esportare.",
+      "only_audio": "Nessuno di questi pacchetti di registrazione ha ancora una trascrizione. Spunta «Includi l’audio» per esportarne l’audio.",
       "no_format": "Spunta almeno un formato.",
       "left_out": "Esclusi, ancora senza trascrizione: {{names}}",
       "missing_audio": "{{count}} di questi non hanno audio collegato e vengono esportati senza. Collega prima il loro audio per una copia completa.",

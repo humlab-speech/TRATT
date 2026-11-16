@@ -958,6 +958,7 @@
       "zip_hint": "More than one file, so they come in one .zip, with Tratt’s own transcript file for each recording. Drop the .zip on Tratt later to load it back.",
       "manifest_hint": "— a list of the recording bundles",
       "nothing_to_export": "None of these recording bundles has a transcript yet, so there is nothing to export.",
+      "only_audio": "None of these recording bundles has a transcript yet. Tick “Include the audio” to export their audio.",
       "no_format": "Tick at least one format.",
       "left_out": "Left out, no transcript yet: {{names}}",
       "missing_audio": "{{count}} of them have no audio attached and are exported without it. Attach their audio first for a complete copy.",

@@ -198,9 +198,11 @@
           @if (toc.empty) {
             <p class="export__empty">
               {{
-                (toc.folders.length === 0
-                  ? 'workbench.export.nothing_to_export'
-                  : 'workbench.export.no_format'
+                (toc.onlyAudio
+                  ? 'workbench.export.only_audio'
+                  : toc.folders.length === 0
+                    ? 'workbench.export.nothing_to_export'
+                    : 'workbench.export.no_format'
                 ) | transloco
               }}
             </p>
@@ -397,7 +399,7 @@
     >
       <i class="fa-solid fa-download me-1" aria-hidden="true"></i>
       {{
-        (contents().single
+        (contents().single || contents().empty
           ? 'workbench.export.download_file'
           : 'workbench.export.download_zip'
         ) | transloco

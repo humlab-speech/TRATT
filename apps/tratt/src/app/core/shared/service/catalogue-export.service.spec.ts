@@ -403,11 +403,9 @@ describe('CatalogueExportService', () => {
 
   it('records a warning instead of hanging when serializing one bundle throws', async () => {
     const broken = makeBundle('bundle-1', 'a.wav');
-    broken.transcript = {
-      levels: [],
-      serialize: () => {
-        throw new Error('boom');
-      },
+    // Has text, so it gets as far as serializing.
+    broken.transcript.serialize = () => {
+      throw new Error('boom');
     };
     const { service } = setup([broken, makeBundle('bundle-2', 'b.wav')]);
 
@@ -607,6 +605,51 @@ describe('CatalogueExportService: one file or a .zip', () => {
     expect(last.download?.name).toMatch(/\.srt$/);
     expect(last.warnings).toEqual([
       expect.stringContaining('audio could not be fetched (offline)'),
+    ]);
+  });
+
+  it('exports the audio alone of a recording without a transcript', async () => {
+    const service = setup([makeBundle('bundle-1', 'a.wav', false)], wav);
+    const last = await lastValueFrom(
+      service.exportBundles(['bundle-1'], ['SRT'], { includeAudio: true }),
+    );
+    expect(last.download?.archive).toBe(false);
+    expect(last.download?.name).toBe('a.wav');
+    expect(last.exportedCount).toBe(1);
+  });
+
+  it('puts only the audio, no blank transcripts, in the folder of a recording without a transcript', async () => {
+    const service = setup(
+      [makeBundle('bundle-1', 'a.wav', false), makeBundle('bundle-2', 'b.wav')],
+      undefined,
+      wav,
+    );
+    const last = await lastValueFrom(
+      service.exportBundles(['bundle-1', 'bundle-2'], ['SRT'], {
+        includeAudio: true,
+      }),
+    );
+    const entries = Object.keys(unzipSync(zipBytes(last)));
+    expect(entries.filter((e) => e.startsWith('bundles/a/'))).toEqual([
+      'bundles/a/a.wav',
+    ]);
+    expect(entries).toContain('bundles/b/b_annot.json');
+  });
+
+  it('skips a recording without a transcript whose audio cannot be fetched, saying why', async () => {
+    const service = setup(
+      [makeBundle('bundle-1', 'a.wav', false)],
+      undefined,
+      new Error('offline'),
+    );
+    const last = await lastValueFrom(
+      service.exportBundles(['bundle-1'], ['SRT'], { includeAudio: true }),
+    );
+    expect(last.download).toBeUndefined();
+    expect(last.warnings).toEqual([
+      expect.stringContaining(
+        'no transcript yet, and its audio could not be fetched',
+      ),
     ]);
   });
 

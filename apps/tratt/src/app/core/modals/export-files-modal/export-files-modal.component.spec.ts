@@ -272,11 +272,45 @@ describe('ExportFilesModalComponent', () => {
 
     it('leaves out recordings without a transcript and disables Download when nothing is left', () => {
       openFromList([
-        bundle('b1', 'a.wav', { hasTranscript: false }),
-        bundle('b2', 'b.wav', { hasTranscript: false }),
+        bundle('b1', 'a.wav', { hasTranscript: false, hasAudio: false }),
+        bundle('b2', 'b.wav', { hasTranscript: false, hasAudio: false }),
       ]);
       expect(component.contents().leftOut).toEqual(['a.wav', 'b.wav']);
       expect(exportButton().disabled).toBe(true);
+    });
+
+    it('exports only the audio of recordings without a transcript (e.g. VISP, not yet transcribed)', () => {
+      openFromList(
+        [
+          bundle('b1', 'a.wav', { hasTranscript: false }),
+          bundle('b2', 'b.wav', { hasTranscript: false }),
+        ],
+        [],
+        'b1',
+      );
+      // One recording: the audio is offered but not ticked, and the dialog
+      // says so instead of only "nothing to export".
+      expect(component.audioAvailable()).toBe(true);
+      expect(component.contents().onlyAudio).toBe(true);
+      expect(exportButton().disabled).toBe(true);
+
+      component.setIncludeAudio(true);
+      fixture.detectChanges();
+      expect(component.contents().single).toEqual({
+        name: 'a.wav',
+        kind: 'audio',
+      });
+
+      component.setScope('all');
+      expect(
+        component.contents().folders.map((f) => f.files.map((x) => x.name)),
+      ).toEqual([['a.wav'], ['b.wav']]);
+      component.onExport();
+      expect(exportService.exportBundles).toHaveBeenCalledWith(
+        ['b1', 'b2'],
+        ['DOCX'],
+        { includeAudio: true },
+      );
     });
 
     it('disables Download with no format ticked', () => {
