@@ -800,22 +800,14 @@
   }
 }
 
-// VISP workspace: the assignment's header (title + Refresh) above the list.
+// VISP workspace: loading, problems and an empty assignment, above the list.
 .workbench__visp {
   margin-bottom: 0.75rem;
-}
 
-.workbench__visp-bar {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.5rem;
-  margin-bottom: 0.5rem;
-}
-
-.workbench__visp-title {
-  font-weight: 600;
+  // Nothing to say (the usual case): no gap above the list.
+  &:empty {
+    display: none;
+  }
 }
 
 .workbench__visp-assigned {

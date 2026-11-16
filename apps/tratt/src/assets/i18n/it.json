@@ -706,7 +706,6 @@
       }
     },
     "visp": {
-      "title": "Pacchetti di registrazione assegnati",
       "refresh": "Aggiorna",
       "loading": "Caricamento dei tuoi pacchetti di registrazione da VISP…",
       "empty": "In questo progetto non ti è assegnato alcun pacchetto di registrazione. Chiedi al responsabile del progetto di assegnartene in VISP, poi premi Aggiorna.",

@@ -992,7 +992,6 @@
       }
     },
     "visp": {
-      "title": "Tilldelade inspelningspaket",
       "refresh": "Uppdatera",
       "loading": "Hämtar dina inspelningspaket från VISP…",
       "empty": "Inga inspelningspaket är tilldelade dig i det här projektet. Be projektägaren tilldela några i VISP och öppna sedan Tratt från VISP igen.",

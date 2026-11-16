@@ -977,7 +977,6 @@
       }
     },
     "visp": {
-      "title": "Zugewiesene Aufnahmepakete",
       "refresh": "Aktualisieren",
       "loading": "Deine Aufnahmepakete werden aus VISP geladen…",
       "empty": "Dir sind in diesem Projekt keine Aufnahmepakete zugewiesen. Bitte die Projektleitung, dir in VISP welche zuzuweisen, und klicke dann auf Aktualisieren.",

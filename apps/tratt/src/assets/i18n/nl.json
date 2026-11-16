@@ -706,7 +706,6 @@
       }
     },
     "visp": {
-      "title": "Toegewezen opnamebundels",
       "refresh": "Vernieuwen",
       "loading": "Je opnamebundels worden uit VISP geladen…",
       "empty": "Er zijn in dit project geen opnamebundels aan je toegewezen. Vraag de projecteigenaar er in VISP een paar toe te wijzen en klik dan op Vernieuwen.",

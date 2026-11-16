@@ -1044,7 +1044,6 @@
       }
     },
     "visp": {
-      "title": "Assigned recording bundles",
       "refresh": "Refresh",
       "loading": "Loading your recording bundles from VISP…",
       "empty": "No recording bundles are assigned to you in this project. Ask the project owner to assign some in VISP, then open Tratt from VISP again.",

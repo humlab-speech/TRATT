@@ -80,12 +80,9 @@
     </div>
 
     @if (isVisp()) {
-      <div class="workbench__visp" role="region">
-        <div class="workbench__visp-bar">
-          <span class="workbench__visp-title">{{
-            'workbench.visp.title' | transloco
-          }}</span>
-        </div>
+      <!-- Only what the list can't say: loading, problems, an empty
+           assignment. The list below has its own heading. -->
+      <div class="workbench__visp">
         @if (visp.loading()) {
           <p role="status">{{ 'workbench.visp.loading' | transloco }}</p>
         }
