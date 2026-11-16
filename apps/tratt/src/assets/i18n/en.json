@@ -1046,13 +1046,13 @@
     },
     "visp": {
       "refresh": "Refresh",
-      "loading": "Loading your recording bundles from VISP…",
-      "empty": "No recording bundles are assigned to you in this project. Ask the project owner to assign some in VISP, then open Tratt from VISP again.",
+      "loading": "Loading your recording bundles from Visp…",
+      "empty": "No recording bundles are assigned to you in this project. Ask the project owner to assign some in Visp, then open Tratt from Visp again.",
       "assigned_list": "Recording bundles assigned to you:",
-      "save": "Save to VISP",
+      "save": "Save to Visp",
       "retry": "Retry",
       "keep_mine": "Keep my version",
-      "use_theirs": "Use the VISP version",
+      "use_theirs": "Use the Visp version",
       "unassigned": "No longer assigned to you. Your unsaved changes are kept here until you delete this recording bundle; download the transcript first if you need it.",
       "remove_unassigned": "Delete",
       "sync": {
@@ -1064,17 +1064,17 @@
       "error": {
         "not_signed_in": "You are no longer signed in to Visp. Your changes are kept in this browser: sign in again in Visp and Tratt saves them.",
         "not_member": "You are not a member of this project. Ask the project owner to add you.",
-        "no_transcription_level": "The annotation level TRATT was opened with is not a segment level in this project, so TRATT cannot open its recording bundles. Open TRATT from VISP again and choose another level.",
-        "level_linked": "The annotation level TRATT was opened with is linked to other levels, so TRATT cannot edit it safely. Open TRATT from VISP again and choose another level.",
-        "unreachable": "VISP cannot be reached. Your changes are kept in this browser; try again in a moment.",
-        "stale": "This recording bundle was changed in VISP or in another tab while you worked on it. Your changes are kept in this browser. Keep your version (only the transcript is replaced), or use the VISP version and drop your changes.",
+        "no_transcription_level": "The annotation level Tratt was opened with is not a segment level in this project, so Tratt cannot open its recording bundles. Open Tratt from Visp again and choose another level.",
+        "level_linked": "The annotation level Tratt was opened with is linked to other levels, so Tratt cannot edit it safely. Open Tratt from Visp again and choose another level.",
+        "unreachable": "Visp cannot be reached. Your changes are kept in this browser; try again in a moment.",
+        "stale": "This recording bundle was changed in Visp or in another tab while you worked on it. Your changes are kept in this browser. Keep your version (only the transcript is replaced), or use the Visp version and drop your changes.",
         "unassigned": "This recording bundle is no longer assigned to you, so it cannot be saved.",
-        "unknown": "Something went wrong when talking to VISP."
+        "unknown": "Something went wrong when talking to Visp."
       },
       "pane_title": "Select a recording bundle",
-      "pane_text": "Choose one in the list on the left. Its audio and transcript come from VISP, and Save in the list writes your transcript back to VISP.",
-      "pane_readonly_title": "Nothing to open in TRATT",
-      "pane_readonly_text": "TRATT can open this project's recording bundles once the project has a transcription level."
+      "pane_text": "Choose one in the list on the left. Its audio and transcript come from Visp, and Save in the list writes your transcript back to Visp.",
+      "pane_readonly_title": "Nothing to open in Tratt",
+      "pane_readonly_text": "Tratt can open this project's recording bundles once the project has a transcription level."
     }
   },
   "shell": {

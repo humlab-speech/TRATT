@@ -41,7 +41,7 @@ export class FeaturesComponent {
     {
       title: 'Record in the browser',
       description:
-        'Capture audio or video straight into TRATT, with device selection, level metering and crash recovery.',
+        'Capture audio or video straight into Tratt, with device selection, level metering and crash recovery.',
       url: AppInfo.manualLink('loading-media', 'recording-in-the-browser'),
     },
     {

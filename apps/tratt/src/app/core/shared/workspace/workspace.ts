@@ -95,12 +95,12 @@ export function resolveWorkspace(
   if (!serverUrl) {
     return {
       ok: false,
-      error: 'This TRATT installation is not configured for VISP.',
+      error: 'This Tratt installation is not configured for Visp.',
     };
   }
   const projectId = params.get('projectId');
   if (!projectId) {
-    return { ok: false, error: 'No VISP project was given in the link.' };
+    return { ok: false, error: 'No Visp project was given in the link.' };
   }
   const level =
     params.get('level')?.trim() || visp?.transcriptionLevel?.trim() || '';

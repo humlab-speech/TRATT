@@ -55,7 +55,7 @@ export function transcriptionFriendlyError(
   if (info.code === 'webgpu-backend-load-failed') {
     return (
       'WebGPU could not start because the browser failed to load its GPU backend. ' +
-      'TRATT will retry with WASM automatically. If this keeps happening, update the page and try again.'
+      'Tratt will retry with WASM automatically. If this keeps happening, update the page and try again.'
     );
   }
 

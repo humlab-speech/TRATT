@@ -708,13 +708,13 @@
     },
     "visp": {
       "refresh": "Vernieuwen",
-      "loading": "Je opnamebundels worden uit VISP geladen…",
-      "empty": "Er zijn in dit project geen opnamebundels aan je toegewezen. Vraag de projecteigenaar er in VISP een paar toe te wijzen en klik dan op Vernieuwen.",
+      "loading": "Je opnamebundels worden uit Visp geladen…",
+      "empty": "Er zijn in dit project geen opnamebundels aan je toegewezen. Vraag de projecteigenaar er in Visp een paar toe te wijzen en klik dan op Vernieuwen.",
       "assigned_list": "Aan jou toegewezen opnamebundels:",
-      "save": "Opslaan in VISP",
+      "save": "Opslaan in Visp",
       "retry": "Opnieuw proberen",
       "keep_mine": "Mijn versie behouden",
-      "use_theirs": "VISP-versie gebruiken",
+      "use_theirs": "Visp-versie gebruiken",
       "unassigned": "Niet meer aan jou toegewezen. Je niet-opgeslagen wijzigingen blijven hier tot je deze opnamebundel verwijdert; download eerst het transcript als je het nodig hebt.",
       "remove_unassigned": "Verwijderen",
       "sync": {
@@ -726,17 +726,17 @@
       "error": {
         "not_signed_in": "Je bent niet meer aangemeld bij Visp. Je wijzigingen blijven in deze browser: meld je opnieuw aan in Visp, dan slaat Tratt ze op.",
         "not_member": "Je bent geen lid van dit project. Vraag de projecteigenaar je toe te voegen.",
-        "no_transcription_level": "Dit project heeft geen transcriptielaag, dus TRATT kan de opnamebundels niet openen. Vraag de projecteigenaar er in VISP een toe te voegen.",
-        "level_linked": "De transcriptielaag is gekoppeld aan andere lagen, dus TRATT kan hem niet veilig bewerken. Vraag de projecteigenaar de koppeling op te heffen.",
-        "unreachable": "VISP is niet bereikbaar. Je wijzigingen blijven in deze browser bewaard; probeer het zo opnieuw.",
-        "stale": "Deze opnamebundel is in VISP of in een ander tabblad gewijzigd terwijl je eraan werkte. Je wijzigingen blijven in deze browser bewaard. Behoud je versie (alleen het transcript wordt vervangen) of gebruik de VISP-versie en laat je wijzigingen vallen.",
+        "no_transcription_level": "Dit project heeft geen transcriptielaag, dus Tratt kan de opnamebundels niet openen. Vraag de projecteigenaar er in Visp een toe te voegen.",
+        "level_linked": "De transcriptielaag is gekoppeld aan andere lagen, dus Tratt kan hem niet veilig bewerken. Vraag de projecteigenaar de koppeling op te heffen.",
+        "unreachable": "Visp is niet bereikbaar. Je wijzigingen blijven in deze browser bewaard; probeer het zo opnieuw.",
+        "stale": "Deze opnamebundel is in Visp of in een ander tabblad gewijzigd terwijl je eraan werkte. Je wijzigingen blijven in deze browser bewaard. Behoud je versie (alleen het transcript wordt vervangen) of gebruik de Visp-versie en laat je wijzigingen vallen.",
         "unassigned": "Deze opnamebundel is niet meer aan jou toegewezen en kan daarom niet worden opgeslagen.",
-        "unknown": "Er ging iets mis bij de communicatie met VISP."
+        "unknown": "Er ging iets mis bij de communicatie met Visp."
       },
       "pane_title": "Kies een opnamebundel",
-      "pane_text": "Kies er een in de lijst links. De audio en het transcript komen uit VISP, en Opslaan in de lijst schrijft je transcript terug naar VISP.",
-      "pane_readonly_title": "Niets te openen in TRATT",
-      "pane_readonly_text": "TRATT kan de opnamebundels van dit project openen zodra het project een transcriptielaag heeft."
+      "pane_text": "Kies er een in de lijst links. De audio en het transcript komen uit Visp, en Opslaan in de lijst schrijft je transcript terug naar Visp.",
+      "pane_readonly_title": "Niets te openen in Tratt",
+      "pane_readonly_text": "Tratt kan de opnamebundels van dit project openen zodra het project een transcriptielaag heeft."
     }
   },
   "shell": {

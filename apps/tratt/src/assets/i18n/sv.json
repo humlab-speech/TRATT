@@ -994,13 +994,13 @@
     },
     "visp": {
       "refresh": "Uppdatera",
-      "loading": "Hämtar dina inspelningspaket från VISP…",
-      "empty": "Inga inspelningspaket är tilldelade dig i det här projektet. Be projektägaren tilldela några i VISP och öppna sedan Tratt från VISP igen.",
+      "loading": "Hämtar dina inspelningspaket från Visp…",
+      "empty": "Inga inspelningspaket är tilldelade dig i det här projektet. Be projektägaren tilldela några i Visp och öppna sedan Tratt från Visp igen.",
       "assigned_list": "Inspelningspaket som är tilldelade dig:",
-      "save": "Spara till VISP",
+      "save": "Spara till Visp",
       "retry": "Försök igen",
       "keep_mine": "Behåll min version",
-      "use_theirs": "Använd versionen i VISP",
+      "use_theirs": "Använd versionen i Visp",
       "unassigned": "Inte längre tilldelat dig. Dina osparade ändringar finns kvar här tills du tar bort inspelningspaketet; ladda ner transkriptet först om du behöver det.",
       "remove_unassigned": "Ta bort",
       "sync": {
@@ -1012,17 +1012,17 @@
       "error": {
         "not_signed_in": "Du är inte längre inloggad i Visp. Dina ändringar finns kvar i den här webbläsaren: logga in igen i Visp så sparar Tratt dem.",
         "not_member": "Du är inte medlem i det här projektet. Be projektägaren lägga till dig.",
-        "no_transcription_level": "Annoteringsnivån som TRATT öppnades med är inte en segmentnivå i projektet, så TRATT kan inte öppna dess inspelningspaket. Öppna TRATT från VISP igen och välj en annan nivå.",
-        "level_linked": "Annoteringsnivån som TRATT öppnades med är länkad till andra nivåer, så TRATT kan inte redigera den säkert. Öppna TRATT från VISP igen och välj en annan nivå.",
-        "unreachable": "VISP kan inte nås. Dina ändringar finns kvar i den här webbläsaren; försök igen om en stund.",
-        "stale": "Inspelningspaketet ändrades i VISP eller i en annan flik medan du arbetade med det. Dina ändringar finns kvar i den här webbläsaren. Behåll din version (bara transkriptet ersätts) eller använd versionen i VISP och släpp dina ändringar.",
+        "no_transcription_level": "Annoteringsnivån som Tratt öppnades med är inte en segmentnivå i projektet, så Tratt kan inte öppna dess inspelningspaket. Öppna Tratt från Visp igen och välj en annan nivå.",
+        "level_linked": "Annoteringsnivån som Tratt öppnades med är länkad till andra nivåer, så Tratt kan inte redigera den säkert. Öppna Tratt från Visp igen och välj en annan nivå.",
+        "unreachable": "Visp kan inte nås. Dina ändringar finns kvar i den här webbläsaren; försök igen om en stund.",
+        "stale": "Inspelningspaketet ändrades i Visp eller i en annan flik medan du arbetade med det. Dina ändringar finns kvar i den här webbläsaren. Behåll din version (bara transkriptet ersätts) eller använd versionen i Visp och släpp dina ändringar.",
         "unassigned": "Inspelningspaketet är inte längre tilldelat dig och kan därför inte sparas.",
-        "unknown": "Något gick fel vid kontakten med VISP."
+        "unknown": "Något gick fel vid kontakten med Visp."
       },
       "pane_title": "Välj ett inspelningspaket",
-      "pane_text": "Välj ett i listan till vänster. Ljudet och transkriptet hämtas från VISP, och Spara i listan skriver tillbaka ditt transkript till VISP.",
-      "pane_readonly_title": "Inget att öppna i TRATT",
-      "pane_readonly_text": "TRATT kan öppna projektets inspelningspaket när projektet har en transkriptionsnivå."
+      "pane_text": "Välj ett i listan till vänster. Ljudet och transkriptet hämtas från Visp, och Spara i listan skriver tillbaka ditt transkript till Visp.",
+      "pane_readonly_title": "Inget att öppna i Tratt",
+      "pane_readonly_text": "Tratt kan öppna projektets inspelningspaket när projektet har en transkriptionsnivå."
     }
   },
   "shell": {

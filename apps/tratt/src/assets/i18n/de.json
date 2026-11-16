@@ -979,13 +979,13 @@
     },
     "visp": {
       "refresh": "Aktualisieren",
-      "loading": "Deine Aufnahmepakete werden aus VISP geladen…",
-      "empty": "Dir sind in diesem Projekt keine Aufnahmepakete zugewiesen. Bitte die Projektleitung, dir in VISP welche zuzuweisen, und klicke dann auf Aktualisieren.",
+      "loading": "Deine Aufnahmepakete werden aus Visp geladen…",
+      "empty": "Dir sind in diesem Projekt keine Aufnahmepakete zugewiesen. Bitte die Projektleitung, dir in Visp welche zuzuweisen, und klicke dann auf Aktualisieren.",
       "assigned_list": "Dir zugewiesene Aufnahmepakete:",
-      "save": "In VISP speichern",
+      "save": "In Visp speichern",
       "retry": "Erneut versuchen",
       "keep_mine": "Meine Version behalten",
-      "use_theirs": "VISP-Version verwenden",
+      "use_theirs": "Visp-Version verwenden",
       "unassigned": "Nicht mehr dir zugewiesen. Deine ungespeicherten Änderungen bleiben hier, bis du dieses Aufnahmepaket entfernst; lade das Transkript vorher herunter, falls du es brauchst.",
       "remove_unassigned": "Entfernen",
       "sync": {
@@ -997,17 +997,17 @@
       "error": {
         "not_signed_in": "Du bist nicht mehr bei Visp angemeldet. Deine Änderungen bleiben in diesem Browser: Melde dich in Visp erneut an, dann speichert Tratt sie.",
         "not_member": "Du bist kein Mitglied dieses Projekts. Bitte die Projektleitung, dich hinzuzufügen.",
-        "no_transcription_level": "Dieses Projekt hat keine Transkriptionsebene, daher kann TRATT seine Aufnahmepakete nicht öffnen. Bitte die Projektleitung, in VISP eine anzulegen.",
-        "level_linked": "Die Transkriptionsebene ist mit anderen Ebenen verknüpft, daher kann TRATT sie nicht sicher bearbeiten. Bitte die Projektleitung, die Verknüpfung aufzuheben.",
-        "unreachable": "VISP ist nicht erreichbar. Deine Änderungen bleiben in diesem Browser erhalten; versuche es gleich noch einmal.",
-        "stale": "Dieses Aufnahmepaket wurde in VISP oder in einem anderen Tab geändert, während du daran gearbeitet hast. Deine Änderungen bleiben in diesem Browser erhalten. Behalte deine Version (nur das Transkript wird ersetzt) oder verwende die VISP-Version und verwirf deine Änderungen.",
+        "no_transcription_level": "Dieses Projekt hat keine Transkriptionsebene, daher kann Tratt seine Aufnahmepakete nicht öffnen. Bitte die Projektleitung, in Visp eine anzulegen.",
+        "level_linked": "Die Transkriptionsebene ist mit anderen Ebenen verknüpft, daher kann Tratt sie nicht sicher bearbeiten. Bitte die Projektleitung, die Verknüpfung aufzuheben.",
+        "unreachable": "Visp ist nicht erreichbar. Deine Änderungen bleiben in diesem Browser erhalten; versuche es gleich noch einmal.",
+        "stale": "Dieses Aufnahmepaket wurde in Visp oder in einem anderen Tab geändert, während du daran gearbeitet hast. Deine Änderungen bleiben in diesem Browser erhalten. Behalte deine Version (nur das Transkript wird ersetzt) oder verwende die Visp-Version und verwirf deine Änderungen.",
         "unassigned": "Dieses Aufnahmepaket ist dir nicht mehr zugewiesen und kann daher nicht gespeichert werden.",
-        "unknown": "Bei der Verbindung mit VISP ist ein Fehler aufgetreten."
+        "unknown": "Bei der Verbindung mit Visp ist ein Fehler aufgetreten."
       },
       "pane_title": "Wähle ein Aufnahmepaket",
-      "pane_text": "Wähle links eines aus der Liste. Audio und Transkript kommen aus VISP, und Speichern in der Liste schreibt dein Transkript zurück nach VISP.",
-      "pane_readonly_title": "Nichts in TRATT zu öffnen",
-      "pane_readonly_text": "TRATT kann die Aufnahmepakete dieses Projekts öffnen, sobald das Projekt eine Transkriptionsebene hat."
+      "pane_text": "Wähle links eines aus der Liste. Audio und Transkript kommen aus Visp, und Speichern in der Liste schreibt dein Transkript zurück nach Visp.",
+      "pane_readonly_title": "Nichts in Tratt zu öffnen",
+      "pane_readonly_text": "Tratt kann die Aufnahmepakete dieses Projekts öffnen, sobald das Projekt eine Transkriptionsebene hat."
     }
   },
   "shell": {

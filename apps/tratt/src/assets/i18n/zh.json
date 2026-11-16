@@ -708,13 +708,13 @@
     },
     "visp": {
       "refresh": "刷新",
-      "loading": "正在从 VISP 加载你的录音包…",
-      "empty": "此项目中没有分配给你的录音包。请项目负责人在 VISP 中为你分配，然后点击刷新。",
+      "loading": "正在从 Visp 加载你的录音包…",
+      "empty": "此项目中没有分配给你的录音包。请项目负责人在 Visp 中为你分配，然后点击刷新。",
       "assigned_list": "分配给你的录音包：",
-      "save": "保存到 VISP",
+      "save": "保存到 Visp",
       "retry": "重试",
       "keep_mine": "保留我的版本",
-      "use_theirs": "使用 VISP 版本",
+      "use_theirs": "使用 Visp 版本",
       "unassigned": "已不再分配给你。在你移除此录音包之前，未保存的更改会保留在这里；如有需要，请先下载转写稿。",
       "remove_unassigned": "移除",
       "sync": {
@@ -726,17 +726,17 @@
       "error": {
         "not_signed_in": "你已不再登录 Visp。你的更改保留在此浏览器中：在 Visp 中重新登录后，Tratt 会保存它们。",
         "not_member": "你不是此项目的成员。请项目负责人添加你。",
-        "no_transcription_level": "此项目没有转写层，因此 TRATT 无法打开其录音包。请项目负责人在 VISP 中添加一个。",
-        "level_linked": "转写层与其他层相关联，因此 TRATT 无法安全地编辑它。请项目负责人解除关联。",
-        "unreachable": "无法连接 VISP。你的更改保留在此浏览器中，请稍后再试。",
-        "stale": "你编辑期间，此录音包已在 VISP 或其他标签页中被更改。你的更改保留在此浏览器中。可以保留你的版本（只替换转写稿），或使用 VISP 版本并放弃你的更改。",
+        "no_transcription_level": "此项目没有转写层，因此 Tratt 无法打开其录音包。请项目负责人在 Visp 中添加一个。",
+        "level_linked": "转写层与其他层相关联，因此 Tratt 无法安全地编辑它。请项目负责人解除关联。",
+        "unreachable": "无法连接 Visp。你的更改保留在此浏览器中，请稍后再试。",
+        "stale": "你编辑期间，此录音包已在 Visp 或其他标签页中被更改。你的更改保留在此浏览器中。可以保留你的版本（只替换转写稿），或使用 Visp 版本并放弃你的更改。",
         "unassigned": "此录音包已不再分配给你，因此无法保存。",
-        "unknown": "与 VISP 通信时出错。"
+        "unknown": "与 Visp 通信时出错。"
       },
       "pane_title": "请选择一个录音包",
-      "pane_text": "在左侧列表中选择一个。音频和转写稿来自 VISP，点击列表中的保存会把你的转写稿写回 VISP。",
-      "pane_readonly_title": "TRATT 中没有可打开的内容",
-      "pane_readonly_text": "项目有了转写层之后，TRATT 才能打开此项目的录音包。"
+      "pane_text": "在左侧列表中选择一个。音频和转写稿来自 Visp，点击列表中的保存会把你的转写稿写回 Visp。",
+      "pane_readonly_title": "Tratt 中没有可打开的内容",
+      "pane_readonly_text": "项目有了转写层之后，Tratt 才能打开此项目的录音包。"
     }
   },
   "shell": {

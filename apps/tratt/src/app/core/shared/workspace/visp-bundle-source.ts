@@ -59,7 +59,7 @@ export function projectCookieGuard(
     const current = match ? decodeURIComponent(match[1]) : undefined;
     if (current !== projectId) {
       throw new Error(
-        'Another VISP tab has switched to a different project. Reload TRATT from VISP.',
+        'Another Visp tab has switched to a different project. Reload Tratt from Visp.',
       );
     }
   };

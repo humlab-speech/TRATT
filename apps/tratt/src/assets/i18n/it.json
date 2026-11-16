@@ -708,13 +708,13 @@
     },
     "visp": {
       "refresh": "Aggiorna",
-      "loading": "Caricamento dei tuoi pacchetti di registrazione da VISP…",
-      "empty": "In questo progetto non ti è assegnato alcun pacchetto di registrazione. Chiedi al responsabile del progetto di assegnartene in VISP, poi premi Aggiorna.",
+      "loading": "Caricamento dei tuoi pacchetti di registrazione da Visp…",
+      "empty": "In questo progetto non ti è assegnato alcun pacchetto di registrazione. Chiedi al responsabile del progetto di assegnartene in Visp, poi premi Aggiorna.",
       "assigned_list": "Pacchetti di registrazione assegnati a te:",
-      "save": "Salva in VISP",
+      "save": "Salva in Visp",
       "retry": "Riprova",
       "keep_mine": "Mantieni la mia versione",
-      "use_theirs": "Usa la versione di VISP",
+      "use_theirs": "Usa la versione di Visp",
       "unassigned": "Non più assegnato a te. Le modifiche non salvate restano qui finché non rimuovi questo pacchetto di registrazione; scarica prima la trascrizione se ti serve.",
       "remove_unassigned": "Rimuovi",
       "sync": {
@@ -726,17 +726,17 @@
       "error": {
         "not_signed_in": "Non hai più eseguito l'accesso a Visp. Le tue modifiche restano in questo browser: accedi di nuovo in Visp e Tratt le salverà.",
         "not_member": "Non sei membro di questo progetto. Chiedi al responsabile del progetto di aggiungerti.",
-        "no_transcription_level": "Questo progetto non ha un livello di trascrizione, quindi TRATT non può aprirne i pacchetti di registrazione. Chiedi al responsabile del progetto di aggiungerne uno in VISP.",
-        "level_linked": "Il livello di trascrizione è collegato ad altri livelli, quindi TRATT non può modificarlo in sicurezza. Chiedi al responsabile del progetto di scollegarlo.",
-        "unreachable": "VISP non è raggiungibile. Le tue modifiche restano in questo browser; riprova tra poco.",
-        "stale": "Questo pacchetto di registrazione è stato modificato in VISP o in un'altra scheda mentre ci lavoravi. Le tue modifiche restano in questo browser. Mantieni la tua versione (viene sostituita solo la trascrizione) oppure usa la versione di VISP e scarta le tue modifiche.",
+        "no_transcription_level": "Questo progetto non ha un livello di trascrizione, quindi Tratt non può aprirne i pacchetti di registrazione. Chiedi al responsabile del progetto di aggiungerne uno in Visp.",
+        "level_linked": "Il livello di trascrizione è collegato ad altri livelli, quindi Tratt non può modificarlo in sicurezza. Chiedi al responsabile del progetto di scollegarlo.",
+        "unreachable": "Visp non è raggiungibile. Le tue modifiche restano in questo browser; riprova tra poco.",
+        "stale": "Questo pacchetto di registrazione è stato modificato in Visp o in un'altra scheda mentre ci lavoravi. Le tue modifiche restano in questo browser. Mantieni la tua versione (viene sostituita solo la trascrizione) oppure usa la versione di Visp e scarta le tue modifiche.",
         "unassigned": "Questo pacchetto di registrazione non ti è più assegnato, quindi non può essere salvato.",
-        "unknown": "Si è verificato un errore nella comunicazione con VISP."
+        "unknown": "Si è verificato un errore nella comunicazione con Visp."
       },
       "pane_title": "Seleziona un pacchetto di registrazione",
-      "pane_text": "Scegline uno nell'elenco a sinistra. L'audio e la trascrizione provengono da VISP, e Salva nell'elenco riscrive la tua trascrizione in VISP.",
-      "pane_readonly_title": "Niente da aprire in TRATT",
-      "pane_readonly_text": "TRATT potrà aprire i pacchetti di registrazione di questo progetto quando il progetto avrà un livello di trascrizione."
+      "pane_text": "Scegline uno nell'elenco a sinistra. L'audio e la trascrizione provengono da Visp, e Salva nell'elenco riscrive la tua trascrizione in Visp.",
+      "pane_readonly_title": "Niente da aprire in Tratt",
+      "pane_readonly_text": "Tratt potrà aprire i pacchetti di registrazione di questo progetto quando il progetto avrà un livello di trascrizione."
     }
   },
   "shell": {
