@@ -55,7 +55,8 @@ stop typing, when you select another recording bundle, and when you leave or hid
 the Tratt tab. There is no save button, and the list stays quiet while it saves.
 
 A recording bundle only speaks up when a save fails: it says what went wrong and
-offers **Retry**. While VISP cannot be reached, Tratt also tries again by itself.
+offers **Retry**. While VISP cannot be reached, or you are signed out of it, Tratt
+also tries again by itself, and at once when you come back to the Tratt tab.
 
 Until a save gets through, your changes are kept in this browser. Reloading Tratt,
 or closing it and opening it again from VISP, does not lose them, and they are
@@ -125,7 +126,7 @@ the transcription level and is saved like anything you type. See
 
 | What Tratt says | What to do |
 | --- | --- |
-| *You are no longer signed in to VISP. Sign in again in VISP, then reload TRATT.* | Your changes are kept. Sign in to VISP in another tab, then reload Tratt. |
+| *You are no longer signed in to Visp. Your changes are kept in this browser: sign in again in Visp and Tratt saves them.* | Sign in to Visp again, in another tab or in the Visp page around Tratt. Tratt saves when you come back to it, and keeps trying meanwhile; no reload needed. |
 | *You are not a member of this project. Ask the project owner to add you.* | Ask the project owner. |
 | *The annotation level TRATT was opened with is not a segment level in this project, so TRATT cannot open its recording bundles. Open TRATT from VISP again and choose another level.* | The level was deleted or changed in VISP after you opened Tratt. Open Tratt from VISP again. |
 | *The annotation level TRATT was opened with is linked to other levels, so TRATT cannot edit it safely. Open TRATT from VISP again and choose another level.* | The level was linked in VISP after you opened Tratt. Open Tratt from VISP again. |

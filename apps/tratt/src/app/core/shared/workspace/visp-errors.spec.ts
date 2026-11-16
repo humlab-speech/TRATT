@@ -21,4 +21,18 @@ describe('classifyVispError', () => {
       'unknown',
     );
   });
+
+  // The reasons annotation-server gives, old and new wording.
+  it.each([
+    ['User not identified', 'not_signed_in'],
+    ['User not identified (not signed in to Visp)', 'not_signed_in'],
+    ['User not authorized to access the project with id p1', 'not_member'],
+    ['User is not a member of the project with id p1', 'not_member'],
+    [
+      'Visp could not confirm who you are right now; try again in a moment',
+      'unreachable',
+    ],
+  ])('reads "%s" as %s', (reason, kind) => {
+    expect(classifyVispError(new EmuServerError(reason))).toBe(kind);
+  });
 });

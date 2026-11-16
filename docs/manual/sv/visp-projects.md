@@ -56,8 +56,9 @@ döljer fliken med Tratt. Det finns ingen sparaknapp, och listan är tyst medan
 det sparas.
 
 Ett inspelningspaket säger bara till när det inte gick att spara: det visar vad
-som gick fel och erbjuder **Försök igen**. Medan VISP inte kan nås försöker Tratt
-också igen av sig självt.
+som gick fel och erbjuder **Försök igen**. Medan VISP inte kan nås, eller du är
+utloggad, försöker Tratt också igen av sig självt, och direkt när du kommer
+tillbaka till Tratt-fliken.
 
 Tills det har sparats finns ändringarna kvar i den här webbläsaren. Laddar du om
 Tratt, eller stänger och öppnar det igen från VISP, försvinner de inte, och de
@@ -128,7 +129,7 @@ hamnar i transkriptionsnivån och sparas som allt du skriver. Inställningarna b
 
 | Det här säger Tratt | Gör så här |
 | --- | --- |
-| *Du är inte längre inloggad i VISP. Logga in igen i VISP och ladda om TRATT.* | Dina ändringar finns kvar. Logga in i VISP i en annan flik och ladda sedan om Tratt. |
+| *Du är inte längre inloggad i Visp. Dina ändringar finns kvar i den här webbläsaren: logga in igen i Visp så sparar Tratt dem.* | Logga in i Visp igen, i en annan flik eller på Visp-sidan runt Tratt. Tratt sparar när du kommer tillbaka till den, och försöker igen under tiden; du behöver inte ladda om. |
 | *Du är inte medlem i det här projektet. Be projektägaren lägga till dig.* | Fråga projektägaren. |
 | *Annoteringsnivån som TRATT öppnades med är inte en segmentnivå i projektet, så TRATT kan inte öppna dess inspelningspaket. Öppna TRATT från VISP igen och välj en annan nivå.* | Nivån togs bort eller ändrades i VISP efter att du öppnade Tratt. Öppna Tratt från VISP igen. |
 | *Annoteringsnivån som TRATT öppnades med är länkad till andra nivåer, så TRATT kan inte redigera den säkert. Öppna TRATT från VISP igen och välj en annan nivå.* | Nivån länkades i VISP efter att du öppnade Tratt. Öppna Tratt från VISP igen. |

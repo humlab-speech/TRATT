@@ -22,8 +22,16 @@ export function classifyVispError(error: unknown): VispErrorKind {
   if (error instanceof EmuConnectionError) return 'unreachable';
   const message = error instanceof Error ? error.message : String(error);
   if (error instanceof EmuServerError) {
-    if (/member/i.test(message)) return 'not_member';
-    if (/session|sign|login|log in|authenticat|expired/i.test(message)) {
+    // The server could not check the sign-in just now: worth retrying, and
+    // not the user's doing.
+    if (/could not confirm|try again/i.test(message)) return 'unreachable';
+    if (/member|not authori[sz]ed/i.test(message)) return 'not_member';
+    // "User not identified" is how annotation-server says signed out.
+    if (
+      /session|sign|login|log in|authenticat|expired|not identified/i.test(
+        message,
+      )
+    ) {
       return 'not_signed_in';
     }
   }

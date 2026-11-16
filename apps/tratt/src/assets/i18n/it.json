@@ -721,7 +721,7 @@
         "failed": "Non salvato"
       },
       "error": {
-        "not_signed_in": "Non hai più eseguito l'accesso a VISP. Accedi di nuovo in VISP, poi ricarica TRATT.",
+        "not_signed_in": "Non hai più eseguito l'accesso a Visp. Le tue modifiche restano in questo browser: accedi di nuovo in Visp e Tratt le salverà.",
         "not_member": "Non sei membro di questo progetto. Chiedi al responsabile del progetto di aggiungerti.",
         "no_transcription_level": "Questo progetto non ha un livello di trascrizione, quindi TRATT non può aprirne i pacchetti di registrazione. Chiedi al responsabile del progetto di aggiungerne uno in VISP.",
         "level_linked": "Il livello di trascrizione è collegato ad altri livelli, quindi TRATT non può modificarlo in sicurezza. Chiedi al responsabile del progetto di scollegarlo.",

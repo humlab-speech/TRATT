@@ -721,7 +721,7 @@
         "failed": "Niet opgeslagen"
       },
       "error": {
-        "not_signed_in": "Je bent niet meer aangemeld bij VISP. Meld je opnieuw aan in VISP en laad TRATT daarna opnieuw.",
+        "not_signed_in": "Je bent niet meer aangemeld bij Visp. Je wijzigingen blijven in deze browser: meld je opnieuw aan in Visp, dan slaat Tratt ze op.",
         "not_member": "Je bent geen lid van dit project. Vraag de projecteigenaar je toe te voegen.",
         "no_transcription_level": "Dit project heeft geen transcriptielaag, dus TRATT kan de opnamebundels niet openen. Vraag de projecteigenaar er in VISP een toe te voegen.",
         "level_linked": "De transcriptielaag is gekoppeld aan andere lagen, dus TRATT kan hem niet veilig bewerken. Vraag de projecteigenaar de koppeling op te heffen.",

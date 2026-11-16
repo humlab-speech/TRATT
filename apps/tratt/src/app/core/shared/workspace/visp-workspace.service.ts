@@ -231,7 +231,12 @@ export class VispWorkspaceService {
       window.addEventListener('pagehide', () => this.autoSaves.flush());
       document.addEventListener('visibilitychange', () => {
         if (document.visibilityState === 'hidden') this.autoSaves.flush();
+        else this.retryBlockedSaves();
       });
+      // Coming back, typically from signing in again in Visp in another tab
+      // (or from the Visp page around this frame): try the saves that were
+      // waiting for that at once, rather than at the next retry.
+      window.addEventListener('focus', () => this.retryBlockedSaves());
     }
     const w = this.workspace;
     this._loading.set(true);
@@ -557,7 +562,10 @@ export class VispWorkspaceService {
     } catch (e) {
       const error = this.describe(e);
       this.patch(bundleId, { sync: 'failed', error });
-      if (error.kind === 'unreachable') {
+      // Both can clear up without the user doing anything in Tratt: Visp
+      // comes back, or the user signs in again in Visp. The draft keeps the
+      // changes meanwhile.
+      if (error.kind === 'unreachable' || error.kind === 'not_signed_in') {
         this.autoSaves.schedule(bundleId, AUTO_SAVE_RETRY_MS);
       }
       // A stale bundle is the row's business (it offers the choice).
@@ -874,9 +882,32 @@ export class VispWorkspaceService {
     });
   }
 
+  /**
+   * Saves that failed only because Visp could not be reached or the user was
+   * signed out: tried again now.
+   */
+  private retryBlockedSaves(): void {
+    for (const [bundleId, b] of Object.entries(this._bundles())) {
+      if (
+        b.sync === 'failed' &&
+        (b.error?.kind === 'not_signed_in' || b.error?.kind === 'unreachable')
+      ) {
+        this.autoSaves.schedule(bundleId, 0);
+      }
+    }
+  }
+
   private describe(e: unknown): { kind: VispErrorKind; message: string } {
+    const kind = classifyVispError(e);
+    if (kind === 'not_signed_in') {
+      // annotation-server reads the session cookie once, when the websocket
+      // opens, so this connection stays signed out even after the user signs
+      // in again. Dropped, the next request connects with the browser's
+      // cookie as it is then.
+      this.client?.close();
+    }
     return {
-      kind: classifyVispError(e),
+      kind,
       message: e instanceof Error ? e.message : String(e),
     };
   }

@@ -1013,7 +1013,7 @@
         "failed": "Inte sparad"
       },
       "error": {
-        "not_signed_in": "Du är inte längre inloggad i VISP. Logga in igen i VISP och ladda om TRATT.",
+        "not_signed_in": "Du är inte längre inloggad i Visp. Dina ändringar finns kvar i den här webbläsaren: logga in igen i Visp så sparar Tratt dem.",
         "not_member": "Du är inte medlem i det här projektet. Be projektägaren lägga till dig.",
         "no_transcription_level": "Annoteringsnivån som TRATT öppnades med är inte en segmentnivå i projektet, så TRATT kan inte öppna dess inspelningspaket. Öppna TRATT från VISP igen och välj en annan nivå.",
         "level_linked": "Annoteringsnivån som TRATT öppnades med är länkad till andra nivåer, så TRATT kan inte redigera den säkert. Öppna TRATT från VISP igen och välj en annan nivå.",

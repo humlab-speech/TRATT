@@ -992,7 +992,7 @@
         "failed": "Nicht gespeichert"
       },
       "error": {
-        "not_signed_in": "Du bist nicht mehr bei VISP angemeldet. Melde dich in VISP erneut an und lade TRATT neu.",
+        "not_signed_in": "Du bist nicht mehr bei Visp angemeldet. Deine Änderungen bleiben in diesem Browser: Melde dich in Visp erneut an, dann speichert Tratt sie.",
         "not_member": "Du bist kein Mitglied dieses Projekts. Bitte die Projektleitung, dich hinzuzufügen.",
         "no_transcription_level": "Dieses Projekt hat keine Transkriptionsebene, daher kann TRATT seine Aufnahmepakete nicht öffnen. Bitte die Projektleitung, in VISP eine anzulegen.",
         "level_linked": "Die Transkriptionsebene ist mit anderen Ebenen verknüpft, daher kann TRATT sie nicht sicher bearbeiten. Bitte die Projektleitung, die Verknüpfung aufzuheben.",
