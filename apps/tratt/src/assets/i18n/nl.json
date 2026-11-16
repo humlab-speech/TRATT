@@ -753,7 +753,16 @@
       "version": "Version"
     },
     "header": {
-      "label": "Main navigation"
+      "label": "Main navigation",
+      "speakers": {
+        "title": "Sprekers",
+        "hint": "Wie er spreekt in deze opname. Elk segment kan een spreker krijgen.",
+        "empty": "Nog geen sprekers.",
+        "add": "Spreker toevoegen",
+        "remove": "Spreker verwijderen",
+        "name": "Naam van de spreker",
+        "rename_hint": "Klik om te hernoemen"
+      }
     }
   },
   "pane_splitter": {

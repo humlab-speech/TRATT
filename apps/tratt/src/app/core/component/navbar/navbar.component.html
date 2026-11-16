@@ -365,9 +365,13 @@
                 ngbDropdownToggle
                 type="button"
                 class="nav-link dropdown-toggle"
+                [attr.title]="'shell.header.speakers.hint' | transloco"
+                [attr.aria-label]="'shell.header.speakers.title' | transloco"
               >
-                <i class="fa-solid fa-users me-1"></i>
-                <span class="d-inline d-md-none mt-2">Speakers</span>
+                <i class="fa-solid fa-users me-1" aria-hidden="true"></i>
+                <span class="d-inline d-md-none mt-2" aria-hidden="true">{{
+                  'shell.header.speakers.title' | transloco
+                }}</span>
               </a>
               <div
                 ngbDropdownMenu
@@ -378,7 +382,22 @@
                 (keydown.enter)="$event.stopPropagation()"
                 (keydown.space)="$event.stopPropagation()"
                 tabindex="0"
+                aria-labelledby="tratt-speakers-title"
               >
+                <!-- Says what the list is, even while it is empty. -->
+                <div class="speakers-menu__header">
+                  <h2 id="tratt-speakers-title" class="speakers-menu__title">
+                    {{ 'shell.header.speakers.title' | transloco }}
+                  </h2>
+                  <p class="speakers-menu__hint">
+                    {{ 'shell.header.speakers.hint' | transloco }}
+                  </p>
+                </div>
+                @if (speakerIds.length === 0) {
+                  <p class="speakers-menu__empty">
+                    {{ 'shell.header.speakers.empty' | transloco }}
+                  </p>
+                }
                 <table class="w-100">
                   <tbody>
                     @for (spk of speakerIds; track spk; let i = $index) {
@@ -406,6 +425,12 @@
                             maxlength="100"
                             type="text"
                             [value]="spk"
+                            [attr.aria-label]="
+                              'shell.header.speakers.name' | transloco
+                            "
+                            [attr.title]="
+                              'shell.header.speakers.rename_hint' | transloco
+                            "
                             style="width: 100%"
                           />
                         </td>
@@ -414,12 +439,18 @@
                             <button
                               type="button"
                               class="btn btn-link p-0"
+                              [attr.title]="
+                                'shell.header.speakers.remove' | transloco
+                              "
                               (click)="onSpeakerRemoveClick(spk)"
                             >
-                              <i class="fa-solid fa-trash"></i>
-                              <span class="visually-hidden"
-                                >Remove speaker</span
-                              >
+                              <i
+                                class="fa-solid fa-trash"
+                                aria-hidden="true"
+                              ></i>
+                              <span class="visually-hidden">{{
+                                'shell.header.speakers.remove' | transloco
+                              }}</span>
                             </button>
                           }
                         </td>
@@ -427,16 +458,18 @@
                     }
                     <tr>
                       <td
-                        colspan="2"
+                        colspan="3"
                         class="level-add-row rounded rounded-bottom-3"
                       >
                         <button
                           type="button"
-                          class="btn btn-link w-100 p-0"
+                          class="btn btn-link w-100 p-0 speakers-menu__add"
                           (click)="onSpeakerAddClick()"
                         >
-                          <i class="fa-solid fa-plus"></i>
-                          <span class="visually-hidden">Add speaker</span>
+                          <i class="fa-solid fa-plus" aria-hidden="true"></i>
+                          <span>{{
+                            'shell.header.speakers.add' | transloco
+                          }}</span>
                         </button>
                       </td>
                     </tr>

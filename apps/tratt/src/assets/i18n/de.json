@@ -1024,7 +1024,16 @@
       "version": "Version"
     },
     "header": {
-      "label": "Main navigation"
+      "label": "Main navigation",
+      "speakers": {
+        "title": "Sprecher",
+        "hint": "Wer in dieser Aufnahme spricht. Jedem Segment kann ein Sprecher zugeordnet werden.",
+        "empty": "Noch keine Sprecher.",
+        "add": "Sprecher hinzufügen",
+        "remove": "Sprecher entfernen",
+        "name": "Name des Sprechers",
+        "rename_hint": "Zum Umbenennen klicken"
+      }
     }
   },
   "pane_splitter": {

@@ -264,3 +264,42 @@
     justify-content: flex-start;
   }
 }
+
+// Speakers menu: a heading, so the menu says what it lists even while empty.
+.speakers-menu__header {
+  padding: 0.6rem 0.75rem 0.4rem;
+  border-bottom: 1px solid var(--tratt-border);
+}
+
+.speakers-menu__title {
+  margin: 0;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--tratt-text-primary);
+}
+
+.speakers-menu__hint {
+  margin: 0.15rem 0 0;
+  font-size: 0.8125rem;
+  color: var(--tratt-text-muted);
+}
+
+.speakers-menu__empty {
+  margin: 0;
+  padding: 0.6rem 0.75rem;
+  font-size: 0.8125rem;
+  color: var(--tratt-text-muted);
+}
+
+// Underline the words only, not the icon and the space before them.
+.speakers-menu__add {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  text-decoration: none;
+
+  &:hover span {
+    text-decoration: underline;
+  }
+}

@@ -1092,7 +1092,16 @@
     },
     "header": {
       "label": "Main navigation",
-      "theme_toggle": "Switch between light and dark mode"
+      "theme_toggle": "Switch between light and dark mode",
+      "speakers": {
+        "title": "Speakers",
+        "hint": "Who speaks in this recording. Each segment can be given a speaker.",
+        "empty": "No speakers yet.",
+        "add": "Add speaker",
+        "remove": "Remove speaker",
+        "name": "Speaker name",
+        "rename_hint": "Click to rename"
+      }
     }
   },
   "pane_splitter": {

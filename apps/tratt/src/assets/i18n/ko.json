@@ -753,7 +753,16 @@
       "version": "Version"
     },
     "header": {
-      "label": "Main navigation"
+      "label": "Main navigation",
+      "speakers": {
+        "title": "화자",
+        "hint": "이 녹음에서 말하는 사람. 각 세그먼트에 화자를 지정할 수 있습니다.",
+        "empty": "아직 화자가 없습니다.",
+        "add": "화자 추가",
+        "remove": "화자 삭제",
+        "name": "화자 이름",
+        "rename_hint": "클릭하여 이름 변경"
+      }
     }
   },
   "pane_splitter": {

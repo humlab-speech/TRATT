@@ -753,7 +753,16 @@
       "version": "Version"
     },
     "header": {
-      "label": "Main navigation"
+      "label": "Main navigation",
+      "speakers": {
+        "title": "Parlanti",
+        "hint": "Chi parla in questa registrazione. A ogni segmento si può assegnare un parlante.",
+        "empty": "Ancora nessun parlante.",
+        "add": "Aggiungi parlante",
+        "remove": "Rimuovi parlante",
+        "name": "Nome del parlante",
+        "rename_hint": "Fai clic per rinominare"
+      }
     }
   },
   "pane_splitter": {

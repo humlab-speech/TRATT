@@ -753,7 +753,16 @@
       "version": "Version"
     },
     "header": {
-      "label": "Main navigation"
+      "label": "Main navigation",
+      "speakers": {
+        "title": "说话人",
+        "hint": "此录音中的说话人。每个片段都可以指定一个说话人。",
+        "empty": "尚无说话人。",
+        "add": "添加说话人",
+        "remove": "删除说话人",
+        "name": "说话人名称",
+        "rename_hint": "点击重命名"
+      }
     }
   },
   "pane_splitter": {
