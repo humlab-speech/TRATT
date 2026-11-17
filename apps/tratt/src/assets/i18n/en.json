@@ -1063,6 +1063,7 @@
       },
       "error": {
         "not_signed_in": "You are no longer signed in to Visp. Your changes are kept in this browser: sign in again in Visp and Tratt saves them.",
+        "other_user": "Someone else is now signed in to Visp in this browser. These changes belong to the person who made them and are kept for them: Tratt saves them when that person signs in to Visp again.",
         "not_member": "You are not a member of this project. Ask the project owner to add you.",
         "no_transcription_level": "The annotation level Tratt was opened with is not a segment level in this project, so Tratt cannot open its recording bundles. Open Tratt from Visp again and choose another level.",
         "level_linked": "The annotation level Tratt was opened with is linked to other levels, so Tratt cannot edit it safely. Open Tratt from Visp again and choose another level.",

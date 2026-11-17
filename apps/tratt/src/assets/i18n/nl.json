@@ -725,6 +725,7 @@
       },
       "error": {
         "not_signed_in": "Je bent niet meer aangemeld bij Visp. Je wijzigingen blijven in deze browser: meld je opnieuw aan in Visp, dan slaat Tratt ze op.",
+        "other_user": "Iemand anders is nu in deze browser aangemeld bij Visp. Deze wijzigingen zijn van degene die ze heeft gemaakt en blijven voor die persoon bewaard: Tratt slaat ze op zodra die persoon zich weer aanmeldt bij Visp.",
         "not_member": "Je bent geen lid van dit project. Vraag de projecteigenaar je toe te voegen.",
         "no_transcription_level": "Dit project heeft geen transcriptielaag, dus Tratt kan de opnamebundels niet openen. Vraag de projecteigenaar er in Visp een toe te voegen.",
         "level_linked": "De transcriptielaag is gekoppeld aan andere lagen, dus Tratt kan hem niet veilig bewerken. Vraag de projecteigenaar de koppeling op te heffen.",

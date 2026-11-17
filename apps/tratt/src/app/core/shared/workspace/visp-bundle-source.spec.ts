@@ -17,6 +17,7 @@ import {
   projectCookieGuard,
   sameOriginMediaUrl,
 } from './visp-bundle-source';
+import { classifyVispError } from './visp-errors';
 
 const word = {
   name: 'Word',
@@ -279,6 +280,51 @@ describe('VispBundleSource against a mock EMU server', () => {
     await expect(source.save(ref, annotation)).rejects.toBeInstanceOf(
       StaleBundleError,
     );
+  });
+
+  it('says which level and version a save is for, and whose it is', async () => {
+    const before = server.files.get('0000/b1')!;
+    const { annotation } = await source.loadBundle(ref, 64000);
+    await source.save(ref, annotation);
+    const req = server.requests.find((r) => r.type === 'SAVEBUNDLE');
+    expect(req.data).toMatchObject({
+      level: 'Transcription',
+      expectedUser: 'some_user',
+      baseVersion: MockEmuServer.version(before),
+    });
+    // the next save is based on what this one wrote
+    expect(source.versionOf(ref)).toBe(
+      MockEmuServer.version(server.files.get('0000/b1')!),
+    );
+  });
+
+  it('is refused by the server when the bundle changes between check and write', async () => {
+    const { annotation } = await source.loadBundle(ref, 64000);
+    (annotation as ISegmentLevel).items[0].labels[0].value = 'mine';
+    const other = fixture() as any;
+    other.levels[1].items[0].labels[0].value = 'saved in Artic meanwhile';
+    // after Tratt's own check, before the write
+    server.beforeSave = () => {
+      server.beforeSave = undefined;
+      server.setBundle('0000', 'b1', other);
+    };
+    await expect(source.save(ref, annotation)).rejects.toBeInstanceOf(
+      StaleBundleError,
+    );
+    expect(JSON.parse(server.files.get('0000/b1')!)).toEqual(other);
+  });
+
+  it("never saves one user's changes under another user's sign-in", async () => {
+    const before = server.files.get('0000/b1');
+    const { annotation } = await source.loadBundle(ref, 64000);
+    expect(await source.whoAmI()).toBe('some_user');
+    (annotation as ISegmentLevel).items[0].labels[0].value =
+      'some_user wrote this';
+    server.username = 'next_user'; // signed in on the same browser meanwhile
+    const error = await source.save(ref, annotation).catch((e) => e);
+    expect(error).toBeInstanceOf(EmuServerError);
+    expect(classifyVispError(error)).toBe('other_user');
+    expect(server.files.get('0000/b1')).toBe(before);
   });
 
   it('writes the break marker as an empty label and drops undeclared labels', async () => {
