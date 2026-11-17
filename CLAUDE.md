@@ -6,3 +6,4 @@
 - i18n: Transloco (not @angular/localize).
 - Routing: lazy-loaded InternModule with guards for auth, config loading, and IndexedDB init. Task routes follow visp-task/project/session/bundle pattern.
 - Commit convention: Commitizen with conventional-changelog.
+- Dev-server warning about `@huggingface_transformers.js` dynamic import is expected (ONNX Runtime wasm loader); ignore.
