@@ -9,6 +9,7 @@ import { MAX_TRANSCODE_BYTES, transcodeForExport } from './media-transcode';
 const AUDIO = 1;
 const VIDEO = 0;
 const EOF = -541478725;
+const EAGAIN = -6;
 const OPUS = 86076;
 
 // The calls transcodeForExport makes on a libav.js instance, faked: one read
@@ -19,8 +20,12 @@ function fakeLibAV(opts: {
   outTimeBases?: number[];
   headerRet?: number;
   channels?: number;
+  /** Several reads: [return code, packets by stream] each. */
+  reads?: [number, Record<number, any[]>][];
 }) {
   const outTb = opts.outTimeBases ?? [48000];
+  const reads = opts.reads ?? [[EOF, opts.packets]];
+  let read = 0;
   return {
     AVMEDIA_TYPE_AUDIO: AUDIO,
     AVMEDIA_TYPE_VIDEO: VIDEO,
@@ -37,7 +42,9 @@ function fakeLibAV(opts: {
     avformat_close_input_js: jest.fn(async () => undefined),
     ff_init_decoder: jest.fn(async () => [1, 200, 201, 202]),
     ff_free_decoder: jest.fn(async () => undefined),
-    ff_read_frame_multi: jest.fn(async () => [EOF, opts.packets]),
+    ff_read_frame_multi: jest.fn(
+      async (..._args: any[]) => reads[Math.min(read++, reads.length - 1)],
+    ),
     AVCodecParameters_ch_layout_nb_channels: jest.fn(
       async () => opts.channels ?? 2,
     ),
@@ -487,4 +494,46 @@ describe('transcodeForExport', () => {
       expect(out.size).toBe(4);
     },
   );
+
+  it.each([
+    // About a minute of input per read: 32 kb/s Opus over 60 s...
+    ['a minute of compressed audio', 240_000, 60, 240_000],
+    // ...but at least 64 KiB, at most 1 MiB, and 256 KiB when the length
+    // is unknown.
+    ['a floor of 64 KiB', 1_000, 60, 64 * 1024],
+    ['a cap of 1 MiB', 2_000_000, 1, 1024 * 1024],
+    ['256 KiB for an unknown length', 1_000, -9e15, 256 * 1024],
+  ])('reads in chunks: %s', async (_why, size, duration, limit) => {
+    const la = fakeLibAV({
+      streams: [{ ...audioStream, duration }],
+      packets: { 0: [{ data: new Uint8Array(8) }] },
+    });
+    (getLibAV as jest.Mock).mockResolvedValue(la);
+
+    await transcodeForExport(file('a.wav', new Uint8Array(size)));
+
+    expect(la.ff_read_frame_multi).toHaveBeenCalledWith(100, 201, { limit });
+  });
+
+  it('yields to the event loop between reads on the fat build (main thread)', async () => {
+    const packets = { 0: [{ data: new Uint8Array(8) }] };
+    const la = fakeLibAV({
+      streams: [audioStream],
+      packets,
+      reads: [
+        [EAGAIN, packets],
+        [EAGAIN, packets],
+        [EOF, packets],
+      ],
+    });
+    (getLibAVFat as jest.Mock).mockResolvedValue(la);
+    const timeout = jest.spyOn(globalThis, 'setTimeout');
+    try {
+      await transcodeForExport(file('song.wma'));
+      expect(la.ff_read_frame_multi).toHaveBeenCalledTimes(3);
+      expect(timeout).toHaveBeenCalledTimes(2);
+    } finally {
+      timeout.mockRestore();
+    }
+  });
 });

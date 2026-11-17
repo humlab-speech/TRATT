@@ -34,7 +34,12 @@ const AV_CH_LAYOUT_MONO = 4;
 const AUDIO_FILTER =
   'aformat=sample_fmts=flt:sample_rates=48000:channel_layouts=mono';
 const OPUS_FRAME_SAMPLES = 960;
-const READ_CHUNK_BYTES = 16 * 2 ** 20;
+// Input read per step: about a minute, within these bounds. Compressed audio
+// decodes to 10-100 times its size, and on the fat build each step blocks
+// the tab until it is done.
+const MIN_READ_BYTES = 64 * 2 ** 10;
+const MAX_READ_BYTES = 2 ** 20;
+const UNKNOWN_LENGTH_READ_BYTES = 256 * 2 ** 10;
 const AVERROR_EAGAIN = -6;
 const AVDISCARD_ALL = 48;
 const ASF_NAME = /\.(wma|asf)$/i;
@@ -110,6 +115,8 @@ async function fatBuildOnError(f: () => Promise<any>): Promise<any> {
     throw new NeedsFatBuild(reason(e));
   }
 }
+
+const nextTask = () => new Promise<void>((resolve) => setTimeout(resolve));
 
 async function transcode(
   libav: any,
@@ -205,9 +212,10 @@ async function transcode(
     let outSamples = 0;
     let startPts: number | undefined;
     let src: any, sink: any;
+    const limit = readBytes(bytes.length, streams);
     for (;;) {
       const [ret, byStream] = await libav.ff_read_frame_multi(fmtCtx, dpkt, {
-        limit: READ_CHUNK_BYTES,
+        limit,
       });
       const eof = ret === libav.AVERROR_EOF;
       if (!eof && ret !== AVERROR_EAGAIN && ret < 0) {
@@ -282,6 +290,8 @@ async function transcode(
       }
       if (packets.length) await libav.ff_write_multi(oc, epkt, packets);
       if (eof) break;
+      // The fat build runs on the main thread: let the tab breathe.
+      if (opts.fat) await nextTask();
     }
     if (outSamples === 0) throw new Error('no audio could be decoded');
 
@@ -333,6 +343,17 @@ async function isLeanOpus(
     channels === 1 &&
     (bytes.length * 8) / audio.duration <= PASS_THROUGH_MAX_BITRATE
   );
+}
+
+// About a minute of input (see MAX_READ_BYTES). A stream of unknown length
+// reports a negative duration.
+function readBytes(size: number, streams: any[]): number {
+  const seconds = Math.max(0, ...streams.map((s: any) => s.duration || 0));
+  if (!(seconds > 0) || !Number.isFinite(seconds)) {
+    return UNKNOWN_LENGTH_READ_BYTES;
+  }
+  const minute = Math.round((size / seconds) * 60);
+  return Math.min(MAX_READ_BYTES, Math.max(MIN_READ_BYTES, minute));
 }
 
 // Where the audio starts, in 1/48000 s, so a copied video stays in sync.
