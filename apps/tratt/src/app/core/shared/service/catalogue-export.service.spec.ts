@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { describe, expect, it, jest } from '@jest/globals';
+import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 
 // Same workaround as pipeline-queue.service.spec.ts: PipelineQueueService is
 // imported below only for its DI token/type (it's fully mocked via
@@ -14,6 +14,9 @@ jest.mock('./local-transcription.service', () => ({
 jest.mock('./local-translation.service', () => ({
   LocalTranslationService: class LocalTranslationService {},
 }));
+// The transcoder needs libav.js (wasm); every test gets a fake, re-encoded
+// file (see beforeEach below) unless it says otherwise.
+jest.mock('./media-transcode', () => ({ transcodeForExport: jest.fn() }));
 
 import { provideMockStore } from '@ngrx/store/testing';
 import {
@@ -34,8 +37,30 @@ import {
   archiveFileName,
   CatalogueExportProgress,
   CatalogueExportService,
+  rescaleAnnotation,
 } from './catalogue-export.service';
+import { exportedMediaName, exportedMediaType } from './exported-media';
+import { transcodeForExport } from './media-transcode';
 import { PipelineQueueService } from './pipeline-queue.service';
+
+const transcode = transcodeForExport as jest.MockedFunction<
+  typeof transcodeForExport
+>;
+
+/** What the faked transcoder returns: the exported name, bytes [9, 9]. */
+function transcoded(source: File): File {
+  // jsdom's File has no arrayBuffer().
+  return {
+    name: exportedMediaName(source.name),
+    type: exportedMediaType(source.name),
+    arrayBuffer: async () => new Uint8Array([9, 9]).buffer,
+  } as unknown as File;
+}
+
+beforeEach(() => {
+  transcode.mockReset();
+  transcode.mockImplementation(async (source) => transcoded(source));
+});
 
 function segmentLevel(id: number, name: string, text: string) {
   return new TrattAnnotationSegmentLevel(id, name, [
@@ -145,9 +170,272 @@ describe('CatalogueExportService', () => {
       service.exportBundles(['bundle-1'], ['SRT']),
     );
     const entries = unzipSync(zipBytes(last));
-    expect(Array.from(entries['bundles/a/a.wav'])).toEqual([1, 2, 3]);
+    expect(Array.from(entries['bundles/a/a.opus'])).toEqual([9, 9]);
+    expect(Object.keys(entries)).not.toContain('bundles/a/a.wav');
     expect(Object.keys(entries)).toContain('bundles/a/a_annot.json');
     expect(last.exportedCount).toBe(1);
+    const manifest = JSON.parse(strFromU8(entries['manifest.json']));
+    expect(manifest[0].audioPath).toBe('bundles/a/a.opus');
+    expect(manifest[0].audioType).toBe('audio/ogg');
+    expect(
+      JSON.parse(strFromU8(entries['bundles/a/a_annot.json'])).annotates,
+    ).toBe('a.opus');
+  });
+
+  it('exports the original file, saying why, when re-encoding fails, and carries on', async () => {
+    const { service, audioService } = setup([
+      makeBundle('bundle-1', 'a.wav'),
+      makeBundle('bundle-2', 'b.wav'),
+    ]);
+    audioService.getSourceFile.mockImplementation((id: string) => ({
+      name: id === 'bundle-1' ? 'a.wav' : 'b.wav',
+      type: 'audio/wav',
+      arrayBuffer: async () => new Uint8Array([1, 2, 3]).buffer,
+    }));
+    transcode.mockImplementation(async (source) => {
+      if (source.name === 'a.wav') {
+        throw new Error('Could not transcode a.wav: no audio stream');
+      }
+      return transcoded(source);
+    });
+
+    const last = await lastValueFrom(
+      service.exportBundles(['bundle-1', 'bundle-2'], ['SRT']),
+    );
+
+    const entries = unzipSync(zipBytes(last));
+    expect(Array.from(entries['bundles/a/a.wav'])).toEqual([1, 2, 3]);
+    expect(Array.from(entries['bundles/b/b.opus'])).toEqual([9, 9]);
+    expect(last.warnings).toEqual([
+      'a.wav: could not re-encode (no audio stream); the original file is exported.',
+    ]);
+    expect(last.exportedCount).toBe(2);
+    const manifest = JSON.parse(strFromU8(entries['manifest.json']));
+    expect(manifest[0].audioPath).toBe('bundles/a/a.wav');
+    expect(manifest[0].audioType).toBe('audio/wav');
+    expect(
+      JSON.parse(strFromU8(entries['bundles/a/a_annot.json'])).annotates,
+    ).toBe('a.wav');
+  });
+
+  it('names the audio as the transcoder wrote it: an audio-only .webm becomes .opus everywhere', async () => {
+    // The dialog's preview guesses rec.mp4 from the extension; only the
+    // transcoder knows the WebM holds no video.
+    const { service, audioService } = setup([
+      makeBundle('bundle-1', 'rec.webm'),
+      makeBundle('bundle-2', 'solo.webm', false),
+    ]);
+    audioService.getSourceFile.mockImplementation((id: string) => ({
+      name: id === 'bundle-1' ? 'rec.webm' : 'solo.webm',
+      type: 'audio/webm',
+      arrayBuffer: async () => new Uint8Array([1, 2, 3]).buffer,
+    }));
+    transcode.mockImplementation(
+      async (source) =>
+        ({
+          name: source.name.replace('.webm', '.opus'),
+          type: 'audio/ogg',
+          arrayBuffer: async () => new Uint8Array([9, 9]).buffer,
+        }) as unknown as File,
+    );
+
+    const last = await lastValueFrom(
+      service.exportBundles(['bundle-1', 'bundle-2'], ['SRT']),
+    );
+
+    const entries = unzipSync(zipBytes(last));
+    const manifest = JSON.parse(strFromU8(entries['manifest.json']));
+    expect(manifest.map((r: any) => [r.audioPath, r.audioType])).toEqual([
+      ['bundles/rec/rec.opus', 'audio/ogg'],
+      ['bundles/solo/solo.opus', 'audio/ogg'],
+    ]);
+    for (const row of manifest) {
+      expect(Object.keys(entries)).toContain(row.audioPath);
+    }
+    expect(
+      JSON.parse(strFromU8(entries['bundles/rec/rec_annot.json'])).annotates,
+    ).toBe('rec.opus');
+
+    // One recording without a transcript: its audio alone, as that file.
+    const single = await lastValueFrom(
+      service.exportBundles(['bundle-2'], ['SRT']),
+    );
+    expect(single.download).toMatchObject({
+      name: 'solo.opus',
+      type: 'audio/ogg',
+      archive: false,
+    });
+  });
+
+  describe('sample rate of the exported transcript', () => {
+    // A WAV recording keeps its own rate in Tratt (44.1 kHz here); anything
+    // else, Opus included, is read back at 16 kHz (HtmlAudioMechanism
+    // normalizes every non-WAV decode to ML_MODEL_SAMPLE_RATE).
+    function wav44k() {
+      const bundle = makeBundle('bundle-1', 'a.wav');
+      bundle.transcript = new TrattAnnotation([
+        new TrattAnnotationSegmentLevel(1, 'OCTRA_1', [
+          new TrattAnnotationSegment(1, new SampleUnit(1000, 44100), [
+            new OLabel('OCTRA_1', 'hi'),
+          ]),
+          new TrattAnnotationSegment(2, new SampleUnit(66150, 44100), [
+            new OLabel('OCTRA_1', 'there'),
+          ]),
+        ]),
+      ]);
+      const { service, audioService } = setup([bundle]);
+      audioService.getMediaInfo.mockReturnValue({
+        fullname: 'a.wav',
+        sampleRate: 44100,
+        duration: new SampleUnit(132300, 44100),
+        channels: 2,
+        size: 10,
+      });
+      audioService.getSourceFile.mockReturnValue({
+        name: 'a.wav',
+        type: 'audio/wav',
+        arrayBuffer: async () => new Uint8Array([1, 2, 3]).buffer,
+      });
+      return service;
+    }
+    const exported = async (service: CatalogueExportService) => {
+      const entries = unzipSync(
+        zipBytes(
+          await lastValueFrom(service.exportBundles(['bundle-1'], ['SRT'])),
+        ),
+      );
+      return {
+        annot: JSON.parse(strFromU8(entries['bundles/a/a_annot.json'])),
+        manifest: JSON.parse(strFromU8(entries['manifest.json']))[0],
+        srt: strFromU8(entries['bundles/a/a.srt']),
+      };
+    };
+
+    it('moves every position to the rate Tratt reads the Opus file at', async () => {
+      const { annot, manifest, srt } = await exported(wav44k());
+      expect(annot.sampleRate).toBe(16000);
+      expect(
+        annot.levels[0].items.map((i: any) => [i.sampleStart, i.sampleDur]),
+      ).toEqual([
+        [0, 363], // 1000 * 16000 / 44100 = 362.8
+        [363, 23637], // ends at 66150 → 24000
+        [24000, 24000], // padding to the end, 132300 → 48000
+      ]);
+      expect(manifest.sampleRate).toBe(16000);
+      expect(manifest.durationSamples).toBe(48000);
+      // The other formats are written from the same annotation and rate.
+      expect(srt).toContain('00:00:01,500');
+    });
+
+    it('keeps the source rate when the original file is exported', async () => {
+      const service = wav44k();
+      transcode.mockRejectedValue(new Error('Could not transcode a.wav: x'));
+      const { annot, manifest } = await exported(service);
+      expect(annot.sampleRate).toBe(44100);
+      expect(annot.annotates).toBe('a.wav');
+      expect(
+        annot.levels[0].items.map((i: any) => [i.sampleStart, i.sampleDur]),
+      ).toEqual([
+        [0, 1000],
+        [1000, 65150],
+        [66150, 66150],
+      ]);
+      expect(manifest.sampleRate).toBe(44100);
+      expect(manifest.durationSamples).toBe(132300);
+    });
+
+    it('gives the manifest the same rate for audio exported without a transcript', async () => {
+      const bundle = makeBundle('bundle-1', 'a.wav', false);
+      const { service, audioService } = setup([
+        bundle,
+        makeBundle('bundle-2', 'b.wav'),
+      ]);
+      audioService.getMediaInfo.mockImplementation((id: string) =>
+        id === 'bundle-1'
+          ? {
+              fullname: 'a.wav',
+              sampleRate: 44100,
+              duration: new SampleUnit(132300, 44100),
+              channels: 2,
+              size: 10,
+            }
+          : undefined,
+      );
+      audioService.getSourceFile.mockImplementation((id: string) =>
+        id === 'bundle-1'
+          ? {
+              name: 'a.wav',
+              type: 'audio/wav',
+              arrayBuffer: async () => new Uint8Array([1, 2, 3]).buffer,
+            }
+          : undefined,
+      );
+      const last = await lastValueFrom(
+        service.exportBundles(['bundle-1', 'bundle-2'], ['SRT']),
+      );
+      const [row] = JSON.parse(
+        strFromU8(unzipSync(zipBytes(last))['manifest.json']),
+      );
+      expect(row.audioPath).toBe('bundles/a/a.opus');
+      expect(row.sampleRate).toBe(16000);
+      expect(row.durationSamples).toBe(48000);
+    });
+
+    it('rescales event points too, and leaves an annotation at the rate alone', () => {
+      const annot = {
+        sampleRate: 44100,
+        levels: [
+          { type: 'EVENT', items: [{ samplePoint: 44100 }] },
+          { type: 'ITEM', items: [{ id: 1 }] },
+        ],
+      } as any;
+      rescaleAnnotation(annot, 16000);
+      expect(annot.sampleRate).toBe(16000);
+      expect(annot.levels[0].items[0].samplePoint).toBe(16000);
+      expect(annot.levels[1].items[0]).toEqual({ id: 1 });
+      rescaleAnnotation(annot, 16000);
+      expect(annot.levels[0].items[0].samplePoint).toBe(16000);
+    });
+  });
+
+  describe('own format is always written', () => {
+    const files = (ids: string[], names: string[]) => {
+      const { service } = setup(ids.map((id) => makeBundle(id, `${id}.wav`)));
+      return lastValueFrom(service.exportBundles(ids, names));
+    };
+    const entryNames = (last: CatalogueExportProgress) =>
+      Object.keys(unzipSync(zipBytes(last)))
+        .filter((n) => !n.startsWith('manifest'))
+        .sort();
+
+    it('zips DOCX with AnnotJSON for one bundle without audio', async () => {
+      expect(entryNames(await files(['b1'], ['DOCX']))).toEqual([
+        'bundles/b1/b1_annot.json',
+        'bundles/b1/x.docx',
+      ]);
+    });
+
+    it('writes only b1_annot.json, not zipped, when no format is ticked', async () => {
+      const last = await files(['b1'], []);
+      expect(last.download?.archive).toBe(false);
+      expect(last.download?.name).toBe('b1_annot.json');
+    });
+
+    it('gives each of two bundles the same file set', async () => {
+      expect(entryNames(await files(['b1', 'b2'], ['DOCX']))).toEqual([
+        'bundles/b1/b1_annot.json',
+        'bundles/b1/x.docx',
+        'bundles/b2/b2_annot.json',
+        'bundles/b2/x.docx',
+      ]);
+    });
+
+    it('zips two bundles with no format ticked, one _annot.json each', async () => {
+      expect(entryNames(await files(['b1', 'b2'], []))).toEqual([
+        'bundles/b1/b1_annot.json',
+        'bundles/b2/b2_annot.json',
+      ]);
+    });
   });
 
   it('produces one archive entry per bundle per requested converter, plus both manifests', async () => {
@@ -546,14 +834,16 @@ describe('CatalogueExportService: one file or a .zip', () => {
     arrayBuffer: async () => new Uint8Array([1, 2, 3]).buffer,
   };
 
-  it("downloads a single file as it is, without Tratt's own file or manifests", async () => {
+  it("zips a single format together with Tratt's own file", async () => {
     const service = setup([makeBundle('bundle-1', 'a.wav')]);
     const last = await lastValueFrom(
       service.exportBundles(['bundle-1'], ['SRT'], { includeAudio: false }),
     );
-    expect(last.download?.archive).toBe(false);
-    expect(last.download?.name).toMatch(/\.srt$/);
-    expect(strFromU8(last.download!.bytes)).toContain('hello');
+    const entries = unzipSync(zipBytes(last));
+    expect(Object.keys(entries)).toEqual(
+      expect.arrayContaining(['bundles/a/a_annot.json', 'bundles/a/a.srt']),
+    );
+    expect(strFromU8(entries['bundles/a/a.srt'])).toContain('hello');
     expect(last.warnings).toEqual([]);
   });
 
@@ -576,7 +866,7 @@ describe('CatalogueExportService: one file or a .zip', () => {
     const entries = Object.keys(unzipSync(zipBytes(last)));
     expect(entries).toEqual(
       expect.arrayContaining([
-        'bundles/a/a.wav',
+        'bundles/a/a.opus',
         'bundles/a/a_annot.json',
         'manifest.json',
       ]),
@@ -589,7 +879,7 @@ describe('CatalogueExportService: one file or a .zip', () => {
       service.exportBundles(['bundle-1'], ['SRT'], { includeAudio: true }),
     );
     const entries = unzipSync(zipBytes(last));
-    expect(Array.from(entries['bundles/a/a.wav'])).toEqual([1, 2, 3]);
+    expect(Array.from(entries['bundles/a/a.opus'])).toEqual([9, 9]);
     expect(last.warnings).toEqual([]);
   });
 
@@ -602,7 +892,7 @@ describe('CatalogueExportService: one file or a .zip', () => {
     const last = await lastValueFrom(
       service.exportBundles(['bundle-1'], ['SRT'], { includeAudio: true }),
     );
-    expect(last.download?.name).toMatch(/\.srt$/);
+    expect(Object.keys(unzipSync(zipBytes(last)))).toContain('bundles/a/a.srt');
     expect(last.warnings).toEqual([
       expect.stringContaining('audio could not be fetched (offline)'),
     ]);
@@ -614,7 +904,7 @@ describe('CatalogueExportService: one file or a .zip', () => {
       service.exportBundles(['bundle-1'], ['SRT'], { includeAudio: true }),
     );
     expect(last.download?.archive).toBe(false);
-    expect(last.download?.name).toBe('a.wav');
+    expect(last.download?.name).toBe('a.opus');
     expect(last.exportedCount).toBe(1);
   });
 
@@ -624,6 +914,13 @@ describe('CatalogueExportService: one file or a .zip', () => {
       undefined,
       wav,
     );
+    // Each recording's own file: the transcript names the file next to it.
+    (TestBed.inject(AudioService).getAudioFile as jest.Mock).mockImplementation(
+      async (id: unknown) => ({
+        ...wav,
+        name: id === 'bundle-1' ? 'a.wav' : 'b.wav',
+      }),
+    );
     const last = await lastValueFrom(
       service.exportBundles(['bundle-1', 'bundle-2'], ['SRT'], {
         includeAudio: true,
@@ -631,9 +928,10 @@ describe('CatalogueExportService: one file or a .zip', () => {
     );
     const entries = Object.keys(unzipSync(zipBytes(last)));
     expect(entries.filter((e) => e.startsWith('bundles/a/'))).toEqual([
-      'bundles/a/a.wav',
+      'bundles/a/a.opus',
     ]);
     expect(entries).toContain('bundles/b/b_annot.json');
+    expect(entries).toContain('bundles/b/b.opus');
   });
 
   it('skips a recording without a transcript whose audio cannot be fetched, saying why', async () => {
@@ -664,7 +962,8 @@ describe('CatalogueExportService: one file or a .zip', () => {
       }),
     );
     const entries = Object.keys(unzipSync(zipBytes(last)));
-    expect(entries.some((e) => e.endsWith('.wav'))).toBe(false);
+    expect(entries.some((e) => /\.(wav|opus)$/.test(e))).toBe(false);
+    expect(transcode).not.toHaveBeenCalled();
     expect(last.warnings).toEqual([]);
   });
 
@@ -696,7 +995,7 @@ describe('CatalogueExportService: one file or a .zip', () => {
       service.exportBundles(['bundle-1'], ['DOCX'], { includeAudio: false }),
     );
 
-    expect(last.download?.archive).toBe(false);
+    expect(last.download?.archive).toBe(true);
     expect(spy).toHaveBeenCalledTimes(1);
     expect(spy.mock.calls[0][3]).toEqual([0, 1]);
     spy.mockRestore();

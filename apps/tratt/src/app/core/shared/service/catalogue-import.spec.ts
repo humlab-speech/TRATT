@@ -48,6 +48,24 @@ describe('filesFromExportZip', () => {
     );
   });
 
+  it.each([
+    ['x.opus', 'audio/ogg'],
+    ['x.mp4', 'video/mp4'],
+  ])('pairs exported %s with its _annot.json', (name, type) => {
+    const zip = zipSync({
+      [`bundles/x/${name}`]: strToU8('media'),
+      'bundles/x/x_annot.json': strToU8('{}'),
+      'manifest.json': strToU8(
+        JSON.stringify([{ audioPath: `bundles/x/${name}`, audioType: type }]),
+      ),
+    });
+    const files = filesFromExportZip(zip);
+    expect(files.map((f) => f.name)).toEqual([name, 'x_annot.json']);
+    expect(files[0].type).toBe(type);
+    expect(archiveGroupOf(files[1])).toBe(archiveGroupOf(files[0]));
+    expect(archiveGroupOf(files[0])).toBeDefined();
+  });
+
   it('pairs a renamed lone annotation in the recording folder', () => {
     const zip = zipSync({
       'bundles/a/a.wav': strToU8('RIFF'),

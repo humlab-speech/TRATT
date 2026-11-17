@@ -206,15 +206,6 @@ describe('ExportFilesModalComponent', () => {
   });
 
   describe('one file or a .zip', () => {
-    it('is one file for one recording in one format, without audio', () => {
-      openFromList([bundle('b1', 'a.wav')], [], 'b1');
-      expect(component.includeAudio()).toBe(false);
-      expect(component.contents().single?.name).toBe('a.docx');
-      expect(exportButton().textContent).toContain(
-        'workbench.export.download_file',
-      );
-    });
-
     it("is a .zip with Tratt's own file once a second format is ticked", () => {
       openFromList([bundle('b1', 'a.wav')], [], 'b1');
       component.toggleFormat('SRT');
@@ -222,6 +213,7 @@ describe('ExportFilesModalComponent', () => {
       const toc = component.contents();
       expect(toc.single).toBeUndefined();
       expect(toc.folders[0].files.map((f) => f.name)).toEqual([
+        'a.opus',
         'a.docx',
         'a.srt',
         'a_annot.json',
@@ -242,9 +234,53 @@ describe('ExportFilesModalComponent', () => {
       openFromList([bundle('b1', 'a.wav'), bundle('b2', 'b.wav')]);
       expect(component.includeAudio()).toBe(true);
       expect(component.contents().folders[0].files[0]).toEqual({
-        name: 'a.wav',
+        name: 'a.opus',
         kind: 'audio',
       });
+    });
+
+    it('names the audio as it is exported: Opus, or mp4 for a video', () => {
+      openFromList([bundle('b1', 'Intervju 1.wav'), bundle('b2', 'clip.mkv')]);
+      expect(component.contents().folders.map((f) => f.files[0])).toEqual([
+        { name: 'Intervju 1.opus', kind: 'audio' },
+        { name: 'clip.mp4', kind: 'audio' },
+      ]);
+    });
+
+    it('includes the audio by default for one recording too, unless turned off', () => {
+      openFromList([bundle('b1', 'a.wav')], [], 'b1');
+      expect(component.includeAudio()).toBe(true);
+      component.setIncludeAudio(false);
+      expect(component.includeAudio()).toBe(false);
+    });
+
+    it("always ticks Tratt's own format in the list, and it cannot be unticked", () => {
+      openFromList([bundle('b1', 'a.wav')], [], 'b1');
+      expect(component.isChecked('AnnotJSON')).toBe(true);
+      component.toggleFormat('AnnotJSON');
+      expect(component.isChecked('AnnotJSON')).toBe(true);
+      component.onExport();
+      expect(exportService.exportBundles).toHaveBeenCalledWith(
+        ['b1'],
+        expect.arrayContaining(['AnnotJSON']),
+        expect.anything(),
+      );
+    });
+
+    it("lists Tratt's own file as native next to a ticked format", () => {
+      openFromList([bundle('b1', 'x.wav', { hasAudio: false })], [], 'b1');
+      const toc = component.contents();
+      expect(toc.single).toBeUndefined();
+      expect(toc.folders[0].files).toEqual([
+        { name: 'x.docx', kind: 'transcript' },
+        { name: 'x_annot.json', kind: 'native' },
+      ]);
+    });
+
+    it("is Tratt's own file alone when no format is ticked and there is no audio", () => {
+      openFromList([bundle('b1', 'x.wav', { hasAudio: false })], [], 'b1');
+      component.toggleFormat('DOCX');
+      expect(component.contents().single?.name).toBe('x_annot.json');
     });
 
     it('shows one file per tier for a single-tier format, one for DOCX', () => {
@@ -262,6 +298,7 @@ describe('ExportFilesModalComponent', () => {
       );
       component.toggleFormat('SRT');
       expect(component.contents().folders[0].files.map((f) => f.name)).toEqual([
+        'a.opus',
         'a.docx',
         'a-OCTRA_1.srt',
         'a-English.srt',
@@ -288,8 +325,10 @@ describe('ExportFilesModalComponent', () => {
         [],
         'b1',
       );
-      // One recording: the audio is offered but not ticked, and the dialog
-      // says so instead of only "nothing to export".
+      // Audio is offered; with it turned off the dialog says so instead of
+      // only "nothing to export".
+      component.setIncludeAudio(false);
+      fixture.detectChanges();
       expect(component.audioAvailable()).toBe(true);
       expect(component.contents().onlyAudio).toBe(true);
       expect(exportButton().disabled).toBe(true);
@@ -297,7 +336,7 @@ describe('ExportFilesModalComponent', () => {
       component.setIncludeAudio(true);
       fixture.detectChanges();
       expect(component.contents().single).toEqual({
-        name: 'a.wav',
+        name: 'a.opus',
         kind: 'audio',
       });
       // No transcript at all: no formats panel, and nothing to warn about.
@@ -313,11 +352,11 @@ describe('ExportFilesModalComponent', () => {
       component.setScope('all');
       expect(
         component.contents().folders.map((f) => f.files.map((x) => x.name)),
-      ).toEqual([['a.wav'], ['b.wav']]);
+      ).toEqual([['a.opus'], ['b.opus']]);
       component.onExport();
       expect(exportService.exportBundles).toHaveBeenCalledWith(
         ['b1', 'b2'],
-        ['DOCX'],
+        ['DOCX', 'AnnotJSON'],
         { includeAudio: true },
       );
     });
@@ -337,16 +376,16 @@ describe('ExportFilesModalComponent', () => {
           .textContent,
       ).toContain('workbench.export.audio_only');
 
-      // With no format ticked there is nothing to warn about.
+      // Tratt's own format is always on, so the warning stays.
       component.toggleFormat('DOCX');
-      expect(component.contents().audioOnly).toEqual([]);
+      expect(component.contents().audioOnly).toEqual(['a.wav']);
     });
 
-    it('disables Download with no format ticked', () => {
+    it("keeps Download enabled with no format ticked: Tratt's own format is always written", () => {
       openFromList([bundle('b1', 'a.wav', { hasAudio: false })], [], 'b1');
       component.toggleFormat('DOCX');
       fixture.detectChanges();
-      expect(exportButton().disabled).toBe(true);
+      expect(exportButton().disabled).toBe(false);
     });
   });
 
@@ -384,7 +423,7 @@ describe('ExportFilesModalComponent', () => {
 
       expect(exportService.exportBundles).toHaveBeenCalledWith(
         ['b1'],
-        ['DOCX', 'SRT'],
+        ['DOCX', 'SRT', 'AnnotJSON'],
         { includeAudio: false },
       );
       expect(activeModal.close).toHaveBeenCalled();
@@ -457,6 +496,31 @@ describe('ExportFilesModalComponent', () => {
       );
       expect(clicked).toEqual(['restored.srt']);
       expect(activeModal.close).toHaveBeenCalled();
+    });
+
+    it("follows the user's ticks for every format, Tratt's own included", () => {
+      openFromNavbar();
+      expect(component.isChecked('AnnotJSON')).toBe(false);
+      component.toggleFormat('AnnotJSON');
+      expect(component.isChecked('AnnotJSON')).toBe(true);
+      component.toggleFormat('AnnotJSON');
+      expect(component.isChecked('AnnotJSON')).toBe(false);
+      component.toggleFormat('DOCX');
+      expect(component.isChecked('DOCX')).toBe(false);
+    });
+
+    it("previews Tratt's own file in the .zip when it is not ticked, as exportTranscript adds it", () => {
+      openFromNavbar();
+      expect(component.contents().single?.name).toBe('restored.docx');
+
+      component.toggleFormat('SRT');
+      const toc = component.contents();
+      expect(toc.single).toBeUndefined();
+      expect(toc.folders[0].files).toEqual([
+        { name: 'restored.docx', kind: 'transcript' },
+        { name: 'restored.srt', kind: 'transcript' },
+        { name: 'restored_annot.json', kind: 'native' },
+      ]);
     });
 
     it('names the protocol file after the recording', () => {

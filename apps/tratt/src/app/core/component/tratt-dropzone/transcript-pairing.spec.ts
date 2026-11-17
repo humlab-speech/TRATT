@@ -16,8 +16,7 @@ import {
 
 describe('transcript pairing helpers', () => {
   it('strips the longest known transcript extension', () => {
-    const base = (name: string) =>
-      transcriptBasename(name, AppInfo.converters);
+    const base = (name: string) => transcriptBasename(name, AppInfo.converters);
     expect(base('interview_annot.json')).toBe('interview');
     expect(base('interview.json')).toBe('interview');
     expect(base('interview.TextGrid')).toBe('interview');
@@ -49,6 +48,24 @@ describe('transcript pairing helpers', () => {
     ]);
     expect(items[1].labels[0].value).toBe('hi');
     expect(items.map((i) => i.id)).toEqual([1, 2, 3]);
+  });
+
+  it('ends a last segment that runs past the recording with it, not with a negative pad', () => {
+    // A re-encoded recording can decode a sample shorter than the transcript.
+    const annot = new OAnnotJSON('a.opus', 'a', 16000, [
+      new OSegmentLevel<OSegment>('words', [
+        new OSegment(1, 0, 100, [new OLabel('words', 'hi')]),
+        new OSegment(2, 100, 301, [new OLabel('words', '')]),
+      ]),
+    ]);
+
+    padSegmentLevels(annot, 400);
+
+    const items = (annot.levels[0] as OSegmentLevel<OSegment>).items;
+    expect(items.map((i) => [i.sampleStart, i.sampleDur])).toEqual([
+      [0, 100],
+      [100, 300],
+    ]);
   });
 
   it('leaves empty levels alone', () => {
