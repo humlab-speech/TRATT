@@ -57,8 +57,8 @@ export function sameBasename(a: string, b: string): boolean {
 /**
  * Makes every segment level of an imported transcript span the whole
  * recording: an empty segment before a first segment that doesn't start at
- * 0, and one after a last segment that ends before the audio does.
- * Mutates `annotjson`.
+ * 0, and one after a last segment that ends before the audio does; a last
+ * segment that runs past the audio ends with it. Mutates `annotjson`.
  */
 export function padSegmentLevels(
   annotjson: OAnnotJSON,
@@ -93,12 +93,16 @@ export function padSegmentLevels(
 
     const last = level.items[level.items.length - 1];
     const end = last.sampleStart! + last.sampleDur!;
-    if (end !== durationSamples) {
+    if (end < durationSamples) {
       level.items.push(
         new OSegment(last.id + 1, end, durationSamples - end, [
           new OLabel(level.name, ''),
         ]),
       );
+    } else if (end > durationSamples && last.sampleStart! < durationSamples) {
+      // A re-encoded recording can decode a sample or so shorter than the
+      // transcript made against its source: end with it.
+      last.sampleDur = durationSamples - last.sampleStart!;
     }
   }
 }
