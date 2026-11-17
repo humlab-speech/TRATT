@@ -333,8 +333,20 @@ describe('transcodeForExport', () => {
     (getLibAV as jest.Mock).mockResolvedValue(la);
 
     await expect(transcodeForExport(file('empty.wav'))).rejects.toThrow(
-      /no audio/i,
+      /no audio could be decoded/i,
     );
+  });
+
+  it('unlinks a partly written input when writing it fails', async () => {
+    const la = fakeLibAV({ streams: [audioStream], packets: {} });
+    la.writeFile.mockRejectedValue(new Error('disk full') as never);
+    (getLibAV as jest.Mock).mockResolvedValue(la);
+
+    await expect(transcodeForExport(file('a.wav'))).rejects.toThrow(
+      /disk full/,
+    );
+    const [inName] = la.writeFile.mock.calls[0] as unknown as [string];
+    expect(la.unlink).toHaveBeenCalledWith(inName);
   });
 
   it('rejects files too large for the wasm heap before loading libav', async () => {

@@ -27,6 +27,7 @@ const AV_CH_LAYOUT_MONO = 4;
 // aformat also downmixes stereo. libopus needs fixed 20 ms frames, but the
 // default build has no asetnsamples filter: the buffer sink cuts them instead
 // (frame_size; the last frame may be shorter, which libopus accepts).
+// The string must parse on both builds: a parse failure hangs libav.js 6.8.
 const AUDIO_FILTER =
   'aformat=sample_fmts=flt:sample_rates=48000:channel_layouts=mono';
 const OPUS_FRAME_SAMPLES = 960;
@@ -109,8 +110,8 @@ async function transcode(
   let fmtCtx: any, dec: any[] | undefined, enc: any[] | undefined;
   let audioPar: any, mux: any[] | undefined, graph: any, filterFrame: any;
 
-  await libav.writeFile(inName, bytes);
   try {
+    await libav.writeFile(inName, bytes);
     const [_fmtCtx, streams] = await unreadableOnError(() =>
       libav.ff_init_demuxer_file(inName),
     );
