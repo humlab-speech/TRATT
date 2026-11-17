@@ -17,15 +17,16 @@ nedladdningsikonen i sidhuvudet.) Dialogen heter *Exportera*:
 2. **Format**: markera ett eller flera. Ett markerat format visar sina
    [alternativ](#alternativ) under sig.
 3. **Ta med ljudet**: lägger varje inspelnings ljud bredvid dess transkriptioner.
-   Det är markerat från början så fort ljud är bifogat, och erbjuds bara då.
-   Ljud sparas som mono-Opus med 32 kbit/s (`.opus`); video som `.mp4`, med
-   videon orörd.
+   Det erbjuds bara när något ljud är bifogat. I Arbetsbänkens exportdialog
+   från listan är det markerat från början, och ljudet sparas som mono-Opus med
+   32 kbit/s (`.opus`), video som `.mp4` med videon orörd. Exportknappen i
+   sidhuvudet (utan lista) exporterar ljudet som det angavs.
 4. **Det här får du** visar resultatet fil för fil innan du laddar ned det.
 5. **Ladda ned**.
 
-**En fil eller en .zip.** När dina val ger exakt en fil, till exempel bara
-ljudet från en inspelning, laddas den ned som den filen. Allt mer (flera format, flera
-inspelningar, ljudet, eller ett format med en nivå för en inspelning med flera
+**En fil eller en .zip.** När dina val ger exakt en fil, till exempel en
+inspelning som DOCX utan ljudet, laddas den ned som den filen. Allt mer (flera
+format, flera inspelningar, ljudet, eller ett format med en nivå för en inspelning med flera
 nivåer) kommer som en `.zip`; se [Att exportera ett arkiv](#exporting-an-archive).
 Knappen säger vilket: **Ladda ned** eller **Ladda ned .zip**.
 
@@ -57,7 +58,7 @@ Alla dessa kan läsas tillbaka in i Tratt.
 
 | Format | Fil | Bra för |
 | --- | --- | --- |
-| **Tratts eget format** (AnnotJSON) | `_annot.json` | Emu SDMS-kompatibelt. Behåller allt: nivåer, gränser, talare och markörer. Alltid med; kan inte avmarkeras. |
+| **Tratts eget format** (AnnotJSON) | `_annot.json` | Emu SDMS-kompatibelt. Behåller allt: nivåer, gränser, talare och markörer. I Arbetsbänkens exportdialog från listan är det alltid med och kan inte avmarkeras. |
 | **TextGrid** | `.TextGrid` | Praats primära annoteringsformat |
 | **ELAN** | `.eaf` | ELAN. Lägg `.eaf`-filen i samma mapp som ljudet, annars hittar ELAN inte mediet. |
 | **PraatTextTable** | `.Table` | Praats tabellformat |
@@ -72,8 +73,9 @@ Alla dessa kan läsas tillbaka in i Tratt.
 
 > **Behåll Tratts eget format.** DOCX och ODT är enkelriktade: de läses bra och
 > importeras illa. Kan du behöva rätta transkriptet om ett halvår är det Tratts
-> egen fil plus originalinspelningen som gör det möjligt. Den är alltid
-> med i exporten och kan inte avmarkeras.
+> egen fil plus originalinspelningen som gör det möjligt. I
+> Arbetsbänkens exportdialog från listan är den alltid med och kan inte
+> avmarkeras, så med listan kommer en DOCX-export alltid som en `.zip` med den.
 
 ---
 
@@ -163,8 +165,10 @@ inspelningar och skrevs den 8 oktober 2026 klockan 19:23 lokal tid.
 
 Inuti arkivet har varje inspelning en egen mapp under `bundles/` som innehåller
 
-- **ljudet** (mono-Opus med 32 kbit/s; video som `.mp4`), när **Ta med ljudet** var markerat. Kan Tratt inte konvertera en fil exporteras originalet och du får en varning,
-- **Tratts egen fil** (`_annot.json`) med dess transkription, alltid, och
+- **ljudet**, när **Ta med ljudet** var markerat. Från Arbetsbänkens lista
+  konverteras det till mono-Opus med 32 kbit/s (video till `.mp4`); kan Tratt
+  inte konvertera en fil exporteras originalet och du får en varning,
+- **Tratts egen fil** (`_annot.json`) med dess transkription, och
 - de format du markerade.
 
 Två manifestfiler ligger i arkivets rot: **`manifest.json`** och **`manifest.csv`**.

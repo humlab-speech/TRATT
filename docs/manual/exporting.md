@@ -16,16 +16,17 @@ header.) The dialog is headed *Export*:
 2. **Formats**: tick one or more. A ticked format shows its
    [options](#options) underneath.
 3. **Include the audio**: puts each recording's audio next to its transcripts.
-   It is ticked to begin with whenever audio is attached, and only offered then.
-   Audio is saved as 32 kbps mono Opus (`.opus`); video as `.mp4`, with the
-   video untouched.
+   It is only offered when some audio is attached. In the Workbench list's
+   Export dialog it is ticked to begin with, and the audio is saved as 32 kbps
+   mono Opus (`.opus`), video as `.mp4` with the video untouched. The header
+   **Export** button (no list) exports the audio as supplied.
 4. **What you get** shows the result before you download it, file by file.
 5. **Download**.
 
 **One file or a .zip.** When your choices make exactly one file, for example one
-recording's audio alone, it downloads as that file. Anything more (several formats,
-several recordings, the audio, or a one-tier format for a recording with several
-tiers) comes as one `.zip`; see [Exporting an archive](#exporting-an-archive).
+recording as DOCX without the audio, it downloads as that file. Anything more
+(several formats, several recordings, the audio, or a one-tier format for a
+recording with several tiers) comes as one `.zip`; see [Exporting an archive](#exporting-an-archive).
 The button says which: **Download** or **Download .zip**.
 
 Tratt remembers the formats you ticked for the next export.
@@ -56,7 +57,7 @@ All of these can be loaded back into Tratt.
 
 | Format | File | Good for |
 | --- | --- | --- |
-| **Tratt's own format** (AnnotJSON) | `_annot.json` | Emu SDMS compliant. Keeps everything: tiers, boundaries, speakers, and markers. Always included; it cannot be unticked. |
+| **Tratt's own format** (AnnotJSON) | `_annot.json` | Emu SDMS compliant. Keeps everything: tiers, boundaries, speakers, and markers. In the Workbench list's Export dialog it is always included and cannot be unticked. |
 | **TextGrid** | `.TextGrid` | Praat's primary annotation file format |
 | **ELAN** | `.eaf` | ELAN. Put the `.eaf` in the same folder as the audio or ELAN will not find the media. |
 | **PraatTextTable** | `.Table` | Praat's table format |
@@ -71,8 +72,9 @@ All of these can be loaded back into Tratt.
 
 > **Keep Tratt's own format.** DOCX and ODT are one-way: they read well and
 > import badly. If you might need to correct the transcript in six months, Tratt's
-> own file plus the original recording is what lets you. It is always
-> included in the export and cannot be unticked.
+> own file plus the original recording is what lets you. In the
+> Workbench list's Export dialog it is always included and cannot be unticked,
+> so with the list a DOCX export always comes as a `.zip` with it.
 
 ---
 
@@ -161,8 +163,10 @@ The file is named after what is in it and when it was made, for example
 
 Inside the archive, each recording has its own folder under `bundles/` holding
 
-- the **audio** (32 kbps mono Opus; video as `.mp4`), when **Include the audio** was ticked. If Tratt cannot convert a file, it exports the original and warns you,
-- **Tratt's own file** (`_annot.json`) of its transcript, always, and
+- the **audio**, when **Include the audio** was ticked. From the Workbench
+  list it is converted to 32 kbps mono Opus (video to `.mp4`); if Tratt cannot
+  convert a file, it exports the original and warns you,
+- **Tratt's own file** (`_annot.json`) of its transcript, and
 - the formats you ticked.
 
 Two manifests files are located at the root of the archiive: **`manifest.json`** and **`manifest.csv`**. These files list every
