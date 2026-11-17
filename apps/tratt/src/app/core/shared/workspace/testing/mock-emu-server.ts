@@ -70,7 +70,10 @@ export class MockEmuServer {
                   data: `https://artic.example/file/${req.session}/${req.name}.wav`,
                 },
                 ssffFiles: [],
-                annotationVersion: MockEmuServer.version(f),
+                // like annotation-server: only for a client that asks
+                ...(req.withVersion === true
+                  ? { annotationVersion: MockEmuServer.version(f) }
+                  : {}),
               });
             }
             case 'SAVEBUNDLE': {

@@ -292,6 +292,9 @@ describe('VispBundleSource against a mock EMU server', () => {
       expectedUser: 'some_user',
       baseVersion: MockEmuServer.version(before),
     });
+    // the version is asked for: Artic's schema refuses it in a plain reply
+    const get = server.requests.find((r) => r.type === 'GETBUNDLE');
+    expect(get.withVersion).toBe(true);
     // the next save is based on what this one wrote
     expect(source.versionOf(ref)).toBe(
       MockEmuServer.version(server.files.get('0000/b1')!),

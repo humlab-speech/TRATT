@@ -160,6 +160,10 @@ export class VispBundleSource implements BundleSource {
     return this.client.request<BundleData>('GETBUNDLE', {
       name: ref.name,
       session: ref.session,
+      // annotation-server adds annotationVersion only on request: Artic
+      // validates GETBUNDLE replies against a schema that refuses any field it
+      // does not know.
+      withVersion: true,
     });
   }
 
