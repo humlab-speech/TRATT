@@ -16,13 +16,14 @@ header.) The dialog is headed *Export*:
 2. **Formats**: tick one or more. A ticked format shows its
    [options](#options) underneath.
 3. **Include the audio**: puts each recording's audio next to its transcripts.
-   It is ticked to begin with when you export more than one recording, and only
-   offered when some audio is attached.
+   It is ticked to begin with whenever audio is attached, and only offered then.
+   Audio is saved as 32 kbps mono Opus (`.opus`); video as `.mp4`, with the
+   video untouched.
 4. **What you get** shows the result before you download it, file by file.
 5. **Download**.
 
 **One file or a .zip.** When your choices make exactly one file, for example one
-recording as DOCX, it downloads as that file. Anything more (several formats,
+recording's audio alone, it downloads as that file. Anything more (several formats,
 several recordings, the audio, or a one-tier format for a recording with several
 tiers) comes as one `.zip`; see [Exporting an archive](#exporting-an-archive).
 The button says which: **Download** or **Download .zip**.
@@ -55,7 +56,7 @@ All of these can be loaded back into Tratt.
 
 | Format | File | Good for |
 | --- | --- | --- |
-| **Tratt's own format** (AnnotJSON) | `_annot.json` | Emu SDMS compliant. Keeps everything: tiers, boundaries, speakers, and markers. Every `.zip` includes it. |
+| **Tratt's own format** (AnnotJSON) | `_annot.json` | Emu SDMS compliant. Keeps everything: tiers, boundaries, speakers, and markers. Always included; it cannot be unticked. |
 | **TextGrid** | `.TextGrid` | Praat's primary annotation file format |
 | **ELAN** | `.eaf` | ELAN. Put the `.eaf` in the same folder as the audio or ELAN will not find the media. |
 | **PraatTextTable** | `.Table` | Praat's table format |
@@ -70,9 +71,8 @@ All of these can be loaded back into Tratt.
 
 > **Keep Tratt's own format.** DOCX and ODT are one-way: they read well and
 > import badly. If you might need to correct the transcript in six months, Tratt's
-> own file plus the original recording is what lets you. Every `.zip` already
-> holds it; with a single DOCX, tick **Tratt's own format** as well, and both come
-> in a `.zip`.
+> own file plus the original recording is what lets you. It is always
+> included in the export and cannot be unticked.
 
 ---
 
@@ -161,7 +161,7 @@ The file is named after what is in it and when it was made, for example
 
 Inside the archive, each recording has its own folder under `bundles/` holding
 
-- the **source audio** as you supplied it, when **Include the audio** was ticked,
+- the **audio** (32 kbps mono Opus; video as `.mp4`), when **Include the audio** was ticked. If Tratt cannot convert a file, it exports the original and warns you,
 - **Tratt's own file** (`_annot.json`) of its transcript, always, and
 - the formats you ticked.
 

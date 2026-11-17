@@ -72,6 +72,11 @@
                   [class.export__format--locked]="
                     converter.name === NATIVE_FORMAT && listMode()
                   "
+                  [attr.title]="
+                    converter.name === NATIVE_FORMAT && listMode()
+                      ? ('workbench.export.native_locked' | transloco)
+                      : null
+                  "
                 >
                   <label class="export__format-option">
                     <input
@@ -205,6 +210,11 @@
             />
             {{ 'workbench.export.include_audio' | transloco }}
           </label>
+          @if (listMode()) {
+            <p class="export__audio-hint">
+              {{ 'workbench.export.include_audio_hint' | transloco }}
+            </p>
+          }
         }
 
         <!-- What the export makes, redrawn as the choices change. -->
