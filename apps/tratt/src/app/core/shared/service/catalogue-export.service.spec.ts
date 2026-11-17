@@ -218,6 +218,55 @@ describe('CatalogueExportService', () => {
     ).toBe('a.wav');
   });
 
+  it('names the audio as the transcoder wrote it: an audio-only .webm becomes .opus everywhere', async () => {
+    // The dialog's preview guesses rec.mp4 from the extension; only the
+    // transcoder knows the WebM holds no video.
+    const { service, audioService } = setup([
+      makeBundle('bundle-1', 'rec.webm'),
+      makeBundle('bundle-2', 'solo.webm', false),
+    ]);
+    audioService.getSourceFile.mockImplementation((id: string) => ({
+      name: id === 'bundle-1' ? 'rec.webm' : 'solo.webm',
+      type: 'audio/webm',
+      arrayBuffer: async () => new Uint8Array([1, 2, 3]).buffer,
+    }));
+    transcode.mockImplementation(
+      async (source) =>
+        ({
+          name: source.name.replace('.webm', '.opus'),
+          type: 'audio/ogg',
+          arrayBuffer: async () => new Uint8Array([9, 9]).buffer,
+        }) as unknown as File,
+    );
+
+    const last = await lastValueFrom(
+      service.exportBundles(['bundle-1', 'bundle-2'], ['SRT']),
+    );
+
+    const entries = unzipSync(zipBytes(last));
+    const manifest = JSON.parse(strFromU8(entries['manifest.json']));
+    expect(manifest.map((r: any) => [r.audioPath, r.audioType])).toEqual([
+      ['bundles/rec/rec.opus', 'audio/ogg'],
+      ['bundles/solo/solo.opus', 'audio/ogg'],
+    ]);
+    for (const row of manifest) {
+      expect(Object.keys(entries)).toContain(row.audioPath);
+    }
+    expect(
+      JSON.parse(strFromU8(entries['bundles/rec/rec_annot.json'])).annotates,
+    ).toBe('rec.opus');
+
+    // One recording without a transcript: its audio alone, as that file.
+    const single = await lastValueFrom(
+      service.exportBundles(['bundle-2'], ['SRT']),
+    );
+    expect(single.download).toMatchObject({
+      name: 'solo.opus',
+      type: 'audio/ogg',
+      archive: false,
+    });
+  });
+
   describe('sample rate of the exported transcript', () => {
     // A WAV recording keeps its own rate in Tratt (44.1 kHz here); anything
     // else, Opus included, is read back at 16 kHz (HtmlAudioMechanism

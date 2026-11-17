@@ -22,11 +22,22 @@ export function isVideoName(name: string): boolean {
   return VIDEO_EXTENSIONS.has(splitExtension(name)[1]);
 }
 
-export function exportedMediaName(name: string): string {
+/**
+ * The exported file's name: `.mp4` for a video, else `.opus`. Without
+ * `video`, a guess from the extension (the dialog's preview): only the
+ * transcoder knows whether a .webm or .mp4 holds video at all.
+ */
+export function exportedMediaName(
+  name: string,
+  video = isVideoName(name),
+): string {
   const [base] = splitExtension(name);
-  return `${base}.${isVideoName(name) ? 'mp4' : 'opus'}`;
+  return `${base}.${video ? 'mp4' : 'opus'}`;
 }
 
-export function exportedMediaType(name: string): string {
-  return isVideoName(name) ? 'video/mp4' : 'audio/ogg';
+export function exportedMediaType(
+  name: string,
+  video = isVideoName(name),
+): string {
+  return video ? 'video/mp4' : 'audio/ogg';
 }

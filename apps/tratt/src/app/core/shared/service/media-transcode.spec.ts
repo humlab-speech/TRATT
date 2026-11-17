@@ -9,6 +9,7 @@ import { MAX_TRANSCODE_BYTES, transcodeForExport } from './media-transcode';
 const AUDIO = 1;
 const VIDEO = 0;
 const EOF = -541478725;
+const OPUS = 86076;
 
 // The calls transcodeForExport makes on a libav.js instance, faked: one read
 // returns every packet, the decoder/filter/encoder map packets to frames 1:1.
@@ -110,12 +111,28 @@ const audioStream = {
   time_base_den: 44100,
 };
 
-function file(name: string): File {
+function file(name: string, bytes = new Uint8Array([1, 2, 3])): File {
   // jsdom's File has no arrayBuffer().
-  return Object.assign(new File([new Uint8Array([1, 2, 3])], name), {
-    arrayBuffer: async () => new Uint8Array([1, 2, 3]).buffer,
+  return Object.assign(new File([bytes], name), {
+    arrayBuffer: async () => bytes.buffer,
   });
 }
+
+const opusStream = {
+  ...audioStream,
+  codec_id: OPUS,
+  time_base_den: 48000,
+  duration: 60,
+};
+
+const videoStream = {
+  index: 0,
+  codec_type: VIDEO,
+  codec_id: 167,
+  codecpar: 901,
+  time_base_num: 1,
+  time_base_den: 1000,
+};
 
 function written(la: ReturnType<typeof fakeLibAV>): any[] {
   return la.ff_write_multi.mock.calls.flatMap((c: any[]) => c[2]);
@@ -318,6 +335,8 @@ describe('transcodeForExport', () => {
       packets: {},
       headerRet: -22,
     });
+    // The default build opens the WebM, sees video and hands it on.
+    (getLibAV as jest.Mock).mockResolvedValue(la);
     (getLibAVFat as jest.Mock).mockResolvedValue(la);
 
     await expect(transcodeForExport(file('vp8.webm'))).rejects.toThrow(
@@ -355,5 +374,66 @@ describe('transcodeForExport', () => {
 
     await expect(transcodeForExport(big)).rejects.toThrow(/too large/i);
     expect(getLibAV).not.toHaveBeenCalled();
+  });
+
+  it('writes an audio-only WebM (a MediaRecorder recording) as Ogg Opus on the default build', async () => {
+    const la = fakeLibAV({
+      streams: [{ ...opusStream, duration: -9e15 }],
+      packets: { 0: [{ data: new Uint8Array(8) }] },
+    });
+    (getLibAV as jest.Mock).mockResolvedValue(la);
+
+    const out = await transcodeForExport(file('rec.webm'));
+
+    expect(out.name).toBe('rec.opus');
+    expect(out.type).toBe('audio/ogg');
+    expect(getLibAVFat).not.toHaveBeenCalled();
+    expect(la.ff_init_muxer).toHaveBeenCalledWith(
+      expect.objectContaining({ format_name: 'ogg' }),
+      [[600, 1, 48000]],
+    );
+  });
+
+  it('moves a WebM with video to the fat build, which can write mp4', async () => {
+    const streams = [videoStream, { ...opusStream, index: 1 }];
+    const small = fakeLibAV({ streams, packets: {} });
+    const fat = fakeLibAV({
+      streams,
+      packets: { 1: [{ data: new Uint8Array(8) }] },
+      outTimeBases: [1000, 48000],
+    });
+    (getLibAV as jest.Mock).mockResolvedValue(small);
+    (getLibAVFat as jest.Mock).mockResolvedValue(fat);
+
+    const out = await transcodeForExport(file('clip.webm'));
+
+    expect(out.name).toBe('clip.mp4');
+    expect(out.type).toBe('video/mp4');
+    expect(small.ff_init_decoder).not.toHaveBeenCalled();
+    const [smallIn] = small.writeFile.mock.calls[0] as unknown as [string];
+    expect(small.unlink).toHaveBeenCalledWith(smallIn);
+    expect(fat.ff_init_muxer).toHaveBeenCalledWith(
+      expect.objectContaining({ format_name: 'mp4' }),
+      expect.any(Array),
+    );
+  });
+
+  it('writes an mp4 without a video stream as Ogg Opus', async () => {
+    const la = fakeLibAV({
+      streams: [audioStream],
+      packets: { 0: [{ data: new Uint8Array(8) }] },
+    });
+    (getLibAVFat as jest.Mock).mockResolvedValue(la);
+
+    const out = await transcodeForExport(file('voice.mp4'));
+
+    expect(out.name).toBe('voice.opus');
+    expect(out.type).toBe('audio/ogg');
+    expect(la.ff_init_muxer).toHaveBeenCalledWith(
+      expect.objectContaining({ format_name: 'ogg' }),
+      [[600, 1, 48000]],
+    );
+    const outName = (la.ff_init_muxer.mock.calls[0] as any[])[0].filename;
+    expect(outName).toMatch(/\.opus$/);
   });
 });

@@ -32,6 +32,13 @@ describe('exported-media', () => {
     expect(isVideoName('mp4')).toBe(false);
   });
 
+  it('follows what the transcoder found over the extension', () => {
+    expect(exportedMediaName('rec.webm', false)).toBe('rec.opus');
+    expect(exportedMediaType('rec.webm', false)).toBe('audio/ogg');
+    expect(exportedMediaName('x.wav', true)).toBe('x.mp4');
+    expect(exportedMediaType('x.wav', true)).toBe('video/mp4');
+  });
+
   it('gives the MIME type of the exported file', () => {
     expect(exportedMediaType('x.mov')).toBe('video/mp4');
     expect(exportedMediaType('x.wav')).toBe('audio/ogg');

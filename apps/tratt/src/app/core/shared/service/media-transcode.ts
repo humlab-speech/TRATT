@@ -1,22 +1,18 @@
 // Re-encodes an attached recording for export: audio becomes 32 kbps mono
 // Opus in Ogg; video becomes mp4 with the video stream copied (no re-encode)
-// and the audio re-encoded the same way. Runs on the libav.js builds shipped
-// in assets/libav. The default build (a worker) has libopus and the Ogg muxer
-// but reads only wav, flac and Ogg/WebM Opus, and has no mp4 muxer; the fat
-// build (~30 MB, main thread) does the rest: video, ASF, and audio the default
-// build cannot open (mp3, m4a, aac, aiff…).
+// and the audio re-encoded the same way. A file of a video type without a
+// video stream (a MediaRecorder .webm, say) is audio. Runs on the libav.js
+// builds shipped in assets/libav. The default build (a worker) has libopus and
+// the Ogg muxer but reads only wav, flac and Ogg/WebM Opus, and has no mp4
+// muxer; the fat build (~30 MB, main thread) does the rest: video, ASF, and
+// audio the default build cannot open (mp3, m4a, aac, aiff…).
 //
 // The two builds are different libav.js versions (6.8 and 6.0): only 6.8
 // rescales timestamps itself, so every frame and packet gets explicit
 // timestamps here, in a time base we know.
 
 import { getLibAV, getLibAVFat } from '@tratt/web-media';
-import {
-  exportedMediaName,
-  exportedMediaType,
-  isVideoName,
-  OPUS_BITRATE,
-} from './exported-media';
+import { exportedMediaName, isVideoName, OPUS_BITRATE } from './exported-media';
 
 // ponytail: whole file sits in the wasm heap; stream via mkreadaheadfile if bigger files matter
 export const MAX_TRANSCODE_BYTES = 1.5 * 2 ** 30;
@@ -35,14 +31,22 @@ const READ_CHUNK_BYTES = 16 * 2 ** 20;
 const AVERROR_EAGAIN = -6;
 const AVDISCARD_ALL = 48;
 const ASF_NAME = /\.(wma|asf)$/i;
+const WEBM_NAME = /\.webm$/i;
 
 type Rational = [number, number];
 
 let tempCounter = 0;
 
-// The build could not demux or decode the input (as opposed to the input
-// having no audio, or a later failure).
-class UnreadableInput extends Error {}
+// The default build cannot do this one: it could not demux or decode the
+// input (as opposed to the input having no audio, or a later failure), or the
+// input has video, for which it has no mp4 muxer.
+class NeedsFatBuild extends Error {}
+
+/** What `transcode` made. */
+interface Transcoded {
+  data: Uint8Array<ArrayBuffer>;
+  video: boolean;
+}
 
 export async function transcodeForExport(source: File): Promise<File> {
   if (source.size > MAX_TRANSCODE_BYTES) {
@@ -50,33 +54,29 @@ export async function transcodeForExport(source: File): Promise<File> {
       `Could not transcode ${source.name}: too large (${source.size} bytes; the limit is ${MAX_TRANSCODE_BYTES})`,
     );
   }
-  const video = isVideoName(source.name);
+  const videoName = isVideoName(source.name);
   const ext = source.name.match(/\.[^.]+$/)?.[0] ?? '';
   try {
     const bytes = new Uint8Array(await source.arrayBuffer());
-    const run = async (libav: any) => {
-      const id = ++tempCounter;
-      return transcode(
-        libav,
-        bytes,
-        `export-${id}-in${ext}`,
-        `export-${id}-out.${video ? 'mp4' : 'opus'}`,
-        video,
-      );
-    };
-    let data: Uint8Array<ArrayBuffer>;
-    if (video || ASF_NAME.test(source.name)) {
-      data = await run(await getLibAVFat());
+    const run = async (libav: any, fat: boolean) =>
+      transcode(libav, bytes, `export-${++tempCounter}`, ext, {
+        videoName,
+        fat,
+      });
+    let out: Transcoded;
+    // WebM may be audio alone, which the default build reads.
+    if (ASF_NAME.test(source.name) || (videoName && !WEBM_NAME.test(ext))) {
+      out = await run(await getLibAVFat(), true);
     } else {
       try {
-        data = await run(await getLibAV());
+        out = await run(await getLibAV(), false);
       } catch (e) {
-        if (!(e instanceof UnreadableInput)) throw e;
-        data = await run(await getLibAVFat());
+        if (!(e instanceof NeedsFatBuild)) throw e;
+        out = await run(await getLibAVFat(), true);
       }
     }
-    return new File([data], exportedMediaName(source.name), {
-      type: exportedMediaType(source.name),
+    return new File([out.data], exportedMediaName(source.name, out.video), {
+      type: out.video ? 'video/mp4' : 'audio/ogg',
     });
   } catch (e) {
     throw new Error(`Could not transcode ${source.name}: ${reason(e)}`);
@@ -91,28 +91,30 @@ function reason(e: unknown): string {
     : msg;
 }
 
-async function unreadableOnError(f: () => Promise<any>): Promise<any> {
+async function fatBuildOnError(f: () => Promise<any>): Promise<any> {
   try {
     return await f();
   } catch (e) {
-    throw new UnreadableInput(reason(e));
+    throw new NeedsFatBuild(reason(e));
   }
 }
 
 async function transcode(
   libav: any,
   bytes: Uint8Array,
-  inName: string,
-  outName: string,
-  video: boolean,
-): Promise<Uint8Array<ArrayBuffer>> {
-  const format = video ? 'mp4' : 'ogg';
+  tempName: string,
+  ext: string,
+  // fat: the fat build, which writes mp4 and runs on the main thread.
+  opts: { videoName: boolean; fat: boolean },
+): Promise<Transcoded> {
+  const inName = `${tempName}-in${ext}`;
+  let outName: string | undefined;
   let fmtCtx: any, dec: any[] | undefined, enc: any[] | undefined;
   let audioPar: any, mux: any[] | undefined, graph: any, filterFrame: any;
 
   try {
     await libav.writeFile(inName, bytes);
-    const [_fmtCtx, streams] = await unreadableOnError(() =>
+    const [_fmtCtx, streams] = await fatBuildOnError(() =>
       libav.ff_init_demuxer_file(inName),
     );
     fmtCtx = _fmtCtx;
@@ -120,9 +122,15 @@ async function transcode(
       (s: any) => s.codec_type === libav.AVMEDIA_TYPE_AUDIO,
     );
     if (!audio) throw new Error('no audio stream');
-    const vid = video
+    // Only a video file's video is kept: an audio file's cover art is not.
+    const vid = opts.videoName
       ? streams.find((s: any) => s.codec_type === libav.AVMEDIA_TYPE_VIDEO)
       : undefined;
+    if (vid && !opts.fat) {
+      throw new NeedsFatBuild('only the fat build writes mp4');
+    }
+    const format = vid ? 'mp4' : 'ogg';
+    outName = `${tempName}-out.${vid ? 'mp4' : 'opus'}`;
     // Drop everything else (subtitles, cover art, extra tracks) at read time.
     for (const s of streams) {
       if (s === audio || s === vid) continue;
@@ -130,7 +138,7 @@ async function transcode(
       await libav.AVStream_discard_s(st, AVDISCARD_ALL);
     }
 
-    const [, dc, dpkt, dframe] = await unreadableOnError(() =>
+    const [, dc, dpkt, dframe] = await fatBuildOnError(() =>
       libav.ff_init_decoder(audio.codec_id, audio.codecpar),
     );
     dec = [dc, dpkt, dframe];
@@ -266,7 +274,7 @@ async function transcode(
     // Closing the muxer flushes the output file.
     await libav.ff_free_muxer(...mux);
     mux = undefined;
-    return await libav.readFile(outName);
+    return { data: await libav.readFile(outName), video: !!vid };
   } finally {
     const release = async (f: () => Promise<unknown>) => {
       try {
@@ -285,7 +293,8 @@ async function transcode(
     if (fmtCtx !== undefined)
       await release(() => libav.avformat_close_input_js(fmtCtx));
     await release(() => libav.unlink(inName));
-    await release(() => libav.unlink(outName));
+    const written = outName;
+    if (written) await release(() => libav.unlink(written));
   }
 }
 
