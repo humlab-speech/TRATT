@@ -15,8 +15,13 @@
 import { getLibAV, getLibAVFat } from '@tratt/web-media';
 import { exportedMediaName, isVideoName, OPUS_BITRATE } from './exported-media';
 
-// ponytail: whole file sits in the wasm heap; stream via mkreadaheadfile if bigger files matter
+// ponytail: the whole file is copied into libav's MEMFS, which lives in JS
+// memory (the worker's, for the default build) next to the source and the
+// output; stream via mkreadaheadfile if bigger files matter. Video gets less:
+// its mp4 is about as large as its source, and the fat build runs on the
+// main thread.
 export const MAX_TRANSCODE_BYTES = 1.5 * 2 ** 30;
+export const MAX_VIDEO_TRANSCODE_BYTES = 512 * 2 ** 20;
 
 // Mono Ogg Opus at up to this rate (Tratt's own export, by and large) is
 // exported as it is: re-encoding it would only lose quality.
@@ -61,12 +66,13 @@ interface Transcoded {
 }
 
 export async function transcodeForExport(source: File): Promise<File> {
-  if (source.size > MAX_TRANSCODE_BYTES) {
+  const videoName = isVideoName(source.name);
+  const limit = videoName ? MAX_VIDEO_TRANSCODE_BYTES : MAX_TRANSCODE_BYTES;
+  if (source.size > limit) {
     throw new Error(
-      `Could not transcode ${source.name}: too large (${source.size} bytes; the limit is ${MAX_TRANSCODE_BYTES})`,
+      `Could not transcode ${source.name}: too large (${source.size} bytes; the limit is ${limit})`,
     );
   }
-  const videoName = isVideoName(source.name);
   const ext = source.name.match(/\.[^.]+$/)?.[0] ?? '';
   try {
     const bytes = new Uint8Array(await source.arrayBuffer());
@@ -295,7 +301,12 @@ async function transcode(
     }
     if (outSamples === 0) throw new Error('no audio could be decoded');
 
-    await libav.av_write_trailer(oc);
+    const trailer = await libav.av_write_trailer(oc);
+    if (trailer < 0) {
+      throw new Error(
+        `could not finish the ${format} file: ${await libav.ff_error(trailer)}`,
+      );
+    }
     // Closing the muxer flushes the output file.
     await libav.ff_free_muxer(...mux);
     mux = undefined;

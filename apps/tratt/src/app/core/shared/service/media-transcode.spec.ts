@@ -4,7 +4,11 @@ jest.mock('@tratt/web-media', () => ({
 }));
 
 import { getLibAV, getLibAVFat } from '@tratt/web-media';
-import { MAX_TRANSCODE_BYTES, transcodeForExport } from './media-transcode';
+import {
+  MAX_TRANSCODE_BYTES,
+  MAX_VIDEO_TRANSCODE_BYTES,
+  transcodeForExport,
+} from './media-transcode';
 
 const AUDIO = 1;
 const VIDEO = 0;
@@ -19,6 +23,7 @@ function fakeLibAV(opts: {
   packets: Record<number, any[]>;
   outTimeBases?: number[];
   headerRet?: number;
+  trailerRet?: number;
   channels?: number;
   /** Several reads: [return code, packets by stream] each. */
   reads?: [number, Record<number, any[]>][];
@@ -107,7 +112,7 @@ function fakeLibAV(opts: {
     AVStream_time_base_num: jest.fn(async () => 1),
     AVStream_time_base_den: jest.fn(async (st: number) => outTb[st - 800]),
     ff_write_multi: jest.fn(async () => undefined),
-    av_write_trailer: jest.fn(async () => 0),
+    av_write_trailer: jest.fn(async () => opts.trailerRet ?? 0),
     ff_free_muxer: jest.fn(async () => undefined),
     ff_error: jest.fn(async (ret: number) => `error ${ret}`),
   };
@@ -494,6 +499,43 @@ describe('transcodeForExport', () => {
       expect(out.size).toBe(4);
     },
   );
+
+  it('rejects video over 512 MiB before loading libav; audio may be larger', async () => {
+    expect(MAX_VIDEO_TRANSCODE_BYTES).toBe(512 * 2 ** 20);
+    const clip = file('clip.mp4');
+    Object.defineProperty(clip, 'size', {
+      value: MAX_VIDEO_TRANSCODE_BYTES + 1,
+    });
+    await expect(transcodeForExport(clip)).rejects.toThrow(/too large/i);
+    expect(getLibAVFat).not.toHaveBeenCalled();
+
+    const la = fakeLibAV({
+      streams: [audioStream],
+      packets: { 0: [{ data: new Uint8Array(8) }] },
+    });
+    (getLibAV as jest.Mock).mockResolvedValue(la);
+    const long = file('long.wav');
+    Object.defineProperty(long, 'size', {
+      value: MAX_VIDEO_TRANSCODE_BYTES + 1,
+    });
+    await expect(transcodeForExport(long)).resolves.toBeDefined();
+  });
+
+  it('rejects when the trailer cannot be written, and cleans up', async () => {
+    const la = fakeLibAV({
+      streams: [audioStream],
+      packets: { 0: [{ data: new Uint8Array(8) }] },
+      trailerRet: -5,
+    });
+    (getLibAV as jest.Mock).mockResolvedValue(la);
+
+    await expect(transcodeForExport(file('a.wav'))).rejects.toThrow(
+      /could not finish the ogg file: error -5/,
+    );
+    expect(la.readFile).not.toHaveBeenCalled();
+    const outName = (la.ff_init_muxer.mock.calls[0] as any[])[0].filename;
+    expect(la.unlink).toHaveBeenCalledWith(outName);
+  });
 
   it.each([
     // About a minute of input per read: 32 kb/s Opus over 60 s...
