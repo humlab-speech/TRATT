@@ -18,6 +18,7 @@ function fakeLibAV(opts: {
   packets: Record<number, any[]>;
   outTimeBases?: number[];
   headerRet?: number;
+  channels?: number;
 }) {
   const outTb = opts.outTimeBases ?? [48000];
   return {
@@ -37,6 +38,9 @@ function fakeLibAV(opts: {
     ff_init_decoder: jest.fn(async () => [1, 200, 201, 202]),
     ff_free_decoder: jest.fn(async () => undefined),
     ff_read_frame_multi: jest.fn(async () => [EOF, opts.packets]),
+    AVCodecParameters_ch_layout_nb_channels: jest.fn(
+      async () => opts.channels ?? 2,
+    ),
     ff_decode_multi: jest.fn(
       async (_c: number, _p: number, _f: number, pkts: any[]) =>
         pkts.map(() => ({
@@ -116,6 +120,13 @@ function file(name: string, bytes = new Uint8Array([1, 2, 3])): File {
   return Object.assign(new File([bytes], name), {
     arrayBuffer: async () => bytes.buffer,
   });
+}
+
+/** An Ogg file's first bytes, then zeros up to `size`. */
+function ogg(size: number): Uint8Array<ArrayBuffer> {
+  const bytes = new Uint8Array(size);
+  bytes.set([0x4f, 0x67, 0x67, 0x53]); // "OggS"
+  return bytes;
 }
 
 const opusStream = {
@@ -436,4 +447,44 @@ describe('transcodeForExport', () => {
     const outName = (la.ff_init_muxer.mock.calls[0] as any[])[0].filename;
     expect(outName).toMatch(/\.opus$/);
   });
+
+  it('exports mono Ogg Opus at up to ~36 kb/s as it is, without re-encoding', async () => {
+    // 60 s in 200 000 bytes: 26.7 kb/s.
+    const la = fakeLibAV({ streams: [opusStream], packets: {}, channels: 1 });
+    (getLibAV as jest.Mock).mockResolvedValue(la);
+
+    const out = await transcodeForExport(file('take.opus', ogg(200_000)));
+
+    expect(out.name).toBe('take.opus');
+    expect(out.type).toBe('audio/ogg');
+    expect(out.size).toBe(200_000);
+    expect(la.ff_init_decoder).not.toHaveBeenCalled();
+    expect(la.ff_init_encoder).not.toHaveBeenCalled();
+    expect(la.ff_init_muxer).not.toHaveBeenCalled();
+    const [inName] = la.writeFile.mock.calls[0] as unknown as [string];
+    expect(la.unlink).toHaveBeenCalledWith(inName);
+    expect(la.avformat_close_input_js).toHaveBeenCalledWith(100);
+  });
+
+  it.each([
+    ['stereo', 'take.opus', ogg(200_000), 2, 60],
+    ['over 36 kb/s', 'take.opus', ogg(300_000), 1, 60],
+    ['not in Ogg', 'take.webm', new Uint8Array(200_000), 1, 60],
+    ['of unknown length', 'take.opus', ogg(200_000), 1, -9e15],
+  ])(
+    're-encodes Opus that is %s',
+    async (_why, name, bytes, channels, duration) => {
+      const la = fakeLibAV({
+        streams: [{ ...opusStream, duration }],
+        packets: { 0: [{ data: new Uint8Array(8) }] },
+        channels,
+      });
+      (getLibAV as jest.Mock).mockResolvedValue(la);
+
+      const out = await transcodeForExport(file(name, bytes));
+
+      expect(la.ff_init_encoder).toHaveBeenCalled();
+      expect(out.size).toBe(4);
+    },
+  );
 });

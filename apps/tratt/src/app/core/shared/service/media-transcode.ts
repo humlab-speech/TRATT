@@ -1,11 +1,12 @@
 // Re-encodes an attached recording for export: audio becomes 32 kbps mono
 // Opus in Ogg; video becomes mp4 with the video stream copied (no re-encode)
 // and the audio re-encoded the same way. A file of a video type without a
-// video stream (a MediaRecorder .webm, say) is audio. Runs on the libav.js
-// builds shipped in assets/libav. The default build (a worker) has libopus and
-// the Ogg muxer but reads only wav, flac and Ogg/WebM Opus, and has no mp4
-// muxer; the fat build (~30 MB, main thread) does the rest: video, ASF, and
-// audio the default build cannot open (mp3, m4a, aac, aiff…).
+// video stream (a MediaRecorder .webm, say) is audio. Mono Ogg Opus already at
+// about 32 kbps is exported as it is. Runs on the libav.js builds shipped in
+// assets/libav. The default build (a worker) has libopus and the Ogg muxer
+// but reads only wav, flac and Ogg/WebM Opus, and has no mp4 muxer; the fat
+// build (~30 MB, main thread) does the rest: video, ASF, and audio the default
+// build cannot open (mp3, m4a, aac, aiff…).
 //
 // The two builds are different libav.js versions (6.8 and 6.0): only 6.8
 // rescales timestamps itself, so every frame and packet gets explicit
@@ -16,6 +17,12 @@ import { exportedMediaName, isVideoName, OPUS_BITRATE } from './exported-media';
 
 // ponytail: whole file sits in the wasm heap; stream via mkreadaheadfile if bigger files matter
 export const MAX_TRANSCODE_BYTES = 1.5 * 2 ** 30;
+
+// Mono Ogg Opus at up to this rate (Tratt's own export, by and large) is
+// exported as it is: re-encoding it would only lose quality.
+const PASS_THROUGH_MAX_BITRATE = 36_000;
+const AV_CODEC_ID_OPUS = 86076;
+const OGG_MAGIC = [0x4f, 0x67, 0x67, 0x53]; // "OggS"
 
 const OPUS_RATE = 48_000;
 const OPUS_TB: Rational = [1, OPUS_RATE];
@@ -42,9 +49,9 @@ let tempCounter = 0;
 // input has video, for which it has no mp4 muxer.
 class NeedsFatBuild extends Error {}
 
-/** What `transcode` made. */
+/** What `transcode` made: no data when the source is exported as it is. */
 interface Transcoded {
-  data: Uint8Array<ArrayBuffer>;
+  data?: Uint8Array<ArrayBuffer>;
   video: boolean;
 }
 
@@ -74,6 +81,11 @@ export async function transcodeForExport(source: File): Promise<File> {
         if (!(e instanceof NeedsFatBuild)) throw e;
         out = await run(await getLibAVFat(), true);
       }
+    }
+    if (!out.data) {
+      return source.type === 'audio/ogg'
+        ? source
+        : new File([source], source.name, { type: 'audio/ogg' });
     }
     return new File([out.data], exportedMediaName(source.name, out.video), {
       type: out.video ? 'video/mp4' : 'audio/ogg',
@@ -128,6 +140,9 @@ async function transcode(
       : undefined;
     if (vid && !opts.fat) {
       throw new NeedsFatBuild('only the fat build writes mp4');
+    }
+    if (!vid && (await isLeanOpus(libav, audio, bytes))) {
+      return { video: false };
     }
     const format = vid ? 'mp4' : 'ogg';
     outName = `${tempName}-out.${vid ? 'mp4' : 'opus'}`;
@@ -296,6 +311,28 @@ async function transcode(
     const written = outName;
     if (written) await release(() => libav.unlink(written));
   }
+}
+
+// Mono Opus in Ogg at up to PASS_THROUGH_MAX_BITRATE, container included.
+async function isLeanOpus(
+  libav: any,
+  audio: any,
+  bytes: Uint8Array,
+): Promise<boolean> {
+  if (
+    audio.codec_id !== AV_CODEC_ID_OPUS ||
+    OGG_MAGIC.some((b, i) => bytes[i] !== b) ||
+    !(audio.duration > 0)
+  ) {
+    return false;
+  }
+  const channels = await libav.AVCodecParameters_ch_layout_nb_channels(
+    audio.codecpar,
+  );
+  return (
+    channels === 1 &&
+    (bytes.length * 8) / audio.duration <= PASS_THROUGH_MAX_BITRATE
+  );
 }
 
 // Where the audio starts, in 1/48000 s, so a copied video stays in sync.
