@@ -18,17 +18,22 @@ header.) The dialog is headed *Export*:
 3. **Include the audio**: puts each recording's audio next to its transcripts.
    It is only offered when some audio is attached. In the Workbench list's
    Export dialog it is ticked to begin with, and the audio is saved as 32 kbps
-   mono Opus (`.opus`), video as `.mp4` with the video untouched. The header
-   **Export** button (no list) exports the audio as supplied.
+   mono Opus (`.opus`), video as `.mp4` with the video untouched. A `.webm` or
+   `.mp4` without video becomes `.opus` too (the preview may still say
+   `.mp4`), and a mono `.opus` file at about 32 kbps or less is kept as it
+   is. The header **Export** button (no list) exports no audio at all,
+   only the transcript.
 4. **What you get** shows the result before you download it, file by file.
 5. **Download**.
 
 **One file or a .zip.** From the Workbench list, an export is always a `.zip`,
-because Tratt's own file is always in it, unless that file is the only thing
-exported. From the header **Export** button, exactly one file, for example one
-recording as DOCX, downloads as that file. Anything more (several formats,
-several recordings, the audio, or a one-tier format for a recording with several
-tiers) comes as one `.zip`; see [Exporting an archive](#exporting-an-archive).
+because Tratt's own file is always in it, unless just one file is exported:
+that file alone, or the audio of one recording without a transcript, which
+downloads as that `.opus` (or `.mp4`) file. From the header **Export** button,
+exactly one file, for example the transcript as DOCX, downloads as that file.
+Anything more (several formats, or a one-tier format for a recording with
+several tiers) comes as one `.zip` with Tratt's own file added; see
+[Exporting an archive](#exporting-an-archive).
 The button says which: **Download** or **Download .zip**.
 
 Tratt remembers the formats you ticked for the next export.
@@ -174,6 +179,10 @@ Inside the archive, each recording has its own folder under `bundles/` holding
 Two manifests files are located at the root of the archiive: **`manifest.json`** and **`manifest.csv`**. These files list every
 recording with its paths and details. The CSV opens in a spreadsheet, which makes
 it a convenient index for a corpus.
+
+When the audio is converted, Tratt's own file and the manifests count samples
+at 16 kHz, the rate Tratt reads the audio back at, while the `.opus` file
+itself is 48 kHz. Times in seconds agree.
 
 Because the audio and Tratt's own file are bundled together, dropping the archive back on
 the drop zone restores the whole batch, audio attached and transcripts in place.

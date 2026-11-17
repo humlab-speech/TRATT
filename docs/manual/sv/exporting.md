@@ -19,17 +19,22 @@ nedladdningsikonen i sidhuvudet.) Dialogen heter *Exportera*:
 3. **Ta med ljudet**: lägger varje inspelnings ljud bredvid dess transkriptioner.
    Det erbjuds bara när något ljud är bifogat. I Arbetsbänkens exportdialog
    från listan är det markerat från början, och ljudet sparas som mono-Opus med
-   32 kbit/s (`.opus`), video som `.mp4` med videon orörd. Exportknappen i
-   sidhuvudet (utan lista) exporterar ljudet som det angavs.
+   32 kbit/s (`.opus`), video som `.mp4` med videon orörd. En `.webm` eller
+   `.mp4` utan video blir också `.opus` (förhandsvisningen kan ändå visa
+   `.mp4`), och en `.opus`-fil i mono med högst omkring 32 kbit/s behålls
+   som den är. Exportknappen i sidhuvudet (utan lista) exporterar
+   inget ljud alls, bara transkriptionen.
 4. **Det här får du** visar resultatet fil för fil innan du laddar ned det.
 5. **Ladda ned**.
 
 **En fil eller en .zip.** Från Arbetsbänkens lista är en export alltid en
-`.zip`, eftersom Tratts egen fil alltid ingår, om inte den filen är det enda som
-exporteras. Från exportknappen i sidhuvudet laddas exakt en fil, till exempel en
-inspelning som DOCX, ned som den filen. Allt mer (flera format, flera
-inspelningar, ljudet, eller ett format med en nivå för en inspelning med flera
-nivåer) kommer som en `.zip`; se [Att exportera ett arkiv](#exporting-an-archive).
+`.zip`, eftersom Tratts egen fil alltid ingår, om inte bara en fil exporteras:
+den filen ensam, eller ljudet från en inspelning utan transkription, som laddas
+ned som den `.opus`-filen (eller `.mp4`-filen). Från exportknappen i sidhuvudet
+laddas exakt en fil, till exempel transkriptionen som DOCX, ned som den filen.
+Allt mer (flera format, eller ett format med en nivå för en inspelning med
+flera nivåer) kommer som en `.zip` med Tratts egen fil tillagd; se
+[Att exportera ett arkiv](#exporting-an-archive).
 Knappen säger vilket: **Ladda ned** eller **Ladda ned .zip**.
 
 Tratt minns de format du markerade till nästa export.
@@ -176,6 +181,10 @@ Inuti arkivet har varje inspelning en egen mapp under `bundles/` som innehåller
 Två manifestfiler ligger i arkivets rot: **`manifest.json`** och **`manifest.csv`**.
 De listar varje inspelning med sökvägar och uppgifter. CSV-filen öppnas i ett kalkylprogram,
 vilket gör den till ett behändigt register över en korpus.
+
+När ljudet konverteras räknar Tratts egen fil och manifesten sampel vid 16 kHz,
+den takt Tratt läser tillbaka ljudet i, medan själva `.opus`-filen har 48 kHz.
+Tider i sekunder stämmer överens.
 
 Eftersom ljudet och Tratts egna fil är samlade tillsammans återställer ett släpp av arkivet på
 släppytan hela omgången, med ljudet bifogat och transkriptionerna på plats. Att
