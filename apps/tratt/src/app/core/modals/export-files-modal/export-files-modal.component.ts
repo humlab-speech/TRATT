@@ -37,6 +37,7 @@ import {
   NATIVE_FORMAT,
   ResolvedMedia,
 } from '../../shared/service/catalogue-export.service';
+import { exportedMediaName } from '../../shared/service/exported-media';
 import { RecordedFileService } from '../../shared/service/recorded-file.service';
 import { AnnotationStoreService } from '../../store/login-mode/annotation/annotation.store.service';
 import { TableConfiguratorComponent } from '../../tools/table-configurator/table-configurator.component';
@@ -410,7 +411,7 @@ export class ExportFilesModalComponent
           folders.push({
             folder: archiveFolderName(bundle.name, used),
             hasAudio,
-            files: [{ name: bundle.name, kind: 'audio' }],
+            files: [{ name: exportedMediaName(bundle.name), kind: 'audio' }],
           });
         } else {
           leftOut.push(bundle.name);
@@ -438,7 +439,7 @@ export class ExportFilesModalComponent
         }
       }
       if (hasAudio) {
-        files.unshift({ name: bundle.name, kind: 'audio' });
+        files.unshift({ name: exportedMediaName(bundle.name), kind: 'audio' });
       }
       chosen += files.length;
       folders.push({

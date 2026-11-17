@@ -1,7 +1,13 @@
 import { Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { Converter, ExportResult, OAnnotJSON } from '@tratt/annotation';
+import {
+  AnnotationLevelType,
+  Converter,
+  ExportResult,
+  OAnnotJSON,
+} from '@tratt/annotation';
 import { OAudiofile, SampleUnit } from '@tratt/media';
+import { ML_MODEL_SAMPLE_RATE } from '@tratt/web-media';
 import { strToU8, Zippable, zipSync } from 'fflate';
 import { Observable } from 'rxjs';
 import { AppInfo } from '../../../app.info';
@@ -15,6 +21,7 @@ import {
 import { IdentifiedAnnotationState } from '../../store/login-mode/annotation/local-bundle-collection';
 import { transcriptEnd } from '../transcript-timing';
 import { AudioService } from './audio.service';
+import { transcodeForExport } from './media-transcode';
 import { PipelineQueueService } from './pipeline-queue.service';
 
 /** What an export hands the browser to save: one file as it is, or a .zip. */
@@ -131,6 +138,47 @@ export function prepareConverters(
   }
 }
 
+/**
+ * The rate Tratt reads a re-encoded recording (Opus, mp4) back at: every
+ * decode except the WAV one is resampled to it (HtmlAudioMechanism's
+ * normalizeAudio), and an `_annot.json` loads only with the same rate
+ * (AnnotJSONConverter.import).
+ */
+const REIMPORT_SAMPLE_RATE = ML_MODEL_SAMPLE_RATE;
+
+/** A sample count at rate `from`, counted at rate `to`. */
+const samplesAt = (samples: number, from: number, to: number) =>
+  Math.round((samples * to) / from);
+
+/**
+ * Moves every sample position in `annot` to `rate`, in place. Segment
+ * boundaries are rounded, not durations, so segments stay contiguous.
+ */
+export function rescaleAnnotation(annot: OAnnotJSON, rate: number): void {
+  const from = annot.sampleRate;
+  if (!from || from === rate) {
+    return;
+  }
+  const at = (samples: number) => samplesAt(samples, from, rate);
+  for (const level of annot.levels) {
+    // Segment items carry start and duration, event items a point.
+    for (const item of level.items as unknown as {
+      sampleStart: number;
+      sampleDur: number;
+      samplePoint: number;
+    }[]) {
+      if (level.type === AnnotationLevelType.SEGMENT) {
+        const start = at(item.sampleStart);
+        item.sampleDur = at(item.sampleStart + item.sampleDur) - start;
+        item.sampleStart = start;
+      } else if (level.type === AnnotationLevelType.EVENT) {
+        item.samplePoint = at(item.samplePoint);
+      }
+    }
+  }
+  annot.sampleRate = rate;
+}
+
 export interface ResolvedMedia {
   oAudioFile: OAudiofile;
   sampleRate: number;
@@ -162,6 +210,17 @@ export function archiveFolderName(fileName: string, used: Set<string>): string {
   used.add(slug);
   return slug;
 }
+
+/** A bundle's audio for the export, or why there is none. */
+interface AudioForBundle {
+  file?: ExportedFile;
+  problem: string;
+  /** Re-encoded (Opus, or mp4), not the source file as it is. */
+  transcoded: boolean;
+}
+
+const errorText = (error: unknown) =>
+  error instanceof Error ? error.message : String(error);
 
 interface ManifestRow {
   bundleId: string;
@@ -319,7 +378,9 @@ export class CatalogueExportService {
           breakMarkerCodeOf(entity.guidelines),
         )
       ) {
-        const audio = includeAudio ? await this.audioFor(bundleId) : undefined;
+        const audio = includeAudio
+          ? await this.audioFor(bundleId, label, warnings)
+          : undefined;
         if (!audio?.file) {
           warnings.push(
             audio
@@ -332,11 +393,17 @@ export class CatalogueExportService {
         const dir = `bundles/${this.uniqueSlug(label, usedSlugs)}`;
         chosen.push({ dir, file: audio.file });
         const info = this.audioService.getMediaInfo(bundleId);
+        // As the file in the zip is read back (see REIMPORT_SAMPLE_RATE).
+        const rate = audio.transcoded
+          ? REIMPORT_SAMPLE_RATE
+          : (info?.sampleRate ?? 0);
         manifestRows.push({
           bundleId,
           sourceFilename: entity.sessionFile?.name ?? '',
-          durationSamples: info?.duration.samples ?? 0,
-          sampleRate: info?.sampleRate ?? 0,
+          durationSamples: info
+            ? samplesAt(info.duration.samples, info.sampleRate, rate)
+            : 0,
+          sampleRate: info ? rate : 0,
           model: null,
           language: null,
           stagesRun: [],
@@ -351,15 +418,40 @@ export class CatalogueExportService {
 
       let media: ResolvedMedia | undefined;
       let oannotjson: OAnnotJSON | undefined;
+      let audio: AudioForBundle | undefined;
       let skipReason = 'audio could not be made resident';
       try {
         media = await this.resolveMedia(bundleId, entity);
         if (media) {
+          audio = includeAudio
+            ? await this.audioFor(bundleId, label, warnings)
+            : undefined;
+          const reencoded = audio?.transcoded ? audio.file : undefined;
           oannotjson = entity.transcript.serialize(
-            entity.audio.fileName || media.oAudioFile.name,
+            reencoded?.name ?? (entity.audio.fileName || media.oAudioFile.name),
             media.sampleRate,
             media.duration,
           );
+          if (reencoded) {
+            // Positions as Tratt reads the file next to it back, and the
+            // media described as that file: every format is written from
+            // this pair.
+            rescaleAnnotation(oannotjson, REIMPORT_SAMPLE_RATE);
+            media = this.describe(
+              reencoded.name,
+              reencoded.type,
+              reencoded.bytes.length,
+              REIMPORT_SAMPLE_RATE,
+              new SampleUnit(
+                samplesAt(
+                  media.duration.samples,
+                  media.sampleRate,
+                  REIMPORT_SAMPLE_RATE,
+                ),
+                REIMPORT_SAMPLE_RATE,
+              ),
+            );
+          }
         }
       } catch (error) {
         // One unreadable bundle must not abort (or, as before, silently
@@ -398,8 +490,7 @@ export class CatalogueExportService {
 
       let audioPath = '';
       let audioType = '';
-      if (includeAudio) {
-        const audio = await this.audioFor(bundleId);
+      if (audio) {
         if (audio.file) {
           audioPath = `${dir}/${audio.file.name}`;
           audioType = audio.file.type;
@@ -481,30 +572,58 @@ export class CatalogueExportService {
 
   /**
    * A bundle's audio for the export: the attached file, or (VISP) the
-   * recording fetched from the server. Otherwise, why there is none.
+   * recording fetched from the server, re-encoded as Opus (video as mp4).
+   * When re-encoding fails, the file as it is, with a warning. Otherwise,
+   * why there is none.
    */
   private async audioFor(
     bundleId: string,
-  ): Promise<{ file?: ExportedFile; problem: string }> {
+    label: string,
+    warnings: string[],
+  ): Promise<AudioForBundle> {
     if (!this.audioService.hasAudioFile(bundleId)) {
-      return { problem: 'audio not attached' };
+      return { problem: 'audio not attached', transcoded: false };
+    }
+    let source: File | undefined;
+    try {
+      source = await this.audioService.getAudioFile(bundleId);
+    } catch (error) {
+      return {
+        problem: `audio could not be fetched (${errorText(error)})`,
+        transcoded: false,
+      };
+    }
+    if (!source) {
+      return { problem: 'audio not attached', transcoded: false };
+    }
+    let file = source;
+    let transcoded = false;
+    try {
+      file = await transcodeForExport(source);
+      transcoded = true;
+    } catch (error) {
+      const reason = errorText(error).replace(
+        `Could not transcode ${source.name}: `,
+        '',
+      );
+      warnings.push(
+        `${label}: could not re-encode (${reason}); the original file is exported.`,
+      );
     }
     try {
-      const source = await this.audioService.getAudioFile(bundleId);
-      if (!source) {
-        return { problem: 'audio not attached' };
-      }
       return {
         file: {
-          name: source.name,
-          bytes: new Uint8Array(await source.arrayBuffer()),
-          type: source.type || 'application/octet-stream',
+          name: file.name,
+          bytes: new Uint8Array(await file.arrayBuffer()),
+          type: file.type || 'application/octet-stream',
         },
         problem: '',
+        transcoded,
       };
     } catch (error) {
       return {
-        problem: `audio could not be fetched (${error instanceof Error ? error.message : String(error)})`,
+        problem: `audio could not be fetched (${errorText(error)})`,
+        transcoded: false,
       };
     }
   }
@@ -537,25 +656,9 @@ export class CatalogueExportService {
     bundleId: string,
     entity: IdentifiedAnnotationState,
   ): Promise<ResolvedMedia | undefined> {
-    const describe = (
-      name: string,
-      type: string | undefined,
-      size: number,
-      sampleRate: number,
-      duration: SampleUnit,
-    ): ResolvedMedia => {
-      const oAudioFile = new OAudiofile();
-      oAudioFile.name = name;
-      oAudioFile.type = type ?? '';
-      oAudioFile.size = size;
-      oAudioFile.sampleRate = sampleRate;
-      oAudioFile.duration = duration.samples;
-      return { oAudioFile, sampleRate, duration };
-    };
-
     const info = this.audioService.getMediaInfo(bundleId);
     if (info) {
-      return describe(
+      return this.describe(
         info.fullname,
         entity.sessionFile?.type,
         info.size,
@@ -587,13 +690,29 @@ export class CatalogueExportService {
     if (!end) {
       return undefined;
     }
-    return describe(
+    return this.describe(
       entity.sessionFile?.name ?? entity.audio.fileName ?? bundleId,
       entity.sessionFile?.type,
       entity.sessionFile?.size ?? 0,
       end.sampleRate,
       end,
     );
+  }
+
+  private describe(
+    name: string,
+    type: string | undefined,
+    size: number,
+    sampleRate: number,
+    duration: SampleUnit,
+  ): ResolvedMedia {
+    const oAudioFile = new OAudiofile();
+    oAudioFile.name = name;
+    oAudioFile.type = type ?? '';
+    oAudioFile.size = size;
+    oAudioFile.sampleRate = sampleRate;
+    oAudioFile.duration = duration.samples;
+    return { oAudioFile, sampleRate, duration };
   }
 
   /** `dir/name`, or `dir/name-2.ext`, ... when two tiers map to one name. */

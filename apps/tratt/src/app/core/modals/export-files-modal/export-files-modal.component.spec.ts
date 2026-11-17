@@ -213,7 +213,7 @@ describe('ExportFilesModalComponent', () => {
       const toc = component.contents();
       expect(toc.single).toBeUndefined();
       expect(toc.folders[0].files.map((f) => f.name)).toEqual([
-        'a.wav',
+        'a.opus',
         'a.docx',
         'a.srt',
         'a_annot.json',
@@ -234,9 +234,17 @@ describe('ExportFilesModalComponent', () => {
       openFromList([bundle('b1', 'a.wav'), bundle('b2', 'b.wav')]);
       expect(component.includeAudio()).toBe(true);
       expect(component.contents().folders[0].files[0]).toEqual({
-        name: 'a.wav',
+        name: 'a.opus',
         kind: 'audio',
       });
+    });
+
+    it('names the audio as it is exported: Opus, or mp4 for a video', () => {
+      openFromList([bundle('b1', 'Intervju 1.wav'), bundle('b2', 'clip.mkv')]);
+      expect(component.contents().folders.map((f) => f.files[0])).toEqual([
+        { name: 'Intervju 1.opus', kind: 'audio' },
+        { name: 'clip.mp4', kind: 'audio' },
+      ]);
     });
 
     it('includes the audio by default for one recording too, unless turned off', () => {
@@ -290,7 +298,7 @@ describe('ExportFilesModalComponent', () => {
       );
       component.toggleFormat('SRT');
       expect(component.contents().folders[0].files.map((f) => f.name)).toEqual([
-        'a.wav',
+        'a.opus',
         'a.docx',
         'a-OCTRA_1.srt',
         'a-English.srt',
@@ -328,7 +336,7 @@ describe('ExportFilesModalComponent', () => {
       component.setIncludeAudio(true);
       fixture.detectChanges();
       expect(component.contents().single).toEqual({
-        name: 'a.wav',
+        name: 'a.opus',
         kind: 'audio',
       });
       // No transcript at all: no formats panel, and nothing to warn about.
@@ -344,7 +352,7 @@ describe('ExportFilesModalComponent', () => {
       component.setScope('all');
       expect(
         component.contents().folders.map((f) => f.files.map((x) => x.name)),
-      ).toEqual([['a.wav'], ['b.wav']]);
+      ).toEqual([['a.opus'], ['b.opus']]);
       component.onExport();
       expect(exportService.exportBundles).toHaveBeenCalledWith(
         ['b1', 'b2'],
