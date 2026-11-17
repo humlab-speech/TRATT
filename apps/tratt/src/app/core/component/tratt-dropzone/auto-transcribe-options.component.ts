@@ -152,7 +152,50 @@ export const NORWEGIAN_WHISPER_MODELS: KbWhisperModel[] = [
     dtypeWasm: 'q4',
     dtypeWebgpu: 'q4',
   },
+  {
+    key: 'large-verbatim',
+    i18nKey: 'nb-large-verbatim',
+    modelId: 'FredrikKarlssonSpeech/nb-whisper-large-verbatim-onnx',
+    sizeMb: 1210,
+    requiresWebGpu: true,
+    hasWebgpuVariant: true,
+    dtypeWasm: 'q4',
+    dtypeWebgpu: 'q4',
+  },
 ];
+
+/**
+ * Sami models are fine-tuned from Whisper checkpoints that reuse an existing
+ * language token (see SAMI_WHISPER_LANGUAGE), so each has one size only.
+ */
+export const NORTHERN_SAMI_WHISPER_MODELS: KbWhisperModel[] = [
+  {
+    key: 'large',
+    i18nKey: 'se-large',
+    modelId: 'FredrikKarlssonSpeech/whisper-large-sme-onnx',
+    sizeMb: 1210,
+    requiresWebGpu: true,
+    hasWebgpuVariant: true,
+    dtypeWasm: 'q4',
+    dtypeWebgpu: 'q4',
+  },
+];
+
+export const LULE_SAMI_WHISPER_MODELS: KbWhisperModel[] = [
+  {
+    key: 'large',
+    i18nKey: 'smj-large',
+    modelId: 'FredrikKarlssonSpeech/salmon-whisper-large-smj-lr7e-5-onnx',
+    sizeMb: 1210,
+    requiresWebGpu: true,
+    hasWebgpuVariant: true,
+    dtypeWasm: 'q4',
+    dtypeWebgpu: 'q4',
+  },
+];
+
+/** Whisper has no Sami tokens: the fine-tunes decode with these instead. */
+const SAMI_WHISPER_LANGUAGE: Record<string, string> = { se: 'fi', smj: 'et' };
 
 export const OPENAI_WHISPER_MODELS: KbWhisperModel[] = [
   {
@@ -204,6 +247,8 @@ export interface WhisperLanguage {
 
 export const WHISPER_LANGUAGES: WhisperLanguage[] = [
   { code: 'sv', name: 'Swedish' },
+  { code: 'se', name: 'Northern Sami' },
+  { code: 'smj', name: 'Lule Sami' },
   { code: 'af', name: 'Afrikaans' },
   { code: 'sq', name: 'Albanian' },
   { code: 'am', name: 'Amharic' },
@@ -326,6 +371,8 @@ function getModelsForLanguage(lang: string): KbWhisperModel[] {
   if (lang === 'sv') return KB_WHISPER_MODELS;
   if (lang === 'fi') return FINNISH_WHISPER_MODELS;
   if (lang === 'no' || lang === 'nn') return NORWEGIAN_WHISPER_MODELS;
+  if (lang === 'se') return NORTHERN_SAMI_WHISPER_MODELS;
+  if (lang === 'smj') return LULE_SAMI_WHISPER_MODELS;
   return OPENAI_WHISPER_MODELS;
 }
 
@@ -334,6 +381,8 @@ const DEFAULT_KEY_FOR_FAMILY: Record<string, string> = {
   fi: 'medium',
   no: 'medium',
   nn: 'medium',
+  se: 'large',
+  smj: 'large',
 };
 
 interface SavedTranscribeSettings {
@@ -478,6 +527,13 @@ interface SavedTranscribeSettings {
                     'login.auto-transcription.norwegian fine-tuned hint'
                       | transloco
                   }}
+                </small>
+              }
+
+              @if (selectedLanguage === 'se' || selectedLanguage === 'smj') {
+                <small class="text-muted d-block mt-1">
+                  <i class="fa-solid fa-circle-info"></i>
+                  {{ 'login.auto-transcription.sami fine-tuned hint' | transloco }}
                 </small>
               }
 
@@ -855,7 +911,8 @@ export class AutoTranscribeOptionsComponent implements OnInit {
       modelId: this.selectedModelId,
       useWebGPU: this.hasWebGpu(),
       dtype,
-      language: this.selectedLanguage,
+      language:
+        SAMI_WHISPER_LANGUAGE[this.selectedLanguage] ?? this.selectedLanguage,
       speakerSegmentationEnabled: this.speakerSegmentationEnabled,
       numSpeakers: this.numSpeakers,
     });

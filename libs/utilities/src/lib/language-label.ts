@@ -168,6 +168,8 @@ const NATIVE_LANGUAGE_NAMES: Record<string, string> = {
   ru: 'Русский',
   sa: 'संस्कृतम्',
   sd: 'سنڌي',
+  se: 'Davvisámegiella',
+  smj: 'Julevsámegiella',
   si: 'සිංහල',
   sk: 'Slovenčina',
   sl: 'Slovenščina',

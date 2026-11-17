@@ -465,6 +465,7 @@
       "swedish kb-whisper hint": "För Svenska används KB-Whisper som optimerad för svensk tal.",
       "finnish fine-tuned hint": "För Finska används en modell som optimerats för finskt tal.",
       "norwegian fine-tuned hint": "För Norska används modell som optimersts för norskt tal.",
+      "sami fine-tuned hint": "Samiska använder en modell optimerad för samiskt tal.",
       "diarizingLabel": "Identifierar talare…",
       "initializing speaker segmentation": "Talarsegmenteringsmodellen laddas",
       "speaker separation label": "Talarseparation",

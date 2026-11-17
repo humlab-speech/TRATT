@@ -501,12 +501,25 @@
         "nb-large": {
           "wasm": "Large (~2 GB) — Most accurate, fine-tuned for Norwegian",
           "webgpu": "Large (~2 GB) — Most accurate, fine-tuned for Norwegian"
+        },
+        "nb-large-verbatim": {
+          "wasm": "Large verbatim (~2 GB) — Transcribes exactly what is said, fine-tuned for Norwegian",
+          "webgpu": "Large verbatim (~2 GB) — Transcribes exactly what is said, fine-tuned for Norwegian"
+        },
+        "se-large": {
+          "wasm": "Large (~2 GB) — Most accurate, fine-tuned for Northern Sami",
+          "webgpu": "Large (~2 GB) — Most accurate, fine-tuned for Northern Sami"
+        },
+        "smj-large": {
+          "wasm": "Large (~2 GB) — Most accurate, fine-tuned for Lule Sami",
+          "webgpu": "Large (~2 GB) — Most accurate, fine-tuned for Lule Sami"
         }
       },
       "language label": "Transcription language",
       "swedish kb-whisper hint": "Swedish uses KB-Whisper, optimised for Swedish speech.",
       "finnish fine-tuned hint": "Finnish uses a model optimised for Finnish speech.",
-      "norwegian fine-tuned hint": "Norwegian uses a model optimised for Norwegian speech."
+      "norwegian fine-tuned hint": "Norwegian uses a model optimised for Norwegian speech.",
+      "sami fine-tuned hint": "Sami uses a model optimised for Sami speech."
     },
     "app description": "Tratt is a free web-application for plain text (orthographic) transcription of speech recordings. It has three different editors that cater for different needs when transcribing, and you may switch between them freely in a session.",
     "funding support and development": "Funders and collaborations",
