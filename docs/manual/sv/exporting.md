@@ -24,9 +24,11 @@ nedladdningsikonen i sidhuvudet.) Dialogen heter *Exportera*:
 4. **Det här får du** visar resultatet fil för fil innan du laddar ned det.
 5. **Ladda ned**.
 
-**En fil eller en .zip.** När dina val ger exakt en fil, till exempel en
-inspelning som DOCX utan ljudet, laddas den ned som den filen. Allt mer (flera
-format, flera inspelningar, ljudet, eller ett format med en nivå för en inspelning med flera
+**En fil eller en .zip.** Från Arbetsbänkens lista är en export alltid en
+`.zip`, eftersom Tratts egen fil alltid ingår, om inte den filen är det enda som
+exporteras. Från exportknappen i sidhuvudet laddas exakt en fil, till exempel en
+inspelning som DOCX, ned som den filen. Allt mer (flera format, flera
+inspelningar, ljudet, eller ett format med en nivå för en inspelning med flera
 nivåer) kommer som en `.zip`; se [Att exportera ett arkiv](#exporting-an-archive).
 Knappen säger vilket: **Ladda ned** eller **Ladda ned .zip**.
 

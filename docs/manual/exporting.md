@@ -23,10 +23,12 @@ header.) The dialog is headed *Export*:
 4. **What you get** shows the result before you download it, file by file.
 5. **Download**.
 
-**One file or a .zip.** When your choices make exactly one file, for example one
-recording as DOCX without the audio, it downloads as that file. Anything more
-(several formats, several recordings, the audio, or a one-tier format for a
-recording with several tiers) comes as one `.zip`; see [Exporting an archive](#exporting-an-archive).
+**One file or a .zip.** From the Workbench list, an export is always a `.zip`,
+because Tratt's own file is always in it, unless that file is the only thing
+exported. From the header **Export** button, exactly one file, for example one
+recording as DOCX, downloads as that file. Anything more (several formats,
+several recordings, the audio, or a one-tier format for a recording with several
+tiers) comes as one `.zip`; see [Exporting an archive](#exporting-an-archive).
 The button says which: **Download** or **Download .zip**.
 
 Tratt remembers the formats you ticked for the next export.
