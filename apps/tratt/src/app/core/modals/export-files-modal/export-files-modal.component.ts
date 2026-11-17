@@ -442,6 +442,11 @@ export class ExportFilesModalComponent
         files.unshift({ name: exportedMediaName(bundle.name), kind: 'audio' });
       }
       chosen += files.length;
+      // On screen, Tratt's own file is not chosen but goes along in a .zip
+      // (exportTranscript); in the list it is always among the formats.
+      if (!this.listMode() && !checked.has(NATIVE_FORMAT)) {
+        files.push({ name: base + '_annot.json', kind: 'native' });
+      }
       folders.push({
         folder: archiveFolderName(bundle.name, used),
         hasAudio,
@@ -449,7 +454,11 @@ export class ExportFilesModalComponent
       });
     }
     const single =
-      chosen === 1 ? folders.flatMap((f) => f.files)[0] : undefined;
+      chosen === 1
+        ? folders
+            .flatMap((f) => f.files)
+            .find((f) => this.listMode() || f.kind !== 'native')
+        : undefined;
     return {
       /** Nothing to export: no format, or no recording with a transcript. */
       empty: chosen === 0,

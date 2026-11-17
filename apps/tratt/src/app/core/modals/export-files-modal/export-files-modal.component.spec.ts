@@ -498,6 +498,31 @@ describe('ExportFilesModalComponent', () => {
       expect(activeModal.close).toHaveBeenCalled();
     });
 
+    it("follows the user's ticks for every format, Tratt's own included", () => {
+      openFromNavbar();
+      expect(component.isChecked('AnnotJSON')).toBe(false);
+      component.toggleFormat('AnnotJSON');
+      expect(component.isChecked('AnnotJSON')).toBe(true);
+      component.toggleFormat('AnnotJSON');
+      expect(component.isChecked('AnnotJSON')).toBe(false);
+      component.toggleFormat('DOCX');
+      expect(component.isChecked('DOCX')).toBe(false);
+    });
+
+    it("previews Tratt's own file in the .zip when it is not ticked, as exportTranscript adds it", () => {
+      openFromNavbar();
+      expect(component.contents().single?.name).toBe('restored.docx');
+
+      component.toggleFormat('SRT');
+      const toc = component.contents();
+      expect(toc.single).toBeUndefined();
+      expect(toc.folders[0].files).toEqual([
+        { name: 'restored.docx', kind: 'transcript' },
+        { name: 'restored.srt', kind: 'transcript' },
+        { name: 'restored_annot.json', kind: 'native' },
+      ]);
+    });
+
     it('names the protocol file after the recording', () => {
       openFromNavbar();
       component.getProtocol();
