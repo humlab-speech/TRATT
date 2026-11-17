@@ -689,7 +689,7 @@
       "manual": "手动转写，不使用 AI",
       "privacy_title": "隐私优先。",
       "privacy": "你的音频不会离开你的电脑——自动转写也在浏览器本地运行。",
-      "facts": "免费使用 · 支持 MP3、WAV、M4A、MP4、MOV 等格式",
+      "facts": "免费使用 · 支持 Opus/Ogg（推荐）、MP3、WAV、M4A、MP4、MOV 等格式",
       "how": "Tratt 如何工作？",
       "steps": {
         "add": {

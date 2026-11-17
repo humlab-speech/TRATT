@@ -960,7 +960,7 @@
       "manual": "Von Hand transkribieren, ohne KI",
       "privacy_title": "Datenschutz von Anfang an.",
       "privacy": "Ihr Audio verlässt nie Ihren Computer – auch die automatische Transkription läuft lokal in Ihrem Browser.",
-      "facts": "Kostenlos · Unterstützt MP3, WAV, M4A, MP4, MOV und mehr",
+      "facts": "Kostenlos · Unterstützt Opus/Ogg (empfohlen), MP3, WAV, M4A, MP4, MOV und mehr",
       "how": "Wie funktioniert Tratt?",
       "steps": {
         "add": {

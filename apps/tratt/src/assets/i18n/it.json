@@ -689,7 +689,7 @@
       "manual": "Trascrivi a mano, senza IA",
       "privacy_title": "Privato per natura.",
       "privacy": "Il tuo audio non lascia mai il tuo computer: anche la trascrizione automatica avviene localmente nel browser.",
-      "facts": "Gratuito · Funziona con MP3, WAV, M4A, MP4, MOV e altri",
+      "facts": "Gratuito · Funziona con Opus/Ogg (consigliato), MP3, WAV, M4A, MP4, MOV e altri",
       "how": "Come funziona Tratt?",
       "steps": {
         "add": {

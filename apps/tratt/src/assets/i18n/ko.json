@@ -689,7 +689,7 @@
       "manual": "AI 없이 직접 전사하기",
       "privacy_title": "개인정보 보호 중심 설계.",
       "privacy": "오디오는 컴퓨터 밖으로 나가지 않습니다. 자동 전사도 브라우저에서 로컬로 실행됩니다.",
-      "facts": "무료 · MP3, WAV, M4A, MP4, MOV 등 지원",
+      "facts": "무료 · Opus/Ogg (권장), MP3, WAV, M4A, MP4, MOV 등 지원",
       "how": "Tratt는 어떻게 작동하나요?",
       "steps": {
         "add": {
