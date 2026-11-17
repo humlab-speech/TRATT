@@ -261,8 +261,8 @@
               [attr.title]="
                 (queueRunning()
                   ? 'workbench.queue.stop_hint'
-                  : queueOptions() === null
-                    ? 'workbench.queue.unavailable_hint'
+                  : runUnavailableKey()
+                    ? runUnavailableKey()!
                     : checked > 0
                       ? 'workbench.queue.run_selected_hint'
                       : readyBundleIds().length > 0
@@ -272,6 +272,8 @@
                           : 'workbench.queue.nothing_hint'
                 ) | transloco
               "
+              [class.workbench__queue-run--dimmed]="runUnavailableKey()"
+              [attr.aria-disabled]="runUnavailableKey() ? 'true' : null"
               (click)="onRunStopClick()"
             >
               @if (queueRunning()) {

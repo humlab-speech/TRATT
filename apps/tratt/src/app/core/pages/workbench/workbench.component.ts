@@ -438,6 +438,15 @@ export class WorkbenchComponent
   queueOptions = signal<TranscriptionOptions | null>(null);
 
   /**
+   * Why the run button is dimmed, or null when ASR is available: Safari
+   * (`queueOptions()` is null). The button stays clickable so a click can
+   * explain.
+   */
+  readonly runUnavailableKey = computed(() =>
+    this.queueOptions() === null ? 'workbench.queue.unavailable_hint' : null,
+  );
+
+  /**
    * "Transcribe new files automatically" in the settings. The options above
    * are set either way (the run button can always start the queue); this
    * only decides whether a newly added file is queued on arrival.
@@ -769,8 +778,9 @@ export class WorkbenchComponent
       }
       return;
     }
-    if (this.queueOptions() === null) {
-      this.explainRun('workbench.queue.unavailable_hint');
+    const unavailable = this.runUnavailableKey();
+    if (unavailable) {
+      this.explainRun(unavailable);
       return;
     }
     const checked = this.checkedBundleIds();

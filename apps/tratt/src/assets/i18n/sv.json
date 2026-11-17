@@ -1002,6 +1002,8 @@
       "assigned_list": "Inspelningspaket som är tilldelade dig:",
       "save": "Spara till Visp",
       "retry": "Försök igen",
+      "save": "Spara",
+      "save_hint": "Spara den här inspelningens transkription i VISP nu",
       "keep_mine": "Behåll min version",
       "use_theirs": "Använd versionen i Visp",
       "unassigned": "Inte längre tilldelat dig. Dina osparade ändringar finns kvar här tills du tar bort inspelningspaketet; ladda ner transkriptet först om du behöver det.",

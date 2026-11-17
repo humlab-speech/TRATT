@@ -177,7 +177,8 @@
         },
         "development": {
           "port": 5321,
-          "buildTarget": "tratt:build:development"
+          "buildTarget": "tratt:build:development",
+          "proxyConfig": "apps/tratt/proxy.visp-sim.json"
         }
       },
       "defaultConfiguration": "development",

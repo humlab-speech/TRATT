@@ -344,7 +344,7 @@
             }
           </span>
           @if (isVisp() && vispInfo(bundle.bundleId); as v) {
-            @if (v.unassigned || v.sync === 'failed') {
+            @if (v.unassigned || v.sync === 'failed' || v.sync === 'unsaved') {
               <!-- VISP workspace: only when something needs the user (a failed
                  save, a conflict with VISP, a bundle no longer assigned). -->
               <span class="bundle-list__visp">
@@ -380,8 +380,8 @@
                     {{ 'workbench.visp.use_theirs' | transloco }}
                   </button>
                 } @else {
-                  <!-- Saving is automatic; a row only speaks up when a save
-                     failed (the message is below), with a way to try again. -->
+                  <!-- Saving is automatic, but an edited row also offers Save now; a
+                     failed save shows its message below, with a way to try again. -->
                   @if (v.sync === 'failed') {
                     <button
                       type="button"
@@ -389,6 +389,16 @@
                       (click)="onVispSave(bundle.bundleId)"
                     >
                       {{ 'workbench.visp.retry' | transloco }}
+                    </button>
+                  } @else if (v.sync === 'unsaved') {
+                    <button
+                      type="button"
+                      class="btn btn-sm btn-outline-primary"
+                      [attr.title]="'workbench.visp.save_hint' | transloco"
+                      (click)="onVispSave(bundle.bundleId)"
+                    >
+                      <i class="fa-solid fa-floppy-disk" aria-hidden="true"></i>
+                      {{ 'workbench.visp.save' | transloco }}
                     </button>
                   }
                   @if (v.sync === 'failed' && v.error; as err) {

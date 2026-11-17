@@ -780,9 +780,10 @@ export class VispWorkspaceService {
   }
 
   private async toFile(ref: BundleRef, blob: Blob) {
-    return new File([blob], bundleFileName(ref), {
-      type: blob.type || 'audio/wav',
-    });
+    // The decoder is chosen by extension: name the file after what it is.
+    const ext = blob.type.includes('ogg') ? 'opus' : undefined;
+    const name = ext ? `${ref.name}.${ext}` : bundleFileName(ref);
+    return new File([blob], name, { type: blob.type || 'audio/wav' });
   }
 
   private scheduleDraftWrite(

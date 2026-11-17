@@ -576,6 +576,12 @@
   --bs-btn-active-border-color: var(--bs-btn-border-color);
 }
 
+// Transcription unreliable here (Safari, embedded): dimmed, still clickable
+// so the click can say why.
+.workbench__queue-run--dimmed {
+  opacity: 0.5;
+}
+
 // The run button as a progress bar: the fill behind the label.
 .workbench__queue-run {
   position: relative;

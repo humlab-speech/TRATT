@@ -1066,6 +1066,8 @@
       "assigned_list": "Recording bundles assigned to you:",
       "save": "Save to Visp",
       "retry": "Retry",
+      "save": "Save",
+      "save_hint": "Save this bundle's transcript to VISP now",
       "keep_mine": "Keep my version",
       "use_theirs": "Use the Visp version",
       "unassigned": "No longer assigned to you. Your unsaved changes are kept here until you delete this recording bundle; download the transcript first if you need it.",
