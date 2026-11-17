@@ -150,6 +150,46 @@ describe('CatalogueExportService', () => {
     expect(last.exportedCount).toBe(1);
   });
 
+  describe('own format is always written', () => {
+    const files = (ids: string[], names: string[]) => {
+      const { service } = setup(ids.map((id) => makeBundle(id, `${id}.wav`)));
+      return lastValueFrom(service.exportBundles(ids, names));
+    };
+    const entryNames = (last: CatalogueExportProgress) =>
+      Object.keys(unzipSync(zipBytes(last)))
+        .filter((n) => !n.startsWith('manifest'))
+        .sort();
+
+    it('zips DOCX with AnnotJSON for one bundle without audio', async () => {
+      expect(entryNames(await files(['b1'], ['DOCX']))).toEqual([
+        'bundles/b1/b1_annot.json',
+        'bundles/b1/x.docx',
+      ]);
+    });
+
+    it('writes only b1_annot.json, not zipped, when no format is ticked', async () => {
+      const last = await files(['b1'], []);
+      expect(last.download?.archive).toBe(false);
+      expect(last.download?.name).toBe('b1_annot.json');
+    });
+
+    it('gives each of two bundles the same file set', async () => {
+      expect(entryNames(await files(['b1', 'b2'], ['DOCX']))).toEqual([
+        'bundles/b1/b1_annot.json',
+        'bundles/b1/x.docx',
+        'bundles/b2/b2_annot.json',
+        'bundles/b2/x.docx',
+      ]);
+    });
+
+    it('zips two bundles with no format ticked, one _annot.json each', async () => {
+      expect(entryNames(await files(['b1', 'b2'], []))).toEqual([
+        'bundles/b1/b1_annot.json',
+        'bundles/b2/b2_annot.json',
+      ]);
+    });
+  });
+
   it('produces one archive entry per bundle per requested converter, plus both manifests', async () => {
     const { service } = setup([
       makeBundle('bundle-1', 'a.wav'),
@@ -546,14 +586,16 @@ describe('CatalogueExportService: one file or a .zip', () => {
     arrayBuffer: async () => new Uint8Array([1, 2, 3]).buffer,
   };
 
-  it("downloads a single file as it is, without Tratt's own file or manifests", async () => {
+  it("zips a single format together with Tratt's own file", async () => {
     const service = setup([makeBundle('bundle-1', 'a.wav')]);
     const last = await lastValueFrom(
       service.exportBundles(['bundle-1'], ['SRT'], { includeAudio: false }),
     );
-    expect(last.download?.archive).toBe(false);
-    expect(last.download?.name).toMatch(/\.srt$/);
-    expect(strFromU8(last.download!.bytes)).toContain('hello');
+    const entries = unzipSync(zipBytes(last));
+    expect(Object.keys(entries)).toEqual(
+      expect.arrayContaining(['bundles/a/a_annot.json', 'bundles/a/a.srt']),
+    );
+    expect(strFromU8(entries['bundles/a/a.srt'])).toContain('hello');
     expect(last.warnings).toEqual([]);
   });
 
@@ -602,7 +644,7 @@ describe('CatalogueExportService: one file or a .zip', () => {
     const last = await lastValueFrom(
       service.exportBundles(['bundle-1'], ['SRT'], { includeAudio: true }),
     );
-    expect(last.download?.name).toMatch(/\.srt$/);
+    expect(Object.keys(unzipSync(zipBytes(last)))).toContain('bundles/a/a.srt');
     expect(last.warnings).toEqual([
       expect.stringContaining('audio could not be fetched (offline)'),
     ]);
@@ -696,7 +738,7 @@ describe('CatalogueExportService: one file or a .zip', () => {
       service.exportBundles(['bundle-1'], ['DOCX'], { includeAudio: false }),
     );
 
-    expect(last.download?.archive).toBe(false);
+    expect(last.download?.archive).toBe(true);
     expect(spy).toHaveBeenCalledTimes(1);
     expect(spy.mock.calls[0][3]).toEqual([0, 1]);
     spy.mockRestore();

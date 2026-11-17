@@ -69,11 +69,17 @@
                 <div
                   class="export__format"
                   [class.export__format--checked]="isChecked(converter.name)"
+                  [class.export__format--locked]="
+                    converter.name === NATIVE_FORMAT && listMode()
+                  "
                 >
                   <label class="export__format-option">
                     <input
                       type="checkbox"
                       [checked]="isChecked(converter.name)"
+                      [disabled]="
+                        converter.name === NATIVE_FORMAT && listMode()
+                      "
                       (change)="toggleFormat(converter.name)"
                     />
                     <span class="export__format-name">

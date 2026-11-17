@@ -231,10 +231,19 @@ export class ExportFilesModalComponent
   );
 
   isChecked(name: string): boolean {
-    return this.checkedFormats().has(name);
+    return this.effectiveFormats().has(name);
   }
 
+  /** Ticked formats; in list mode Tratt's own is always among them. */
+  private readonly effectiveFormats = computed(() => {
+    const checked = this.checkedFormats();
+    return this.listMode() ? new Set([...checked, NATIVE_FORMAT]) : checked;
+  });
+
   toggleFormat(name: string): void {
+    if (name === NATIVE_FORMAT && this.listMode()) {
+      return;
+    }
     const next = new Set(this.checkedFormats());
     if (next.has(name)) {
       next.delete(name);
@@ -354,14 +363,9 @@ export class ExportFilesModalComponent
 
   private readonly chosenAudio = signal<boolean | undefined>(undefined);
 
-  /**
-   * Until the user decides: with several recordings, so the .zip loads
-   * back whole; not with one, which is usually wanted as a document.
-   */
+  /** Until the user decides: yes, when there is audio to include. */
   readonly includeAudio = computed(
-    () =>
-      this.audioAvailable() &&
-      (this.chosenAudio() ?? this.scopedBundles().length > 1),
+    () => this.audioAvailable() && (this.chosenAudio() ?? true),
   );
 
   setIncludeAudio(value: boolean): void {
@@ -386,7 +390,7 @@ export class ExportFilesModalComponent
    * folder per recording, Tratt's own transcript in each, and the manifests.
    */
   readonly contents = computed(() => {
-    const checked = this.checkedFormats();
+    const checked = this.effectiveFormats();
     const formats = this.exportableConverters.filter((c) =>
       checked.has(c.name),
     );
@@ -418,7 +422,9 @@ export class ExportFilesModalComponent
       const segments = bundle.levels.filter((l) => l.segment);
       for (const format of formats) {
         const ext = format.extensions[0] ?? '';
-        if (
+        if (format.name === NATIVE_FORMAT && this.listMode()) {
+          files.push({ name: base + '_annot.json', kind: 'native' });
+        } else if (
           format.multitiers ||
           format.multiTierExport ||
           segments.length <= 1
@@ -435,9 +441,6 @@ export class ExportFilesModalComponent
         files.unshift({ name: bundle.name, kind: 'audio' });
       }
       chosen += files.length;
-      if (!checked.has(NATIVE_FORMAT)) {
-        files.push({ name: base + '_annot.json', kind: 'native' });
-      }
       folders.push({
         folder: archiveFolderName(bundle.name, used),
         hasAudio,
@@ -445,9 +448,7 @@ export class ExportFilesModalComponent
       });
     }
     const single =
-      chosen === 1
-        ? folders.flatMap((f) => f.files).find((f) => f.kind !== 'native')
-        : undefined;
+      chosen === 1 ? folders.flatMap((f) => f.files)[0] : undefined;
     return {
       /** Nothing to export: no format, or no recording with a transcript. */
       empty: chosen === 0,
@@ -574,8 +575,10 @@ export class ExportFilesModalComponent
     }
     const names = this.exportableConverters
       .map((c) => c.name)
-      .filter((n) => this.checkedFormats().has(n));
-    ExportFilesModalComponent.lastFormats = new Set(names);
+      .filter((n) => this.effectiveFormats().has(n));
+    ExportFilesModalComponent.lastFormats = new Set(
+      names.filter((n) => !this.listMode() || n !== NATIVE_FORMAT),
+    );
     if (this.listMode()) {
       this.exportBundles(names);
     } else {

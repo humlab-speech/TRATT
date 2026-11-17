@@ -6,7 +6,6 @@ import { strToU8, Zippable, zipSync } from 'fflate';
 import { Observable } from 'rxjs';
 import { AppInfo } from '../../../app.info';
 import { BUILD_INFO } from '../../../build-info';
-import { audioBasename } from '../../component/tratt-dropzone/transcript-pairing';
 import { RootState } from '../../store/index';
 import {
   breakMarkerCodeOf,
@@ -278,15 +277,12 @@ export class CatalogueExportService {
     },
   ): Promise<void> {
     const includeAudio = options.includeAudio ?? true;
-    const converters = AppInfo.converters.filter((c) =>
-      converterNames.includes(c.name),
-    );
-    const nativeTicked = converterNames.includes(NATIVE_FORMAT);
+    // Tratt's own format is always written: it is the lossless one.
+    const names = [...new Set([...converterNames, NATIVE_FORMAT])];
+    const converters = AppInfo.converters.filter((c) => names.includes(c.name));
     // What the user asked for: files per format, and audio. Only these
     // count towards "one file, or a .zip".
     const chosen: { dir: string; file: ExportedFile }[] = [];
-    // Tratt's own transcript per recording, added only to a .zip.
-    const natives: { dir: string; file: ExportedFile }[] = [];
     const manifestRows: ManifestRow[] = [];
     const warnings: string[] = [];
     const usedSlugs = new Set<string>();
@@ -400,26 +396,6 @@ export class CatalogueExportService {
         chosen.push({ dir, file });
       }
 
-      // The native annotation goes in every .zip whatever formats were
-      // ticked: it is the lossless one, and it is the only transcript an
-      // archive without this recording's audio can still hand back (see
-      // filesFromExportZip). With audio next to it the archive re-loads
-      // whole.
-      if (!nativeTicked) {
-        const source = this.audioService.getSourceFile(bundleId);
-        natives.push({
-          dir,
-          file: {
-            name:
-              audioBasename(
-                source?.name ?? entity.sessionFile?.name ?? bundleId,
-              ) + '_annot.json',
-            bytes: strToU8(JSON.stringify(oannotjson)),
-            type: 'application/json',
-          },
-        });
-      }
-
       let audioPath = '';
       let audioType = '';
       if (includeAudio) {
@@ -475,7 +451,7 @@ export class CatalogueExportService {
       };
     } else if (chosen.length > 1) {
       const files: Zippable = {};
-      for (const { dir, file } of [...chosen, ...natives]) {
+      for (const { dir, file } of chosen) {
         const path = this.uniquePath(files, dir, file.name);
         // Audio is already compressed, so it is stored, not deflated.
         files[path] =
