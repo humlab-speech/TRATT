@@ -122,7 +122,16 @@ async function fatBuildOnError(f: () => Promise<any>): Promise<any> {
   }
 }
 
-const nextTask = () => new Promise<void>((resolve) => setTimeout(resolve));
+// Not setTimeout: browsers clamp that to 1 s or more in a hidden tab.
+const nextTask = () =>
+  new Promise<void>((resolve) => {
+    const { port1, port2 } = new MessageChannel();
+    port1.onmessage = () => {
+      port1.close();
+      resolve();
+    };
+    port2.postMessage(null);
+  });
 
 async function transcode(
   libav: any,

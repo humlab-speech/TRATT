@@ -569,13 +569,21 @@ describe('transcodeForExport', () => {
       ],
     });
     (getLibAVFat as jest.Mock).mockResolvedValue(la);
-    const timeout = jest.spyOn(globalThis, 'setTimeout');
+    // jsdom has no MessageChannel: a stand-in that delivers on a microtask.
+    const channel = jest.fn(() => {
+      const port1: any = { close: jest.fn() };
+      return {
+        port1,
+        port2: { postMessage: () => queueMicrotask(() => port1.onmessage()) },
+      };
+    });
+    (globalThis as any).MessageChannel = channel;
     try {
       await transcodeForExport(file('song.wma'));
       expect(la.ff_read_frame_multi).toHaveBeenCalledTimes(3);
-      expect(timeout).toHaveBeenCalledTimes(2);
+      expect(channel).toHaveBeenCalledTimes(2);
     } finally {
-      timeout.mockRestore();
+      delete (globalThis as any).MessageChannel;
     }
   });
 });
