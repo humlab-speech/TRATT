@@ -34,7 +34,7 @@ let libavFatInstance: any = null;
 // ASF container (used by .wma/.asf) requires the fat WASM which includes the ASF demuxer.
 const ASF_EXTENSIONS = new Set(['.wma', '.asf']);
 
-async function getLibAV(): Promise<any> {
+export async function getLibAV(): Promise<any> {
   if (libavInstance) return libavInstance;
   // Dynamic import of the libav ES module from deployed assets.
   // Using a variable to prevent esbuild from resolving the path at build time.
@@ -52,7 +52,9 @@ async function getLibAV(): Promise<any> {
   return libavInstance;
 }
 
-async function getLibAVFat(onStatus?: (msg: string) => void): Promise<any> {
+export async function getLibAVFat(
+  onStatus?: (msg: string) => void,
+): Promise<any> {
   if (libavFatInstance) return libavFatInstance;
   // Fat variant includes ASF demuxer + WMA codecs (~30 MB, loaded lazily).
   // Use noworker mode (same as the default variant) so the factory runs on the
