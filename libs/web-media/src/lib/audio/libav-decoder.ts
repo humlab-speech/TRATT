@@ -90,16 +90,67 @@ export async function getLibAVFat(
   return libavFatInstance;
 }
 
+/** The two builds, called through this object so tests can stand in for them. */
+export const libavBuilds = { getLibAV, getLibAVFat };
+
+// The default build could not open or decode the file; the fat one may.
+class DefaultBuildCannotRead extends Error {}
+
 export async function decodeWithLibAV(
   buf: ArrayBuffer,
   sourceFilename = 'input.audio',
   onStatus?: (msg: string) => void,
 ): Promise<AudioBufferLike> {
   const ext = sourceFilename.match(/\.[^.]+$/)?.[0]?.toLowerCase() ?? '';
-  const libav = ASF_EXTENSIONS.has(ext)
-    ? await getLibAVFat(onStatus)
-    : await getLibAV();
+  if (ASF_EXTENSIONS.has(ext)) {
+    return decodeOn(
+      await libavBuilds.getLibAVFat(onStatus),
+      buf,
+      sourceFilename,
+      onStatus,
+    );
+  }
+  try {
+    return await decodeOn(
+      await libavBuilds.getLibAV(),
+      buf,
+      sourceFilename,
+      onStatus,
+      true,
+    );
+  } catch (e) {
+    if (!(e instanceof DefaultBuildCannotRead)) throw e;
+    // The default build reads only wav, flac and Ogg/WebM Opus: mp4 (e.g.
+    // Tratt's own Opus-in-mp4 export, when the browser cannot decode it),
+    // mp3, m4a... need the fat one.
+    console.warn(`[libav] default build: ${e.message}; trying the fat build`);
+    return decodeOn(
+      await libavBuilds.getLibAVFat(onStatus),
+      buf,
+      sourceFilename,
+      onStatus,
+    );
+  }
+}
 
+async function decodeOn(
+  libav: any,
+  buf: ArrayBuffer,
+  sourceFilename: string,
+  onStatus?: (msg: string) => void,
+  // Open, decoder and "nothing decoded" failures throw DefaultBuildCannotRead.
+  defaultBuild = false,
+): Promise<AudioBufferLike> {
+  const cannotRead = async (f: () => Promise<any>): Promise<any> => {
+    try {
+      return await f();
+    } catch (e) {
+      if (!defaultBuild) throw e;
+      throw new DefaultBuildCannotRead(
+        e instanceof Error ? e.message : String(e),
+      );
+    }
+  };
   // Use the original filename so libav can detect the container format by extension
   // (e.g. .wma → ASF demuxer) before falling back to content probing.
   // Strip any path component; keep only the basename.
@@ -114,7 +165,9 @@ export async function decodeWithLibAV(
   try {
     onStatus?.('Probing container…');
     console.time('[libav] demux');
-    const [_fmt_ctx, streams] = await libav.ff_init_demuxer_file(filename);
+    const [_fmt_ctx, streams] = await cannotRead(() =>
+      libav.ff_init_demuxer_file(filename),
+    );
     console.timeEnd('[libav] demux');
     fmt_ctx = _fmt_ctx;
 
@@ -137,9 +190,8 @@ export async function decodeWithLibAV(
       }
     }
 
-    const [, _c, _pkt, _frame] = await libav.ff_init_decoder(
-      audioStream.codec_id,
-      audioStream.codecpar,
+    const [, _c, _pkt, _frame] = await cannotRead(() =>
+      libav.ff_init_decoder(audioStream.codec_id, audioStream.codecpar),
     );
     c = _c;
     pkt = _pkt;
@@ -159,7 +211,8 @@ export async function decodeWithLibAV(
     console.timeEnd('[libav] decode');
 
     if (!frames || frames.length === 0) {
-      throw new Error('libav.js: no audio frames decoded.');
+      const msg = 'libav.js: no audio frames decoded.';
+      throw defaultBuild ? new DefaultBuildCannotRead(msg) : new Error(msg);
     }
 
     const sampleRate = frames[0].sample_rate;
