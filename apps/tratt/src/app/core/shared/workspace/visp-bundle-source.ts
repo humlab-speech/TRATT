@@ -10,7 +10,7 @@ import {
   spliceOwnedLevel,
   toPlainOwnedLevel,
 } from './emu-annotation-splice';
-import { EmuWebsocketClient } from './emu-websocket-client';
+import { EmuServerError, EmuWebsocketClient } from './emu-websocket-client';
 import type { Workspace } from './workspace';
 
 type VispWorkspace = Extract<Workspace, { kind: 'visp' }>;
@@ -68,11 +68,18 @@ export function projectCookieGuard(
 interface BundleData {
   annotation: IAnnotJSON;
   mediaFile: { data: string; encoding: string };
+  /** sha256 of the stored file; what SAVEBUNDLE's baseVersion refers to. */
+  annotationVersion?: string;
 }
+
+/** The server's answer to a save based on an outdated version. */
+const STALE_REPLY = /^STALE\b/;
 
 /** One GETBUNDLE: the server's annotation and a way to fetch the audio. */
 export interface FetchedBundle {
   annotation: IAnnotJSON;
+  /** The server's version of `annotation` (see VispBundleSource.versionOf). */
+  version?: string;
   sampleRate: number;
   audio: () => Promise<Blob>;
 }
@@ -93,7 +100,10 @@ export class VispBundleSource implements BundleSource {
 
   /** The server annotation each open draft started from. */
   private readonly base = new Map<string, IAnnotJSON>();
+  /** The server's version of each base: a save is refused unless it is still current. */
+  private readonly baseVersion = new Map<string, string | undefined>();
   private dbConfig?: Promise<EmuDbConfig>;
+  private user?: Promise<string>;
 
   constructor(
     private readonly workspace: VispWorkspace,
@@ -122,6 +132,26 @@ export class VispBundleSource implements BundleSource {
     );
   }
 
+  /**
+   * Whose sign-in this is. Unsaved work is kept per user and every save says
+   * whose it is: on a shared browser, one person's leftovers must not be
+   * saved under the next person's sign-in.
+   */
+  whoAmI(): Promise<string> {
+    return (this.user ??= this.client
+      .request<{ username?: unknown }>('WHOAMI')
+      .then((data) => {
+        if (typeof data?.username !== 'string' || data.username === '') {
+          throw new Error('Visp did not say who is signed in.');
+        }
+        return data.username;
+      })
+      .catch((e) => {
+        this.user = undefined;
+        throw e;
+      }));
+  }
+
   listBundles(): Observable<BundleRef[]> {
     return from(this.client.request<BundleRef[]>('GETBUNDLELIST'));
   }
@@ -140,6 +170,7 @@ export class VispBundleSource implements BundleSource {
   async fetchBundle(ref: BundleRef): Promise<FetchedBundle> {
     const data = await this.getBundle(ref);
     this.base.set(this.key(ref), data.annotation);
+    this.baseVersion.set(this.key(ref), data.annotationVersion);
     const url = sameOriginMediaUrl(
       data.mediaFile.data,
       this.workspace.mediaOrigin,
@@ -147,6 +178,7 @@ export class VispBundleSource implements BundleSource {
     );
     return {
       annotation: data.annotation,
+      version: data.annotationVersion,
       sampleRate: Number((data.annotation as any)?.sampleRate) || 0,
       audio: async () => {
         const res = await this.fetchFn(url, { credentials: 'same-origin' });
@@ -160,12 +192,18 @@ export class VispBundleSource implements BundleSource {
    * A draft kept in the browser started from `annotation`, not from what the
    * server has now: the stale check must compare against that.
    */
-  adoptBase(ref: BundleRef, annotation: IAnnotJSON): void {
+  adoptBase(ref: BundleRef, annotation: IAnnotJSON, version?: string): void {
     this.base.set(this.key(ref), annotation);
+    this.baseVersion.set(this.key(ref), version);
   }
 
   baseOf(ref: BundleRef): IAnnotJSON | undefined {
     return this.base.get(this.key(ref));
+  }
+
+  /** The server's version of the base (undefined from servers that do not report one). */
+  versionOf(ref: BundleRef): string | undefined {
+    return this.baseVersion.get(this.key(ref));
   }
 
   /** BundleSource: the owned level and the audio. */
@@ -198,11 +236,18 @@ export class VispBundleSource implements BundleSource {
     if (!base) {
       throw new Error('Bundle was not loaded before saving.');
     }
-    // The protocol has no versioning: this narrows the race, it cannot close it.
-    const current = (await this.getBundle(ref)).annotation;
+    // An early, friendly check. What closes the race is baseVersion below:
+    // the server writes only if the file is still the version this save is
+    // based on, checked and written in one step.
+    const fresh = await this.getBundle(ref);
+    const current = fresh.annotation;
     if (!options.force && JSON.stringify(current) !== JSON.stringify(base)) {
       throw new StaleBundleError(current);
     }
+    // "Keep my version" is based on what the server has now.
+    const baseVersion = options.force
+      ? fresh.annotationVersion
+      : this.baseVersion.get(this.key(ref));
     const level = toPlainOwnedLevel(annotation as ISegmentLevel, {
       allowedLabels: allowedLabelNames(
         await this.getDbConfig(),
@@ -211,15 +256,30 @@ export class VispBundleSource implements BundleSource {
       breakMarker: options.breakMarker,
     });
     const merged = spliceOwnedLevel(current, level);
-    await this.client.request('SAVEBUNDLE', {
-      data: {
-        annotation: merged,
-        session: ref.session,
-        finishedEditing: meta.finishedEditing ?? ref.finishedEditing ?? false,
-        comment: meta.comment ?? ref.comment ?? '',
-        // never send ssffFiles: existing tracks stay untouched
-      },
-    });
+    let saved: { annotationVersion?: string } | undefined;
+    try {
+      saved = await this.client.request('SAVEBUNDLE', {
+        data: {
+          annotation: merged,
+          session: ref.session,
+          finishedEditing: meta.finishedEditing ?? ref.finishedEditing ?? false,
+          comment: meta.comment ?? ref.comment ?? '',
+          // never send ssffFiles: existing tracks stay untouched
+          // The server refuses the save if the file changed since baseVersion,
+          // if it changes any level but this one, or if someone else is now
+          // signed in in this browser.
+          baseVersion,
+          level: this.workspace.transcriptionLevel,
+          expectedUser: await this.whoAmI(),
+        },
+      });
+    } catch (e) {
+      if (e instanceof EmuServerError && STALE_REPLY.test(e.message)) {
+        throw new StaleBundleError((await this.getBundle(ref)).annotation);
+      }
+      throw e;
+    }
     this.base.set(this.key(ref), merged);
+    this.baseVersion.set(this.key(ref), saved?.annotationVersion);
   }
 }

@@ -3,6 +3,7 @@ import { StaleBundleError } from './visp-bundle-source';
 
 export type VispErrorKind =
   | 'not_signed_in'
+  | 'other_user'
   | 'not_member'
   | 'no_transcription_level'
   | 'level_linked'
@@ -25,6 +26,8 @@ export function classifyVispError(error: unknown): VispErrorKind {
     // The server could not check the sign-in just now: worth retrying, and
     // not the user's doing.
     if (/could not confirm|try again/i.test(message)) return 'unreachable';
+    // Someone else signed in to Visp in this browser since Tratt opened.
+    if (/different user/i.test(message)) return 'other_user';
     if (/member|not authori[sz]ed/i.test(message)) return 'not_member';
     // "User not identified" is how annotation-server says signed out.
     if (

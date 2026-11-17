@@ -1011,6 +1011,7 @@
       },
       "error": {
         "not_signed_in": "Du är inte längre inloggad i Visp. Dina ändringar finns kvar i den här webbläsaren: logga in igen i Visp så sparar Tratt dem.",
+        "other_user": "Någon annan är nu inloggad i Visp i den här webbläsaren. Ändringarna tillhör personen som gjorde dem och sparas åt den: Tratt sparar dem när den personen loggar in i Visp igen.",
         "not_member": "Du är inte medlem i det här projektet. Be projektägaren lägga till dig.",
         "no_transcription_level": "Annoteringsnivån som Tratt öppnades med är inte en segmentnivå i projektet, så Tratt kan inte öppna dess inspelningspaket. Öppna Tratt från Visp igen och välj en annan nivå.",
         "level_linked": "Annoteringsnivån som Tratt öppnades med är länkad till andra nivåer, så Tratt kan inte redigera den säkert. Öppna Tratt från Visp igen och välj en annan nivå.",
