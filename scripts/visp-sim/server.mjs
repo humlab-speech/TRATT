@@ -7,6 +7,7 @@
 // "visp": {"serverUrl": "/annotation-ws", "transcriptionLevel": "Standardnivå"} in appconfig.json.
 // Saves are kept in memory (lost on restart) and logged in the page.
 import { createServer } from 'node:http';
+import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
@@ -50,6 +51,8 @@ const dbConfig = {
   linkDefinitions: [],
 };
 
+const version = (b) => createHash('sha1').update(JSON.stringify(b.annotation)).digest('hex');
+
 const events = []; // lines for the host page's log
 const note = (s) => { console.log(s); events.push(s); };
 
@@ -87,6 +90,7 @@ new WebSocketServer({ server: http, path: '/annotation-ws' }).on('connection', (
     const key = `${req.session ?? req.data?.session}/${req.name ?? req.data?.annotation?.name}`;
     switch (req.type) {
       case 'GETGLOBALDBCONFIG': return ok(dbConfig);
+      case 'WHOAMI': return ok({ username: 'sim' });
       case 'GETBUNDLELIST':
         return ok([...bundles.values()].map(({ session, name, finishedEditing, comment }) => ({ session, name, finishedEditing, comment })));
       case 'GETBUNDLE': {
@@ -96,17 +100,19 @@ new WebSocketServer({ server: http, path: '/annotation-ws' }).on('connection', (
           annotation: b.annotation,
           mediaFile: { encoding: 'GETURL', data: `${TRATT}/file/${encodeURIComponent(b.session)}/${encodeURIComponent(b.name)}` },
           ssffFiles: [],
+          ...(req.withVersion === true ? { annotationVersion: version(b) } : {}),
         });
       }
       case 'SAVEBUNDLE': {
         const b = bundles.get(key);
         if (!b) return fail('Bundle not found.');
+        if (req.data.baseVersion !== undefined && req.data.baseVersion !== version(b)) return fail('STALE: the bundle was changed in Visp since it was opened.');
         b.annotation = req.data.annotation;
         b.finishedEditing = !!req.data.finishedEditing;
         b.comment = req.data.comment ?? '';
         const n = b.annotation.levels.find((l) => l.name === LEVEL)?.items.length;
         note(`SAVEBUNDLE ${key}: ${n} segments, finished=${b.finishedEditing}`);
-        return ok('');
+        return ok({ annotationVersion: version(b) });
       }
       default: return fail('Unknown command');
     }
