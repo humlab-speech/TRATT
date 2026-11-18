@@ -88,8 +88,8 @@ export class ELANConverter extends Converter {
             _MEDIA_URL:
               audiofile?.url && audiofile.url !== ''
                 ? audiofile.url
-                : `./${annotation.annotates}`,
-            _MEDIA_RELATIVE_URL: `./${annotation.annotates}`,
+                : `./${annotation.annotates || audiofile?.name || ''}`,
+            _MEDIA_RELATIVE_URL: `./${annotation.annotates || audiofile?.name || ''}`,
             _MIME_TYPE: 'audio/x-wav',
           },
         },

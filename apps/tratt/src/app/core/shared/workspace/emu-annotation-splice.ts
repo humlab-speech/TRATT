@@ -132,9 +132,9 @@ export function checkEditable(
     : { editable: true };
 }
 
-function maxItemId(annotation: EmuAnnotation): number {
+function maxItemId(annotation: EmuAnnotation | undefined): number {
   let max = 0;
-  for (const level of annotation.levels) {
+  for (const level of annotation?.levels ?? []) {
     for (const item of level.items ?? []) {
       max = Math.max(max, item.id);
     }
@@ -153,7 +153,7 @@ export function extractOwnedLevel(
   totalSamples: number,
 ): ISegmentLevel {
   const emu = annotation as unknown as EmuAnnotation;
-  const level = emu.levels.find((l) => l.name === levelName);
+  const level = emu?.levels?.find((l) => l.name === levelName);
   const items: ISegment[] = level?.items?.length
     ? level.items.map((i) => ({
         id: i.id,
@@ -196,7 +196,8 @@ export function spliceOwnedLevel(
   original: IAnnotJSON,
   edited: ISegmentLevel,
 ): IAnnotJSON {
-  const emu = JSON.parse(JSON.stringify(original)) as EmuAnnotation;
+  const emu = JSON.parse(JSON.stringify(original ?? {})) as EmuAnnotation;
+  emu.levels ??= [];
   const level = emu.levels.find((l) => l.name === edited.name);
   const originalItems = new Map<number, EmuItem>(
     (level?.items ?? []).map((i) => [i.id, i]),

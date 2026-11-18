@@ -110,7 +110,9 @@ export class BundleJSONConverter extends Converter {
       const audioResult: OAudiofile = new OAudiofile();
       audioResult.name =
         annotation.name +
-        annotation.annotates.substr(annotation.annotates.lastIndexOf('.'));
+        (annotation.annotates ?? '').substr(
+          (annotation.annotates ?? '').lastIndexOf('.'),
+        );
 
       if (
         contains(audioResult.name, '.wav') ||

@@ -1,6 +1,8 @@
 import { ISegmentLevel } from '@tratt/annotation';
 import {
   allowedLabelNames,
+  extractOwnedLevel,
+  spliceOwnedLevel,
   hasContent,
   ownedLevelKey,
   toPlainOwnedLevel,
@@ -114,5 +116,21 @@ describe('ownedLevelKey / hasContent', () => {
         ]),
       ),
     ).toBe(true);
+  });
+});
+
+describe('annotation without levels/annotates', () => {
+  const bare = { name: 'b', sampleRate: 16000 } as any;
+
+  it('extractOwnedLevel offers an empty segment', () => {
+    const level = extractOwnedLevel(bare, 'Word', 100);
+    expect(level.items.length).toBe(1);
+    expect(level.items[0].sampleDur).toBe(100);
+  });
+
+  it('spliceOwnedLevel creates the level', () => {
+    const level = extractOwnedLevel(bare, 'Word', 100);
+    const out = spliceOwnedLevel(bare, level);
+    expect(out.levels.map((l) => l.name)).toEqual(['Word']);
   });
 });
