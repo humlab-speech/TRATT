@@ -725,6 +725,7 @@
       },
       "error": {
         "not_signed_in": "你已不再登录 Visp。你的更改保留在此浏览器中：在 Visp 中重新登录后，Tratt 会保存它们。",
+        "other_user": "现在有其他人在此浏览器中登录了 Visp。这些更改属于做出更改的人，并为其保留：当那个人再次登录 Visp 时，Tratt 会保存它们。",
         "not_member": "你不是此项目的成员。请项目负责人添加你。",
         "no_transcription_level": "此项目没有转写层，因此 Tratt 无法打开其录音包。请项目负责人在 Visp 中添加一个。",
         "level_linked": "转写层与其他层相关联，因此 Tratt 无法安全地编辑它。请项目负责人解除关联。",

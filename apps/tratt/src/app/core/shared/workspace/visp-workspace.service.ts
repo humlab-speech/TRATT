@@ -42,6 +42,7 @@ import {
   projectCookieGuard,
 } from './visp-bundle-source';
 import {
+  DRAFT_MAX_AGE_MS,
   IndexedDbDraftStore,
   MemoryDraftStore,
   VispDraftStore,
@@ -251,14 +252,20 @@ export class VispWorkspaceService {
           window.location.origin,
         );
       }
-      this.drafts ??=
-        typeof indexedDB !== 'undefined'
-          ? new IndexedDbDraftStore(
-              w.serverUrl,
-              w.projectId,
-              w.transcriptionLevel,
-            )
-          : new MemoryDraftStore();
+      if (!this.drafts) {
+        // Drafts are per Visp user: never show or save another user's.
+        const user = await this.source.whoAmI();
+        this.drafts =
+          typeof indexedDB !== 'undefined'
+            ? new IndexedDbDraftStore(
+                w.serverUrl,
+                w.projectId,
+                w.transcriptionLevel,
+                user,
+              )
+            : new MemoryDraftStore();
+      }
+      await this.drafts.prune(Date.now() - DRAFT_MAX_AGE_MS);
 
       const editability = await this.source.editability();
       if (!editability.editable) {
@@ -382,7 +389,7 @@ export class VispWorkspaceService {
       const draft = await this.drafts!.get(ref);
       const sampleRate = fetched.sampleRate;
       if (draft) {
-        this.source!.adoptBase(ref, draft.base);
+        this.source!.adoptBase(ref, draft.base, draft.baseVersion);
         this.baseline.set(bundleId, this.serverLevel(draft.base, 0));
         this.showLevel(bundleId, ref, draft.level, sampleRate);
         return;
@@ -432,7 +439,7 @@ export class VispWorkspaceService {
     const draft = await this.drafts!.get(ref);
     let level: ISegmentLevel;
     if (draft) {
-      this.source!.adoptBase(ref, draft.base);
+      this.source!.adoptBase(ref, draft.base, draft.baseVersion);
       this.baseline.set(
         bundleId,
         this.serverLevel(draft.base, info.duration.samples),
@@ -565,7 +572,13 @@ export class VispWorkspaceService {
       // Both can clear up without the user doing anything in Tratt: Visp
       // comes back, or the user signs in again in Visp. The draft keeps the
       // changes meanwhile.
-      if (error.kind === 'unreachable' || error.kind === 'not_signed_in') {
+      // 'other_user': someone else signed in to Visp in this browser; the
+      // save goes through once the user who made the changes is back.
+      if (
+        error.kind === 'unreachable' ||
+        error.kind === 'not_signed_in' ||
+        error.kind === 'other_user'
+      ) {
         this.autoSaves.schedule(bundleId, AUTO_SAVE_RETRY_MS);
       }
       // A stale bundle is the row's business (it offers the choice).
@@ -773,8 +786,9 @@ export class VispWorkspaceService {
     const cached = this.fetched.get(bundleId);
     if (cached) return cached.audio;
     const base = this.source!.baseOf(ref);
+    const version = this.source!.versionOf(ref);
     const fetched = await this.source!.fetchBundle(ref);
-    if (base) this.source!.adoptBase(ref, base);
+    if (base) this.source!.adoptBase(ref, base, version);
     this.fetched.set(bundleId, fetched);
     return fetched.audio;
   }
@@ -797,7 +811,9 @@ export class VispWorkspaceService {
       setTimeout(() => {
         this.draftTimers.delete(bundleId);
         const base = this.source?.baseOf(ref);
-        if (base) void this.drafts?.put(ref, level, base);
+        if (base) {
+          void this.drafts?.put(ref, level, base, this.source?.versionOf(ref));
+        }
       }, DRAFT_WRITE_DELAY_MS),
     );
   }
@@ -891,7 +907,9 @@ export class VispWorkspaceService {
     for (const [bundleId, b] of Object.entries(this._bundles())) {
       if (
         b.sync === 'failed' &&
-        (b.error?.kind === 'not_signed_in' || b.error?.kind === 'unreachable')
+        (b.error?.kind === 'not_signed_in' ||
+          b.error?.kind === 'unreachable' ||
+          b.error?.kind === 'other_user')
       ) {
         this.autoSaves.schedule(bundleId, 0);
       }
@@ -900,11 +918,11 @@ export class VispWorkspaceService {
 
   private describe(e: unknown): { kind: VispErrorKind; message: string } {
     const kind = classifyVispError(e);
-    if (kind === 'not_signed_in') {
+    if (kind === 'not_signed_in' || kind === 'other_user') {
       // annotation-server reads the session cookie once, when the websocket
-      // opens, so this connection stays signed out even after the user signs
-      // in again. Dropped, the next request connects with the browser's
-      // cookie as it is then.
+      // opens, so this connection keeps the sign-in it started with even
+      // after the user signs in again (or someone else does). Dropped, the
+      // next request connects with the browser's cookie as it is then.
       this.client?.close();
     }
     return {

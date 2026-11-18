@@ -74,6 +74,18 @@ describe('VispWorkspaceService when signed out', () => {
     expect(client.close).toHaveBeenCalled();
   });
 
+  it('drops the websocket when someone else signed in, so the right user is picked up on their return', () => {
+    const { service, client } = bare({});
+    expect(
+      service.describe(
+        new EmuServerError(
+          'Signed in to Visp as a different user than the one who made these changes.',
+        ),
+      ).kind,
+    ).toBe('other_user');
+    expect(client.close).toHaveBeenCalled();
+  });
+
   it('keeps the websocket for other failures', () => {
     const { service, client } = bare({});
     service.describe(new EmuConnectionError('x'));
@@ -87,11 +99,13 @@ describe('VispWorkspaceService when signed out', () => {
       b: { sync: 'failed', error: { kind: 'unreachable' } },
       c: { sync: 'failed', error: { kind: 'stale' } },
       d: { sync: 'saved' },
+      e: { sync: 'failed', error: { kind: 'other_user' } },
     });
     service.retryBlockedSaves();
     expect(autoSaves.schedule.mock.calls).toEqual([
       ['a', 0],
       ['b', 0],
+      ['e', 0],
     ]);
   });
 });
