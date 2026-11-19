@@ -66,13 +66,20 @@ session.
 
 ## Rensa dina data
 
-Öppna den dolda underhållssidan genom att lägga till `/help-tools` i Tratt:s
-adress (till exempel `https://tratt.visp.humlab.umu.se/help-tools`) och använd **Clear all
-Storage Data**. Den tar bort lagrat transkript, loggar och inställningar från den
-här webbläsaren permanent. Gör det på en delad dator när du är klar, efter att
-du har exporterat ditt arbete. Samma sida kan också ta en zip-säkerhetskopia av
-dina lokala Tratt-data och återställa en; se
-[Felsökning](troubleshooting.md#the-maintenance-page).
+**Radera all data permanent**, längst ned i **Lagring och minne** i listan, är
+den korta vägen. Tratt frågar först — *Radera alla transkriptioner, loggar och
+inställningar i den här webbläsaren? Detta går inte att ångra.* — och vid **Ja**
+töms den här webbläsarens lagring och Tratt laddas om, så att du står på den
+tomma startsidan utan att något är kvar. Exportera ditt arbete innan du trycker;
+se [Arkivet, och hur du tar vid där du slutade](exporting.md#exporting-an-archive).
+
+Gör det på en delad dator när du är klar.
+
+Den dolda underhållssidan gör samma sak och lite till: lägg till `/help-tools` i
+Tratt:s adress (till exempel
+`https://tratt.visp.humlab.umu.se/help-tools`) och använd **Clear all Storage
+Data**. Den sidan kan också ta en zip-säkerhetskopia av dina lokala Tratt-data
+och återställa en; se [Felsökning](troubleshooting.md#the-maintenance-page).
 
 Webbläsare rensar också IndexedDB när du rensar webbplatsdata, använder ett
 privat fönster som du sedan stänger, eller kör städverktyg. Betrakta kopian i

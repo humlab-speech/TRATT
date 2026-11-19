@@ -61,7 +61,8 @@ Four things sit on the left, from top to bottom:
 3. **Transcription**: the transcription settings, whether new files are
    transcribed automatically, and — when some file is waiting — the button
    that starts the queue.
-4. Two capacity meters: **Browser storage** and **Working memory (est.)**.
+4. **Storage and memory**: two capacity meters, **Browser storage** and
+   **Working memory (est.)**, over **Delete all data permanently**.
 
 The rest of the window is the recording bundle you have selected in the list.
 The list is the only place to switch between recording bundles; hover over one
@@ -234,6 +235,12 @@ Every recording whose audio is attached occupies memory for as long as it
 is attached. If you are near the budget, or a file fails with *Ran out of memory*,
 work through the material in smaller groups,  export and
 [Delete done](#housekeeping), then attach the next few.
+
+At the foot of the panel, **Delete all data permanently** empties this browser's
+storage: every transcript, log and setting, not only the recordings in the list.
+Tratt asks first and then reloads itself, leaving you on the empty start page.
+Export before you use it; see
+[How Tratt uses the internet](privacy.md#clearing-your-data).
 
 ---
 

@@ -67,12 +67,20 @@ not an archive. Make a habit of [exporting](exporting.md) after a session.
 
 ## Clearing your data
 
-Open the hidden maintenance page by adding `/help-tools` to Tratt's address (for
-example `https://tratt.visp.humlab.umu.se/help-tools`) and use **Clear all Storage Data**. It
-deletes the stored transcript, logs and settings from this browser permanently. Do
-this on a shared machine when you are finished, after exporting your work. The
-same page can also make a zip backup of your local Tratt data and restore one; see
-[Troubleshooting](troubleshooting.md#the-maintenance-page).
+**Delete all data permanently**, at the foot of **Storage and memory** in the
+list, is the short way. Tratt asks first — *Delete all transcripts, logs and
+settings in this browser? This cannot be undone.* — and on **Yes** empties this
+browser's storage and reloads itself, so you are back at the empty start page
+with nothing kept. Export your work before you press it; see
+[The archive, and how to pick up where you left off](exporting.md#exporting-an-archive).
+
+Do this on a shared machine when you are finished.
+
+The hidden maintenance page does the same and a little more: add `/help-tools`
+to Tratt's address (for example
+`https://tratt.visp.humlab.umu.se/help-tools`) and use **Clear all Storage
+Data**. That page can also make a zip backup of your local Tratt data and
+restore one; see [Troubleshooting](troubleshooting.md#the-maintenance-page).
 
 Browsers also clear IndexedDB when you clear site data, use a private window that
 you then close, or run storage-cleanup tooling. Treat the in-browser copy as a

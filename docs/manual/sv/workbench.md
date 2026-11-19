@@ -36,7 +36,8 @@ Fyra saker ligger till vänster, uppifrån och ned:
    *Släpp ljud- eller videofiler här, eller en .zip sparad från Tratt*.
 3. **Pipelineinställningar**: vad som händer med en fil automatiskt, och knappen
    som startar kön.
-4. Två kapacitetsmätare: **Webbläsarlagring** och **Arbetsminne (uppskattat)**.
+4. **Lagring och minne**: två kapacitetsmätare, **Webbläsarlagring** och
+   **Arbetsminne (uppskattat)**, över **Radera all data permanent**.
 
 Resten av fönstret är det inspelningspaket du valt i listan. Listan är det enda
 stället där du byter inspelningspaket; håll pekaren över ett för att se ljudets
@@ -192,6 +193,12 @@ Varje inspelning vars ljud är bifogat tar minne så länge det
 är bifogat. Är du nära taket, eller misslyckas en fil med *Minnet tog slut*, arbeta
 igenom materialet i mindre grupper, exportera och
 [Radera klara](#housekeeping), bifoga sedan de nästkommande.
+
+Längst ned i panelen tömmer **Radera all data permanent** den här webbläsarens
+lagring: varje transkription, logg och inställning, inte bara inspelningarna i
+listan. Tratt frågar först och laddar sedan om sig själv, så att du står på den
+tomma startsidan. Exportera innan du använder den; se
+[Hur Tratt använder internet](privacy.md#rensa-dina-data).
 
 ---
 
