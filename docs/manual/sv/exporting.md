@@ -224,6 +224,18 @@ Två saker att räkna med:
   vägen ut kommer `interview-01.mp3` tillbaka som `interview-01.opus`.
   Transkriptionen, tiderna och manifestets `sourceFilename` minns originalet.
 
+**Ett arkiv läggs till i listan, det smälts aldrig in i den.** Dess inspelningar
+kommer in som nya inspelningspaket; de ersätter, uppdaterar eller förenas inte
+med något som redan ligger där. Tillsammans med namnbytet ovan betyder det att
+läsa in ett arkiv ovanpå materialet det gjordes av lämnar dig med intervjun två
+gånger: `interview-01.mp3` sedan tidigare och `interview-01.opus` från arkivet,
+var och en med sin egen transkription. Ta bort den du inte vill ha, med **Ta
+bort** eller **Radera klara**.
+
+Läs därför in ett arkiv i en tom lista när du kan. Att släppa *samma* arkiv en
+andra gång är däremot ofarligt: namn som redan finns i listan hoppas över och
+ingenting läggs till.
+
 Allt annat i arkivet — Word-filerna, undertexterna, manifesten — är utdata.
 Tratt bortser från det vid inläsning, så ett arkiv du har lagt till egna filer i
 går ändå att läsa in.

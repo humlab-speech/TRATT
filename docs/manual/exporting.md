@@ -224,6 +224,18 @@ Two things to expect:
   The transcript, the timings and the manifest's `sourceFilename` still record
   the original.
 
+**An archive is added to the list, never merged into it.** Its recordings arrive
+as new recording bundles; they do not replace, update or join up with anything
+already there. Combined with the renaming above, that means loading an archive
+on top of the material it was made from leaves you with the interview twice:
+`interview-01.mp3` from before and `interview-01.opus` from the archive, each
+with its own transcript. Delete whichever you do not want, with **Delete** or
+**Delete done**.
+
+So load an archive into an empty list when you can. Dropping the *same* archive
+a second time is harmless, though: names already in the list are skipped and
+nothing is added.
+
 Everything else in the archive — the Word files, the subtitles, the manifests —
 is output. Tratt ignores it when loading, so an archive you have added your own
 files to still loads.
