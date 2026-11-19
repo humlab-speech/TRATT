@@ -174,29 +174,25 @@ describe('ExportFilesModalComponent', () => {
       bundle('b3', 'c.wav'),
     ];
 
-    it('starts on the ticked bundles when some are ticked', () => {
+    it('starts on all bundles, even when some are ticked', () => {
       openFromList(list, ['b2', 'b3'], 'b1');
-      expect(component.scope()).toBe('ticked');
+      expect(component.scope()).toBe('all');
+      expect(component.scopedBundles()).toHaveLength(3);
+    });
+
+    it('offers the open and ticked bundles, and switches when chosen', () => {
+      openFromList(list, ['b2', 'b3'], 'b1');
+      const radios = fixture.debugElement.queryAll(
+        By.css('.export__scope input[type=radio]'),
+      );
+      expect(radios).toHaveLength(3);
+      component.setScope('ticked');
       expect(component.scopedBundles().map((b) => b.bundleId)).toEqual([
         'b2',
         'b3',
       ]);
-    });
-
-    it('starts on the open bundle when none is ticked', () => {
-      openFromList(list, [], 'b1');
-      expect(component.scope()).toBe('open');
+      component.setScope('open');
       expect(component.scopedBundles().map((b) => b.bundleId)).toEqual(['b1']);
-    });
-
-    it('offers all of them, and switches when chosen', () => {
-      openFromList(list, [], 'b1');
-      const radios = fixture.debugElement.queryAll(
-        By.css('.export__scope input[type=radio]'),
-      );
-      expect(radios).toHaveLength(2);
-      component.setScope('all');
-      expect(component.scopedBundles()).toHaveLength(3);
     });
 
     it('asks nothing when there is only one recording bundle', () => {
@@ -334,6 +330,7 @@ describe('ExportFilesModalComponent', () => {
       expect(exportButton().disabled).toBe(true);
 
       component.setIncludeAudio(true);
+      component.setScope('open');
       fixture.detectChanges();
       expect(component.contents().single).toEqual({
         name: 'a.opus',

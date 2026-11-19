@@ -291,7 +291,7 @@ export class ExportFilesModalComponent
 
   private readonly chosenScope = signal<ExportScope | undefined>(undefined);
 
-  /** The ticked bundles if there are any, else the open one, else all. */
+  /** All loaded bundles by default, else the ticked ones, else the open one. */
   readonly scope = computed<ExportScope>(() => {
     const offered = this.scopes().map((s) => s.scope);
     const chosen = this.chosenScope();
@@ -299,7 +299,7 @@ export class ExportFilesModalComponent
       return chosen;
     }
     return (
-      (['ticked', 'open', 'all'] as const).find((s) => offered.includes(s)) ??
+      (['all', 'ticked', 'open'] as const).find((s) => offered.includes(s)) ??
       'all'
     );
   });
