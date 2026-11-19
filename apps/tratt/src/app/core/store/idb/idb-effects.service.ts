@@ -914,9 +914,16 @@ export class IDBEffects {
           );
         }
         if (!this.audio.current) {
-          // Audio not yet loaded (e.g. loginLocal.prepare fires before audio is registered).
-          // Skip annotation save — it will be saved once audio loads successfully.
-          return of(IDBActions.saveAnnotation.success());
+          // Nothing to serialize against, so no write is issued - answer the
+          // trigger truthfully. `success` here made
+          // AppStorageService.changeAnnotationLevel() report a completed save
+          // for a transcript that never reached IndexedDB. The snapshot is saved
+          // again by the next media-bearing initTranscriptionService.success.
+          return of(
+            IDBActions.saveAnnotation.fail({
+              error: 'No audio loaded for the current bundle - save skipped.',
+            }),
+          );
         }
         let serialized;
         try {
