@@ -153,10 +153,10 @@ Sidan stängdes eller laddades om medan kön körde. Bifoga
 ljudet igen och kör kön på nytt. I de flesta fall går ingenting förlorat.
 
 **Transkribera-knappen är gråmarkerad**
-Ingen pipeline är inställd. Öppna **Pipelineinställningar** och markera
-**Automatisk transkribering med Whisper** först.
+Ingen transkription är inställd. Öppna **Transkriptionsinställningar** och välj
+språk och modell först.
 
-**Alla filer säger "Bifoga fil…"**
+**Alla inspelningar säger "Bifoga ljud…"**
 Normalt efter en omladdning. Tratt behåller en kopia av transkriptionerna i sin lagring, men inte media. Därför
 behöver varje inspelning få sitt ljud bifogat från din dator igen. Ett
 [exporterat arkiv](exporting.md#exporting-an-archive) innehåller allt och återställer båda på en gång.
@@ -185,10 +185,10 @@ Tratt håller en kopia av transkript i den här webbläsarens lagring. Du kan f�
 om du rensar webbplatsdata, använder ett privat fönster och stänger
 det, byter webbläsare eller dator, eller om ett städverktyg rensar IndexedDB.
 
-**Jag släppte in filen igen men knappen sa "Starta ny transkription"**
-Det betyder att Tratt inte känner igen filen som den som den sparade sessionen hör
-till, och att klicka *kastar* det sparade transkriptet. Kontrollera att det är
-samma fil, med samma namn, innan du klickar på knappen för att starta en ny transkription.
+**Jag bifogade ljudet igen och Tratt sa att det inte var samma fil**
+Tratt jämför det du väljer med det inspelningspaketet gjordes av, på namn och
+storlek. Att svara *Använd ändå* skadar inte transkriptionen, men är det
+verkligen en annan inspelning kommer gränserna inte att ligga rätt mot ljudet.
 
 ---
 

@@ -177,92 +177,65 @@ Not exercised live, and therefore still source-derived only:
 
 ## Screenshots
 
-The ten screenshots in `docs/assets/` were re-shot for the Språkbanken profile
-from a production build of `3ed8c0b33` (version 3.2.1) served locally, so the
-chrome matches from page to page: white header, Umeå/Humlab logo, teal
-interaction and orange next-step buttons, Jost headings over Noto Serif body.
-Nine came from one run against that build; `auto_transcription_options` was taken
-in a real Chrome with WebGPU, as it always has to be.
+The ten screenshots in `docs/assets/` come from a production build of 3.3.1
+served locally. They were re-taken after the rework that merged the start page
+and the Workbench into one surface, so they show the welcome screen, the list of
+recording bundles beside the editor, and the Export dialog as it is now.
 
-Two README-only images still show the pre-profile look and could not be
-regenerated here: `draft_automatic_transcription` needs an auto-transcription in
-progress (the model download needs `huggingface.co`) and
-`popup_editor_audio_and_video` needs a video fixture that the app will accept.
-
-To re-shoot (everything except the WebGPU image):
-
-1. Create the fixtures (see **How to reproduce them** below) in a directory of your
-   choice. It must contain `interview-01-mixed.srt`, the short recordings
-   (`.wav`/`.mp3`/`.ogg`/`.m4a`) and, for the popup-with-video image, one video file.
-2. Serve a production build with `apps/tratt/src/config/appconfig.json` in place, and
-   run `npx playwright install chromium` once.
-3. `BASE_URL=http://localhost:5321 MANUAL_FIXTURES=/path/to/fixtures npm run docs:screens`.
-   `BASE_URL` defaults to `http://localhost:5321`; `MANUAL_FIXTURES` is required and
-   the script stops with a message if the directory or `interview-01-mixed.srt` is
-   missing.
-4. The script generates only the images it can produce truthfully: `main`,
-   `dictaphone_editor`, `popup_editor_audio_only`, `popup_editor_audio_and_video`
-   (only if the fixtures hold a video file), `overview` and `export_formats`. It
-   never substitutes or fakes the others; it prints a `take by hand:` line for each
-   and exits 0. Take these by hand (existing files are left untouched):
-   `auto_transcription_options` (real Chrome with WebGPU), `draft_automatic_transcription`
-   (an auto-transcription in progress), `2d_editor` (import with speaker
-   identification ticked, for the badges), `linear_editor` (one unit opened),
-   `overview_edit` (first two units checked) and `workbench` (four recordings: one
-   selected, one done, one queued). The exit code is non-zero only when a
-   generated image fails.
-5. Open every image at full size (no personal data, no stray errors, light theme).
-   Keep each file under 400 kB, except the two popup images; the script warns when
-   one is over.
+Two README-only images still show the previous look and could not be made here:
+`draft_automatic_transcription` needs an auto-transcription actually running (the
+model download needs `huggingface.co`) and `popup_editor_audio_and_video` needs a
+video file the app will accept.
 
 | File                                        | Shows                                                       | Used by                                   |
 | ------------------------------------------- | ----------------------------------------------------------- | ----------------------------------------- |
-| `visp_tratt_main.png`                       | The start page down to the start button                     | `quick-start.md`                          |
-| `visp_tratt_auto_transcription_options.png` | The upload card with the Whisper options open               | `automatic-transcription.md`              |
+| `visp_tratt_main.png`                       | The welcome screen, down to the three steps                 | `quick-start.md`                          |
+| `visp_tratt_auto_transcription_options.png` | The **Transcription settings** dialog                       | `automatic-transcription.md`              |
+| `visp_tratt_workbench.png`                  | The recording-bundle list beside the editor                 | `workbench.md`                            |
 | `visp_tratt_2d_editor.png`                  | The 2D-Editor with speaker badges                           | `the-editors.md`                          |
 | `visp_tratt_popup_editor_audio_only.png`    | The transcription window over the 2D-Editor                 | `quick-start.md`, `the-editors.md`        |
 | `visp_tratt_dictaphone_editor.png`          | The Dictaphone Editor                                       | `the-editors.md`                          |
 | `visp_tratt_linear_editor.png`              | The Linear Editor, both displays, one unit open             | `the-editors.md`                          |
+| `visp_tratt_overview.png`                   | The Overview window                                         | `README.md`                               |
 | `visp_tratt_overview_edit.png`              | The Overview window, one row open for editing               | `quick-start.md`, `checking-your-work.md` |
-| `visp_tratt_export_formats.png`             | The export dialog                                           | `quick-start.md`, `exporting.md`          |
-| `visp_tratt_workbench.png`                  | The Workbench with four recordings                          | `workbench.md`                            |
+| `visp_tratt_export_formats.png`             | The Export dialog                                           | `quick-start.md`, `exporting.md`          |
 
 How to reproduce them:
 
-- The material is synthetic. Four short two-speaker recordings were generated with
+- The material is synthetic. Four short two-speaker recordings are generated with
   `espeak-ng` and paired with SRT files written from the same script, so the text
   in the pictures is exactly what the audio says and no real person appears in the
   manual. The SRT units are contiguous, which is why no `<P>` pause units clutter
   the Overview.
+- **Add the files through "Transcribe by hand, without AI"**, not by dropping them
+  on the box. Dropping starts the pipeline, and without `huggingface.co` the row
+  fails with *Could not load the model*, which has no place in a screenshot.
+  Further recordings go on the drop area inside the list.
+- A transcript has to be named like its recording (`interview-01.srt` beside
+  `interview-01.mp3`) or it will not pair.
 - The files are imported with **Regular expression for speaker identification**
   ticked and its default value, and with **Move units with speaker label to
   separate levels** left off, which is what puts the coloured `Interviewer` and
   `Respondent` badges on the units instead of splitting them into two tiers.
-- The imported tier is renamed from `OCTRA_1` to `Transcription` before shooting.
+- The imported tier is renamed to `Transcription` before shooting.
 - The Overview needs a part-checked transcript, or every row is the same colour.
-  An SRT that Tratt itself has imported comes in verified unless the text carries
-  the not-check mark, so `interview-01-mixed.srt` appends `⍻` (U+237B) to every
-  line but the first two. In 3.2.1 that yields one green row and the rest orange,
-  not two green: the importer appears to shift the flag by one unit. The picture
-  reads correctly either way. See
-  [Verification marks](exporting.md#verification-marks-in-time-aligned-formats).
-- `overview.png` (README) is the window as it opens; `overview_edit.png` has one
-  row opened for editing, which is a **double-click** on the row, not a click.
+  Play the first few seconds before opening it: listening is what marks a unit
+  verified, and roughly eight seconds of the fixture turns the first two rows
+  green while the rest stay orange. (The `⍻` fixture trick used before the rework
+  no longer survives the speaker-identification import.)
+- `overview_edit.png` has one row opened for editing, which is a **double-click**
+  on the row, not a click.
 - Device pixel ratio 2 throughout, light theme (`localStorage['tratt.theme'] =
-  'light'` before the first paint). Viewport 1600 × 800 for the 2D-Editor, the
-  transcription window and the two dialogs; 1600 × 620 for the Dictaphone and
-  Linear editors, whose text field otherwise fills the lower half with white;
-  1600 × 900 for the Workbench; 1440 wide for the start page, clipped to the
-  bottom of the upload card. **Below 1400 px the editor switcher in the header
-  collapses to icons** (the Workbench's editor tabs keep their labels), so do not
-  shoot the editor narrower than that.
-- `visp_tratt_auto_transcription_options.png` is the exception: the headless
-  browser has no WebGPU, which greys out the two largest Whisper models and
-  changes every model description, so that one was taken in a real Chrome with
-  WebGPU and cropped. Since the profile the options sit in two columns inside the
-  upload card, so the crop covers the whole card (**Auto-transcribe with Whisper**
-  beside **Translate transcript locally**) rather than one panel. It shows the
-  English model list; the Nordic languages get a different one.
+  'light'` before the first paint). Viewport 1600 × 800 for the editor, the
+  transcription window and the dialogs; 1600 × 640 for the Dictaphone and Linear
+  editors, whose text field otherwise fills the lower half with white; 1600 × 900
+  for the list beside the editor; 1440 wide for the welcome screen, clipped under
+  the three steps. **Below 1400 px the editor tabs collapse**, so do not shoot the
+  editor narrower than that.
+- `visp_tratt_auto_transcription_options.png` is a crop of the **Transcription
+  settings** dialog, opened with **Change** on the welcome screen. The headless
+  browser has no WebGPU, so the two largest models are greyed out there; shoot it
+  in a real Chrome with WebGPU if the full list matters.
 
 ## Caveats to delete when the app changes
 

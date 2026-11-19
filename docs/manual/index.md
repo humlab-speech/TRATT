@@ -23,16 +23,14 @@ see [What leaves your computer](privacy.md) for exactly what does.
 
 ## Two ways of working
 
-Most of Tratt is about one recording at a time: you load a file on the start page,
-transcribe it, export it. That is what the next two sections describe, and it is
-where to start.
+Most of Tratt is about one recording at a time: you add a file, transcribe it,
+export it. That is what the next two sections describe, and it is where to start.
 
-If you have a batch, the **Workbench** at `/workbench` holds many recordings in one
-list, transcribes them through a queue, and lets you click between the results. Open
-it with the **Workbench** link in the header of the start page, or by typing
-the address. The
-editors, shortcuts and formats are the same either way, so nothing you learn below
-is wasted.
+There is only one working surface, and it holds as many recordings as you like.
+Add a second file and it joins the first in a list down the left-hand side, with
+a queue that works through them one at a time while you edit the one that is
+done. Nothing to switch on and nowhere else to go; see
+[Working with several recordings](workbench.md).
 
 The header also has a button, **Switch between light and dark mode**, for the
 colour theme. Your choice stays on your own device. See [Privacy](privacy.md).

@@ -11,7 +11,7 @@ Du behöver inget konto. Du behöver inte installera något.
 
 ## 1. Öppna Tratt
 
-Du landar på en sida med rubriken **Transkribera samtal lokalt i din webbläsare**.
+Du landar på en sida med rubriken **Gör tal till text**.
 
 ![Tratt:s startsida](../../assets/visp_tratt_main.png)
 
@@ -19,57 +19,52 @@ Använd **Chrome**, **Edge**, **Firefox** eller **Opera**. Safari fungerar för
 manuell transkribering men kan inte köra automatisk transkription. Se
 [Felsökning](troubleshooting.md#automatic-transcription-is-greyed-out).
 
-## 2. Ladda in din inspelning
+## 2. Lägg till din inspelning
 
-Stanna på fliken **Ladda upp fil** och dra din ljud- eller videofil till den
-streckade rutan, eller klicka i rutan och välj filen.
+Släpp din ljud- eller videofil på den streckade rutan, eller klicka på **Välj en
+fil** och leta upp den.
 
-De flesta format fungerar: `.wav`, `.mp3`, `.m4a`, `.flac`, `.ogg`, `.mp4`,
-`.mov`, `.webm` med flera. Hela listan med storleksgränser finns under
+De flesta format fungerar: `.wav`, `.mp3`, `.m4a`, `.flac`, `.ogg`, `.opus`,
+`.mp4`, `.mov`, `.webm` med flera. Hela listan med storleksgränser finns under
 [Ladda in en inspelning](loading-media.md#supported-file-formats).
-
-En grön bock intill filnamnet betyder att Tratt har läst filen. En videofil tar
-lite längre tid, eftersom ljudet först måste extraheras.
 
 > **Har du ingen inspelning än?** Byt till fliken **Spela in nu** och spela in
 > direkt i webbläsaren. Se
 > [Spela in i webbläsaren](loading-media.md#recording-in-the-browser).
 
-> **Bara nyfiken?** Länken **Öppna demo** uppe till höger i rutan laddar en
-> exempelinspelning så att du kan prova utan eget material.
+> **Bara nyfiken?** **Prova med en exempelinspelning**, under rutan, laddar en
+> exempelinspelning så att du kan se hela kedjan fungera utan eget material.
 
-## 3. Bestäm om en modell ska skriva utkastet
+## 3. Bestäm vem som skriver utkastet
 
-När filen är inläst dyker en ruta upp under släppytan med kryssrutan
-**Automatisk transkribering med Whisper**.
+**Tratt transkriberar automatiskt.** Att lägga till en fil är hela
+instruktionen: en taligenkänningsmodell sätter i gång direkt och skriver ett
+utkast som du sedan rättar. Två saker under rutan styr hur:
 
-- **Lämna den omarkerad** om du vill skriva allt själv. Fortsätt till steg 4.
-- **Markera den** så skriver en taligenkänningsmodell ett utkast som du sedan
-  rättar. Välj **Transkriptionsspråk** och därefter en modellstorlek. Större
-  modeller är noggrannare och långsammare, och första gången måste modellen
-  laddas ned (ungefär 100 MB till 3 GB, den sparas i webbläsaren till nästa
-  gång).
-
-  Markera vid behov **Speaker separation** (talarseparation) så gissar Tratt vem
-  som talar när. Vet du hur många personer som hörs, skriv antalet; för en
-  intervju mellan två personer, skriv `2`.
+- **Transkriptionsspråk: …** anger vilket språk modellen ska förvänta sig. Se
+  till att det stämmer innan du lägger till filen. **Ändra** öppnar
+  inställningarna, där du också väljer modellstorlek och kan slå på
+  **talarseparation** så att Tratt gissar vem som talar när.
+- **Transkribera för hand, utan AI** lägger till inspelningen *utan* att köra
+  någon modell, för dig som hellre skriver själv.
 
 Allt detta körs på din egen dator. Det enda som hämtas från internet är själva
-modellen. Detaljer och rekommendationer:
-[Automatisk utkasttranskription](automatic-transcription.md).
+modellen, första gången du använder den. Detaljer och rekommendationer:
+[Automatiskt transkriptionsutkast](automatic-transcription.md).
 
-## 4. Starta
+## 4. Se den arbeta
 
-Klicka på knappen under rutan. För en fil Tratt inte sett förut står det
-**Starta ny transkription**. Texten ändrar sig efter vad du valt: **Manuell
-transkription** när du skriver allt själv, **Kör automatisk bearbetning** när en
-modell ska köras, och **Ersätt de lagrade annoteringarna** när det skulle skriva
-över en transkription Tratt redan har.
+Sidan blir din arbetsbänk: inspelningen dyker upp i listan **Inspelningspaket**
+till vänster, och redigeraren fyller resten av fönstret.
 
-Har du bett om ett utkast ser du nu förloppet: först modellnedladdningen, sedan
-*Transkriberar ljud…* med en tidräknare, och därefter *Identifierar talare…* om
-du valde talarseparation. För en lång inspelning tar det en stund; sidan måste
-vara kvar öppen. När det är klart öppnas redigeraren av sig själv.
+Raden visar hur långt arbetet har kommit och namnger varje steg i tur och
+ordning: **Förbereder**, **Laddar modell**, **Transkriberar**, **Separerar
+talare**. För en lång inspelning tar det en stund, och sidan måste vara kvar
+öppen. När raden säger **Klar** ligger transkriptionen i redigeraren.
+
+Lägg till fler inspelningar när du vill genom att släppa dem på rutan i listan.
+Tratt arbetar igenom dem en i taget. Se
+[Arbeta med flera inspelningar](workbench.md).
 
 ## 5. Rätta texten
 
@@ -138,11 +133,10 @@ alternativ beskrivs under [Exportera](exporting.md).
 
 ## Om du har fler än en inspelning
 
-Den här sidan beskriver enfilsvägen, och den är rätt väg för en enskild intervju.
-För en mapp med inspelningar finns en andra väg:
-[Arbetsbänken](workbench.md) håller många filer i en lista, transkriberar dem
-genom en kö medan du gör något annat, och exporterar hela omgången som ett arkiv.
-Vyerna och genvägarna är identiska, så läs vidare oavsett.
+Ingenting ändras. Samma sida rymmer hur många inspelningar du vill: släpp dem
+allihop på rutan, så arbetar Tratt igenom dem en i taget medan du redigerar den
+som redan är klar. Listan är hur du flyttar dig mellan dem, och en enda export
+kan ta med alltihop. Se [Arbeta med flera inspelningar](workbench.md).
 
 ---
 

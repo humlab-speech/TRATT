@@ -7,13 +7,16 @@ format som fungerar, och hur du fortsätter där du slutade.
 
 ## Ladda upp en fil
 
-På startsidan visar fliken **Ladda upp fil** en streckad släppyta:
-*Dra och släpp en ljudfil (+ en valfri transkriptfil) här eller klicka här.*
+På den tomma startsidan visar fliken **Ladda upp fil** en streckad släppyta:
+*Släpp en ljud- eller videofil här*, med **Välj en fil** under. När
+inspelningar väl ligger i listan sitter samma ruta överst i listan och säger
+*Släpp ljud- eller videofiler här, eller en .zip sparad från Tratt*.
 
-Du kan släppa **en mediefil**, och valfritt **en transkriptfil** tillsammans med
-den, i vilken ordning som helst. Tratt väntar tills det finns ljud innan något
-kan göras. Under tiden visar transkriptfilen en snurra och texten
-*Waiting for audio file*.
+Du kan släppa **mediefiler**, och valfritt **transkriptfiler** tillsammans med
+dem, i vilken ordning som helst. En transkription måste heta som inspelningen
+den hör till, eller släppas tillsammans med den; Tratt säger till när den inte
+kan paras ihop. Tratt väntar tills det finns ljud innan något kan göras. Under
+tiden visar transkriptfilen en snurra och texten *Waiting for audio file*.
 
 Medan en fil läses ser du ett förloppsfält (för `.wav`) eller ett snurrande
 kugghjul (för allt annat, som först måste avkodas). Sedan:
@@ -113,29 +116,25 @@ transkriberas ändå, bara utan bild.
 
 ## Att återvända till en session
 
-Tratt behåller ditt transkript i webbläsaren men **behåller aldrig din mediefil**.
+Tratt behåller dina transkriptioner i webbläsaren men **behåller aldrig dina
+mediefiler**.
 
-När du kommer tillbaka visar startsidan att det finns data från en tidigare
-transkription, tillsammans med namn, storlek och datum för filen du arbetade med.
-Dra in samma fil igen och klicka **Fortsätt transkription** för att fortsätta där
-du slutade.
+När du kommer tillbaka ligger alltså inspelningarna kvar i listan, var och en
+med sin transkription, och var och en ber om sitt ljud igen: raden säger *Ljudet
+är inte bifogat* och erbjuder **Bifoga ljud…**. Välj samma fil från disken,
+eller släpp den på listan, så fortsätter redigeringen där du slutade. Ingenting
+går förlorat under tiden; du kan bara inte spela upp eller lägga om gränserna i
+en inspelning vars ljud saknas.
 
-Knappen under släppytan talar om vilket av de två som är på väg att hända. Den orangea
-är ofarlig och dess text följer vad du valt; den röda är det inte.
+Ser filen du väljer inte ut att vara den transkriptionen gjordes av stannar
+Tratt och frågar först. Att ange fel fil skadar inte transkriptionen, men
+gränserna kommer inte att ligga rätt mot ljudet.
 
-| Knapp | Vad den gör |
-| --- | --- |
-| **Fortsätt transkription** (orange) | Filen matchar den sparade sessionen. Ditt sparade transkript öppnas igen. |
-| **Manuell transkription** (orange) | Detsamma, utan vald modell: vyn öppnas för dig att skriva i. |
-| **Kör automatisk bearbetning** (orange) | Detsamma, med automatisk transkribering eller översättning markerad: modellen körs först. |
-| **Ersätt de lagrade annoteringarna** (orange) | Du har markerat automatisk transkribering för en inspelning som redan har en transkription. Körningen skriver över den. |
-| **Starta ny transkription** (röd) | Filen matchar inte den sparade sessionen, eller så finns ingen. Klickar du **kastas det sparade transkriptet** och du börjar om, utan ytterligare bekräftelse och utan möjlighet att ångra. |
-
-Tratt avgör vilken knapp som ska visas genom att jämföra filen du släppte med den
-som finns i den sparade sessionen (på namn och storlek, och på basnamn så att
-samma inspelning i ett annat format ändå räknas som en träff). Förväntade du dig
-*Fortsätt* men fick den röda *Starta ny* har du angett en annan fil. Kontrollera
-den innan du klickar.
+Det beskrivs tillsammans med resten av listan under
+[Arbeta med flera inspelningar](workbench.md#att-komma-tillbaka-senare). En
+exporterad `.zip` innehåller ljudet och transkriptionerna tillsammans, så att
+släppa tillbaka den på Tratt återställer bådadera på en gång och besparar dig
+bifogandet.
 
 > Exportera en fil innan du slutar för dagen. Webbläsarlagring är en bekvämlighet,
 > inte ett arkiv. Se [Vad lämnar din dator](privacy.md).

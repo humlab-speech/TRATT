@@ -30,9 +30,9 @@ engelska texten inom parentes.
 | **Förstoringsglas** | Den förstorade remsan av vågform runt markören, för att placera gränser exakt. |
 | **Uppspelningspekare** | Linjen som visar var uppspelningen befinner sig. *Följ uppspelningspekare* håller den i bild. |
 | **Enkelt läge** | En inställning som tar bort knapptexter och tangentbordstips för ett kompakt gränssnitt. |
-| **Arbetsbänken** (*Workbench*) | Sidan `/workbench`: en lista med många inspelningar och en transkriptionskö. Du öppnar den med länken **Arbetsbänk** i sidhuvudet på startsidan, eller genom att skriva adressen. Se [Arbetsbänken](workbench.md). |
+| **Arbetsbänken** (*Workbench*) | Själva arbetsytan: listan med inspelningspaket till vänster och redigeraren bredvid, med en transkriptionskö. Det är ingen egen sida, utan hur Tratt ser ut så fort en inspelning är inne. Se [Arbeta med flera inspelningar](workbench.md). |
 | **Bundle** | En inspelning i Arbetsbänkens lista tillsammans med sin transkription. Ordet dyker upp i några meddelanden och i sökvägarna i exporterade arkiv. |
-| **Pipeline** | Det som körs på en inspelning automatiskt: taligenkänning, och valfritt talarseparation och översättning. Arbetsbänkens **Pipelineinställningar** är samma kontroller som startsidans. |
+| **Pipeline** | Det som körs på en inspelning automatiskt: taligenkänning, och valfritt talarseparation och översättning. **Transkriptionsinställningar** är där du ändrar det. |
 | **Kö** | Ordningen Arbetsbänken arbetar sig genom inspelningarna i. En i taget. |
 | **Arkiv** | Den `.zip` en export ger när den har mer än en fil: varje inspelningspakets transkription i Tratts eget format, de format du markerat, och ljudet om du tog med det. Den enda exporten som kan läsas in igen i sin helhet. |
 | **Manifest** | `manifest.json` och `manifest.csv` i arkivets rot: en rad per inspelning, med sökvägar och uppgifter. |

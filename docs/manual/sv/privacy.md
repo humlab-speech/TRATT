@@ -32,9 +32,9 @@ och fortsätta transkribera. Webbläsaren hämtar en ny version när en sådan
 publiceras; Tratt visar en avisering om uppdatering i stället för att ladda om
 under fötterna på dig.
 
-**2. Tal- och översättningsmodeller, bara om du ber om dem.** Att markera
-**Automatisk transkribering med Whisper**, **Speaker separation** eller
-**Översätt transkriptionen lokalt** laddar ned den valda modellen från
+**2. Tal- och översättningsmodeller, bara om du ber om dem.** Att låta Tratt
+transkribera, eller slå på **Speaker separation** eller **Översätt
+transkriptionen lokalt**, laddar ned den valda modellen från
 `huggingface.co` (mellan ungefär 100 MB och 3 GB beroende på modell). Modellen
 sparas sedan i webbläsaren och återanvänds.
 

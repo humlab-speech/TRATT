@@ -1,45 +1,28 @@
-# Arbetsbänken
+# Arbeta med flera inspelningar
 
 **För:** dig som har en mapp med inspelningar snarare än en enda fil.
-Arbetsbänken transkriberar en omgång filer och låter dig redigera varje
-resultat utan att ladda in filerna en i taget.
 
-> **Så kommer du dit.** På startsidan finns länken **Arbetsbänk** i sidhuvudet,
-> bredvid **Manual**. Den syns bara i byggen där Arbetsbänken är aktiverad. Du
-> kan också skriva `/workbench` i Tratts adress, till exempel
-> `https://tratt.demo.humlab.umu.se/workbench`. Ett bygge från innan Arbetsbänken
-> kom leder adressen till den vanliga startsidan i stället.
->
-> Väl där öppnar både **Manual** i sidhuvudet och **Hjälp** bredvid
-> vyflikarna det här kapitlet i stället för manualens förstasida.
->
-> Gränssnittet i Arbetsbänken är översatt till svenska. Länken i sidhuvudet heter
-> **Arbetsbänk**; adressen är engelsk.
+Tratt har en enda arbetsyta, och den rymmer hur många inspelningar du vill.
+Sidan du landar på är dess tomma läge; så fort en inspelning är inne tar listan
+med **inspelningspaket** vänsterspalten och redigeraren resten av fönstret. Det
+finns ingen särskild plats att gå till och ingenting att slå på: att lägga till
+en andra inspelning är samma handgrepp som den första.
 
----
+![Listan med inspelningspaket bredvid redigeraren](../../assets/visp_tratt_workbench.png)
+
+Det som ändras när det blir fler än en är hur material kommer in och hur du rör
+dig mellan inspelningar, inte hur du transkriberar. Vyerna, genvägarna,
+markörerna, nivåerna och exportformaten är de som beskrivs i resten av manualen.
 
 <a id="when-to-use-it"></a>
 
-## När den passar, och när den inte gör det
+## En inspelning eller flera
 
-| | Startsidan (`/local`) | Arbetsbänken (`/workbench`) |
+| | En inspelning | Flera |
 | --- | --- | --- |
-| Inspelningar | En | Många |
-| Automatisk transkription | En körning, du väntar på den | En kö som arbetar sig genom listan |
-| Byta mellan inspelningar | Ladda om sidan, ladda nästa fil | Klicka på en fil i listan |
-| Export | En fil i taget | En fil, eller alla som ett arkiv |
-| Passar för | En enskild intervju, en snabb rättelse | Ett helt projekts material, en omgång över natten |
-
-Allt annat är detsamma. Vyerna, genvägarna, markörerna, nivåerna och
-exportformaten är de som beskrivs i resten av manualen. Arbetsbänken ändrar hur
-material kommer in och hur du rör dig mellan inspelningar, inte hur du
-transkriberar.
-
-**De delar en sparad session.** Tratt håller en enda aktuell inspelning i
-webbläsarlagringen, och Arbetsbänkens fillista använder samma plats. Att starta en
-ny transkription på startsidan kan därför ersätta en fil som ligger i
-Arbetsbänkens lista, och Tratt varnar när det är på väg att hända. Välj ett av de
-två arbetssätten för ett givet material och håll dig till det.
+| Automatisk transkription | Startar så fort filen är inne | En kö som arbetar sig genom listan, en i taget |
+| Byta mellan inspelningar | — | Klicka på en rad i listan |
+| Export | Den inspelningen | En av dem, de markerade, eller alla i ett arkiv |
 
 ---
 
@@ -61,8 +44,6 @@ uppgifter. Ovanför vyn
 finns en rad med vyflikarna, **Genvägar**, **Översikt** och **Hjälp**. Under den
 kommer själva vyn.
 
-![Arbetsbänken med fyra inspelningar inlästa](../../assets/visp_tratt_workbench.png)
-
 ---
 
 ## Att lägga till inspelningar
@@ -83,7 +64,8 @@ säger till när det inte går:
 - Att ersätta en transkription som redan har text kräver en bekräftelse, eftersom
   dina ändringar i den skulle gå förlorade.
 
-**Spela in nu** spelar in direkt i Arbetsbänken, precis som på startsidan. Se
+**Spela in nu** spelar in direkt i listan, precis som på den tomma startsidan.
+Se
 [Spela in i webbläsaren](loading-media.md#recording-in-the-browser).
 
 <a id="loading-an-archive"></a>

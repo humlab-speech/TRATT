@@ -7,13 +7,16 @@ formats work, and how to pick up where you left off.
 
 ## Upload a file
 
-On the start page, the **Upload file** tab shows a dashed drop zone:
-*Drag & Drop one audio file (+ one optional transcript file) here or click here.*
+On the empty start page, the **Upload file** tab shows a dashed drop zone:
+*Drop an audio or video file here*, with **Choose a file** under it. Once
+recordings are in the list, the same box sits at the top of the list and reads
+*Drop audio or video files here, or a .zip saved from Tratt*.
 
-You can drop **one media file**, and optionally **one transcript file** alongside
-it, in either order. Tratt waits until it has audio before it can do anything;
-while it waits, the transcript file shows a spinner and the hint
-*Waiting for audio file*.
+You can drop **media files**, and optionally **transcript files** alongside
+them, in either order. A transcript has to be named like the recording it
+belongs to, or dropped together with it; Tratt says so when it cannot pair them.
+Tratt waits until it has audio before it can do anything; while it waits, the
+transcript file shows a spinner and the hint *Waiting for audio file*.
 
 While a file is being read you see a progress bar (for `.wav`) or a turning gear
 (for everything else, which has to be decoded first). Then:
@@ -111,37 +114,22 @@ play natively are still transcribed, just without the picture.
 
 ## Coming back to a session
 
-Tratt keeps your transcript in the browser but **never keeps your media file**.
+Tratt keeps your transcripts in the browser but **never keeps your media files**.
 
-When you return, the start page shows *There is data from a previous transcription
-available* together with the name, size and date of the file you were working on.
-Drag that same file in again and click **Continue transcription** to carry on where
-you stopped.
+So when you come back, the recordings are all still listed, each with its
+transcript, and each one asks for its audio again: the row reads *Audio not
+attached* and offers **Attach audio…**. Pick the same file from disk, or drop it
+on the list, and editing continues where you left off. Nothing is lost in the
+meantime; you simply cannot play or re-cut a recording whose audio is not there.
 
-The button below the drop zone tells you which of the two is about to happen. The
-orange one is safe and its wording follows what you have chosen; the red one is not.
+If the file you pick does not look like the one the transcript was made from,
+Tratt stops to ask before using it. Supplying the wrong file does no damage to
+the transcript, but the boundaries will not line up with the sound.
 
-| Button | What it does |
-| --- | --- |
-| **Continue transcription** (orange) | The file matches the stored session. Your stored transcript is reopened. |
-| **Manual transcription** (orange) | Same, with no model selected: it opens the editor for you to type in. |
-| **Run automatic processing** (orange) | Same, with auto-transcription or translation ticked: the model runs first. |
-| **Replace the stored annotations** (orange) | You have ticked auto-transcription for a recording that already has a transcript. Running it overwrites that transcript. |
-| **Start new transcription** (red) | The file does not match the stored session, or there is none. Clicking it **discards the stored transcript** and starts fresh, with no further confirmation and no undo. |
-
-Tratt decides which button to show by comparing the file you dropped with the one
-recorded in the stored session (by name and size, and by base name so that the same
-recording in a different format still counts as a match). If you expected
-*Continue* and got the red *Start new*, you have supplied a different file; check
-it before clicking.
-
-If the media file you supply is not the one the transcript was made from, the
-boundaries will not line up with the sound.
-
-A page refresh mid-session lands you on a **Reload audio file** page instead,
-which names the file it wants (*Wanted: interview.mp3*) and restores your
-annotation from local storage once you supply it. **Stop transcription** there
-takes you back to the start page.
+This is described with the rest of the list in
+[Working with several recordings](workbench.md#coming-back-later). An exported
+`.zip` holds the audio and the transcripts together, so dropping that back on
+Tratt restores both at once and spares you the re-attaching.
 
 > Export a file before you stop for the day. Browser storage is a convenience, not
 > an archive; see [What leaves your computer](privacy.md).

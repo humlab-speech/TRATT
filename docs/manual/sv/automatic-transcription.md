@@ -14,34 +14,39 @@ lyssnandet.
 
 ## Slå på det
 
-Ladda in mediefilen först. Alternativen dyker upp när Tratt har ljud och du
-**inte** har lämnat in en egen transkriptfil.
+**Det är redan på.** Att lägga till en inspelning är instruktionen: Tratt ställer
+den i kö och en taligenkänningsmodell skriver ett utkast. Du behöver den här
+sidan först när du vill ändra vad modellen får veta, eller stoppa den helt.
 
-> I [Arbetsbänken](workbench.md) ligger samma kontroller bakom
-> **Pipelineinställningar**, där de gäller varje inspelning i listan i stället för
-> en enskild fil. Allt på den här sidan gäller även där.
+Kontrollerna ligger i en dialog, **Transkriptionsinställningar**. Öppna den med
+**Ändra**, bredvid *Transkriptionsspråk* på den tomma startsidan, eller med
+reglageknappen bredvid **Transkribera** när inspelningar ligger i listan.
 
-Under släppytan slår du på **Automatisk transkribering med Whisper** (en
-strömbrytare, med **Översätt transkriptionen lokalt** bredvid) och ställer
-sedan in:
+![Dialogen Transkriptionsinställningar](../../assets/visp_tratt_auto_transcription_options.png)
 
-1. **Transkriptionsspråk**: det språk som faktiskt talas på inspelningen. Ett
+1. **Transkribera nya inspelningspaket automatiskt**: strömbrytaren överst. Slår
+   du av den ligger inspelningar orörda i listan tills du trycker
+   **Transkribera**.
+2. **Transkriptionsspråk**: det språk som faktiskt talas på inspelningen. Ett
    hundratal språk erbjuds, listade med sina egna namn (*Svenska (Swedish, sv)*,
    *Suomi (Finnish, fi)*), med svenska först och resten i bokstavsordning. Tratt
    förvaljer det språk gränssnittet är inställt på, så byt om inspelningen är på
    något annat. Detta är inte en översättningsinställning.
-2. **Modell**: se tabellerna nedan.
-3. **Speaker separation** (talarseparation, valfritt): se
+3. **Modell**: se tabellerna nedan. Listan ändras med språket.
+4. **Speaker separation** (talarseparation, valfritt): se
    [Talarseparation](#speaker-separation).
+5. **Översätt transkriptionen lokalt**: ett andra avsnitt, hopfällt tills du
+   öppnar det. Se [Översätta transkriptionen](#translating-the-transcript).
 
-![Inställningarna för automatisk transkription, med modellistan för engelska](../../assets/visp_tratt_auto_transcription_options.png)
+**Klar** stänger dialogen och behåller det du valt, för den här inspelningen och
+nästa.
 
-Klicka sedan **Starta ny transkription**. Du ser i tur och ordning:
-modellnedladdningen med förloppsfält, *Transkriberar ljud…* med förfluten tid och
-ett förloppsfält mot inspelningens längd, sedan *Identifierar talare…* om du bad
-om det, och till sist *Transkription klar — förbereder redigerare…*.
+Vill du lägga till en inspelning *utan* att köra någon modell, använd
+**Transkribera för hand, utan AI** under släppytan på startsidan.
 
-**Avbryt** stoppar och lämnar dig kvar på startsidan.
+Medan en inspelning körs namnger dess rad i listan steget den nått:
+**Förbereder**, **Laddar modell**, **Transkriberar**, **Separerar talare**,
+**Översätter**. Knappen på raden stoppar just den inspelningen.
 
 ### Håll fliken öppen
 
@@ -58,11 +63,9 @@ modeller för de nordiska språken.
 
 **Om din dator har WebGPU** (aktuell Chrome, Edge eller Firefox med ett hyggligt
 grafikkort) är alla modeller tillgängliga och de större är mycket snabbare.
-**Utan WebGPU** körs modellerna på processorn i stället: de största gråmarkeras,
-och resten är långsamma men användbara. Tratt skriver *WebGPU not detected* under
-modellistan när det är så, och skriver ingenting när WebGPU finns.
-Modellbeskrivningarna ändras med detta: utan WebGPU blir jämförelsemodellen den
-största din dator klarar.
+**Utan WebGPU** körs modellerna på processorn i stället: de som kräver det
+gråmarkeras i listan och går inte att välja, och resten är långsamma men
+användbara.
 
 ### Svenska
 
@@ -73,19 +76,24 @@ bättre än den allmänna modellen för svenska.
 | --- | --- | --- |
 | Tiny | 120 MB | Snabbast, minst noggrann. Bra för att kontrollera att kedjan fungerar. |
 | Small | 400 MB | Rimlig kompromiss |
-| Medium | 650 MB | Märkt *Vår jämförelsemodell*. Kräver WebGPU. |
-| Large | 1,2 GB | Mest noggrann, ungefär halva hastigheten mot Medium. Kräver WebGPU. |
+| Medium | 1000 MB | Noggrannare igen. Kräver WebGPU. |
+| Large | 1200 MB | Mest noggrann, ungefär halva hastigheten mot Medium. Kräver WebGPU. |
 
 > Modellnamnen i det svenska gränssnittet är delvis felöversatta: flera visas som
 > "Liten" oavsett storlek. Gå efter storleken i MB, som stämmer.
 
 ### Finska och norska
 
-Också finjusterade modeller, från Tiny (ca 110 MB) upp till Large (ca 1,2 GB).
-Finska erbjuder Tiny / Medium / Large; norska (både
-bokmål och nynorsk) erbjuder Tiny / Small / Medium / Large. Medium är märkt som
-referensmodell i båda. Medium och Large kräver WebGPU. Beskrivningarna av dessa
-modeller visas på engelska även i det svenska gränssnittet.
+Också finjusterade modeller. Finska erbjuder Tiny (ca 108 MB), Medium (ca
+684 MB) och Large (ca 1210 MB); norska har egna modeller, bland dem en
+ordagrann som skriver det som faktiskt sades i stället för att städa upp det.
+Allt över Tiny kräver WebGPU.
+
+### Samiska
+
+Nord-, lule- och sydsamiska har egna finjusterade modeller. De finns bara som
+Large (ca 1210 MB) och kräver därför WebGPU; på en dator utan det går språket
+att välja men ingen modell.
 
 ### Alla andra språk
 
@@ -95,11 +103,11 @@ Använder OpenAI:s Whisper.
 | --- | --- | --- |
 | Tiny | 95 MB | Snabbast, minst noggrann |
 | Small | 290 MB | **Förvald.** En rimlig kompromiss. |
-| Large v3 Turbo | 700 MB | Märkt *vår valda referensmodell*, snabb och noggrann. Kräver WebGPU. |
-| Large v3 | 1,2 GB | Långsammare än Turbo, ofta något noggrannare. Kräver WebGPU. |
+| Large-v3-turbo | 700 MB | Snabb och noggrann. Kräver WebGPU. |
+| Large-v3 | 1200 MB | Långsammare än Turbo, ofta något noggrannare. Kräver WebGPU. |
 
-Tratt förväljer Small här, inte referensmodellen. Har din dator WebGPU och
-inspelningen är viktig, byt till **Large v3 Turbo**.
+Tratt förväljer Small. Har din dator WebGPU och inspelningen är viktig, byt till
+**Large-v3-turbo**.
 
 ### Om nedladdningen
 

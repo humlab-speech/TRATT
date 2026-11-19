@@ -11,7 +11,7 @@ You do not need an account. You do not need to install anything.
 
 ## 1. Open Tratt
 
-You land on a page headed **Transcribe conversations locally in your web browser**.
+You land on a page headed **Turn speech into text**.
 
 ![The Tratt start page](../assets/visp_tratt_main.png)
 
@@ -19,55 +19,51 @@ Use **Chrome**, **Edge**, **Firefox** or **Opera**. Safari works for manual
 transcription but cannot run automatic transcription; see
 [Troubleshooting](troubleshooting.md#automatic-transcription-is-greyed-out).
 
-## 2. Load your recording
+## 2. Add your recording
 
-Stay on the **Upload file** tab and drag your audio or video file onto the dashed
-box, or click the box and pick the file.
+Drop your audio or video file on the dashed box, or click **Choose a file** and
+pick it.
 
-Most formats work: `.wav`, `.mp3`, `.m4a`, `.flac`, `.ogg`, `.mp4`, `.mov`,
-`.webm` and more. The full list with size limits is in
+Most formats work: `.wav`, `.mp3`, `.m4a`, `.flac`, `.ogg`, `.opus`, `.mp4`,
+`.mov`, `.webm` and more. The full list with size limits is in
 [Loading a recording](loading-media.md#supported-file-formats).
-
-A green check mark next to the file name means Tratt has read it. A video file
-takes a little longer, because the sound has to be extracted first.
 
 > **No recording yet?** Switch to the **Record now** tab and record straight into
 > the browser. See [Recording in the browser](loading-media.md#recording-in-the-browser).
 
-> **Just looking?** The **Open demo** link in the top right of the box loads a
-> sample recording so you can try the editor without your own material.
+> **Just looking?** **Try a demo recording**, under the box, loads a sample
+> recording so you can see the whole thing work without your own material.
 
-## 3. Decide whether a model should write the first draft
+## 3. Decide who writes the first draft
 
-Once the file is loaded, a box appears under the drop zone with the checkbox
-**Auto-transcribe with Whisper**.
+**Tratt transcribes automatically.** Adding a file is the whole instruction: a
+speech-recognition model starts on it at once and writes a draft for you to
+correct. Two things under the box decide how:
 
-- **Leave it unchecked** to type everything yourself. Continue to step 4.
-- **Tick it** and a speech-recognition model will produce a draft you then correct.
-  Pick your **Transcription language**, then pick a model size. Bigger models are
-  more accurate and slower, and the first run has to download the model
-  (roughly 100 MB to 3 GB, cached for next time).
-
-  Optionally tick **Speaker separation** to have Tratt guess who spoke when. If you
-  know how many people are on the recording, type that number; for a two-person
-  interview, type `2`.
+- **Transcription language: …** says which language the model will expect.
+  Get this right before you add the file. **Change** opens the settings, where
+  you also pick the model size and can turn on **Speaker separation** to have
+  Tratt guess who spoke when.
+- **Transcribe by hand, without AI** adds the recording *without* running a
+  model, for when you would rather type it yourself.
 
 This all runs on your own machine. The only thing fetched from the internet is the
-model itself. Details and model recommendations:
+model itself, the first time you use it. Details and model recommendations:
 [Automatic draft transcription](automatic-transcription.md).
 
-## 4. Start
+## 4. Watch it run
 
-Click the button below the box. On a file Tratt has not seen before it reads
-**Start new transcription**. Its wording changes with what you have chosen:
-**Manual transcription** when you are typing everything yourself, **Run automatic
-processing** when a model is going to run, and **Replace the stored annotations**
-when that would overwrite a transcript Tratt already has.
+The page becomes your workbench: the recording appears in the list headed
+**Recording bundles** on the left, and the editor fills the rest of the window.
 
-If you asked for a draft, you now see progress: first the model download, then
-*Transcribing audio…* with a time counter, then *Identifying speakers…* if you
-enabled speaker separation. On a long recording this can take a while; the page
-must stay open. When it finishes, the editor opens by itself.
+The row shows how far the work has got, naming each stage in turn: **Preparing**,
+**Loading model**, **Transcribing**, **Separating speakers**. On a long recording
+this takes a while, and the page has to stay open. When the row says **Done**, the
+transcript is in the editor.
+
+Add more recordings whenever you like, by dropping them on the box in the list.
+Tratt works through them one at a time. See
+[Working with several recordings](workbench.md).
 
 ## 5. Correct the text
 
@@ -135,11 +131,10 @@ described in [Exporting](exporting.md).
 
 ## If you have more than one recording
 
-This page is the one-file route, and it is the right one for a single interview.
-For a folder of recordings there is a second route: the
-[Workbench](workbench.md) holds many files in one list, transcribes them through a
-queue while you do something else, and exports the lot as one archive. The editors
-and shortcuts are identical, so read on either way.
+Nothing changes. The same page holds as many recordings as you like: drop them
+all on the box, and Tratt works through them one at a time while you edit the one
+that is already done. The list is how you move between them, and one export can
+take the lot. See [Working with several recordings](workbench.md).
 
 ---
 

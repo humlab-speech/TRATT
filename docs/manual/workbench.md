@@ -1,48 +1,35 @@
-# The Workbench
+# Working with several recordings
 
-**For:** anyone with a folder of recordings rather than a single file. The
-Workbench transcribes a batch of files and lets you edit each result without
-loading files one at a time.
+**For:** anyone with a folder of recordings rather than a single file.
 
-> **How to get there.** On the start page, the header has a **Workbench** link
-> next to **Manual**. It only shows in builds where the Workbench is enabled. You
-> can also put `/workbench` in Tratt's address, for example
-> `https://tratt.demo.humlab.umu.se/workbench`. A build from before the
-> Workbench shipped sends that address to the ordinary start page instead.
->
-> Once you are there, **Manual** in the header and **Help** next to the editor
-> tabs both open this chapter rather than the manual's front page.
+Tratt has one working surface, and it holds as many recordings as you like. The
+page you land on is its empty state; as soon as a recording is in, the list of
+**recording bundles** takes the left-hand rail and the editor takes the rest of
+the window. There is no separate place to go to and nothing to switch on: adding
+a second recording is the same gesture as adding the first.
 
----
+![The list of recording bundles beside the editor](../assets/visp_tratt_workbench.png)
+
+What changes when there is more than one is how material gets in and how you move
+between recordings, not how you transcribe. The editors, the shortcuts, the
+markers, the tiers and the export formats are the ones described in the rest of
+this manual.
 
 <a id="when-to-use-it"></a>
 
-## When to use it, and when not
+## One recording or many
 
-| | Start page (`/local`) | Workbench (`/workbench`) |
+| | One recording | Several |
 | --- | --- | --- |
-| Recordings | One | Many |
-| Automatic transcription | One run, you wait for it | A queue that works through the list |
-| Switching between recordings | Reload the page, load the next file | Click a file in the list |
-| Export | One file at a time | One file, or all of them as one archive |
-| Best for | A single interview, a quick correction | A project's worth of material, an overnight batch |
-
-Everything else is the same. The editors, the shortcuts, the markers, the tiers
-and the export formats are the ones described in the rest of this manual. The
-Workbench changes how material gets in and how you move between recordings, not
-how you transcribe.
-
-**They share one stored session.** Tratt keeps a single current recording in
-browser storage, and the Workbench's file list uses the same slot. Starting a new
-transcription on the start page can therefore replace a file that is in the
-Workbench list, and Tratt warns you when it is about to. Pick one of the two ways
-of working for a given piece of material and stay with it.
+| Automatic transcription | Starts as soon as the file is in | A queue that works through the list, one at a time |
+| Moving between recordings | — | Click a row in the list |
+| Export | That recording | One of them, the ticked ones, or all of them in one archive |
 
 ---
 
 ## Recording bundles
 
-Each entry in the Workbench list is a **recording bundle**: a recording's audio
+Each entry in the list is a **recording bundle**: a recording's audio
 together with its transcript. The two parts behave differently:
 
 - The **transcript** is saved in the browser as you work, and is still there
@@ -82,8 +69,6 @@ to see its audio details.
 Above the editor, one bar holds the editor tabs, **Shortcuts**, **Overview** and
 **Help**. Below it is the editor itself.
 
-![The Workbench with four recordings loaded](../assets/visp_tratt_workbench.png)
-
 ---
 
 ## Adding recordings
@@ -104,7 +89,8 @@ you when it cannot:
   because your edits to it would be lost.
 
 
-**Record now** records straight into the Workbench, exactly as on the start page.
+**Record now** records straight into the list, exactly as it does on the empty
+start page.
 See [Recording in the browser](loading-media.md#recording-in-the-browser).
 
 <a id="loading-an-archive"></a>

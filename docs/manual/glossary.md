@@ -29,11 +29,11 @@ into ordinary language.
 | **Magnifier** | The zoomed strip of waveform around the cursor, for placing boundaries precisely. |
 | **Playcursor** | The line showing where playback has reached. *Follow playcursor* keeps it on screen. |
 | **Easy Mode** | A preference that strips button labels and keyboard hints for a compact interface. |
-| **Workbench** | The `/workbench` page: one list holding many recordings, with a transcription queue. You open it with the **Workbench** link in the header of the start page, or by typing the address. See [The Workbench](workbench.md). |
+| **Workbench** | The working surface itself: the list of recording bundles down the left and the editor beside it, with a transcription queue. It is not a separate page; it is what Tratt looks like once a recording is in. See [Working with several recordings](workbench.md). |
 | **Recording bundle** | One entry in the Workbench list: a recording's audio together with its transcript. The transcript is saved in the browser; the audio never is, and has to be attached again after a reload. *Bundle* is the Emu database word for an audio file and the files that describe it, and shows up in exported file paths. |
 | **Audio** / **attached** | A recording bundle's sound. It is *attached* while Tratt can play it this visit; Tratt never saves it. |
 | **File** | Only something on your computer: what you drop, choose or download. |
-| **Pipeline** | What runs on a recording automatically: speech recognition, then optionally speaker separation and translation. The Workbench's **Pipeline settings** are the same controls as the start page's. |
+| **Pipeline** | What runs on a recording automatically: speech recognition, then optionally speaker separation and translation. **Transcription settings** is where you change it. |
 | **Queue** | The order the Workbench works through recordings in. One runs at a time. |
 | **Archive** | The `.zip` an export makes when it has more than one file: each recording bundle's transcript in Tratt's own format, the formats you ticked, and the audio if you included it. The only export that can be loaded back complete. |
 | **Manifest** | `manifest.json` and `manifest.csv` at the root of an archive: one row per recording, with paths and details. |

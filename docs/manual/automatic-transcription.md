@@ -13,32 +13,38 @@ be prepared to make revisions to the draft annotation later.
 
 ## Turning it on
 
-Load your media file first. The options only appear once Tratt has audio and you
-have **not** supplied a transcript file of your own.
+**It is already on.** Adding a recording is the instruction: Tratt queues it and a
+speech-recognition model writes a draft. You only need this page when you want to
+change what the model is told, or to stop it running at all.
 
-> In the [Workbench](workbench.md) the same controls live behind **Pipeline
-> settings**, where they apply to every recording in the list rather than to one
-> file. Everything on this page applies there too.
+The controls are in one dialog, **Transcription settings**. Open it with
+**Change**, next to *Transcription language* on the empty start page, or with the
+sliders button beside **Transcribe** once recordings are in the list.
 
-Under the drop zone, turn on **Auto-transcribe with Whisper** (a switch, with
-**Translate transcript locally** beside it), then set:
+![The Transcription settings dialog](../assets/visp_tratt_auto_transcription_options.png)
 
-1. **Transcription language**: the language actually spoken on the recording.
+1. **Transcribe new recording bundles automatically**: the switch at the top.
+   Turn it off and recordings sit in the list untouched until you press
+   **Transcribe**.
+2. **Transcription language**: the language actually spoken on the recording.
    A hundred languages are offered, listed by their own names
    (*Svenska (Swedish, sv)*, *Suomi (Finnish, fi)*), with Swedish first and the rest
    alphabetical. Tratt preselects the language your interface is set to, so change
    it if the recording is in something else. This is not a translation setting.
-2. **Model**: see the tables below.
-3. **Speaker separation** (optional): see [Speaker separation](#speaker-separation).
+3. **Model**: see the tables below. The list changes with the language.
+4. **Speaker separation** (optional): see [Speaker separation](#speaker-separation).
+5. **Translate transcript locally**: a second section, folded away until you open
+   it. See [Translating the transcript](#translating-the-transcript).
 
-![The automatic transcription options, with a model list for English](../assets/visp_tratt_auto_transcription_options.png)
+**Done** closes the dialog and keeps what you chose, for this recording and the
+next one.
 
-Then click **Start new transcription**. You will see, in order: the model download
-with a progress bar, *Transcribing audio…* with elapsed time and a progress bar
-against the recording's length, then *Identifying speakers…* if you asked for it,
-then *Transcription complete, preparing editor…*.
+To add a recording *without* running a model, use **Transcribe by hand, without
+AI** under the drop area on the start page.
 
-**Cancel** stops it and leaves you on the start page.
+While a recording runs, its row in the list names the stage it has reached:
+**Preparing**, **Loading model**, **Transcribing**, **Separating speakers**,
+**Translating**. The button on the row stops that one recording.
 
 ### Keep the tab open
 
@@ -55,11 +61,8 @@ models for the Nordic languages.
 
 **If your machine has WebGPU** (recent Chrome, Edge or Firefox with a reasonable
 graphics card), all models are available and the larger ones are much faster.
-**Without WebGPU** the models run on the CPU instead: the biggest ones are greyed
-out, and the rest are slow but usable. Tratt says *WebGPU not detected* under the
-model list when that is the case, and says nothing when WebGPU is there. The model
-descriptions change with it: without WebGPU the reference model falls back to the
-largest one your machine can run.
+**Without WebGPU** the models run on the CPU instead: the ones that need it are
+greyed out in the list and cannot be picked, and the rest are slow but usable.
 
 ### Swedish
 
@@ -70,15 +73,21 @@ Noticeably better than the general model for Swedish.
 | --- | --- | --- |
 | Tiny | 120 MB | Fastest, least accurate. Good for checking that the pipeline works. |
 | Small | 400 MB | Reasonable compromise |
-| Medium | 650 MB | Labelled *our reference model*. Needs WebGPU. |
-| Large | 1.2 GB | Most accurate, about half the speed of Medium. Needs WebGPU. |
+| Medium | 1000 MB | More accurate again. Needs WebGPU. |
+| Large | 1200 MB | Most accurate, about half the speed of Medium. Needs WebGPU. |
 
 ### Finnish and Norwegian
 
-Also fine-tuned models, from Tiny (about 110 MB) up to Large (about 1.2 GB).
-Finnish offers Tiny / Medium / Large; Norwegian (both
-Bokmål and Nynorsk) offers Tiny / Small / Medium / Large. Medium is labelled the
-reference model in both. Medium and Large need WebGPU.
+Also fine-tuned models. Finnish offers Tiny (about 108 MB), Medium (about
+684 MB) and Large (about 1210 MB); Norwegian has its own models too, including a
+verbatim one that writes what was said rather than tidying it up. Everything
+above Tiny needs WebGPU.
+
+### Sami
+
+Northern, Lule and Southern Sami have their own fine-tuned models. They are
+Large only (about 1210 MB), so they need WebGPU; on a machine without it the
+language can be chosen but no model can.
 
 ### Every other language
 
@@ -88,11 +97,11 @@ Uses OpenAI's Whisper.
 | --- | --- | --- |
 | Tiny | 95 MB | Fastest, least accurate |
 | Small | 290 MB | **Preselected.** A reasonable compromise. |
-| Large v3 Turbo | 700 MB | Labelled *our selected reference model*: fast and accurate. Needs WebGPU. |
-| Large v3 | 1.2 GB | Slower than Turbo, often a little more accurate. Needs WebGPU. |
+| Large-v3-turbo | 700 MB | Fast and accurate. Needs WebGPU. |
+| Large-v3 | 1200 MB | Slower than Turbo, often a little more accurate. Needs WebGPU. |
 
-Tratt preselects Small here, not the reference model. If your machine has WebGPU
-and the recording matters, switch to **Large v3 Turbo**.
+Tratt preselects Small. If your machine has WebGPU and the recording matters,
+switch to **Large-v3-turbo**.
 
 ### About the download
 

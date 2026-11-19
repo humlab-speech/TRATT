@@ -140,7 +140,7 @@ const NAV_LABELS = {
     'automatic-transcription': 'Automatic transcription',
     'coming-from-octra': 'Coming from OCTRA',
     privacy: 'Privacy',
-    workbench: 'The Workbench',
+    workbench: 'Several recordings',
     'visp-projects': 'VISP projects',
   },
   sv: {
@@ -149,7 +149,7 @@ const NAV_LABELS = {
     'automatic-transcription': 'Automatisk transkription',
     'coming-from-octra': 'Från OCTRA-manualen',
     privacy: 'Integritet',
-    workbench: 'Arbetsbänken',
+    workbench: 'Flera inspelningar',
     'visp-projects': 'VISP-projekt',
   },
 };

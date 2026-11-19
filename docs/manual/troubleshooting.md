@@ -150,10 +150,12 @@ Re-attach the audio and run the queue again. In most cases, nothing is lost in t
 Every file already has a transcript. To transcribe one again, tick it in the
 file list first; see [Transcribing a file again](workbench.md#transcribing-a-file-again).
 
-**Every file says "Attach file…"**
-This is normal after a reload. Tratt keeps a copy of the transcripts in its storage, but not the media. So each recording
-needs its audio to be attached from your computer again. An
-[exported archive](exporting.md#exporting-an-archive) contains everythink though and restores both at once.
+**Every recording says "Attach audio…"**
+This is normal after a reload. Tratt keeps a copy of the transcripts in its
+storage, but never the media, so each recording needs its audio attached from
+your computer again. An
+[exported archive](exporting.md#exporting-an-archive) holds both, and restores
+them together.
 
 **Everything came back orange**
 Intended. Transcripts stored before version 3.2, and any transcript rebuilt on
@@ -179,10 +181,10 @@ Tratt keeps a copy of transcripts in this browser's storage. You can have proble
 you clear site data, use a private window and close it, switch browsers or machines,
 or if a cleanup tool clears IndexedDB.
 
-**I dropped the file back in but the button said "Start new transcription"**
-That means Tratt does not recognise the file as the one the stored session belongs
-to, and clicking it *discards* the stored transcript. Check that it is the same
-file, with the same name, before clicking the button to start a new transcription.
+**I attached the audio again and Tratt said it was not the same file**
+Tratt compares what you pick with what the recording bundle was made from, by
+name and size. Answering *Use anyway* does the transcript no harm, but if it
+really is a different recording the boundaries will not line up with the sound.
 
 
 <a id="the-maintenance-page"></a>

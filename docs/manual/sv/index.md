@@ -24,15 +24,15 @@ Se [Vad lämnar din dator](privacy.md) för exakt vad som faktiskt gör det.
 
 ## Två arbetssätt
 
-Det mesta i Tratt handlar om en inspelning i taget: du laddar en fil på
-startsidan, transkriberar den och exporterar den. Det är vad de två följande
-avsnitten beskriver, och det är där man börjar.
+Det mesta i Tratt handlar om en inspelning i taget: du lägger till en fil,
+transkriberar den och exporterar den. Det är vad de två följande avsnitten
+beskriver, och det är där man börjar.
 
-Har du en hel omgång håller **Arbetsbänken** på `/workbench` många inspelningar i
-en lista, transkriberar dem genom en kö och låter dig klicka mellan resultaten.
-Du öppnar den med länken **Arbetsbänk** i sidhuvudet på startsidan, eller
-genom att skriva adressen. Vyerna, genvägarna och formaten är desamma i båda fallen, så ingenting
-du lär dig nedan går till spillo.
+Det finns bara en arbetsyta, och den rymmer hur många inspelningar du vill.
+Lägger du till en fil till hamnar den bredvid den första i en lista längs
+vänsterkanten, med en kö som arbetar sig igenom dem en i taget medan du
+redigerar den som är klar. Ingenting att slå på och ingen annanstans att gå; se
+[Arbeta med flera inspelningar](workbench.md).
 
 I sidhuvudet finns också en knapp, **Växla mellan ljust och mörkt läge**, för
 färgtemat. Ditt val stannar på din egen enhet. Se [Integritet](privacy.md).

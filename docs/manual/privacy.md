@@ -33,8 +33,8 @@ that you can go fully offline and keep transcribing once you have completed the 
 of any automatic annotation model you wish to use (See below). 
 
 **2. Speech-recognition and translation models**
-Ticking **Auto-transcribe with Whisper**, **Speaker separation** or
-**Translate transcript locally** downloads the selected model to your local browser storage 
+Letting Tratt transcribe, or turning on **Speaker separation** or
+**Translate transcript locally**, downloads the selected model to your local browser storage 
 (between roughly 100 MB and 3 GB depending on the model). The
 model is then cached in your browser and reused if you start the application again.
 
