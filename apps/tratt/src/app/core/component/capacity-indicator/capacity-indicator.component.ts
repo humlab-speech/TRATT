@@ -12,7 +12,11 @@ import {
 } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
+import { getBaseHrefURL } from '@tratt/utilities';
+import { TrattModalService } from '../../modals/tratt-modal.service';
+import { YesNoModalComponent } from '../../modals/yes-no-modal/yes-no-modal.component';
 import { AlertService } from '../../shared/service/alert.service';
+import { AppStorageService } from '../../shared/service/appstorage.service';
 import { CapacityService } from '../../shared/service/capacity.service';
 
 /**
@@ -79,6 +83,8 @@ export class CapacityIndicatorComponent {
   private readonly memory = this.capacity.residentMemory;
   private readonly alertService = inject(AlertService);
   private readonly transloco = inject(TranslocoService);
+  private readonly appStorage = inject(AppStorageService);
+  private readonly modalService = inject(TrattModalService);
 
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
   private readonly injector = inject(Injector);
@@ -229,5 +235,24 @@ export class CapacityIndicatorComponent {
       return 0;
     }
     return Math.min(100, Math.max(0, (value / total) * 100));
+  }
+
+  deleteAllData(): void {
+    this.modalService
+      .openModal(YesNoModalComponent, YesNoModalComponent.options, {
+        message: this.transloco.translate(
+          'workbench.capacity.delete_all_data_confirm',
+        ),
+      })
+      .then((answer) => {
+        if (answer === 'yes') {
+          this.appStorage.clearWholeSession().then(() => {
+            document.location.href = getBaseHrefURL();
+          });
+        }
+      })
+      .catch((error) => {
+        console.error(error);
+      });
   }
 }

@@ -603,7 +603,9 @@
       "near_limit": "한도에 가까움",
       "near_limit_toast": "브라우저 메모리 또는 저장 공간이 부족합니다. 왼쪽 패널 하단의 “저장소 및 메모리”를 확인하세요.",
       "near_limit_callout": "Tratt의 브라우저 메모리 또는 저장 공간이 부족해지고 있습니다. 자세한 수치는 아래에 있습니다.",
-      "near_limit_dismiss": "닫기"
+      "near_limit_dismiss": "닫기",
+      "delete_all_data": "모든 데이터 영구 삭제",
+      "delete_all_data_confirm": "이 브라우저의 모든 전사, 로그, 설정을 삭제하시겠습니까? 되돌릴 수 없습니다."
     },
     "export": {
       "title": "내보내기",

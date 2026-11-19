@@ -118,6 +118,27 @@
   line-height: 1.4;
 }
 
+.capacity-indicator__delete {
+  display: block;
+  width: 100%;
+  margin-top: 0.6rem;
+  padding: 0.4rem 0.5rem;
+  border: 1px solid var(--tratt-border);
+  border-radius: var(--tratt-radius);
+  background: transparent;
+  font-family: var(--tratt-font-ui);
+  font-size: 0.75rem;
+  color: var(--tratt-danger-text);
+  text-align: center;
+  cursor: pointer;
+
+  &:hover,
+  &:focus-visible {
+    border-color: var(--tratt-danger);
+    background: color-mix(in srgb, var(--tratt-danger) 10%, transparent);
+  }
+}
+
 // "Close to the limit": a note above the figures, its arrow on them, and
 // both edges flashing red until the note is dismissed.
 .capacity-indicator__callout {

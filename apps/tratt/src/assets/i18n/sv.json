@@ -896,7 +896,9 @@
       "near_limit": "Nära gränsen",
       "near_limit_toast": "Tratt börjar få ont om minne eller lagringsutrymme i webbläsaren. Se ”Lagring och minne” längst ned i vänsterpanelen.",
       "near_limit_callout": "Tratt börjar få ont om minne eller lagringsutrymme i webbläsaren. Siffrorna finns nedan.",
-      "near_limit_dismiss": "Stäng"
+      "near_limit_dismiss": "Stäng",
+      "delete_all_data": "Radera all data permanent",
+      "delete_all_data_confirm": "Radera alla transkriptioner, loggar och inställningar i den här webbläsaren? Detta går inte att ångra."
     },
     "export": {
       "title": "Exportera",

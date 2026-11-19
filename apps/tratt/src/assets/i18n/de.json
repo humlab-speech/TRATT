@@ -874,7 +874,9 @@
       "near_limit": "Nahe am Limit",
       "near_limit_toast": "Tratt hat kaum noch Arbeitsspeicher oder Speicherplatz im Browser. Siehe „Speicher und Arbeitsspeicher“ unten im linken Bereich.",
       "near_limit_callout": "Tratt gehen Arbeitsspeicher oder Speicherplatz im Browser aus. Die Zahlen stehen unten.",
-      "near_limit_dismiss": "Schließen"
+      "near_limit_dismiss": "Schließen",
+      "delete_all_data": "Alle Daten dauerhaft löschen",
+      "delete_all_data_confirm": "Alle Transkripte, Protokolle und Einstellungen in diesem Browser löschen? Dies kann nicht rückgängig gemacht werden."
     },
     "export": {
       "title": "Exportieren",

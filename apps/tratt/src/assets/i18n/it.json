@@ -603,7 +603,9 @@
       "near_limit": "Vicino al limite",
       "near_limit_toast": "Tratt sta esaurendo la memoria o lo spazio di archiviazione del browser. Vedi «Archiviazione e memoria» in fondo al pannello di sinistra.",
       "near_limit_callout": "Tratt sta esaurendo la memoria o lo spazio di archiviazione del browser. I dati sono qui sotto.",
-      "near_limit_dismiss": "Chiudi"
+      "near_limit_dismiss": "Chiudi",
+      "delete_all_data": "Elimina definitivamente tutti i dati",
+      "delete_all_data_confirm": "Eliminare tutte le trascrizioni, i log e le impostazioni in questo browser? L'operazione non può essere annullata."
     },
     "export": {
       "title": "Esporta",

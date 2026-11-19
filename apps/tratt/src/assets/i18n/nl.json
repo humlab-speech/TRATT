@@ -603,7 +603,9 @@
       "near_limit": "Bijna aan de limiet",
       "near_limit_toast": "Tratt heeft bijna geen browsergeheugen of opslag meer. Zie ‘Opslag en geheugen’ onderaan het linkerpaneel.",
       "near_limit_callout": "Tratt heeft bijna geen browsergeheugen of opslagruimte meer. De cijfers staan hieronder.",
-      "near_limit_dismiss": "Sluiten"
+      "near_limit_dismiss": "Sluiten",
+      "delete_all_data": "Alle gegevens permanent verwijderen",
+      "delete_all_data_confirm": "Alle transcripten, logboeken en instellingen in deze browser verwijderen? Dit kan niet ongedaan worden gemaakt."
     },
     "export": {
       "title": "Exporteren",

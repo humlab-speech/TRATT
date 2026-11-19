@@ -603,7 +603,9 @@
       "near_limit": "接近上限",
       "near_limit_toast": "Tratt 的浏览器内存或存储空间即将不足。请查看左侧面板底部的“存储和内存”。",
       "near_limit_callout": "Tratt 的浏览器内存或存储空间即将不足。具体数据见下方。",
-      "near_limit_dismiss": "关闭"
+      "near_limit_dismiss": "关闭",
+      "delete_all_data": "永久删除所有数据",
+      "delete_all_data_confirm": "删除此浏览器中的所有转写、日志和设置？此操作无法撤销。"
     },
     "export": {
       "title": "导出",

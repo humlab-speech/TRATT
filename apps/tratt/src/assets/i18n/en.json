@@ -960,7 +960,9 @@
       "near_limit": "Close to the limit",
       "near_limit_toast": "Tratt is running low on browser memory or storage. See “Storage and memory” at the bottom of the left panel.",
       "near_limit_callout": "Tratt is running low on browser memory or storage. The figures are below.",
-      "near_limit_dismiss": "Dismiss"
+      "near_limit_dismiss": "Dismiss",
+      "delete_all_data": "Delete all data permanently",
+      "delete_all_data_confirm": "Delete all transcripts, logs and settings in this browser? This cannot be undone."
     },
     "export": {
       "title": "Export",

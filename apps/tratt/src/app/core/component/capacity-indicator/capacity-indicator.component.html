@@ -126,5 +126,12 @@
         'workbench.capacity.memory_note' | transloco: { count: residentCount() }
       }}
     </div>
+    <button
+      type="button"
+      class="capacity-indicator__delete"
+      (click)="deleteAllData()"
+    >
+      {{ 'workbench.capacity.delete_all_data' | transloco }}
+    </button>
   </div>
 </div>

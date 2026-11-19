@@ -11,7 +11,10 @@ import {
 } from '@jest/globals';
 import { TranslocoService } from '@jsverse/transloco';
 import { of } from 'rxjs';
+import { TrattModalService } from '../../modals/tratt-modal.service';
+import { YesNoModalComponent } from '../../modals/yes-no-modal/yes-no-modal.component';
 import { AlertService } from '../../shared/service/alert.service';
+import { AppStorageService } from '../../shared/service/appstorage.service';
 import {
   CapacityService,
   RAM_BUDGET_BYTES,
@@ -50,6 +53,8 @@ describe('CapacityIndicatorComponent', () => {
   let fixture: ComponentFixture<CapacityIndicatorComponent>;
   let storage: WritableSignal<StorageCapacity>;
   let residentMemory: WritableSignal<ResidentMemoryEstimate>;
+  let appStorage: { clearWholeSession: jest.Mock };
+  let modalService: { openModal: jest.Mock };
 
   function memoryFill(): HTMLElement {
     return fixture.debugElement.query(
@@ -75,9 +80,14 @@ describe('CapacityIndicatorComponent', () => {
       budgetBytes: RAM_BUDGET_BYTES,
     });
 
+    appStorage = { clearWholeSession: jest.fn() };
+    modalService = { openModal: jest.fn() };
+
     await TestBed.configureTestingModule({
       imports: [CapacityIndicatorComponent],
       providers: [
+        { provide: AppStorageService, useValue: appStorage },
+        { provide: TrattModalService, useValue: modalService },
         // A stub CapacityService built on REAL writable signals. This is the
         // mechanism that actually supports reactivity under OnPush — unlike
         // workbench.component.spec.ts's outer suite, whose hand-rolled
@@ -321,6 +331,50 @@ describe('CapacityIndicatorComponent', () => {
       toggle().click();
       fixture.detectChanges();
       expect(details().hidden).toBe(true);
+    });
+
+    it('renders a delete button that only shows when the box is opened', () => {
+      const button = fixture.debugElement.query(
+        By.css('.capacity-indicator__delete'),
+      );
+      expect(button).toBeTruthy();
+
+      // The button sits inside the folded details, so it is only reachable
+      // once the box is opened.
+      expect(details().hidden).toBe(true);
+      toggle().click();
+      fixture.detectChanges();
+      expect(details().hidden).toBe(false);
+    });
+
+    it('asks for confirmation and clears the whole session on "yes"', async () => {
+      modalService.openModal.mockResolvedValue('yes');
+      appStorage.clearWholeSession.mockReturnValue(new Promise(() => {}));
+
+      const button = fixture.debugElement.query(
+        By.css('.capacity-indicator__delete'),
+      ).nativeElement as HTMLButtonElement;
+      button.click();
+      await fixture.whenStable();
+
+      expect(modalService.openModal).toHaveBeenCalledWith(
+        YesNoModalComponent,
+        YesNoModalComponent.options,
+        { message: 'workbench.capacity.delete_all_data_confirm' },
+      );
+      expect(appStorage.clearWholeSession).toHaveBeenCalledTimes(1);
+    });
+
+    it('clears nothing when the confirmation is declined', async () => {
+      modalService.openModal.mockResolvedValue('no');
+
+      const button = fixture.debugElement.query(
+        By.css('.capacity-indicator__delete'),
+      ).nativeElement as HTMLButtonElement;
+      button.click();
+      await fixture.whenStable();
+
+      expect(appStorage.clearWholeSession).not.toHaveBeenCalled();
     });
 
     it('flags amber memory on the folded heading without opening it', () => {
