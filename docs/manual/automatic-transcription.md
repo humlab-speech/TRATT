@@ -73,6 +73,13 @@ Noticeably better than the general model for Swedish.
 | --- | --- | --- |
 | Tiny | 120 MB | Fastest, least accurate. Good for checking that the pipeline works. |
 | Small | 400 MB | Reasonable compromise |
+
+> **These two figures are the CPU build.** Tiny and Small are the only models
+> Tratt fetches in two quantisations: a smaller 4-bit build on a machine with
+> WebGPU, and a larger 8-bit one without. The interface shows the larger number
+> either way, so with WebGPU the download is appreciably smaller than it says.
+> Every other model on this page is the same 4-bit build on both paths, and its
+> figure is exact.
 | Medium | 1000 MB | More accurate again. Needs WebGPU. |
 | Large | 1200 MB | Most accurate, about half the speed of Medium. Needs WebGPU. |
 

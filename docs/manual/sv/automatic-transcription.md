@@ -76,6 +76,13 @@ bättre än den allmänna modellen för svenska.
 | --- | --- | --- |
 | Tiny | 120 MB | Snabbast, minst noggrann. Bra för att kontrollera att kedjan fungerar. |
 | Small | 400 MB | Rimlig kompromiss |
+
+> **De två siffrorna gäller processorbygget.** Tiny och Small är de enda
+> modeller Tratt hämtar i två kvantiseringar: ett mindre 4-bitarsbygge på en
+> dator med WebGPU och ett större 8-bitarsbygge utan. Gränssnittet visar den
+> större siffran i båda fallen, så med WebGPU är nedladdningen märkbart mindre
+> än det står. Alla andra modeller på den här sidan är samma 4-bitarsbygge på
+> båda vägarna, och deras siffror stämmer exakt.
 | Medium | 1000 MB | Noggrannare igen. Kräver WebGPU. |
 | Large | 1200 MB | Mest noggrann, ungefär halva hastigheten mot Medium. Kräver WebGPU. |
 
