@@ -52,7 +52,7 @@ export class ELANConverter extends Converter {
     this._encoding = 'UTF-8';
     this._multitiers = true;
     this._notice = `
-- The attributes MEDIA_URL and MEDIA_RELATIVE_URL will be both set with the relative path. In order to open the transcript in ELAN the transcript file must be in the same folder as the audio file.
+- The attributes MEDIA_URL and RELATIVE_MEDIA_URL will be both set with the relative path. In order to open the transcript in ELAN the transcript file must be in the same folder as the audio file.
 - Only attribute "ANNOTATION" of tier is going to be parsed.
 `;
   }
@@ -67,6 +67,8 @@ export class ELANConverter extends Converter {
     let filename = '';
 
     const x2js = new X2JS();
+    const relativeMediaUrl = `./${annotation.annotates || audiofile?.name || ''}`;
+
     const jsonObj = {
       _declaration: {
         _attributes: {
@@ -88,8 +90,8 @@ export class ELANConverter extends Converter {
             _MEDIA_URL:
               audiofile?.url && audiofile.url !== ''
                 ? audiofile.url
-                : `./${annotation.annotates || audiofile?.name || ''}`,
-            _MEDIA_RELATIVE_URL: `./${annotation.annotates || audiofile?.name || ''}`,
+                : relativeMediaUrl,
+            _RELATIVE_MEDIA_URL: relativeMediaUrl,
             _MIME_TYPE: 'audio/x-wav',
           },
         },

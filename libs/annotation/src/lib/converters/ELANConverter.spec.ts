@@ -153,3 +153,21 @@ describe('ELANConverter — speakers', () => {
     expect(read(1)).toEqual({ words: 'hi', Speaker: 'Bob' });
   });
 });
+
+describe('ELANConverter — media attributes', () => {
+  it('writes RELATIVE_MEDIA_URL, the attribute ELAN defines', () => {
+    const annot = new OAnnotJSON('interview', 'interview.wav', 16000, [
+      new OSegmentLevel('OCTRA_1', [
+        new OSegment(1, 0, 32000, [new OLabel('OCTRA_1', 'hi')], true),
+      ]),
+    ]);
+    const out = new ELANConverter().export(
+      annot,
+      { name: 'interview.wav', sampleRate: 16000 } as never,
+      0,
+    );
+    const content = String(out.file?.content ?? '');
+    expect(content).toMatch(/RELATIVE_MEDIA_URL=/);
+    expect(content).not.toMatch(/MEDIA_RELATIVE_URL/);
+  });
+});
