@@ -149,19 +149,32 @@ export class PipelineQueuePersistenceEffects {
             .saveAnnotation(LoginMode.LOCAL, serialized, action.bundleId)
             .pipe(
               finalize(releaseWrite),
-              mergeMap(() => of(undefined)),
+              mergeMap(() => EMPTY),
               catchError((error) => {
-                // Never swallow silently: the transcript is only in memory.
+                // The transcript is only in memory, and the queue has already
+                // dispatched bundleDone for it: `done` is excluded from
+                // computeReadyBundleIds, from Retry and from restoreInterrupted,
+                // so answering nothing left a green Done badge on unsaved work.
                 console.error(
                   `Failed to persist transcript of bundle ${action.bundleId}`,
                   error,
                 );
-                return of(undefined);
+                return of(
+                  PipelineQueueActions.bundleFailed({
+                    bundleId: action.bundleId,
+                    error: {
+                      kind: 'unknown',
+                      message: `Could not save the transcript of ${action.bundleId} to this browser. The result is still in memory; Retry will save it again.`,
+                    },
+                  }),
+                );
               }),
             );
         }),
       ),
-    { dispatch: false },
+    // Every branch now answers with an action or EMPTY; `false` here is what
+    // made the failure above a swallow.
+    { dispatch: true },
   );
 
   constructor(
