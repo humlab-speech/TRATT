@@ -10,11 +10,11 @@ import {
 import { TranslocoService } from '@jsverse/transloco';
 import { provideMockActions } from '@ngrx/effects/testing';
 import { MockStore, provideMockStore } from '@ngrx/store/testing';
+import { AccountLoginMethod } from '@octra/api-types';
 import { OctraAPIService } from '@octra/ngx-octra-api';
 import { AudioManager } from '@tratt/web-media';
 import { SessionStorageService } from 'ngx-webstorage';
 import { randomUUID } from 'node:crypto';
-import { BroadcastChannel as NodeBroadcastChannel } from 'node:worker_threads';
 import { of, ReplaySubject } from 'rxjs';
 import { TrattModalService } from '../../modals/tratt-modal.service';
 import { AlertService } from '../../shared/service';
@@ -26,18 +26,62 @@ import { LoginModeActions } from '../login-mode/login-mode.actions';
 import { AuthenticationActions } from './authentication.actions';
 import { AuthenticationEffects } from './authentication.effects';
 
-// jsdom (jest's test environment) doesn't implement the Web BroadcastChannel API.
-// Node's worker_threads implementation has an equivalent same-process pub/sub
-// surface (addEventListener('message', ...), postMessage, close), so it's a
-// suitable polyfill for exercising the real handshake code in this spec.
-if (
-  typeof (globalThis as { BroadcastChannel?: unknown }).BroadcastChannel ===
-  'undefined'
-) {
-  (
-    globalThis as unknown as { BroadcastChannel: typeof NodeBroadcastChannel }
-  ).BroadcastChannel = NodeBroadcastChannel;
+// jsdom (jest's test environment) doesn't implement the Web BroadcastChannel
+// API. Node's worker_threads implementation is not a drop-in stand-in: it
+// delivers through a MessagePort, which zone.js patches, and on the CI Node 20
+// runner that path throws inside zone's global event callback before the
+// effect's listener runs, silently dropping the message. This fake implements
+// exactly the surface the handshake uses —
+// addEventListener/removeEventListener/postMessage/close — in the same realm,
+// so delivery is synchronous and identical on every Node version.
+class FakeBroadcastChannel extends EventTarget {
+  static readonly open: FakeBroadcastChannel[] = [];
+
+  constructor(readonly name: string) {
+    super();
+    FakeBroadcastChannel.open.push(this);
+  }
+
+  /** Mirrors the browser: a channel never receives its own messages. */
+  postMessage(data: unknown): void {
+    for (const channel of FakeBroadcastChannel.open) {
+      if (channel !== this && channel.name === this.name) {
+        channel.dispatchEvent(new MessageEvent('message', { data }));
+      }
+    }
+  }
+
+  close(): void {
+    const index = FakeBroadcastChannel.open.indexOf(this);
+    if (index !== -1) {
+      FakeBroadcastChannel.open.splice(index, 1);
+    }
+  }
+
+  /** Posts as the auth-success popup would, then closes the sender. */
+  static post(name: string, data: unknown): void {
+    const sender = new FakeBroadcastChannel(name);
+    sender.postMessage(data);
+    sender.close();
+  }
+
+  static reset(): void {
+    FakeBroadcastChannel.open.length = 0;
+  }
 }
+
+// The jsdom window has no BroadcastChannel at all, so assigning the fake is
+// not shadowing a real implementation.
+const globalWithBroadcastChannel = globalThis as unknown as {
+  BroadcastChannel: typeof FakeBroadcastChannel;
+};
+globalWithBroadcastChannel.BroadcastChannel = FakeBroadcastChannel;
+
+const isReAuthenticationSuccess = (action: unknown): boolean => {
+  // Only the action's `type` discriminator is inspected here.
+  const typed = action as { type: string };
+  return typed.type === AuthenticationActions.needReAuthentication.success.type;
+};
 
 // The jsdom version bundled with jest-environment-jsdom implements
 // window.crypto.getRandomValues but not crypto.randomUUID (unlike real
@@ -69,6 +113,7 @@ describe('AuthenticationEffects', () => {
 
   beforeEach(() => {
     actions$ = new ReplaySubject(1);
+    FakeBroadcastChannel.reset();
 
     TestBed.configureTestingModule({
       providers: [
@@ -112,69 +157,62 @@ describe('AuthenticationEffects', () => {
     store = TestBed.inject(MockStore);
   });
 
-  it('ignores a reauthentication success message with a mismatched nonce', (done) => {
+  it('ignores a reauthentication success message with a mismatched nonce', () => {
     const dispatchSpy = jest.spyOn(store, 'dispatch');
-    // subscribing activates the cold `login$` effect and its exhaustMap side effect
+    // Subscribing activates the cold `login$` effect; the API mock is a plain
+    // `of`, so it opens the channel and registers its listener synchronously.
     const subscription = effects.login$.subscribe();
 
     actions$.next(
       AuthenticationActions.reauthenticate.do({
-        method: 'local' as any,
+        method: AccountLoginMethod.local,
       }),
     );
 
-    // wait for the effect to open the BroadcastChannel and register its listener
-    setTimeout(() => {
-      const bc = new BroadcastChannel('ocb_authentication');
-      bc.postMessage({ ok: true, nonce: 'not-the-real-nonce' });
-      bc.close();
+    FakeBroadcastChannel.post('ocb_authentication', {
+      ok: true,
+      nonce: 'not-the-real-nonce',
+    });
 
-      // give the listener's own BroadcastChannel a tick to receive the message
-      setTimeout(() => {
-        expect(
-          dispatchSpy.mock.calls.some(
-            ([a]) =>
-              (a as unknown as { type: string }).type ===
-              AuthenticationActions.needReAuthentication.success.type,
-          ),
-        ).toBe(false);
-        subscription.unsubscribe();
-        done();
-      }, 50);
-    }, 0);
+    expect(
+      dispatchSpy.mock.calls.some(([action]) =>
+        isReAuthenticationSuccess(action),
+      ),
+    ).toBe(false);
+
+    subscription.unsubscribe();
+    dispatchSpy.mockRestore();
   });
 
-  it('accepts a reauthentication success message with the matching nonce', (done) => {
-    const fixedNonce = 'fixed-test-nonce-1234';
-    jest.spyOn(crypto, 'randomUUID').mockReturnValue(fixedNonce as any);
+  it('accepts a reauthentication success message with the matching nonce', () => {
+    const fixedNonce = 'fixed-test-nonce-1234-5678';
+    const randomUUIDSpy = jest
+      .spyOn(crypto, 'randomUUID')
+      .mockReturnValue(fixedNonce);
 
     const dispatchSpy = jest.spyOn(store, 'dispatch');
     const subscription = effects.login$.subscribe();
 
     actions$.next(
       AuthenticationActions.reauthenticate.do({
-        method: 'local' as any,
+        method: AccountLoginMethod.local,
       }),
     );
 
-    // wait for the effect to open the BroadcastChannel and register its listener
-    setTimeout(() => {
-      const bc = new BroadcastChannel('ocb_authentication');
-      bc.postMessage({ ok: true, nonce: fixedNonce });
-      bc.close();
+    FakeBroadcastChannel.post('ocb_authentication', {
+      ok: true,
+      nonce: fixedNonce,
+    });
 
-      setTimeout(() => {
-        expect(
-          dispatchSpy.mock.calls.some(
-            ([a]) =>
-              (a as unknown as { type: string }).type ===
-              AuthenticationActions.needReAuthentication.success.type,
-          ),
-        ).toBe(true);
-        subscription.unsubscribe();
-        done();
-      }, 50);
-    }, 0);
+    expect(
+      dispatchSpy.mock.calls.some(([action]) =>
+        isReAuthenticationSuccess(action),
+      ),
+    ).toBe(true);
+
+    subscription.unsubscribe();
+    dispatchSpy.mockRestore();
+    randomUUIDSpy.mockRestore();
   });
 
   describe('onLoginLocal$', () => {
