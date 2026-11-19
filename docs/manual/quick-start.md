@@ -145,7 +145,7 @@ the text is still there, but you must drag the same media file in again to keep
 working. Export a file whenever you stop for the day.
 
 **Nothing was uploaded.** Your recording stayed on your machine the whole time. See
-[What leaves your computer](privacy.md).
+[How Tratt uses the internet](privacy.md).
 
 ---
 

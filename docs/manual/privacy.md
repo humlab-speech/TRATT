@@ -1,47 +1,69 @@
-# Privacy within the Tratt application
+# How Tratt uses the internet
 
 **For:** anyone handling interviews, clinical recordings, or anything else where
 "where did the audio go?" is a question you have to be able to answer.
 
-**Short answer:** your recording and your transcript never leave the browser.
-The only thing Tratt downloads on your behalf is the app itself and, if you
-switch it on, a speech or translation model.
+**Short answer:** Tratt reaches the network to fetch *itself* and, when you ask
+for one, a language model. It does not send your recording or your transcript
+anywhere. The only exception is a [Visp project](visp-projects.md), where
+sending the transcript to a server is the whole point.
 
 ---
 
-## How the different kinds of data are stored
+<a id="every-connection"></a>
+
+## Every connection Tratt makes
+
+| What | When | Where to | What travels |
+| --- | --- | --- | --- |
+| **The app's own files** | First load, and again when a new version is published | The server that hosts Tratt | Nothing of yours |
+| **A speech, speaker-separation or translation model** | The first time that model runs | `huggingface.co` | Nothing of yours. Before downloading a translation model, Tratt first asks whether that language pair exists at all. |
+| **A maintenance notice** | At start-up | The server that hosts Tratt | Nothing of yours |
+| **Your material** | Only in a [Visp project](visp-projects.md) | That project's server | The transcript you are working on, and whatever the project asks you to send |
+
+Outside a Visp project, that is the whole list. Your audio is never uploaded,
+not for transcription and not for anything else: the model runs **in the tab**,
+on your machine.
+
+## What never leaves your machine
+
+- **The recording.** It is read from disk into the tab's memory, decoded, and
+  dropped when you close the tab. Tratt neither uploads it nor writes it back to
+  disk.
+- **The transcript**, outside a Visp project. It is kept in this browser's
+  storage so you can come back to it.
+- **Your settings**, including the choice of light or dark mode
+  (**Switch between light and dark mode** in the header, stored under
+  `tratt.theme`).
+
+## Working offline
+
+Tratt installs a service worker, so after the first successful load the app runs
+from your browser's cache. Once you have also downloaded the models you intend to
+use, you can disconnect entirely and keep transcribing: nothing in the editing,
+the exporting or the storage needs the network.
+
+If your machine or network cannot reach `huggingface.co`, automatic
+transcription and translation are simply unavailable. Everything else in Tratt
+still works, including transcribing by hand and every export format.
+
+---
+
+## Where your data is kept instead
 
 | | Where it is stored |
 | --- | --- |
-| The audio or video file you are working on | In the browser tab's memory only. It is read from disk, decoded, and discarded when you close the tab. It is never uploaded and never written back to disk by Tratt. |
-| The draft transcription produced by a transcription model | In the browser's local storage on your machine. |
-| The transcript you are editing | In the browser's local storage on your machine. |
-| Your choice of light or dark mode (**Switch between light and dark mode** in the header) | In the browser's local storage on your machine, under `tratt.theme`. It is never sent anywhere. |
+| The audio or video file you are working on | In the browser tab's memory only |
+| The draft transcription produced by a model | In this browser's storage on your machine |
+| The transcript you are editing | In this browser's storage on your machine |
+| Your settings and colour theme | In this browser's storage on your machine |
 
-Because the audio is only held in memory, Tratt will remember your
-transcript between sessions, but will not store your recording. When you come back, drag the
-same sound or media file in again and you can continue your work.
-**Please do not, however, rely too heavilly on this mechanism to work correctly*. 
-Instead, make a habit of making a copy of your transcript after a completed session [See Exporting](exporting.md).
+Because the audio is only held in memory, Tratt remembers your transcript
+between sessions but not your recording: when you come back, attach the same
+media file again and carry on.
 
-## What is fetched from the network
-
-**1. The application itself.** Loading the page fetches Tratt's own files from
-whichever server hosts it. Tratt installs a service worker, so after the first
-successful load the app runs from your browser's local storage (cache). This means 
-that you can go fully offline and keep transcribing once you have completed the download
-of any automatic annotation model you wish to use (See below). 
-
-**2. Speech-recognition and translation models**
-Letting Tratt transcribe, or turning on **Speaker separation** or
-**Translate transcript locally**, downloads the selected model to your local browser storage 
-(between roughly 100 MB and 3 GB depending on the model). The
-model is then cached in your browser and reused if you start the application again.
-
-Your audio is **not** sent by the app to a server for transcription.
-
-If your machine or network cannot reach the servers where the automatic annotation models are stored (`huggingface.co`)
-, automatic transcription simply will not available; everything else in Tratt will still work.
+**Do not lean on that too heavily.** Browser storage is a working convenience,
+not an archive. Make a habit of [exporting](exporting.md) after a session.
 
 ## Clearing your data
 

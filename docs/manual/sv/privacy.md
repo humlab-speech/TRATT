@@ -1,48 +1,68 @@
-# Vad lämnar din dator
+# Hur Tratt använder internet
 
 **För:** dig som hanterar intervjuer, kliniska inspelningar eller annat där
 "vart tog ljudet vägen?" är en fråga du måste kunna besvara.
 
-**Kort svar:** din inspelning och ditt transkript lämnar aldrig webbläsaren. Det
-enda Tratt hämtar åt dig är själva applikationen och, om du slår på det, en
-tal- eller översättningsmodell.
+**Kort svar:** Tratt når nätet för att hämta *sig själv* och, när du ber om en,
+en språkmodell. Den skickar inte din inspelning eller din transkription
+någonstans. Undantaget är ett [Visp-projekt](visp-projects.md), där hela poängen
+är att transkriptionen ska till en server.
 
 ---
 
-## Vad som stannar lokalt
+<a id="every-connection"></a>
+
+## Varje uppkoppling Tratt gör
+
+| Vad | När | Vart | Vad som färdas |
+| --- | --- | --- | --- |
+| **Appens egna filer** | Vid första laddningen, och igen när en ny version publiceras | Servern som är värd för Tratt | Ingenting av ditt |
+| **En tal-, talarseparations- eller översättningsmodell** | Första gången den modellen körs | `huggingface.co` | Ingenting av ditt. Innan en översättningsmodell laddas ned frågar Tratt först om språkparet finns över huvud taget. |
+| **Ett underhållsmeddelande** | Vid start | Servern som är värd för Tratt | Ingenting av ditt |
+| **Ditt material** | Bara i ett [Visp-projekt](visp-projects.md) | Det projektets server | Transkriptionen du arbetar med, och det projektet ber dig skicka |
+
+Utanför ett Visp-projekt är det hela listan. Ditt ljud laddas aldrig upp, varken
+för transkribering eller något annat: modellen körs **i fliken**, på din dator.
+
+## Vad som aldrig lämnar din dator
+
+- **Inspelningen.** Den läses från disk in i flikens minne, avkodas och kastas
+  när du stänger fliken. Tratt varken laddar upp den eller skriver tillbaka den
+  till disk.
+- **Transkriptionen**, utanför ett Visp-projekt. Den ligger i den här
+  webbläsarens lagring så att du kan återvända till den.
+- **Dina inställningar**, inklusive valet av ljust eller mörkt läge (**Växla
+  mellan ljust och mörkt läge** i sidhuvudet, sparat under `tratt.theme`).
+
+## Att arbeta offline
+
+Tratt installerar en service worker, så efter första lyckade laddningen körs
+appen från webbläsarens cache. När du också har laddat ned de modeller du tänker
+använda kan du koppla ned dig helt och fortsätta transkribera: ingenting i
+redigeringen, exporten eller lagringen behöver nätet.
+
+Kan din dator eller ditt nätverk inte nå `huggingface.co` är automatisk
+transkription och översättning helt enkelt inte tillgängliga. Allt annat i Tratt
+fungerar ändå, inklusive att transkribera för hand och varje exportformat.
+
+---
+
+## Var dina data ligger i stället
 
 | | Var det finns |
 | --- | --- |
-| Ljud- eller videofilen du laddar in | Endast i webbläsarflikens minne. Den läses från disk, avkodas och kastas när du stänger fliken. Den laddas aldrig upp och skrivs aldrig tillbaka till disk av Tratt. |
-| Transkriptet du skapar | I webbläsarens egen databas (IndexedDB) på din dator. |
-| Dina inställningar, gränssnittsspråk och loggade åtgärder | Samma lokala databas. |
-| Ditt val av ljust eller mörkt läge (**Växla mellan ljust och mörkt läge** i sidhuvudet) | I webbläsarens lokala lagring på din dator, under `tratt.theme`. Det skickas aldrig någonstans. |
-| Utkastet från automatisk transkription | Skapas på din dator, av en modell som körs i din webbläsare. |
+| Ljud- eller videofilen du arbetar med | Endast i webbläsarflikens minne |
+| Utkastet från en modell | I den här webbläsarens lagring på din dator |
+| Transkriptionen du redigerar | I den här webbläsarens lagring på din dator |
+| Dina inställningar och färgtemat | I den här webbläsarens lagring på din dator |
 
-Eftersom ljudet bara hålls i minnet kan Tratt erbjuda sig att minnas ditt
-transkript mellan sessioner, men inte din inspelning. När du kommer tillbaka drar
-du in samma fil igen så väntar texten.
+Eftersom ljudet bara hålls i minnet minns Tratt din transkription mellan
+sessioner men inte din inspelning: när du kommer tillbaka bifogar du samma
+mediefil igen och fortsätter.
 
-## Vad som hämtas över nätet
-
-**1. Själva applikationen.** När sidan laddas hämtas Tratt:s egna filer från den
-server som är värd för den. Tratt installerar en service worker, så efter första
-lyckade laddningen körs appen från webbläsarens cache: du kan gå helt offline
-och fortsätta transkribera. Webbläsaren hämtar en ny version när en sådan
-publiceras; Tratt visar en avisering om uppdatering i stället för att ladda om
-under fötterna på dig.
-
-**2. Tal- och översättningsmodeller, bara om du ber om dem.** Att låta Tratt
-transkribera, eller slå på **Speaker separation** eller **Översätt
-transkriptionen lokalt**, laddar ned den valda modellen från
-`huggingface.co` (mellan ungefär 100 MB och 3 GB beroende på modell). Modellen
-sparas sedan i webbläsaren och återanvänds.
-
-Ditt ljud skickas **inte** till Hugging Face eller någon annanstans. Trafiken går
-åt ett håll: modellen kommer ned, inspelningen stannar.
-
-Kan din dator eller ditt nätverk inte nå `huggingface.co` är automatisk
-transkription helt enkelt inte tillgänglig; allt annat i Tratt fungerar ändå.
+**Luta dig inte för tungt mot det.** Webbläsarlagring är en arbetsbekvämlighet,
+inte ett arkiv. Gör det till en vana att [exportera](exporting.md) efter en
+session.
 
 ## Rensa dina data
 

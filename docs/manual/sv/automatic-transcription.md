@@ -120,7 +120,7 @@ Tratt förväljer Small. Har din dator WebGPU och inspelningen är viktig, byt t
 
 Modellen hämtas från `huggingface.co` första gången du använder den och sparas
 sedan i webbläsaren, så nästa körning startar direkt. Ditt ljud skickas aldrig
-någonstans. Se [Vad lämnar din dator](privacy.md).
+någonstans. Se [Hur Tratt använder internet](privacy.md).
 
 Avbryts nedladdningen, försök igen; fortsätter den att misslyckas blockerar
 nätverket `huggingface.co` och automatisk transkription är inte tillgänglig på

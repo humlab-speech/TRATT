@@ -5,8 +5,9 @@ web browser. You load a sound or video file, optionally let a speech-recognition
 model write a first draft, correct that draft against the audio, and export the
 result as a document, subtitle file or annotation file.
 
-Nothing you load is uploaded anywhere. The recording never leaves your computer;
-see [What leaves your computer](privacy.md) for exactly what does.
+Nothing you load is uploaded anywhere. Tratt reaches the network to fetch itself
+and, when you ask for one, a language model; see
+[How Tratt uses the internet](privacy.md) for the whole list.
 
 ---
 
@@ -33,7 +34,8 @@ done. Nothing to switch on and nowhere else to go; see
 [Working with several recordings](workbench.md).
 
 The header also has a button, **Switch between light and dark mode**, for the
-colour theme. Your choice stays on your own device. See [Privacy](privacy.md).
+colour theme. Your choice stays on your own device, like everything else Tratt
+keeps; see [How Tratt uses the internet](privacy.md).
 
 ---
 
@@ -42,7 +44,7 @@ colour theme. Your choice stays on your own device. See [Privacy](privacy.md).
 **Getting started**
 
 - [Quick start: your first transcription](quick-start.md)
-- [What leaves your computer](privacy.md)
+- [How Tratt uses the internet](privacy.md)
 
 **One recording at a time**
 

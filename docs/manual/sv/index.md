@@ -6,8 +6,9 @@ behov en taligenkänningsmodell skriva ett första utkast, rättar utkastet mot
 ljudet och exporterar resultatet som ett dokument, en undertextfil eller en
 annoteringsfil.
 
-Ingenting du laddar in skickas någonstans. Inspelningen lämnar aldrig din dator.
-Se [Vad lämnar din dator](privacy.md) för exakt vad som faktiskt gör det.
+Ingenting du laddar in skickas någonstans. Tratt når nätet för att hämta sig
+själv och, när du ber om en, en språkmodell. Se
+[Hur Tratt använder internet](privacy.md) för hela listan.
 
 ---
 
@@ -35,7 +36,8 @@ redigerar den som är klar. Ingenting att slå på och ingen annanstans att gå;
 [Arbeta med flera inspelningar](workbench.md).
 
 I sidhuvudet finns också en knapp, **Växla mellan ljust och mörkt läge**, för
-färgtemat. Ditt val stannar på din egen enhet. Se [Integritet](privacy.md).
+färgtemat. Ditt val stannar på din egen enhet, liksom allt annat Tratt sparar;
+se [Hur Tratt använder internet](privacy.md).
 
 ---
 
@@ -44,7 +46,7 @@ färgtemat. Ditt val stannar på din egen enhet. Se [Integritet](privacy.md).
 **Kom igång**
 
 - [Snabbstart: din första transkription](quick-start.md)
-- [Vad lämnar din dator](privacy.md)
+- [Hur Tratt använder internet](privacy.md)
 
 **En inspelning i taget**
 

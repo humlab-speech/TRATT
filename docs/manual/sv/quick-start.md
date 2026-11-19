@@ -147,7 +147,7 @@ tillbaka finns texten kvar, men du måste dra in samma mediefil igen för att
 kunna arbeta vidare. Exportera en fil varje gång du slutar för dagen.
 
 **Ingenting laddades upp.** Din inspelning stannade på din dator hela tiden. Se
-[Vad lämnar din dator](privacy.md).
+[Hur Tratt använder internet](privacy.md).
 
 ---
 

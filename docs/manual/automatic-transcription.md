@@ -113,7 +113,7 @@ switch to **Large-v3-turbo**.
 
 The model comes from `huggingface.co` the first time you use it and is then cached
 in your browser, so the second run starts immediately. Your audio is never sent
-anywhere; see [What leaves your computer](privacy.md).
+anywhere; see [How Tratt uses the internet](privacy.md).
 
 If the download is interrupted, retry; if it keeps failing, the network is blocking
 `huggingface.co` and automatic transcription will not be available on that machine.

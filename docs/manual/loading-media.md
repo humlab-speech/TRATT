@@ -132,4 +132,4 @@ This is described with the rest of the list in
 Tratt restores both at once and spares you the re-attaching.
 
 > Export a file before you stop for the day. Browser storage is a convenience, not
-> an archive; see [What leaves your computer](privacy.md).
+> an archive; see [How Tratt uses the internet](privacy.md).

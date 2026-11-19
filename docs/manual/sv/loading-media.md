@@ -137,4 +137,4 @@ släppa tillbaka den på Tratt återställer bådadera på en gång och besparar
 bifogandet.
 
 > Exportera en fil innan du slutar för dagen. Webbläsarlagring är en bekvämlighet,
-> inte ett arkiv. Se [Vad lämnar din dator](privacy.md).
+> inte ett arkiv. Se [Hur Tratt använder internet](privacy.md).
