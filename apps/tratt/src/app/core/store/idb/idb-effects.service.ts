@@ -15,6 +15,7 @@ import {
   concatMap,
   exhaustMap,
   filter,
+  defaultIfEmpty,
   forkJoin,
   from,
   map,
@@ -956,6 +957,16 @@ export class IDBEffects {
                 }),
               );
             }),
+            // TrattDatabase.saveModeData() answers with of() (no emission, no
+            // error) when LOCAL mode has no bundleId, so neither success nor fail
+            // was dispatched here and the leave-page guard kept counting the write
+            // forever. Answer it. A missing answer is also a bug for every other
+            // caller of saveModeData - see notes/D7.
+            defaultIfEmpty(
+              IDBActions.saveAnnotation.fail({
+                error: 'Nothing was written: this bundle has no local id.',
+              }),
+            ),
           );
       }),
     ),
