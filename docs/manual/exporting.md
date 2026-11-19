@@ -159,43 +159,81 @@ of the transcript.
 
 <a id="exporting-an-archive"></a>
 
-## Exporting an archive
+## The archive, and how to pick up where you left off
 
-When an export makes more than one file, Tratt packs them into one `.zip`
-archive. It is the only export that can be loaded back complete: one archive can
-hold a whole batch of recording bundles.
+When an export makes more than one file, Tratt packs them into one `.zip`.
+**This is the only export that can be loaded back complete**, and it is how you
+are meant to carry work between machines, hand it to a colleague, or simply put
+a session away and resume it next week.
 
-The file is named after what is in it and when it was made, for example
-`tratt_12_20261008@1923.zip`, wich means that the archieve contains twelve recordings, and was written on the October 8th, 2026, at 19:23 local time.
+### What is in it
 
-Inside the archive, each recording has its own folder under `bundles/` holding
+The name says what it holds and when it was written:
+`tratt_12_20261008@1923.zip` is twelve recording bundles, written on 8 October
+2026 at 19:23 local time.
 
-- the **audio**, when **Include the audio** was ticked. From the Workbench
-  list it is converted to 32 kbps mono Opus (video to `.mp4`); if Tratt cannot
-  convert a file, it exports the original and warns you,
-- **Tratt's own file** (`_annot.json`) of its transcript, and
-- the formats you ticked.
+```
+tratt_2_20261119@1754.zip
+├── bundles/
+│   ├── interview-01/
+│   │   ├── interview-01.opus         the audio, if you ticked Include the audio
+│   │   ├── interview-01_annot.json   Tratt's own file: the transcript
+│   │   └── interview-01.docx         each format you ticked
+│   └── interview-02/
+│       └── …
+├── manifest.json
+└── manifest.csv
+```
 
-Two manifests files are located at the root of the archiive: **`manifest.json`** and **`manifest.csv`**. These files list every
-recording with its paths and details. The CSV opens in a spreadsheet, which makes
-it a convenient index for a corpus.
+Each recording gets its own folder under `bundles/`, which is what keeps two
+recordings that share a name (`take.wav` and `take.wma`) from overwriting each
+other's transcripts.
 
-When the audio is converted, Tratt's own file and the manifests count samples
-at 16 kHz, the rate Tratt reads the audio back at, while the `.opus` file
-itself is 48 kHz. Times in seconds agree.
+The two **manifests** at the root list every recording bundle with its paths and
+details: the source file name, duration in samples, sample rate, the model and
+language used, which stages ran, the number of transcription units, and the
+version of Tratt that wrote it. `manifest.csv` opens in a spreadsheet, which
+makes it a serviceable index for a corpus.
 
-Because the audio and Tratt's own file are bundled together, dropping the archive back on
-the drop zone restores the whole batch, audio attached and transcripts in place.
-Loading it switches automatic transcription off so your corrections are not
-overwritten. See [The Workbench](workbench.md#loading-an-archive).
+When the audio is converted, Tratt's own file and the manifests count samples at
+16 kHz, the rate Tratt reads the audio back at, while the `.opus` file itself is
+48 kHz. Times in seconds agree.
 
-A recording bundle whose audio was not attached at export time has no audio file in the
-archive, only its transcript; the export dialog says how many that applies to
-before you download. Dropping the archive loads that transcript into the
-recording bundle of the same name already in the list (attach the audio there). 
-Tratt indicates which ones failed to be loaded by showing *Completed with warnings* rather than
-failing the whole export.
+<a id="loading-an-archive-back"></a>
 
+### Loading it back
+
+**Drop the `.zip` on the drop area.** That is the whole procedure — the same box
+you drop recordings on, on the start page or above the list. Tratt unpacks it and
+puts every recording back in the list with
+
+- its **audio already attached**, so you can play and re-cut straight away,
+  nothing to re-attach;
+- its **transcript** as you left it, tiers, speakers, markers and verification
+  state included.
+
+Two things to expect:
+
+- **Automatic transcription and translation are switched off** as the archive
+  loads, and a running queue stops. The transcripts in an archive are finished
+  work, and Tratt will not run a model over them behind your back. Turn them on
+  again in [Transcription settings](automatic-transcription.md#turning-it-on)
+  when you want to transcribe something new.
+- **A recording is named after the file in the archive.** Because the audio was
+  converted on the way out, `interview-01.mp3` comes back as `interview-01.opus`.
+  The transcript, the timings and the manifest's `sourceFilename` still record
+  the original.
+
+Everything else in the archive — the Word files, the subtitles, the manifests —
+is output. Tratt ignores it when loading, so an archive you have added your own
+files to still loads.
+
+A recording bundle whose audio was not attached when you exported has no audio in
+the archive, only its transcript. Dropping the archive loads that transcript into
+the recording bundle of the same name already in the list; attach the audio
+there. The export dialog says how many recordings that applies to before you
+download, and reports *Completed with warnings* rather than failing the whole
+export.
 
 ---
 
@@ -203,7 +241,7 @@ failing the whole export.
 
 ## Formats Tratt can read
 
-Drop these alongside your audio on the start page to continue existing work.
+Drop these alongside your audio to continue existing work.
 
 | Format | Notes |
 | --- | --- |

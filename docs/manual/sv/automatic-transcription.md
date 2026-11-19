@@ -12,6 +12,8 @@ lyssnandet.
 
 ---
 
+<a id="turning-it-on"></a>
+
 ## Slå på det
 
 **Det är redan på.** Att lägga till en inspelning är instruktionen: Tratt ställer

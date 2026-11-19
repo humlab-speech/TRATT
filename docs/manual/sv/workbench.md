@@ -33,7 +33,7 @@ Fyra saker ligger till vänster, uppifrån och ned:
 1. **Filer** med antalet inspelningar, och knapparna **Exportera…**,
    **Radera klara** och **Ta bort**.
 2. Flikarna **Ladda upp fil** och **Spela in nu** över en släppyta:
-   *Släpp ljudfiler eller tidigare exporterat arkiv här*.
+   *Släpp ljud- eller videofiler här, eller en .zip sparad från Tratt*.
 3. **Pipelineinställningar**: vad som händer med en fil automatiskt, och knappen
    som startar kön.
 4. Två kapacitetsmätare: **Webbläsarlagring** och **Arbetsminne (uppskattat)**.
@@ -72,15 +72,13 @@ Se
 
 ### Att läsa in ett exporterat arkiv
 
-Släpp en `.zip` som Tratt exporterat tidigare på samma släppyta och den packas
-upp: varje inspelnings ljud och dess `_annot.json` läses då tillbaka in i listan,
-ihopparade efter mappen de ligger i inne i arkivet. Två inspelningar med samma
-filnamn (`take.wav` och `take.wma`) behåller därför var sin transkription. Att läsa in ett arkiv stoppar kön och stänger **av** automatisk
-transkribering och översättning, så att återställt material inte transkriberas
-över.
-
-Allt annat i arkivet (Word-filer, undertexter, manifesten) är utdata och ignoreras
-när arkivet läses in i Tratt.
+Släpp en `.zip` som Tratt exporterat tidigare på samma släppyta. Varje
+inspelning i den kommer tillbaka med sitt ljud bifogat och sin transkription på
+plats, och automatisk transkribering stoppas så att färdigt arbete inte
+transkriberas över. Det är det tänkta sättet att återuppta en session, flytta
+arbete mellan datorer eller lämna över till en kollega. Hela redogörelsen, med
+vad arkivet innehåller och vad som ändras på vägen tillbaka in, finns under
+[Arkivet, och hur du tar vid där du slutade](exporting.md#exporting-an-archive).
 
 ---
 

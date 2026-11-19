@@ -97,14 +97,13 @@ See [Recording in the browser](loading-media.md#recording-in-the-browser).
 
 ### Loading an exported archive
 
-Drop a `.zip` that Tratt exported earlier on the same drop area and it is
-unpacked: each recording's audio and its `_annot.json` are then loaded back into the list,
-paired up by the folder they sit in inside the archive. Two recordings that share
-a file name (`take.wav` and `take.wma`) therefore keep their own transcripts. Loading an archive stops the queue and switches auto-transcription and
-translation **off**, so restored material is not transcribed over.
-
-Everything else in the archive (Word files, subtitles, the manifests) is output
-and is ignored when loaded back into Tratt.
+Drop a `.zip` that Tratt exported earlier on the same drop area. Every recording
+in it comes back with its audio attached and its transcript in place, and
+automatic transcription stops so that finished work is not transcribed over.
+That is the intended way to resume a session, move work between machines or hand
+it to a colleague; the whole account, including what the archive holds and what
+changes on the way back in, is under
+[The archive, and how to pick up where you left off](exporting.md#exporting-an-archive).
 
 ---
 

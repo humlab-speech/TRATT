@@ -160,43 +160,80 @@ transkriptet.
 
 <a id="exporting-an-archive"></a>
 
-## Att exportera ett arkiv
+## Arkivet, och hur du tar vid där du slutade
 
-När en export ger mer än en fil packar Tratt dem i ett `.zip`-arkiv. Det är den
-enda export som kan läsas in komplett igen: ett arkiv kan rymma en hel omgång
-inspelningspaket.
+När en export ger mer än en fil packar Tratt dem i en `.zip`. **Det är den enda
+export som går att läsa in fullständigt igen**, och den är tänkt som sättet att
+flytta arbete mellan datorer, lämna över till en kollega, eller helt enkelt
+lägga undan en session och återuppta den nästa vecka.
 
-Filen namnges efter vad den innehåller och när den gjordes, till exempel
-`tratt_12_20261008@1923.zip`, vilket betyder att arkivet innehåller tolv
-inspelningar och skrevs den 8 oktober 2026 klockan 19:23 lokal tid.
+### Vad som ligger i det
 
-Inuti arkivet har varje inspelning en egen mapp under `bundles/` som innehåller
+Namnet säger vad det innehåller och när det skrevs:
+`tratt_12_20261008@1923.zip` är tolv inspelningspaket, skrivna den 8 oktober
+2026 klockan 19:23 lokal tid.
 
-- **ljudet**, när **Ta med ljudet** var markerat. Från Arbetsbänkens lista
-  konverteras det till mono-Opus med 32 kbit/s (video till `.mp4`); kan Tratt
-  inte konvertera en fil exporteras originalet och du får en varning,
-- **Tratts egen fil** (`_annot.json`) med dess transkription, och
-- de format du markerade.
+```
+tratt_2_20261119@1754.zip
+├── bundles/
+│   ├── interview-01/
+│   │   ├── interview-01.opus         ljudet, om du markerade Inkludera ljudet
+│   │   ├── interview-01_annot.json   Tratts eget format: transkriptionen
+│   │   └── interview-01.docx         varje format du markerade
+│   └── interview-02/
+│       └── …
+├── manifest.json
+└── manifest.csv
+```
 
-Två manifestfiler ligger i arkivets rot: **`manifest.json`** och **`manifest.csv`**.
-De listar varje inspelning med sökvägar och uppgifter. CSV-filen öppnas i ett kalkylprogram,
-vilket gör den till ett behändigt register över en korpus.
+Varje inspelning får en egen mapp under `bundles/`, och det är det som hindrar
+två inspelningar med samma namn (`take.wav` och `take.wma`) från att skriva över
+varandras transkriptioner.
 
-När ljudet konverteras räknar Tratts egen fil och manifesten sampel vid 16 kHz,
-den takt Tratt läser tillbaka ljudet i, medan själva `.opus`-filen har 48 kHz.
-Tider i sekunder stämmer överens.
+De två **manifesten** i roten listar varje inspelningspaket med sökvägar och
+uppgifter: källfilens namn, längd i sampel, samplingsfrekvens, modell och språk
+som användes, vilka steg som kördes, antalet transkriptionsenheter och vilken
+version av Tratt som skrev det. `manifest.csv` öppnas i ett kalkylprogram,
+vilket gör den användbar som register över en korpus.
 
-Eftersom ljudet och Tratts egna fil är samlade tillsammans återställer ett släpp av arkivet på
-släppytan hela omgången, med ljudet bifogat och transkriptionerna på plats. Att
-läsa in det stänger av automatisk transkribering så att dina rättelser inte
-skrivs över. Se [Arbetsbänken](workbench.md#loading-an-archive).
+När ljudet konverteras räknar Tratts eget format och manifesten sampel vid
+16 kHz, takten Tratt läser tillbaka ljudet i, medan själva `.opus`-filen är
+48 kHz. Tiderna i sekunder stämmer överens.
 
-En inspelning vars ljud inte var bifogat vid exporten får ingen ljudfil i
-arkivet, men väl sin transkription; exportdialogen säger hur många det gäller
-innan du laddar ned. Den läses in i filen med samma namn i
-listan (bifoga ljudet där).
-Tratt visar vilka som inte kunde läsas in genom *Klar med varningar* i stället för att låta
-hela exporten misslyckas.
+<a id="loading-an-archive-back"></a>
+
+### Att läsa in det igen
+
+**Släpp `.zip`-filen på släppytan.** Det är hela proceduren — samma ruta som du
+släpper inspelningar på, på startsidan eller ovanför listan. Tratt packar upp
+den och lägger tillbaka varje inspelning i listan med
+
+- sitt **ljud redan bifogat**, så att du kan spela upp och lägga om gränser
+  direkt, ingenting att bifoga på nytt;
+- sin **transkription** som du lämnade den, med nivåer, talare, markörer och
+  verifieringsstatus.
+
+Två saker att räkna med:
+
+- **Automatisk transkribering och översättning slås av** när arkivet läses in,
+  och en pågående kö stoppas. Transkriptionerna i ett arkiv är färdigt arbete,
+  och Tratt kör ingen modell över dem bakom ryggen på dig. Slå på dem igen i
+  [Transkriptionsinställningar](automatic-transcription.md#turning-it-on) när du
+  vill transkribera något nytt.
+- **En inspelning heter som filen i arkivet.** Eftersom ljudet konverterades på
+  vägen ut kommer `interview-01.mp3` tillbaka som `interview-01.opus`.
+  Transkriptionen, tiderna och manifestets `sourceFilename` minns originalet.
+
+Allt annat i arkivet — Word-filerna, undertexterna, manifesten — är utdata.
+Tratt bortser från det vid inläsning, så ett arkiv du har lagt till egna filer i
+går ändå att läsa in.
+
+Ett inspelningspaket vars ljud inte var bifogat när du exporterade har inget
+ljud i arkivet, bara sin transkription. Att släppa arkivet läser in den
+transkriptionen i inspelningspaketet med samma namn som redan ligger i listan;
+bifoga ljudet där. Exportdialogen säger hur många inspelningar det gäller innan
+du laddar ned, och rapporterar *Klar med varningar* i stället för att låta hela
+exporten misslyckas.
 
 ---
 
