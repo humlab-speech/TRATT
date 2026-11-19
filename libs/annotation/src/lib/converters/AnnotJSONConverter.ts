@@ -86,6 +86,9 @@ export class AnnotJSONConverter extends Converter {
             };
           }
 
+          result.levels ??= [];
+          result.links ??= [];
+
           if (result.sampleRate !== audiofile.sampleRate) {
             return {
               annotjson: undefined,
