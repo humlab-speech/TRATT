@@ -123,19 +123,19 @@ describe('AutoTranscribeOptionsComponent', () => {
     });
   });
 
-  // Task 4: compact input, added so /workbench's narrow persistent settings
-  // panel can suppress decorative hints and use a short per-model label.
-  // Default false must keep /local's full descriptive copy byte-identical.
+  // Task 4: compact input, added so /workbench's persistent settings panel
+  // can suppress decorative hints. Model labels stay descriptive in both
+  // modes; default false keeps /local's full descriptive copy unchanged.
   describe('compact', () => {
-    it('suppresses decorative hints and uses the short model label in compact mode', () => {
+    it('suppresses decorative hints but keeps the descriptive model label in compact mode', () => {
       fixture.componentRef.setInput('compact', true);
       fixture.componentRef.setInput('audioLoaded', true);
       component.enabled.set(true);
       // This file's TranslocoService stub reports 'en' as the active
       // language, which (per resolveInitialLanguage()) selects the OPENAI
       // model family — it has no 'medium' tier. Force the sv/kb-whisper
-      // family (which defaults to 'medium') so the short-label assertion
-      // below is deterministic, matching the brief's sample expectation.
+      // family (which defaults to 'medium') so the assertion below is
+      // deterministic.
       component.selectedLanguage = 'sv';
       fixture.detectChanges();
 
@@ -150,17 +150,17 @@ describe('AutoTranscribeOptionsComponent', () => {
       expect(text).toContain(
         'login.auto-transcription.model cached after download',
       );
-      expect(text).toMatch(/Medium \(~\d+ MB\)/);
+      expect(text).toContain('login.auto-transcription.models.medium.webgpu');
     });
 
-    it('renders the full i18n label (not the short one) when compact is false', () => {
+    it('renders the descriptive model label when compact is false', () => {
       fixture.componentRef.setInput('compact', false);
       fixture.componentRef.setInput('audioLoaded', true);
       component.enabled.set(true);
       fixture.detectChanges();
 
-      expect(fixture.nativeElement.textContent as string).not.toMatch(
-        /Medium \(~\d+ MB\)/,
+      expect(fixture.nativeElement.textContent as string).toContain(
+        'login.auto-transcription.models.openai-small.webgpu',
       );
     });
 

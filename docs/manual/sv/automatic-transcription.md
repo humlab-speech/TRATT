@@ -85,8 +85,8 @@ samma 4-bitarsbygge på båda vägarna. Medium och Large kräver WebGPU, så der
 processorsiffror används aldrig vid en faktisk nedladdning.
 
 > Modellnamnen står på engelska även i det svenska gränssnittet — *Tiny*,
-> *Small*, *Medium*, *Large* — eftersom dialogen bygger etiketten av modellens
-> nyckel och storlek.
+> *Small*, *Medium*, *Large* — medan beskrivningen av noggrannhet och hastighet
+> är översatt.
 
 ### Finska och norska
 

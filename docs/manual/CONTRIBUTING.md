@@ -152,11 +152,10 @@ build:manual` lists every page that fell back.
   says why, rather than inventing a translation the reader will never see on
   screen. When one of those is translated in the app, update the manual with it.
 
-The Whisper model names are not translated at all: the Transcription settings
-dialog composes each label from the model's key and its size, so a Swedish
-reader sees *Tiny*, *Small*, *Medium*, *Large* too. The translated label strings
-in `sv.json` (several of which read "Liten" regardless of size) are no longer
-used by that dialog.
+The Whisper model names are not translated: the Transcription settings dialog
+puts the model's key (*Tiny*, *Small*, *Medium*, *Large*) in front of the
+translated description, so a Swedish reader sees the English tier name and a
+Swedish accuracy/speed note. Keep the key untranslated when editing `sv.json`.
 
 ## Verification status
 

@@ -29,7 +29,8 @@ const ALL_MODELS = [
   ...OPENAI_WHISPER_MODELS,
 ];
 
-/** Same rule as the settings' compact radio labels ("Large-v3-turbo"). */
+/** Short form for the rail ("Whisper Large-v3-turbo"); the settings dialog
+ * shows the full translated description instead. */
 function modelName(modelId: string): string {
   const key = ALL_MODELS.find((m) => m.modelId === modelId)?.key;
   if (!key) {

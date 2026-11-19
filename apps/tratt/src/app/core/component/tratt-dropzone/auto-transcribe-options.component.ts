@@ -694,10 +694,10 @@ export class AutoTranscribeOptionsComponent implements OnInit {
   readonly idPrefix = input<string>('');
 
   /**
-   * Step 6: suppresses decorative `<small>` hints and swaps the per-model
-   * label for a short "<Name> (~<size> MB)" form, for /workbench's narrow
-   * persistent settings panel. Default `false` keeps /local's full
-   * descriptive copy unchanged.
+   * Step 6: suppresses decorative `<small>` hints for /workbench's
+   * persistent settings dialog. Default `false` keeps /local's full copy.
+   * Model labels stay descriptive in both modes: they carry the size tier's
+   * accuracy/speed trade-off, which users need to choose.
    */
   readonly compact = input<boolean>(false);
 
@@ -882,16 +882,12 @@ export class AutoTranscribeOptionsComponent implements OnInit {
 
   modelLabel(model: KbWhisperModel): string {
     const size = this.formatSizeMb(this.modelSizeMb(model));
-    if (!this.compact()) {
-      return this.transloco.translate(
-        this.hasWebGpu() && model.hasWebgpuVariant
-          ? `login.auto-transcription.models.${model.i18nKey ?? model.key}.webgpu`
-          : `login.auto-transcription.models.${model.i18nKey ?? model.key}.wasm`,
-        { size },
-      );
-    }
-    const titlecased = model.key.charAt(0).toUpperCase() + model.key.slice(1);
-    return `${titlecased} (~${size})`;
+    return this.transloco.translate(
+      this.hasWebGpu() && model.hasWebgpuVariant
+        ? `login.auto-transcription.models.${model.i18nKey ?? model.key}.webgpu`
+        : `login.auto-transcription.models.${model.i18nKey ?? model.key}.wasm`,
+      { size },
+    );
   }
 
   /**

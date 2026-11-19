@@ -429,36 +429,36 @@
       "model cached after download": "Modellen sparas i din webläsare efter första nedladdning",
       "models": {
         "tiny": {
-          "wasm": "Liten (~{{size}}) – Minst noggrann, 4× snabbare än Liten",
-          "webgpu": "Liten (~{{size}}) — Minst noggrann, 4× snabbare än Medium"
+          "wasm": "Tiny (~{{size}}) – Minst noggrann, 4× snabbare än Small",
+          "webgpu": "Tiny (~{{size}}) — Minst noggrann, 4× snabbare än Medium"
         },
         "small": {
-          "wasm": "Liten (~{{size}}) – Mer noggrann, vår referensmodell",
-          "webgpu": "Liten (~{{size}}) — Mer noggrann, 2× snabbare än Medium"
+          "wasm": "Small (~{{size}}) – Mer noggrann, vår referensmodell",
+          "webgpu": "Small (~{{size}}) — Mer noggrann, 2× snabbare än Medium"
         },
         "medium": {
-          "wasm": "Medium (~{{size}}) – Mest noggrann, 3× långsammare än Liten",
-          "webgpu": "Medium (~{{size}}) — Vår jämförelsemodell"
+          "wasm": "Medium (~{{size}}) – Mest noggrann, 3× långsammare än Small",
+          "webgpu": "Medium (~{{size}}) — Vår referensmodell"
         },
         "large": {
-          "wasm": "Stor (~{{size}})",
-          "webgpu": "Stor (~{{size}}) — Mest noggrann, 2× långsammare än Medium"
+          "wasm": "Large (~{{size}})",
+          "webgpu": "Large (~{{size}}) — Mest noggrann, 2× långsammare än Medium"
         },
         "openai-tiny": {
-          "wasm": "Liten (~{{size}}) — ~5× snabbare men mindre noggrann än vår referensmodell (Small)",
-          "webgpu": "Liten (~{{size}}) — ~4× snabbare än vår referensmodell (Turbo), men minst noggrann"
+          "wasm": "Tiny (~{{size}}) — ~5× snabbare men mindre noggrann än vår referensmodell (Small)",
+          "webgpu": "Tiny (~{{size}}) — ~4× snabbare än vår referensmodell (Turbo), men minst noggrann"
         },
         "openai-small": {
-          "wasm": "Liten (~{{size}}) — Vår referensmodell",
-          "webgpu": "Liten (~{{size}}) — 2× snabbare men mindre noggrann än vår referensmodell (Turbo)"
+          "wasm": "Small (~{{size}}) — Vår referensmodell",
+          "webgpu": "Small (~{{size}}) — 2× snabbare men mindre noggrann än vår referensmodell (Turbo)"
         },
         "openai-large-v3": {
-          "wasm": "Stor v3 (~{{size}}) — Mest noggrann, kräver WebGPU",
-          "webgpu": "Stor v3 (~{{size}}) — 2× långsammare men ofta mer noggrann än vår referensmodell (Turbo)"
+          "wasm": "Large v3 (~{{size}}) — Mest noggrann, kräver WebGPU",
+          "webgpu": "Large v3 (~{{size}}) — 2× långsammare men ofta mer noggrann än vår referensmodell (Turbo)"
         },
         "openai-large-v3-turbo": {
-          "wasm": "Stor v3 Turbo (~{{size}}) — Snabb och noggrann, kräver WebGPU",
-          "webgpu": "Stor v3 Turbo (~{{size}}) — Snabb och rimligt noggrann, vår valda referensmodell"
+          "wasm": "Large v3 Turbo (~{{size}}) — Snabb och noggrann, kräver WebGPU",
+          "webgpu": "Large v3 Turbo (~{{size}}) — Snabb och rimligt noggrann, vår valda referensmodell"
         }
       },
       "language label": "Transkriptionsspråk",
