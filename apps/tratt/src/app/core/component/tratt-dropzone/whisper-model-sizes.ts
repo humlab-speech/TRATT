@@ -32,8 +32,12 @@ export const ALL_WHISPER_MODELS: readonly KbWhisperModel[] = [
 
 /**
  * The advertised download size, in decimal MB, of the Whisper model with this
- * id — or `undefined` if the id is not one this app offers (e.g. a stale id
- * persisted from an older release).
+ * id on the given lane — or `undefined` if the id is not one this app offers
+ * (e.g. a stale id persisted from an older release).
+ *
+ * `useWebGpu` selects the 4-bit build that WebGPU always fetches. The WASM
+ * lane uses the same build for every model except KB Whisper Tiny and Small,
+ * which request q8 there (`sizeMbWasm`).
  *
  * There was no per-id lookup before step 3c: `getModelsForLanguage()` in the
  * options component dispatches by LANGUAGE and is module-private, and
@@ -41,9 +45,16 @@ export const ALL_WHISPER_MODELS: readonly KbWhisperModel[] = [
  * Finnish and Norwegian families entirely. Callers that have a model id and
  * need its size should use this, not re-derive it.
  */
-export function findWhisperModelSizeMb(modelId: string): number | undefined {
+export function findWhisperModelSizeMb(
+  modelId: string,
+  useWebGpu: boolean,
+): number | undefined {
   if (!modelId) {
     return undefined;
   }
-  return ALL_WHISPER_MODELS.find((model) => model.modelId === modelId)?.sizeMb;
+  const model = ALL_WHISPER_MODELS.find((m) => m.modelId === modelId);
+  if (!model) {
+    return undefined;
+  }
+  return useWebGpu ? model.sizeMb : (model.sizeMbWasm ?? model.sizeMb);
 }

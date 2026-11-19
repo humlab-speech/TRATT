@@ -281,42 +281,42 @@
       "model cached": "모델은 향후 세션을 위해 캐시됩니다.",
       "safari warning": "Safari 웹 브라우저에서는 자동 전사를 사용할 수 없습니다. 컴퓨터에 다운로드해야 하는 모델이 크며 현재 Safari에서 탭이 다시 로드되어 데이터가 손실됩니다. 자동 전사 기능을 사용하려면 다른 브라우저를 사용해 주세요.",
       "auto-transcribe label": "Whisper로 자동 전사",
-      "requires internet": "인터넷 접속 필요 — 선택된 모델이 외부 서버에서 다운로드됩니다 (150 MB – 3 GB). 다운로드된 모델은 브라우저에 캐시됩니다.",
+      "requires internet": "인터넷 접속 필요 — 선택된 모델이 외부 서버에서 다운로드됩니다. 다운로드된 모델은 브라우저에 캐시됩니다.",
       "requires webgpu": "WebGPU 필요 — 이 브라우저에서 사용 불가",
       "no webgpu": "WebGPU가 감지되지 않았습니다 — 중형 및 대형 모델은 안정적으로 실행할 수 없어 비활성화되었습니다",
       "model cached after download": "모델은 첫 번째 다운로드 후 캐시됩니다",
       "models": {
         "tiny": {
-          "wasm": "작은 (~120 MB) – 정확도 낙음, Small보다 4배 빠름",
-          "webgpu": "작은 (~120 MB) — 정확도 낙음, Medium보다 4배 빠름"
+          "wasm": "작은 (~{{size}}) – 정확도 낙음, Small보다 4배 빠름",
+          "webgpu": "작은 (~{{size}}) — 정확도 낙음, Medium보다 4배 빠름"
         },
         "small": {
-          "wasm": "소형 (~400 MB) – 더 정확함, 참조 모델",
-          "webgpu": "소형 (~400 MB) — 더 정확함, Medium보다 2배 빠름"
+          "wasm": "소형 (~{{size}}) – 더 정확함, 참조 모델",
+          "webgpu": "소형 (~{{size}}) — 더 정확함, Medium보다 2배 빠름"
         },
         "medium": {
-          "wasm": "중형 (~1 GB) – 가장 정확함, Small보다 3배 느림",
-          "webgpu": "중형 (~650 MB) — 참조 모델"
+          "wasm": "중형 (~{{size}}) – 가장 정확함, Small보다 3배 느림",
+          "webgpu": "중형 (~{{size}}) — 참조 모델"
         },
         "large": {
-          "wasm": "대형 (~1.7 GB)",
-          "webgpu": "대형 (~1.2 GB) — 가장 정확함, Medium보다 2배 느림"
+          "wasm": "대형 (~{{size}})",
+          "webgpu": "대형 (~{{size}}) — 가장 정확함, Medium보다 2배 느림"
         },
         "openai-tiny": {
-          "wasm": "소형 (~95 MB) — 기준 모델(Small)보다 ~5배 빠르지만 정확도 낙음",
-          "webgpu": "소형 (~95 MB) — 기준 모델(Turbo)보다 ~4배 빠르지만 정확도 가장 낙음"
+          "wasm": "소형 (~{{size}}) — 기준 모델(Small)보다 ~5배 빠르지만 정확도 낙음",
+          "webgpu": "소형 (~{{size}}) — 기준 모델(Turbo)보다 ~4배 빠르지만 정확도 가장 낙음"
         },
         "openai-small": {
-          "wasm": "소형 (~400 MB) — 기준 모델",
-          "webgpu": "소형 (~290 MB) — 기준 모델(Turbo)보다 2배 빠르지만 정확도 낙음"
+          "wasm": "소형 (~{{size}}) — 기준 모델",
+          "webgpu": "소형 (~{{size}}) — 기준 모델(Turbo)보다 2배 빠르지만 정확도 낙음"
         },
         "openai-large-v3": {
-          "wasm": "대형 v3 (~3.1 GB) — 가장 정확, WebGPU 필요",
-          "webgpu": "대형 v3 (~3.1 GB) — 2배 느리지만 기준 모델(Turbo)보다 정확도 높은 경우 많음"
+          "wasm": "대형 v3 (~{{size}}) — 가장 정확, WebGPU 필요",
+          "webgpu": "대형 v3 (~{{size}}) — 2배 느리지만 기준 모델(Turbo)보다 정확도 높은 경우 많음"
         },
         "openai-large-v3-turbo": {
-          "wasm": "대형 v3 Turbo (~700 MB) — 빠르고 정확, WebGPU 필요",
-          "webgpu": "대형 v3 Turbo (~700 MB) — 빠르고 합리적으로 정확한 선택된 기준 모델"
+          "wasm": "대형 v3 Turbo (~{{size}}) — 빠르고 정확, WebGPU 필요",
+          "webgpu": "대형 v3 Turbo (~{{size}}) — 빠르고 합리적으로 정확한 선택된 기준 모델"
         }
       },
       "language label": "트랜스크립션 언어",

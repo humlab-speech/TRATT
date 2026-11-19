@@ -437,82 +437,82 @@
       "model cached": "Model will be cached for future sessions.",
       "safari warning": "Automatic transcription is not available for the Safari web browser. The models we need to download to your computer are large and currently trigger a tab reload in Safari, with loss of data as a result. Please try a different browser if you wanted to use the automatic transcription feature.",
       "auto-transcribe label": "Auto-transcribe with Whisper",
-      "requires internet": "Requires internet access — the selected model will be downloaded from an external server (150 MB – 3 GB). Downloaded models are cached in the browser.",
+      "requires internet": "Requires internet access — the selected model will be downloaded from an external server. Downloaded models are cached in the browser.",
       "requires webgpu": "Requires WebGPU — not available in this browser",
       "no webgpu": "WebGPU not detected — the models that require it cannot be run reliably and have been disabled",
       "model cached after download": "Model will be cached after first download",
       "models": {
         "tiny": {
-          "wasm": "Tiny (~120 MB) – Least accurate, 4× faster than Small",
-          "webgpu": "Tiny (~120 MB) — Least accurate, 4× faster than Medium"
+          "wasm": "Tiny (~{{size}}) – Least accurate, 4× faster than Small",
+          "webgpu": "Tiny (~{{size}}) — Least accurate, 4× faster than Medium"
         },
         "small": {
-          "wasm": "Small (~400 MB) – More accurate, our reference model",
-          "webgpu": "Small (~400 MB) — More accurate, 2× faster than Medium"
+          "wasm": "Small (~{{size}}) – More accurate, our reference model",
+          "webgpu": "Small (~{{size}}) — More accurate, 2× faster than Medium"
         },
         "medium": {
-          "wasm": "Medium (~1 GB) – Most accurate, 3× slower than Small",
-          "webgpu": "Medium (~650 MB) — Our reference model"
+          "wasm": "Medium (~{{size}}) – Most accurate, 3× slower than Small",
+          "webgpu": "Medium (~{{size}}) — Our reference model"
         },
         "large": {
-          "wasm": "Large (~1.7 GB)",
-          "webgpu": "Large (~1.2 GB) — Most accurate, 2× slower than Medium"
+          "wasm": "Large (~{{size}})",
+          "webgpu": "Large (~{{size}}) — Most accurate, 2× slower than Medium"
         },
         "openai-tiny": {
-          "wasm": "Tiny (~95 MB) — ~5x faster but less accurate than our reference model (Small)",
-          "webgpu": "Tiny (~95 MB) — ~4x faster than our reference model (Turbo), but the least accurate"
+          "wasm": "Tiny (~{{size}}) — ~5x faster but less accurate than our reference model (Small)",
+          "webgpu": "Tiny (~{{size}}) — ~4x faster than our reference model (Turbo), but the least accurate"
         },
         "openai-small": {
-          "wasm": "Small (~400 MB) — Our reference model",
-          "webgpu": "Small (~290 MB) — 2x faster but less accurate than our reference model (Turbo)"
+          "wasm": "Small (~{{size}}) — Our reference model",
+          "webgpu": "Small (~{{size}}) — 2x faster but less accurate than our reference model (Turbo)"
         },
         "openai-large-v3": {
-          "wasm": "Large v3 (~1.2 GB) — Most accurate, needs WebGPU",
-          "webgpu": "Large v3 (~1.2 GB) — 2x slower but often more accurate than our reference model (Turbo)"
+          "wasm": "Large v3 (~{{size}}) — Most accurate, needs WebGPU",
+          "webgpu": "Large v3 (~{{size}}) — 2x slower but often more accurate than our reference model (Turbo)"
         },
         "openai-large-v3-turbo": {
-          "wasm": "Large v3 Turbo (~700 MB) — Fast and accurate, needs WebGPU",
-          "webgpu": "Large v3 Turbo (~700 MB) — Fast and reasonably accurate, our selected reference model"
+          "wasm": "Large v3 Turbo (~{{size}}) — Fast and accurate, needs WebGPU",
+          "webgpu": "Large v3 Turbo (~{{size}}) — Fast and reasonably accurate, our selected reference model"
         },
         "fi-tiny": {
-          "wasm": "Tiny (~108 MB) — Least accurate, fine-tuned for Finnish",
-          "webgpu": "Tiny (~108 MB) — Least accurate, fine-tuned for Finnish"
+          "wasm": "Tiny (~{{size}}) — Least accurate, fine-tuned for Finnish",
+          "webgpu": "Tiny (~{{size}}) — Least accurate, fine-tuned for Finnish"
         },
         "fi-medium": {
-          "wasm": "Medium (~712 MB) — More accurate, fine-tuned for Finnish",
-          "webgpu": "Medium (~712 MB) — More accurate, fine-tuned for Finnish"
+          "wasm": "Medium (~{{size}}) — More accurate, fine-tuned for Finnish",
+          "webgpu": "Medium (~{{size}}) — More accurate, fine-tuned for Finnish"
         },
         "fi-large": {
-          "wasm": "Large (~1.2 GB) — Most accurate, fine-tuned for Finnish",
-          "webgpu": "Large (~1.2 GB) — Most accurate, fine-tuned for Finnish"
+          "wasm": "Large (~{{size}}) — Most accurate, fine-tuned for Finnish",
+          "webgpu": "Large (~{{size}}) — Most accurate, fine-tuned for Finnish"
         },
         "nb-tiny": {
-          "wasm": "Tiny (~108 MB) — Least accurate, fine-tuned for Norwegian",
-          "webgpu": "Tiny (~108 MB) — Least accurate, fine-tuned for Norwegian"
+          "wasm": "Tiny (~{{size}}) — Least accurate, fine-tuned for Norwegian",
+          "webgpu": "Tiny (~{{size}}) — Least accurate, fine-tuned for Norwegian"
         },
         "nb-small": {
-          "wasm": "Small (~324 MB) — More accurate, fine-tuned for Norwegian",
-          "webgpu": "Small (~324 MB) — More accurate, fine-tuned for Norwegian"
+          "wasm": "Small (~{{size}}) — More accurate, fine-tuned for Norwegian",
+          "webgpu": "Small (~{{size}}) — More accurate, fine-tuned for Norwegian"
         },
         "nb-medium": {
-          "wasm": "Medium (~712 MB) — Our reference model, fine-tuned for Norwegian",
-          "webgpu": "Medium (~712 MB) — Our reference model, fine-tuned for Norwegian"
+          "wasm": "Medium (~{{size}}) — Our reference model, fine-tuned for Norwegian",
+          "webgpu": "Medium (~{{size}}) — Our reference model, fine-tuned for Norwegian"
         },
         "nb-large": {
-          "wasm": "Large (~2 GB) — Most accurate, fine-tuned for Norwegian",
-          "webgpu": "Large (~2 GB) — Most accurate, fine-tuned for Norwegian"
+          "wasm": "Large (~{{size}}) — Most accurate, fine-tuned for Norwegian",
+          "webgpu": "Large (~{{size}}) — Most accurate, fine-tuned for Norwegian"
         },
         "nb-large-verbatim": {
-          "wasm": "Large verbatim (~2 GB) — Transcribes exactly what is said, fine-tuned for Norwegian",
-          "webgpu": "Large verbatim (~2 GB) — Transcribes exactly what is said, fine-tuned for Norwegian"
+          "wasm": "Large verbatim (~{{size}}) — Transcribes exactly what is said, fine-tuned for Norwegian",
+          "webgpu": "Large verbatim (~{{size}}) — Transcribes exactly what is said, fine-tuned for Norwegian"
         },
         "se-large": {
-          "wasm": "Large (~2 GB) — Most accurate, fine-tuned for Northern Sami",
-          "webgpu": "Large (~2 GB) — Most accurate, fine-tuned for Northern Sami"
+          "wasm": "Large (~{{size}}) — Most accurate, fine-tuned for Northern Sami",
+          "webgpu": "Large (~{{size}}) — Most accurate, fine-tuned for Northern Sami"
         },
         "smj-large": {
-          "wasm": "Large (~2 GB) — Most accurate, fine-tuned for Lule Sami",
-          "webgpu": "Large (~2 GB) — Most accurate, fine-tuned for Lule Sami"
+          "wasm": "Large (~{{size}}) — Most accurate, fine-tuned for Lule Sami",
+          "webgpu": "Large (~{{size}}) — Most accurate, fine-tuned for Lule Sami"
         }
       },
       "language label": "Transcription language",

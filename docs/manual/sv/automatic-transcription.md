@@ -72,19 +72,17 @@ användbara.
 Använder **KB-Whisper** från Kungliga biblioteket, tränad på svenskt tal. Märkbart
 bättre än den allmänna modellen för svenska.
 
-| Modell | Ungefär | Anmärkning |
-| --- | --- | --- |
-| Tiny | 120 MB | Snabbast, minst noggrann. Bra för att kontrollera att kedjan fungerar. |
-| Small | 400 MB | Rimlig kompromiss |
+| Modell | WebGPU | Processor (WASM) | Anmärkning |
+| --- | --- | --- | --- |
+| Tiny | 96 MB | 120 MB | Snabbast, minst noggrann. Bra för att kontrollera att kedjan fungerar. |
+| Small | 299 MB | 407 MB | Rimlig kompromiss |
+| Medium | 679 MB | 679 MB | Noggrannare igen. Kräver WebGPU. |
+| Large | 1,2 GB | 1,2 GB | Mest noggrann, ungefär halva hastigheten mot Medium. Kräver WebGPU. |
 
-> **De två siffrorna gäller processorbygget.** Tiny och Small är de enda
-> modeller Tratt hämtar i två kvantiseringar: ett mindre 4-bitarsbygge på en
-> dator med WebGPU och ett större 8-bitarsbygge utan. Gränssnittet visar den
-> större siffran i båda fallen, så med WebGPU är nedladdningen märkbart mindre
-> än det står. Alla andra modeller på den här sidan är samma 4-bitarsbygge på
-> båda vägarna, och deras siffror stämmer exakt.
-| Medium | 1000 MB | Noggrannare igen. Kräver WebGPU. |
-| Large | 1200 MB | Mest noggrann, ungefär halva hastigheten mot Medium. Kräver WebGPU. |
+Tiny och Small är de enda modellerna som Tratt hämtar som ett 8-bitarsbygge på
+processorn; med WebGPU används det mindre 4-bitarsbygget. Alla andra modeller är
+samma 4-bitarsbygge på båda vägarna. Medium och Large kräver WebGPU, så deras
+processorsiffror används aldrig vid en faktisk nedladdning.
 
 > Modellnamnen i det svenska gränssnittet är delvis felöversatta: flera visas som
 > "Liten" oavsett storlek. Gå efter storleken i MB, som stämmer.
@@ -92,26 +90,27 @@ bättre än den allmänna modellen för svenska.
 ### Finska och norska
 
 Också finjusterade modeller. Finska erbjuder Tiny (ca 108 MB), Medium (ca
-684 MB) och Large (ca 1210 MB); norska har egna modeller, bland dem en
+712 MB) och Large (ca 1,3 GB); norska har egna modeller, bland dem en
 ordagrann som skriver det som faktiskt sades i stället för att städa upp det.
-Allt över Tiny kräver WebGPU.
+Norska Tiny är ca 108 MB, Small 324 MB, Medium 712 MB, Large 1,3 GB och den
+ordagranna Large 1,2 GB. Allt över Tiny kräver WebGPU.
 
 ### Samiska
 
 Nord-, lule- och sydsamiska har egna finjusterade modeller. De finns bara som
-Large (ca 1210 MB) och kräver därför WebGPU; på en dator utan det går språket
+Large (ca 1,2 GB) och kräver därför WebGPU; på en dator utan det går språket
 att välja men ingen modell.
 
 ### Alla andra språk
 
 Använder OpenAI:s Whisper.
 
-| Modell | Ungefär | Anmärkning |
+| Modell | Storlek (båda vägarna) | Anmärkning |
 | --- | --- | --- |
-| Tiny | 95 MB | Snabbast, minst noggrann |
-| Small | 290 MB | **Förvald.** En rimlig kompromiss. |
-| Large-v3-turbo | 700 MB | Snabb och noggrann. Kräver WebGPU. |
-| Large-v3 | 1200 MB | Långsammare än Turbo, ofta något noggrannare. Kräver WebGPU. |
+| Tiny | 96 MB | Snabbast, minst noggrann |
+| Small | 299 MB | **Förvald.** En rimlig kompromiss. |
+| Large-v3-turbo | 759 MB | Snabb och noggrann. Kräver WebGPU. |
+| Large-v3 | 1,2 GB | Långsammare än Turbo, ofta något noggrannare. Kräver WebGPU. |
 
 Tratt förväljer Small. Har din dator WebGPU och inspelningen är viktig, byt till
 **Large-v3-turbo**.

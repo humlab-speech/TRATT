@@ -281,42 +281,42 @@
       "model cached": "模型将为未来会话缓存。",
       "safari warning": "Safari 浏览器不支持自动转录。我们需要下载到您计算机的模型较大，目前会在 Safari 中触发标签页重新加载并导致数据丢失。如果要使用自动转录功能，请尝试其他浏览器。",
       "auto-transcribe label": "使用 Whisper 自动转录",
-      "requires internet": "需要互联网访问 — 所选模型将从外部服务器下载（150 MB – 3 GB）。下载的模型将缓存在浏览器中。",
+      "requires internet": "需要互联网访问 — 所选模型将从外部服务器下载。下载的模型将缓存在浏览器中。",
       "requires webgpu": "需要 WebGPU — 此浏览器不支持",
       "no webgpu": "未检测到 WebGPU — 中型和大型模型无法可靠运行，已被禁用",
       "model cached after download": "首次下载后模型将被缓存",
       "models": {
         "tiny": {
-          "wasm": "微型（约 120 MB）– 准确度最低，比小型快 4 倍",
-          "webgpu": "微型（约 120 MB）— 准确度最低，比中型快 4 倍"
+          "wasm": "微型（约 {{size}}）– 准确度最低，比小型快 4 倍",
+          "webgpu": "微型（约 {{size}}）— 准确度最低，比中型快 4 倍"
         },
         "small": {
-          "wasm": "小型（约 400 MB）– 更精确，我们的参考模型",
-          "webgpu": "小型（约 400 MB）— 更精确，比中型快 2 倍"
+          "wasm": "小型（约 {{size}}）– 更精确，我们的参考模型",
+          "webgpu": "小型（约 {{size}}）— 更精确，比中型快 2 倍"
         },
         "medium": {
-          "wasm": "中型（约 1 GB）– 最精确，比小型慢 3 倍",
-          "webgpu": "中型（约 650 MB）— 我们的参考模型"
+          "wasm": "中型（约 {{size}}）– 最精确，比小型慢 3 倍",
+          "webgpu": "中型（约 {{size}}）— 我们的参考模型"
         },
         "large": {
-          "wasm": "大型（约 1.7 GB）",
-          "webgpu": "大型（约 1.2 GB）— 最精确，比中型慢 2 倍"
+          "wasm": "大型（约 {{size}}）",
+          "webgpu": "大型（约 {{size}}）— 最精确，比中型慢 2 倍"
         },
         "openai-tiny": {
-          "wasm": "微型 (~95 MB) — 比参考模型 (Small) 快纥5倍，但准确度较低",
-          "webgpu": "微型 (~95 MB) — 比参考模型 (Turbo) 快纥4倍，但准确度最低"
+          "wasm": "微型 (~{{size}}) — 比参考模型 (Small) 快纥5倍，但准确度较低",
+          "webgpu": "微型 (~{{size}}) — 比参考模型 (Turbo) 快纥4倍，但准确度最低"
         },
         "openai-small": {
-          "wasm": "小型 (~400 MB) — 我们的参考模型",
-          "webgpu": "小型 (~290 MB) — 比参考模型 (Turbo) 加2倍，但准确度较低"
+          "wasm": "小型 (~{{size}}) — 我们的参考模型",
+          "webgpu": "小型 (~{{size}}) — 比参考模型 (Turbo) 加2倍，但准确度较低"
         },
         "openai-large-v3": {
-          "wasm": "大型 v3 (~3.1 GB) — 最准确，需要 WebGPU",
-          "webgpu": "大型 v3 (~3.1 GB) — 慢 2倍，但通常比参考模型 (Turbo) 更准确"
+          "wasm": "大型 v3 (~{{size}}) — 最准确，需要 WebGPU",
+          "webgpu": "大型 v3 (~{{size}}) — 慢 2倍，但通常比参考模型 (Turbo) 更准确"
         },
         "openai-large-v3-turbo": {
-          "wasm": "大型 v3 Turbo (~700 MB) — 快速且准确，需要 WebGPU",
-          "webgpu": "大型 v3 Turbo (~700 MB) — 快速且准确度适中，我们选定的参考模型"
+          "wasm": "大型 v3 Turbo (~{{size}}) — 快速且准确，需要 WebGPU",
+          "webgpu": "大型 v3 Turbo (~{{size}}) — 快速且准确度适中，我们选定的参考模型"
         }
       },
       "language label": "转录语言",

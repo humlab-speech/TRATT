@@ -281,42 +281,42 @@
       "model cached": "Il modello verrà memorizzato nella cache per le sessioni future.",
       "safari warning": "La trascrizione automatica non è disponibile per il browser Safari. I modelli che dobbiamo scaricare sul tuo computer sono grandi e attualmente causano un ricaricamento della scheda in Safari, con perdita di dati. Prova un browser diverso se vuoi usare la funzione di trascrizione automatica.",
       "auto-transcribe label": "Trascrivi automaticamente con Whisper",
-      "requires internet": "Richiede accesso a Internet — il modello selezionato verrà scaricato da un server esterno (150 MB – 3 GB). I modelli scaricati vengono memorizzati nella cache del browser.",
+      "requires internet": "Richiede accesso a Internet — il modello selezionato verrà scaricato da un server esterno. I modelli scaricati vengono memorizzati nella cache del browser.",
       "requires webgpu": "Richiede WebGPU — non disponibile in questo browser",
       "no webgpu": "WebGPU non rilevato — i modelli Medi e Grandi non possono essere eseguiti in modo affidabile e sono stati disabilitati",
       "model cached after download": "Il modello verrà memorizzato nella cache dopo il primo download",
       "models": {
         "tiny": {
-          "wasm": "Minuscolo (~120 MB) – Meno preciso, 4× più veloce di Piccolo",
-          "webgpu": "Minuscolo (~120 MB) — Meno preciso, 4× più veloce di Medio"
+          "wasm": "Minuscolo (~{{size}}) – Meno preciso, 4× più veloce di Piccolo",
+          "webgpu": "Minuscolo (~{{size}}) — Meno preciso, 4× più veloce di Medio"
         },
         "small": {
-          "wasm": "Piccolo (~400 MB) – Più preciso, il nostro modello di riferimento",
-          "webgpu": "Piccolo (~400 MB) — Più preciso, 2× più veloce di Medio"
+          "wasm": "Piccolo (~{{size}}) – Più preciso, il nostro modello di riferimento",
+          "webgpu": "Piccolo (~{{size}}) — Più preciso, 2× più veloce di Medio"
         },
         "medium": {
-          "wasm": "Medio (~1 GB) – Più preciso, 3× più lento di Piccolo",
-          "webgpu": "Medio (~650 MB) — Il nostro modello di riferimento"
+          "wasm": "Medio (~{{size}}) – Più preciso, 3× più lento di Piccolo",
+          "webgpu": "Medio (~{{size}}) — Il nostro modello di riferimento"
         },
         "large": {
-          "wasm": "Grande (~1,7 GB)",
-          "webgpu": "Grande (~1,2 GB) — Più preciso, 2× più lento di Medio"
+          "wasm": "Grande (~{{size}})",
+          "webgpu": "Grande (~{{size}}) — Più preciso, 2× più lento di Medio"
         },
         "openai-tiny": {
-          "wasm": "Minuscolo (~95 MB) — ~5× più veloce ma meno accurato del nostro modello di riferimento (Small)",
-          "webgpu": "Minuscolo (~95 MB) — ~4× più veloce del nostro modello di riferimento (Turbo), ma il meno accurato"
+          "wasm": "Minuscolo (~{{size}}) — ~5× più veloce ma meno accurato del nostro modello di riferimento (Small)",
+          "webgpu": "Minuscolo (~{{size}}) — ~4× più veloce del nostro modello di riferimento (Turbo), ma il meno accurato"
         },
         "openai-small": {
-          "wasm": "Piccolo (~400 MB) — Il nostro modello di riferimento",
-          "webgpu": "Piccolo (~290 MB) — 2× più veloce ma meno accurato del nostro modello di riferimento (Turbo)"
+          "wasm": "Piccolo (~{{size}}) — Il nostro modello di riferimento",
+          "webgpu": "Piccolo (~{{size}}) — 2× più veloce ma meno accurato del nostro modello di riferimento (Turbo)"
         },
         "openai-large-v3": {
-          "wasm": "Grande v3 (~3,1 GB) — Massima accuratezza, richiede WebGPU",
-          "webgpu": "Grande v3 (~3,1 GB) — 2× più lento ma spesso più accurato del nostro modello di riferimento (Turbo)"
+          "wasm": "Grande v3 (~{{size}}) — Massima accuratezza, richiede WebGPU",
+          "webgpu": "Grande v3 (~{{size}}) — 2× più lento ma spesso più accurato del nostro modello di riferimento (Turbo)"
         },
         "openai-large-v3-turbo": {
-          "wasm": "Grande v3 Turbo (~700 MB) — Veloce e accurato, richiede WebGPU",
-          "webgpu": "Grande v3 Turbo (~700 MB) — Veloce e ragionevolmente accurato, il nostro modello di riferimento selezionato"
+          "wasm": "Grande v3 Turbo (~{{size}}) — Veloce e accurato, richiede WebGPU",
+          "webgpu": "Grande v3 Turbo (~{{size}}) — Veloce e ragionevolmente accurato, il nostro modello di riferimento selezionato"
         }
       },
       "language label": "Lingua di trascrizione",

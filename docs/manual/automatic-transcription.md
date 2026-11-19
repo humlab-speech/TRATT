@@ -69,43 +69,42 @@ greyed out in the list and cannot be picked, and the rest are slow but usable.
 Uses **KB-Whisper** from the National Library of Sweden, trained on Swedish speech.
 Noticeably better than the general model for Swedish.
 
-| Model | Roughly | Notes |
-| --- | --- | --- |
-| Tiny | 120 MB | Fastest, least accurate. Good for checking that the pipeline works. |
-| Small | 400 MB | Reasonable compromise |
+| Model | WebGPU | CPU (WASM) | Notes |
+| --- | --- | --- | --- |
+| Tiny | 96 MB | 120 MB | Fastest, least accurate. Good for checking that the pipeline works. |
+| Small | 299 MB | 407 MB | Reasonable compromise |
+| Medium | 679 MB | 679 MB | More accurate again. Needs WebGPU. |
+| Large | 1.2 GB | 1.2 GB | Most accurate, about half the speed of Medium. Needs WebGPU. |
 
-> **These two figures are the CPU build.** Tiny and Small are the only models
-> Tratt fetches in two quantisations: a smaller 4-bit build on a machine with
-> WebGPU, and a larger 8-bit one without. The interface shows the larger number
-> either way, so with WebGPU the download is appreciably smaller than it says.
-> Every other model on this page is the same 4-bit build on both paths, and its
-> figure is exact.
-| Medium | 1000 MB | More accurate again. Needs WebGPU. |
-| Large | 1200 MB | Most accurate, about half the speed of Medium. Needs WebGPU. |
+Tiny and Small are the only models Tratt fetches as an 8-bit build on the CPU;
+on WebGPU they use the smaller 4-bit build. Every other model is the same 4-bit
+build on both paths. Medium and Large require WebGPU, so their CPU figures never
+apply to an actual download.
 
 ### Finnish and Norwegian
 
 Also fine-tuned models. Finnish offers Tiny (about 108 MB), Medium (about
-684 MB) and Large (about 1210 MB); Norwegian has its own models too, including a
-verbatim one that writes what was said rather than tidying it up. Everything
-above Tiny needs WebGPU.
+712 MB) and Large (about 1.3 GB); Norwegian has its own models too, including a
+verbatim one that writes what was said rather than tidying it up. Norwegian
+Tiny is about 108 MB, Small 324 MB, Medium 712 MB, Large 1.3 GB and the
+verbatim Large 1.2 GB. Everything above Tiny needs WebGPU.
 
 ### Sami
 
 Northern, Lule and Southern Sami have their own fine-tuned models. They are
-Large only (about 1210 MB), so they need WebGPU; on a machine without it the
+Large only (about 1.2 GB), so they need WebGPU; on a machine without it the
 language can be chosen but no model can.
 
 ### Every other language
 
 Uses OpenAI's Whisper.
 
-| Model | Roughly | Notes |
+| Model | Size (both paths) | Notes |
 | --- | --- | --- |
-| Tiny | 95 MB | Fastest, least accurate |
-| Small | 290 MB | **Preselected.** A reasonable compromise. |
-| Large-v3-turbo | 700 MB | Fast and accurate. Needs WebGPU. |
-| Large-v3 | 1200 MB | Slower than Turbo, often a little more accurate. Needs WebGPU. |
+| Tiny | 96 MB | Fastest, least accurate |
+| Small | 299 MB | **Preselected.** A reasonable compromise. |
+| Large-v3-turbo | 759 MB | Fast and accurate. Needs WebGPU. |
+| Large-v3 | 1.2 GB | Slower than Turbo, often a little more accurate. Needs WebGPU. |
 
 Tratt preselects Small. If your machine has WebGPU and the recording matters,
 switch to **Large-v3-turbo**.

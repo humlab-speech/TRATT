@@ -26,7 +26,18 @@ export interface KbWhisperModel {
   /** Translation key suffix for i18n, e.g. 'tiny', 'small', 'medium', 'large'. */
   key: string;
   modelId: string;
+  /**
+   * Decimal-MB download of the 4-bit ONNX files on WebGPU
+   * (`encoder_model_q4` + `decoder_model_merged_q4`). WASM uses the same
+   * build unless `sizeMbWasm` is present.
+   */
   sizeMb: number;
+  /**
+   * Decimal-MB download on WASM when it is not the 4-bit build. KB Whisper
+   * Tiny and Small request q8 there, whose files are larger; every other
+   * model uses q4 on both lanes and leaves this unset.
+   */
+  sizeMbWasm?: number;
   requiresWebGpu: boolean;
   hasWebgpuVariant: boolean;
   /** Set when the model cannot be used in a browser regardless of hardware. */
@@ -43,7 +54,8 @@ export const KB_WHISPER_MODELS: KbWhisperModel[] = [
   {
     key: 'tiny',
     modelId: 'onnx-community/kb-whisper-tiny-ONNX',
-    sizeMb: 120,
+    sizeMb: 96,
+    sizeMbWasm: 120,
     requiresWebGpu: false,
     hasWebgpuVariant: true,
     dtypeWasm: 'q8',
@@ -52,7 +64,8 @@ export const KB_WHISPER_MODELS: KbWhisperModel[] = [
   {
     key: 'small',
     modelId: 'onnx-community/kb-whisper-small-ONNX',
-    sizeMb: 400,
+    sizeMb: 299,
+    sizeMbWasm: 407,
     requiresWebGpu: false,
     hasWebgpuVariant: true,
     dtypeWasm: 'q8',
@@ -61,7 +74,7 @@ export const KB_WHISPER_MODELS: KbWhisperModel[] = [
   {
     key: 'medium',
     modelId: 'onnx-community/kb-whisper-medium-ONNX',
-    sizeMb: 1000,
+    sizeMb: 679,
     requiresWebGpu: true,
     hasWebgpuVariant: true,
     dtypeWasm: 'q4',
@@ -70,7 +83,7 @@ export const KB_WHISPER_MODELS: KbWhisperModel[] = [
   {
     key: 'large',
     modelId: 'onnx-community/kb-whisper-large-ONNX',
-    sizeMb: 1200,
+    sizeMb: 1222,
     requiresWebGpu: true,
     hasWebgpuVariant: true,
     dtypeWasm: 'q4',
@@ -93,7 +106,7 @@ export const FINNISH_WHISPER_MODELS: KbWhisperModel[] = [
     key: 'medium',
     i18nKey: 'fi-medium',
     modelId: 'FredrikKarlssonSpeech/whisper-medium-finnish-onnx',
-    sizeMb: 684,
+    sizeMb: 712,
     requiresWebGpu: true,
     hasWebgpuVariant: true,
     dtypeWasm: 'q4',
@@ -103,7 +116,7 @@ export const FINNISH_WHISPER_MODELS: KbWhisperModel[] = [
     key: 'large',
     i18nKey: 'fi-large',
     modelId: 'FredrikKarlssonSpeech/whisper-large-finnish-v3-onnx',
-    sizeMb: 1210,
+    sizeMb: 1263,
     requiresWebGpu: true,
     hasWebgpuVariant: true,
     dtypeWasm: 'q4',
@@ -136,7 +149,7 @@ export const NORWEGIAN_WHISPER_MODELS: KbWhisperModel[] = [
     key: 'medium',
     i18nKey: 'nb-medium',
     modelId: 'FredrikKarlssonSpeech/nb-whisper-medium-onnx',
-    sizeMb: 684,
+    sizeMb: 712,
     requiresWebGpu: true,
     hasWebgpuVariant: true,
     dtypeWasm: 'q4',
@@ -146,7 +159,7 @@ export const NORWEGIAN_WHISPER_MODELS: KbWhisperModel[] = [
     key: 'large',
     i18nKey: 'nb-large',
     modelId: 'FredrikKarlssonSpeech/nb-whisper-large-onnx',
-    sizeMb: 1210,
+    sizeMb: 1263,
     requiresWebGpu: true,
     hasWebgpuVariant: true,
     dtypeWasm: 'q4',
@@ -156,7 +169,7 @@ export const NORWEGIAN_WHISPER_MODELS: KbWhisperModel[] = [
     key: 'large-verbatim',
     i18nKey: 'nb-large-verbatim',
     modelId: 'FredrikKarlssonSpeech/nb-whisper-large-verbatim-onnx',
-    sizeMb: 1210,
+    sizeMb: 1222,
     requiresWebGpu: true,
     hasWebgpuVariant: true,
     dtypeWasm: 'q4',
@@ -173,7 +186,7 @@ export const NORTHERN_SAMI_WHISPER_MODELS: KbWhisperModel[] = [
     key: 'large',
     i18nKey: 'se-large',
     modelId: 'FredrikKarlssonSpeech/whisper-large-sme-onnx',
-    sizeMb: 1210,
+    sizeMb: 1221,
     requiresWebGpu: true,
     hasWebgpuVariant: true,
     dtypeWasm: 'q4',
@@ -186,7 +199,7 @@ export const LULE_SAMI_WHISPER_MODELS: KbWhisperModel[] = [
     key: 'large',
     i18nKey: 'smj-large',
     modelId: 'FredrikKarlssonSpeech/salmon-whisper-large-smj-lr7e-5-onnx',
-    sizeMb: 1210,
+    sizeMb: 1221,
     requiresWebGpu: true,
     hasWebgpuVariant: true,
     dtypeWasm: 'q4',
@@ -202,7 +215,7 @@ export const OPENAI_WHISPER_MODELS: KbWhisperModel[] = [
     key: 'tiny',
     i18nKey: 'openai-tiny',
     modelId: 'onnx-community/whisper-tiny-ONNX',
-    sizeMb: 95,
+    sizeMb: 96,
     requiresWebGpu: false,
     hasWebgpuVariant: true,
     dtypeWasm: 'q4',
@@ -212,7 +225,7 @@ export const OPENAI_WHISPER_MODELS: KbWhisperModel[] = [
     key: 'small',
     i18nKey: 'openai-small',
     modelId: 'onnx-community/whisper-small',
-    sizeMb: 290,
+    sizeMb: 299,
     requiresWebGpu: false,
     hasWebgpuVariant: true,
     dtypeWasm: 'q4',
@@ -222,7 +235,7 @@ export const OPENAI_WHISPER_MODELS: KbWhisperModel[] = [
     key: 'large-v3-turbo',
     i18nKey: 'openai-large-v3-turbo',
     modelId: 'onnx-community/whisper-large-v3-turbo',
-    sizeMb: 700,
+    sizeMb: 759,
     requiresWebGpu: true,
     hasWebgpuVariant: true,
     dtypeWasm: 'q4',
@@ -232,7 +245,7 @@ export const OPENAI_WHISPER_MODELS: KbWhisperModel[] = [
     key: 'large-v3',
     i18nKey: 'openai-large-v3',
     modelId: 'onnx-community/whisper-large-v3-ONNX',
-    sizeMb: 1200,
+    sizeMb: 1222,
     requiresWebGpu: true,
     hasWebgpuVariant: true,
     dtypeWasm: 'q4',
@@ -868,15 +881,41 @@ export class AutoTranscribeOptionsComponent implements OnInit {
   }
 
   modelLabel(model: KbWhisperModel): string {
+    const size = this.formatSizeMb(this.modelSizeMb(model));
     if (!this.compact()) {
       return this.transloco.translate(
         this.hasWebGpu() && model.hasWebgpuVariant
           ? `login.auto-transcription.models.${model.i18nKey ?? model.key}.webgpu`
           : `login.auto-transcription.models.${model.i18nKey ?? model.key}.wasm`,
+        { size },
       );
     }
     const titlecased = model.key.charAt(0).toUpperCase() + model.key.slice(1);
-    return `${titlecased} (~${model.sizeMb} MB)`;
+    return `${titlecased} (~${size})`;
+  }
+
+  /**
+   * The download the browser will actually perform: `sizeMb` is the 4-bit
+   * build, which every WebGPU path fetches; WASM fetches it too unless the
+   * model requests q8 there (KB Whisper Tiny and Small).
+   */
+  private modelSizeMb(model: KbWhisperModel): number {
+    return this.hasWebGpu() && model.hasWebgpuVariant
+      ? model.sizeMb
+      : (model.sizeMbWasm ?? model.sizeMb);
+  }
+
+  /** Whole decimal MB below 1 GB, one decimal GB above, locale-aware comma. */
+  private formatSizeMb(sizeMb: number): string {
+    const locale = this.transloco.getActiveLang();
+    if (sizeMb >= 1000) {
+      const gb = new Intl.NumberFormat(locale, {
+        minimumFractionDigits: 1,
+        maximumFractionDigits: 1,
+      }).format(sizeMb / 1000);
+      return `${gb} GB`;
+    }
+    return `${Math.round(sizeMb)} MB`;
   }
 
   /** Switch auto-transcription off (and remember it), e.g. while loading an archive. */

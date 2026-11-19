@@ -422,42 +422,42 @@
       "model cached": "Das Modell wird für zukünftige Sitzungen gecacht.",
       "safari warning": "Automatische Transkription ist für den Safari-Browser nicht verfügbar. Die Modelle, die wir auf Ihren Computer herunterladen müssen, sind groß und verursachen derzeit in Safari ein Neuladen des Tabs mit Datenverlust. Bitte verwenden Sie einen anderen Browser, wenn Sie die automatische Transkriptionsfunktion nutzen möchten.",
       "auto-transcribe label": "Automatisch transkribieren mit Whisper",
-      "requires internet": "Internetzugang erforderlich — das ausgewählte Modell wird von einem externen Server heruntergeladen (150 MB – 3 GB). Heruntergeladene Modelle werden im Browser gecacht.",
+      "requires internet": "Internetzugang erforderlich — das ausgewählte Modell wird von einem externen Server heruntergeladen. Heruntergeladene Modelle werden im Browser gecacht.",
       "requires webgpu": "Erfordert WebGPU — in diesem Browser nicht verfügbar",
       "no webgpu": "WebGPU nicht erkannt — Mittlere und große Modelle können nicht zuverlässig ausgeführt werden und wurden deaktiviert",
       "model cached after download": "Modell wird nach dem ersten Download gecacht",
       "models": {
         "tiny": {
-          "wasm": "Winzig (~120 MB) – Ungenaueste, 4× schneller als Klein",
-          "webgpu": "Winzig (~120 MB) — Ungenaueste, 4× schneller als Mittel"
+          "wasm": "Winzig (~{{size}}) – Ungenaueste, 4× schneller als Klein",
+          "webgpu": "Winzig (~{{size}}) — Ungenaueste, 4× schneller als Mittel"
         },
         "small": {
-          "wasm": "Klein (~400 MB) – Genauer, unser Referenzmodell",
-          "webgpu": "Klein (~400 MB) — Genauer, 2× schneller als Mittel"
+          "wasm": "Klein (~{{size}}) – Genauer, unser Referenzmodell",
+          "webgpu": "Klein (~{{size}}) — Genauer, 2× schneller als Mittel"
         },
         "medium": {
-          "wasm": "Mittel (~1 GB) – Genaueste, 3× langsamer als Klein",
-          "webgpu": "Mittel (~650 MB) — Unser Referenzmodell"
+          "wasm": "Mittel (~{{size}}) – Genaueste, 3× langsamer als Klein",
+          "webgpu": "Mittel (~{{size}}) — Unser Referenzmodell"
         },
         "large": {
-          "wasm": "Groß (~1,7 GB)",
-          "webgpu": "Groß (~1,2 GB) — Genaueste, 2× langsamer als Mittel"
+          "wasm": "Groß (~{{size}})",
+          "webgpu": "Groß (~{{size}}) — Genaueste, 2× langsamer als Mittel"
         },
         "openai-tiny": {
-          "wasm": "Winzig (~95 MB) — ~5× schneller, aber weniger genau als unser Referenzmodell (Small)",
-          "webgpu": "Winzig (~95 MB) — ~4× schneller als unser Referenzmodell (Turbo), aber am wenigsten genau"
+          "wasm": "Winzig (~{{size}}) — ~5× schneller, aber weniger genau als unser Referenzmodell (Small)",
+          "webgpu": "Winzig (~{{size}}) — ~4× schneller als unser Referenzmodell (Turbo), aber am wenigsten genau"
         },
         "openai-small": {
-          "wasm": "Klein (~400 MB) — Unser Referenzmodell",
-          "webgpu": "Klein (~290 MB) — 2× schneller, aber weniger genau als unser Referenzmodell (Turbo)"
+          "wasm": "Klein (~{{size}}) — Unser Referenzmodell",
+          "webgpu": "Klein (~{{size}}) — 2× schneller, aber weniger genau als unser Referenzmodell (Turbo)"
         },
         "openai-large-v3": {
-          "wasm": "Groß v3 (~3,1 GB) — Genaueste, benötigt WebGPU",
-          "webgpu": "Groß v3 (~3,1 GB) — 2× langsamer, aber oft genauer als unser Referenzmodell (Turbo)"
+          "wasm": "Groß v3 (~{{size}}) — Genaueste, benötigt WebGPU",
+          "webgpu": "Groß v3 (~{{size}}) — 2× langsamer, aber oft genauer als unser Referenzmodell (Turbo)"
         },
         "openai-large-v3-turbo": {
-          "wasm": "Groß v3 Turbo (~700 MB) — Schnell und genau, benötigt WebGPU",
-          "webgpu": "Groß v3 Turbo (~700 MB) — Schnell und hinreichend genau, unser gewähltes Referenzmodell"
+          "wasm": "Groß v3 Turbo (~{{size}}) — Schnell und genau, benötigt WebGPU",
+          "webgpu": "Groß v3 Turbo (~{{size}}) — Schnell und hinreichend genau, unser gewähltes Referenzmodell"
         }
       },
       "language label": "Transkriptionssprache",

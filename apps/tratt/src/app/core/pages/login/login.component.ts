@@ -14,11 +14,8 @@ import { AuthenticationComponent } from '../../component/authentication-componen
 import { DefaultComponent } from '../../component/default.component';
 import { MaintenanceBannerComponent } from '../../component/maintenance/maintenance-banner/maint-banner.component';
 import { RecordingPanelComponent } from '../../component/recording-panel/recording-panel.component';
-import {
-  KB_WHISPER_MODELS,
-  OPENAI_WHISPER_MODELS,
-} from '../../component/tratt-dropzone/auto-transcribe-options.component';
 import { TrattDropzoneComponent } from '../../component/tratt-dropzone/tratt-dropzone.component';
+import { findWhisperModelSizeMb } from '../../component/tratt-dropzone/whisper-model-sizes';
 import { AppSettings } from '../../obj';
 import { SessionFile } from '../../obj/SessionFile';
 import { AudioService, SettingsService } from '../../shared/service';
@@ -238,16 +235,15 @@ I just want to let you know, that the OCTRA server is currently offline.
 
   // Dispatched synchronously, BEFORE calling pipelineRunnerService.run() —
   // mirrors today's inline object-literal reset exactly. `downloadExpectedBytes`
-  // needs KB_WHISPER_MODELS/OPENAI_WHISPER_MODELS, which are UI concerns, not
-  // pipeline state, so that computation stays here rather than moving into
-  // PipelineRunnerService or PipelineActions.
+  // comes from the model registry, a UI concern, not pipeline state, so that
+  // computation stays here rather than moving into PipelineRunnerService or
+  // PipelineActions.
   private _startTranscriptionPipeline(opts: TranscriptionOptions): void {
-    const modelMeta =
-      KB_WHISPER_MODELS.find((m) => m.modelId === opts.modelId) ??
-      OPENAI_WHISPER_MODELS.find((m) => m.modelId === opts.modelId);
     this.store.dispatch(
       PipelineActions.transcriptionStart({
-        downloadExpectedBytes: (modelMeta?.sizeMb ?? 0) * 1024 * 1024,
+        downloadExpectedBytes:
+          (findWhisperModelSizeMb(opts.modelId, opts.useWebGPU) ?? 0) *
+          1_000_000,
         usedWebGPU: opts.useWebGPU,
       }),
     );

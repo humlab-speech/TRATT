@@ -38,10 +38,11 @@ import type { TranslationAvailability } from './local-translation.service';
 function asrOptions(
   modelId: string,
   withDiarization = false,
+  useWebGPU = false,
 ): TranscriptionOptions {
   return {
     modelId,
-    useWebGPU: false,
+    useWebGPU,
     language: 'sv',
     ...(withDiarization
       ? {
@@ -84,7 +85,16 @@ describe('estimateModelBytes', () => {
         asrOptions('onnx-community/kb-whisper-small-ONNX'),
         null,
       ),
-    ).toBe(400_000_000);
+    ).toBe(407_000_000);
+  });
+
+  it('counts the 4-bit download when the model runs on WebGPU', () => {
+    expect(
+      estimateModelBytes(
+        asrOptions('onnx-community/kb-whisper-small-ONNX', false, true),
+        null,
+      ),
+    ).toBe(299_000_000);
   });
 
   it('adds the flat diarization placeholder when diarization is configured', () => {
@@ -93,7 +103,7 @@ describe('estimateModelBytes', () => {
         asrOptions('onnx-community/kb-whisper-small-ONNX', true),
         null,
       ),
-    ).toBe(400_000_000 + DIARIZATION_MODEL_ESTIMATE_BYTES);
+    ).toBe(407_000_000 + DIARIZATION_MODEL_ESTIMATE_BYTES);
   });
 
   it('still counts diarization when the ASR model id is unknown', () => {
@@ -113,7 +123,7 @@ describe('estimateModelBytes', () => {
         asrOptions('onnx-community/kb-whisper-small-ONNX'),
         availability,
       ),
-    ).toBe(400_000_000 + 80_000_000);
+    ).toBe(407_000_000 + 80_000_000);
   });
 
   it('reuses TranslationAvailability.estimatedBytes for a pivot pair', () => {
@@ -356,7 +366,7 @@ describe('CapacityService', () => {
     );
 
     expect(service.storage().modelsEstimateBytes).toBe(
-      400_000_000 + DIARIZATION_MODEL_ESTIMATE_BYTES,
+      407_000_000 + DIARIZATION_MODEL_ESTIMATE_BYTES,
     );
   });
 
@@ -366,7 +376,7 @@ describe('CapacityService', () => {
     service.setConfiguredOptions(
       asrOptions('onnx-community/kb-whisper-small-ONNX'),
     );
-    expect(service.storage().modelsEstimateBytes).toBe(400_000_000);
+    expect(service.storage().modelsEstimateBytes).toBe(407_000_000);
 
     service.setConfiguredOptions(null);
 

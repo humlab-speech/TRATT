@@ -15,7 +15,7 @@ import type { TranslationAvailability } from './local-translation.service';
 
 /**
  * Decimal megabyte. Every size figure this app already carries is decimal —
- * `KbWhisperModel.sizeMb` (120 MB for kb-whisper-tiny),
+ * `KbWhisperModel.sizeMb` (96 MB for kb-whisper-tiny on WebGPU),
  * `OPUS_MT_BYTES_PER_PAIR = 80_000_000` — and `navigator.storage.estimate()`
  * returns plain bytes, so the whole capacity readout is decimal end to end.
  */
@@ -53,9 +53,10 @@ export const CAPACITY_POLL_MS = 5000;
  * Approximate on-disk size of the speaker-diarization model, in bytes.
  *
  * APPROXIMATION, not a measured figure. Unlike ASR (`KbWhisperModel.sizeMb`,
- * real per-model numbers) and translation (`OPUS_MT_BYTES_PER_PAIR`), this
- * app has no per-model size registry for diarization at all — there is one
- * model (`DIARIZATION_DEFAULT_MODEL_ID`) and no size recorded for it
+ * real per-model lane-aware numbers) and translation
+ * (`OPUS_MT_BYTES_PER_PAIR`), this app has no per-model size registry for
+ * diarization at all — there is one model
+ * (`DIARIZATION_DEFAULT_MODEL_ID`) and no size recorded for it
  * anywhere. 90 MB is the same flat placeholder the interactive mockup uses
  * (`docs/superpowers/specs/reference/TRATT Workbench.dc.html`, `renderVals()`).
  * Replace this with a real figure the moment one exists; do not inline it.
@@ -112,7 +113,10 @@ export function estimateModelBytes(
   let total = 0;
 
   if (transcribe) {
-    const sizeMb = findWhisperModelSizeMb(transcribe.modelId);
+    const sizeMb = findWhisperModelSizeMb(
+      transcribe.modelId,
+      transcribe.useWebGPU,
+    );
     if (sizeMb !== undefined) {
       total += sizeMb * BYTES_PER_MB;
     }

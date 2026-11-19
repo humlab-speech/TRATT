@@ -423,42 +423,42 @@
       "model cached": "Modellen kommer att cachas för framtida sessioner.",
       "safari warning": "Automatisk transkription är inte tillgänglig för Safari-webbläsaren. Modellerna vi behöver ladda ned till din dator är stora och utlöser för närvarande en flikomladdning i Safari, med dataförlust som följd. Använd en annan webbläsare om du vill använda den automatiska transkriptionsfunktionen.",
       "auto-transcribe label": "Automatisk transkribering med Whisper",
-      "requires internet": "Kräver internetåtkomst — den valda modellen laddas ned från en extern server (150 MB – 3 GB). Nedladdade modeller sparas i din webbläsare för senare anvädning.",
+      "requires internet": "Kräver internetåtkomst — den valda modellen laddas ned från en extern server. Nedladdade modeller sparas i din webbläsare för senare anvädning.",
       "requires webgpu": "Kräver WebGPU som tyvärr inte stödjs av din dator eller av denna webläsare",
       "no webgpu": "WebGPU inte detekterat — modellerna som kräver WebGPU kan inte köras tillförlitligt och har inaktiverats",
       "model cached after download": "Modellen sparas i din webläsare efter första nedladdning",
       "models": {
         "tiny": {
-          "wasm": "Liten (~120 MB) – Minst noggrann, 4× snabbare än Liten",
-          "webgpu": "Liten (~120 MB) — Minst noggrann, 4× snabbare än Medium"
+          "wasm": "Liten (~{{size}}) – Minst noggrann, 4× snabbare än Liten",
+          "webgpu": "Liten (~{{size}}) — Minst noggrann, 4× snabbare än Medium"
         },
         "small": {
-          "wasm": "Liten (~400 MB) – Mer noggrann, vår referensmodell",
-          "webgpu": "Liten (~400 MB) — Mer noggrann, 2× snabbare än Medium"
+          "wasm": "Liten (~{{size}}) – Mer noggrann, vår referensmodell",
+          "webgpu": "Liten (~{{size}}) — Mer noggrann, 2× snabbare än Medium"
         },
         "medium": {
-          "wasm": "Medium (~1 GB) – Mest noggrann, 3× långsammare än Liten",
-          "webgpu": "Medium (~650 MB) — Vår jämförelsemodell"
+          "wasm": "Medium (~{{size}}) – Mest noggrann, 3× långsammare än Liten",
+          "webgpu": "Medium (~{{size}}) — Vår jämförelsemodell"
         },
         "large": {
-          "wasm": "Stor (~1,7 GB)",
-          "webgpu": "Stor (~1,2 GB) — Mest noggrann, 2× långsammare än Medium"
+          "wasm": "Stor (~{{size}})",
+          "webgpu": "Stor (~{{size}}) — Mest noggrann, 2× långsammare än Medium"
         },
         "openai-tiny": {
-          "wasm": "Liten (~95 MB) — ~5× snabbare men mindre noggrann än vår referensmodell (Small)",
-          "webgpu": "Liten (~95 MB) — ~4× snabbare än vår referensmodell (Turbo), men minst noggrann"
+          "wasm": "Liten (~{{size}}) — ~5× snabbare men mindre noggrann än vår referensmodell (Small)",
+          "webgpu": "Liten (~{{size}}) — ~4× snabbare än vår referensmodell (Turbo), men minst noggrann"
         },
         "openai-small": {
-          "wasm": "Liten (~400 MB) — Vår referensmodell",
-          "webgpu": "Liten (~290 MB) — 2× snabbare men mindre noggrann än vår referensmodell (Turbo)"
+          "wasm": "Liten (~{{size}}) — Vår referensmodell",
+          "webgpu": "Liten (~{{size}}) — 2× snabbare men mindre noggrann än vår referensmodell (Turbo)"
         },
         "openai-large-v3": {
-          "wasm": "Stor v3 (~1,2 GB) — Mest noggrann, kräver WebGPU",
-          "webgpu": "Stor v3 (~1,2 GB) — 2× långsammare men ofta mer noggrann än vår referensmodell (Turbo)"
+          "wasm": "Stor v3 (~{{size}}) — Mest noggrann, kräver WebGPU",
+          "webgpu": "Stor v3 (~{{size}}) — 2× långsammare men ofta mer noggrann än vår referensmodell (Turbo)"
         },
         "openai-large-v3-turbo": {
-          "wasm": "Stor v3 Turbo (~700 MB) — Snabb och noggrann, kräver WebGPU",
-          "webgpu": "Stor v3 Turbo (~700 MB) — Snabb och rimligt noggrann, vår valda referensmodell"
+          "wasm": "Stor v3 Turbo (~{{size}}) — Snabb och noggrann, kräver WebGPU",
+          "webgpu": "Stor v3 Turbo (~{{size}}) — Snabb och rimligt noggrann, vår valda referensmodell"
         }
       },
       "language label": "Transkriptionsspråk",

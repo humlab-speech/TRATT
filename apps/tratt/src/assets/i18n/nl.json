@@ -281,42 +281,42 @@
       "model cached": "Het model wordt gecached voor toekomstige sessies.",
       "safari warning": "Automatische transcriptie is niet beschikbaar voor de Safari-webbrowser. De modellen die we naar uw computer moeten downloaden zijn groot en veroorzaken momenteel een tabblad-herlaad in Safari, met gegevensverlies als gevolg. Probeer een andere browser als u de automatische transcriptiefunctie wilt gebruiken.",
       "auto-transcribe label": "Automatisch transcriberen met Whisper",
-      "requires internet": "Internettoegang vereist — het geselecteerde model wordt gedownload van een externe server (150 MB – 3 GB). Gedownloade modellen worden opgeslagen in de browsercache.",
+      "requires internet": "Internettoegang vereist — het geselecteerde model wordt gedownload van een externe server. Gedownloade modellen worden opgeslagen in de browsercache.",
       "requires webgpu": "Vereist WebGPU — niet beschikbaar in deze browser",
       "no webgpu": "WebGPU niet gedetecteerd — Middelgrote en grote modellen kunnen niet betrouwbaar worden uitgevoerd en zijn uitgeschakeld",
       "model cached after download": "Model wordt gecached na de eerste download",
       "models": {
         "tiny": {
-          "wasm": "Minuscuul (~120 MB) – Minst nauwkeurig, 4× sneller dan Klein",
-          "webgpu": "Minuscuul (~120 MB) — Minst nauwkeurig, 4× sneller dan Medium"
+          "wasm": "Minuscuul (~{{size}}) – Minst nauwkeurig, 4× sneller dan Klein",
+          "webgpu": "Minuscuul (~{{size}}) — Minst nauwkeurig, 4× sneller dan Medium"
         },
         "small": {
-          "wasm": "Klein (~400 MB) – Nauwkeuriger, ons referentiemodel",
-          "webgpu": "Klein (~400 MB) — Nauwkeuriger, 2× sneller dan Medium"
+          "wasm": "Klein (~{{size}}) – Nauwkeuriger, ons referentiemodel",
+          "webgpu": "Klein (~{{size}}) — Nauwkeuriger, 2× sneller dan Medium"
         },
         "medium": {
-          "wasm": "Medium (~1 GB) – Meest nauwkeurig, 3× langzamer dan Klein",
-          "webgpu": "Medium (~650 MB) — Ons referentiemodel"
+          "wasm": "Medium (~{{size}}) – Meest nauwkeurig, 3× langzamer dan Klein",
+          "webgpu": "Medium (~{{size}}) — Ons referentiemodel"
         },
         "large": {
-          "wasm": "Groot (~1,7 GB)",
-          "webgpu": "Groot (~1,2 GB) — Meest nauwkeurig, 2× langzamer dan Medium"
+          "wasm": "Groot (~{{size}})",
+          "webgpu": "Groot (~{{size}}) — Meest nauwkeurig, 2× langzamer dan Medium"
         },
         "openai-tiny": {
-          "wasm": "Minuscuul (~95 MB) — ~5× sneller maar minder nauwkeurig dan ons referentiemodel (Small)",
-          "webgpu": "Minuscuul (~95 MB) — ~4× sneller dan ons referentiemodel (Turbo), maar het minst nauwkeurig"
+          "wasm": "Minuscuul (~{{size}}) — ~5× sneller maar minder nauwkeurig dan ons referentiemodel (Small)",
+          "webgpu": "Minuscuul (~{{size}}) — ~4× sneller dan ons referentiemodel (Turbo), maar het minst nauwkeurig"
         },
         "openai-small": {
-          "wasm": "Klein (~400 MB) — Ons referentiemodel",
-          "webgpu": "Klein (~290 MB) — 2× sneller maar minder nauwkeurig dan ons referentiemodel (Turbo)"
+          "wasm": "Klein (~{{size}}) — Ons referentiemodel",
+          "webgpu": "Klein (~{{size}}) — 2× sneller maar minder nauwkeurig dan ons referentiemodel (Turbo)"
         },
         "openai-large-v3": {
-          "wasm": "Groot v3 (~3,1 GB) — Meest nauwkeurig, vereist WebGPU",
-          "webgpu": "Groot v3 (~3,1 GB) — 2× trager maar vaak nauwkeuriger dan ons referentiemodel (Turbo)"
+          "wasm": "Groot v3 (~{{size}}) — Meest nauwkeurig, vereist WebGPU",
+          "webgpu": "Groot v3 (~{{size}}) — 2× trager maar vaak nauwkeuriger dan ons referentiemodel (Turbo)"
         },
         "openai-large-v3-turbo": {
-          "wasm": "Groot v3 Turbo (~700 MB) — Snel en nauwkeurig, vereist WebGPU",
-          "webgpu": "Groot v3 Turbo (~700 MB) — Snel en redelijk nauwkeurig, ons geselecteerde referentiemodel"
+          "wasm": "Groot v3 Turbo (~{{size}}) — Snel en nauwkeurig, vereist WebGPU",
+          "webgpu": "Groot v3 Turbo (~{{size}}) — Snel en redelijk nauwkeurig, ons geselecteerde referentiemodel"
         }
       },
       "language label": "Transcriptietaal",

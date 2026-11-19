@@ -224,13 +224,13 @@
                           </div>
                           <small class="text-muted">
                             {{
-                              transcription().downloadLoaded / 1048576
+                              transcription().downloadLoaded / 1000000
                                 | number: '1.0-0'
                             }}
                             MB /
                             {{
                               (transcription().downloadTotal ||
-                                transcription().downloadExpectedBytes) / 1048576
+                                transcription().downloadExpectedBytes) / 1000000
                                 | number: '1.0-0'
                             }}
                             MB
@@ -286,12 +286,12 @@
                           </div>
                           <small class="text-muted">
                             {{
-                              transcription().downloadLoaded / 1048576
+                              transcription().downloadLoaded / 1000000
                                 | number: '1.0-0'
                             }}
                             MB /
                             {{
-                              transcription().downloadTotal / 1048576
+                              transcription().downloadTotal / 1000000
                                 | number: '1.0-0'
                             }}
                             MB
@@ -457,12 +457,12 @@
                           </div>
                           <small class="text-muted">
                             {{
-                              translation().downloadLoaded / 1048576
+                              translation().downloadLoaded / 1000000
                                 | number: '1.0-0'
                             }}
                             MB /
                             {{
-                              translation().downloadTotal / 1048576
+                              translation().downloadTotal / 1000000
                                 | number: '1.0-0'
                             }}
                             MB
