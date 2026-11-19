@@ -84,8 +84,9 @@ processorn; med WebGPU används det mindre 4-bitarsbygget. Alla andra modeller �
 samma 4-bitarsbygge på båda vägarna. Medium och Large kräver WebGPU, så deras
 processorsiffror används aldrig vid en faktisk nedladdning.
 
-> Modellnamnen i det svenska gränssnittet är delvis felöversatta: flera visas som
-> "Liten" oavsett storlek. Gå efter storleken i MB, som stämmer.
+> Modellnamnen står på engelska även i det svenska gränssnittet — *Tiny*,
+> *Small*, *Medium*, *Large* — eftersom dialogen bygger etiketten av modellens
+> nyckel och storlek.
 
 ### Finska och norska
 

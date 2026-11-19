@@ -152,9 +152,11 @@ build:manual` lists every page that fell back.
   says why, rather than inventing a translation the reader will never see on
   screen. When one of those is translated in the app, update the manual with it.
 
-Swedish also documents two app bugs as facts of life: several Whisper model labels
-in `sv.json` read "Liten" regardless of size, so the manual tells readers to go by
-the MB figure. Remove that note when the strings are fixed.
+The Whisper model names are not translated at all: the Transcription settings
+dialog composes each label from the model's key and its size, so a Swedish
+reader sees *Tiny*, *Small*, *Medium*, *Large* too. The translated label strings
+in `sv.json` (several of which read "Liten" regardless of size) are no longer
+used by that dialog.
 
 ## Verification status
 
@@ -248,7 +250,6 @@ resolved, remove the caveat in the same commit:
 | Guidelines window absent from the Workbench toolbar                              | `workbench.md`, `shortcuts.md`                           |
 | `/help-tools` not linked from anywhere                                           | `troubleshooting.md`, `privacy.md`                       |
 | Swedish marker labels still English (`guidelines_sv.json`)                       | `sv/transcribing.md`, `sv/shortcuts.md`                  |
-| Swedish Whisper model labels mis-sized in `sv.json` ("Liten" regardless of size) | `sv/automatic-transcription.md`                          |
 
 Fixed since the manual was first written, and no longer mentioned: the cloud
 ASR/MAUS feature (removed from the app), the raw `modal.shortcuts.cycle_speaker`
