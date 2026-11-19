@@ -15,6 +15,8 @@ jest.mock('../../shared/service/local-translation.service', () => ({
 import {
   FINNISH_WHISPER_MODELS,
   KB_WHISPER_MODELS,
+  LULE_SAMI_WHISPER_MODELS,
+  NORTHERN_SAMI_WHISPER_MODELS,
   NORWEGIAN_WHISPER_MODELS,
   OPENAI_WHISPER_MODELS,
 } from './auto-transcribe-options.component';
@@ -56,12 +58,14 @@ describe('findWhisperModelSizeMb', () => {
     expect(findWhisperModelSizeMb('')).toBeUndefined();
   });
 
-  it('covers every model in all four arrays with a positive size', () => {
+  it('covers every model in all model arrays with a positive size', () => {
     expect(ALL_WHISPER_MODELS.length).toBe(
       [
         KB_WHISPER_MODELS,
         FINNISH_WHISPER_MODELS,
         NORWEGIAN_WHISPER_MODELS,
+        NORTHERN_SAMI_WHISPER_MODELS,
+        LULE_SAMI_WHISPER_MODELS,
         OPENAI_WHISPER_MODELS,
       ].reduce((n, models) => n + models.length, 0),
     );
