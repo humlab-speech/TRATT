@@ -60,11 +60,10 @@ export class AnnotJSONConverter extends Converter {
   }
 
   public import(file: IFile, audiofile: OAudiofile): ImportResult {
-    file.name = audiofile.name;
     if (audiofile) {
       let result = new OAnnotJSON(
         audiofile.name,
-        FileInfo.extractFileName(file.name).name,
+        FileInfo.extractFileName(audiofile.name).name,
         audiofile.sampleRate,
       );
       const content = file.content;
