@@ -71,7 +71,6 @@ se [Hur Tratt använder internet](privacy.md).
 - [Tangentbordsgenvägar](shortcuts.md)
 - [Felsökning](troubleshooting.md)
 - [Ordlista](glossary.md): vad Tratt kallar saker
-- [Från OCTRA-manualen](coming-from-octra.md)
 
 ---
 
@@ -82,14 +81,12 @@ Phonetik und Sprachverarbeitung, LMU München), utvecklad för plattformen Visib
 Speech av [Humlab](https://www.umu.se/humlab/) och
 [Språkbanken CLARIN](https://sprakbanken.se/) vid Umeå universitet.
 
-[OCTRA-manualen](https://clarin.phonetik.uni-muenchen.de/apps/octra/manuals/octra/)
-beskriver ursprungsverktyget. Mycket av den gäller fortfarande för den gemensamma
-redigeringsmotorn, men den beskriver inte Tratt:s lokala taligenkänning,
-inspelning i webbläsaren, talarhantering eller dokumentexport, och den beskriver
-ett serverstött läge som Tratt inte kör. Om du har läst den, börja med
-[Från OCTRA-manualen](coming-from-octra.md).
+Tratt har rört sig så långt från den utgångspunkten att ursprungsmanualen inte
+längre är något användbart sällskap: inspelningen, den lokala taligenkänningen,
+talarhanteringen, exporten och hela arbetsytan är Tratts egna. Den här manualen
+är den som gäller, och den förutsätter ingen kännedom om OCTRA.
 
-Manualen beskriver Tratt 3.2.x.
+Manualen beskriver Tratt 3.3.x.
 
 > Gränssnittet i Tratt är översatt till svenska, men inte fullständigt. Där en
 > knapp fortfarande visas på engelska anger manualen den engelska texten, så att

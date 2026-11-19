@@ -245,7 +245,7 @@ resolved, remove the caveat in the same commit:
 
 | Issue                                                                            | Where the manual says so                                 |
 | -------------------------------------------------------------------------------- | -------------------------------------------------------- |
-| Tools dialog has no UI entry point (`openToolsModal()` has no caller)            | `using-tools.md`, `coming-from-octra.md`                 |
+| Tools dialog has no UI entry point (`openToolsModal()` has no caller)            | `using-tools.md`                                         |
 | Guidelines window absent from the Workbench toolbar                              | `workbench.md`, `shortcuts.md`                           |
 | `/help-tools` not linked from anywhere                                           | `troubleshooting.md`, `privacy.md`                       |
 | Swedish marker labels still English (`guidelines_sv.json`)                       | `sv/transcribing.md`, `sv/shortcuts.md`                  |

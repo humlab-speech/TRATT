@@ -69,7 +69,6 @@ keeps; see [How Tratt uses the internet](privacy.md).
 - [Keyboard shortcuts](shortcuts.md)
 - [Troubleshooting](troubleshooting.md)
 - [Glossary](glossary.md): what Tratt calls things
-- [Coming from the OCTRA manual](coming-from-octra.md)
 
 ---
 
@@ -80,11 +79,9 @@ Phonetics and Speech Processing, LMU Munich), developed for the Visible Speech
 platform by [Humlab](https://www.umu.se/humlab/) and
 [Språkbanken CLARIN](https://sprakbanken.se/) at Umeå University.
 
-The [OCTRA manual](https://clarin.phonetik.uni-muenchen.de/apps/octra/manuals/octra/)
-describes the upstream tool. Much of it still applies to the shared editing
-machinery, but it does not describe Tratt's local speech recognition, in-browser
-recording, speaker handling or document export, and it describes a server-backed
-mode that Tratt does not run. If you have been reading it, start with
-[Coming from the OCTRA manual](coming-from-octra.md).
+Tratt has moved far enough from that starting point that the upstream manual is
+no longer a useful companion: the recording, the local speech recognition, the
+speaker handling, the export and the whole working surface are Tratt's own. This
+manual is the one to read, and it assumes no knowledge of OCTRA.
 
-This manual documents Tratt 3.2.x.
+This manual documents Tratt 3.3.x.

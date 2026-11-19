@@ -215,9 +215,9 @@ en säkerhetskopia, först.
 ## Att rapportera ett problem
 
 Tratt har ett inbyggt återkopplingsformulär (frågetecknet i sidhuvudet), men
-det visas bara när appen är ansluten till en OCTRA-backend, vilket den lokala
-standardinstallationen av Tratt inte är. Rapportera i så fall problem i projektets
-ärendehanterare: <https://github.com/humlab-speech/TRATT/issues>.
+det visas bara när appen är ansluten till en server, vilket den vanliga lokala
+Tratt inte är. Rapportera i så fall problem i projektets ärendehanterare:
+<https://github.com/humlab-speech/TRATT/issues>.
 
 Vilken väg du än använder är en felrapport sällan användbar utan:
 

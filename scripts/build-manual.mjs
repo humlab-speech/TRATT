@@ -125,7 +125,7 @@ const NAV = [
   { section: 'results', pages: ['exporting', 'using-tools'] },
   {
     section: 'reference',
-    pages: ['shortcuts', 'troubleshooting', 'glossary', 'coming-from-octra'],
+    pages: ['shortcuts', 'troubleshooting', 'glossary'],
   },
 ];
 
@@ -138,7 +138,6 @@ const NAV_LABELS = {
     index: 'Overview',
     'quick-start': 'Quick start',
     'automatic-transcription': 'Automatic transcription',
-    'coming-from-octra': 'Coming from OCTRA',
     privacy: 'Internet use',
     workbench: 'Several recordings',
     'visp-projects': 'VISP projects',
@@ -147,7 +146,6 @@ const NAV_LABELS = {
     index: 'Översikt',
     'quick-start': 'Snabbstart',
     'automatic-transcription': 'Automatisk transkription',
-    'coming-from-octra': 'Från OCTRA-manualen',
     privacy: 'Internetanvändning',
     workbench: 'Flera inspelningar',
     'visp-projects': 'VISP-projekt',

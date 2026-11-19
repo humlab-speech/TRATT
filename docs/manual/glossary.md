@@ -25,7 +25,7 @@ into ordinary language.
 | **WebGPU** | A browser feature that lets models use your graphics card. Its presence decides which models you can run and how fast they are. |
 | **WASM** | WebAssembly: the fallback that runs models on the CPU. Slower, works everywhere. |
 | **Local mode** | Working on your own files in your own browser, with no server. This is how Tratt is normally used. |
-| **Online mode** | OCTRA's server-backed mode, where a project assigns you files. Not enabled in the standard Tratt deployment. |
+| **Online mode** | A server-backed mode, where a project assigns you files. In Tratt that means a [Visp project](visp-projects.md); the ordinary local Tratt does not run it. |
 | **Magnifier** | The zoomed strip of waveform around the cursor, for placing boundaries precisely. |
 | **Playcursor** | The line showing where playback has reached. *Follow playcursor* keeps it on screen. |
 | **Easy Mode** | A preference that strips button labels and keyboard hints for a compact interface. |

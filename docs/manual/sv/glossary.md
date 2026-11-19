@@ -26,7 +26,7 @@ engelska texten inom parentes.
 | **WebGPU** | En webbläsarfunktion som låter modeller använda ditt grafikkort. Om den finns avgör vilka modeller du kan köra och hur snabbt. |
 | **WASM** | WebAssembly, reservvägen som kör modeller på processorn. Långsammare, fungerar överallt. |
 | **Lokalt läge** | Att arbeta med dina egna filer i din egen webbläsare, utan server. Så används Tratt normalt. |
-| **Onlineläge** | OCTRA:s serverstödda läge, där ett projekt tilldelar dig filer. Inte aktiverat i standardinstallationen av Tratt. |
+| **Onlineläge** | Ett serverstött läge, där ett projekt tilldelar dig filer. I Tratt betyder det ett [Visp-projekt](visp-projects.md); den vanliga lokala Tratt kör det inte. |
 | **Förstoringsglas** | Den förstorade remsan av vågform runt markören, för att placera gränser exakt. |
 | **Uppspelningspekare** | Linjen som visar var uppspelningen befinner sig. *Följ uppspelningspekare* håller den i bild. |
 | **Enkelt läge** | En inställning som tar bort knapptexter och tangentbordstips för ett kompakt gränssnitt. |

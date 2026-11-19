@@ -212,9 +212,9 @@ backup, first.
 ## Reporting a problem
 
 Tratt has a built-in feedback form (the question-mark icon in the header), but it
-only appears when the app is connected to an OCTRA backend, which the standard
-local-only Tratt deployment is not. In that case, report problems on the project's
-issue tracker: <https://github.com/humlab-speech/TRATT/issues>.
+only appears when the app is connected to a server, which the ordinary local
+Tratt is not. In that case, report problems on the project's issue tracker:
+<https://github.com/humlab-speech/TRATT/issues>.
 
 Whichever route you use, a bug report is usually not actionable without:
 
