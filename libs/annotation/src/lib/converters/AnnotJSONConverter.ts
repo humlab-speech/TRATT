@@ -75,7 +75,7 @@ export class AnnotJSONConverter extends Converter {
 
           // a missing "annotates" is tolerated; only a conflicting one is an error
           if (
-            result.annotates &&
+            result.annotates != null &&
             result.annotates !== audiofile.name &&
             result.annotates !== FileInfo.extractFileName(audiofile.name).name
           ) {

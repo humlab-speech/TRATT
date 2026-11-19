@@ -20,4 +20,21 @@ describe('AnnotJSONConverter.import', () => {
     expect(r.annotjson?.levels).toEqual([]);
     expect(r.annotjson?.links).toEqual([]);
   });
+
+  it('rejects a blank annotates', () => {
+    expect(
+      imp({ name: 'x', annotates: '', sampleRate: 16000, levels: [] }).error,
+    ).not.toBe('');
+  });
+
+  it('rejects a conflicting annotates', () => {
+    expect(
+      imp({ name: 'x', annotates: 'other.wav', sampleRate: 16000, levels: [] })
+        .error,
+    ).not.toBe('');
+  });
+
+  it('accepts a missing annotates', () => {
+    expect(imp({ name: 'x', sampleRate: 16000, levels: [] }).error).toBe('');
+  });
 });
