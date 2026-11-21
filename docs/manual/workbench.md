@@ -2,16 +2,11 @@
 
 **For:** anyone with a folder of recordings rather than a single file.
 
-Tratt has one working surface, and it holds as many recordings as you like. The
-page you land on is its empty state; as soon as a recording is in, the list of
-**recording bundles** takes the left-hand rail and the editor takes the rest of
-the window. There is no separate place to go to and nothing to switch on: adding
-a second recording is the same gesture as adding the first.
+Tratt has one working surface, and it holds as many recordings as you like. 
 
 ![The list of recording bundles beside the editor](../assets/visp_tratt_workbench.png)
 
-What changes when there is more than one is how material gets in and how you move
-between recordings, not how you transcribe. The editors, the shortcuts, the
+The editors, the shortcuts, the
 markers, the tiers and the export formats are the ones described in the rest of
 this manual.
 
@@ -40,11 +35,9 @@ together with its transcript. The two parts behave differently:
 
 The list shows both parts: the **Audio** column has a speaker when the audio is
 attached and **Attach** when it is not, and the **Transcript** column says where
-the transcript stands. In this manual, *file* means only a file on your
-computer: one you drop, choose or download.
+the transcript is. In this manual, *file* means only a file on your
+computer, which is the one you drop, choose or download.
 
-The name comes from the Emu database format, where a *bundle* is an audio file
-together with the files that describe it.
 
 ---
 
@@ -102,7 +95,7 @@ Drop a `.zip` that Tratt exported earlier on the same drop area. Every recording
 in it comes back with its audio attached and its transcript in place, and
 automatic transcription stops so that finished work is not transcribed over.
 That is the intended way to resume a session, move work between machines or hand
-it to a colleague; the whole account, including what the archive holds and what
+it to a colleague. A description of the procedure, including what the archive holds and what
 changes on the way back in, is under
 [The archive, and how to pick up where you left off](exporting.md#exporting-an-archive).
 
@@ -118,7 +111,7 @@ language, speaker separation and local translation, described in
 sliders icon to see the current settings without opening them.
 
 **Transcribe new files automatically** is a switch at the top of the settings.
-When it is on, files are transcribed as they arrive: you can drop several
+When it is on, files are transcribed as they arrive. You can drop several
 recordings and wait for them all to be processed. With nothing left to do, the
 button then reads **Auto-transcribe on**.
 
@@ -137,7 +130,7 @@ why, and its tooltip says so too.
 ### Transcribing a file again
 
 To transcribe a file again, for example with a larger model or other settings,
-tick it in the file list. The button then reads **Transcribe N selected**.
+mark it in the file list. The button then reads **Transcribe N selected**.
 Files that already have a transcript are only transcribed again after you
 confirm. Their current transcript is **replaced and cannot be restored**,
 including any corrections you made, so use **Export…** first if you want to
@@ -198,7 +191,7 @@ does not make Tratt lose data.
 
 Tratt keeps your recording bundles' transcripts but never their audio. When you
 return, a **Welcome back** panel greets you: *Tratt kept your transcripts from
-last time, but not your audio: it never saves audio. To listen and correct,
+last time, but not your audio. To listen and correct,
 attach each recording bundle's audio with "Attach" in the list, or drop the same
 audio files here.* Pick the same file from disk (with **Attach** in the list,
 **Attach audio…** in the header, or by dropping it) and editing continues where

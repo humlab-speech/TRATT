@@ -17,9 +17,8 @@ cutting the audio into pieces, or producing a table of their own design.
 ## Combining transcription units
 
 **The problem it solves.** Automatic transcription, and word-level segmentation in
-particular, tends to produce far more units than a human wants to work with: one
-per word, or one per short phrase, split at every small pause. Stepping through them
-one at a time is miserable.
+particular, tends to produce far more units than a human wants to work with. Stepping through them
+one at a time can then take too long.
 
 **What it does.** Units whose content is silence shorter than a threshold are merged
 with their neighbours, so short phrases separated by a breath become one unit.
@@ -34,7 +33,7 @@ with their neighbours, so short phrases separated by a breath become one unit.
 **Before you run it.** The word limit only behaves as documented on a
 word-segmented annotation. And although the operation is undoable with
 **Ctrl + Z** / **Cmd + Z**, it touches the whole tier at once. Export an
-AnnotJSON copy first if the transcript matters.
+AnnotJSON copy first if you want the ability to go back.
 
 ---
 
@@ -50,20 +49,18 @@ of the interview.
 annotation files alongside them, and hands you the collection as a download.
 
 **Everything is converted to WAVE PCM 16-bit mono** at the recording's sample rate.
-That is lossless relative to what Tratt decoded, but it is not a copy of your
-original encoding.
+That is lossless relative to what Tratt decoded.
 
 **Settings**
 
-- **Naming convention**: build the output file names by dragging the parts you
+- **Naming convention**: build the output file names by dragging the elements you
   want (original file name, unit number, unit text, timestamps) into the order you
-  want. You must include at least one variable part, or every file would have the
-  same name.
+  want them in. You must include at least one element that varies between transcription units, 
+  or every file would have the same name.
 - **Append meta files**: also write an annotation file per clip, in the formats you
-  tick.
+  select.
 
-Cutting a long recording takes a while and shows a progress bar; you can stop it
-partway.
+Cutting a long recording takes a while and shows a progress bar.
 
 ---
 
@@ -74,7 +71,7 @@ partway.
 **Where it is:** open **Export…** with *This recording bundle* chosen, then look
 under *More for this transcript* at the bottom of the dialog.
 
-**The problem it solves.** None of the built-in formats has exactly the columns your
+**The problem it solves.** You can use it when none of the built-in formats has exactly the columns your
 analysis script wants.
 
 **What it does.** You build a table column by column, see a live preview, and
@@ -95,8 +92,8 @@ download it.
 **Options**
 
 - **Time format**: *Timestamp* (`01:30:02.234`), *Seconds*, or *Samples*. Choose
-  Samples if you are going to line the table up against the signal in another tool;
-  choose Seconds for statistics.
+  Samples if you are going to line the table up against the signal in another tool.
+  Choose Seconds for when you need an easeier way of perform statistics based on sound or part duration.
 - **Divider**: tab, semicolon or comma.
 - **File extension**: `.csv`, `.txt`, `.table` or `.tsv`.
 - **Add header to the table**: a header row with your column titles.

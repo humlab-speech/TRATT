@@ -16,8 +16,8 @@ lyssnandet.
 
 ## Slå på det
 
-**Det är redan på.** Att lägga till en inspelning är instruktionen: Tratt ställer
-den i kö och en taligenkänningsmodell skriver ett utkast. Du behöver den här
+Att lägga till en inspelning gör funktionen tillgänglig. Tratt ställer den i kö
+och en taligenkänningsmodell skriver en utkasttranskription. Du behöver den här
 sidan först när du vill ändra vad modellen får veta, eller stoppa den helt.
 
 Kontrollerna ligger i en dialog, **Transkriptionsinställningar**. Öppna den med
@@ -27,13 +27,13 @@ reglageknappen bredvid **Transkribera** när inspelningar ligger i listan.
 ![Dialogen Transkriptionsinställningar](../../assets/visp_tratt_auto_transcription_options.png)
 
 1. **Transkribera nya inspelningspaket automatiskt**: strömbrytaren överst. Slår
-   du av den ligger inspelningar orörda i listan tills du trycker
-   **Transkribera**.
-2. **Transkriptionsspråk**: det språk som faktiskt talas på inspelningen. Ett
-   hundratal språk erbjuds, listade med sina egna namn (*Svenska (Swedish, sv)*,
+   du av den går inspelningarna bara att transkribera för hand, till dess att du
+   trycker **Transkribera**.
+2. **Transkriptionsspråk**: det språk som talas på inspelningen. Ett hundratal
+   språk erbjuds, listade med sina egna språknamn (*Svenska (Swedish, sv)*,
    *Suomi (Finnish, fi)*), med svenska först och resten i bokstavsordning. Tratt
    förvaljer det språk gränssnittet är inställt på, så byt om inspelningen är på
-   något annat. Detta är inte en översättningsinställning.
+   något annat.
 3. **Modell**: se tabellerna nedan. Listan ändras med språket.
 4. **Speaker separation** (talarseparation, valfritt): se
    [Talarseparation](#speaker-separation).
@@ -53,8 +53,8 @@ Medan en inspelning körs namnger dess rad i listan steget den nått:
 ### Håll fliken öppen
 
 Arbetet sker i den här fliken. Stäng den inte, och var försiktig med att låta
-datorn somna vid långa inspelningar. Att byta till en annan flik går bra;
-transkriptionen fortsätter, även om vissa webbläsare bromsar bakgrundsflikar.
+datorn somna vid långa inspelningar. Att byta till en annan flik går bra.
+Transkriptionen fortsätter då, även om vissa webbläsare bromsar bakgrundsflikar.
 
 ---
 
@@ -65,14 +65,13 @@ modeller för de nordiska språken.
 
 **Om din dator har WebGPU** (aktuell Chrome, Edge eller Firefox med ett hyggligt
 grafikkort) är alla modeller tillgängliga och de större är mycket snabbare.
-**Utan WebGPU** körs modellerna på processorn i stället: de som kräver det
-gråmarkeras i listan och går inte att välja, och resten är långsamma men
-användbara.
+**Utan WebGPU** körs modellerna på processorn i stället: de som kräver ett
+grafikkort gråmarkeras i listan och går inte att välja, och resten är långsamma
+men användbara.
 
 ### Svenska
 
-Använder **KB-Whisper** från Kungliga biblioteket, tränad på svenskt tal. Märkbart
-bättre än den allmänna modellen för svenska.
+Använder **KB-Whisper** från Kungliga biblioteket, tränad på svenskt tal.
 
 | Modell | WebGPU | Processor (WASM) | Anmärkning |
 | --- | --- | --- | --- |
@@ -189,7 +188,7 @@ om du drabbas av problemet.
 
 ---
 
-## När det inte är tillgängligt
+## När automatisk transkription inte är tillgänglig
 
 **Safari och andra WebKit-webbläsare.** Kryssrutan är inaktiverad med en varning.
 Modellerna är stora nog att få Safari att ladda om fliken mitt i nedladdningen,

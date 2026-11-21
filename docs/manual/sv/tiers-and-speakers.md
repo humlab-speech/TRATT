@@ -58,10 +58,10 @@ segmentnivå att översätta från.
 ## Talare
 
 En **talaretikett** hör till enskilda transkriptionsenheter, inte till nivåer.
-Enheter med etikett visar en färgad bricka; varje talare behåller samma färg
+Enheter med etikett visar en färgad bricka. Varje talare behåller samma färg
 genom hela transkriptet så att du kan läsa turtagningen med blicken.
 
-Etiketter uppstår på tre sätt:
+Talaretiketter sätts in på tre sätt:
 [talarseparation](automatic-transcription.md#speaker-separation) vid automatisk
 transkription, import från en undertextfil som namnger talare, eller för hand.
 

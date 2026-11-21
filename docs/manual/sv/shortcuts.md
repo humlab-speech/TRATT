@@ -16,9 +16,6 @@ skiljer sig och båda anges.
 | **Alt + 9** | Öppna riktlinjefönstret |
 | **Alt + 0** | Öppna Översikt |
 
-I [Arbetsbänken](workbench.md) erbjuder raden med vyflikarna Genvägar och Översikt men
-inget riktlinjefönster. Alla andra tangenter på den här sidan fungerar där
-oförändrat.
 
 ---
 

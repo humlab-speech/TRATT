@@ -46,7 +46,7 @@ keeps; see [How Tratt uses the internet](privacy.md).
 - [Quick start: your first transcription](quick-start.md)
 - [How Tratt uses the internet](privacy.md)
 
-**One recording at a time**
+**Loading recordings one at a time from your computer**
 
 - [Loading a recording](loading-media.md): upload, record in the browser, supported formats, resuming a session
 - [Automatic draft transcription](automatic-transcription.md): speech-recognition models, languages, speaker separation, translation
@@ -55,7 +55,7 @@ keeps; see [How Tratt uses the internet](privacy.md).
 - [Tiers and speakers](tiers-and-speakers.md)
 - [Checking your work](checking-your-work.md): the Overview window, statistics, guidelines
 
-**Many recordings**
+**When many files have been loaded**
 
 - [The Workbench](workbench.md): a file list, a transcription queue, batch export
 

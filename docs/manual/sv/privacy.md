@@ -1,12 +1,13 @@
 # Hur Tratt använder internet
 
-**För:** dig som hanterar intervjuer, kliniska inspelningar eller annat där
-"vart tog ljudet vägen?" är en fråga du måste kunna besvara.
+**För:** dig som hanterar intervjuer, kliniska inspelningar eller annat där det
+finns integritetsfrågor eller andra hänsyn att ta kring inspelningen.
 
-**Kort svar:** Tratt når nätet för att hämta *sig själv* och, när du ber om en,
-en språkmodell. Den skickar inte din inspelning eller din transkription
-någonstans. Undantaget är ett [Visp-projekt](visp-projects.md), där hela poängen
-är att transkriptionen ska till en server.
+**Kort sagt:** Tratt når nätet för att hämta *sig själv* och, om du ber om
+automatisk transkription, en språkmodell. Den skickar inte din inspelning eller
+din transkription någonstans. Undantaget är ett
+[Visp-projekt](visp-projects.md), där det är nödvändigt att transkriptionen
+skickas tillbaka till Visp-servern.
 
 ---
 
@@ -20,9 +21,6 @@ någonstans. Undantaget är ett [Visp-projekt](visp-projects.md), där hela poä
 | **En tal-, talarseparations- eller översättningsmodell** | Första gången den modellen körs | `huggingface.co` | Ingenting av ditt. Innan en översättningsmodell laddas ned frågar Tratt först om språkparet finns över huvud taget. |
 | **Ett underhållsmeddelande** | Vid start | Servern som är värd för Tratt | Ingenting av ditt |
 | **Ditt material** | Bara i ett [Visp-projekt](visp-projects.md) | Det projektets server | Transkriptionen du arbetar med, och det projektet ber dig skicka |
-
-Utanför ett Visp-projekt är det hela listan. Ditt ljud laddas aldrig upp, varken
-för transkribering eller något annat: modellen körs **i fliken**, på din dator.
 
 ## Vad som aldrig lämnar din dator
 
@@ -38,7 +36,7 @@ för transkribering eller något annat: modellen körs **i fliken**, på din dat
 
 Tratt installerar en service worker, så efter första lyckade laddningen körs
 appen från webbläsarens cache. När du också har laddat ned de modeller du tänker
-använda kan du koppla ned dig helt och fortsätta transkribera: ingenting i
+använda kan du koppla ned dig helt och fortsätta transkribera. Ingenting i
 redigeringen, exporten eller lagringen behöver nätet.
 
 Kan din dator eller ditt nätverk inte nå `huggingface.co` är automatisk
@@ -60,7 +58,8 @@ Eftersom ljudet bara hålls i minnet minns Tratt din transkription mellan
 sessioner men inte din inspelning: när du kommer tillbaka bifogar du samma
 mediefil igen och fortsätter.
 
-**Luta dig inte för tungt mot det.** Webbläsarlagring är en arbetsbekvämlighet,
+**Förlita dig inte för tungt på Tratts lagring.** Webbläsarlagring är en
+arbetsbekvämlighet,
 inte ett arkiv. Gör det till en vana att [exportera](exporting.md) efter en
 session.
 

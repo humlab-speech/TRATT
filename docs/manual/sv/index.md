@@ -48,7 +48,7 @@ se [Hur Tratt använder internet](privacy.md).
 - [Snabbstart: din första transkription](quick-start.md)
 - [Hur Tratt använder internet](privacy.md)
 
-**En inspelning i taget**
+**Att ladda in inspelningar en i taget från din dator**
 
 - [Ladda in en inspelning](loading-media.md): ladda upp, spela in i webbläsaren, filformat som stöds, återuppta en session
 - [Automatisk utkasttranskription](automatic-transcription.md): taligenkänningsmodeller, språk, talarseparation, översättning
@@ -57,7 +57,7 @@ se [Hur Tratt använder internet](privacy.md).
 - [Nivåer och talare](tiers-and-speakers.md)
 - [Kontrollera ditt arbete](checking-your-work.md): Översikt, statistik, riktlinjer
 
-**Många inspelningar**
+**När många filer har laddats in**
 
 - [Arbetsbänken](workbench.md): en fillista, en transkriptionskö, export av hela omgången
 

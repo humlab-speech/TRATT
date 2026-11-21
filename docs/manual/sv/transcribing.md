@@ -1,6 +1,6 @@
 # Så fungerar transkribering
 
-**Det här dokumentet är för:** dig som ska tillbringa riktiga timmar i Tratt. Läs den här sidan en gång,
+**Det här dokumentet är för:** dig som ska använda Tratt mer än en eller två gånger. Läs den här sidan en gång,
 och därefter räcker [Tangentbordsgenvägar](shortcuts.md) uppslagen.
 
 ---
@@ -49,9 +49,9 @@ Du kan också arbeta utan att öppna ett popup-fönster. Diktafon-vyn sätter et
 textfält och en spelare på skärmen, och Översikt låter dig redigera rader i en
 tabell. Se [Vyerna](the-editors.md).
 
-**Att spara.** Det finns inget att spara. Varje ändring hamnar direkt i
+**Att spara.** Vanligtvis behöver du inte göra något för att spara. Varje ändring hamnar direkt i
 webbläsarlagringen, och en liten sparikon blinkar till i redigeringsytans hörn när det
-sker. Det du ändå måste göra är att [exportera en fil](exporting.md) innan du
+sker. Det du behöver göra är att [exportera en fil](exporting.md) innan du
 slutar för dagen.
 
 **Ångra** är **Ctrl + Z** (**Cmd + Z** på Mac), **gör om** är **Ctrl + Y**
@@ -152,7 +152,7 @@ separata nivåer, beskrivs under [Nivåer och talare](tiers-and-speakers.md).
 
 ---
 
-## Inställningar värda att sätta dag ett
+## Inställningar värda att sätta
 
 Öppna **Inställningar** i sidhuvudet (kugghjulsikonen).
 

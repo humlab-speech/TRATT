@@ -1,6 +1,6 @@
 # How transcribing works
 
-**This document is for:** anyone who is going to spend real hours in Tratt. Read this once, and after
+**This document is for:** anyone who is going to use Tratt more than once or twice. Read this once, and after
 that, [Keyboard shortcuts](shortcuts.md) is all you need open.
 
 ---
@@ -47,9 +47,9 @@ You can also work without opening a popup window. The Dictaphone Editor puts one
 text field and a player on screen, and the Overview window lets you edit rows in a
 table. See [The editors](the-editors.md).
 
-**Saving.** There is nothing to save. Every change goes into browser storage
-immediately, and a small save icon flickers in the corner of the editing area as it does. What you do
-still need to do is [export a file](exporting.md) before you finish for the day.
+**Saving.** There is usually nothing you need to do to save. Every change goes into browser storage
+immediately, and a small save icon flickers in the corner of the editing area as it does. What you will 
+need to do is [export a file](exporting.md) before you finish for the day.
 
 **Undo** is **Ctrl + Z** (**Cmd + Z** on a Mac), **redo** is **Ctrl + Y**
 (**Shift + Cmd + Z**). It works both on text and on boundary changes. Occasionally
@@ -148,7 +148,7 @@ are covered in [Tiers and speakers](tiers-and-speakers.md).
 
 ---
 
-## Preferences worth setting on day one
+## Preferences worth setting
 
 Open **Preferences** from the header (the gear icon).
 

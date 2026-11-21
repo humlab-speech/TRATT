@@ -17,9 +17,8 @@ klippa ljudet i bitar, eller skapa en tabell av egen design.
 ## Kombinera transkriptionsenheter
 
 **Problemet det löser.** Automatisk transkription, och särskilt segmentering på
-ordnivå, brukar producera långt fler enheter än en människa vill arbeta med: en
-per ord, eller en per kort fras, delade vid varje liten paus. Att stega genom dem
-en i taget är olidligt.
+ordnivå, brukar producera långt fler enheter än en människa vill arbeta med. Att
+stega genom dem en i taget tar då för lång tid.
 
 **Vad det gör.** Enheter vars innehåll är tystnad kortare än ett tröskelvärde slås
 ihop med sina grannar, så att korta fraser åtskilda av ett andetag blir en enhet.
@@ -34,7 +33,7 @@ ihop med sina grannar, så att korta fraser åtskilda av ett andetag blir en enh
 **Innan du kör det.** Ordgränsen beter sig bara som beskrivet på en
 ordsegmenterad annotering. Och även om operationen går att ångra med
 **Ctrl + Z** / **Cmd + Z** rör den hela nivån på en gång, så exportera en
-AnnotJSON-kopia först om transkriptet betyder något.
+AnnotJSON-kopia först om du vill kunna gå tillbaka.
 
 ---
 
@@ -50,20 +49,18 @@ intervjun.
 annoteringsfiler vid sidan av, och ger dig samlingen som en nedladdning.
 
 **Allt konverteras till WAVE PCM 16-bitars mono** i inspelningens samplingsfrekvens.
-Det är förlustfritt i förhållande till vad Tratt avkodade, men det är inte en kopia
-av din ursprungliga kodning.
+Det är förlustfritt i förhållande till vad Tratt avkodade.
 
 **Inställningar**
 
-- **Namngivningskonvention:** bygg utdatafilernas namn genom att dra de delar du
+- **Namngivningskonvention:** bygg utdatafilernas namn genom att dra de element du
   vill ha (ursprungligt filnamn, enhetsnummer, enhetens text, tidsstämplar) i den
-  ordning du vill ha dem. Minst en varierande del måste ingå, annars skulle alla
-  filer få samma namn.
+  ordning du vill ha dem. Minst ett element som varierar mellan
+  transkriptionsenheterna måste ingå, annars skulle alla filer få samma namn.
 - **Lägg till metafiler:** skriv också en annoteringsfil per klipp, i de format
-  du markerar.
+  du väljer.
 
-Att klippa en lång inspelning tar en stund och visar ett förloppsfält; du kan
-avbryta halvvägs.
+Att klippa en lång inspelning tar en stund och visar ett förloppsfält.
 
 ---
 
@@ -74,8 +71,8 @@ avbryta halvvägs.
 **Var den finns:** öppna **Exportera…** med *Det här inspelningspaketet* valt, och
 titta under *Mer för den här transkriptionen* längst ned i dialogen.
 
-**Problemet den löser.** Inget av de inbyggda formaten har precis de kolumner ditt
-analysskript vill ha.
+**Problemet den löser.** Du kan använda den när inget av de inbyggda formaten har
+precis de kolumner ditt analysskript vill ha.
 
 **Vad den gör.** Du bygger en tabell kolumn för kolumn, ser en förhandsvisning i
 realtid och laddar ned den.
@@ -95,8 +92,9 @@ realtid och laddar ned den.
 **Alternativ**
 
 - **Tidsformat:** *Timestamp* (`01:30:02.234`), *Seconds* eller *Samples*. Välj
-  Samples om du ska lägga tabellen mot signalen i ett annat verktyg; välj Seconds
-  för statistik.
+  Samples om du ska lägga tabellen mot signalen i ett annat verktyg. Välj Seconds
+  när du vill ha ett enklare sätt att räkna statistik på ljudets eller enheternas
+  varaktighet.
 - **Avgränsare:** tabb, semikolon eller komma.
 - **Filändelse:** `.csv`, `.txt`, `.table` eller `.tsv`.
 - **Lägg till rubrik till tabellen:** en rubrikrad med dina kolumnnamn.

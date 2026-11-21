@@ -13,8 +13,8 @@ be prepared to make revisions to the draft annotation later.
 
 ## Turning it on
 
-**It is already on.** Adding a recording is the instruction: Tratt queues it and a
-speech-recognition model writes a draft. You only need this page when you want to
+Adding a recording makes the feature available. Tratt queues it and a
+speech-recognition model writes a draft transcription. You only need this page when you want to
 change what the model is told, or to stop it running at all.
 
 The controls are in one dialog, **Transcription settings**. Open it with
@@ -24,13 +24,13 @@ sliders button beside **Transcribe** once recordings are in the list.
 ![The Transcription settings dialog](../assets/visp_tratt_auto_transcription_options.png)
 
 1. **Transcribe new recording bundles automatically**: the switch at the top.
-   Turn it off and recordings sit in the list untouched until you press
+   Turn it off and recordings are available for manual transcription only, until you press
    **Transcribe**.
-2. **Transcription language**: the language actually spoken on the recording.
-   A hundred languages are offered, listed by their own names
+2. **Transcription language**: the language spoken on the recording.
+   A hundred languages are offered, listed by their native names
    (*Svenska (Swedish, sv)*, *Suomi (Finnish, fi)*), with Swedish first and the rest
    alphabetical. Tratt preselects the language your interface is set to, so change
-   it if the recording is in something else. This is not a translation setting.
+   it if the recording is in something else. 
 3. **Model**: see the tables below. The list changes with the language.
 4. **Speaker separation** (optional): see [Speaker separation](#speaker-separation).
 5. **Translate transcript locally**: a second section, folded away until you open
@@ -49,7 +49,7 @@ While a recording runs, its row in the list names the stage it has reached:
 ### Keep the tab open
 
 The work happens in this tab. Do not close it, and be careful with laptop sleep on
-long recordings. Switching to another tab is fine; the transcription keeps running,
+long recordings. Switching to another tab is fine.  The transcription will then keep running,
 though some browsers slow background tabs down.
 
 ---
@@ -61,13 +61,12 @@ models for the Nordic languages.
 
 **If your machine has WebGPU** (recent Chrome, Edge or Firefox with a reasonable
 graphics card), all models are available and the larger ones are much faster.
-**Without WebGPU** the models run on the CPU instead: the ones that need it are
+**Without WebGPU** the models run on CPU instead: the ones that need a GPU are
 greyed out in the list and cannot be picked, and the rest are slow but usable.
 
 ### Swedish
 
 Uses **KB-Whisper** from the National Library of Sweden, trained on Swedish speech.
-Noticeably better than the general model for Swedish.
 
 | Model | WebGPU | CPU (WASM) | Notes |
 | --- | --- | --- | --- |
@@ -178,7 +177,7 @@ the problem.
 
 ---
 
-## When it is not available
+## When automatic transcription is not available
 
 **Safari and other WebKit browsers.** The checkbox is disabled with a warning. The
 models are large enough to make Safari reload the tab mid-download, which loses your

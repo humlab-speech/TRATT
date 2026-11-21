@@ -54,10 +54,10 @@ segment tier to translate from.
 ## Speakers
 
 A **speaker label** is attached to individual transcription units, not to tiers.
-Units with a label show a coloured badge; each speaker keeps the same colour
+Units with a label show a coloured badge. Each speaker keeps the same colour
 throughout so you can read turn-taking at a glance.
 
-Labels get there in three ways: [speaker separation](automatic-transcription.md#speaker-separation)
+Speaker labels are inserted in three ways: [speaker separation](automatic-transcription.md#speaker-separation)
 during automatic transcription, import from a subtitle file that names speakers, or
 by hand.
 

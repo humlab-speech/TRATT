@@ -5,8 +5,6 @@
 **Time:** about ten minutes of your attention. If you use automatic transcription,
 add download and processing time; see step 3.
 
-You do not need an account. You do not need to install anything.
-
 ---
 
 ## 1. Open Tratt
@@ -24,7 +22,7 @@ transcription but cannot run automatic transcription; see
 Drop your audio or video file on the dashed box, or click **Choose a file** and
 pick it.
 
-Most formats work: `.wav`, `.mp3`, `.m4a`, `.flac`, `.ogg`, `.opus`, `.mp4`,
+Most formats work: `.ogg`, `.opus`,`.wav`, `.mp3`, `.m4a`, `.flac`, `.mp4`,
 `.mov`, `.webm` and more. The full list with size limits is in
 [Loading a recording](loading-media.md#supported-file-formats).
 
@@ -36,14 +34,13 @@ Most formats work: `.wav`, `.mp3`, `.m4a`, `.flac`, `.ogg`, `.opus`, `.mp4`,
 
 ## 3. Decide who writes the first draft
 
-**Tratt transcribes automatically.** Adding a file is the whole instruction: a
-speech-recognition model starts on it at once and writes a draft for you to
+**Tratt transcribes automatically.** Adding a file starts the procedure. A
+speech-recognition model starts working on it at once and writes a draft for you to
 correct. Two things under the box decide how:
 
 - **Transcription language: …** says which language the model will expect.
-  Get this right before you add the file. **Change** opens the settings, where
-  you also pick the model size and can turn on **Speaker separation** to have
-  Tratt guess who spoke when.
+  **Change** opens the settings, where you also pick the model size and can turn on **Speaker separation** to have
+  Tratt guess which speaker spoke when.
 - **Transcribe by hand, without AI** adds the recording *without* running a
   model, for when you would rather type it yourself.
 
@@ -70,8 +67,7 @@ Tratt works through them one at a time. See
 You arrive in the **2D-Editor**: the recording is drawn as a waveform on several
 lines, one line after another, with the text sitting under each chunk of speech.
 
-Tratt calls each of those chunks a **transcription unit**: one utterance, roughly
-one line of a subtitle. Other tools call it a segment.
+Tratt calls each of those chunks a **transcription unit** and they represent roughly one utterance.
 
 ![Correcting one unit in the transcription window](../assets/visp_tratt_popup_editor_audio_only.png)
 
@@ -84,14 +80,13 @@ To correct a unit:
 4. Press **Alt + →** to save and move to the next unit, or **Alt + ↓** to save and
    close the window.
 
-That loop, Enter, Tab, type, Alt + →, is the whole job. Everything else is
-refinement.
+That loop, Enter, Tab, type, Alt + →, is the basic procedure you need to use in most cases. 
 
 If you need to mark something that is not a word (a pause, laughter, background
 noise, an unintelligible word), use the marker buttons above the text field, or
 **Alt + 1** … **Alt + 7**. See [Markers](transcribing.md#markers).
 
-Your progress is saved in the browser continuously. You do not have to press save.
+Your progress is saved in the browser continuously.
 
 ## 6. Look over the whole thing
 
@@ -131,8 +126,8 @@ described in [Exporting](exporting.md).
 
 ## If you have more than one recording
 
-Nothing changes. The same page holds as many recordings as you like: drop them
-all on the box, and Tratt works through them one at a time while you edit the one
+The procedure is essentially the same. Drop the recordings  on the box, and Tratt works 
+through them one at a time while you edit the one
 that is already done. The list is how you move between them, and one export can
 take the lot. See [Working with several recordings](workbench.md).
 
@@ -142,9 +137,10 @@ take the lot. See [Working with several recordings](workbench.md).
 
 **Tratt remembers your transcript, but never your recording.** When you come back,
 the text is still there, but you must drag the same media file in again to keep
-working. Export a file whenever you stop for the day.
+working. The best procedure is to export your set of recordings to a `.zip` file after 
+a session. That `.zip` file will then also contain your recordings. You can re-import it when you want to continue.
 
-**Nothing was uploaded.** Your recording stayed on your machine the whole time. See
+**Nothing is uploaded anywhere.** Your recording stayed on your machine the whole time. See
 [How Tratt uses the internet](privacy.md).
 
 ---

@@ -5,8 +5,6 @@
 **Tid:** ungefär tio minuters uppmärksamhet. Använder du automatisk transkription
 tillkommer tid för nedladdning och bearbetning, se steg 3.
 
-Du behöver inget konto. Du behöver inte installera något.
-
 ---
 
 ## 1. Öppna Tratt
@@ -24,7 +22,7 @@ manuell transkribering men kan inte köra automatisk transkription. Se
 Släpp din ljud- eller videofil på den streckade rutan, eller klicka på **Välj en
 fil** och leta upp den.
 
-De flesta format fungerar: `.wav`, `.mp3`, `.m4a`, `.flac`, `.ogg`, `.opus`,
+De flesta format fungerar: `.ogg`, `.opus`, `.wav`, `.mp3`, `.m4a`, `.flac`,
 `.mp4`, `.mov`, `.webm` med flera. Hela listan med storleksgränser finns under
 [Ladda in en inspelning](loading-media.md#supported-file-formats).
 
@@ -37,14 +35,13 @@ De flesta format fungerar: `.wav`, `.mp3`, `.m4a`, `.flac`, `.ogg`, `.opus`,
 
 ## 3. Bestäm vem som skriver utkastet
 
-**Tratt transkriberar automatiskt.** Att lägga till en fil är hela
-instruktionen: en taligenkänningsmodell sätter i gång direkt och skriver ett
-utkast som du sedan rättar. Två saker under rutan styr hur:
+**Tratt transkriberar automatiskt.** Att lägga till en fil startar processen. En
+taligenkänningsmodell sätter i gång direkt och skriver ett utkast som du sedan
+rättar. Två saker under rutan styr hur:
 
-- **Transkriptionsspråk: …** anger vilket språk modellen ska förvänta sig. Se
-  till att det stämmer innan du lägger till filen. **Ändra** öppnar
-  inställningarna, där du också väljer modellstorlek och kan slå på
-  **talarseparation** så att Tratt gissar vem som talar när.
+- **Transkriptionsspråk: …** anger vilket språk modellen ska förvänta sig.
+  **Ändra** öppnar inställningarna, där du också väljer modellstorlek och kan
+  slå på **talarseparation** så att Tratt gissar vilken talare som talar när.
 - **Transkribera för hand, utan AI** lägger till inspelningen *utan* att köra
   någon modell, för dig som hellre skriver själv.
 
@@ -71,8 +68,8 @@ Tratt arbetar igenom dem en i taget. Se
 Du hamnar i **2D Vy**: inspelningen ritas som en vågform på flera rader, en rad
 efter den andra, med texten under varje talstycke.
 
-Tratt kallar varje sådant stycke en **transkriptionsenhet**: ett yttrande,
-ungefär en undertextrad. Andra verktyg kallar det ett segment.
+Tratt kallar varje sådant stycke en **transkriptionsenhet**, och de motsvarar
+ungefär ett yttrande.
 
 ![Rätta en enhet i transkriptionsfönstret](../../assets/visp_tratt_popup_editor_audio_only.png)
 
@@ -86,14 +83,14 @@ Så här rättar du en enhet:
 4. Tryck **Alt + →** för att spara och gå till nästa enhet, eller **Alt + ↓**
    för att spara och stänga fönstret.
 
-Den slingan (Enter, Tabb, skriv, Alt + →) är hela arbetet. Allt annat är
-finjustering.
+Den slingan (Enter, Tabb, skriv, Alt + →) är det grundläggande arbetssätt du
+kommer att använda i de flesta fall.
 
 Behöver du markera något som inte är ord (en paus, skratt, bakgrundsljud, ett
 oförståeligt ord) använder du markörknapparna ovanför textfältet, eller
 **Alt + 1** … **Alt + 7**. Se [Markörer](transcribing.md#markers).
 
-Ditt arbete sparas fortlöpande i webbläsaren. Du behöver inte trycka spara.
+Ditt arbete sparas fortlöpande i webbläsaren.
 
 ## 6. Se över helheten
 
@@ -133,9 +130,8 @@ alternativ beskrivs under [Exportera](exporting.md).
 
 ## Om du har fler än en inspelning
 
-Ingenting ändras. Samma sida rymmer hur många inspelningar du vill: släpp dem
-allihop på rutan, så arbetar Tratt igenom dem en i taget medan du redigerar den
-som redan är klar. Listan är hur du flyttar dig mellan dem, och en enda export
+Arbetssättet är i stort sett detsamma. Släpp inspelningarna på rutan, så arbetar
+Tratt igenom dem en i taget medan du redigerar den som redan är klar. Listan är hur du flyttar dig mellan dem, och en enda export
 kan ta med alltihop. Se [Arbeta med flera inspelningar](workbench.md).
 
 ---
@@ -144,9 +140,12 @@ kan ta med alltihop. Se [Arbeta med flera inspelningar](workbench.md).
 
 **Tratt minns ditt transkript, men aldrig din inspelning.** När du kommer
 tillbaka finns texten kvar, men du måste dra in samma mediefil igen för att
-kunna arbeta vidare. Exportera en fil varje gång du slutar för dagen.
+kunna arbeta vidare. Det bästa arbetssättet är att exportera din uppsättning
+inspelningar till en `.zip`-fil efter en session. Den `.zip`-filen innehåller då
+också dina inspelningar, och du kan läsa in den igen när du vill fortsätta.
 
-**Ingenting laddades upp.** Din inspelning stannade på din dator hela tiden. Se
+**Ingenting laddas upp någonstans.** Din inspelning stannade på din dator hela
+tiden. Se
 [Hur Tratt använder internet](privacy.md).
 
 ---

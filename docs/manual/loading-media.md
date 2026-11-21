@@ -14,7 +14,7 @@ recordings are in the list, the same box sits at the top of the list and reads
 
 You can drop **media files**, and optionally **transcript files** alongside
 them, in either order. A transcript has to be named like the recording it
-belongs to, or dropped together with it; Tratt says so when it cannot pair them.
+belongs to, or dropped together with it. Tratt will tell you if it cannot pair them.
 Tratt waits until it has audio before it can do anything; while it waits, the
 transcript file shows a spinner and the hint *Waiting for audio file*.
 
@@ -37,8 +37,7 @@ transcript whose name does not match the audio file's name.
 
 A `.zip` that Tratt exported can be dropped straight back in. This is the one way
 to get audio *and* transcripts back in a single step, because the archive carries
-both. It is most useful in the [Workbench](workbench.md#loading-an-archive), where
-a whole batch is restored at once; see
+both. See
 [Exporting an archive](exporting.md#exporting-an-archive) for what the archive
 holds.
 
@@ -83,8 +82,8 @@ offers *Unfinished recording recovered* with the session's start time, approxima
 length and size, and lets you continue it, download the partial file, or discard it.
 
 **Warning on leaving.** If you have a recording that has not been used or exported,
-Tratt warns you before you navigate away. Take the warning seriously: an unexported
-recording is gone once the tab is.
+Tratt warns you before you navigate away. Take the warning seriously. An unexported
+recording is gone once the tab is closed.
 
 ---
 
@@ -114,7 +113,7 @@ play natively are still transcribed, just without the picture.
 
 ## Coming back to a session
 
-Tratt keeps your transcripts in the browser but **never keeps your media files**.
+Tratt keeps your transcripts in the browser but will **not keep your media files**.
 
 So when you come back, the recordings are all still listed, each with its
 transcript, and each one asks for its audio again: the row reads *Audio not

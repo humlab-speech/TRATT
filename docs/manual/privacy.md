@@ -1,12 +1,12 @@
 # How Tratt uses the internet
 
 **For:** anyone handling interviews, clinical recordings, or anything else where
-"where did the audio go?" is a question you have to be able to answer.
+there are privacy or other concerns for the recording.
 
-**Short answer:** Tratt reaches the network to fetch *itself* and, when you ask
-for one, a language model. It does not send your recording or your transcript
+**Briefly:** Tratt reaches the network to fetch *itself* and a language model, if you ask 
+for automatic transcription. It does not send your recording or your transcript
 anywhere. The only exception is a [Visp project](visp-projects.md), where
-sending the transcript to a server is the whole point.
+sending the transcript back to the Visp server is essential.
 
 ---
 
@@ -21,9 +21,6 @@ sending the transcript to a server is the whole point.
 | **A maintenance notice** | At start-up | The server that hosts Tratt | Nothing of yours |
 | **Your material** | Only in a [Visp project](visp-projects.md) | That project's server | The transcript you are working on, and whatever the project asks you to send |
 
-Outside a Visp project, that is the whole list. Your audio is never uploaded,
-not for transcription and not for anything else: the model runs **in the tab**,
-on your machine.
 
 ## What never leaves your machine
 
@@ -40,7 +37,7 @@ on your machine.
 
 Tratt installs a service worker, so after the first successful load the app runs
 from your browser's cache. Once you have also downloaded the models you intend to
-use, you can disconnect entirely and keep transcribing: nothing in the editing,
+use, you can disconnect entirely and keep transcribing. Nothing in the editing,
 the exporting or the storage needs the network.
 
 If your machine or network cannot reach `huggingface.co`, automatic
@@ -62,7 +59,7 @@ Because the audio is only held in memory, Tratt remembers your transcript
 between sessions but not your recording: when you come back, attach the same
 media file again and carry on.
 
-**Do not lean on that too heavily.** Browser storage is a working convenience,
+**Do not rely on Tratt storage too heavily.** Browser storage is a working convenience,
 not an archive. Make a habit of [exporting](exporting.md) after a session.
 
 ## Clearing your data

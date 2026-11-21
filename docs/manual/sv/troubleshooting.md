@@ -5,14 +5,14 @@
 ## Att ladda in en fil
 
 **"This file type is not supported." / "File format not supported."**
-Filändelsen finns inte i Tratts lista. Konvertera till `.wav` eller `.mp3` och
-försök igen. Se [filformat som stöds](loading-media.md#supported-file-formats).
+Filändelsen finns inte i Tratts lista. Konvertera till `.opus`, `.flac`, `.ogg`,
+`.wav` eller `.mp3` och försök igen. Se [filformat som stöds](loading-media.md#supported-file-formats).
 
 **Ett storleksfel**
-Webbläsarbaserade program har två gränser. Dels finns ett övergripande tak på 3000 MB
-för hur mycket lagring programmet kan använda. Dels gäller gränser per fil: 1,9 GB för
-`.wav` och 500 MB för allt annat. Har du problem att läsa in en inspelning,
-konvertera den till FLAC eller MP3, eller dela inspelningen i två.
+Webbläsarbaserade program har två gränser. Dels finns ett övergripande tak för hur
+mycket lagring programmet kan använda. Dels gäller gränser per fil. Har du problem
+att läsa in en inspelning, konvertera den till `.opus`, `.flac`, `.ogg` eller
+`.mp3`, eller dela inspelningen i två.
 
 **"Transkriptfilens namn matchar inte ljudfilens namn."**
 Tratt förutsätter att ljudfilen och transkriptfilen med tidsinformation har identiska namn utom filändelsen.

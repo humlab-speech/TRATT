@@ -14,7 +14,7 @@ inspelningar väl ligger i listan sitter samma ruta överst i listan och säger
 
 Du kan släppa **mediefiler**, och valfritt **transkriptfiler** tillsammans med
 dem, i vilken ordning som helst. En transkription måste heta som inspelningen
-den hör till, eller släppas tillsammans med den; Tratt säger till när den inte
+den hör till, eller släppas tillsammans med den. Tratt säger till om den inte
 kan paras ihop. Tratt väntar tills det finns ljud innan något kan göras. Under
 tiden visar transkriptfilen en snurra och texten *Waiting for audio file*.
 
@@ -37,9 +37,7 @@ eller ett transkript vars namn inte matchar ljudfilens namn.
 
 En `.zip` som Tratt exporterat kan släppas rakt in igen. Det är det enda sättet
 att få tillbaka ljud *och* transkriptioner i ett steg, eftersom arkivet bär båda.
-Den är mest användbar i [Arbetsbänken](workbench.md#loading-an-archive), där en
-hel omgång återställs på en gång; se
-[Att exportera ett arkiv](exporting.md#exporting-an-archive) för vad arkivet
+Se [Att exportera ett arkiv](exporting.md#exporting-an-archive) för vad arkivet
 innehåller.
 
 ### Transkriptfilen
@@ -87,7 +85,7 @@ det ofullständiga eller kassera.
 
 **Varning när du lämnar.** Har du en inspelning som inte använts eller exporterats
 varnar Tratt innan du navigerar bort. Ta varningen på allvar. En oexporterad
-inspelning är borta när fliken är det.
+inspelning är borta när fliken stängs.
 
 ---
 
@@ -116,7 +114,7 @@ transkriberas ändå, bara utan bild.
 
 ## Att återvända till en session
 
-Tratt behåller dina transkriptioner i webbläsaren men **behåller aldrig dina
+Tratt behåller dina transkriptioner i webbläsaren men **behåller inte dina
 mediefiler**.
 
 När du kommer tillbaka ligger alltså inspelningarna kvar i listan, var och en

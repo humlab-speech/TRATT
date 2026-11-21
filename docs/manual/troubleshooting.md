@@ -5,17 +5,16 @@
 ## Loading a file
 
 **"This file type is not supported." / "File format not supported."**
-The extension is not in Tratt's list. Convert to `.wav` or `.mp3` and try again.
+The extension is not in Tratt's list. Convert to `.opus`, `.flac`, `.ogg`, `.wav` or `.mp3` and try again.
 See [supported formats](loading-media.md#supported-file-formats).
 
 **"File exceeds the maximum allowed size of 3000 MB." or an invalid-size error**
-The Traat application is subject to two limits due to how in-browser applications work. First, there is a global 3000 MB ceiling in how much storage the application can use. Second, there are per-file limiations: 1.9 GB for
-`.wav`, 500 MB for everything else. If you are having trouble loading in a recording, convert it
-to FLAC or MP3, or split the recording into two.
+The Traat application is subject to two limits due to how in-browser applications work. First, there is a global ceiling in how much storage the application can use. Second, there are per-file limiations.If you are having trouble loading in a recording, convert it
+to `.opus`, `.flac`, `.ogg`, or `.mp3`, or split the recording into two.
 
 **"Transcript filename does not match the audio filename."**
 Tratt assumes that the audio file and transcript file with time information have identical names but for their file extensions. Rename the transcript so its base name matches the
-audio's, e.g. `interview3.wav` with `interview3.srt`. The one exception to the rule is *annotJSON* files, in which case teh application assumes that the files are named like `interview3.wav` and `interview3_annot.json`.
+audio's, e.g. `interview3.wav` with `interview3.srt`. The one exception to the rule is *annotJSON* files, in which case the application assumes that the files are named like `interview3.wav` and `interview3_annot.json`.
 
 **The transcript file sits there with a spinner**
 It is waiting for audio. Drop the media file too. A transcript cannot be
