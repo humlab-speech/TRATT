@@ -4,6 +4,7 @@ import {
   ML_MODEL_SAMPLE_RATE,
   prepareMonoAudioForMlModel,
 } from '@tratt/web-media';
+import { ortThreadsOverrideField } from '../../workers/ort-threads';
 import { Observable, Subject } from 'rxjs';
 import type {
   WorkerDiarizationOutMessage,
@@ -153,6 +154,7 @@ export class LocalDiarizationRuntimeService implements OnDestroy {
       ...(options.minConfidence != null
         ? { minConfidence: options.minConfidence }
         : {}),
+      ...ortThreadsOverrideField(),
     };
     worker.postMessage(message, [mono.buffer]);
 

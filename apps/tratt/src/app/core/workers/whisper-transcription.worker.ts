@@ -1,6 +1,7 @@
 /// <reference lib="webworker" />
 
 import { env, pipeline, WhisperTextStreamer } from '@huggingface/transformers';
+import { configureOrtThreads } from './ort-threads';
 
 // Point ONNX Runtime to the locally served WASM files
 if (env.backends.onnx.wasm) {
@@ -24,6 +25,8 @@ export interface WorkerTranscribeMessage {
   audioDurationS: number;
   dtype?: string;
   language?: string;
+  /** Overrides the computed ONNX Runtime thread count (`?threads=`). */
+  numThreads?: number;
 }
 
 export interface WorkerDownloadProgressMessage {
@@ -70,6 +73,11 @@ addEventListener(
     if (data.type !== 'transcribe') return;
 
     const { modelId, audio, useWebGPU, audioDurationS, dtype, language } = data;
+    configureOrtThreads(
+      env.backends.onnx.wasm,
+      'whisper-worker',
+      data.numThreads,
+    );
 
     try {
       console.info('[octra:whisper-worker] received message', {

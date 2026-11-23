@@ -2,6 +2,7 @@
 
 import { env, pipeline } from '@huggingface/transformers';
 import { toModelLangCode } from './flores-codes';
+import { configureOrtThreads } from './ort-threads';
 
 const TRANSFORMERS_CACHE_NAME = 'transformers-cache';
 
@@ -32,6 +33,8 @@ export interface WorkerTranslateMessage {
   plan: TranslationPlan;
   segments: TranslationSegment[];
   skipBrowserCache?: boolean;
+  /** Overrides the computed ONNX Runtime thread count (`?threads=`). */
+  numThreads?: number;
 }
 
 export interface TWorkerDownloadProgressMessage {
@@ -411,6 +414,11 @@ addEventListener(
     if (data.type !== 'translate') return;
 
     const { plan, segments, skipBrowserCache } = data;
+    configureOrtThreads(
+      env.backends.onnx.wasm,
+      'translation-worker',
+      data.numThreads,
+    );
 
     try {
       if (skipBrowserCache) {

@@ -4,6 +4,7 @@ import { WorkspaceService } from '../workspace/workspace.service';
 import { IFile, OAnnotJSON, srtTimestamp } from '@tratt/annotation';
 import { OAudiofile } from '@tratt/media';
 import { AudioManager, prepareMonoAudioForMlModel } from '@tratt/web-media';
+import { ortThreadsOverrideField } from '../../workers/ort-threads';
 import { Observable, Subject } from 'rxjs';
 import { AppInfo } from '../../../app.info';
 import type {
@@ -237,6 +238,7 @@ export class LocalTranscriptionService implements OnDestroy {
       audioDurationS,
       ...(options.dtype ? { dtype: options.dtype } : {}),
       ...(options.language ? { language: options.language } : {}),
+      ...ortThreadsOverrideField(),
     };
     worker.postMessage(message, [audioForTransfer.buffer]);
   }

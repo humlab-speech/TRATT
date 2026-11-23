@@ -1,6 +1,7 @@
 import { Injectable, NgZone, OnDestroy } from '@angular/core';
 import { OAnnotJSON, OLabel, OSegment, OSegmentLevel } from '@tratt/annotation';
 import { getEnglishLanguageLabel } from '@tratt/utilities';
+import { ortThreadsOverrideField } from '../../workers/ort-threads';
 import { Observable, Subject } from 'rxjs';
 import type {
   PlanStage,
@@ -420,6 +421,7 @@ export class LocalTranslationService implements OnDestroy {
       plan,
       segments,
       skipBrowserCache: skipCache,
+      ...ortThreadsOverrideField(),
     };
     worker.postMessage(message);
   }

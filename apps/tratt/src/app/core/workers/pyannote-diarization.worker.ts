@@ -19,6 +19,7 @@ import {
   DiarizationDType,
 } from '../shared/service/local-diarization-runtime.service';
 import { SpeakerTurn } from '../shared/service/local-diarization.service';
+import { configureOrtThreads } from './ort-threads';
 
 if (env.backends.onnx.wasm) {
   env.backends.onnx.wasm.wasmPaths = '/assets/ort/';
@@ -44,6 +45,8 @@ export interface WorkerDiarizeMessage {
   mergeGapS?: number;
   minTurnS?: number;
   minConfidence?: number;
+  /** Overrides the computed ONNX Runtime thread count (`?threads=`). */
+  numThreads?: number;
 }
 
 export interface WorkerDiarizationDownloadProgressMessage {
@@ -175,6 +178,11 @@ addEventListener(
       minTurnS,
       minConfidence,
     } = data;
+    configureOrtThreads(
+      env.backends.onnx.wasm,
+      'diarization-worker',
+      data.numThreads,
+    );
 
     try {
       if (!(await isCacheAvailable())) {
