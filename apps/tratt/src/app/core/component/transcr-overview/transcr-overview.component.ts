@@ -35,9 +35,10 @@ import {
 import { AppStorageService } from '../../shared/service/appstorage.service';
 import { AnnotationStoreService } from '../../store/login-mode/annotation/annotation.store.service';
 import { TranscrEditorComponent, TranscrEditorConfig } from '../transcr-editor';
-import { formatTime, moveBoundary } from './boundary-time';
 import { TranscrEditorComponent as TranscrEditorComponent_1 } from '../transcr-editor/transcr-editor.component';
 import { ValidationPopoverComponent } from '../transcr-editor/validation-popover/validation-popover.component';
+import { BoundaryPopoverComponent } from './boundary-popover/boundary-popover.component';
+import { formatTime, moveBoundary } from './boundary-time';
 
 @Component({
   selector: 'tratt-transcr-overview',
@@ -49,6 +50,7 @@ import { ValidationPopoverComponent } from '../transcr-editor/validation-popover
     NgStyle,
     TranscrEditorComponent_1,
     ValidationPopoverComponent,
+    BoundaryPopoverComponent,
     TrattUtilitiesModule,
     TranslocoPipe,
   ],
@@ -210,6 +212,7 @@ export class TranscrOverviewComponent implements OnInit, OnDestroy, OnChanges {
   }
 
   ngOnDestroy() {
+    clearTimeout(this.popoverTimer);
     this.subscrmanager.destroy();
     this.playAllState.state = 'stopped';
     this.audio.current?.stopPlayback().catch((err) => {
@@ -601,11 +604,7 @@ export class TranscrOverviewComponent implements OnInit, OnDestroy, OnChanges {
       const start = i > 0 ? items[i - 1].time.samples : 0;
       const end = items[i].time.samples;
       const verified = items[i].verified;
-      if (
-        row.verified !== verified ||
-        row.start !== start ||
-        row.end !== end
-      ) {
+      if (row.verified !== verified || row.start !== start || row.end !== end) {
         changed = true;
         return { ...row, verified, start, end };
       }
@@ -619,6 +618,66 @@ export class TranscrOverviewComponent implements OnInit, OnDestroy, OnChanges {
   }
 
   readonly formatTime = formatTime;
+
+  /** One shared waveform popover for all time cells (fixed-positioned). */
+  boundaryPopover: { index: number; x: number; y: number } | null = null;
+  private popoverTimer?: ReturnType<typeof setTimeout>;
+
+  /** Open after 400 ms; `i` = boundary index (see {@link boundaryEditable}). */
+  onTimeEnter(event: Event, i: number) {
+    clearTimeout(this.popoverTimer);
+    if (i < 0 || i >= this.shownSegments.length - 1) {
+      // fixed file start/end: nothing to adjust
+      return;
+    }
+    const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
+    this.popoverTimer = setTimeout(() => {
+      const below = rect.bottom + 150 < window.innerHeight;
+      this.boundaryPopover = {
+        index: i,
+        x: Math.max(8, Math.min(rect.left, window.innerWidth - 390)),
+        y: below ? rect.bottom + 4 : rect.top - 150,
+      };
+      this.cd.markForCheck();
+    }, 400);
+  }
+
+  onTimeLeave() {
+    clearTimeout(this.popoverTimer);
+    this.popoverTimer = setTimeout(() => this.closePopover(), 150);
+  }
+
+  keepPopover() {
+    clearTimeout(this.popoverTimer);
+  }
+
+  closePopover() {
+    clearTimeout(this.popoverTimer);
+    this.boundaryPopover = null;
+    this.cd.markForCheck();
+  }
+
+  get popoverChannel(): Float32Array | undefined {
+    return this.audio.current?.channel;
+  }
+
+  get popoverFactor(): number {
+    return this.audio.current?.channelDataFactor ?? 1;
+  }
+
+  popoverClamp = (samples: number): number => {
+    const items = this.annotationStoreService.currentLevel?.items as
+      TrattAnnotationSegment[] | undefined;
+    const i = this.boundaryPopover?.index;
+    return items && i !== undefined
+      ? moveBoundary(
+          items.map((segment) => segment.time.samples),
+          i,
+          samples,
+          this.sampleRate,
+        )
+      : samples;
+  };
 
   stateClass(i: number): Record<string, boolean> {
     const text = this.shownSegments[i].transcription.text;
@@ -645,8 +704,8 @@ export class TranscrOverviewComponent implements OnInit, OnDestroy, OnChanges {
   }
 
   nudgeBoundary(i: number, deltaMs: number): void {
-    const items = this.annotationStoreService.currentLevel
-      ?.items as TrattAnnotationSegment[] | undefined;
+    const items = this.annotationStoreService.currentLevel?.items as
+      TrattAnnotationSegment[] | undefined;
     if (!items || !this.boundaryEditable(i)) {
       return;
     }
@@ -655,8 +714,8 @@ export class TranscrOverviewComponent implements OnInit, OnDestroy, OnChanges {
   }
 
   commitBoundary(i: number, newSamples: number): void {
-    const items = this.annotationStoreService.currentLevel
-      ?.items as TrattAnnotationSegment[] | undefined;
+    const items = this.annotationStoreService.currentLevel?.items as
+      TrattAnnotationSegment[] | undefined;
     if (!items || !this.boundaryEditable(i)) {
       return;
     }

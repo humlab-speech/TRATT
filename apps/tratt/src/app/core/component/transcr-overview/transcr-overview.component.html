@@ -157,6 +157,10 @@
                 class="time-cell"
                 [ngClass]="stateClass(i)"
                 [title]="'g.boundary shared' | transloco"
+                tabindex="0"
+                (mouseenter)="onTimeEnter($event, i - 1)"
+                (focusin)="onTimeEnter($event, i - 1)"
+                (mouseleave)="onTimeLeave()"
               >
                 <span class="time-value">{{
                   formatTime(segment.start, sampleRate)
@@ -188,6 +192,10 @@
                 class="time-cell"
                 [ngClass]="stateClass(i)"
                 [title]="'g.boundary shared' | transloco"
+                tabindex="0"
+                (mouseenter)="onTimeEnter($event, i)"
+                (focusin)="onTimeEnter($event, i)"
+                (mouseleave)="onTimeLeave()"
               >
                 <span class="time-value">{{
                   formatTime(segment.end, sampleRate)
@@ -298,7 +306,11 @@
                     ) {
                       <span
                         class="verification-marker"
-                        [style.color]="segment.verified ? 'var(--tratt-success)' : 'var(--tratt-next)'"
+                        [style.color]="
+                          segment.verified
+                            ? 'var(--tratt-success)'
+                            : 'var(--tratt-next)'
+                        "
                         >|
                       </span>
                     }
@@ -358,5 +370,23 @@
         </tbody>
       </table>
     </div>
+    @if (boundaryPopover; as pop) {
+      <tratt-boundary-popover
+        style="position: fixed; z-index: 2000"
+        [style.left.px]="pop.x"
+        [style.top.px]="pop.y"
+        [channel]="popoverChannel"
+        [factor]="popoverFactor"
+        [sampleRate]="sampleRate"
+        [boundary]="shownSegments[pop.index].end"
+        [leftStart]="shownSegments[pop.index].start"
+        [rightEnd]="shownSegments[pop.index + 1].end"
+        [editable]="boundaryEditable(pop.index)"
+        [clamp]="popoverClamp"
+        (boundaryChange)="commitBoundary(pop.index, $event)"
+        (mouseenter)="keepPopover()"
+        (mouseleave)="onTimeLeave()"
+      ></tratt-boundary-popover>
+    }
   }
 }
