@@ -211,6 +211,9 @@ main {
   position: absolute;
   padding: 5px;
   display: none;
+  // Never take the pointer: if the popover lands on its own boundary marker
+  // the marker gets mouseleave, hides the popover, gets mouseover, ... flicker.
+  pointer-events: none;
 }
 
 .textspan {

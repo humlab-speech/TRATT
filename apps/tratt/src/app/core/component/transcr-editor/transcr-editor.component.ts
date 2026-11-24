@@ -1529,8 +1529,11 @@ export class TranscrEditorComponent
         const width = segPopover.offsetWidth;
         const height = segPopover.offsetHeight;
         const marginLeft = target.offsetLeft - width / 2 + 'px';
+        // The popover's static position is already below the toolbar, so
+        // the toolbar height must not be added again: with a one-row toolbar
+        // that put the popover on top of the marker it describes.
         const marginTop =
-          target.offsetTop + this.toolbar!.offsetHeight - height - 10 + 'px';
+          target.offsetTop - this.wysiwyg.scrollTop - height - 10 + 'px';
         this.renderer.setStyle(segPopover, 'margin-left', marginLeft);
         this.renderer.setStyle(segPopover, 'margin-top', marginTop);
       }
@@ -1552,8 +1555,10 @@ export class TranscrEditorComponent
       const segPopover =
         this.transcrEditor.nativeElement.querySelector('.seg-popover');
       if (segPopover) {
+        // Hovering is not typing: triggerTyping() here queued a validate() +
+        // initPopover() (which hides this popover again) and a full
+        // saveTranscript() one second after every marker the pointer left.
         this.renderer.setStyle(segPopover, 'display', 'none');
-        this.triggerTyping();
       }
     }
   };

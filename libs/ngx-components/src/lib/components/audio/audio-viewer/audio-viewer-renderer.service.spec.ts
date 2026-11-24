@@ -6,7 +6,10 @@
 // vitest's default 'node' environment (see vite.config.ts) — this
 // docblock comment overrides the environment for just this file.
 import { describe, expect, it } from 'vitest';
-import { AudioViewerRendererService } from './audio-viewer-renderer.service';
+import {
+  AudioViewerRendererService,
+  grabbableBoundaryIds,
+} from './audio-viewer-renderer.service';
 
 // jsdom doesn't implement canvas 2D contexts without the native `canvas`
 // npm package (not a dependency of this workspace) — Konva's Stage still
@@ -347,5 +350,33 @@ describe('AudioViewerRendererService', () => {
 
       expect(seenTimes).toEqual(['first', 'second']);
     });
+  });
+});
+
+describe('grabbableBoundaryIds', () => {
+  const b = (id: number, x: number, y = 0) => ({ id, x, y });
+
+  it('keeps boundaries whose neighbours are all far enough away', () => {
+    const ids = grabbableBoundaryIds([b(1, 0), b(2, 50), b(3, 100)], 10);
+    expect([...ids].sort()).toEqual([1, 2, 3]);
+  });
+
+  it('drops every boundary in a dense cluster, so a drag can start a selection', () => {
+    // 3px apart: every pixel in the cluster would otherwise hit a boundary
+    const ids = grabbableBoundaryIds(
+      [b(1, 0), b(2, 200), b(3, 203), b(4, 206), b(5, 400)],
+      10,
+    );
+    expect([...ids].sort()).toEqual([1, 5]);
+  });
+
+  it('does not depend on input order', () => {
+    const ids = grabbableBoundaryIds([b(3, 206), b(1, 0), b(2, 203)], 10);
+    expect([...ids]).toEqual([1]);
+  });
+
+  it('compares boundaries on the same row only (multi-line view)', () => {
+    const ids = grabbableBoundaryIds([b(1, 100, 0), b(2, 102, 90)], 10);
+    expect([...ids].sort()).toEqual([1, 2]);
   });
 });

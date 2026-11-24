@@ -18,7 +18,7 @@ import { Animation } from 'konva/lib/Animation';
 import { Context } from 'konva/lib/Context';
 import { Group } from 'konva/lib/Group';
 import { Layer } from 'konva/lib/Layer';
-import type { KonvaEventObject } from 'konva/lib/Node';
+import type { KonvaEventObject, Node } from 'konva/lib/Node';
 import { Shape } from 'konva/lib/Shape';
 import { Stage } from 'konva/lib/Stage';
 import { Util } from 'konva/lib/Util';
@@ -223,6 +223,48 @@ export function formatTimespan(
   let result = hours + minutes + ':' + seconds;
   if (showMilliSeconds) {
     result += '.' + milliSeconds;
+  }
+  return result;
+}
+
+/**
+ * A boundary closer than this to a neighbour on the same row is not
+ * hit-testable: on a long recording the top viewer squeezes hundreds of
+ * boundaries into a few hundred pixels, and each 3px stroke would otherwise
+ * swallow the mousedown a click-and-drag selection starts with.
+ */
+export const MIN_BOUNDARY_GRAB_SPACING_PX = 10;
+
+/**
+ * Ids of the boundaries that stay grabbable: those at least `minSpacing`
+ * pixels away from both neighbours on their row (`y`). Boundaries in a dense
+ * cluster are left out so a drag across them starts a selection instead of
+ * moving a boundary; they stay editable in the zoomed-in magnifier.
+ */
+export function grabbableBoundaryIds<T extends string | number>(
+  boundaries: { id: T; x: number; y: number }[],
+  minSpacing: number,
+): Set<T> {
+  const rows = new Map<number, { id: T; x: number }[]>();
+  for (const { id, x, y } of boundaries) {
+    const row = rows.get(y) ?? [];
+    row.push({ id, x });
+    rows.set(y, row);
+  }
+
+  const result = new Set<T>();
+  for (const row of rows.values()) {
+    row.sort((a, b) => a.x - b.x);
+    row.forEach((b, i) => {
+      const prev = row[i - 1];
+      const next = row[i + 1];
+      if (
+        (!prev || b.x - prev.x >= minSpacing) &&
+        (!next || next.x - b.x >= minSpacing)
+      ) {
+        result.add(b.id);
+      }
+    });
   }
   return result;
 }
@@ -1761,6 +1803,30 @@ export class AudioViewerRendererService {
           }
         }
       }
+
+      this.updateBoundaryHitTesting();
+    }
+  }
+
+  /**
+   * Re-evaluates which boundary lines may take mouse events. Runs over every
+   * line on the layer (not just the ones drawn by the caller) because a
+   * single added boundary can crowd an existing neighbour.
+   */
+  private updateBoundaryHitTesting() {
+    if (!this.layers) return;
+    const lines = this.layers.boundaries.find<Line>(
+      (node: Node) => node instanceof Line,
+    );
+    const grabbable = grabbableBoundaryIds(
+      lines.map((line) => {
+        const [x, y] = line.points();
+        return { id: line.id(), x, y };
+      }),
+      MIN_BOUNDARY_GRAB_SPACING_PX,
+    );
+    for (const line of lines) {
+      line.listening(grabbable.has(line.id()));
     }
   }
 
