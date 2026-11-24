@@ -3,7 +3,7 @@
 **For:** everyone, at the end of every session.
 
 Tratt keeps your work in the browser. **Exporting a file is the only
-way your transcript leaves the browser.** Export your work everytime you exit an editing session.
+way your transcript leaves the browser.** Export your work every time you exit an editing session.
 
 In the [Workbench](workbench.md), click **Export…** under the list of recording
 bundles. (Where Tratt has no list, it is **Export**, the download icon in the

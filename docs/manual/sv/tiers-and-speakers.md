@@ -15,7 +15,7 @@ en i taget.
 Skäl att ha fler än en:
 
 - en **översättning** vid sidan av originalet;
-- **en talare per nivå**, som vissa analysverktyg förväntar sig;
+- **en talare per nivå**, som vissa analysverktyg kan förvänta sig
 - en andra genomgång på en annan detaljnivå.
 
 ### Att arbeta med nivåer
@@ -86,7 +86,7 @@ Talarmenyn i sidhuvudet listar varje talare med sin färgruta.
 | --- | --- |
 | Byta namn på en talare överallt | Skriv ett nytt namn i fältet och klicka utanför. Varje enhet med den gamla etiketten uppdateras |
 | Lägga till en talare | Raden med **+** längst ned. Talaren blir valbar redan innan någon enhet använder den. |
-| Ta bort en talare | Papperskorgsikonen: **erbjuds bara för talare som ingen enhet använder**. Flytta om enheterna först. |
+| Ta bort en talare | Papperskorgsikonen: **erbjuds bara för talare som ingen transkriberad enhet använder**. Flytta om enheterna först. |
 
 Byt namn tidigt. Att göra `SPEAKER_00` och `SPEAKER_01` till `Intervjuare` och
 `Deltagare` innan du börjar rätta gör varje senare genomgång lättare att läsa, och

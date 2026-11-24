@@ -6,27 +6,27 @@ Tratt kan köra en taligenkänningsmodell **på din egen dator, inne i
 webbläsarfliken**, och öppna resultatet i redigeraren så att du kan rätta det.
 Den kan också gissa vem som talade när, och översätta det färdiga transkriptet.
 
-Ett utkast är ett utkast. Räkna med att rätta namn, siffror, överlappande tal och
-allt som sagts tyst eller vid sidan av mikrofonen. Du sparar skrivandet, inte
-lyssnandet.
+Det som produceras av dessa automatiska rutiner är dock bara ett utkast. Räkna med att rätta namn, siffror, överlappande tal och
+allt som sagts tyst eller vid sidan av mikrofonen. Du sparar lite skrivandet genom att använda automatisk bearbetning, men sparar inte
+in något lyssnande.
 
 ---
 
 <a id="turning-it-on"></a>
 
-## Slå på det
+## Slå på automatisk transkription
 
-Att lägga till en inspelning gör funktionen tillgänglig. Tratt ställer den i kö
-och en taligenkänningsmodell skriver en utkasttranskription. Du behöver den här
-sidan först när du vill ändra vad modellen får veta, eller stoppa den helt.
+När du lägger till en inspelning blir funktionen tillgänglig. Tratt lägger inspelningen i kö
+och en taligenkänningsmodell skriver ett utkast till transkription. Du behöver den här
+sidan först när du vill ändra modellens inställningar, eller stoppa den helt.
 
-Kontrollerna ligger i en dialog, **Transkriptionsinställningar**. Öppna den med
+Kontrollerna för modellen ligger i en dialog **Transkriptionsinställningar**. Öppna den med
 **Ändra**, bredvid *Transkriptionsspråk* på den tomma startsidan, eller med
 reglageknappen bredvid **Transkribera** när inspelningar ligger i listan.
 
 ![Dialogen Transkriptionsinställningar](../../assets/visp_tratt_auto_transcription_options.png)
 
-1. **Transkribera nya inspelningspaket automatiskt**: strömbrytaren överst. Slår
+1. **Transkribera nya inspelningspaket automatiskt**: Slår
    du av den går inspelningarna bara att transkribera för hand, till dess att du
    trycker **Transkribera**.
 2. **Transkriptionsspråk**: det språk som talas på inspelningen. Ett hundratal
@@ -44,17 +44,17 @@ reglageknappen bredvid **Transkribera** när inspelningar ligger i listan.
 nästa.
 
 Vill du lägga till en inspelning *utan* att köra någon modell, använd
-**Transkribera för hand, utan AI** under släppytan på startsidan.
+**Transkribera för hand, utan AI** under drag-och-släpp-ytan på startsidan.
 
-Medan en inspelning körs namnger dess rad i listan steget den nått:
+Medan en inspelning körs namnger dess rad i listan hur långt den har kommit i processen:
 **Förbereder**, **Laddar modell**, **Transkriberar**, **Separerar talare**,
-**Översätter**. Knappen på raden stoppar just den inspelningen.
+**Översätter**. Stopp-knappen på raden stoppar transkriptionen av just den inspelningen bara.
 
 ### Håll fliken öppen
 
-Arbetet sker i den här fliken. Stäng den inte, och var försiktig med att låta
-datorn somna vid långa inspelningar. Att byta till en annan flik går bra.
-Transkriptionen fortsätter då, även om vissa webbläsare bromsar bakgrundsflikar.
+Allt arbete sker i den öppna flikens minne. Stäng den inte, och var försiktig med att låta
+datorn somna när du transkriberar långa inspelningar automatiskt. Att byta till en annan flik går dock bra.
+Transkriptionen fortsätter då, även om vissa webbläsare kan begränsa hur mycket datorkraft flikar som inte är aktiverade får använda.
 
 ---
 
@@ -65,13 +65,13 @@ modeller för de nordiska språken.
 
 **Om din dator har WebGPU** (aktuell Chrome, Edge eller Firefox med ett hyggligt
 grafikkort) är alla modeller tillgängliga och de större är mycket snabbare.
-**Utan WebGPU** körs modellerna på processorn i stället: de som kräver ett
-grafikkort gråmarkeras i listan och går inte att välja, och resten är långsamma
+**Utan WebGPU** körs modellerna på huvud-processorn i stället. De som bara kan köras stabilt på ett
+grafikkort gråmarkeras i listan och går inte att välja, och de som är kvar kan vara långsammare
 men användbara.
 
 ### Svenska
 
-Använder **KB-Whisper** från Kungliga biblioteket, tränad på svenskt tal.
+Tratt använder **KB-Whisper** från Kungliga biblioteket när svenska transkriberas.
 
 | Modell | WebGPU | Processor (WASM) | Anmärkning |
 | --- | --- | --- | --- |
@@ -82,12 +82,9 @@ Använder **KB-Whisper** från Kungliga biblioteket, tränad på svenskt tal.
 
 Tiny och Small är de enda modellerna som Tratt hämtar som ett 8-bitarsbygge på
 processorn; med WebGPU används det mindre 4-bitarsbygget. Alla andra modeller är
-samma 4-bitarsbygge på båda vägarna. Medium och Large kräver WebGPU, så deras
+samma 4-bitarsbygge på båda vägarna. Medium och Large kräver WebGPU för att köras stabilt, så deras
 processorsiffror används aldrig vid en faktisk nedladdning.
 
-> Modellnamnen står på engelska även i det svenska gränssnittet — *Tiny*,
-> *Small*, *Medium*, *Large* — medan beskrivningen av noggrannhet och hastighet
-> är översatt.
 
 ### Finska och norska
 
@@ -114,7 +111,7 @@ Använder OpenAI:s Whisper.
 | Large-v3-turbo | 759 MB | Snabb och noggrann. Kräver WebGPU. |
 | Large-v3 | 1,2 GB | Långsammare än Turbo, ofta något noggrannare. Kräver WebGPU. |
 
-Tratt förväljer Small. Har din dator WebGPU och inspelningen är viktig, byt till
+Tratt förväljer Small. Har din dator WebGPU och kvaliteten i transkriptionen av inspelningen är viktig, byt till
 **Large-v3-turbo**.
 
 ### Om nedladdningen
@@ -123,9 +120,9 @@ Modellen hämtas från `huggingface.co` första gången du använder den och spa
 sedan i webbläsaren, så nästa körning startar direkt. Ditt ljud skickas aldrig
 någonstans. Se [Hur Tratt använder internet](privacy.md).
 
-Avbryts nedladdningen, försök igen; fortsätter den att misslyckas blockerar
-nätverket `huggingface.co` och automatisk transkription är inte tillgänglig på
-den datorn.
+Om nedladdningen avbryts, försök igen. Om den fortsatt misslyckas är det troligt att 
+nätverket blockerar `huggingface.co` och automatisk transkription är inte tillgänglig på
+din dator där den står just nu. Du kan försöka byta nätverk och så om nedladdningen fungerar bättre då.
 
 ---
 
@@ -140,11 +137,11 @@ inspelningen efter talare och märker varje transkriptionsenhet med ett talar-ID
 - Fyll i om du vet: `2` för en vanlig intervju. Att ange det verkliga antalet ger
   oftast ett renare resultat än automatisk detektering.
 
-Modellen körs på processorn oavsett WebGPU, så den lägger till tid. Räkna med
+Modellen körs på processorn oavsett WebGPU, så du kommer att få räkna med en längre behandlingstid. Räkna med
 märkbart längre bearbetning för en lång inspelning.
 
-Resultatet är en utgångspunkt, inte ett fynd. Talare som låter lika, prat i mun på
-varandra och bakgrundsröster förvirrar den. Du kan rätta etiketterna efteråt: se
+Resultatet är en god gissning, men kommer att innehålla fel. Talare som låter lika, prat i mun på
+varandra och bakgrundsröster förvirrar den. Du kan justera etiketterna efteråt: se
 [Nivåer och talare](tiers-and-speakers.md#fixing-speaker-labels).
 
 ---
@@ -153,56 +150,54 @@ varandra och bakgrundsröster förvirrar den. Du kan rätta etiketterna efteråt
 
 ## Översätta transkriptet
 
-Tratt kan också översätta, lokalt, med Opus-MT-modeller.
+Tratt kan också översätta transkriptioner, lokalt, med hjälp av små översättnings-modeller.
 
 **På startsidan.** Så snart det finns ett transkript att arbeta med (antingen ett
 du laddat in eller ett som automatisk transkription är på väg att skapa) dyker
 rutan **Översätt transkriptionen lokalt** upp. Välj **Från** (ett trettiotal
-språk) och **Till**. Listan **Till** erbjuder bara språk som faktiskt går att nå
-från din källa, och märker vägar som måste gå via engelska med *(två steg)*. Tratt
+språk) och **Till**. Listan **Till** erbjuder bara språk som modellerna faktiskt kan översätta till 
+från ditt källspråk. Om översättningen går via engelska märks den som *(två steg)*. Tratt
 talar sedan om vilken väg som används:
 
 - *Direkt opus-mt-modell*: en modell, rakt från ditt språk till målspråket.
-- *Pivot via engelska (två steg)*: ingen direktmodell finns, så det går via
-  engelska. Två modeller att hämta, långsammare att köra, och kvaliteten blir
+- *Översättning via engelska (två steg)*: ingen direktmodell finns, så den går via
+  engelska. Två modeller kommer då att hämtas, ta längre tid att utföra, och kvaliteten blir
   något sämre.
-- *Ingen lokal översättningsmodell hittades för detta språkpar*: det paret är
-  inte möjligt.
+- *Ingen lokal översättningsmodell hittades för detta språkpar*: det finns ingen väg att översätta från ditt källspråk till
+   målspråket med hjälp av de små modellerna vi kan använda i Tratt. 
 
-Översättningen körs på din dator och kan ta flera minuter. Står den stilla säger
-Tratt det i stället för att lämna dig i ovisshet: *Modellinläsningen har fastnat*,
+Översättningen körs på din dator och kan ta flera minuter. Står statusindikatorn stilla kan Tratt indikera *Modellinläsningen har fastnat*,
 *Översättningen har fastnat, inga framsteg på 60 sekunder*, eller *Nedladdningen
-har fastnat, troligen en lagringsgräns i webbläsaren*, som är den att försöka igen
+har fastnat, troligen en lagringsgräns i webbläsaren*. Du kan försöka igen
 med **Hoppa över webbläsarcache** markerat.
 
 **Under arbetet.** I redigeraren erbjuder nivåmenyn **Add translated tier…**, som
-skapar en länkad nivå vars gränser hålls i takt med källnivån, och
-**Translate linked tier**, som fyller i de tomma segmenten. Översättningar du har
+skapar en länkad nivå vars gränser är de samma som källnivån, och
+**Translate linked tier**, som fyller i de tomma segmenten med en översättning. Översättningar du har
 redigerat för hand skrivs aldrig över. Se
 [Nivåer och talare](tiers-and-speakers.md).
 
-**Hoppa över webbläsarcache.** En kryssruta i alternativen. Vissa webbläsare slår
-i lagringskvoten när stora modeller ska cachas och fryser. Markeringen förbigår
-cachen: modellen laddas ned varje gång, men frysningen försvinner. Använd den bara
-om du drabbas av problemet.
+**Hoppa över webbläsarcache.** En kryssruta i alternativen. Vissa webbläsare når gränsen för vad som kan lagras 
+när stora modeller ska cachas, vilket kan medföra att de fryser. Du kan markera detta alternativ för att lösa detta problem,
+och effekten blir då att modellen aldrig lagras utan laddas ner varje session.
 
 ---
 
-## När automatisk transkription inte är tillgänglig
+## När är automatisk transkription inte tillgänglig
 
-**Safari och andra WebKit-webbläsare.** Kryssrutan är inaktiverad med en varning.
-Modellerna är stora nog att få Safari att ladda om fliken mitt i nedladdningen,
-vilket förstör ditt arbete. Använd Chrome, Edge eller Firefox för automatisk
-transkription. Manuell transkribering i Safari påverkas inte.
+**Safari och andra WebKit-webbläsare.** Kryssrutan är inaktiverad med en kort not om varför i dessa webbläsare.
+Modellerna som ska laddas ner är stora nog att få Safari att ladda om fliken mitt i nedladdningen,
+vilket riskerar att förstöra ditt arbete. Använd i stället Chrome, Edge eller Firefox för automatisk
+transkription. Manuell transkribering i Safari påverkas inte på något sätt.
 
-**Ingen WebGPU.** De modeller som kräver det gråmarkeras med texten
-*Kräver WebGPU…*; vilka det är beror på språket. De mindre modellerna fungerar
-fortfarande.
+**Ingen WebGPU.** De modeller som kräver WebGPU gråmarkeras med texten
+*Kräver WebGPU…* när datorn eller webbläsaren inte har fullt stöd för WebGPU-tillägget. De mindre modellerna kommer dock att fungera
+fortfarande, men körs då direkt på datorns huvudprocessor.
 
 **Fel.** Misslyckas transkriptionen medan den körs på WebGPU föreslår
 felmeddelandet att du försöker igen utan. Tratt upptäcker WebGPU automatiskt och
 har ingen egen omkopplare, så vägen till den långsammare men mer toleranta
-processorvägen går genom webbläsaren (Chrome och Edge: `chrome://flags` →
+processorvägen går genom webbläsarens inställningar (Chrome och Edge: `chrome://flags` →
 *WebGPU* → **Disabled**, starta om) och en omladdning av Tratt. Alla modeller körs
 då på WASM, och de största blir otillgängliga. Mer under
 [Felsökning](troubleshooting.md).

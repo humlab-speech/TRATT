@@ -1,6 +1,6 @@
 # Verktyg
 
-**För:** dig som har ett bestämt mekaniskt arbete att göra: forma om enheter,
+**För:** dig som måste bearbeta dina transkriptioner: forma om enheter,
 klippa ljudet i bitar, eller skapa en tabell av egen design.
 
 > **Om tillgänglighet.** Dialogen **Verktyg**, som beskrivs i de två första
@@ -41,7 +41,7 @@ AnnotJSON-kopia först om du vill kunna gå tillbaka.
 
 ## Klippa ljudfilen
 
-**Problemet det löser.** Du behöver varje yttrande som en egen ljudfil: för ett
+**Problemet det löser.** Du behöver varje yttrande som en egen ljudfil, kanske för ett
 perceptionsexperiment, för en korpus, för att dela enskilda klipp utan resten av
 intervjun.
 

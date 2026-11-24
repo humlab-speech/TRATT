@@ -14,16 +14,16 @@ funktioner säger *tier*). Det mesta arbetet sker på en nivå och du når dem e
 innehålla en översättning, eller en andra talares turer. Se
 [Nivåer och talare](tiers-and-speakers.md).
 
-**En nivå** är en följd av **transkriptionsenheter**: sammanhängande stycken av
-inspelningen, vart och ett med sin egen text. På andra håll kallas de segment
-eller yttranden. De överlappar aldrig och lämnar aldrig luckor. Hela inspelningen
+**En nivå** är en följd av **transkriptionsenheter**, som är sammanhängande stycken av
+inspelningen, vart och ett med sin egen text. Dessa kan också kallas segment
+eller yttranden. Transkriptionsenheter överlappar aldrig och lämnar aldrig luckor. Hela inspelningen
 täcks alltid av enheter. Tysta delar kan ha en pausmarkering `<P>` (infogas med **Alt + P**).
 
 **En gräns** är linjen mellan två enheter. Att lägga till en gräns delar en enhet
 i två, och att ta bort en slår ihop två enheter till en. Det är det enda sättet
 antalet enheter ändras.
 
-Det finns alltså exakt två sorters arbete. Det första är att få gränserna på rätt
+Det finns alltså exakt två arbetsmoment att genomföra. Det första är att få gränserna på rätt
 ställen, och det andra är att få rätt text i varje enhet. Om en transkriptionsmodell
 har gjort ett utkast åt dig går det mesta av din tid åt till att redigera texter och gränser.
 
@@ -65,7 +65,7 @@ medan en annan operation fortfarande pågår. Vänta ett ögonblick och försök
 
 ## Gränser
 
-Allt gränsarbete sker på vågformen, utan att något textfält har fokus.
+Allt arbete med gränser sker på vågformen, utan att något textfält har fokus.
 
 | För att | Gör |
 | --- | --- |
@@ -75,14 +75,14 @@ Allt gränsarbete sker på vågformen, utan att något textfält har fokus.
 | Spela bara markeringen | **C** |
 | Flytta markören | **←** / **→** |
 
-Två begränsningar gäller för gränser som du bör känna till:
+Två regler gäller för gränser som du bör känna till:
 
 - **Tratt vägrar dela över enheter som redan har text.** Spänner din markering
   över två enheter och någon av dem redan är transkriberad får du
   *Cannot set boundary in a transcription unit that is already transcribed.*
   Rensa texten först, eller sätt enskilda gränser med **S** i stället för att
   använda en markering.
-- En gräns kan inte placeras på inspelningens allra första sampel.
+- En gräns kan inte placeras på inspelningens allra första sampel (alltså exakt vid inspelningens början).
 
 ### Sätta en gräns inifrån texten
 
@@ -107,7 +107,7 @@ Ett stycke utan tal markeras som **paus** i stället för att lämnas tomt, så 
 
 Pauser visas som `<P>` i transkriptet och räknas separat i
 [Översikt](checking-your-work.md): *Tysta transkriptionsenheter*, till skillnad
-från *Tomma transkriptionsenheter*, som är de som fortfarande väntar på dig.
+från *Tomma transkriptionsenheter*, som är de som fortfarande väntar på dig att arbeta i.
 
 ---
 
@@ -130,10 +130,10 @@ svenska gränssnittet, eftersom riktlinjefilen ännu inte är översatt:
 | `[abc~]` | abc~ | **Alt + 7** | Ett ord avhugget i *slutet* av enheten |
 | `<P>` | Break | **Alt + P** | Enheten är tystnad |
 
-Markörerna, deras symboler och genvägar kommer från projektets riktlinjefil, så en
+Markörerna, deras symboler och genvägar kommer från projektets Riktlinjefil, så en
 installation som konfigurerats för ett visst projekt kan visa en annan uppsättning.
 Vad din installation faktiskt använder syns alltid i verktygsraden och under
-**Riktlinjer** (**Alt + 9**).
+**Riktlinjer** (**Alt + 9**). För närvarande finns det inget sätt att skapa nya riktlinjer.
 
 ---
 
@@ -144,7 +144,7 @@ bär varje enhet en **talaretikett**. Etiketter visas som färgade brickor, och
 varje talare behåller sin färg.
 
 Med transkriptionsfönstret öppet växlar **Ctrl + S** (**Cmd + S** på macOS) enhetens
-etikett till nästa kända talare. Det är det snabbaste sättet att rätta en felplacerad tur, och mycket användbart när du har använt den automatiska talartilldelningen, som kan vara mycket felaktig.
+etikett till nästa kända talare. Det är det snabbaste sättet att rätta en felaktig talarseparering, och mycket användbart när du har använt den automatiska talartilldelningen, som kan vara mycket felaktig.
 Du kan också klicka på brickan för att växla mellan talaretiketterna.
 
 Hur du lägger till, byter namn på och tar bort talare, och delar upp talare på

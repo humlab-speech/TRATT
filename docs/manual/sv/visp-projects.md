@@ -3,11 +3,11 @@
 **För:** dig som öppnar Tratt från ett projekt i Visp för att transkribera de
 inspelningspaket som projektägaren har tilldelat dig.
 
-Öppnad från Visp är Tratt [Arbetsbänken](workbench.md) med en skillnad som
-påverkar allt annat: listan till vänster är din tilldelning i projektet, de
-inspelningspaket som tilldelats dig i Visp:s dialog **Assign annotation tasks**.
-Du lägger inte till inspelningar själv, och ditt arbete sparas i projektet i
-stället för i filer på din dator.
+Öppnad från Visp visar Tratt [Arbetsbänken](workbench.md) med dina tilldelade 
+inspelningar i listan till vänster. Projektledaren tilldelar dig inspelningar att gå igenom i
+ Visp:s dialog **Assign annotation tasks**.
+Du kan inte lägga till inspelningar själv i denna vy, och ditt arbete sparas tillbaka till projektet i
+visp i stället för på din dator.
 
 När du öppnar Tratt frågar Visp vilken av projektets annoteringsnivåer du vill
 transkribera i. Bara segmentnivåer som inte är länkade till andra nivåer kan
@@ -19,10 +19,10 @@ väljas; för att arbeta i en annan nivå öppnar du Tratt från Visp igen.
 
 | | Fristående Arbetsbänk | Öppnad från Visp |
 | --- | --- | --- |
-| Listan | Filerna du lägger till | Din tilldelning i projektet |
+| Listan | Filerna du själv lagt till | Din tilldelning i projektet |
 | Ljudet | Kopplas av dig, igen efter omladdning | Hämtas från Visp när det behövs |
-| Ditt transkript | Sparas i webbläsaren, exporteras som filer | Sparas i projektet medan du arbetar |
-| Lägga till och ta bort | Släppa, spela in, läsa in `.zip`, **Ta bort** | Finns inte: listan är din tilldelning |
+| Ditt transkript | Sparas i webbläsaren, exporteras som filer | Sparas tillbaka till Visp medan du arbetar |
+| Lägga till och ta bort | Du kan ta bort en inspelning du lagt in från Tratts minne | Du kan inte ta bort inspelningar här |
 | Nivåer | Alla du skapar | Bara annoteringsnivån du valde när du öppnade Tratt |
 
 Själva transkriberandet är detsamma: redigerarna, kortkommandona och markörerna
@@ -40,7 +40,7 @@ en liten pratbubbleknapp. Den öppnar:
 
 Bubblan är ifylld när inspelningspaketet har en kommentar och visar en bock när
 det är markerat som klart. **Klar** och **Kommentar** är det projektägaren ser i
-Visp. Sparar du dem sparas inspelningspaketet, transkriptet också.
+Visp. Sparar du dem sparas inspelningspaketet och din transkription samtidigt.
 
 Välj ett inspelningspaket för att öppna det. Ett inspelningspaket som har text i
 Visp visar **Har text** redan innan du öppnat det; ett utan text visar
@@ -50,29 +50,27 @@ Visp visar **Har text** redan innan du öppnat det; ett utan text visar
 
 ## Att spara
 
-Tratt sparar ditt arbete i projektet av sig självt: ett par sekunder efter att du
-slutat skriva, när du väljer ett annat inspelningspaket och när du lämnar eller
-döljer fliken med Tratt. Det finns ingen sparaknapp, och listan är tyst medan
-det sparas.
+Tratt sparar ditt arbete i projektet automatiskt. Detta sker ett par sekunder efter att du
+slutat skriva, när du väljer ett annat inspelningspaket eller när du lämnar eller
+döljer fliken med Tratt. 
 
-Ett inspelningspaket säger bara till när det inte gick att spara: det visar vad
-som gick fel och erbjuder **Försök igen**. Medan Visp inte kan nås, eller du är
-utloggad, försöker Tratt också igen av sig självt, och direkt när du kommer
+Ett inspelningspaket ger en visuell indikation när innehållet inte gick att spara. 
+Det visar vad som gick fel och erbjuder **Försök igen**. Om Visp inte kan nås, eller du är
+utloggad, försöker Tratt också igen av sig självt. Tratt gör också ytterligare ett försök direkt när du går
 tillbaka till Tratt-fliken.
 
-Tills det har sparats finns ändringarna kvar i den här webbläsaren. Laddar du om
-Tratt, eller stänger och öppnar det igen från Visp, försvinner de inte, och de
-sparas när Tratt är öppet igen. De finns bara på den här datorn och i den här
-webbläsaren.
+Tills det har sparats finns ändringarna kvar i den här webbläsaren. I normalfallet finns de också kvar 
+om du laddar om Tratt, eller stänger och öppnar det igen från Visp. Tratt försöker spara tillbaka dina transkriptioner
+så fort du har kontakt med Visp igen.
 
 > **Observera.** Rensar du webbläsarens webbplatsdata för Tratt försvinner
-> osparade ändringar. Det som sparats till Visp påverkas inte.
+> ändringar som inte sparats till Visp.
 
 ---
 
 ## Det här skriver Tratt till projektet
 
-Bara transkriptet, i annoteringsnivån du valde när du öppnade Tratt
+Tratt skickar bara transkriptionens annoteringsnivå du valde när du öppnade Tratt
 (*transkriptionsnivån* nedan). Alla andra nivåer (till
 exempel en fonetisk segmentering gjord i Artic) och länkarna mellan dem lämnas
 precis som de var. Inom transkriptionsnivån gäller:
@@ -90,16 +88,16 @@ arbetade med det, skriver Tratt inte över det. Inspelningspaketet säger:
 
 > *Inspelningspaketet ändrades i Visp eller i en annan flik medan du arbetade med
 > det. Dina ändringar finns kvar i den här webbläsaren. Behåll din version (bara
-> transkriptet ersätts) eller använd versionen i Visp och släpp dina ändringar.*
+> transkriptionen ersätts) eller använd versionen i Visp och raderar dina ändringar.*
 
 - **Behåll min version** sparar ditt transkript. Den andras ändringar i andra
   nivåer finns kvar; ändringar i transkriptet ersätts av dina.
-- **Använd versionen i Visp** släpper dina ändringar och visar det som finns i
+- **Använd versionen i Visp** raderar dina ändringar och visar det som finns i
   Visp nu.
 
 Tratt kontrollerar detta när du sparar, inte hela tiden. Två personer som
 transkriberar samma inspelningspaket samtidigt måste fortfarande välja vems
-transkript som ska gälla.
+transkription som ska gälla.
 
 ---
 
@@ -109,7 +107,7 @@ Tratt läser din tilldelning när det öppnas. Tilldelar projektägaren eller ta
 bort inspelningspaket medan Tratt är öppet, öppnar du Tratt från Visp igen för att
 se ändringen. Ett inspelningspaket som inte längre är tilldelat dig kan inte
 längre sparas till Visp: sparandet misslyckas och dina ändringar finns kvar i den
-här webbläsaren. Ladda ner transkriptet om du behöver det.
+här webbläsaren. Ladda ner transkriptionen om du behöver det.
 
 Har du exporterat en uppsättning inspelningar kan den däremot inte längre sparas
 tillbaka till projektet. Använd **Exportera…** bara om du behöver behålla ett
@@ -130,9 +128,9 @@ hamnar i transkriptionsnivån och sparas som allt du skriver. Inställningarna b
 
 | Det här säger Tratt | Gör så här |
 | --- | --- |
-| *Du är inte längre inloggad i Visp. Dina ändringar finns kvar i den här webbläsaren: logga in igen i Visp så sparar Tratt dem.* | Logga in i Visp igen, i en annan flik eller på Visp-sidan runt Tratt. Tratt sparar när du kommer tillbaka till den, och försöker igen under tiden; du behöver inte ladda om. |
-| *Du är inte medlem i det här projektet. Be projektägaren lägga till dig.* | Fråga projektägaren. |
+| *Du är inte längre inloggad i Visp. Dina ändringar finns kvar i den här webbläsaren: logga in igen i Visp så sparar Tratt dem.* | Logga in i Visp igen, i en annan flik eller på Visp-sidan runt Tratt. Tratt sparar när du kommer tillbaka till den, och försöker igen under tiden. Du behöver inte ladda om Tratt. |
+| *Du är inte medlem i det här projektet. Be projektägaren lägga till dig.* | Ta kontakt med projektägaren. |
 | *Annoteringsnivån som Tratt öppnades med är inte en segmentnivå i projektet, så Tratt kan inte öppna dess inspelningspaket. Öppna Tratt från Visp igen och välj en annan nivå.* | Nivån togs bort eller ändrades i Visp efter att du öppnade Tratt. Öppna Tratt från Visp igen. |
 | *Annoteringsnivån som Tratt öppnades med är länkad till andra nivåer, så Tratt kan inte redigera den säkert. Öppna Tratt från Visp igen och välj en annan nivå.* | Nivån länkades i Visp efter att du öppnade Tratt. Öppna Tratt från Visp igen. |
-| *Visp kan inte nås. Dina ändringar finns kvar i den här webbläsaren; försök igen om en stund.* | Vänta: Tratt försöker igen av sig självt. **Försök igen** vid inspelningspaketet försöker direkt. |
-| *This Tratt installation is not configured for Visp.* | Visas i stället för Arbetsbänken (meddelandet är ännu inte översatt). Säg till den som driver Visp. |
+| *Visp kan inte nås. Dina ändringar finns kvar i den här webbläsaren. Försök igen om en stund.* | Vänta. Tratt försöker igen av sig självt. En knapp **Försök igen** vid inspelningspaketet gör att Tratt försöker spara direkt. |
+| *This Tratt installation is not configured for Visp.* | Visas i stället för Arbetsbänken. Säg till den som driver Visp. |

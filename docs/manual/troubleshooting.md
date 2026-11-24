@@ -9,7 +9,7 @@ The extension is not in Tratt's list. Convert to `.opus`, `.flac`, `.ogg`, `.wav
 See [supported formats](loading-media.md#supported-file-formats).
 
 **"File exceeds the maximum allowed size of 3000 MB." or an invalid-size error**
-The Traat application is subject to two limits due to how in-browser applications work. First, there is a global ceiling in how much storage the application can use. Second, there are per-file limiations.If you are having trouble loading in a recording, convert it
+The Traat application is subject to two limits due to how in-browser applications work. First, there is a global ceiling in how much storage the application can use. Second, there are per-file limitations. If you are having trouble loading in a recording, convert it
 to `.opus`, `.flac`, `.ogg`, or `.mp3`, or split the recording into two.
 
 **"Transcript filename does not match the audio filename."**
@@ -59,11 +59,11 @@ This causes the application to use the WebAssembly pipeline, which will be slowe
 
 **It is taking a very long time**
 Model size, recording length, and your hardware determines how fast the processing will be. Speaker separation adds more
-processin ttime still, because that model always runs witout WebGPU accelleration. The progress bar shows position
+processing time still, because that model always runs without WebGPU acceleration. The progress bar shows position
 within the recording. If it is moving, work is being done and you just have to wait. If you need an estimate of how long the processing will be, run a five-minute excerpt first.
 
 **The speaker labels are wrong**
-The process of determoning speaker changes and assigning units to the correct speaker is very error prone. To give it some guidande, provide it the expected number of speakers, but please expect that you need to fix
+The process of determining speaker changes and assigning units to the correct speaker is very error prone. To give it some guidance, provide it the expected number of speakers, but please expect that you need to fix
 labels with **Ctrl/Cmd + S** in your manual review. See
 [Tiers and speakers](tiers-and-speakers.md#fixing-speaker-labels).
 

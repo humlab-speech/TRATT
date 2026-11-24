@@ -1,11 +1,11 @@
 # Hur Tratt använder internet
 
-**För:** dig som hanterar intervjuer, kliniska inspelningar eller annat där det
+**Viktig information för:** dig som hanterar intervjuer, kliniska inspelningar eller annat där det
 finns integritetsfrågor eller andra hänsyn att ta kring inspelningen.
 
-**Kort sagt:** Tratt når nätet för att hämta *sig själv* och, om du ber om
+**I korthet:** Tratt använder internet för att hämta *sig själv* och, om du ber om
 automatisk transkription, en språkmodell. Den skickar inte din inspelning eller
-din transkription någonstans. Undantaget är ett
+din transkription någonstans. Undantaget är när du arbetar mot ett
 [Visp-projekt](visp-projects.md), där det är nödvändigt att transkriptionen
 skickas tillbaka till Visp-servern.
 
@@ -25,7 +25,7 @@ skickas tillbaka till Visp-servern.
 ## Vad som aldrig lämnar din dator
 
 - **Inspelningen.** Den läses från disk in i flikens minne, avkodas och kastas
-  när du stänger fliken. Tratt varken laddar upp den eller skriver tillbaka den
+  när du stänger fliken. Tratt laddar inte upp den någonstans eller skriver den
   till disk.
 - **Transkriptionen**, utanför ett Visp-projekt. Den ligger i den här
   webbläsarens lagring så att du kan återvända till den.
@@ -35,7 +35,7 @@ skickas tillbaka till Visp-servern.
 ## Att arbeta offline
 
 Tratt installerar en service worker, så efter första lyckade laddningen körs
-appen från webbläsarens cache. När du också har laddat ned de modeller du tänker
+appen från webbläsarens cache. När du har laddat ned de modeller du tänker
 använda kan du koppla ned dig helt och fortsätta transkribera. Ingenting i
 redigeringen, exporten eller lagringen behöver nätet.
 
@@ -55,11 +55,11 @@ fungerar ändå, inklusive att transkribera för hand och varje exportformat.
 | Dina inställningar och färgtemat | I den här webbläsarens lagring på din dator |
 
 Eftersom ljudet bara hålls i minnet minns Tratt din transkription mellan
-sessioner men inte din inspelning: när du kommer tillbaka bifogar du samma
+sessioner men inte din inspelning. När du kommer tillbaka bifogar du samma
 mediefil igen och fortsätter.
 
 **Förlita dig inte för tungt på Tratts lagring.** Webbläsarlagring är en
-arbetsbekvämlighet,
+bekvämlighet och ett litet extra skyddsnät, men
 inte ett arkiv. Gör det till en vana att [exportera](exporting.md) efter en
 session.
 
@@ -69,7 +69,7 @@ session.
 den korta vägen. Tratt frågar först — *Radera alla transkriptioner, loggar och
 inställningar i den här webbläsaren? Detta går inte att ångra.* — och vid **Ja**
 töms den här webbläsarens lagring och Tratt laddas om, så att du står på den
-tomma startsidan utan att något är kvar. Exportera ditt arbete innan du trycker;
+tomma startsidan utan att något är kvar. Exportera ditt arbete innan du gör detta:
 se [Arkivet, och hur du tar vid där du slutade](exporting.md#exporting-an-archive).
 
 Gör det på en delad dator när du är klar.

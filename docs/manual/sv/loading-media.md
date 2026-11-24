@@ -48,7 +48,7 @@ verktyg eller från en undertextfil) släpper du in det tillsammans med ljudet, 
 kan läsas listas under
 [Exportera → format Tratt kan läsa](exporting.md#formats-tratt-can-read).
 
-Vissa importfilter har alternativ; kugghjulet intill filen öppnar dem. SubRip och
+Vissa importfilter har alternativ som du kan välja bland, och kugghjulet intill filen öppnar dem. SubRip och
 WebVTT kan till exempel plocka ut talarnamn ur texten och lägga varje talare på
 en egen nivå. Se [Nivåer och talare](tiers-and-speakers.md).
 
@@ -58,11 +58,10 @@ en egen nivå. Se [Nivåer och talare](tiers-and-speakers.md).
 
 ## Spela in i webbläsaren
 
-Fliken **Spela in nu** spelar in direkt i Tratt: ingen separat inspelare, ingen
-fil att flytta runt.
+Fliken **Spela in nu** spelar in direkt i Tratt. Detta betyder att du inte behöver en separat inspelare, och inte behöver flytta runt filen för att göra en snabb inspelning.
 
 1. Välj inspelningskälla med de två små ikonknapparna högst upp i panelen:
-   **Endast ljud** (mikrofon) eller **Ljud + video** (kamera). De har ingen text;
+   **Endast ljud** (mikrofon) eller **Ljud + video** (kamera). De har ingen knapptext, så
    hovra för att se vilken som är vilken.
 2. Öppna **Inmatningsenheter** för att välja en särskild mikrofon eller kamera.
    Är listan tom eller namnlös, klicka **Begär åtkomst**. Webbläsare döljer
@@ -75,8 +74,8 @@ fil att flytta runt.
 5. **Använd inspelning** laddar in den i Tratt som om du hade laddat upp den.
    **Ladda ner** sparar en kopia på disk. **Kassera** slänger den.
 
-Tratt spelar in i MP4 där webbläsaren stöder det, och WebM annars (Firefox); båda
-fungerar som indata.
+Tratt spelar in video i MP4 där webbläsaren stöder det, och WebM annars (Firefox). Båda
+fungerar som indata till Tratt.
 
 **Återställning.** Kraschar fliken eller stänger du den mitt i en inspelning
 erbjuds *Oavslutad inspelning återställd* vid nästa besök, med sessionens
@@ -105,7 +104,7 @@ listan finns i appen: klicka **Filformat som stöds** ovanför släppytan.
 ### Video
 
 Laddar du en video arbetar Tratt med dess ljud. När formatet är ett som din
-webbläsare kan spela upp direkt (**MP4 är säkrast, WebM fungerar också bra**)
+webbläsare kan spela upp direkt (**MP4 är säkrast, men WebM fungerar också bra**)
 visas bilden bredvid vågformen i transkriptionsfönstret, vilket hjälper mycket
 vid överlappande tal och gester. Format som webbläsaren inte kan spela upp
 transkriberas ändå, bara utan bild.

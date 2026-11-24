@@ -55,7 +55,7 @@ Fyra saker ligger till vänster, uppifrån och ned:
    **Arbetsminne (uppskattat)**, över **Radera all data permanent**.
 
 Resten av fönstret är det inspelningspaket du valt i listan. Listan är det enda
-stället där du byter inspelningspaket; håll pekaren över ett för att se ljudets
+stället där du byter inspelningspaket. Håll pekaren över ett för att se ljudets
 uppgifter. Ovanför vyn
 finns en rad med vyflikarna, **Genvägar**, **Översikt** och **Hjälp**. Under den
 kommer själva vyn.
@@ -88,8 +88,8 @@ Se
 
 ### Att läsa in ett exporterat arkiv
 
-Släpp en `.zip` som Tratt exporterat tidigare på samma släppyta. Varje
-inspelning i den kommer tillbaka med sitt ljud bifogat och sin transkription på
+Släpp en `.zip` som Tratt exporterat tidigare på samma drag-och-släppyta. Varje
+inspelning i den laddas då in med sitt ljud bifogat och sin transkription på
 plats, och automatisk transkribering stoppas så att färdigt arbete inte
 transkriberas över. Det är det tänkta sättet att återuppta en session, flytta
 arbete mellan datorer eller lämna över till en kollega. En beskrivning av
@@ -103,13 +103,13 @@ finns under
 
 Den stora orange knappen **Transkribera**, under listan med inspelningspaket, är
 en delad knapp. Dess vänstra del startar transkriberingen; dess högra del
-(reglageikonen) öppnar **Transkriptionsinställningar**: modellen,
+(reglageikonen) öppnar **Transkriptionsinställningar** som ger dig möjlighet att ställa in modellen,
 transkriptionsspråket, talarseparation och lokal översättning, som beskrivs
 under [Automatisk utkasttranskription](automatic-transcription.md). Håll pekaren
 över reglageikonen för att se de aktuella inställningarna utan att öppna dem.
 
 **Transkribera nya inspelningspaket automatiskt** är en strömbrytare högst upp i
-inställningarna. När den är på transkriberas filer när de kommer in. Du kan
+inställningarna. När den är aktiverad transkriberas filer när de kommer in. Du kan
 släppa in flera inspelningar och vänta på att alla blir bearbetade. När det inte
 finns något kvar att göra står det **Autotranskribering på** på knappen.
 
@@ -142,19 +142,19 @@ Redigerar du en fils transkription medan den transkriberas om behålls dina
 
 ## Att följa arbetet
 
-Varje rad i **Inspelningspaket** visar i kolumnen **Transkription** var
-transkriptionen står:
+Varje rad i **Inspelningspaket** visar i kolumnen **Transkription** var i processen
+transkriptionen befinner sig:
 
 | Status | Betyder |
 | --- | --- |
 | **I kö** | Väntar på sin tur |
 | **Körs** | Arbetas med nu, med aktuellt steg och hur långt det kommit, t.ex. *Transkriberar 40 %* |
 | **Klar** | Färdig |
-| **Misslyckades** | Stoppade på ett fel, med **Försök igen** på raden |
-| **Avbruten** | Stoppad av dig, eller sidan stängdes eller laddades om halvvägs. **Försök igen** finns på raden |
-| **Har text** / **Ej transkriberad** | Aldrig körd: om transkriptionen redan har någon text (importerad eller skriven för hand) |
+| **Misslyckades** | Stoppade på grund av ett fel. Du kan klicka **Försök igen** på raden |
+| **Avbruten** | Stoppad av dig, eller av att sidan stängdes eller laddades om halvvägs. **Försök igen** finns på raden |
+| **Har text** / **Ej transkriberad** | Automatisk transkription har aldrig körts. Den transkription som finns är antingen importerad eller skriven för hand |
 
-Knappen på raden stoppar just det inspelningspaketet (*Sluta transkribera det här
+Stopp-knappen på raden stoppar just det inspelningspaketet (*Sluta transkribera det här
 inspelningspaketet*) och lämnar resten av kön i fred.
 
 En misslyckad fil säger vad som gick fel (*Kunde inte läsa ljudet*,
@@ -180,14 +180,14 @@ Linjär vy med vyflikarna och arbetar som beskrivs under
 Att spela en enhet eller redigera dess text markerar den som
 [verifierad](checking-your-work.md#verified-transcriptions).
 
-Ändringar sparas medan du skriver, per inspelning. Att byta till en annan fil i
+Ändringar sparas medan du skriver, för varje inspelning. Att byta till en annan fil i
 listan gör inte att Tratt förlorar data.
 
 ---
 
 ## Att komma tillbaka senare
 
-Tratt behåller inspelningspaketens transkriptioner men aldrig deras ljud. När du
+Tratt lagrar inspelningspaketens transkriptioner men aldrig deras ljud. När du
 återvänder möts du av en **Välkommen tillbaka**-ruta: *Tratt har kvar dina
 transkriptioner från förra gången, men inte ditt ljud. För att lyssna och rätta,
 bifoga varje inspelningspakets ljud med ”Bifoga” i listan, eller släpp samma
@@ -196,7 +196,7 @@ ljud…** i sidhuvudet, eller genom att släppa den) så fortsätter redigeringe
 du slutade. Till dess säger vyn *Det här inspelningspaketets ljud är inte
 bifogat*, med en knapp **Bifoga ljud…**.
 
-Ser filen du väljer inte ut att vara den posten skapades från stannar Tratt och
+Om filen du väljer inte verkar vara den posten skapades från stannar Tratt och
 frågar: *Det här ser inte ut som samma ljud*, med vad du valde och vad som
 förväntades sida vid sida, och **Använd ändå**. När bara ändringstiden skiljer sig
 anger Tratt det, eftersom det brukar vara en kopia eller omexporterat ljud
@@ -204,7 +204,7 @@ snarare än fel inspelning.
 
 Du kan också exportera ett arkiv innan du slutar och
 [läsa in det igen](#loading-an-archive) nästa gång, vilket återställer ljudet och
-transkriptionerna tillsammans och inte kräver någon ny bifogning.
+transkriptionerna tillsammans och inte kräver någon separat bifogning.
 
 ---
 
@@ -212,24 +212,24 @@ transkriptionerna tillsammans och inte kräver någon ny bifogning.
 
 ## Kapacitet
 
-De två mätarna mäter olika saker, och bara den ena begränsar hur mycket du kan ha
+De två mätarna i denna ruta mäter olika saker, men bara den ena begränsar hur mycket du kan ha
 igång.
 
-**Webbläsarlagring** är det Tratt behåller på disken, vilket omfattar nedladdade modeller och dina
+**Webbläsarlagring** är det Tratt behåller internt i webbläsaren, men på disken. Detta innefattar nedladdade modeller och dina
 transkriptioner. Noten under den uppskattar båda, till exempel *modeller ca 210 MB
 för nuvarande pipeline + annoteringar ca 221 MB*. **Media skrivs aldrig till
-lagringen**, och därför fyller en mapp med stora inspelningar inte upp den. Vissa
+lagringen**, och därför fyller en mapp med stora inspelningar inte upp denna lagring. Vissa
 webbläsare rapporterar inte användning alls, och mätaren är då otillgänglig.
 
 **Arbetsminne (uppskattat)** är avkodat ljud som hålls i fliken.
 Varje inspelning vars ljud är bifogat tar minne så länge det
-är bifogat. Är du nära taket, eller misslyckas en fil med *Minnet tog slut*, arbeta
-igenom materialet i mindre grupper, exportera och
-[Radera klara](#housekeeping), bifoga sedan de nästkommande.
+är bifogat. Är du nära taket, eller misslyckas en fil med *Minnet tog slut*, föreslås du arbeta
+igenom materialet i mindre samlingar. När du är klar med en samling väljer du exportera och sedan 
+[Radera klara](#housekeeping), vartefter du bifogar de nästkommande filerna.
 
 Längst ned i panelen tömmer **Radera all data permanent** den här webbläsarens
-lagring: varje transkription, logg och inställning, inte bara inspelningarna i
-listan. Tratt frågar först och laddar sedan om sig själv, så att du står på den
+lagring. Det som raderas är alla transkriptioner, loggar och inställning, inte bara inspelningarna i
+listan. Tratt frågar först för ytterligare bekräftelse av åtgärden, och laddar sedan om sig själv, så att du står på den
 tomma startsidan. Exportera innan du använder den; se
 [Hur Tratt använder internet](privacy.md#rensa-dina-data).
 
@@ -239,13 +239,8 @@ tomma startsidan. Exportera innan du använder den; se
 
 **Exportera…** under listan öppnar exportdialogen, som beskrivs under
 [Exportera](exporting.md). Där väljer du vad som ska exporteras: inspelningspaketet
-som är öppet i redigeraren, de du har markerat, eller alla. Den fungerar även när
-ljudet inte är bifogat. Inspelningspaket utan transkription utelämnas.
-
-En inspelning i ett format laddas ned som den filen; allt mer kommer som ett
-arkiv. Dialogen stängs när du klickar på **Ladda ned**, och nedladdningen startar
-när filerna är klara. Inspelningar som Tratt måste hoppa över listas i en
-varning.
+som är öppet i redigeraren, de du har markerat, eller alla. Du kan göra en export även när
+ljudet inte är bifogat. Inspelningspaket utan transkription utelämnas dock.
 
 Vad arkivet innehåller, och hur du läser in det igen, beskrivs under
 [Att exportera ett arkiv](exporting.md#exporting-an-archive).
@@ -257,4 +252,4 @@ Vad arkivet innehåller, och hur du läser in det igen, beskrivs under
 ## Att hålla ordning
 
 **Radera klara** raderar inspelningspaketen markerade *Klar*, transkriptionerna också. **Ta bort** tar bort
-dem du markerat, och kryssrutan i listans rubrikrad markerar alla. Åtgärderna kan inte ångras.
+dem du markerat, och kryssrutan i listans rubrikrad markerar alla. **Dessa åtgärder kan inte ångras**.

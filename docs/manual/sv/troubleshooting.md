@@ -9,24 +9,24 @@ Filändelsen finns inte i Tratts lista. Konvertera till `.opus`, `.flac`, `.ogg`
 `.wav` eller `.mp3` och försök igen. Se [filformat som stöds](loading-media.md#supported-file-formats).
 
 **Ett storleksfel**
-Webbläsarbaserade program har två gränser. Dels finns ett övergripande tak för hur
-mycket lagring programmet kan använda. Dels gäller gränser per fil. Har du problem
+Webbläsarbaserade program har två begränsningar. Dels finns ett övergripande tak för hur
+mycket lagring programmet kan använda. Dels gäller begränsningar för hur stor en fil får vara. Har du problem
 att läsa in en inspelning, konvertera den till `.opus`, `.flac`, `.ogg` eller
 `.mp3`, eller dela inspelningen i två.
 
 **"Transkriptfilens namn matchar inte ljudfilens namn."**
-Tratt förutsätter att ljudfilen och transkriptfilen med tidsinformation har identiska namn utom filändelsen.
+Tratt förutsätter att ljudfilen och transkriptfilen med tidsinformation har identiska namn, undantaget filändelsen.
 Byt namn på transkriptet så att dess basnamn matchar ljudets, t.ex. `intervju3.wav`
 med `intervju3.srt`. Undantaget är *annotJSON*-filer, där programmet förutsätter att filerna heter
 som `intervju3.wav` och `intervju3_annot.json`.
 
-**Transkriptfilen bara ligger där med en snurra**
-Den väntar på ljud. Släpp in mediefilen också. Ett transkript kan inte öppnas
+**Transkriptfilen ligger bara där, och en snurra visas**
+Tratt väntar på att du ska ladda in ett ljud. Släpp in mediefilen också. Ett transkript kan inte öppnas
 utan en mediefil med samma namn (se ovan).
 
 **Att läsa in en video tar lång tid**
-Det är väntat. När en videofil läses in måste ljudet avkodas ur behållaren i webbläsaren.
-Använd ett enklare ljudformat, helst `.wav`, om det går mycket långsamt.
+Det är vad man kan förvänta. När en videofil läses in måste ljudet avkodas ur behållaren i webbläsaren.
+Använd ett enklare ljudformat, helst `.opus` eller `.wav`, om det går mycket långsamt.
 
 ---
 
@@ -35,16 +35,16 @@ Använd ett enklare ljudformat, helst `.wav`, om det går mycket långsamt.
 <a id="automatic-transcription-is-greyed-out"></a>
 
 **Kryssrutan Automatisk transkribering är inaktiverad, med en varning om Safari**
-Safari och andra WebKit-webbläsare laddar om fliken mitt i stora
-modellnedladdningar och förstör ditt arbete, så Tratt stänger av funktionen i dessa webbläsare.
-Använd Chrome, Edge eller Firefox. Manuell transkribering i Safari påverkas inte.
+Safari och andra WebKit-webbläsare laddar om en flik som kräver mycket minne, vilket stör
+modellnedladdningar och förstör ditt arbete. I Safari stänger därför Tratt av funktionen automatisk transkription.
+Använd en annan webbläsare, så som Chrome, Edge eller Firefox. Manuell transkribering i Safari påverkas inte.
 
-**Kryssrutan saknas helt**
+**Kryssrutan Automatisk transkribering saknas helt**
 Den visas först när ljud har lästs in *och* ingen transkriptfil har lämnats in.
 Det finns inget utkast att skriva om du redan tagit med ett transkript.
 
 **De största modellerna är gråmarkerade: "Kräver WebGPU"**
-Din webbläsare eller ditt grafikkort erbjuder inte WebGPU. Vilka modeller det gäller
+Din webbläsare eller ditt grafikkort stödjer inte WebGPU. Vilka modeller det gäller
 beror på vilket språk du valt. Använd Tiny eller
 Small, eller kör Tratt på en dator med ett separat grafikkort. I Chrome och Edge
 kan du kontrollera om du har WebGPU på `chrome://gpu`.
@@ -52,18 +52,18 @@ kan du kontrollera om du har WebGPU på `chrome://gpu`.
 **Modellnedladdningen hakar upp sig eller misslyckas**
 Modellerna laddas ned från `huggingface.co`. Blockerar ditt nätverk den kan automatisk
 transkription inte fungera. Du kan då fortfarande transkribera manuellt. På en långsam
-förbindelse kan du börja med Tiny-modellen för att bekräfta att kedjan fungerar innan du
+förbindelse kan du börja med Tiny-modellen för att bekräfta att processen fungerar innan du
 binder upp dig på flera gigabyte.
 
 **Transkriptionen misslyckas halvvägs och nämner WebGPU**
 Vissa drivrutiner klarar inte en lång WebGPU-körning. Tratt väljer WebGPU
-automatiskt och har ingen egen omkopplare, så tvinga fram processorvägen genom att
+automatiskt och har ingen eget reglage för att byta mekanik. Du kan tvinga fram processorvägen genom att
 stänga av WebGPU i webbläsaren (Chrome/Edge: `chrome://flags` → *WebGPU* →
-**Disabled**, och starta om webbläsaren) och ladda om programmet.
-Programmet använder då WebAssembly-kedjan, som är långsammare men kan fungera bättre.
+**Disabled**, och starta om webbläsaren) och ladda om Tratt.
+Programmet använder då WebAssembly-flödet, som är långsammare men kan fungera bättre.
 
-**Det tar mycket lång tid**
-Modellstorlek, inspelningens längd och din hårdvara avgör hur snabbt bearbetningen går.
+**Transkriptionen tar mycket lång tid**
+Modellstorlek, inspelningens längd och din dators kapacitet avgör hur snabbt bearbetningen går.
 Talarseparation lägger till ännu mer tid, eftersom den modellen alltid körs utan
 WebGPU-acceleration. Förloppsfältet visar var i inspelningen den är. Rör det sig
 pågår arbete och du får vänta. Behöver du en uppskattning av hur lång tid bearbetningen tar, kör ett femminutersutdrag först.
@@ -79,8 +79,8 @@ etiketter med **Ctrl/Cmd + S** i din manuella granskning. Se
 ## Ljuduppspelning
 
 **Inget ljud, eller "Missing permissions"**
-I så fall blockerar webbläsaren automatisk uppspelning. Tratt visar lösningen för din
-webbläsare: klicka på den överstrukna uppspelningsikonen till vänster i
+I detta fall blockerar webbläsaren automatisk uppspelning. Tratt försöker visa lösningen för din
+webbläsare, som består i att klicka på den överstrukna uppspelningsikonen till vänster i
 adressfältet, sätt Autoplay till *Allow Audio and Video* och klicka **RELOAD** i
 dialogen.
 
@@ -142,7 +142,7 @@ inspelningarna. En mindre transkriptionsmodell hjälper också.
 
 **En fil misslyckades med "Kunde inte läsa ljudet"**
 Du läser in en mediefil i ett format som inte stöds, eller så är filen skadad. Prova den
-ensam på startsidan, och konvertera den till `.wav` eller `.mp3` om den fortfarande fallerar.
+ensam på startsidan, och konvertera den till `.opus`, `.wav` eller `.mp3` om den fortfarande inte fungerar.
 
 **En fil misslyckades med "Kunde inte ladda modellen"**
 Modellnedladdningen blev inte klar. Kontrollera nätverket och tryck **Försök
@@ -157,12 +157,12 @@ Ingen transkription är inställd. Öppna **Transkriptionsinställningar** och v
 språk och modell först.
 
 **Alla inspelningar säger "Bifoga ljud…"**
-Normalt efter en omladdning. Tratt behåller en kopia av transkriptionerna i sin lagring, men inte media. Därför
+Normalt efter en omladdning av Tratt. Tratt behåller en kopia av transkriptionerna i sin interna lagring, men inte mediafilen. Därför
 behöver varje inspelning få sitt ljud bifogat från din dator igen. Ett
-[exporterat arkiv](exporting.md#exporting-an-archive) innehåller allt och återställer båda på en gång.
+[exporterat arkiv](exporting.md#exporting-an-archive) innehåller allt du behöver och återställer båda på en gång.
 
 **Allt blev orange**
-Avsiktligt. Transkriptioner som sparades före version 3.2, och alla som byggdes om
+Detta är så som Tratt fungerar. Transkriptioner som sparades före version 3.2, och alla som byggdes om
 vid återupptagning före 3.2-fixarna, läses in som overifierade. Tratt kan inte veta
 vem som kontrollerat dem. Lyssna på en enhet eller redigera den så blir den grön. Se
 [Verifierade transkriptioner](checking-your-work.md#verified-transcriptions).
@@ -197,7 +197,7 @@ verkligen en annan inspelning kommer gränserna inte att ligga rätt mot ljudet.
 ## Underhållssidan
 
 Sidan är inte länkad från gränssnittet: lägg till `/help-tools` i Tratts adress, till
-exempel `https://tratt.demo.humlab.umu.se/help-tools`.
+exempel `https://tratt.visp.humlab.umu.se/help-tools`.
 
 | Verktyg | Använd när |
 | --- | --- |

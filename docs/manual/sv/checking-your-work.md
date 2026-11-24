@@ -1,12 +1,12 @@
 # Kontrollera ditt arbete
 
-**För:** dig som transkriberar, vid den punkt där filen är "i princip klar".
+**För:** dig som transkriberar och ser att filen är "i princip klar".
 
 ---
 
 ## Översiktsfönstret
 
-Tryck **Alt + 0**, eller klicka **Översikt** i verktygsraden under sidhuvudet (i Arbetsbänken: i raden med vyflikarna).
+Tryck **Alt + 0**, eller klicka **Översikt** i verktygsraden under sidhuvudet.
 
 ![Översiktsfönstret](../../assets/visp_tratt_overview_edit.png)
 
@@ -22,7 +22,7 @@ Det har tre delar.
 | **Tomma transkriptionsenheter** | Enheter med varken text eller paus, ditt återstående arbete |
 
 Sikta på **Tomma transkriptionsenheter = 0** innan du exporterar. Är siffran inte
-noll, klicka på den: Tratt markerar vad som saknas.
+noll, klicka på den. Tratt markerar då vad som saknas.
 
 ### Validering
 
@@ -31,11 +31,11 @@ varje nivå med sitt antal fel (normalt *Inga fel hittade*), och den felande
 texten stryks under i redigeraren. Är ingen validering konfigurerad står det
 i stället *No validation methods found*. Båda är normalt; standardriktlinjerna i
 Tratt innehåller bara stavnings- och skiljeteckensregler, så i praktiken säger det
-här avsnittet sällan något.
+här avsnittet sällan något. Tratt erbjuder just nu inte någon möjlighet att ange en egen riktlinjefil.
 
 ### Transkript
 
-Varje enhet som en tabellrad: nummer, start- och sluttid, text, talare (när transkriptet har talare)
+Varje enhet får i denna vy en tabellrad, som innehåller nummer, start- och sluttid, text, talare (när transkriptet har talare)
 och en knapp **Play segment**. ▶ i kolumnrubriken är **Toggle play all**, som
 spelar enheterna i följd.
 
@@ -47,8 +47,8 @@ något ser fel ut. Klicka ▶ på den misstänkta raden, rätta, gå vidare.
 **Justera gränser.** Kolumnerna **Start** och **Slut** visar varje enhets tider.
 Klicka ▲ eller ▼ för att flytta en tid 10 ms (håll **Skift** för 100 ms). Starten
 på en enhet är slutet på den föregående, så båda cellerna flyttas tillsammans.
-Vila pekaren på en tid en stund så öppnas ett vågformsutsnitt kring gränsen;
-dra den röda linjen för att placera den, eller tryck **Esc** under dragning för
+Vila pekaren på en tid en stund så öppnas ett vågformsutsnitt kring gränsen.
+Dra den röda linjen för att placera den, eller tryck **Esc** under dragning för
 att avbryta. Första starten och sista slutet är låsta, och gränser kan inte
 flyttas på en nivå som är länkad till en annan.
 
@@ -56,27 +56,27 @@ flyttas på en nivå som är länkad till en annan.
 
 ### Verifierade transkriptioner
 
-Automatisk transkription börjar som **overifierad**. Varje mening bär ett färgat
-streck i början av sin rad: **orange** tills en människa kontrollerat den,
+Automatiska transkriptioner betraktas från början som **overifierade**. Varje mening inleds av ett färgat
+streck, som är **orange** tills en människa kontrollerat den,
 **grönt** när den är verifierad. En transkription blir verifierad när du
 
-- lyssnar på dess del av inspelningen (uppspelning av segmentet — i vilken
-  redigerare som helst, eller via **Toggle play all** i Översikt — räknas
-  efter 200 ms faktisk uppspelning inom enheten), eller
+- lyssnar på dess del av inspelningen (uppspelning av segmentet, i vilken
+  redigerare som helst, eller via **Toggle play all** i Översikten. Ett enhet räknas som lyssnad på
+  efter 200 ms faktisk uppspelning inom enheten. Det sista sättet att markera enheten som lyssnad på är att
 - redigerar texten själv.
 
 Manuellt skriven transkription räknas som verifierad från början. Samma gröna
 och orangea streck inleder varje mening i det exporterade
-[Word-dokumentet](exporting.md).
+[Word-dokument](exporting.md).
 
-Tre regler som överraskar:
+Tratt följer tre regler som man bör vara införstådd med:
 
 - **Lyssning markerar bara den nivå du tittar på.** Spelar du upp inspelningen med
-  källnivån vald verifieras inte enheterna i en översättningsnivå; byt nivå och
-  lyssna igen.
-- **Hovringsförhandsvisningar räknas inte.** När pekaren förs över vågformen spelas
-  korta bläddringsbitar; bara riktig uppspelning (Tabb, ▶, **Toggle play all**)
-  verifierar.
+  källnivån vald verifieras inte enheterna i en översättningsnivå. Du måste byta nivå och
+  lyssna igen för att verifiera dessa.
+- **Hovringsförhandsvisningar räknas inte som uppspelning.** När pekaren förs över vågformen spelas
+  korta bläddringsbitar. Denna uppspelning räknas inte, utan enbart riktig uppspelning (Tabb, ▶, **Toggle play all**)
+  markerar en enhet som verifierad.
 - **Ett transkript som importeras utan `⍻`-märken kommer in helt verifierat.** En
   SRT- eller ELAN-fil från ett annat verktyg saknar märkena, så varje enhet är
   grön från första stund trots att ingen här kontrollerat den. Se
@@ -93,7 +93,8 @@ och betydelsen av varje markör med exempel.
 Tratt:s standardriktlinjer är medvetet tunna (korrekt stavning, inga
 skiljetecken) eftersom de är tänkta att ersättas. Har ditt projekt egna
 konventioner hör de hemma i riktlinjefilen, så att de är ett tangenttryck bort för
-alla som arbetar med materialet, i stället för i ett dokument som ingen öppnar.
+alla som arbetar med materialet, i stället för i ett dokument som ingen öppnar. Tratt har just nu inte 
+implementerat möjligheter att byta riktlinjer.
 
 ---
 
@@ -103,7 +104,7 @@ alla som arbetar med materialet, i stället för i ett dokument som ingen öppna
 2. Skumma transkripttabellen uppifrån och ned. Siffror, namn och platser är där
    automatisk transkription är svagast. Kontrollera dem särskilt mot ljudet.
 3. Använde du talarseparation, kontrollera talarkolumnen där samtalets tempo
-   ändras; det är där modellen brukar byta för sent eller för tidigt.
+   ändras. Det är där modellen brukar byta för sent eller för tidigt.
 4. Kontrollera att oklara partier är markerade (`**`) i stället för gissade.
 5. [Exportera](exporting.md), och exportera **AnnotJSON** vid sidan av ditt
    arbetsformat, så att en senare rättelse inte betyder att börja om.

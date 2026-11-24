@@ -1,8 +1,8 @@
 # Snabbstart: din första transkription
 
 **För:** dig som just har öppnat Tratt och har en inspelning att transkribera.
-**Du får:** ett rättat transkript sparat som en fil på din dator.
-**Tid:** ungefär tio minuters uppmärksamhet. Använder du automatisk transkription
+**Du får:** dina korrigerade transkriptioner sparade tillsammans som en fil på din dator.
+**Tid:** ungefär tio minuters genomläsning. Använder du automatisk transkription
 tillkommer tid för nedladdning och bearbetning, se steg 3.
 
 ---
@@ -37,7 +37,7 @@ De flesta format fungerar: `.ogg`, `.opus`, `.wav`, `.mp3`, `.m4a`, `.flac`,
 
 **Tratt transkriberar automatiskt.** Att lägga till en fil startar processen. En
 taligenkänningsmodell sätter i gång direkt och skriver ett utkast som du sedan
-rättar. Två saker under rutan styr hur:
+rättar. Två saker i inställningsrutan styr:
 
 - **Transkriptionsspråk: …** anger vilket språk modellen ska förvänta sig.
   **Ändra** öppnar inställningarna, där du också väljer modellstorlek och kan
@@ -51,7 +51,7 @@ modellen, första gången du använder den. Detaljer och rekommendationer:
 
 ## 4. Se den arbeta
 
-Sidan blir din arbetsbänk: inspelningen dyker upp i listan **Inspelningspaket**
+Inspelningen dyker upp i listan **Inspelningspaket**
 till vänster, och redigeraren fyller resten av fönstret.
 
 Raden visar hur långt arbetet har kommit och namnger varje steg i tur och
@@ -150,5 +150,5 @@ tiden. Se
 
 ---
 
-Vidare: [Så fungerar transkribering](transcribing.md) om du ska göra det här
+Läs vidare: [Så fungerar transkribering](transcribing.md) om du ska göra det här
 ofta, eller [Tangentbordsgenvägar](shortcuts.md) om du bara vill bli snabbare.

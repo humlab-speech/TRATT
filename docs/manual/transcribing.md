@@ -72,7 +72,7 @@ All boundary happens on the waveform, with no text field focused.
 | Play just the selection | **C** |
 | Nudge the cursor | **←** / **→** |
 
-There are two restictions that apply to boundaries that you should be aware of:
+There are two restrictions that apply to boundaries that you should be aware of:
 
 - **Tratt refuses to split across units that already have text.** If your drag
   selection spans two units and either of them is already transcribed, you get

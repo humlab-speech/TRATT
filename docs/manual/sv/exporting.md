@@ -2,40 +2,31 @@
 
 **För:** alla, i slutet av varje arbetspass.
 
-Tratt håller ditt arbete i webbläsaren. **Att exportera en fil är
-det enda sättet ditt transkript lämnar webbläsaren.** Exportera ditt arbete varje
-gång du avslutar ett redigeringspass.
+Tratt behåller ditt arbete i webbläsaren. **Din transkription lämnar webbläsaren enbart när du exporterar den till din dator.** 
+Se till att exportera ditt arbete varje gång du avslutar ett redigeringspass.
 
 I [Arbetsbänken](workbench.md) klickar du på **Exportera…** under listan med
-inspelningspaket. (Där Tratt inte har någon lista heter den **Exportera**,
-nedladdningsikonen i sidhuvudet.) Dialogen heter *Exportera*:
+inspelningspaket:
 
-1. **Vad som ska exporteras**: *Det här inspelningspaketet* (det som är öppet i
+1. **Vad som ska exporteras**: *Det här inspelningspaketet* (en inspelning som just nu visas i
    redigeraren), *De markerade inspelningspaketen* eller *Alla inspelningspaket*.
-   Den börjar på de markerade om du har markerat några, och visas inte när det
-   bara finns en inspelning.
+   Tratt utgår ifrån att du kan vilja exportera markerade inspelningarna om sådana finns. Om bara en inspelning är laddad så visas inte det här valet.
 2. **Format**: markera ett eller flera. Ett markerat format visar sina
    [alternativ](#alternativ) under sig.
 3. **Ta med ljudet**: lägger varje inspelnings ljud bredvid dess transkriptioner.
    Det erbjuds bara när något ljud är bifogat. I Arbetsbänkens exportdialog
    från listan är det markerat från början, och ljudet sparas som mono-Opus med
-   32 kbit/s (`.opus`), video som `.mp4` med videon orörd. En `.webm` eller
-   `.mp4` utan video blir också `.opus` (förhandsvisningen kan ändå visa
-   `.mp4`), och en `.opus`-fil i mono med högst omkring 32 kbit/s behålls
-   som den är. Exportknappen i sidhuvudet (utan lista) exporterar
+   32 kbit/s (`.opus`). Video exporteras som `.mp4` . Exportknappen i sidhuvudet exporterar
    inget ljud alls, bara transkriptionen.
 4. **Det här får du** visar resultatet fil för fil innan du laddar ned det.
 5. **Ladda ned**.
 
-**En fil eller en .zip.** Från Arbetsbänkens lista är en export alltid en
-`.zip`, eftersom Tratts egen fil alltid ingår, om inte bara en fil exporteras:
-den filen ensam, eller ljudet från en inspelning utan transkription, som laddas
-ned som den `.opus`-filen (eller `.mp4`-filen). Från exportknappen i sidhuvudet
-laddas exakt en fil, till exempel transkriptionen som DOCX, ned som den filen.
-Allt mer (flera format, eller ett format med en nivå för en inspelning med
-flera nivåer) kommer som en `.zip` med Tratts egen fil tillagd; se
-[Att exportera ett arkiv](#exporting-an-archive).
-Knappen säger vilket: **Ladda ned** eller **Ladda ned .zip**.
+**En fil eller en .zip.** Från Arbetsbänkens lista till höger exporteras alltid en
+`.zip`-fil. Denna innehåller då allt du behöver för att fortsätta arbetet på de valda filerna vid ett annat tillfälle.
+Exportknappen i sidhuvudet ger dig bara en fil, till exempel transkriptionen som DOCX för den inspelning som just nu är öppnad i editorn.
+Se 
+[Att exportera ett arkiv](#exporting-an-archive) för ytterligare detaljer.
+
 
 Tratt minns de format du markerade till nästa export.
 
@@ -54,10 +45,10 @@ För att läsa, dela och publicera. **Bara SRT kan läsas tillbaka in i Tratt.**
 
 | Format | Fil | Bra för |
 | --- | --- | --- |
-| **DOCX** | `.docx` | MS Word. Det format de flesta faktiskt vill ha transkriptet i. |
-| **ODT** | `.odt` | LibreOffice / OpenOffice. Samma alternativ som DOCX. |
+| **DOCX** | `.docx` | Det format som öppnas i MS Word och flera andra program. |
+| **ODT** | `.odt` | LibreOffice / OpenOffice. Ett öppet filformat som ger samma möjligheter som DOCX. |
 | **SRT** | `.srt` | Undertexter, videospelare, och det enda formatet i gruppen som går att importera igen för att fortsätta ditt arbete senare |
-| **PlainText** | `.txt` | Allt som läser text |
+| **PlainText** | `.txt` | Alla program som läser vanlig text |
 
 ### Lingvistiska format
 
@@ -67,7 +58,7 @@ Alla dessa kan läsas tillbaka in i Tratt.
 | --- | --- | --- |
 | **Tratts eget format** (AnnotJSON) | `_annot.json` | Emu SDMS-kompatibelt. Behåller allt: nivåer, gränser, talare och markörer. I Arbetsbänkens exportdialog från listan är det alltid med och kan inte avmarkeras. |
 | **TextGrid** | `.TextGrid` | Praats primära annoteringsformat |
-| **ELAN** | `.eaf` | ELAN. Lägg `.eaf`-filen i samma mapp som ljudet, annars hittar ELAN inte mediet. |
+| **ELAN** | `.eaf` | Formatet som ELAN använder. Lägg `.eaf`-filen i samma mapp som ljudet, annars hittar ELAN inte mediet. |
 | **PraatTextTable** | `.Table` | Praats tabellformat |
 
 ### Specialiserade tekniska format
@@ -78,11 +69,11 @@ Alla dessa kan läsas tillbaka in i Tratt.
 | **BASPartitur** | `.par` | BAS-webbtjänsterna. Exporten skriver ORT- och TRN-rader ur transkriptionen. |
 | **CTM** | `.ctm` | Verktyg för utvärdering av taligenkänning. Konfidensvärdet skrivs alltid som 1. Tratt håller inte reda på det. |
 
-> **Behåll Tratts eget format.** DOCX och ODT är enkelriktade: de läses bra och
-> importeras illa. Kan du behöva rätta transkriptet om ett halvår är det Tratts
-> egen fil plus originalinspelningen som gör det möjligt. I
-> Arbetsbänkens exportdialog från listan är den alltid med och kan inte
-> avmarkeras, så med listan kommer en DOCX-export alltid som en `.zip` med den.
+> **Behåll Tratts eget format.** DOCX och ODT går inte att importera till Tratt igen. 
+> Om du vill kunna korrigera transkriptionerna om ett halvår är det Tratts
+> egen fil plus originalinspelningen som du måste se till att exportera. I
+> Arbetsbänkens exportdialog från listan är dessa alltid med och kan inte
+> avmarkeras.
 
 ---
 
@@ -98,21 +89,20 @@ Alla dessa kan läsas tillbaka in i Tratt.
 | **Collect annotations according to transcription tier in the output** | Visas när en inspelning har fler än en nivå: grupperar utdata nivå för nivå i stället för att blanda |
 
 Varje mening börjar med ett färgat streck i de exporterade Word- (DOCX) och
-ODT-filerna, och en nyckelrad under tacktexten förklarar färgerna: ett
+ODT-filerna. En kort rad i transkriptionens början förklarar färgerna: ett
 **grönt** `|` markerar en transkription du verifierat (lyssnat på dess del av
-inspelningen, eller redigerat texten), ett **orange** `|` markerar en som
-fortfarande bara innehåller den automatiska transkriptionen.
+inspelningen, eller redigerat texten). Ett **orange** `|` markerar ett yttrande som
+innehåller den automatiska transkriptionen som ej verifierats.
 
 <a id="verification-marks"></a>
 
 ### Verifieringsmarkörer i tidsanpassade format
 
 De tidsanpassade exportformaten (SRT, WebVTT, ELAN, TextGrid, PraatTable,
-CTM, BAS Partitur, Whisper JSON) bär verifieringsstatusen i själva texten:
+CTM, BAS Partitur, Whisper JSON) visar verifieringsstatusen i själva texten:
 varje overifierad transkription slutar med ett **not-check-märke** (`⍻`,
-U+237B). Verifierade meningar skrivs utan det. När du senare laddar en sådan
-fil tillsammans med dess ljud läser Tratt tillbaka märket. Markerade meningar
-kommer in som overifierade, omarkerade som verifierade.
+U+237B). Verifierade meningar skrivs utan denna markering. När du senare laddar en sådan
+fil tillsammans med dess ljud läser Tratt tillbaka märket. 
 
 ### PlainText
 
@@ -130,20 +120,19 @@ Markerar du båda tidsalternativen infogas båda.
 
 | Alternativ | Effekt |
 | --- | --- |
-| **Move units with speaker label to separate levels** | En nivå per talare i stället för en blandad nivå |
-| **Combine empty units with max duration (ms) between units of the same speaker** *(SRT)* | Slår ihop en kort lucka mellan två turer av samma person. Tomt stänger av det. |
+| **Move units with speaker label to separate levels** | En nivå per talare i stället för en blandad nivå med talar-ID markerad i början av varje yttrande|
+| **Combine empty units with max duration (ms) between units of the same speaker** *(SRT)* | Slår ihop en kort lucka mellan två turer av samma person. |
 
 ### Nivåer
 
-Alla nivåer exporteras; det finns inget att välja. Det spelar bara roll när ett
+Alla nivåer exporteras; det finns inget att välja. Detta spelar bara roll när ett
 transkript har mer än en nivå, till exempel en översättning.
 
-- **Tratts eget format, TextGrid, PraatTextTable, ELAN** bär flera nivåer i sig
-  själva: en fil med alla.
-- **DOCX, ODT och PlainText** lägger alla nivåer i en fil. Alternativet *Collect
+- **Tratts eget format, TextGrid, PraatTextTable, ELAN** bär flera nivåer i samma fil.
+- **DOCX, ODT och PlainText** lägger alla nivåer i en fil. Hur du väljer i alternativet *Collect
   annotations according to transcription tier* avgör om de grupperas nivå för
   nivå eller blandas.
-- **SubRip, WebVTT, BASPartitur, CTM** rymmer en nivå och skriver därför en fil
+- **SubRip, WebVTT, BASPartitur, CTM** rymmer bara en nivå och Tratt skriver därför en fil
   per nivå, namngiven efter den: `intervju-Transcript.srt` och
   `intervju-Swedish (sv).srt`. Med mer än en fil kommer exporten som en `.zip`.
 
@@ -154,7 +143,7 @@ också, under *Mer för den här transkriptionen*, de metadata som loggats medan
 arbetade (**Protocol**). De finns bara om **Logga användaråtgärder** var på i
 Inställningar. Det är ett
 forskningsmaterial (tangent- och uppspelningshistorik), inte en del av
-transkriptet.
+transkriptet. Precis som övrig information i Tratt skickas inte denna information till någon extern tjänst utan kan bara laddas ner av användaren själv.
 
 ---
 
@@ -162,8 +151,8 @@ transkriptet.
 
 ## Arkivet, och hur du tar vid där du slutade
 
-När en export ger mer än en fil packar Tratt dem i en `.zip`. **Det är den enda
-export som går att läsa in fullständigt igen**, och den är tänkt som sättet att
+Vid export av en session packar Tratt alla inspelningar och deras transkriptioner i en `.zip`. 
+Denna fil  är tänkt som sättet att
 flytta arbete mellan datorer, lämna över till en kollega, eller helt enkelt
 lägga undan en session och återuppta den nästa vecka.
 
@@ -190,7 +179,7 @@ Varje inspelning får en egen mapp under `bundles/`, och det är det som hindrar
 två inspelningar med samma namn (`take.wav` och `take.wma`) från att skriva över
 varandras transkriptioner.
 
-De två **manifesten** i roten listar varje inspelningspaket med sökvägar och
+De två **manifesten**-filer i roten listar varje inspelningspaket med sökvägar och
 uppgifter: källfilens namn, längd i sampel, samplingsfrekvens, modell och språk
 som användes, vilka steg som kördes, antalet transkriptionsenheter och vilken
 version av Tratt som skrev det. `manifest.csv` öppnas i ett kalkylprogram,
@@ -198,53 +187,39 @@ vilket gör den användbar som register över en korpus.
 
 När ljudet konverteras räknar Tratts eget format och manifesten sampel vid
 16 kHz, takten Tratt läser tillbaka ljudet i, medan själva `.opus`-filen är
-48 kHz. Tiderna i sekunder stämmer överens.
+48 kHz. Konverteringen gör att tiderna kommer att stämma överens trots att din inspelning komprimerats.
 
 <a id="loading-an-archive-back"></a>
 
-### Att läsa in det igen
+### Att läsa in exportarkivet igen
 
-**Släpp `.zip`-filen på släppytan.** Det är hela proceduren — samma ruta som du
-släpper inspelningar på, på startsidan eller ovanför listan. Tratt packar upp
+**Släpp `.zip`-filen på dra-och-släpp-ytan.**  Tratt packar då upp
 den och lägger tillbaka varje inspelning i listan med
 
 - sitt **ljud redan bifogat**, så att du kan spela upp och lägga om gränser
   direkt, ingenting att bifoga på nytt;
-- sin **transkription** som du lämnade den, med nivåer, talare, markörer och
+- sin **transkription** så som den var vid exporten, med nivåer, talare, markörer och
   verifieringsstatus.
 
-Två saker att räkna med:
+Två saker att notera:
 
 - **Automatisk transkribering och översättning slås av** när arkivet läses in,
-  och en pågående kö stoppas. Transkriptionerna i ett arkiv är färdigt arbete,
-  och Tratt kör ingen modell över dem bakom ryggen på dig. Slå på dem igen i
-  [Transkriptionsinställningar](automatic-transcription.md#turning-it-on) när du
-  vill transkribera något nytt.
+  och en pågående kö stoppas. Detta görs så att dina transkriptioner inte av misstag ska skrivas över.
+   Slå på dem igen i
+  [Transkriptionsinställningar](automatic-transcription.md#turning-it-on) om du
+  vill göra ett nytt försök att automatiskt transkribera materialet.
 - **En inspelning heter som filen i arkivet.** Eftersom ljudet konverterades på
   vägen ut kommer `interview-01.mp3` tillbaka som `interview-01.opus`.
-  Transkriptionen, tiderna och manifestets `sourceFilename` minns originalet.
 
-**Ett arkiv läggs till i listan, det smälts aldrig in i den.** Dess inspelningar
-kommer in som nya inspelningspaket; de ersätter, uppdaterar eller förenas inte
-med något som redan ligger där. Tillsammans med namnbytet ovan betyder det att
-läsa in ett arkiv ovanpå materialet det gjordes av lämnar dig med intervjun två
-gånger: `interview-01.mp3` sedan tidigare och `interview-01.opus` från arkivet,
-var och en med sin egen transkription. Ta bort den du inte vill ha, med **Ta
-bort** eller **Radera klara**.
 
-Läs därför in ett arkiv i en tom lista när du kan. Att släppa *samma* arkiv en
-andra gång är däremot ofarligt: namn som redan finns i listan hoppas över och
-ingenting läggs till.
-
-Allt annat i arkivet — Word-filerna, undertexterna, manifesten — är utdata.
-Tratt bortser från det vid inläsning, så ett arkiv du har lagt till egna filer i
+Tratt bortser från DOCX, ODT och andra textdokument vid inläsning. Detta betyder att 
+ ett arkiv där du har lagt till egna filer eller råkat redigera DOCX-filer i
 går ändå att läsa in.
 
 Ett inspelningspaket vars ljud inte var bifogat när du exporterade har inget
 ljud i arkivet, bara sin transkription. Att släppa arkivet läser in den
-transkriptionen i inspelningspaketet med samma namn som redan ligger i listan;
-bifoga ljudet där. Exportdialogen säger hur många inspelningar det gäller innan
-du laddar ned, och rapporterar *Klar med varningar* i stället för att låta hela
+transkriptionen i inspelningspaketet med samma namn som redan ligger i listan. Du måste då sedan själv ladda in ljudfilen.
+ Exportdialogen säger hur många inspelningar som riskerar att inte vara kompletta vid export eftersom ljudet saknas, och rapporterar *Klar med varningar* i stället för att låta hela
 exporten misslyckas.
 
 ---

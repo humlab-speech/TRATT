@@ -93,7 +93,7 @@ download it.
 
 - **Time format**: *Timestamp* (`01:30:02.234`), *Seconds*, or *Samples*. Choose
   Samples if you are going to line the table up against the signal in another tool.
-  Choose Seconds for when you need an easeier way of perform statistics based on sound or part duration.
+  Choose Seconds for when you need an easier way of perform statistics based on sound or part duration.
 - **Divider**: tab, semicolon or comma.
 - **File extension**: `.csv`, `.txt`, `.table` or `.tsv`.
 - **Add header to the table**: a header row with your column titles.

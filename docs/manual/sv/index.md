@@ -18,7 +18,6 @@ själv och, när du ber om en, en språkmodell. Se
 | --- | --- |
 | **Ny här.** Du har en inspelning och vill ha text ur den, idag. | [Snabbstart: din första transkription](quick-start.md) *(ungefär fem minuters läsning, plus tid för modellnedladdning)* |
 | **Transkriberar på riktigt.** Du arbetar i Tratt regelbundet och vill vara snabb och korrekt. | [Så fungerar transkribering](transcribing.md), därefter [Tangentbordsgenvägar](shortcuts.md) |
-| **Har en mapp med inspelningar**, inte en fil. | [Arbetsbänken](workbench.md) |
 | **Slår upp en sak.** | Referenslistan nedan |
 
 ---
@@ -26,17 +25,13 @@ själv och, när du ber om en, en språkmodell. Se
 ## Två arbetssätt
 
 Det mesta i Tratt handlar om en inspelning i taget: du lägger till en fil,
-transkriberar den och exporterar den. Det är vad de två följande avsnitten
-beskriver, och det är där man börjar.
-
-Det finns bara en arbetsyta, och den rymmer hur många inspelningar du vill.
-Lägger du till en fil till hamnar den bredvid den första i en lista längs
+transkriberar den och exporterar den. Lägger du till en fil till hamnar den bredvid den första i en lista längs
 vänsterkanten, med en kö som arbetar sig igenom dem en i taget medan du
-redigerar den som är klar. Ingenting att slå på och ingen annanstans att gå; se
+redigerar den som är klar. Se
 [Arbeta med flera inspelningar](workbench.md).
 
 I sidhuvudet finns också en knapp, **Växla mellan ljust och mörkt läge**, för
-färgtemat. Ditt val stannar på din egen enhet, liksom allt annat Tratt sparar;
+färgtemat. Ditt val stannar på din egen enhet, liksom allt annat Tratt sparar. Se
 se [Hur Tratt använder internet](privacy.md).
 
 ---
@@ -76,7 +71,7 @@ se [Hur Tratt använder internet](privacy.md).
 
 ## Om manualen
 
-Tratt är en avgrening av [OCTRA](https://github.com/IPS-LMU/octra) (Institut für
+Tratt är en vidareutveckling av [OCTRA](https://github.com/IPS-LMU/octra) (Institut für
 Phonetik und Sprachverarbeitung, LMU München), utvecklad för plattformen Visible
 Speech av [Humlab](https://www.umu.se/humlab/) och
 [Språkbanken CLARIN](https://sprakbanken.se/) vid Umeå universitet.

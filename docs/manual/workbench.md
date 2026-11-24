@@ -162,7 +162,7 @@ queue alone.
 
 A failed file says what went wrong (*Could not read the audio*,
 *Could not load the model*, *Ran out of memory*, *Cancelled*, or simply *Failed*).
-**Ran out of memory** means that the batch upploaded is too large for the available storage.
+**Ran out of memory** means that the batch uploaded is too large for the available storage.
 [Capacity](#capacity) below.
 
 ---
