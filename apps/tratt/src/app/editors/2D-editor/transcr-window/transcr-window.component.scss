@@ -43,6 +43,17 @@
   z-index: 120;
 }
 
+// Fixed height, mirrors the lineheight set in the component (200 / 100).
+// Must not be bound to magnifier.settings.lineheight: the viewer derives that
+// from its own height, so binding it back shrinks the viewer on every redraw.
+#magnifier {
+  height: 200px;
+
+  @media (max-height: 760px) {
+    height: 100px;
+  }
+}
+
 tratt-transcr-editor {
   display: flex;
   flex-direction: column;

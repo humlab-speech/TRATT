@@ -65,9 +65,6 @@
           [refreshOnInternChanges]="false"
           [annotation]="annotationStoreService.transcript!"
           (shortcut)="triggerUIAction($event)"
-          [ngStyle]="{
-            height: magnifier?.settings?.lineheight + 'px',
-          }"
           id="magnifier"
         ></tratt-audio-viewer>
         @if (currentSegmentSpeaker) {
