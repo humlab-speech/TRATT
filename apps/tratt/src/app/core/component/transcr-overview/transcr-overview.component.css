@@ -94,3 +94,34 @@
   font-weight: bold;
   margin-right: 4px;
 }
+
+.table .time-column {
+  width: 120px;
+}
+
+.time-cell {
+  vertical-align: middle;
+  white-space: nowrap;
+  padding: 3px 6px;
+  font-variant-numeric: tabular-nums;
+}
+
+.time-nudge {
+  display: inline-flex;
+  flex-direction: column;
+  vertical-align: middle;
+  margin-left: 4px;
+  font-size: 0.7rem;
+  line-height: 1;
+}
+
+.time-nudge .btn-link,
+.time-nudge .btn-link:hover,
+.time-nudge .btn-link:focus,
+.time-nudge .btn-link:active {
+  color: var(--tratt-interactive-text);
+}
+
+.time-nudge .btn-link:disabled {
+  opacity: 0.25;
+}

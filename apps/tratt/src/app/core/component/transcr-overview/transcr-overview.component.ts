@@ -35,6 +35,7 @@ import {
 import { AppStorageService } from '../../shared/service/appstorage.service';
 import { AnnotationStoreService } from '../../store/login-mode/annotation/annotation.store.service';
 import { TranscrEditorComponent, TranscrEditorConfig } from '../transcr-editor';
+import { formatTime, moveBoundary } from './boundary-time';
 import { TranscrEditorComponent as TranscrEditorComponent_1 } from '../transcr-editor/transcr-editor.component';
 import { ValidationPopoverComponent } from '../transcr-editor/validation-popover/validation-popover.component';
 
@@ -564,8 +565,9 @@ export class TranscrOverviewComponent implements OnInit, OnDestroy, OnChanges {
   /**
    * Reconciles the rendered rows with the freshly cloned current level.
    * Verification changes while this modal is open only flip the `verified`
-   * flag, so those rows are patched in place (cheap). A level whose shape
-   * changed (segment added/removed/replaced) triggers a full rebuild.
+   * flag and boundary nudges only move start/end, so those rows are patched
+   * in place (cheap). Added/removed segments or changed text/speaker trigger
+   * a full rebuild.
    */
   private async syncShownSegments(): Promise<void> {
     if (this.showLoading) {
@@ -577,21 +579,35 @@ export class TranscrOverviewComponent implements OnInit, OnDestroy, OnChanges {
       return;
     }
     const items = level.items as TrattAnnotationSegment[];
-    const shapeChanged =
+    const textOf = (s: TrattAnnotationSegment) =>
+      s.getFirstLabelWithoutName('Speaker')?.value ?? '';
+    const speakerOf = (s: TrattAnnotationSegment) =>
+      s.labels.find((l) => l.name === 'Speaker')?.value ?? '';
+    const contentChanged =
       items.length !== this.shownSegments.length ||
       items.some(
-        (segment, i) => this.shownSegments[i]?.end !== segment.time.samples,
+        (segment, i) =>
+          textOf(segment) !== this.shownSegments[i].transcription.text ||
+          speakerOf(segment) !== this.shownSegments[i].speakerId,
       );
-    if (shapeChanged) {
+    if (contentChanged) {
       await this.updateView();
       return;
     }
 
+    // Same text: only timing and/or verification moved, patch rows in place.
     let changed = false;
     const updated = this.shownSegments.map((row, i) => {
-      if (row.verified !== items[i].verified) {
+      const start = i > 0 ? items[i - 1].time.samples : 0;
+      const end = items[i].time.samples;
+      const verified = items[i].verified;
+      if (
+        row.verified !== verified ||
+        row.start !== start ||
+        row.end !== end
+      ) {
         changed = true;
-        return { ...row, verified: items[i].verified };
+        return { ...row, verified, start, end };
       }
       return row;
     });
@@ -600,6 +616,62 @@ export class TranscrOverviewComponent implements OnInit, OnDestroy, OnChanges {
       this.shownSegments = updated;
       this.cd.markForCheck();
     }
+  }
+
+  readonly formatTime = formatTime;
+
+  stateClass(i: number): Record<string, boolean> {
+    const text = this.shownSegments[i].transcription.text;
+    const breakCode = this.annotationStoreService.breakMarker?.code;
+    return {
+      'tratt-state-success': text !== '' && (!breakCode || text !== breakCode),
+      'tratt-state-info': !!breakCode && text === breakCode,
+      'tratt-state-danger': text === '',
+      'bg-highlight': this.playAllState.currentSegment === i,
+    };
+  }
+
+  get sampleRate(): number {
+    return this.audio.current!.sampleRate;
+  }
+
+  /** Boundary `i` is the END of segment `i` (= START of segment `i + 1`). */
+  boundaryEditable(i: number): boolean {
+    const level = this.currentLevel;
+    const linked =
+      level instanceof TrattAnnotationSegmentLevel &&
+      level.linkedToLevelId !== undefined;
+    return !linked && i >= 0 && i < this.shownSegments.length - 1;
+  }
+
+  nudgeBoundary(i: number, deltaMs: number): void {
+    const items = this.annotationStoreService.currentLevel
+      ?.items as TrattAnnotationSegment[] | undefined;
+    if (!items || !this.boundaryEditable(i)) {
+      return;
+    }
+    const delta = Math.round((deltaMs * this.sampleRate) / 1000);
+    this.commitBoundary(i, items[i].time.samples + delta);
+  }
+
+  commitBoundary(i: number, newSamples: number): void {
+    const items = this.annotationStoreService.currentLevel
+      ?.items as TrattAnnotationSegment[] | undefined;
+    if (!items || !this.boundaryEditable(i)) {
+      return;
+    }
+    const clamped = moveBoundary(
+      items.map((segment) => segment.time.samples),
+      i,
+      newSamples,
+      this.sampleRate,
+    );
+    if (clamped === items[i].time.samples) {
+      return;
+    }
+    const updated = items[i].clone();
+    updated.time = new SampleUnit(clamped, this.sampleRate);
+    this.annotationStoreService.changeCurrentItemById(updated.id, updated);
   }
 
   async getShownSegment(

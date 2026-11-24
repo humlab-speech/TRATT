@@ -80,6 +80,8 @@
         <thead id="table-head">
           <tr>
             <th id="table-second-column">{{ 'g.utterance' | transloco }}</th>
+            <th class="time-column">{{ 'g.boundary start' | transloco }}</th>
+            <th class="time-column">{{ 'g.boundary end' | transloco }}</th>
             <th id="table-third-column">{{ 'g.transcription' | transloco }}</th>
             @if (hasSpeakerIds) {
               <th id="table-speaker-column">{{ 'g.speaker' | transloco }}</th>
@@ -150,6 +152,68 @@
                 >
                   # {{ i + 1 | leadingnull: shownSegments.length }}
                 </button>
+              </td>
+              <td
+                class="time-cell"
+                [ngClass]="stateClass(i)"
+                [title]="'g.boundary shared' | transloco"
+              >
+                <span class="time-value">{{
+                  formatTime(segment.start, sampleRate)
+                }}</span>
+                <span class="time-nudge">
+                  <button
+                    type="button"
+                    class="btn btn-link p-0"
+                    [disabled]="!boundaryEditable(i - 1)"
+                    (click)="nudgeBoundary(i - 1, $event.shiftKey ? 100 : 10)"
+                    [title]="'g.boundary later' | transloco"
+                    [attr.aria-label]="'g.boundary later' | transloco"
+                  >
+                    <i class="fa-solid fa-chevron-up"></i>
+                  </button>
+                  <button
+                    type="button"
+                    class="btn btn-link p-0"
+                    [disabled]="!boundaryEditable(i - 1)"
+                    (click)="nudgeBoundary(i - 1, $event.shiftKey ? -100 : -10)"
+                    [title]="'g.boundary earlier' | transloco"
+                    [attr.aria-label]="'g.boundary earlier' | transloco"
+                  >
+                    <i class="fa-solid fa-chevron-down"></i>
+                  </button>
+                </span>
+              </td>
+              <td
+                class="time-cell"
+                [ngClass]="stateClass(i)"
+                [title]="'g.boundary shared' | transloco"
+              >
+                <span class="time-value">{{
+                  formatTime(segment.end, sampleRate)
+                }}</span>
+                <span class="time-nudge">
+                  <button
+                    type="button"
+                    class="btn btn-link p-0"
+                    [disabled]="!boundaryEditable(i)"
+                    (click)="nudgeBoundary(i, $event.shiftKey ? 100 : 10)"
+                    [title]="'g.boundary later' | transloco"
+                    [attr.aria-label]="'g.boundary later' | transloco"
+                  >
+                    <i class="fa-solid fa-chevron-up"></i>
+                  </button>
+                  <button
+                    type="button"
+                    class="btn btn-link p-0"
+                    [disabled]="!boundaryEditable(i)"
+                    (click)="nudgeBoundary(i, $event.shiftKey ? -100 : -10)"
+                    [title]="'g.boundary earlier' | transloco"
+                    [attr.aria-label]="'g.boundary earlier' | transloco"
+                  >
+                    <i class="fa-solid fa-chevron-down"></i>
+                  </button>
+                </span>
               </td>
               @if (
                 textEditor.state === 'active' &&
