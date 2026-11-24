@@ -35,7 +35,7 @@ här avsnittet sällan något.
 
 ### Transkript
 
-Varje enhet som en tabellrad: nummer, text, talare (när transkriptet har talare)
+Varje enhet som en tabellrad: nummer, start- och sluttid, text, talare (när transkriptet har talare)
 och en knapp **Play segment**. ▶ i kolumnrubriken är **Toggle play all**, som
 spelar enheterna i följd.
 
@@ -43,6 +43,14 @@ Tabellen går att redigera. Dubbelklicka på en rad så öppnas textfältet på 
 komplett med markörraden. För en sista genomläsning är det ofta snabbare än att
 stega genom vågformen, eftersom du kan läsa sammanhängande och bara stanna där
 något ser fel ut. Klicka ▶ på den misstänkta raden, rätta, gå vidare.
+
+**Justera gränser.** Kolumnerna **Start** och **Slut** visar varje enhets tider.
+Klicka ▲ eller ▼ för att flytta en tid 10 ms (håll **Skift** för 100 ms). Starten
+på en enhet är slutet på den föregående, så båda cellerna flyttas tillsammans.
+Vila pekaren på en tid en stund så öppnas ett vågformsutsnitt kring gränsen;
+dra den röda linjen för att placera den, eller tryck **Esc** under dragning för
+att avbryta. Första starten och sista slutet är låsta, och gränser kan inte
+flyttas på en nivå som är länkad till en annan.
 
 <a id="verified-transcriptions"></a>
 

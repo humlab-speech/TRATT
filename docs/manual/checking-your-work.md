@@ -35,7 +35,7 @@ rarely tells you anything.
 
 ### Transcript
 
-Every unit as a table row: number, text, speaker (when the transcript has speakers),
+Every unit as a table row: number, start and end time, text, speaker (when the transcript has speakers),
 and a **Play segment** button. The ▶ in the column header is **Toggle play all**,
 which plays the units in sequence.
 
@@ -43,6 +43,14 @@ This table is editable. Double-click a row and the text field opens inline, comp
 the marker toolbar. For a final read-through this is often faster than stepping
 through the waveform, because you can read continuously and only stop where
 something looks wrong. Click ▶ on the suspicious row, fix it, move on.
+
+**Adjusting boundaries.** The **Start** and **End** columns show each unit's times.
+Click ▲ or ▼ to move a time by 10 ms (hold **Shift** for 100 ms). The start of
+one unit is the end of the previous one, so both cells move together. Rest the
+pointer on a time for a moment and a waveform snippet opens around that boundary;
+drag the red line to place it, or press **Esc** while dragging to cancel. The
+first start and the last end are fixed, and boundaries cannot be moved on a
+tier that is linked to another.
 
 <a id="verified-transcriptions"></a>
 
