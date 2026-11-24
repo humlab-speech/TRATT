@@ -34,7 +34,7 @@
 }
 
 #table-second-column {
-  width: 90px;
+  width: 80px;
 }
 
 #table-third-column {
@@ -59,7 +59,7 @@
 .speaker-column {
   text-align: center;
   vertical-align: middle;
-  width: 110px;
+  width: 90px;
   padding: 3px;
 }
 
@@ -96,13 +96,17 @@
 }
 
 .table .time-column {
-  width: 120px;
+  width: 108px;
+}
+
+#table-speaker-column {
+  width: 90px;
 }
 
 .time-cell {
   vertical-align: middle;
   white-space: nowrap;
-  padding: 3px 6px;
+  padding: 3px 4px;
   font-variant-numeric: tabular-nums;
 }
 
