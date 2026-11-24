@@ -1,6 +1,6 @@
 # Ordlista
 
-Tratt:s ordförråd kommer från fonetik och talforskning. Den här sidan översätter
+Tratts ordförråd kommer från fonetik och talforskning. Den här sidan översätter
 det till vanligt språk. Där gränssnittet fortfarande visar engelska anges den
 engelska texten inom parentes.
 
@@ -20,7 +20,7 @@ engelska texten inom parentes.
 | **Markör** | En symbol som står för något som inte är ord: en paus, ett ljud, ett oförståeligt parti. |
 | **Riktlinjer** | Projektets transkriptionskonventioner: stavnings- och skiljeteckensregler, och vad varje markör betyder. **Alt + 9**. |
 | **Annotering** | Hela transkriptet: alla nivåer, enheter, text, markörer och talare. Det AnnotJSON lagrar. |
-| **AnnotJSON** | Tratt:s eget filformat. Den enda exporten som bevarar allt. |
+| **AnnotJSON** | Tratts eget filformat. Den enda exporten som bevarar allt. |
 | **Diarisering** / **talarseparation** | Att räkna ut vem som talade när, utan att veta vem någon är. |
 | **Whisper** | Familjen av taligenkänningsmodeller som Tratt kör lokalt. **KB-Whisper** är den svenskoptimerade varianten från Kungliga biblioteket. |
 | **WebGPU** | En webbläsarfunktion som låter modeller använda ditt grafikkort. Om den finns avgör vilka modeller du kan köra och hur snabbt. |
@@ -37,4 +37,4 @@ engelska texten inom parentes.
 | **Arkiv** | Den `.zip` en export ger när den har mer än en fil: varje inspelningspakets transkription i Tratts eget format, de format du markerat, och ljudet om du tog med det. Den enda exporten som kan läsas in igen i sin helhet. |
 | **Manifest** | `manifest.json` och `manifest.csv` i arkivets rot: en rad per inspelning, med sökvägar och uppgifter. |
 | **Arbetsminne** | Avkodat ljud som hålls i webbläsarfliken. Arbetsbänken mäter det, eftersom det, och inte disklagringen, begränsar hur många inspelningar du kan ha bifogade samtidigt. |
-| **OCTRA** | Ursprungsprojektet som Tratt är avgrenat från, vid LMU München. |
+| **OCTRA** | Ursprungsprojektet som Tratt har förgrenats från, vid LMU München. |

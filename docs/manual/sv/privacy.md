@@ -75,7 +75,7 @@ se [Arkivet, och hur du tar vid där du slutade](exporting.md#exporting-an-archi
 Gör det på en delad dator när du är klar.
 
 Den dolda underhållssidan gör samma sak och lite till: lägg till `/help-tools` i
-Tratt:s adress (till exempel
+Tratts adress (till exempel
 `https://tratt.visp.humlab.umu.se/help-tools`) och använd **Clear all Storage
 Data**. Den sidan kan också ta en zip-säkerhetskopia av dina lokala Tratt-data
 och återställa en; se [Felsökning](troubleshooting.md#the-maintenance-page).

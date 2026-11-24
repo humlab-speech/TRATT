@@ -90,7 +90,7 @@ Tratt följer tre regler som man bör vara införstådd med:
 transkriptionskonventionerna för projektet: stavnings- och skiljeteckensregler,
 och betydelsen av varje markör med exempel.
 
-Tratt:s standardriktlinjer är medvetet tunna (korrekt stavning, inga
+Tratts standardriktlinjer är medvetet tunna (korrekt stavning, inga
 skiljetecken) eftersom de är tänkta att ersättas. Har ditt projekt egna
 konventioner hör de hemma i riktlinjefilen, så att de är ett tangenttryck bort för
 alla som arbetar med materialet, i stället för i ett dokument som ingen öppnar. Tratt har just nu inte 

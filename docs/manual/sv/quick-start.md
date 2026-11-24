@@ -11,7 +11,7 @@ tillkommer tid för nedladdning och bearbetning, se steg 3.
 
 Du landar på en sida med rubriken **Gör tal till text**.
 
-![Tratt:s startsida](../../assets/visp_tratt_main.png)
+![Tratts startsida](../../assets/visp_tratt_main.png)
 
 Använd **Chrome**, **Edge**, **Firefox** eller **Opera**. Safari fungerar för
 manuell transkribering men kan inte köra automatisk transkription. Se

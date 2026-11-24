@@ -9,7 +9,7 @@ The extension is not in Tratt's list. Convert to `.opus`, `.flac`, `.ogg`, `.wav
 See [supported formats](loading-media.md#supported-file-formats).
 
 **"File exceeds the maximum allowed size of 3000 MB." or an invalid-size error**
-The Traat application is subject to two limits due to how in-browser applications work. First, there is a global ceiling in how much storage the application can use. Second, there are per-file limitations. If you are having trouble loading in a recording, convert it
+The Tratt application is subject to two limits due to how in-browser applications work. First, there is a global ceiling in how much storage the application can use. Second, there are per-file limitations. If you are having trouble loading in a recording, convert it
 to `.opus`, `.flac`, `.ogg`, or `.mp3`, or split the recording into two.
 
 **"Transcript filename does not match the audio filename."**
