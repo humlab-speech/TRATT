@@ -409,6 +409,13 @@ export class TranscrOverviewComponent implements OnInit, OnDestroy, OnChanges {
       );
       await Promise.race([updatePromise, timeoutPromise]);
 
+      // A boundary nudge may have landed while the save awaited: keep its time.
+      const live = this.annotationStoreService.currentLevel?.items.find(
+        (item) => item.id === segment.id,
+      ) as TrattAnnotationSegment | undefined;
+      if (live) {
+        segment.time = live.time;
+      }
       this.annotationStoreService.changeCurrentItemById(segment.id, segment);
 
       const startSample =
@@ -594,6 +601,7 @@ export class TranscrOverviewComponent implements OnInit, OnDestroy, OnChanges {
           speakerOf(segment) !== this.shownSegments[i].speakerId,
       );
     if (contentChanged) {
+      this.closePopover();
       await this.updateView();
       return;
     }
@@ -632,6 +640,7 @@ export class TranscrOverviewComponent implements OnInit, OnDestroy, OnChanges {
     }
     const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
     this.popoverTimer = setTimeout(() => {
+      if (i >= this.shownSegments.length - 1) return;
       const below = rect.bottom + 150 < window.innerHeight;
       this.boundaryPopover = {
         index: i,
