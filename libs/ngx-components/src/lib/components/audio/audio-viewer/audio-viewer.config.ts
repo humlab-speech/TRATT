@@ -91,6 +91,8 @@ export class AudioviewerConfig {
     readonly: boolean;
     width: number;
     color: string;
+    opacity?: number;
+    hitStrokeWidth?: number;
   } = {
     enabled: true,
     readonly: false,

@@ -380,3 +380,49 @@ describe('grabbableBoundaryIds', () => {
     expect([...ids].sort()).toEqual([1, 2]);
   });
 });
+
+describe('AudioViewerRendererService.drawNewBoundaries styling', () => {
+  function draw(boundaries: Record<string, unknown>) {
+    const service = new AudioViewerRendererService();
+    service.initialize(
+      500,
+      200,
+      document.createElement('div'),
+      undefined,
+      noopHandlers,
+      noopOnWheel,
+    );
+    service.settings = {
+      ...service.settings,
+      lineheight: 80,
+      boundaries: { ...service.settings.boundaries, ...boundaries },
+    };
+    service.drawNewBoundaries([{ x: 10, y: 0, num: 0, id: 1 }], {
+      getAnnotation: () => undefined,
+      getCurrentLevel: () => undefined,
+      onBoundaryMouseDown: () => undefined,
+      onSpeakerLabelChanged: () => undefined,
+    } as any);
+    return service.layers!.boundaries.findOne('#boundary_1') as any;
+  }
+
+  it('keeps today\'s look by default', () => {
+    const line = draw({});
+    expect(line.opacity()).toBe(1);
+    expect(line.strokeWidth()).toBe(3);
+  });
+
+  it('draws a thin translucent line that stays grabbable, full weight on hover', () => {
+    const line = draw({ width: 1, opacity: 0.5, hitStrokeWidth: 8 });
+    expect(line.opacity()).toBe(0.5);
+    expect(line.strokeWidth()).toBe(1);
+    expect(line.hitStrokeWidth()).toBe(8);
+
+    line.fire('mouseenter');
+    expect(line.opacity()).toBe(1);
+    expect(line.strokeWidth()).toBe(3);
+    line.fire('mouseleave');
+    expect(line.opacity()).toBe(0.5);
+    expect(line.strokeWidth()).toBe(1);
+  });
+});

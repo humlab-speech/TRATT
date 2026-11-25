@@ -105,6 +105,10 @@ export interface AudioViewerRenderSettings {
     readonly: boolean;
     width: number;
     color: string;
+    /** 0..1, default 1. Lines return to full weight while hovered. */
+    opacity?: number;
+    /** Konva hit stroke, so a thin line stays as grabbable as a thick one. */
+    hitStrokeWidth?: number;
   };
   grid: {
     color: string;
@@ -1697,9 +1701,21 @@ export class AudioViewerRendererService {
           id: `boundary_${boundary.id}`,
           strokeWidth: this.settings.boundaries.width,
           stroke: this.settings.boundaries.color,
+          opacity: this.settings.boundaries.opacity ?? 1,
+          hitStrokeWidth: this.settings.boundaries.hitStrokeWidth,
           points: [boundary.x, boundary.y, boundary.x, boundary.y + h],
           transformsEnabled: 'position',
         });
+        const restWidth = this.settings.boundaries.width;
+        const restOpacity = this.settings.boundaries.opacity ?? 1;
+        const emphasise = (on: boolean) => {
+          // a subtle line shows its full weight under the pointer
+          if (restOpacity < 1 || restWidth < 3) {
+            boundaryObj.opacity(on ? 1 : restOpacity);
+            boundaryObj.strokeWidth(on ? Math.max(restWidth, 3) : restWidth);
+            boundaryObj.getLayer()?.batchDraw();
+          }
+        };
 
         boundaryObj.on('mousedown', () => {
           if (!this.settings.boundaries.readonly) {
@@ -1707,11 +1723,13 @@ export class AudioViewerRendererService {
           }
         });
         boundaryObj.on('mouseenter', () => {
+          emphasise(true);
           if (this.konvaContainer !== undefined) {
             this.renderer?.setStyle(this.konvaContainer, 'cursor', 'move');
           }
         });
         boundaryObj.on('mouseleave', () => {
+          emphasise(false);
           if (this.konvaContainer !== undefined) {
             this.renderer?.setStyle(this.konvaContainer, 'cursor', 'auto');
           }
