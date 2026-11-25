@@ -174,3 +174,29 @@ describe('LinearEditorComponent.flushPendingEdits disarms the typing debounce', 
     expect(cancelTyping).toHaveBeenCalledTimes(1);
   });
 });
+
+describe('LinearEditorComponent boundary prominence', () => {
+  function setup(prominent: boolean) {
+    const component = createComponent({ items: [] });
+    const top = { boundaries: {} as any };
+    const lower = { boundaries: {} as any };
+    (component as any).signalDisplayTop = { settings: top };
+    (component as any).magnifierSettings = lower;
+    component.prominentBoundaries = prominent;
+    (component as any).applyBoundaryStyle();
+    return { top: top.boundaries, lower: lower.boundaries };
+  }
+
+  it('draws thin translucent boundaries by default', () => {
+    const { top, lower } = setup(false);
+    expect([top.width, top.opacity]).toEqual([1, 0.5]);
+    expect([lower.width, lower.opacity]).toEqual([2, 0.75]);
+    expect(top.hitStrokeWidth).toBe(8);
+  });
+
+  it('restores the heavy lines when prominent boundaries are on', () => {
+    const { top, lower } = setup(true);
+    expect([top.width, top.opacity]).toEqual([3, 1]);
+    expect([lower.width, lower.opacity]).toEqual([3, 1]);
+  });
+});

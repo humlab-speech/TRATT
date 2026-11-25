@@ -34,6 +34,14 @@
   [volume]="appStorage.audioVolume"
 >
 </tratt-audio-navigation>
+<label class="boundary-toggle">
+  <input
+    type="checkbox"
+    [checked]="prominentBoundaries"
+    (change)="setProminentBoundaries($any($event.target).checked)"
+  />
+  {{ 'signal-gui.prominent boundaries' | transloco }}
+</label>
 <div id="viewer">
   <tratt-audio-viewer
     #signalDisplayTop

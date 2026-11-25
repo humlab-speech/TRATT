@@ -56,6 +56,16 @@ import { AnnotationStoreService } from '../../core/store/login-mode/annotation/a
 import { isDrag, MergeOffer, mergeOfferFor } from '../merge-offer';
 import { TRATTEditor, TrattEditorRequirements } from '../tratt-editor';
 
+const PROMINENT_BOUNDARIES_KEY = 'tratt.prominentBoundaries';
+
+function readProminentBoundaries(): boolean {
+  try {
+    return localStorage.getItem(PROMINENT_BOUNDARIES_KEY) === 'true';
+  } catch {
+    return false;
+  }
+}
+
 @Component({
   selector: 'tratt-signal-gui',
   templateUrl: './linear-editor.component.html',
@@ -396,6 +406,43 @@ export class LinearEditorComponent
 
   public transcript = '';
 
+  /** Thin, translucent boundaries by default; this restores the heavy lines. */
+  prominentBoundaries = readProminentBoundaries();
+
+  setProminentBoundaries(value: boolean) {
+    this.prominentBoundaries = value;
+    try {
+      localStorage.setItem(PROMINENT_BOUNDARIES_KEY, String(value));
+    } catch {
+      // storage unavailable: the choice just lasts for this session
+    }
+    this.applyBoundaryStyle();
+    this.signalDisplayTop.redraw();
+    this.signalDisplayDown?.redraw();
+  }
+
+  private applyBoundaryStyle() {
+    const styles = this.prominentBoundaries
+      ? [
+          [this.signalDisplayTop.settings, 3, 1],
+          [this.magnifierSettings, 3, 1],
+        ]
+      : [
+          [this.signalDisplayTop.settings, 1, 0.5],
+          [this.magnifierSettings, 2, 0.75],
+        ];
+    for (const [settings, width, opacity] of styles as [
+      AudioviewerConfig,
+      number,
+      number,
+    ][]) {
+      settings.boundaries.width = width;
+      settings.boundaries.opacity = opacity;
+      // keeps a thin line as easy to grab as the thick one
+      settings.boundaries.hitStrokeWidth = 8;
+    }
+  }
+
   public get app_settings(): any {
     return this.settingsService.appSettings;
   }
@@ -524,6 +571,7 @@ export class LinearEditorComponent
     this.magnifierSettings.showTimePerLine = true;
     this.magnifierSettings.showTranscripts = true;
     this.magnifierSettings.margin.top = 5;
+    this.applyBoundaryStyle();
 
     // set settings for mini magnifier
     this._miniMagnifierSettings = new AudioviewerConfig();

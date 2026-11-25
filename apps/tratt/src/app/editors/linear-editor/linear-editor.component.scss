@@ -33,3 +33,11 @@ tratt-transcr-editor {
   width: 100% !important;
   height: 100% !important;
 }
+
+.boundary-toggle {
+  align-self: flex-end;
+  font-size: 0.8rem;
+  color: var(--tratt-text-muted);
+  padding: 2px 8px;
+  cursor: pointer;
+}

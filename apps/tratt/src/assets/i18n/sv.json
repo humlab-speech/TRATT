@@ -707,7 +707,8 @@
   },
   "signal-gui": {
     "segment enter text": "Välj en transkriptionsenhet genom att hovra över den och trycka på {{value}}-tangenten.",
-    "selection text": "Välj en del av signalen med musen: Klicka och håll ned vänster musknapp och håll den medan du flyttar markören till slutpositionen."
+    "selection text": "Välj en del av signalen med musen: Klicka och håll ned vänster musknapp och håll den medan du flyttar markören till slutpositionen.",
+    "prominent boundaries": "Tydliga enhetsgränser"
   },
   "signup": {
     "data correctness": "Ja, de data jag fyllde i formuläret är korrekta.",

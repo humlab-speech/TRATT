@@ -771,7 +771,8 @@
   },
   "signal-gui": {
     "segment enter text": "Please select a transcription unit by hovering over it and pressing the {{value}} key.",
-    "selection text": "Please select a part of signal using the mouse: Click and hold the left mouse button and hold it while moving the cursor to the end position."
+    "selection text": "Please select a part of signal using the mouse: Click and hold the left mouse button and hold it while moving the cursor to the end position.",
+    "prominent boundaries": "Prominent unit boundaries"
   },
   "signup": {
     "data correctness": "Yes, the data I filled in the form is correct.",
