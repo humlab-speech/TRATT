@@ -531,7 +531,7 @@ export class TrattDatabase extends Dexie {
   private populateModeOptions(mode: LoginMode, bundleId?: string) {
     const modeOptions: IIDBModeOptions = {
       currentEditor: '2D-Editor',
-      logging: true,
+      logging: false,
     };
 
     return this.saveModeData(mode, 'options', modeOptions, true, bundleId);
@@ -865,5 +865,5 @@ export type IDBApplicationOptionName =
   | 'showFeedbackNotice';
 
 export const DefaultModeOptions: IIDBModeOptions = {
-  logging: true,
+  logging: false,
 };
