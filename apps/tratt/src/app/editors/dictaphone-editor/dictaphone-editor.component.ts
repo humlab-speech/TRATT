@@ -28,6 +28,7 @@ import {
 import { HotkeysEvent } from 'hotkeys-js';
 import { AudioNavigationComponent } from '../../core/component/audio-navigation';
 import { AudioNavigationComponent as AudioNavigationComponent_1 } from '../../core/component/audio-navigation/audio-navigation.component';
+import { MergePopoverComponent } from '../../core/component/merge-popover';
 import { TranscrEditorComponent as TranscrEditorComponent_1 } from '../../core/component/transcr-editor/transcr-editor.component';
 import {
   AudioService,
@@ -39,6 +40,7 @@ import { ShortcutService } from '../../core/shared/service/shortcut.service';
 import { AnnotationStoreService } from '../../core/store/login-mode/annotation/annotation.store.service';
 import { TRATTEditor, TrattEditorRequirements } from '../tratt-editor';
 import { EditedSegment, mergeEditedSegments } from './merge-edited-segments';
+import { selectedBoundarySamples } from './selected-boundaries';
 
 @Component({
   selector: 'tratt-audioplayer-gui',
@@ -48,6 +50,7 @@ import { EditedSegment, mergeEditedSegments } from './merge-edited-segments';
     AudioNavigationComponent_1,
     TrattComponentsModule,
     TranscrEditorComponent_1,
+    MergePopoverComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -405,6 +408,54 @@ export class DictaphoneEditorComponent
       undefined,
       'texteditor_toolbar',
     );
+  }
+
+  /** Popup offered after marking text across 2+ units. */
+  mergeOffer: {
+    x: number;
+    y: number;
+    samples: number[];
+  } | null = null;
+
+  onEditorMouseUp(event: MouseEvent) {
+    setTimeout(() => {
+      const wysiwyg = this.editor.wysiwyg;
+      const range = window.getSelection()?.rangeCount
+        ? window.getSelection()!.getRangeAt(0)
+        : undefined;
+      const samples =
+        wysiwyg && range && this.annotationStoreService.canMergeCurrentLevel()
+          ? selectedBoundarySamples(wysiwyg, range)
+          : [];
+      this.mergeOffer = samples.length
+        ? { x: event.clientX, y: event.clientY, samples }
+        : null;
+      this.cdr.markForCheck();
+    });
+  }
+
+  confirmMerge() {
+    const offer = this.mergeOffer;
+    this.mergeOffer = null;
+    if (offer) {
+      // flush typed text so every marked boundary exists in the store
+      this.saveTranscript();
+      const items = this.annotationStoreService.currentLevel?.items ?? [];
+      const indexOf = (samples: number) =>
+        items.findIndex((i) => (i as any).time.samples === samples);
+      const from = indexOf(offer.samples[0]);
+      const last = indexOf(offer.samples[offer.samples.length - 1]);
+      if (from > -1 && last > -1) {
+        this.annotationStoreService.mergeCurrentLevelItems(from, last + 1);
+        this.loadEditor();
+      }
+    }
+    this.cdr.markForCheck();
+  }
+
+  dismissMerge() {
+    this.mergeOffer = null;
+    this.cdr.markForCheck();
   }
 
   saveTranscript() {

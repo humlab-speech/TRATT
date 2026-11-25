@@ -14,6 +14,7 @@
   (boundaryclicked)="onBoundaryClicked($event)"
   (boundaryinserted)="onBoundaryInserted()"
   (keyup)="onKeyUp()"
+  (mouseup)="onEditorMouseUp($event)"
   (markerClick)="onMarkerClick($event)"
   (markerInsert)="onMarkerInsert($event)"
   (typing)="afterTyping($event)"
@@ -32,3 +33,12 @@
   (redoUndo)="onTranscrEditorRedoUndo($event)"
 >
 </tratt-transcr-editor>
+@if (mergeOffer; as offer) {
+  <tratt-merge-popover
+    [x]="offer.x"
+    [y]="offer.y"
+    [count]="offer.samples.length + 1"
+    (merge)="confirmMerge()"
+    (dismiss)="dismissMerge()"
+  ></tratt-merge-popover>
+}
