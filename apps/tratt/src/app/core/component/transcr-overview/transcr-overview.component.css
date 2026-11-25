@@ -132,6 +132,22 @@
 
 .segment-number {
   user-select: none;
+  white-space: nowrap;
+}
+
+.mark-toggle {
+  margin-right: 4px;
+}
+
+.merge-bar {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  padding: 6px 0;
+  background: var(--bs-body-bg, #fff);
 }
 
 /* neutral darkening keeps the row's state colour (green/blue/red) readable */

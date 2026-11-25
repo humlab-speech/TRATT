@@ -74,6 +74,17 @@
       <i class="fa-solid fa-spinner fa-spin" style="font-size: 2rem"></i>
     </div>
   </div>
+  @if (marked && marked.to > marked.from) {
+    <div class="merge-bar">
+      <button type="button" class="btn btn-sm btn-primary" (click)="confirmMerge()">
+        <i class="fa-solid fa-compress me-1"></i>
+        {{ 'g.merge units' | transloco: { count: marked.to - marked.from + 1 } }}
+      </button>
+      <button type="button" class="btn btn-sm btn-link" (click)="clearMarks()">
+        {{ 'g.clear selection' | transloco }}
+      </button>
+    </div>
+  }
   @if (shownSegments.length > 0) {
     <div class="table-responsive" [hidden]="!showTranscriptionTable">
       <table id="transcription-table" class="table table-bordered">
@@ -125,8 +136,6 @@
             >
               <td
                 class="segment-number"
-                (pointerdown)="onNumberPointerDown(i, $event)"
-                (pointerenter)="onNumberPointerEnter(i)"
                 [ngClass]="{
                   'tratt-state-success':
                     segment.transcription.text !== '' &&
@@ -148,12 +157,30 @@
                     style="margin-right: 4px"
                   ></i>
                 }
+                @if (canMerge) {
+                  <button
+                    type="button"
+                    class="btn btn-link p-0 mark-toggle"
+                    role="checkbox"
+                    [attr.aria-checked]="isMarked(i)"
+                    [title]="'g.mark for merge' | transloco"
+                    (click)="toggleMark(i, $event)"
+                  >
+                    <i
+                      [class]="
+                        isMarked(i)
+                          ? 'fa-solid fa-square-check'
+                          : 'fa-regular fa-square'
+                      "
+                    ></i>
+                  </button>
+                }
                 <button
                   type="button"
                   class="btn btn-link link p-0"
                   (click)="onSegmentClicked(i)"
                 >
-                  # {{ i + 1 | leadingnull: shownSegments.length }}
+                  #&thinsp;{{ i + 1 | leadingnull: shownSegments.length }}
                 </button>
               </td>
               <td
@@ -392,13 +419,4 @@
       ></tratt-boundary-popover>
     }
   }
-}
-@if (mergeOffer; as offer) {
-  <tratt-merge-popover
-    [x]="offer.x"
-    [y]="offer.y"
-    [count]="offer.to - offer.from + 1"
-    (merge)="confirmMerge()"
-    (dismiss)="dismissMerge()"
-  ></tratt-merge-popover>
 }

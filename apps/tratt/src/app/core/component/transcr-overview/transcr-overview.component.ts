@@ -34,7 +34,6 @@ import {
 } from '../../shared/service';
 import { AppStorageService } from '../../shared/service/appstorage.service';
 import { AnnotationStoreService } from '../../store/login-mode/annotation/annotation.store.service';
-import { MergePopoverComponent } from '../merge-popover';
 import { TranscrEditorComponent, TranscrEditorConfig } from '../transcr-editor';
 import { TranscrEditorComponent as TranscrEditorComponent_1 } from '../transcr-editor/transcr-editor.component';
 import { ValidationPopoverComponent } from '../transcr-editor/validation-popover/validation-popover.component';
@@ -52,7 +51,6 @@ import { formatTime, moveBoundary } from './boundary-time';
     TranscrEditorComponent_1,
     ValidationPopoverComponent,
     BoundaryPopoverComponent,
-    MergePopoverComponent,
     TrattUtilitiesModule,
     TranslocoPipe,
   ],
@@ -454,80 +452,57 @@ export class TranscrOverviewComponent implements OnInit, OnDestroy, OnChanges {
     this.cd.detectChanges();
   }
 
-  /** Rows marked by dragging/shift-clicking the `#` cells (merge candidates). */
-  marked: { anchor: number; head: number } | null = null;
-  mergeOffer: { x: number; y: number; from: number; to: number } | null = null;
-  private markDragging = false;
+  /** Adjacent rows ticked in the first column (merge candidates). */
+  marked: { from: number; to: number } | null = null;
 
   isMarked(i: number): boolean {
-    return (
-      !!this.marked &&
-      i >= Math.min(this.marked.anchor, this.marked.head) &&
-      i <= Math.max(this.marked.anchor, this.marked.head)
-    );
+    return !!this.marked && i >= this.marked.from && i <= this.marked.to;
   }
 
-  onNumberPointerDown(i: number, event: PointerEvent) {
-    if (
-      event.button !== 0 ||
-      !this.annotationStoreService.canMergeCurrentLevel()
-    ) {
-      return;
-    }
-    this.markDragging = true;
-    this.mergeOffer = null;
-    this.marked =
-      event.shiftKey && this.marked
-        ? { anchor: this.marked.anchor, head: i }
-        : { anchor: i, head: i };
-    this.cd.markForCheck();
+  get canMerge(): boolean {
+    return this.annotationStoreService.canMergeCurrentLevel();
   }
 
-  onNumberPointerEnter(i: number) {
-    if (this.markDragging && this.marked) {
-      this.marked = { anchor: this.marked.anchor, head: i };
-      this.cd.markForCheck();
-    }
-  }
-
-  @HostListener('document:pointerup', ['$event'])
-  onMarkPointerUp(event: PointerEvent) {
-    if (!this.markDragging || !this.marked) {
-      return;
-    }
-    this.markDragging = false;
-    const from = Math.min(this.marked.anchor, this.marked.head);
-    const to = Math.max(this.marked.anchor, this.marked.head);
-    if (to > from) {
-      this.mergeOffer = { x: event.clientX, y: event.clientY, from, to };
+  /**
+   * Tick/untick row `i`. The ticked rows always stay one adjacent block:
+   * ticking next to the block extends it, ticking its end row shrinks it,
+   * shift-click fills the gap, anything else starts a new block.
+   */
+  toggleMark(i: number, event: MouseEvent) {
+    const m = this.marked;
+    if (!m) {
+      this.marked = { from: i, to: i };
+    } else if (event.shiftKey) {
+      this.marked = { from: Math.min(m.from, i), to: Math.max(m.to, i) };
+    } else if (i === m.from - 1) {
+      this.marked = { from: i, to: m.to };
+    } else if (i === m.to + 1) {
+      this.marked = { from: m.from, to: i };
+    } else if (m.from === m.to && i === m.from) {
+      this.marked = null;
+    } else if (i === m.from) {
+      this.marked = { from: m.from + 1, to: m.to };
+    } else if (i === m.to) {
+      this.marked = { from: m.from, to: m.to - 1 };
     } else {
-      this.marked = null; // plain click: leave it to the # button
+      this.marked = { from: i, to: i };
     }
     this.cd.markForCheck();
   }
 
-  @HostListener('document:pointercancel')
-  onMarkPointerCancel() {
-    this.markDragging = false;
+  clearMarks() {
     this.marked = null;
     this.cd.markForCheck();
   }
 
   confirmMerge() {
-    const offer = this.mergeOffer;
-    this.dismissMerge();
-    if (offer) {
-      this.closePopover();
-      this.annotationStoreService.mergeCurrentLevelItems(offer.from, offer.to);
-    }
-  }
-
-  dismissMerge() {
-    this.mergeOffer = null;
-    if (!this.markDragging) {
-      this.marked = null;
-    }
+    const m = this.marked;
+    this.marked = null;
     this.cd.markForCheck();
+    if (m && m.to > m.from) {
+      this.closePopover();
+      this.annotationStoreService.mergeCurrentLevelItems(m.from, m.to);
+    }
   }
 
   public onSegmentClicked(segnumber: number) {
@@ -680,7 +655,9 @@ export class TranscrOverviewComponent implements OnInit, OnDestroy, OnChanges {
       );
     if (contentChanged) {
       this.closePopover();
-      await this.updateView();
+      if (!(await this.spliceChangedRows(items, textOf, speakerOf))) {
+        await this.updateView();
+      }
       return;
     }
 
@@ -701,6 +678,62 @@ export class TranscrOverviewComponent implements OnInit, OnDestroy, OnChanges {
       this.shownSegments = updated;
       this.cd.markForCheck();
     }
+  }
+
+  /**
+   * A merge replaces one contiguous block of rows. Rebuild only that block
+   * instead of all rows (842 worker jobs + full re-render froze the UI).
+   * Returns false when the change is not a small contiguous replacement.
+   */
+  private async spliceChangedRows(
+    items: TrattAnnotationSegment[],
+    textOf: (s: TrattAnnotationSegment) => string,
+    speakerOf: (s: TrattAnnotationSegment) => string,
+  ): Promise<boolean> {
+    const shown = this.shownSegments;
+    const same = (a: TrattAnnotationSegment, b: (typeof shown)[number]) =>
+      textOf(a) === b.transcription.text && speakerOf(a) === b.speakerId;
+    const min = Math.min(items.length, shown.length);
+    let p = 0;
+    while (p < min && same(items[p], shown[p])) p++;
+    let q = 0;
+    while (
+      q < min - p &&
+      same(items[items.length - 1 - q], shown[shown.length - 1 - q])
+    ) {
+      q++;
+    }
+    const newCount = items.length - p - q;
+    if (newCount > 5 || shown.length - p - q > 5000) {
+      return false;
+    }
+    const rows = await Promise.all(
+      items
+        .slice(p, p + newCount)
+        .map((seg, k) =>
+          this.getShownSegment(
+            p + k > 0 ? items[p + k - 1].time.samples : 0,
+            seg.time.samples,
+            p + k,
+            [],
+            textOf(seg),
+            speakerOf(seg),
+            seg.verified,
+          ),
+        ),
+    );
+    this.shownSegments = [
+      ...shown.slice(0, p),
+      ...rows,
+      ...shown.slice(shown.length - q),
+    ];
+    this.playStateSegments = items.map(() => ({
+      state: 'stopped' as const,
+      icon: 'fa-solid fa-play' as const,
+    }));
+    this.annotationStoreService.analyse();
+    this.cd.markForCheck();
+    return true;
   }
 
   readonly formatTime = formatTime;

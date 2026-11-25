@@ -348,6 +348,8 @@
     "boundary earlier": "Earlier (Shift: 100 ms)",
     "boundary later": "Later (Shift: 100 ms)",
     "boundary shared": "The start of one utterance is the end of the previous one; both move together.",
+    "mark for merge": "Mark for merge",
+    "clear selection": "Clear selection",
     "merge units": "Merge {{count}} units",
     "boundary locked": "This boundary cannot be moved here.",
     "statistics": "Statistics",
