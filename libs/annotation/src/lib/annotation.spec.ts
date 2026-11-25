@@ -344,7 +344,9 @@ describe('TrattAnnotation.mergeItemsInCurrentLevel', () => {
     expect(source.items.map((i) => i.time.samples)).toEqual([100, 300, 400]);
     expect(source.items[1].getLabel('tier')?.value).toBe('b c');
     expect(linked.items).toHaveLength(3);
-    expect(linked.items[1].getFirstLabelWithoutName('Speaker')?.value).toBe('B C');
+    expect(linked.items[1].getFirstLabelWithoutName('Speaker')?.value).toBe(
+      'B C',
+    );
   });
 
   it('does nothing when the current level is linked', () => {

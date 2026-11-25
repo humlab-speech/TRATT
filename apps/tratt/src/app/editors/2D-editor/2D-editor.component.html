@@ -38,6 +38,7 @@
     <tratt-audio-viewer
       #viewer
       (mousecursorchange)="onMouseOver($event)"
+      (mouseup)="onViewerMouseUp($event, viewer)"
       (segmententer)="onSegmentEntered($event)"
       (shortcut)="onShortCutViewerTriggered($event)"
       [audioChunk]="audioChunkLines"
@@ -52,3 +53,12 @@
     </tratt-audio-viewer>
   </div>
 </div>
+@if (mergeOffer; as offer) {
+  <tratt-merge-popover
+    [x]="offer.x"
+    [y]="offer.y"
+    [count]="offer.to - offer.from + 1"
+    (merge)="confirmMerge()"
+    (dismiss)="dismissMerge()"
+  ></tratt-merge-popover>
+}

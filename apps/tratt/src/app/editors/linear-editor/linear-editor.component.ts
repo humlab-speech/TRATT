@@ -40,6 +40,7 @@ import { HotkeysEvent } from 'hotkeys-js';
 import { timer } from 'rxjs';
 import { AudioNavigationComponent } from '../../core/component/audio-navigation';
 import { AudioNavigationComponent as AudioNavigationComponent_1 } from '../../core/component/audio-navigation/audio-navigation.component';
+import { MergePopoverComponent } from '../../core/component/merge-popover';
 import { TranscrEditorComponent as TranscrEditorComponent_1 } from '../../core/component/transcr-editor/transcr-editor.component';
 import { SampleInterval } from '../../core/obj/Settings/logging';
 import {
@@ -52,6 +53,7 @@ import {
 import { AppStorageService } from '../../core/shared/service/appstorage.service';
 import { ShortcutService } from '../../core/shared/service/shortcut.service';
 import { AnnotationStoreService } from '../../core/store/login-mode/annotation/annotation.store.service';
+import { MergeOffer, mergeOfferFor } from '../merge-offer';
 import { TRATTEditor, TrattEditorRequirements } from '../tratt-editor';
 
 @Component({
@@ -59,6 +61,7 @@ import { TRATTEditor, TrattEditorRequirements } from '../tratt-editor';
   templateUrl: './linear-editor.component.html',
   styleUrls: ['./linear-editor.component.scss'],
   imports: [
+    MergePopoverComponent,
     TrattComponentsModule,
     NgStyle,
     AudioNavigationComponent_1,
@@ -1135,6 +1138,39 @@ export class LinearEditorComponent
     keyGroup: 'signaldisplay_top' | 'signaldisplay_down',
   ) {
     // this.keyMap.shortcutsManager.enableShortcutGroup(keyGroup);
+  }
+
+  mergeOffer: MergeOffer | null = null;
+
+  /** After a drag in a viewer: offer to merge when it covers 2+ units. */
+  onViewerMouseUp(event: MouseEvent, viewer: AudioViewerComponent) {
+    setTimeout(() => {
+      const level = this.annotationStoreService.currentLevel;
+      this.mergeOffer =
+        (this.annotationStoreService.canMergeCurrentLevel() &&
+          level &&
+          mergeOfferFor(
+            event,
+            level.items.map((i) => (i as { time: SampleUnit }).time.samples),
+            viewer.av.drawnSelection,
+          )) ||
+        null;
+      this.cd.markForCheck();
+    });
+  }
+
+  confirmMerge() {
+    const offer = this.mergeOffer;
+    this.mergeOffer = null;
+    if (offer) {
+      this.annotationStoreService.mergeCurrentLevelItems(offer.from, offer.to);
+    }
+    this.cd.markForCheck();
+  }
+
+  dismissMerge() {
+    this.mergeOffer = null;
+    this.cd.markForCheck();
   }
 
   onEntriesChange(annotation: TrattAnnotation<TrattAnnotationSegment>) {

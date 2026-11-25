@@ -40,6 +40,7 @@
     [name]="'top magnifier'"
     (mousecursorchange)="onMouseOver($event)"
     (mousedown)="onViewerMouseDown()"
+    (mouseup)="onViewerMouseUp($event, signalDisplayTop)"
     (mouseenter)="
       minimagnifier.isHidden = false;
       onAudioViewerMouseEnter('signaldisplay_top')
@@ -69,6 +70,7 @@
     (alert)="onAlertTriggered($event)"
     (click)="onMagnifierClick()"
     (mousedown)="onViewerMouseDown()"
+    (mouseup)="onViewerMouseUp($event, signalDisplayDown)"
     (segmententer)="onMagnifierSegmentEnter($event)"
     (mouseleave)="onAudioViewerMouseLeave('signaldisplay_down')"
     (mouseenter)="onAudioViewerMouseEnter('signaldisplay_down')"
@@ -120,3 +122,12 @@
   [settings]="editorSettings"
 >
 </tratt-transcr-editor>
+@if (mergeOffer; as offer) {
+  <tratt-merge-popover
+    [x]="offer.x"
+    [y]="offer.y"
+    [count]="offer.to - offer.from + 1"
+    (merge)="confirmMerge()"
+    (dismiss)="dismissMerge()"
+  ></tratt-merge-popover>
+}

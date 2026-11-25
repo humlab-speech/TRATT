@@ -34,6 +34,7 @@ import {
 import { HotkeysEvent } from 'hotkeys-js';
 import { interval, Subscription, timer } from 'rxjs';
 import { AudioNavigationComponent } from '../../core/component/audio-navigation';
+import { MergePopoverComponent } from '../../core/component/merge-popover';
 import { NavbarService } from '../../core/component/navbar/navbar.service';
 import { TrattModalService } from '../../core/modals/tratt-modal.service';
 import {
@@ -46,6 +47,7 @@ import {
 import { AppStorageService } from '../../core/shared/service/appstorage.service';
 import { ShortcutService } from '../../core/shared/service/shortcut.service';
 import { AnnotationStoreService } from '../../core/store/login-mode/annotation/annotation.store.service';
+import { MergeOffer, mergeOfferFor } from '../merge-offer';
 import { TRATTEditor, TrattEditorRequirements } from '../tratt-editor';
 import { TranscrWindowComponent } from './transcr-window';
 
@@ -53,7 +55,12 @@ import { TranscrWindowComponent } from './transcr-window';
   selector: 'tratt-overlay-gui',
   templateUrl: './2D-editor.component.html',
   styleUrls: ['./2D-editor.component.scss'],
-  imports: [TrattComponentsModule, NgStyle, AudioNavigationComponent],
+  imports: [
+    TrattComponentsModule,
+    NgStyle,
+    AudioNavigationComponent,
+    MergePopoverComponent,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class TwoDEditorComponent
@@ -693,11 +700,9 @@ export class TwoDEditorComponent
       $event.value === undefined ||
       !(
         // cursor move by keyboard events are note saved because this would be too much
-        (
-          contains($event.value, 'cursor') ||
-          contains($event.value, 'segment_enter') ||
-          contains($event.value, 'playonhover')
-        )
+        contains($event.value, 'cursor') ||
+        contains($event.value, 'segment_enter') ||
+        contains($event.value, 'playonhover')
       )
     ) {
       $event.value = `${$event.type}:${$event.value}`;
@@ -871,6 +876,39 @@ export class TwoDEditorComponent
   onEntriesChange(annotation: TrattAnnotation<TrattAnnotationSegment>) {
     // this.annotationStoreService.saveSegments();
     this.annotationStoreService.overwriteTranscript(annotation);
+  }
+
+  mergeOffer: MergeOffer | null = null;
+
+  /** After a drag in a viewer: offer to merge when it covers 2+ units. */
+  onViewerMouseUp(event: MouseEvent, viewer: AudioViewerComponent) {
+    setTimeout(() => {
+      const level = this.annotationStoreService.currentLevel;
+      this.mergeOffer =
+        (this.annotationStoreService.canMergeCurrentLevel() &&
+          level &&
+          mergeOfferFor(
+            event,
+            level.items.map((i) => (i as { time: SampleUnit }).time.samples),
+            viewer.av.drawnSelection,
+          )) ||
+        null;
+      this.cd.markForCheck();
+    });
+  }
+
+  confirmMerge() {
+    const offer = this.mergeOffer;
+    this.mergeOffer = null;
+    if (offer) {
+      this.annotationStoreService.mergeCurrentLevelItems(offer.from, offer.to);
+    }
+    this.cd.markForCheck();
+  }
+
+  dismissMerge() {
+    this.mergeOffer = null;
+    this.cd.markForCheck();
   }
 
   onCurrentLevelChange($event: CurrentLevelChangeEvent) {

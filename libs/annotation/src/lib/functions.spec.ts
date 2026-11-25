@@ -1,8 +1,8 @@
+import { SampleUnit } from '@tratt/media';
 import { describe, expect, it } from 'vitest';
 import { OLabel } from './annotjson';
 import { mergeUnits, removeSegmentByIndex, unitsCoveredBy } from './functions';
 import { TrattAnnotationSegment } from './trattAnnotationSegment';
-import { SampleUnit } from '@tratt/media';
 
 describe('removeSegmentByIndex', () => {
   it('merges the removed segment transcript into the next segment, not its speaker name', () => {
@@ -43,7 +43,11 @@ const textOf = (s: TrattAnnotationSegment) =>
 
 describe('mergeUnits', () => {
   it('joins texts, keeps first unit and last end', () => {
-    const items = [unit(1, 100, 'a', true), unit(2, 200, 'b', true), unit(3, 300, 'c', true)];
+    const items = [
+      unit(1, 100, 'a', true),
+      unit(2, 200, 'b', true),
+      unit(3, 300, 'c', true),
+    ];
     const r = mergeUnits(items, 0, 2);
     expect(r).toHaveLength(1);
     expect(textOf(r[0])).toBe('a b c');
@@ -55,13 +59,25 @@ describe('mergeUnits', () => {
   });
   it('skips empty texts, absorbs silence marker, verified needs all', () => {
     const r = mergeUnits(
-      [unit(1, 100, 'a', true), unit(2, 200, ''), unit(3, 300, '<p:>'), unit(4, 400, 'x', true)],
-      0, 3, '<p:>');
+      [
+        unit(1, 100, 'a', true),
+        unit(2, 200, ''),
+        unit(3, 300, '<p:>'),
+        unit(4, 400, 'x', true),
+      ],
+      0,
+      3,
+      '<p:>',
+    );
     expect(textOf(r[0])).toBe('a x');
     expect(r[0].verified).toBe(false);
   });
   it('merges only the range', () => {
-    const r = mergeUnits([unit(1, 100, 'a'), unit(2, 200, 'b'), unit(3, 300, 'c')], 1, 2);
+    const r = mergeUnits(
+      [unit(1, 100, 'a'), unit(2, 200, 'b'), unit(3, 300, 'c')],
+      1,
+      2,
+    );
     expect(r.map(textOf)).toEqual(['a', 'b c']);
   });
   it('returns unchanged copy for bad range', () => {

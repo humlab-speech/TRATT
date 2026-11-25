@@ -1,5 +1,4 @@
 import { SampleUnit } from '@tratt/media';
-import { mergeUnits } from './functions';
 import {
   AnnotationLevelType,
   IItem,
@@ -16,6 +15,7 @@ import {
   OSegment,
   OSegmentLevel,
 } from './annotjson';
+import { mergeUnits } from './functions';
 import {
   AnnotationAnySegment,
   TrattAnnotationEvent,
@@ -476,7 +476,12 @@ export class TrattAnnotation<T extends TrattAnnotationSegment> {
     }
     for (const l of [level, ...this.getLinkedLevelsOf(level.id)]) {
       l.overwriteItems(
-        mergeUnits(l.items as TrattAnnotationSegment[], from, to, silence) as T[],
+        mergeUnits(
+          l.items as TrattAnnotationSegment[],
+          from,
+          to,
+          silence,
+        ) as T[],
       );
     }
     return this;
