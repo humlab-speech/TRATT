@@ -120,10 +120,13 @@
                   segment.transcription.text.trim() === '' &&
                   !annotationStoreService.breakMarker,
                 'bg-highlight': playAllState.currentSegment === i,
+                'row-marked': isMarked(i),
               }"
             >
               <td
                 class="segment-number"
+                (pointerdown)="onNumberPointerDown(i, $event)"
+                (pointerenter)="onNumberPointerEnter(i)"
                 [ngClass]="{
                   'tratt-state-success':
                     segment.transcription.text !== '' &&
@@ -389,4 +392,13 @@
       ></tratt-boundary-popover>
     }
   }
+}
+@if (mergeOffer; as offer) {
+  <tratt-merge-popover
+    [x]="offer.x"
+    [y]="offer.y"
+    [count]="offer.to - offer.from + 1"
+    (merge)="confirmMerge()"
+    (dismiss)="dismissMerge()"
+  ></tratt-merge-popover>
 }

@@ -129,3 +129,15 @@
 .time-nudge .btn-link:disabled {
   opacity: 0.25;
 }
+
+.segment-number {
+  user-select: none;
+}
+
+/* faint tint over the row's own state colour */
+.segment-row.row-marked > td {
+  background-image: linear-gradient(
+    rgba(13, 110, 253, 0.16),
+    rgba(13, 110, 253, 0.16)
+  );
+}

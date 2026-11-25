@@ -34,6 +34,7 @@ import {
 } from '../../shared/service';
 import { AppStorageService } from '../../shared/service/appstorage.service';
 import { AnnotationStoreService } from '../../store/login-mode/annotation/annotation.store.service';
+import { MergePopoverComponent } from '../merge-popover';
 import { TranscrEditorComponent, TranscrEditorConfig } from '../transcr-editor';
 import { TranscrEditorComponent as TranscrEditorComponent_1 } from '../transcr-editor/transcr-editor.component';
 import { ValidationPopoverComponent } from '../transcr-editor/validation-popover/validation-popover.component';
@@ -51,6 +52,7 @@ import { formatTime, moveBoundary } from './boundary-time';
     TranscrEditorComponent_1,
     ValidationPopoverComponent,
     BoundaryPopoverComponent,
+    MergePopoverComponent,
     TrattUtilitiesModule,
     TranslocoPipe,
   ],
@@ -450,6 +452,75 @@ export class TranscrOverviewComponent implements OnInit, OnDestroy, OnChanges {
 
     this.cd.markForCheck();
     this.cd.detectChanges();
+  }
+
+  /** Rows marked by dragging/shift-clicking the `#` cells (merge candidates). */
+  marked: { anchor: number; head: number } | null = null;
+  mergeOffer: { x: number; y: number; from: number; to: number } | null = null;
+  private markDragging = false;
+
+  isMarked(i: number): boolean {
+    return (
+      !!this.marked &&
+      i >= Math.min(this.marked.anchor, this.marked.head) &&
+      i <= Math.max(this.marked.anchor, this.marked.head)
+    );
+  }
+
+  onNumberPointerDown(i: number, event: PointerEvent) {
+    if (
+      event.button !== 0 ||
+      !this.annotationStoreService.canMergeCurrentLevel()
+    ) {
+      return;
+    }
+    this.markDragging = true;
+    this.mergeOffer = null;
+    this.marked =
+      event.shiftKey && this.marked
+        ? { anchor: this.marked.anchor, head: i }
+        : { anchor: i, head: i };
+    this.cd.markForCheck();
+  }
+
+  onNumberPointerEnter(i: number) {
+    if (this.markDragging && this.marked) {
+      this.marked = { anchor: this.marked.anchor, head: i };
+      this.cd.markForCheck();
+    }
+  }
+
+  @HostListener('document:pointerup', ['$event'])
+  onMarkPointerUp(event: PointerEvent) {
+    if (!this.markDragging || !this.marked) {
+      return;
+    }
+    this.markDragging = false;
+    const from = Math.min(this.marked.anchor, this.marked.head);
+    const to = Math.max(this.marked.anchor, this.marked.head);
+    if (to > from) {
+      this.mergeOffer = { x: event.clientX, y: event.clientY, from, to };
+    } else {
+      this.marked = null; // plain click: leave it to the # button
+    }
+    this.cd.markForCheck();
+  }
+
+  confirmMerge() {
+    const offer = this.mergeOffer;
+    this.dismissMerge();
+    if (offer) {
+      this.closePopover();
+      this.annotationStoreService.mergeCurrentLevelItems(offer.from, offer.to);
+    }
+  }
+
+  dismissMerge() {
+    this.mergeOffer = null;
+    if (!this.markDragging) {
+      this.marked = null;
+    }
+    this.cd.markForCheck();
   }
 
   public onSegmentClicked(segnumber: number) {
