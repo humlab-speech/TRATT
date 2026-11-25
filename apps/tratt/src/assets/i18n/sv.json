@@ -346,6 +346,7 @@
     "boundary earlier": "Tidigare (Skift: 100 ms)",
     "boundary later": "Senare (Skift: 100 ms)",
     "boundary shared": "Starten på ett yttrande är slutet på det föregående; båda flyttas tillsammans.",
+    "merge units": "Slå ihop {{count}} enheter",
     "boundary locked": "Den här gränsen kan inte flyttas här.",
     "statistics": "Statistik",
     "stop": "Stoppa",
