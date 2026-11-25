@@ -311,3 +311,45 @@ describe('ITEM level deserialization', () => {
     ).toBe('hi');
   });
 });
+
+describe('TrattAnnotation.mergeItemsInCurrentLevel', () => {
+  const seg = (id: number, end: number, text: string) =>
+    new TrattAnnotationSegment(id, new SampleUnit(end, 48000), [
+      new OLabel('tier', text),
+    ]);
+  const setup = (linkCurrent = false) => {
+    const annotation = makeAnnotation();
+    const source = annotation.createSegmentLevel('tier', [
+      seg(1, 100, 'a'),
+      seg(2, 200, 'b'),
+      seg(3, 300, 'c'),
+      seg(4, 400, 'd'),
+    ]);
+    annotation.addLevel(source);
+    const linked = annotation.createSegmentLevel('tr', [
+      seg(5, 100, 'A'),
+      seg(6, 200, 'B'),
+      seg(7, 300, 'C'),
+      seg(8, 400, 'D'),
+    ]);
+    linked.linkedToLevelId = source.id;
+    annotation.addLevel(linked);
+    annotation.changeCurrentLevelIndex(linkCurrent ? 1 : 0);
+    return { annotation, source, linked };
+  };
+
+  it('merges current level and mirrors onto linked levels', () => {
+    const { annotation, source, linked } = setup();
+    annotation.mergeItemsInCurrentLevel(1, 2);
+    expect(source.items.map((i) => i.time.samples)).toEqual([100, 300, 400]);
+    expect(source.items[1].getLabel('tier')?.value).toBe('b c');
+    expect(linked.items).toHaveLength(3);
+    expect(linked.items[1].getFirstLabelWithoutName('Speaker')?.value).toBe('B C');
+  });
+
+  it('does nothing when the current level is linked', () => {
+    const { annotation, linked } = setup(true);
+    annotation.mergeItemsInCurrentLevel(1, 2);
+    expect(linked.items).toHaveLength(4);
+  });
+});

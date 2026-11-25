@@ -559,6 +559,23 @@ export class AnnotationStoreService {
     );
   }
 
+  /** Merge units `from..to` (inclusive) of the current level. */
+  mergeCurrentLevelItems(from: number, to: number) {
+    const transcript = this.transcript?.clone();
+    if (transcript && this.canMergeCurrentLevel()) {
+      transcript.mergeItemsInCurrentLevel(from, to, this.silencePlaceholder);
+      this.overwriteTranscript(transcript);
+    }
+  }
+
+  canMergeCurrentLevel(): boolean {
+    const level = this.currentLevel;
+    return (
+      level instanceof TrattAnnotationSegmentLevel &&
+      level.linkedToLevelId === undefined
+    );
+  }
+
   overwriteTranscript(transcript: TrattAnnotation<TrattAnnotationSegment>) {
     this.store.dispatch(
       AnnotationActions.overwriteTranscript.do({

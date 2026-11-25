@@ -1,4 +1,5 @@
 import { SampleUnit } from '@tratt/media';
+import { mergeUnits } from './functions';
 import {
   AnnotationLevelType,
   IItem,
@@ -455,6 +456,29 @@ export class TrattAnnotation<T extends TrattAnnotationSegment> {
       }
     }
 
+    return this;
+  }
+
+  /**
+   * Merges units `from..to` (inclusive) of the current level and of every
+   * level linked to it. Refused on linked levels (like boundary removal).
+   */
+  mergeItemsInCurrentLevel(from: number, to: number, silence?: string) {
+    const level = this.currentLevel;
+    if (!(level instanceof TrattAnnotationSegmentLevel)) {
+      return this;
+    }
+    if (level.linkedToLevelId !== undefined) {
+      console.warn(
+        `Cannot merge units in linked level "${level.name}". Detach the level first to make it standalone.`,
+      );
+      return this;
+    }
+    for (const l of [level, ...this.getLinkedLevelsOf(level.id)]) {
+      l.overwriteItems(
+        mergeUnits(l.items as TrattAnnotationSegment[], from, to, silence) as T[],
+      );
+    }
     return this;
   }
 
