@@ -72,6 +72,7 @@ Allt arbete med gränser sker på vågformen, utan att något textfält har foku
 | Lägga till en gräns | Flytta muspekaren till läget och tryck **S** |
 | Lägga till två gränser runt ett stycke | Dra över vågformen med vänster musknapp för att markera det, tryck sedan **S** |
 | Ta bort en gräns och slå ihop enheterna | Markera den och tryck **D** |
+| Slå ihop flera enheter på en gång | Dra över dem och klicka **Slå ihop N enheter** ([detaljer](#merging-units)) |
 | Spela bara markeringen | **C** |
 | Flytta markören | **←** / **→** |
 
@@ -83,6 +84,34 @@ Två regler gäller för gränser som du bör känna till:
   Rensa texten först, eller sätt enskilda gränser med **S** i stället för att
   använda en markering.
 - En gräns kan inte placeras på inspelningens allra första sampel (alltså exakt vid inspelningens början).
+
+<a id="merging-units"></a>
+
+### Slå ihop enheter
+
+För att slå ihop flera angränsande enheter markerar du dem och bekräftar:
+
+- **På vågformen** (2D Vy, Linjär vy): dra över vågformen så att
+  markeringen omfattar minst en gräns mellan två enheter. En liten knapp
+  **Slå ihop N enheter** visas vid pekaren. Klicka på den för att slå ihop. Den
+  tonas ut efter några sekunder, och **Esc** eller ett klick någon annanstans
+  stänger den.
+- **I Diktafon-vy:** markera texten som sträcker sig över enheterna. Samma
+  knapp erbjuds.
+- **I Översikten:** bocka i kryssrutorna i kolumnen **Yttrande**. Se
+  [Kontrollera ditt arbete](checking-your-work.md#merging-in-the-overview).
+
+Den sammanslagna enheten får:
+
+- starten från den första enheten och slutet från den sista;
+- texterna sammanfogade med ett mellanslag. Tomma enheter och enheter som bara
+  innehåller en pausmarkering bidrar inte med något;
+- talare och andra etiketter från den första enheten;
+- status **verifierad** bara om alla ihopslagna enheter var verifierade.
+
+Sammanslagning nekas på en nivå som är länkad till en annan (till exempel en
+översättningsnivå). Slå ihop på källnivån i stället: de länkade nivåerna slås
+ihop tillsammans med den.
 
 ### Sätta en gräns inifrån texten
 

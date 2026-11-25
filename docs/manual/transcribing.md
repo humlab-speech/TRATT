@@ -69,6 +69,7 @@ All boundary happens on the waveform, with no text field focused.
 | Add a boundary | Move the mouse to the position and press **S** |
 | Add two boundaries around a stretch | Drag across the waveform with the left button to select it, then press **S** |
 | Delete a boundary and merge the two units | Select it and press **D** |
+| Merge several units at once | Drag across them and click **Merge N units** ([details](#merging-units)) |
 | Play just the selection | **C** |
 | Nudge the cursor | **←** / **→** |
 
@@ -79,6 +80,32 @@ There are two restrictions that apply to boundaries that you should be aware of:
   *Cannot set boundary in a transcription unit that is already transcribed.* Clear
   the text first, or place single boundaries with **S** instead of using a selection.
 - A boundary can not be placed at the very first sample of the recording.
+
+<a id="merging-units"></a>
+
+### Merging units
+
+To join several neighbouring units into one, select them and confirm:
+
+- **On the waveform** (2D-Editor, Linear Editor): drag across the waveform so
+  that the selection covers at least one boundary between two units. A small
+  **Merge N units** button appears next to the pointer. Click it to merge. It
+  fades after a few seconds, and **Esc** or a click elsewhere dismisses it.
+- **In the Dictaphone Editor:** mark the text that spans the units. The same
+  button is offered.
+- **In the Overview:** tick the checkboxes in the **Utterance** column. See
+  [Checking your work](checking-your-work.md#merging-in-the-overview).
+
+What the merged unit gets:
+
+- the start of the first unit and the end of the last one;
+- the texts joined with a single space. Empty units and units holding only a
+  pause marker add nothing;
+- the speaker and other labels of the first unit;
+- **verified** status only if every merged unit was verified.
+
+Merging is refused on a tier that is linked to another (a translation tier, for
+example). Merge on the source tier instead: the linked tiers are merged with it.
 
 ### Setting a boundary from inside the text
 

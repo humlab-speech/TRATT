@@ -52,6 +52,25 @@ drag the red line to place it, or press **Esc** while dragging to cancel. The
 first start and the last end are fixed, and boundaries cannot be moved on a
 tier that is linked to another.
 
+<a id="merging-in-the-overview"></a>
+
+**Merging in the Overview.** Each row has a checkbox in the **Utterance**
+column, before the number. Tick it to mark the unit as a merge candidate. The
+ticked rows always form one block of neighbours:
+
+- ticking the row directly above or below the block extends it;
+- ticking the first or last row of the block takes it out again;
+- **Shift**-click fills the gap up to the clicked row;
+- ticking any other row starts a new block.
+
+Marked rows are darkened. Once two or more are marked, a bar above the table
+shows **Merge N units** and **Clear selection**. The bar stays until you use it.
+See [Merging units](transcribing.md#merging-units) for what the merged unit
+contains. The checkboxes are not shown on a tier that is linked to another.
+
+Unit numbers are zero-padded to the width of the largest number (`001`…`842`
+for 842 units), so the column stays aligned.
+
 <a id="verified-transcriptions"></a>
 
 ### Verified transcriptions

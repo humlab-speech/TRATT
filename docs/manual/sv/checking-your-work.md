@@ -52,6 +52,26 @@ Dra den röda linjen för att placera den, eller tryck **Esc** under dragning f�
 att avbryta. Första starten och sista slutet är låsta, och gränser kan inte
 flyttas på en nivå som är länkad till en annan.
 
+<a id="merging-in-the-overview"></a>
+
+**Slå ihop i Översikten.** Varje rad har en kryssruta i kolumnen **Yttrande**,
+före numret. Bocka i den för att markera enheten som kandidat för sammanslagning.
+De markerade raderna bildar alltid ett block av grannar:
+
+- att bocka i raden direkt ovanför eller under blocket utvidgar det;
+- att bocka ur blockets första eller sista rad tar bort den ur blocket;
+- **Skift**-klick fyller i luckan upp till den klickade raden;
+- att bocka i någon annan rad startar ett nytt block.
+
+Markerade rader mörkas. När två eller fler är markerade visas ett fält ovanför
+tabellen med **Slå ihop N enheter** och **Rensa markering**. Fältet ligger kvar
+tills du använder det. Se [Slå ihop enheter](transcribing.md#merging-units) för
+vad den sammanslagna enheten innehåller. Kryssrutorna visas inte på en nivå som
+är länkad till en annan.
+
+Enhetsnumren fylls ut med nollor till bredden på det största numret (`001`…`842`
+för 842 enheter), så att kolumnen håller sig rak.
+
 <a id="verified-transcriptions"></a>
 
 ### Verifierade transkriptioner
