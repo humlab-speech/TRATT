@@ -79,3 +79,61 @@ describe('LinearEditorComponent.update guards audioChunkDown (C11)', () => {
     expect((component as any).audioChunkDown.startpos).toBe('down-start');
   });
 });
+
+describe('LinearEditorComponent text-loss guards', () => {
+  function saveSetup(transcriptLoaded: boolean, rawText: string) {
+    const changeCurrentItemById = jest.fn();
+    const { TrattAnnotationSegmentLevel } = jest.requireActual(
+      '@tratt/annotation',
+    ) as any;
+    const level = Object.create(TrattAnnotationSegmentLevel.prototype);
+    const current: any = {
+      id: 7,
+      getFirstLabelWithoutName: () => ({ value: 'unit text' }),
+      clone: () => ({
+        changeFirstLabelWithoutName: () => undefined,
+        verified: false,
+      }),
+    };
+    Object.defineProperty(level, 'items', { get: () => [current] });
+    const component = createComponent(level);
+    (component.annotationStoreService as any).changeCurrentItemById =
+      changeCurrentItemById;
+    (component as any).segmentselected = true;
+    (component as any).selectedIndex = 0;
+    (component as any).editor = { transcriptLoaded, rawText };
+    return { component, changeCurrentItemById };
+  }
+
+  it('save() does not overwrite a unit before the editor holds its text', () => {
+    const { component, changeCurrentItemById } = saveSetup(false, '');
+    (component as any).save();
+    expect(changeCurrentItemById).not.toHaveBeenCalled();
+  });
+
+  it('save() still writes edits once the editor is loaded', () => {
+    const { component, changeCurrentItemById } = saveSetup(true, 'edited');
+    (component as any).save();
+    expect(changeCurrentItemById).toHaveBeenCalledTimes(1);
+  });
+
+  it('entering a unit from the lower display loads its text into the editor', async () => {
+    const component = createComponent({ items: [] });
+    const loadTranscript = jest.fn(() => Promise.resolve());
+    (component as any).editor = {
+      loadTranscript,
+      focus: () => Promise.resolve(),
+    };
+    component.transcript = 'unit text';
+    (component as any).selectSegment = () =>
+      Promise.resolve({
+        clone: () => ({ start: { clone: () => 0 } }),
+        start: { clone: () => 0 },
+      });
+    (component as any).audioChunkDown = {};
+    component.onMagnifierSegmentEnter({ index: 3 });
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(loadTranscript).toHaveBeenCalledWith('unit text');
+  });
+});
