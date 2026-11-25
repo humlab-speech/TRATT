@@ -1417,6 +1417,21 @@ export class TranscrEditorComponent
     );
   }
 
+  /** True once the Jodit DOM holds the text last handed to the editor. */
+  get transcriptLoaded(): boolean {
+    return this._transcriptLoaded;
+  }
+
+  /**
+   * Replaces the editor's text without recreating Jodit. For hosts that
+   * switch units while keeping the same audiochunk, where `onAfterInit`
+   * (the only other loader) never runs again.
+   */
+  public loadTranscript(rawText: string): Promise<void> {
+    this._transcriptLoaded = false;
+    return this.setTranscript(rawText);
+  }
+
   private async setTranscript(rawText: string) {
     if (this.joditComponent?.jodit) {
       this._rawText = this.tidyUpRaw(rawText);

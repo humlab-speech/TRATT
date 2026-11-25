@@ -720,6 +720,10 @@ export class LinearEditorComponent
         if (!selection) return;
         this.audioChunkDown!.selection = selection.clone();
         this.audioChunkDown!.absolutePlayposition = selection.start.clone();
+        // same chunk: the editor is not recreated, so load the unit's text
+        this.editor.loadTranscript(this.transcript).catch((error) => {
+          console.error(error);
+        });
         this.editor.focus(true, true).catch((error) => {
           console.error(error);
         });
@@ -1096,7 +1100,9 @@ export class LinearEditorComponent
   }
 
   private save() {
-    if (this.segmentselected) {
+    // The editor's text only belongs to the selected unit once it has been
+    // loaded for it; before that it is empty or the previous unit's text.
+    if (this.segmentselected && this.editor.transcriptLoaded) {
       if (
         this.selectedIndex > -1 &&
         this.annotationStoreService.currentLevel?.items &&
