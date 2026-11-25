@@ -320,3 +320,50 @@ export function removeBySamples(
   }
   return entries;
 }
+
+/**
+ * Merges units `from..to` (inclusive) into one: the first unit's id, labels
+ * and start, the last unit's end. Texts are joined by a space; empty and
+ * silence-only texts are absorbed. `verified` only if every unit was.
+ * Returns a new array; an invalid range returns an unchanged copy.
+ */
+export function mergeUnits(
+  items: TrattAnnotationSegment[],
+  from: number,
+  to: number,
+  silence?: string,
+): TrattAnnotationSegment[] {
+  if (from < 0 || to >= items.length || from >= to) {
+    return [...items];
+  }
+  const range = items.slice(from, to + 1);
+  const text = range
+    .map((s) => s.getFirstLabelWithoutName('Speaker')?.value?.trim() ?? '')
+    .filter((t) => t !== '' && t !== silence)
+    .join(' ');
+  const merged = items[from].clone();
+  merged.time = items[to].time.clone();
+  merged.changeFirstLabelWithoutName('Speaker', text);
+  merged.verified = range.every((s) => s.verified);
+  return [...items.slice(0, from), merged, ...items.slice(to + 1)];
+}
+
+/**
+ * Units touched by a selection, when it has at least one boundary strictly
+ * inside. `endTimes[i]` = end of unit i; the last end (file end) is no boundary.
+ */
+export function unitsCoveredBy(
+  endTimes: number[],
+  startSamples: number,
+  endSamples: number,
+): { from: number; to: number } | undefined {
+  const inner = endTimes.some(
+    (t, k) => k < endTimes.length - 1 && t > startSamples && t < endSamples,
+  );
+  if (!inner) {
+    return undefined;
+  }
+  const from = endTimes.findIndex((t) => t > startSamples);
+  const to = endTimes.findIndex((t) => t >= endSamples);
+  return { from, to: to > -1 ? to : endTimes.length - 1 };
+}
