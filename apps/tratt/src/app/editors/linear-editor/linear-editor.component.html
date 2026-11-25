@@ -39,7 +39,7 @@
     #signalDisplayTop
     [name]="'top magnifier'"
     (mousecursorchange)="onMouseOver($event)"
-    (mousedown)="onViewerMouseDown()"
+    (mousedown)="onViewerMouseDown(); onViewerMergeDown($event)"
     (mouseup)="onViewerMouseUp($event, signalDisplayTop)"
     (mouseenter)="
       minimagnifier.isHidden = false;
@@ -69,7 +69,7 @@
     (shortcut)="onViewerShortcutTriggered($event, 'signaldisplay_down')"
     (alert)="onAlertTriggered($event)"
     (click)="onMagnifierClick()"
-    (mousedown)="onViewerMouseDown()"
+    (mousedown)="onViewerMouseDown(); onViewerMergeDown($event)"
     (mouseup)="onViewerMouseUp($event, signalDisplayDown)"
     (segmententer)="onMagnifierSegmentEnter($event)"
     (mouseleave)="onAudioViewerMouseLeave('signaldisplay_down')"

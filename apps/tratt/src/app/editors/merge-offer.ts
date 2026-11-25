@@ -28,3 +28,16 @@ export function mergeOfferFor(
   );
   return range && { x: event.clientX, y: event.clientY, ...range };
 }
+
+/** True when the pointer moved far enough between down and up to be a drag. */
+export function isDrag(
+  down: { clientX: number; clientY: number } | undefined,
+  up: { clientX: number; clientY: number },
+  threshold = 4,
+): boolean {
+  return (
+    !!down &&
+    Math.hypot(up.clientX - down.clientX, up.clientY - down.clientY) >=
+      threshold
+  );
+}

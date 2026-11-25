@@ -53,7 +53,7 @@ import {
 import { AppStorageService } from '../../core/shared/service/appstorage.service';
 import { ShortcutService } from '../../core/shared/service/shortcut.service';
 import { AnnotationStoreService } from '../../core/store/login-mode/annotation/annotation.store.service';
-import { MergeOffer, mergeOfferFor } from '../merge-offer';
+import { isDrag, MergeOffer, mergeOfferFor } from '../merge-offer';
 import { TRATTEditor, TrattEditorRequirements } from '../tratt-editor';
 
 @Component({
@@ -1141,9 +1141,20 @@ export class LinearEditorComponent
   }
 
   mergeOffer: MergeOffer | null = null;
+  private mergeViewer?: AudioViewerComponent;
+  private mergeDownAt?: { clientX: number; clientY: number };
+
+  onViewerMergeDown(event: MouseEvent) {
+    this.mergeDownAt = event;
+  }
 
   /** After a drag in a viewer: offer to merge when it covers 2+ units. */
   onViewerMouseUp(event: MouseEvent, viewer: AudioViewerComponent) {
+    // only a drag marks units; a plain click must not re-offer an old selection
+    if (!isDrag(this.mergeDownAt, event)) {
+      return;
+    }
+    this.mergeViewer = viewer;
     setTimeout(() => {
       const level = this.annotationStoreService.currentLevel;
       this.mergeOffer =
@@ -1164,6 +1175,11 @@ export class LinearEditorComponent
     this.mergeOffer = null;
     if (offer) {
       this.annotationStoreService.mergeCurrentLevelItems(offer.from, offer.to);
+      const sel = this.mergeViewer?.av.drawnSelection;
+      if (sel) {
+        sel.start = this.audioManager.createSampleUnit(0);
+        sel.end = sel.start.clone();
+      }
     }
     this.cd.markForCheck();
   }

@@ -38,6 +38,7 @@
     <tratt-audio-viewer
       #viewer
       (mousecursorchange)="onMouseOver($event)"
+      (mousedown)="onViewerMergeDown($event)"
       (mouseup)="onViewerMouseUp($event, viewer)"
       (segmententer)="onSegmentEntered($event)"
       (shortcut)="onShortCutViewerTriggered($event)"

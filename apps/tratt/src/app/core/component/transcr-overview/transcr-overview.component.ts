@@ -506,6 +506,13 @@ export class TranscrOverviewComponent implements OnInit, OnDestroy, OnChanges {
     this.cd.markForCheck();
   }
 
+  @HostListener('document:pointercancel')
+  onMarkPointerCancel() {
+    this.markDragging = false;
+    this.marked = null;
+    this.cd.markForCheck();
+  }
+
   confirmMerge() {
     const offer = this.mergeOffer;
     this.dismissMerge();

@@ -418,6 +418,10 @@ export class DictaphoneEditorComponent
   } | null = null;
 
   onEditorMouseUp(event: MouseEvent) {
+    // clicking a boundary marker selects the image, not text
+    if ((event.target as HTMLElement | null)?.tagName === 'IMG') {
+      return;
+    }
     setTimeout(() => {
       const wysiwyg = this.editor.wysiwyg;
       const range = window.getSelection()?.rangeCount

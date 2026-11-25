@@ -1,5 +1,5 @@
 import { describe, expect, it } from '@jest/globals';
-import { mergeOfferFor } from './merge-offer';
+import { isDrag, mergeOfferFor } from './merge-offer';
 
 const at = { clientX: 10, clientY: 20 };
 const sel = (s: number, e: number) => ({
@@ -19,5 +19,13 @@ describe('mergeOfferFor', () => {
   it('offers nothing inside one unit or without selection', () => {
     expect(mergeOfferFor(at, [100, 200, 300], sel(110, 190))).toBeUndefined();
     expect(mergeOfferFor(at, [100, 200, 300], undefined)).toBeUndefined();
+  });
+});
+
+describe('isDrag', () => {
+  it('needs a down point and movement', () => {
+    expect(isDrag(undefined, at)).toBe(false);
+    expect(isDrag({ clientX: 10, clientY: 21 }, at)).toBe(false);
+    expect(isDrag({ clientX: 40, clientY: 20 }, at)).toBe(true);
   });
 });
