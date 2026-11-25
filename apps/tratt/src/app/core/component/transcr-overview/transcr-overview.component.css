@@ -134,10 +134,13 @@
   user-select: none;
 }
 
-/* faint tint over the row's own state colour */
+/* neutral darkening keeps the row's state colour (green/blue/red) readable */
 .segment-row.row-marked > td {
-  background-image: linear-gradient(
-    rgba(13, 110, 253, 0.16),
-    rgba(13, 110, 253, 0.16)
-  );
+  box-shadow: inset 0 0 0 9999px rgba(0, 0, 0, 0.14);
+}
+
+.segment-row.row-marked > td:first-child {
+  box-shadow:
+    inset 0 0 0 9999px rgba(0, 0, 0, 0.14),
+    inset 6px 0 0 var(--tratt-interactive-text, #0d6efd);
 }
