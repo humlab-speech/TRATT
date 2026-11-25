@@ -1435,11 +1435,16 @@ export class TranscrEditorComponent
   private async setTranscript(rawText: string) {
     if (this.joditComponent?.jodit) {
       this._rawText = this.tidyUpRaw(rawText);
+      const jodit = this.joditComponent.jodit;
 
       // set cursor at the end after focus
 
-      this.joditComponent.jodit.value =
-        await this.annotationStoreService.rawToHTML(rawText);
+      const html = await this.annotationStoreService.rawToHTML(rawText);
+      if (this.joditComponent?.jodit !== jodit) {
+        // recreated while converting: the new instance loads its own text
+        return;
+      }
+      jodit.value = html;
       this._transcriptLoaded = true;
       this.subscribe(
         timer(500),
