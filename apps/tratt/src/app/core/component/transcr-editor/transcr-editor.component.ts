@@ -1474,6 +1474,12 @@ export class TranscrEditorComponent
     this.setTranscript(result);
   }
 
+  /** Disarms the typing debounce; the host has already committed the text. */
+  public cancelTyping() {
+    this._isTyping = false;
+    this.lastkeypress = -1;
+  }
+
   private triggerTyping() {
     // this.highlightingRunning = false;
     this.subscribe(timer(1000), () => {

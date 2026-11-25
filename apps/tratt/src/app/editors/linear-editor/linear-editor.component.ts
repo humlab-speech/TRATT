@@ -472,6 +472,9 @@ export class LinearEditorComponent
   // editor switch), so an edit mid-debounce isn't silently lost.
   flushPendingEdits(): void {
     this.onEditorTyping('stopped');
+    // the debounce timer is still armed: its late "stopped" would save the
+    // editor's text into whichever unit is selected by then
+    this.editor?.cancelTyping();
   }
 
   ngOnInit() {
@@ -957,6 +960,10 @@ export class LinearEditorComponent
   }
 
   onViewerMouseDown() {
+    // save() is a no-op once deselected, so commit the open unit first
+    if (this.segmentselected) {
+      this.flushPendingEdits();
+    }
     this.segmentselected = false;
   }
 
@@ -1077,6 +1084,10 @@ export class LinearEditorComponent
 
   private selectSegment(index: number): Promise<AudioSelection | undefined> {
     return new Promise<AudioSelection | undefined>((resolve) => {
+      // commit the open unit's typing before selectedIndex moves on
+      if (this.segmentselected) {
+        this.flushPendingEdits();
+      }
       if (
         this.annotationStoreService.currentLevel?.items &&
         this.annotationStoreService.currentLevel instanceof

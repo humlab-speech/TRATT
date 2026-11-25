@@ -137,3 +137,40 @@ describe('LinearEditorComponent text-loss guards', () => {
     expect(loadTranscript).toHaveBeenCalledWith('unit text');
   });
 });
+
+describe('LinearEditorComponent commits pending edits before the selection moves', () => {
+  it('flushes before selectSegment changes the selected unit', async () => {
+    const component = createComponent({ items: [] });
+    const order: string[] = [];
+    (component as any).segmentselected = true;
+    component.flushPendingEdits = () => order.push('flush');
+    const original = (component as any).selectSegment.bind(component);
+    await original(0);
+    expect(order).toEqual(['flush']);
+  });
+
+  it('flushes before a viewer mouse down deselects the unit', () => {
+    const component = createComponent({ items: [] });
+    (component as any).segmentselected = true;
+    const flush = jest.fn();
+    component.flushPendingEdits = flush;
+    component.onViewerMouseDown();
+    expect(flush).toHaveBeenCalledTimes(1);
+    expect((component as any).segmentselected).toBe(false);
+  });
+});
+
+describe('LinearEditorComponent.flushPendingEdits disarms the typing debounce', () => {
+  it('cancels the editor typing timer so a late "stopped" cannot save into another unit', () => {
+    const component = createComponent({ items: [] });
+    const cancelTyping = jest.fn();
+    (component as any).appStorage = { saving: { emit: () => undefined } };
+    (component as any).editor = {
+      rawText: '',
+      updateRawText: () => undefined,
+      cancelTyping,
+    };
+    component.flushPendingEdits();
+    expect(cancelTyping).toHaveBeenCalledTimes(1);
+  });
+});
