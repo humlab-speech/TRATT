@@ -82,6 +82,7 @@
     (segmententer)="onMagnifierSegmentEnter($event)"
     (mouseleave)="onAudioViewerMouseLeave('signaldisplay_down')"
     (mouseenter)="onAudioViewerMouseEnter('signaldisplay_down')"
+    (mousecursorchange)="onDownMouseOver()"
     [audioChunk]="audioChunkDown"
     [silencePlaceholder]="annotationStoreService.silencePlaceholder"
     [name]="'downMagnifier'"

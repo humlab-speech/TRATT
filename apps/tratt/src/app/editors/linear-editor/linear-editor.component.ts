@@ -704,12 +704,15 @@ export class LinearEditorComponent
 
     this.minimagnifier.component = this.signalDisplayTop as any;
 
-    this.doPlayOnHover(
-      this.audioManager,
-      this.appStorage.playOnHover ?? false,
-      this.audioChunkTop,
-      this.signalDisplayTop.av.mouseCursor!,
-    );
+    // with a zoomed section open, hover playback belongs to that section
+    if (this.audioChunkDown === undefined) {
+      this.doPlayOnHover(
+        this.audioManager,
+        this.appStorage.playOnHover ?? false,
+        this.audioChunkTop,
+        this.signalDisplayTop.av.mouseCursor!,
+      );
+    }
 
     if (this.appStorage.showMagnifier) {
       this.minimagnifier.isHidden = false;
@@ -724,11 +727,24 @@ export class LinearEditorComponent
     }
   }
 
+  onDownMouseOver() {
+    if (this.audioChunkDown && this.signalDisplayDown) {
+      this.doPlayOnHover(
+        this.audioManager,
+        this.appStorage.playOnHover ?? false,
+        this.audioChunkDown,
+        this.signalDisplayDown.av.mouseCursor!,
+      );
+    }
+  }
+
   onSegmentEnter($event: any) {
     this.selectSegment($event.index).then(
       (selection: AudioSelection | undefined) => {
         if (!selection) return;
         this.audioChunkDown = new AudioChunk(selection, this.audioManager);
+        // transport buttons play the opened unit only
+        this.selectedAudioChunk = this.audioChunkDown;
         this.editor.focus(true, true).catch((error) => {
           console.error(error);
         });
@@ -771,6 +787,7 @@ export class LinearEditorComponent
         if (!selection) return;
         this.audioChunkDown!.selection = selection.clone();
         this.audioChunkDown!.absolutePlayposition = selection.start.clone();
+        this.selectedAudioChunk = this.audioChunkDown!;
         // same chunk: the editor is not recreated, so load the unit's text
         this.editor.loadTranscript(this.transcript).catch((error) => {
           console.error(error);
