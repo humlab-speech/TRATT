@@ -17,7 +17,8 @@
 
 .segment-transcript {
   vertical-align: middle;
-  cursor: pointer;
+  /* a single click does nothing; double-click opens the inline editor */
+  cursor: text;
   overflow-wrap: anywhere;
   word-break: break-word;
 }

@@ -354,6 +354,7 @@
     "merge units help": "Slå ihop de ikryssade enheterna till en enhet.",
     "no validation methods": "Inga valideringsmetoder hittades",
     "validation help": "En valideringsmetod är ett skript i projektets transkriptionsriktlinjer som kontrollerar varje enhets text mot riktlinjernas regler; text som bryter mot dem stryks under i redigeraren. Avsnittet visar antalet fel per nivå. Utan ett sådant skript kontrolleras ingenting här.",
+    "double click to edit": "Dubbelklicka för att redigera",
     "open in transcription window": "Öppna enheten i transkriptionsfönstret",
     "boundary locked": "Den här gränsen kan inte flyttas här.",
     "statistics": "Statistik",

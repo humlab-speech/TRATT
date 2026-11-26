@@ -347,6 +347,7 @@
                     'bg-highlight': playAllState.currentSegment === i,
                   }"
                   class="segment-transcript"
+                  [title]="'g.double click to edit' | transloco"
                   (dblclick)="onMouseDown(i)"
                   (mouseover)="onMouseOver($event, i, row, validationPopover)"
                   (focus)="onMouseOver($event, i, row, validationPopover)"

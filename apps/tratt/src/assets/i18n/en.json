@@ -356,6 +356,7 @@
     "merge units help": "Merge the ticked units into one unit.",
     "no validation methods": "No validation methods found",
     "validation help": "A validation method is a script in the project's transcription guidelines that checks each unit's text against the guidelines' rules; text that breaks them is underlined in the editor. This section lists the number of errors per level. Without such a script, nothing is checked here.",
+    "double click to edit": "Double-click to edit",
     "open in transcription window": "Open this unit in the transcription window",
     "boundary locked": "This boundary cannot be moved here.",
     "statistics": "Statistics",
