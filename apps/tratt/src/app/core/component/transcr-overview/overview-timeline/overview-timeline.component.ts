@@ -24,15 +24,12 @@ import { computePeaks, Peak } from '../boundary-popover/peaks';
 import { unitAt } from '../boundary-time';
 
 const HEIGHT = 44;
-/** Height of the unit-state strip under the waveform. */
-const STRIP = 5;
-
-type UnitState = 'success' | 'info' | 'danger';
 
 /**
  * The whole recording as one waveform strip, for the Overview footer: unit
- * boundaries, each unit's state (transcribed / break / empty) as a coloured
- * strip, the selected unit shaded, and a position line that follows playback.
+ * boundaries, the selected unit shaded, and a position line that follows
+ * playback. Everything but the line is drawn once into an offscreen layer, so
+ * a frame during playback is one copy plus the line.
  * Clicking (or the arrow keys) asks the parent to select a unit; it does not
  * start or move playback.
  */
@@ -80,8 +77,6 @@ export class OverviewTimelineComponent
 {
   /** The tier whose units are shown. */
   @Input() level?: TrattAnnotationAnyLevel<TrattAnnotationSegment>;
-  /** Text that marks a unit as a break, if the guidelines define one. */
-  @Input() breakMarker?: string;
   /** Selected unit index, -1 for none. */
   @Input() selected = -1;
   /** Where the position line rests when nothing plays (samples). */
@@ -98,6 +93,10 @@ export class OverviewTimelineComponent
   private stateSub?: Subscription;
   private frame = 0;
   private peaks?: { width: number; values: Peak[] };
+  /** Waveform, boundaries and selection; rebuilt when `layerKey` changes. */
+  private layer?: HTMLCanvasElement;
+  private layerKey = '';
+  private layerLevel?: unknown;
   private ends: number[] = [];
 
   /** The level's units; only a SEGMENT level has times. */
@@ -185,11 +184,62 @@ export class OverviewTimelineComponent
     });
   }
 
-  private unitState(item: TrattAnnotationSegment): UnitState {
-    const text = (item.getFirstLabelWithoutName('Speaker')?.value ?? '').trim();
-    if (this.breakMarker && text === this.breakMarker) return 'info';
-    if (text === '') return this.breakMarker ? 'info' : 'danger';
-    return 'success';
+  /** The static picture: waveform, unit boundaries, selected unit. */
+  private buildLayer(width: number, height: number, total: number) {
+    const layer = (this.layer ??= document.createElement('canvas'));
+    layer.width = width;
+    layer.height = height;
+    const ctx = layer.getContext('2d');
+    const el = this.canvas.nativeElement;
+    const manager = this.audio.current;
+    if (!ctx || !manager) return;
+
+    const style = getComputedStyle(el);
+    const dpr = window.devicePixelRatio || 1;
+    const x = (sample: number) => (sample / total) * width;
+    ctx.clearRect(0, 0, width, height);
+
+    if (this.selected >= 0 && this.selected < this.ends.length) {
+      const from = x(this.unitStart(this.selected));
+      ctx.fillStyle = 'rgba(40, 120, 220, 0.18)';
+      ctx.fillRect(from, 0, x(this.ends[this.selected]) - from, height);
+    }
+
+    const channel = manager.channel;
+    if (channel) {
+      if (this.peaks?.width !== width) {
+        this.peaks = {
+          width,
+          values: computePeaks(
+            channel,
+            manager.channelDataFactor ?? 1,
+            0,
+            total,
+            width,
+          ),
+        };
+      }
+      const mid = height / 2;
+      ctx.fillStyle = style.color;
+      ctx.globalAlpha = 0.6;
+      this.peaks.values.forEach((p, px) => {
+        const top = mid - p.max * mid;
+        ctx.fillRect(px, top, 1, Math.max(1, (p.max - p.min) * mid));
+      });
+      ctx.globalAlpha = 1;
+    }
+
+    // boundaries, skipped where units are too narrow to tell apart
+    ctx.fillStyle =
+      style.getPropertyValue('--tratt-border').trim() || '#ccc';
+    let last = -Infinity;
+    for (let i = 0; i < this.ends.length - 1; i++) {
+      const at = Math.round(x(this.ends[i]));
+      if (at - last >= 3 * dpr) {
+        ctx.fillRect(at, 0, 1, height);
+        last = at;
+      }
+    }
   }
 
   private draw() {
@@ -209,62 +259,13 @@ export class OverviewTimelineComponent
     ctx.clearRect(0, 0, width, height);
     if (!total) return;
 
-    const style = getComputedStyle(el);
-    const css = (name: string, fallback: string) =>
-      style.getPropertyValue(name).trim() || fallback;
-    const x = (sample: number) => (sample / total) * width;
-    const strip = Math.round(STRIP * dpr);
-    const waveHeight = height - strip;
-
-    // selected unit
-    if (this.selected >= 0 && this.selected < this.ends.length) {
-      const from = x(this.unitStart(this.selected));
-      ctx.fillStyle = 'rgba(40, 120, 220, 0.18)';
-      ctx.fillRect(from, 0, x(this.ends[this.selected]) - from, height);
+    const key = `${width}x${height}|${total}|${this.selected}|${this.ends.length}`;
+    if (key !== this.layerKey || this.layerLevel !== this.level) {
+      this.buildLayer(width, height, total);
+      this.layerKey = key;
+      this.layerLevel = this.level;
     }
-
-    // waveform
-    const channel = manager.channel;
-    if (channel) {
-      if (this.peaks?.width !== width) {
-        this.peaks = {
-          width,
-          values: computePeaks(
-            channel,
-            manager.channelDataFactor ?? 1,
-            0,
-            total,
-            width,
-          ),
-        };
-      }
-      const mid = waveHeight / 2;
-      ctx.fillStyle = style.color;
-      ctx.globalAlpha = 0.6;
-      this.peaks.values.forEach((p, px) => {
-        const top = mid - p.max * mid;
-        ctx.fillRect(px, top, 1, Math.max(1, (p.max - p.min) * mid));
-      });
-      ctx.globalAlpha = 1;
-    }
-
-    // unit states and boundaries
-    const colours: Record<UnitState, string> = {
-      success: css('--tratt-success', '#5a9e2f'),
-      info: css('--tratt-info', '#2a9db0'),
-      danger: css('--tratt-danger', '#d62828'),
-    };
-    const items = this.segments;
-    items.forEach((item, i) => {
-      const from = x(this.unitStart(i));
-      const to = x(this.ends[i]);
-      ctx.fillStyle = colours[this.unitState(item)];
-      ctx.fillRect(from, waveHeight, Math.max(1, to - from), strip);
-      if (i < items.length - 1 && to - from >= 3 * dpr) {
-        ctx.fillStyle = css('--tratt-border', '#ccc');
-        ctx.fillRect(Math.round(to), 0, 1, waveHeight);
-      }
-    });
+    if (this.layer) ctx.drawImage(this.layer, 0, 0);
 
     // position line: playback while playing, else the resting cursor
     const position = manager.isPlaying
@@ -272,7 +273,12 @@ export class OverviewTimelineComponent
       : this.cursor;
     if (position !== undefined) {
       ctx.fillStyle = '#d62828';
-      ctx.fillRect(Math.round(x(position)) - dpr, 0, 2 * dpr, height);
+      ctx.fillRect(
+        Math.round((position / total) * width) - dpr,
+        0,
+        2 * dpr,
+        height,
+      );
     }
   }
 }
