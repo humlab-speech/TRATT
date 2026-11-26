@@ -1,5 +1,8 @@
 <div class="modal-content">
   <div class="modal-header">
+    <h5 class="modal-title" id="modal-title">
+      {{ 'g.transcription window' | transloco }}
+    </h5>
     <button
       type="button"
       class="btn-close"
@@ -36,9 +39,9 @@
           #videoEl
           style="
             display: block;
-            max-height: 40vh;
-            max-width: 100%;
-            margin: 0 auto;
+            height: 40vh;
+            width: 100%;
+            object-fit: contain;
             background: #000;
           "
           muted

@@ -102,6 +102,8 @@ export class TranscrWindowComponent
   readonly speakerService = inject(SpeakerManagementService);
   private videoSyncSubscription?: Subscription;
   private _videoBlobUrl?: string;
+  private _videoSafeUrl?: SafeUrl;
+  private _videoSafeUrlFor?: string;
 
   get isVideoFile(): boolean {
     const mime =
@@ -111,6 +113,14 @@ export class TranscrWindowComponent
     return FileInfo.isVideoMimeType(mime);
   }
 
+  /**
+   * The video's [src]. Must return the same object for as long as the source
+   * is the same: bypassSecurityTrustUrl() wraps the url in a new object on
+   * every call, so Angular would see a changed binding on each change
+   * detection and assign video.src again, and assigning src (even the same
+   * url) restarts loading. The video then blanks and falls back to its
+   * default size until its metadata is in, and the window resizes with it.
+   */
   get videoUrl(): SafeUrl | null {
     const resource = this.audioManager?.resource;
     const originalType = resource?.originalType ?? resource?.info?.type ?? '';
@@ -119,17 +129,25 @@ export class TranscrWindowComponent
 
     // Use originalArraybuffer (actual video bytes) — arraybuffer is overwritten with WAV after decode
     const ab = resource?.originalArraybuffer ?? resource?.arraybuffer;
+    let url: string | undefined;
     if (ab) {
       if (!this._videoBlobUrl) {
         this._videoBlobUrl = URL.createObjectURL(
           new Blob([ab], { type: originalType }),
         );
       }
-      return this.sanitizer.bypassSecurityTrustUrl(this._videoBlobUrl);
+      url = this._videoBlobUrl;
+    } else {
+      // Fallback: direct URL (online mode, file fetched via HTTP)
+      url = resource?.info?.url;
     }
-    // Fallback: direct URL (online mode, file fetched via HTTP)
-    const url = resource?.info?.url;
-    return url ? this.sanitizer.bypassSecurityTrustUrl(url) : null;
+    if (!url) return null;
+
+    if (url !== this._videoSafeUrlFor) {
+      this._videoSafeUrlFor = url;
+      this._videoSafeUrl = this.sanitizer.bypassSecurityTrustUrl(url);
+    }
+    return this._videoSafeUrl!;
   }
 
   act = new EventEmitter<{
