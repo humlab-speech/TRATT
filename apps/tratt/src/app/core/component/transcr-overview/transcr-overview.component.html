@@ -223,13 +223,10 @@
                 (focusin)="onTimeEnter($event, i - 1)"
                 (mouseleave)="onTimeLeave()"
               >
-                <span class="time-value">{{
-                  formatTime(segment.start, sampleRate)
-                }}</span>
-                <span class="time-nudge">
+                <span class="time-row">
                   <button
                     type="button"
-                    class="btn btn-link p-0"
+                    class="btn btn-link p-0 time-nudge"
                     [disabled]="!boundaryEditable(i - 1)"
                     (click)="nudgeBoundary(i - 1, $event.shiftKey ? -100 : -10)"
                     [title]="'g.boundary earlier' | transloco"
@@ -237,9 +234,12 @@
                   >
                     <i class="fa-solid fa-chevron-left"></i>
                   </button>
+                  <span class="time-value">{{
+                    formatTime(segment.start, sampleRate)
+                  }}</span>
                   <button
                     type="button"
-                    class="btn btn-link p-0"
+                    class="btn btn-link p-0 time-nudge"
                     [disabled]="!boundaryEditable(i - 1)"
                     (click)="nudgeBoundary(i - 1, $event.shiftKey ? 100 : 10)"
                     [title]="'g.boundary later' | transloco"
@@ -258,13 +258,10 @@
                 (focusin)="onTimeEnter($event, i)"
                 (mouseleave)="onTimeLeave()"
               >
-                <span class="time-value">{{
-                  formatTime(segment.end, sampleRate)
-                }}</span>
-                <span class="time-nudge">
+                <span class="time-row">
                   <button
                     type="button"
-                    class="btn btn-link p-0"
+                    class="btn btn-link p-0 time-nudge"
                     [disabled]="!boundaryEditable(i)"
                     (click)="nudgeBoundary(i, $event.shiftKey ? -100 : -10)"
                     [title]="'g.boundary earlier' | transloco"
@@ -272,9 +269,12 @@
                   >
                     <i class="fa-solid fa-chevron-left"></i>
                   </button>
+                  <span class="time-value">{{
+                    formatTime(segment.end, sampleRate)
+                  }}</span>
                   <button
                     type="button"
-                    class="btn btn-link p-0"
+                    class="btn btn-link p-0 time-nudge"
                     [disabled]="!boundaryEditable(i)"
                     (click)="nudgeBoundary(i, $event.shiftKey ? 100 : 10)"
                     [title]="'g.boundary later' | transloco"

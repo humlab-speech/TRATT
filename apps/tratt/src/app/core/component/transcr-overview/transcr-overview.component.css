@@ -96,7 +96,8 @@
 }
 
 .table .time-column {
-  width: 108px;
+  /* < 1:02:03.456 > still fits (hours appear past 60 min) */
+  width: 128px;
 }
 
 #table-speaker-column {
@@ -110,11 +111,16 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* < time > : earlier on the left, later on the right */
+.time-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 3px;
+}
+
 .time-nudge {
-  display: inline-flex;
-  gap: 6px;
-  vertical-align: middle;
-  margin-left: 6px;
+  flex: none;
   font-size: 0.7rem;
   line-height: 1;
 }
@@ -127,14 +133,14 @@
   vertical-align: middle;
 }
 
-.time-nudge .btn-link,
-.time-nudge .btn-link:hover,
-.time-nudge .btn-link:focus,
-.time-nudge .btn-link:active {
+.btn-link.time-nudge,
+.btn-link.time-nudge:hover,
+.btn-link.time-nudge:focus,
+.btn-link.time-nudge:active {
   color: var(--tratt-interactive-text);
 }
 
-.time-nudge .btn-link:disabled {
+.btn-link.time-nudge:disabled {
   opacity: 0.25;
 }
 
