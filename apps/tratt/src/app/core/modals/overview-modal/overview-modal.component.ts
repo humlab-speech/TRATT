@@ -9,11 +9,13 @@ import {
   ViewChild,
 } from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
+import { TrattAnnotationSegment } from '@tratt/annotation';
 import {
   NgbActiveModal,
   NgbModal,
   NgbModalOptions,
 } from '@ng-bootstrap/ng-bootstrap';
+import { OverviewTimelineComponent } from '../../component/transcr-overview/overview-timeline/overview-timeline.component';
 import { TranscrOverviewComponent } from '../../component/transcr-overview/transcr-overview.component';
 import { TranscriptionFeedbackComponent } from '../../component/transcription-feedback/transcription-feedback.component';
 import { SettingsService, UserInteractionsService } from '../../shared/service';
@@ -30,6 +32,7 @@ import { TrattModal } from '../types';
   imports: [
     NgClass,
     TranscrOverviewComponent,
+    OverviewTimelineComponent,
     TranscriptionFeedbackComponent,
     AsyncPipe,
     TranslocoPipe,
@@ -47,6 +50,13 @@ export class OverviewModalComponent
     size: 'xl',
     fullscreen: 'xl',
   };
+
+  @ViewChild('overview', { static: false })
+  overview?: TranscrOverviewComponent;
+  /** Unit selected in the table and on the footer timeline. */
+  selectedUnit = -1;
+  /** Where the timeline's position line rests while nothing plays. */
+  timelineCursor?: number;
 
   @ViewChild('feedback', { static: false })
   feedback?: TranscriptionFeedbackComponent;
@@ -184,6 +194,23 @@ export class OverviewModalComponent
       );
     }
     return super.close();
+  }
+
+  /** A row was clicked: show its unit on the timeline. */
+  onRowSelected(unit: number) {
+    this.selectedUnit = unit;
+    const items = this.annotationStoreService.currentLevel?.items;
+    this.timelineCursor =
+      unit > 0 && items
+        ? (items[unit - 1] as TrattAnnotationSegment).time.samples
+        : 0;
+  }
+
+  /** The timeline was clicked: select that unit in the table and scroll to it. */
+  onTimelinePicked(event: { unit: number; sample: number }) {
+    this.selectedUnit = event.unit;
+    this.timelineCursor = event.sample;
+    this.overview?.selectRow(event.unit, true);
   }
 
   onSegmentInOverviewClicked(segnumber: number) {

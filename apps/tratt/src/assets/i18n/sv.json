@@ -355,6 +355,8 @@
     "no validation methods": "Inga valideringsmetoder hittades",
     "validation help": "En valideringsmetod är ett skript i projektets transkriptionsriktlinjer som kontrollerar varje enhets text mot riktlinjernas regler; text som bryter mot dem stryks under i redigeraren. Avsnittet visar antalet fel per nivå. Utan ett sådant skript kontrolleras ingenting här.",
     "double click to edit": "Dubbelklicka för att redigera",
+    "overview timeline": "Tidslinje över hela inspelningen",
+    "overview timeline help": "Hela inspelningen. Klicka på en punkt, eller använd piltangenterna, för att visa den enheten i listan. Klickar du på en rad i listan markeras den här. Den röda linjen följer uppspelningen.",
     "open in transcription window": "Öppna enheten i transkriptionsfönstret",
     "boundary locked": "Den här gränsen kan inte flyttas här.",
     "statistics": "Statistik",

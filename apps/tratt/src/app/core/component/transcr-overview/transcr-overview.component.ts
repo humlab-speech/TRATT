@@ -3,6 +3,7 @@ import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
+  ElementRef,
   EventEmitter,
   HostListener,
   Input,
@@ -10,9 +11,11 @@ import {
   OnDestroy,
   OnInit,
   Output,
+  QueryList,
   SecurityContext,
   SimpleChanges,
   ViewChild,
+  ViewChildren,
 } from '@angular/core';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { TranslocoPipe } from '@jsverse/transloco';
@@ -105,6 +108,10 @@ export class TranscrOverviewComponent implements OnInit, OnDestroy, OnChanges {
   public showLoading = true;
 
   @Output() segmentclicked: EventEmitter<number> = new EventEmitter<number>();
+  /** The row shown on the footer timeline; -1 for none. */
+  selectedRow = -1;
+  @Output() selectedRowChange = new EventEmitter<number>();
+  @ViewChildren('row') rows?: QueryList<ElementRef<HTMLTableRowElement>>;
 
   private subscrmanager: SubscriptionManager<Subscription>;
 
@@ -510,6 +517,31 @@ export class TranscrOverviewComponent implements OnInit, OnDestroy, OnChanges {
     if (m && m.to > m.from) {
       this.closePopover();
       this.annotationStoreService.mergeCurrentLevelItems(m.from, m.to);
+    }
+  }
+
+  /**
+   * A single click on a row selects it for the footer timeline. Clicks on the
+   * row's controls (number link, checkbox, step and play buttons, the inline
+   * editor) keep their own meaning.
+   */
+  onRowClick(i: number, event: MouseEvent) {
+    const target = event.target as HTMLElement | null;
+    if (target?.closest('button, a, input, textarea, [contenteditable], tratt-transcr-editor')) {
+      return;
+    }
+    this.selectRow(i, false);
+    this.selectedRowChange.emit(i);
+  }
+
+  /** Selects row `i`; with `scroll`, brings it into view (from the timeline). */
+  selectRow(i: number, scroll: boolean) {
+    this.selectedRow = i;
+    this.cd.markForCheck();
+    if (scroll) {
+      this.rows
+        ?.get(i)
+        ?.nativeElement.scrollIntoView({ block: 'center', behavior: 'smooth' });
     }
   }
 

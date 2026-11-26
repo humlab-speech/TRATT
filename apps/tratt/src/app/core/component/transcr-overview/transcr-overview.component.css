@@ -170,6 +170,20 @@
   box-shadow: inset 0 0 0 9999px rgba(0, 0, 0, 0.14);
 }
 
+/* the unit shown on the footer timeline: a line above and below the row */
+.segment-row.row-selected > td {
+  box-shadow:
+    inset 0 2px 0 var(--tratt-interactive),
+    inset 0 -2px 0 var(--tratt-interactive);
+}
+
+.segment-row.row-selected.row-marked > td {
+  box-shadow:
+    inset 0 2px 0 var(--tratt-interactive),
+    inset 0 -2px 0 var(--tratt-interactive),
+    inset 0 0 0 9999px rgba(0, 0, 0, 0.14);
+}
+
 .segment-row.row-marked > td:first-child {
   box-shadow:
     inset 0 0 0 9999px rgba(0, 0, 0, 0.14),

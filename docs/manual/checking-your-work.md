@@ -73,6 +73,15 @@ contains. The checkboxes are not shown on a tier that is linked to another.
 Unit numbers are zero-padded to the width of the largest number (`001`…`842`
 for 842 units), so the column stays aligned.
 
+**The timeline.** Beside **Close** at the bottom is the whole recording as one
+waveform. Thin lines mark the unit boundaries, and the strip along its bottom
+edge is coloured like the rows: green for transcribed, blue for a break, red for
+empty, so you can see where work remains. Click a point to bring that unit into
+view in the list and outline its row; the arrow keys step to the previous or next
+unit. Clicking a row (not its buttons) shades that unit on the timeline. While
+audio plays, a red line follows the play position. The timeline only moves the
+list; it does not start playback.
+
 <a id="verified-transcriptions"></a>
 
 ### Verified transcriptions

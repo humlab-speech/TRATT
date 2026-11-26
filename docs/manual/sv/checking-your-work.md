@@ -74,6 +74,15 @@ vad den sammanslagna enheten innehåller. Kryssrutorna visas inte på en nivå s
 Enhetsnumren fylls ut med nollor till bredden på det största numret (`001`…`842`
 för 842 enheter), så att kolumnen håller sig rak.
 
+**Tidslinjen.** Bredvid **Stäng** längst ned visas hela inspelningen som en
+vågform. Tunna streck markerar enhetsgränserna, och remsan längs nederkanten är
+färgad som raderna: grön för transkriberad, blå för paus, röd för tom, så att du
+ser var det återstår arbete. Klicka på en punkt för att visa den enheten i
+listan och rama in dess rad; piltangenterna stegar till föregående eller nästa
+enhet. Klickar du på en rad (inte dess knappar) skuggas enheten på tidslinjen.
+Medan ljud spelas följer en röd linje uppspelningspositionen. Tidslinjen flyttar
+bara listan; den startar inte uppspelning.
+
 <a id="verified-transcriptions"></a>
 
 ### Verifierade transkriptioner

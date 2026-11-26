@@ -146,6 +146,7 @@
             <tr
               #row
               class="segment-row"
+              (click)="onRowClick(i, $event)"
               [ngClass]="{
                 'tratt-state-success':
                   segment.transcription.text.trim() !== '' &&
@@ -162,6 +163,7 @@
                   !annotationStoreService.breakMarker,
                 'bg-highlight': playAllState.currentSegment === i,
                 'row-marked': isMarked(i),
+                'row-selected': selectedRow === i,
               }"
             >
               <td
