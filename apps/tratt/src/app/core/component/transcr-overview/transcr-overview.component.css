@@ -1,7 +1,15 @@
+:host {
+  display: block;
+  --merge-bar-height: 46px;
+}
+
 .segment-number {
-  padding: 3px;
-  width: 50px;
   vertical-align: middle;
+}
+
+/* One spacing for every cell of the transcript table. */
+#transcription-table > :not(caption) > tr > * {
+  padding: 6px 8px;
 }
 
 .segment-number .btn-link,
@@ -35,7 +43,7 @@
 }
 
 #table-second-column {
-  width: 80px;
+  width: 100px;
 }
 
 #table-third-column {
@@ -61,7 +69,6 @@
   text-align: center;
   vertical-align: middle;
   width: 90px;
-  padding: 3px;
 }
 
 .table .last-column {
@@ -98,7 +105,7 @@
 
 .table .time-column {
   /* < 1:02:03.456 > still fits (hours appear past 60 min) */
-  width: 128px;
+  width: 136px;
 }
 
 #table-speaker-column {
@@ -108,16 +115,15 @@
 .time-cell {
   vertical-align: middle;
   white-space: nowrap;
-  padding: 3px 4px;
+  text-align: center;
   font-variant-numeric: tabular-nums;
 }
 
-/* < time > : earlier on the left, later on the right */
+/* < time > : earlier on the left, later on the right, close to the time */
 .time-row {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 3px;
+  gap: 6px;
 }
 
 .time-nudge {
@@ -151,18 +157,37 @@
 }
 
 .mark-toggle {
-  margin-right: 4px;
+  margin-right: 6px;
 }
 
+/*
+ * The merge bar and the column headers stay at the top while the list
+ * scrolls. The scroll container is the modal body, whose padding would leave
+ * a strip above them where rows show through, hence the negative top.
+ */
 .merge-bar {
   position: sticky;
-  top: 0;
+  top: calc(-1 * var(--bs-modal-padding, 1rem));
   z-index: 5;
   display: flex;
   gap: 8px;
   align-items: center;
-  padding: 6px 0;
+  height: var(--merge-bar-height);
   background: var(--bs-body-bg, #fff);
+}
+
+#transcription-table > thead > tr > th {
+  position: sticky;
+  top: calc(var(--sticky-offset, 0px) - var(--bs-modal-padding, 1rem));
+  z-index: 4;
+  background: var(--bs-body-bg, #fff);
+  /* collapsed borders do not travel with a sticky cell */
+  box-shadow: inset 0 -1px 0 var(--tratt-border, #ccc);
+}
+
+/* The row's state edge (4 px) belongs on its first cell only. */
+.segment-row > td:not(.segment-number) {
+  box-shadow: none;
 }
 
 /* neutral darkening keeps the row's state colour (green/blue/red) readable */

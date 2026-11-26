@@ -82,7 +82,7 @@
       <i class="fa-solid fa-spinner fa-spin" style="font-size: 2rem"></i>
     </div>
   </div>
-  @if (canMerge && shownSegments.length > 1 && showTranscriptionTable) {
+  @if (showMergeBar) {
     <div class="merge-bar">
       <!-- A disabled .btn takes no pointer events, so its explanation sits on a wrapper. -->
       <span
@@ -116,7 +116,11 @@
     </div>
   }
   @if (shownSegments.length > 0) {
-    <div class="table-responsive" [hidden]="!showTranscriptionTable">
+    <!-- no .table-responsive: its overflow would stop the headers sticking -->
+    <div
+      [hidden]="!showTranscriptionTable"
+      [style.--sticky-offset]="showMergeBar ? 'var(--merge-bar-height)' : '0px'"
+    >
       <table id="transcription-table" class="table table-bordered">
         <thead id="table-head">
           <tr>

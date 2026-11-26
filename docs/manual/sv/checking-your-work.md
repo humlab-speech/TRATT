@@ -10,7 +10,9 @@ Tryck **Alt + 0**, eller klicka **Översikt** i verktygsraden under sidhuvudet.
 
 ![Översiktsfönstret](../../assets/visp_tratt_overview_edit.png)
 
-Det har tre delar.
+Det har tre delar. Dra i vänster eller höger kant för att göra fönstret bredare;
+det behåller bredden till nästa gång. Dubbelklicka på kanten för att återgå till
+standardbredden.
 
 ### Statistik
 

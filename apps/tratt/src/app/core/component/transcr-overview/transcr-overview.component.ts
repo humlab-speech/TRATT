@@ -470,6 +470,12 @@ export class TranscrOverviewComponent implements OnInit, OnDestroy, OnChanges {
     return !!this.marked && i >= this.marked.from && i <= this.marked.to;
   }
 
+  get showMergeBar(): boolean {
+    return (
+      this.canMerge && this.shownSegments.length > 1 && this.showTranscriptionTable
+    );
+  }
+
   get markedCount(): number {
     return this.marked ? this.marked.to - this.marked.from + 1 : 0;
   }

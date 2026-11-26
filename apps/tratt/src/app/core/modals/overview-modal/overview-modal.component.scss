@@ -6,3 +6,29 @@
   flex: 1 1 auto;
   margin-right: 0.5rem;
 }
+
+/* Drag an edge to widen the window; double-click to reset (see setDialogWidth). */
+.resize-handle {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 10px;
+  z-index: 10;
+  cursor: ew-resize;
+  touch-action: none;
+}
+
+.resize-handle.left {
+  left: -5px;
+}
+
+.resize-handle.right {
+  right: -5px;
+}
+
+/* below xl the window is full screen, so there is nothing to resize */
+@media (max-width: 1199.98px) {
+  .resize-handle {
+    display: none;
+  }
+}

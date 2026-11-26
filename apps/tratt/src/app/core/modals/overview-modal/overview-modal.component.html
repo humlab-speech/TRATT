@@ -1,4 +1,17 @@
 <div class="modal-content">
+  @for (side of [-1, 1]; track side) {
+    <div
+      class="resize-handle"
+      [class.left]="side === -1"
+      [class.right]="side === 1"
+      [title]="'g.resize window' | transloco"
+      (pointerdown)="onResizeStart($event, $any(side))"
+      (pointermove)="onResizeMove($event)"
+      (pointerup)="onResizeEnd()"
+      (pointercancel)="onResizeEnd()"
+      (dblclick)="resetWidth()"
+    ></div>
+  }
   <div class="modal-header">
     <h5 class="modal-title" id="modal-title">
       {{ 'g.overview' | transloco }}

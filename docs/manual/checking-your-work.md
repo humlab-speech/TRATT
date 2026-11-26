@@ -10,7 +10,8 @@ Press **Alt + 0**, or click **Overview** in the toolbar under the header (in the
 
 ![The Overview window](../assets/visp_tratt_overview_edit.png)
 
-It has three parts.
+It has three parts. To make it wider, drag its left or right edge; it keeps that
+width the next time. Double-click the edge to go back to the default width.
 
 ### Statistics
 
