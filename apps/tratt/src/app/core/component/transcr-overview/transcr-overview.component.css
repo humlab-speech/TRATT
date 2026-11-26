@@ -112,11 +112,19 @@
 
 .time-nudge {
   display: inline-flex;
-  flex-direction: column;
+  gap: 6px;
   vertical-align: middle;
-  margin-left: 4px;
+  margin-left: 6px;
   font-size: 0.7rem;
   line-height: 1;
+}
+
+.help-icon {
+  font-size: 0.9rem;
+  margin-left: 4px;
+  color: var(--tratt-interactive-text);
+  cursor: help;
+  vertical-align: middle;
 }
 
 .time-nudge .btn-link,

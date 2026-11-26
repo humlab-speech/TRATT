@@ -459,6 +459,10 @@ export class TranscrOverviewComponent implements OnInit, OnDestroy, OnChanges {
     return !!this.marked && i >= this.marked.from && i <= this.marked.to;
   }
 
+  get markedCount(): number {
+    return this.marked ? this.marked.to - this.marked.from + 1 : 0;
+  }
+
   get canMerge(): boolean {
     return this.annotationStoreService.canMergeCurrentLevel();
   }

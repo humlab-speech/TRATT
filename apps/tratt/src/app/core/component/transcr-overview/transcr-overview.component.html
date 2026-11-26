@@ -23,7 +23,15 @@
     </tbody>
   </table>
   <div [hidden]="shownSegments.length === 0" style="text-align: center">
-    <h4 class="text-start mt-5">{{ 'g.validation' | transloco }}</h4>
+    <h4 class="text-start mt-5">
+      {{ 'g.validation' | transloco }}
+      <i
+        class="fa-solid fa-circle-info help-icon"
+        tabindex="0"
+        [title]="'g.validation help' | transloco"
+        [attr.aria-label]="'g.validation help' | transloco"
+      ></i>
+    </h4>
 
     @if (validationFound) {
       <table class="table table-sm table-striped w-100">
@@ -55,7 +63,7 @@
       </table>
     }
     @if (!validationFound) {
-      <span>No validation methods found</span>
+      <span>{{ 'g.no validation methods' | transloco }}</span>
     }
   </div>
   <h4 [hidden]="!showTranscriptionTable" class="mt-5">
@@ -74,15 +82,37 @@
       <i class="fa-solid fa-spinner fa-spin" style="font-size: 2rem"></i>
     </div>
   </div>
-  @if (marked && marked.to > marked.from) {
+  @if (canMerge && shownSegments.length > 1 && showTranscriptionTable) {
     <div class="merge-bar">
-      <button type="button" class="btn btn-sm btn-primary" (click)="confirmMerge()">
-        <i class="fa-solid fa-compress me-1"></i>
-        {{ 'g.merge units' | transloco: { count: marked.to - marked.from + 1 } }}
-      </button>
-      <button type="button" class="btn btn-sm btn-link" (click)="clearMarks()">
-        {{ 'g.clear selection' | transloco }}
-      </button>
+      <!-- A disabled .btn takes no pointer events, so its explanation sits on a wrapper. -->
+      <span
+        class="d-inline-block"
+        tabindex="0"
+        [title]="
+          markedCount >= 2
+            ? ('g.merge units help' | transloco)
+            : ('g.merge units disabled' | transloco)
+        "
+      >
+        <button
+          type="button"
+          class="btn btn-sm btn-primary"
+          [disabled]="markedCount < 2"
+          (click)="confirmMerge()"
+        >
+          <i class="fa-solid fa-compress me-1"></i>
+          @if (markedCount >= 2) {
+            {{ 'g.merge units' | transloco: { count: markedCount } }}
+          } @else {
+            {{ 'g.merge units none' | transloco }}
+          }
+        </button>
+      </span>
+      @if (marked) {
+        <button type="button" class="btn btn-sm btn-link" (click)="clearMarks()">
+          {{ 'g.clear selection' | transloco }}
+        </button>
+      }
     </div>
   }
   @if (shownSegments.length > 0) {
@@ -178,6 +208,7 @@
                 <button
                   type="button"
                   class="btn btn-link link p-0"
+                  [title]="'g.open in transcription window' | transloco"
                   (click)="onSegmentClicked(i)"
                 >
                   #&thinsp;{{ i + 1 | leadingnull: shownSegments.length }}
@@ -200,21 +231,21 @@
                     type="button"
                     class="btn btn-link p-0"
                     [disabled]="!boundaryEditable(i - 1)"
-                    (click)="nudgeBoundary(i - 1, $event.shiftKey ? 100 : 10)"
-                    [title]="'g.boundary later' | transloco"
-                    [attr.aria-label]="'g.boundary later' | transloco"
+                    (click)="nudgeBoundary(i - 1, $event.shiftKey ? -100 : -10)"
+                    [title]="'g.boundary earlier' | transloco"
+                    [attr.aria-label]="'g.boundary earlier' | transloco"
                   >
-                    <i class="fa-solid fa-chevron-up"></i>
+                    <i class="fa-solid fa-chevron-left"></i>
                   </button>
                   <button
                     type="button"
                     class="btn btn-link p-0"
                     [disabled]="!boundaryEditable(i - 1)"
-                    (click)="nudgeBoundary(i - 1, $event.shiftKey ? -100 : -10)"
-                    [title]="'g.boundary earlier' | transloco"
-                    [attr.aria-label]="'g.boundary earlier' | transloco"
+                    (click)="nudgeBoundary(i - 1, $event.shiftKey ? 100 : 10)"
+                    [title]="'g.boundary later' | transloco"
+                    [attr.aria-label]="'g.boundary later' | transloco"
                   >
-                    <i class="fa-solid fa-chevron-down"></i>
+                    <i class="fa-solid fa-chevron-right"></i>
                   </button>
                 </span>
               </td>
@@ -235,21 +266,21 @@
                     type="button"
                     class="btn btn-link p-0"
                     [disabled]="!boundaryEditable(i)"
-                    (click)="nudgeBoundary(i, $event.shiftKey ? 100 : 10)"
-                    [title]="'g.boundary later' | transloco"
-                    [attr.aria-label]="'g.boundary later' | transloco"
+                    (click)="nudgeBoundary(i, $event.shiftKey ? -100 : -10)"
+                    [title]="'g.boundary earlier' | transloco"
+                    [attr.aria-label]="'g.boundary earlier' | transloco"
                   >
-                    <i class="fa-solid fa-chevron-up"></i>
+                    <i class="fa-solid fa-chevron-left"></i>
                   </button>
                   <button
                     type="button"
                     class="btn btn-link p-0"
                     [disabled]="!boundaryEditable(i)"
-                    (click)="nudgeBoundary(i, $event.shiftKey ? -100 : -10)"
-                    [title]="'g.boundary earlier' | transloco"
-                    [attr.aria-label]="'g.boundary earlier' | transloco"
+                    (click)="nudgeBoundary(i, $event.shiftKey ? 100 : 10)"
+                    [title]="'g.boundary later' | transloco"
+                    [attr.aria-label]="'g.boundary later' | transloco"
                   >
-                    <i class="fa-solid fa-chevron-down"></i>
+                    <i class="fa-solid fa-chevron-right"></i>
                   </button>
                 </span>
               </td>

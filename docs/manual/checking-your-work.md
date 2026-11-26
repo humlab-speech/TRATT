@@ -29,7 +29,8 @@ zero, click it: Tratt highlights what is missing.
 If the project's guidelines file names a validation script, this section lists each
 tier with its error count (normally *No errors found*) and offending text is
 underlined in the editor. If no validation is configured, the section reads
-*No validation methods found* instead. Either is normal; the standard Tratt
+*No validation methods found* instead. The ⓘ next to the heading explains
+this in the app. Either is normal; the standard Tratt
 guidelines carry only spelling and punctuation rules, so in practice this section
 rarely tells you anything.
 
@@ -45,7 +46,7 @@ through the waveform, because you can read continuously and only stop where
 something looks wrong. Click ▶ on the suspicious row, fix it, move on.
 
 **Adjusting boundaries.** The **Start** and **End** columns show each unit's times.
-Click ▲ or ▼ to move a time by 10 ms (hold **Shift** for 100 ms). The start of
+Click ◀ to move a time 10 ms earlier or ▶ to move it 10 ms later (hold **Shift** for 100 ms). The start of
 one unit is the end of the previous one, so both cells move together. Rest the
 pointer on a time for a moment and a waveform snippet opens around that boundary;
 drag the red line to place it, or press **Esc** while dragging to cancel. The
@@ -63,8 +64,9 @@ ticked rows always form one block of neighbours:
 - **Shift**-click fills the gap up to the clicked row;
 - ticking any other row starts a new block.
 
-Marked rows are darkened. Once two or more are marked, a bar above the table
-shows **Merge N units** and **Clear selection**. The bar stays until you use it.
+Marked rows are darkened. Above the table is a **Merge units** button. It is
+greyed out until two or more rows are marked, and resting the pointer on it says
+why; then it reads **Merge N units**, with **Clear selection** next to it.
 See [Merging units](transcribing.md#merging-units) for what the merged unit
 contains. The checkboxes are not shown on a tier that is linked to another.
 
