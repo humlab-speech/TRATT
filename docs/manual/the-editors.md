@@ -24,7 +24,8 @@ of the time.
 - Hover a unit and press **Enter** to open the **transcription window** for it.
   The unit under the pointer is shaded, so you can see
   which one Enter will open. It is the pointer that counts, not where you last
-  clicked.
+  clicked. Turn the shading off under **Highlight unit under pointer** in the
+  Preferences.
 - **S**, **A**, **D** and drag-select manage boundaries directly on the waveform
   ([How transcribing works](transcribing.md#boundaries)).
 - **Seconds per line** in the Preferences controls how much audio each line holds.

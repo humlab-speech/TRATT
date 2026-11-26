@@ -840,6 +840,7 @@ export interface IIDBApplicationOptions {
   editorFont?: string | null;
   playOnHover?: boolean | null;
   followPlayCursor?: boolean | null;
+  highlightHoveredUnit?: boolean | null;
   showFeedbackNotice?: boolean | null;
   userProfile?: {
     name: string;
@@ -862,6 +863,7 @@ export type IDBApplicationOptionName =
   | 'editorFont'
   | 'playOnHover'
   | 'followPlayCursor'
+  | 'highlightHoveredUnit'
   | 'showFeedbackNotice';
 
 export const DefaultModeOptions: IIDBModeOptions = {

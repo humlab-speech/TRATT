@@ -709,6 +709,7 @@
   "send error": "Ett fel uppstod. Vänligen ladda om denna sida och försök igen!",
   "settings": {
     "easy mode": "Enkelt läge",
+    "highlight hovered unit": "Markera enheten under pekaren",
     "follow playcursor": "Följ uppspelningspekare",
     "logging": "Logga användaråtgärder",
     "play on hover": "Spela vid hovring",

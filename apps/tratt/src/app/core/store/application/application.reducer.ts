@@ -26,6 +26,7 @@ export const initialState: ApplicationState = {
   options: {
     playOnHover: false,
     followPlayCursor: false,
+    highlightHoveredUnit: true,
     showMagnifier: false,
     audioSettings: {
       volume: 1,
@@ -161,6 +162,7 @@ export const reducer = createReducer(
         showMagnifier: applicationOptions.showMagnifier ?? false,
         playOnHover: applicationOptions.playOnHover ?? false,
         followPlayCursor: applicationOptions.followPlayCursor ?? false,
+        highlightHoveredUnit: applicationOptions.highlightHoveredUnit ?? true,
         secondsPerLine: applicationOptions.secondsPerLine ?? 5,
         editorFont: applicationOptions.editorFont,
         easyMode: applicationOptions.easyMode ?? false,

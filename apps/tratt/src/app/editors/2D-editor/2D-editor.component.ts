@@ -385,8 +385,8 @@ export class TwoDEditorComponent
     this.shortcutService.registerShortcutGroup(this.windowShortcuts);
 
     this.viewer.settings.multiLine = true;
-    // shade the unit under the pointer: the one Enter opens
-    this.viewer.settings.unitHover = true;
+    // shade the unit under the pointer: the one Enter opens (Preferences)
+    this.viewer.settings.unitHover = this.appStorage.highlightHoveredUnit;
     this.viewer.settings.lineheight = 70;
     this.viewer.settings.margin.top = 5;
     this.viewer.settings.margin.right = 0;
@@ -456,6 +456,11 @@ export class TwoDEditorComponent
       switch (event.key) {
         case 'secondsPerLine':
           this.viewer.onSecondsPerLineChanged(event.value);
+          break;
+        case 'highlightHoveredUnit':
+          // the shading shapes are built with the lines, hence the redraw
+          this.viewer.settings.unitHover = event.value;
+          this.viewer.redraw();
           break;
       }
     });

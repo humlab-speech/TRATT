@@ -773,6 +773,7 @@
   "send error": "An error occurred. Please reload this page and try again!",
   "settings": {
     "easy mode": "Easy Mode",
+    "highlight hovered unit": "Highlight unit under pointer",
     "follow playcursor": "Follow playcursor",
     "logging": "Log user actions",
     "play on hover": "Play on hover",
