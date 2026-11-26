@@ -729,6 +729,29 @@
                     </div>
                   </td>
                 </tr>
+                @if (appStorage.interface === '2D-Editor') {
+                  <tr>
+                    <td>
+                      <label for="highlightHoveredUnit"
+                        >{{ 'settings.highlight hovered unit' | transloco }}:</label
+                      >
+                    </td>
+                    <td>
+                      <div
+                        class="form-check form-switch form-check-reverse form-check-inline"
+                      >
+                        <input
+                          class="form-check-input"
+                          type="checkbox"
+                          role="switch"
+                          (click)="toggleSettings('highlightHoveredUnit')"
+                          [checked]="appStorage.highlightHoveredUnit"
+                          id="highlightHoveredUnit"
+                        />
+                      </div>
+                    </td>
+                  </tr>
+                }
                 <tr>
                   <td>
                     <label for="showMagnifier"

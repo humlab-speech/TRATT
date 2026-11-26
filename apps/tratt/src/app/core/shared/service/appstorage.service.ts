@@ -270,6 +270,21 @@ export class AppStorageService {
     );
   }
 
+  /** 2D-Editor: shade the unit under the pointer (the one Enter opens). */
+  get highlightHoveredUnit(): boolean {
+    return this._snapshot.application.options.highlightHoveredUnit ?? true;
+  }
+
+  set highlightHoveredUnit(value: boolean) {
+    this.store.dispatch(
+      ApplicationActions.changeApplicationOption.do({
+        name: 'highlightHoveredUnit',
+        value,
+      }),
+    );
+    this.settingschange.next({ key: 'highlightHoveredUnit', value });
+  }
+
   get followPlayCursor(): boolean | undefined | null {
     return this._snapshot.application.options.followPlayCursor;
   }

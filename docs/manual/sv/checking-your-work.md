@@ -10,7 +10,9 @@ Tryck **Alt + 0**, eller klicka **Översikt** i verktygsraden under sidhuvudet.
 
 ![Översiktsfönstret](../../assets/visp_tratt_overview_edit.png)
 
-Det har tre delar.
+Det har tre delar. Dra i vänster eller höger kant för att göra fönstret bredare;
+det behåller bredden till nästa gång. Dubbelklicka på kanten för att återgå till
+standardbredden.
 
 ### Statistik
 
@@ -29,7 +31,8 @@ noll, klicka på den. Tratt markerar då vad som saknas.
 Namnger projektets riktlinjefil ett valideringsskript listar det här avsnittet
 varje nivå med sitt antal fel (normalt *Inga fel hittade*), och den felande
 texten stryks under i redigeraren. Är ingen validering konfigurerad står det
-i stället *No validation methods found*. Båda är normalt; standardriktlinjerna i
+i stället *Inga valideringsmetoder hittades*. ⓘ bredvid rubriken förklarar
+detta i appen. Båda är normalt; standardriktlinjerna i
 Tratt innehåller bara stavnings- och skiljeteckensregler, så i praktiken säger det
 här avsnittet sällan något. Tratt erbjuder just nu inte någon möjlighet att ange en egen riktlinjefil.
 
@@ -45,7 +48,7 @@ stega genom vågformen, eftersom du kan läsa sammanhängande och bara stanna d�
 något ser fel ut. Klicka ▶ på den misstänkta raden, rätta, gå vidare.
 
 **Justera gränser.** Kolumnerna **Start** och **Slut** visar varje enhets tider.
-Klicka ▲ eller ▼ för att flytta en tid 10 ms (håll **Skift** för 100 ms). Starten
+Klicka ◀ för att flytta en tid 10 ms tidigare eller ▶ för att flytta den 10 ms senare (håll **Skift** för 100 ms). Starten
 på en enhet är slutet på den föregående, så båda cellerna flyttas tillsammans.
 Vila pekaren på en tid en stund så öppnas ett vågformsutsnitt kring gränsen.
 Dra den röda linjen för att placera den, eller tryck **Esc** under dragning för
@@ -63,14 +66,22 @@ De markerade raderna bildar alltid ett block av grannar:
 - **Skift**-klick fyller i luckan upp till den klickade raden;
 - att bocka i någon annan rad startar ett nytt block.
 
-Markerade rader mörkas. När två eller fler är markerade visas ett fält ovanför
-tabellen med **Slå ihop N enheter** och **Rensa markering**. Fältet ligger kvar
-tills du använder det. Se [Slå ihop enheter](transcribing.md#merging-units) för
+Markerade rader mörkas. Ovanför tabellen finns knappen **Slå ihop enheter**.
+Den är gråad tills två eller fler rader är markerade, och vilar du pekaren på
+den förklarar den varför; sedan står det **Slå ihop N enheter**, med
+**Rensa markering** bredvid. Se [Slå ihop enheter](transcribing.md#merging-units) för
 vad den sammanslagna enheten innehåller. Kryssrutorna visas inte på en nivå som
 är länkad till en annan.
 
 Enhetsnumren fylls ut med nollor till bredden på det största numret (`001`…`842`
 för 842 enheter), så att kolumnen håller sig rak.
+
+**Tidslinjen.** Bredvid **Stäng** längst ned visas hela inspelningen som en
+vågform, med tunna streck vid enhetsgränserna. Klicka på en punkt för att visa den enheten i
+listan och rama in dess rad; piltangenterna stegar till föregående eller nästa
+enhet. Klickar du på en rad (inte dess knappar) skuggas enheten på tidslinjen.
+Medan ljud spelas följer en röd linje uppspelningspositionen. Tidslinjen flyttar
+bara listan; den startar inte uppspelning.
 
 <a id="verified-transcriptions"></a>
 

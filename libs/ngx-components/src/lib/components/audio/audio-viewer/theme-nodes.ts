@@ -8,6 +8,7 @@ export const THEME_NODE = {
   lineGrid: 'theme-line-grid',
   lineSignal: 'theme-line-signal',
   selection: 'theme-selection',
+  unitHover: 'theme-unit-hover',
   caret: 'theme-caret',
   textLabel: 'theme-text-label',
   scrollBackground: 'theme-scroll-bg',

@@ -2,18 +2,22 @@ import { AsyncPipe, NgClass } from '@angular/common';
 import {
   AfterViewInit,
   Component,
+  ElementRef,
   EventEmitter,
   OnDestroy,
   OnInit,
   Output,
   ViewChild,
+  inject,
 } from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
+import { TrattAnnotationSegment } from '@tratt/annotation';
 import {
   NgbActiveModal,
   NgbModal,
   NgbModalOptions,
 } from '@ng-bootstrap/ng-bootstrap';
+import { OverviewTimelineComponent } from '../../component/transcr-overview/overview-timeline/overview-timeline.component';
 import { TranscrOverviewComponent } from '../../component/transcr-overview/transcr-overview.component';
 import { TranscriptionFeedbackComponent } from '../../component/transcription-feedback/transcription-feedback.component';
 import { SettingsService, UserInteractionsService } from '../../shared/service';
@@ -23,6 +27,9 @@ import { LoginMode } from '../../store';
 import { AnnotationStoreService } from '../../store/login-mode/annotation/annotation.store.service';
 import { TrattModal } from '../types';
 
+const OVERVIEW_WIDTH_KEY = 'tratt.overview.width';
+const MIN_WIDTH = 800;
+
 @Component({
   selector: 'tratt-overview-modal',
   templateUrl: './overview-modal.component.html',
@@ -30,6 +37,7 @@ import { TrattModal } from '../types';
   imports: [
     NgClass,
     TranscrOverviewComponent,
+    OverviewTimelineComponent,
     TranscriptionFeedbackComponent,
     AsyncPipe,
     TranslocoPipe,
@@ -47,6 +55,16 @@ export class OverviewModalComponent
     size: 'xl',
     fullscreen: 'xl',
   };
+
+  private readonly host = inject(ElementRef<HTMLElement>);
+  private resizeStart?: { x: number; width: number; side: 1 | -1 };
+
+  @ViewChild('overview', { static: false })
+  overview?: TranscrOverviewComponent;
+  /** Unit selected in the table and on the footer timeline. */
+  selectedUnit = -1;
+  /** Where the timeline's position line rests while nothing plays. */
+  timelineCursor?: number;
 
   @ViewChild('feedback', { static: false })
   feedback?: TranscriptionFeedbackComponent;
@@ -147,6 +165,8 @@ export class OverviewModalComponent
   }
 
   ngAfterViewInit() {
+    const saved = Number(localStorage.getItem(OVERVIEW_WIDTH_KEY));
+    if (saved > 0) this.setDialogWidth(saved);
     if (this.feedback) {
       this.feedback.comment = this.annotationStoreService.comment;
     }
@@ -184,6 +204,70 @@ export class OverviewModalComponent
       );
     }
     return super.close();
+  }
+
+  private get dialog(): HTMLElement | null {
+    return (this.host.nativeElement as HTMLElement).closest('.modal-dialog');
+  }
+
+  /**
+   * Width set by dragging an edge, kept between visits. The dialog stays
+   * centred, so it grows by twice the drag: the dragged edge follows the
+   * pointer. Undefined returns to the default width.
+   */
+  private setDialogWidth(width?: number) {
+    const dialog = this.dialog;
+    if (!dialog) return;
+    if (width === undefined) {
+      dialog.style.removeProperty('max-width');
+      return;
+    }
+    const max = window.innerWidth - 16;
+    dialog.style.maxWidth = `${Math.round(Math.min(max, Math.max(MIN_WIDTH, width)))}px`;
+  }
+
+  onResizeStart(event: PointerEvent, side: 1 | -1) {
+    const dialog = this.dialog;
+    if (!dialog) return;
+    event.preventDefault();
+    (event.target as HTMLElement).setPointerCapture(event.pointerId);
+    this.resizeStart = { x: event.clientX, width: dialog.offsetWidth, side };
+  }
+
+  onResizeMove(event: PointerEvent) {
+    const start = this.resizeStart;
+    if (!start) return;
+    this.setDialogWidth(start.width + 2 * start.side * (event.clientX - start.x));
+  }
+
+  onResizeEnd() {
+    if (!this.resizeStart) return;
+    this.resizeStart = undefined;
+    const width = this.dialog?.offsetWidth;
+    if (width) localStorage.setItem(OVERVIEW_WIDTH_KEY, String(width));
+  }
+
+  /** Double-click on an edge: back to the default width. */
+  resetWidth() {
+    localStorage.removeItem(OVERVIEW_WIDTH_KEY);
+    this.setDialogWidth(undefined);
+  }
+
+  /** A row was clicked: show its unit on the timeline. */
+  onRowSelected(unit: number) {
+    this.selectedUnit = unit;
+    const items = this.annotationStoreService.currentLevel?.items;
+    this.timelineCursor =
+      unit > 0 && items
+        ? (items[unit - 1] as TrattAnnotationSegment).time.samples
+        : 0;
+  }
+
+  /** The timeline was clicked: select that unit in the table and scroll to it. */
+  onTimelinePicked(event: { unit: number; sample: number }) {
+    this.selectedUnit = event.unit;
+    this.timelineCursor = event.sample;
+    this.overview?.selectRow(event.unit, true);
   }
 
   onSegmentInOverviewClicked(segnumber: number) {

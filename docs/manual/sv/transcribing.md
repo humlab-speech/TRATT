@@ -191,6 +191,7 @@ separata nivåer, beskrivs under [Nivåer och talare](tiers-and-speakers.md).
 | **Spela vid hovring** | Spelar ljud när du för musen över vågformen | På, när du vant dig. Det är mycket snabbare för att hitta ett ställe. Växla direkt med **H**. |
 | **Följ uppspelningspekare** | Rullar vyn så att uppspelningsläget syns | På |
 | **Visa förstoringsglas** | En förstorad remsa runt markören, för att placera gränser exakt | På vid noggrant gränsarbete |
+| **Markera enheten under pekaren** | Bara 2D-Editor: skuggar enheten som Enter skulle öppna | På (standard) |
 | **Enkelt läge** | Döljer knapptexter och tangentbordstips: ett kompakt gränssnitt med bara ikoner | Av medan du lär dig |
 | **Logga användaråtgärder** | Registrerar vad du gjort, för metodavsnitt och studier. Stannar på din dator; exporteras bara om du ber om metadata. | Du avgör |
 

@@ -1,7 +1,15 @@
+:host {
+  display: block;
+  --merge-bar-height: 46px;
+}
+
 .segment-number {
-  padding: 3px;
-  width: 50px;
   vertical-align: middle;
+}
+
+/* One spacing for every cell of the transcript table. */
+#transcription-table > :not(caption) > tr > * {
+  padding: 6px 8px;
 }
 
 .segment-number .btn-link,
@@ -17,7 +25,8 @@
 
 .segment-transcript {
   vertical-align: middle;
-  cursor: pointer;
+  /* a single click does nothing; double-click opens the inline editor */
+  cursor: text;
   overflow-wrap: anywhere;
   word-break: break-word;
 }
@@ -34,7 +43,7 @@
 }
 
 #table-second-column {
-  width: 80px;
+  width: 100px;
 }
 
 #table-third-column {
@@ -60,7 +69,6 @@
   text-align: center;
   vertical-align: middle;
   width: 90px;
-  padding: 3px;
 }
 
 .table .last-column {
@@ -96,7 +104,8 @@
 }
 
 .table .time-column {
-  width: 108px;
+  /* < 1:02:03.456 > still fits (hours appear past 60 min) */
+  width: 136px;
 }
 
 #table-speaker-column {
@@ -106,27 +115,39 @@
 .time-cell {
   vertical-align: middle;
   white-space: nowrap;
-  padding: 3px 4px;
+  text-align: center;
   font-variant-numeric: tabular-nums;
 }
 
-.time-nudge {
+/* < time > : earlier on the left, later on the right, close to the time */
+.time-row {
   display: inline-flex;
-  flex-direction: column;
-  vertical-align: middle;
-  margin-left: 4px;
+  align-items: center;
+  gap: 6px;
+}
+
+.time-nudge {
+  flex: none;
   font-size: 0.7rem;
   line-height: 1;
 }
 
-.time-nudge .btn-link,
-.time-nudge .btn-link:hover,
-.time-nudge .btn-link:focus,
-.time-nudge .btn-link:active {
+.help-icon {
+  font-size: 0.9rem;
+  margin-left: 4px;
+  color: var(--tratt-interactive-text);
+  cursor: help;
+  vertical-align: middle;
+}
+
+.btn-link.time-nudge,
+.btn-link.time-nudge:hover,
+.btn-link.time-nudge:focus,
+.btn-link.time-nudge:active {
   color: var(--tratt-interactive-text);
 }
 
-.time-nudge .btn-link:disabled {
+.btn-link.time-nudge:disabled {
   opacity: 0.25;
 }
 
@@ -136,23 +157,56 @@
 }
 
 .mark-toggle {
-  margin-right: 4px;
+  margin-right: 6px;
 }
 
+/*
+ * The merge bar and the column headers stay at the top while the list
+ * scrolls. The scroll container is the modal body, whose padding would leave
+ * a strip above them where rows show through, hence the negative top.
+ */
 .merge-bar {
   position: sticky;
-  top: 0;
+  top: calc(-1 * var(--bs-modal-padding, 1rem));
   z-index: 5;
   display: flex;
   gap: 8px;
   align-items: center;
-  padding: 6px 0;
+  height: var(--merge-bar-height);
   background: var(--bs-body-bg, #fff);
+}
+
+#transcription-table > thead > tr > th {
+  position: sticky;
+  top: calc(var(--sticky-offset, 0px) - var(--bs-modal-padding, 1rem));
+  z-index: 4;
+  background: var(--bs-body-bg, #fff);
+  /* collapsed borders do not travel with a sticky cell */
+  box-shadow: inset 0 -1px 0 var(--tratt-border, #ccc);
+}
+
+/* The row's state edge (4 px) belongs on its first cell only. */
+.segment-row > td:not(.segment-number) {
+  box-shadow: none;
 }
 
 /* neutral darkening keeps the row's state colour (green/blue/red) readable */
 .segment-row.row-marked > td {
   box-shadow: inset 0 0 0 9999px rgba(0, 0, 0, 0.14);
+}
+
+/* the unit shown on the footer timeline: a line above and below the row */
+.segment-row.row-selected > td {
+  box-shadow:
+    inset 0 2px 0 var(--tratt-interactive),
+    inset 0 -2px 0 var(--tratt-interactive);
+}
+
+.segment-row.row-selected.row-marked > td {
+  box-shadow:
+    inset 0 2px 0 var(--tratt-interactive),
+    inset 0 -2px 0 var(--tratt-interactive),
+    inset 0 0 0 9999px rgba(0, 0, 0, 0.14);
 }
 
 .segment-row.row-marked > td:first-child {

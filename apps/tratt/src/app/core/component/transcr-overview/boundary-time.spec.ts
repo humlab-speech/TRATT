@@ -1,5 +1,5 @@
 import { describe, expect, it } from '@jest/globals';
-import { formatTime, moveBoundary } from './boundary-time';
+import { formatTime, moveBoundary, unitAt } from './boundary-time';
 
 describe('formatTime', () => {
   it('formats under an hour as mm:ss.mmm', () => {
@@ -27,5 +27,23 @@ describe('moveBoundary', () => {
   });
   it('leaves the last end fixed', () => {
     expect(moveBoundary(ends, 2, 2500, 1000)).toBe(3000);
+  });
+});
+
+describe('unitAt', () => {
+  const ends = [1000, 2000, 3000];
+  it('finds the unit whose span contains the sample', () => {
+    expect(unitAt(ends, 0)).toBe(0);
+    expect(unitAt(ends, 999)).toBe(0);
+    expect(unitAt(ends, 1500)).toBe(1);
+    expect(unitAt(ends, 2999)).toBe(2);
+  });
+  it('gives a boundary sample to the unit it ends', () => {
+    expect(unitAt(ends, 1000)).toBe(0);
+    expect(unitAt(ends, 1001)).toBe(1);
+  });
+  it('clamps past the end and handles no units', () => {
+    expect(unitAt(ends, 9999)).toBe(2);
+    expect(unitAt([], 5)).toBe(-1);
   });
 });

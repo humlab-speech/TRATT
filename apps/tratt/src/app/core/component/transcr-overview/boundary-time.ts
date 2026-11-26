@@ -32,3 +32,20 @@ export function moveBoundary(
   const upper = ends[i + 1] - min;
   return Math.min(Math.max(target, lower), upper);
 }
+
+/**
+ * Index of the unit that contains `sample`, given each unit's end. Unit `i`
+ * covers (ends[i-1], ends[i]]; before the first end is unit 0, past the last
+ * end the last unit.
+ */
+export function unitAt(ends: number[], sample: number): number {
+  let lo = 0;
+  let hi = ends.length - 1;
+  if (hi < 0) return -1;
+  while (lo < hi) {
+    const mid = (lo + hi) >> 1;
+    if (ends[mid] < sample) lo = mid + 1;
+    else hi = mid;
+  }
+  return lo;
+}

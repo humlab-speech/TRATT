@@ -1,4 +1,17 @@
 <div class="modal-content">
+  @for (side of [-1, 1]; track side) {
+    <div
+      class="resize-handle"
+      [class.left]="side === -1"
+      [class.right]="side === 1"
+      [title]="'g.resize window' | transloco"
+      (pointerdown)="onResizeStart($event, $any(side))"
+      (pointermove)="onResizeMove($event)"
+      (pointerup)="onResizeEnd()"
+      (pointercancel)="onResizeEnd()"
+      (dblclick)="resetWidth()"
+    ></div>
+  }
   <div class="modal-header">
     <h5 class="modal-title" id="modal-title">
       {{ 'g.overview' | transloco }}
@@ -29,6 +42,7 @@
           #overview
           [currentLevel]="annotationStoreService.currentLevel"
           (segmentclicked)="onSegmentInOverviewClicked($event)"
+          (selectedRowChange)="onRowSelected($event)"
         >
         </tratt-transcr-overview>
       </div>
@@ -95,6 +109,13 @@
     </div>
   </div>
   <div class="modal-footer">
+    <tratt-overview-timeline
+      class="overview-timeline"
+      [level]="annotationStoreService.currentLevel"
+      [selected]="selectedUnit"
+      [cursor]="timelineCursor"
+      (unitPicked)="onTimelinePicked($event)"
+    ></tratt-overview-timeline>
     <button class="btn btn-primary" (click)="close(true)" type="button">
       {{ 'g.close' | transloco }}
     </button>

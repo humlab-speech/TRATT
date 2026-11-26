@@ -139,6 +139,7 @@ export class IDBEffects {
                   'editorFont',
                   'playOnHover',
                   'followPlayCursor',
+                  'highlightHoveredUnit',
                   'showFeedbackNotice',
                   'userProfile',
                 ]),

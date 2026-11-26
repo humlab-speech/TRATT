@@ -185,6 +185,7 @@ Open **Preferences** from the header (the gear icon).
 | **Play on hover** | Plays audio as you move the mouse over the waveform | On, once you are used to it. It is much faster for finding a spot. Toggle it live with **H**. |
 | **Follow playcursor** | Scrolls the view to keep the playback position visible | On |
 | **Show magnifier** | A zoomed strip around the cursor, for placing boundaries precisely | On for detailed boundary work |
+| **Highlight unit under pointer** | 2D-Editor only: shades the unit Enter would open | On (the default) |
 | **Easy Mode** | Hides button labels and keyboard hints (a compact, icon-only interface) | Off while you are learning |
 | **Log user actions** | Records what you did, for method sections and studies. Stays on your machine; exported only if you ask for the meta data. | Your call |
 

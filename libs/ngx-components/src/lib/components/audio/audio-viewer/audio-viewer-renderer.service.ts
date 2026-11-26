@@ -120,6 +120,8 @@ export interface AudioViewerRenderSettings {
     enabled: boolean;
     color: string;
   };
+  /** See AudioviewerConfig.unitHover. */
+  unitHover?: boolean;
   frame: {
     color: string;
   };
@@ -985,6 +987,69 @@ export class AudioViewerRendererService {
     line.add(frame);
   }
 
+  /**
+   * The hovered unit's shading on one line: a tinted fill in the
+   * interactive colour. Sized by drawUnitHover().
+   */
+  public createLineUnitHover(line: Group, size: Size) {
+    line.add(
+      new Rect({
+        name: `unit-hover-fill ${THEME_NODE.unitHover}`,
+        opacity: 0.16,
+        fill: this.themeColors().interactive,
+        width: 0,
+        height: size.height,
+        listening: false,
+        transformsEnabled: 'position',
+      }),
+    );
+  }
+
+  /**
+   * Shades the unit [start, end] on every line it spans, or clears the
+   * shading when `start`/`end` are undefined.
+   */
+  public drawUnitHover(start?: SampleUnit, end?: SampleUnit) {
+    const overlay = this.layers?.overlay;
+    if (!overlay) return;
+    const fills = overlay.find('.unit-hover-fill');
+    for (const node of fills) {
+      node.width(0);
+      node.x(0);
+    }
+    if (
+      start !== undefined &&
+      end !== undefined &&
+      this.audioTCalculator !== undefined &&
+      this.audioChunk !== undefined &&
+      this.innerWidth &&
+      this.canvasElements?.lastLine
+    ) {
+      const absStart = this.audioTCalculator.samplestoAbsX(start);
+      const absEnd = this.audioTCalculator.samplestoAbsX(end);
+      const multi = this.innerWidth < this.AudioPxWidth && this.settings.multiLine;
+      const line1 = multi ? Math.floor(absStart / this.innerWidth) : 0;
+      const line2 = multi ? Math.floor(absEnd / this.innerWidth) : 0;
+      const numOfLines = this.timeUtils.getNumberOfLines(
+        this.innerWidth,
+        this.AudioPxWidth,
+      );
+      for (let j = line1; j <= line2 && j < fills.length; j++) {
+        const lineWidth =
+          j < numOfLines - 1
+            ? this.innerWidth
+            : this.canvasElements.lastLine.width();
+        const lineStart = j * this.innerWidth;
+        const x = Math.max(0, absStart - lineStart);
+        const right = Math.min(lineWidth, absEnd - lineStart);
+        const w = Math.max(0, right - x);
+        fills[j].x(x);
+        fills[j].width(w);
+      }
+    }
+    overlay.batchDraw();
+  }
+
   public createLineGrid(line: Group, size: Size) {
     const frame = new Shape({
       name: THEME_NODE.lineGrid,
@@ -1185,6 +1250,9 @@ export class AudioViewerRendererService {
     }
 
     this.createLineSelection(lineGroup, size);
+    if (this.settings.unitHover) {
+      this.createLineUnitHover(lineGroup, size);
+    }
 
     if (
       this.settings.cropping === 'circle' &&
@@ -3223,6 +3291,7 @@ export class AudioViewerRendererService {
       [THEME_NODE.lineGrid]: { stroke: s.grid.color },
       [THEME_NODE.lineSignal]: { stroke: s.data.color },
       [THEME_NODE.selection]: { fill: s.selection.color },
+      [THEME_NODE.unitHover]: { fill: c.interactive },
       [THEME_NODE.caret]: { stroke: c.textPrimary },
       [THEME_NODE.textLabel]: { fill: c.textPrimary },
       [THEME_NODE.scrollBackground]: {

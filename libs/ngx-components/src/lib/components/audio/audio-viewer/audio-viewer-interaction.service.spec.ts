@@ -1042,6 +1042,64 @@ describe('AudioViewerInteractionService', () => {
       expect(harness.service.focused).toBe(true);
     });
 
+    describe('unitHover', () => {
+      // innerWidth 1000, line 0: absX px -> px * 160 samples
+      const hoverRequests = (h: ReturnType<typeof makeHarness>) =>
+        h.renderRequests
+          .filter((r) => r.type === 'draw-unit-hover')
+          .map((r: any) => [r.start?.samples, r.end?.samples]);
+      const threeUnits = () =>
+        annotationWith([segment(1, 16000), segment(2, 32000), segment(3, 160000)]);
+
+      it('shades the unit under the pointer, once per unit', () => {
+        const harness = makeHarness();
+        harness.state.annotation = threeUnits();
+        harness.state.settings.unitHover = true;
+
+        harness.service.onMouseMove({ layerX: 50, layerY: 10 }); // 8000
+        harness.service.onMouseMove({ layerX: 60, layerY: 10 }); // same unit
+        harness.service.onMouseMove({ layerX: 150, layerY: 10 }); // 24000
+
+        expect(hoverRequests(harness)).toEqual([
+          [0, 16000],
+          [16000, 32000],
+        ]);
+      });
+
+      it('clears the shading when the pointer leaves', () => {
+        const harness = makeHarness();
+        harness.state.annotation = threeUnits();
+        harness.state.settings.unitHover = true;
+        harness.service.onMouseMove({ layerX: 50, layerY: 10 });
+        harness.renderRequests.length = 0;
+
+        harness.service.onMouseLeave();
+
+        expect(harness.renderRequests).toEqual([{ type: 'draw-unit-hover' }]);
+      });
+
+      it('draws nothing unless the editor opts in', () => {
+        const harness = makeHarness();
+        harness.state.annotation = threeUnits();
+
+        harness.service.onMouseMove({ layerX: 50, layerY: 10 });
+        harness.service.onMouseLeave();
+
+        expect(hoverRequests(harness)).toEqual([]);
+      });
+
+      it('draws nothing where Enter would not open a unit (read-only)', () => {
+        const harness = makeHarness();
+        harness.state.annotation = threeUnits();
+        harness.state.settings.unitHover = true;
+        harness.state.settings.boundaries.readonly = true;
+
+        harness.service.onMouseMove({ layerX: 50, layerY: 10 });
+
+        expect(hoverRequests(harness)).toEqual([]);
+      });
+    });
+
     it('onMouseMove leaves the caret alone when the cursor is fixed', () => {
       const harness = makeHarness();
       harness.state.annotation = annotationWith([segment(1, 16000)]);
