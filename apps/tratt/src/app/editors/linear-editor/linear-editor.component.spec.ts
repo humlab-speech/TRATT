@@ -12,6 +12,7 @@ import { describe, expect, it, jest } from '@jest/globals';
 // Neither concerns this unit test, so the whole navbar module is mocked out.
 jest.mock('../../core/component/navbar', () => ({}));
 
+import { AudioSelection, SampleUnit } from '@tratt/media';
 import { LinearEditorComponent } from './linear-editor.component';
 
 function createComponent(currentLevel: any) {
@@ -198,5 +199,34 @@ describe('LinearEditorComponent boundary prominence', () => {
     const { top, lower } = setup(true);
     expect([top.width, top.opacity]).toEqual([3, 1]);
     expect([lower.width, lower.opacity]).toEqual([3, 1]);
+  });
+});
+
+describe('LinearEditorComponent.onSelectionChanged transport target', () => {
+  const unit = (samples: number) => new SampleUnit(samples, 16000);
+
+  function setup() {
+    const component = createComponent({ items: [] });
+    const top = { selection: new AudioSelection(unit(16000), unit(48000)) };
+    (component as any).audioChunkTop = top;
+    (component as any).selectedAudioChunk = top;
+    return { component, top };
+  }
+
+  it('points the transport buttons at the zoomed section so it shows the tracking line', () => {
+    const { component, top } = setup();
+    component.onSelectionChanged(top.selection);
+    expect(component.audioChunkDown).toBeDefined();
+    expect(component.selectedAudioChunk === component.audioChunkDown).toBe(true);
+  });
+
+  it('hands the transport back to the overview when the selection is cleared', () => {
+    const { component, top } = setup();
+    component.onSelectionChanged(top.selection);
+    component.onSelectionChanged(new AudioSelection(unit(0), unit(0)));
+    expect(component.audioChunkDown).toBeUndefined();
+    expect(
+      component.selectedAudioChunk === (component as any).audioChunkTop,
+    ).toBe(true);
   });
 });

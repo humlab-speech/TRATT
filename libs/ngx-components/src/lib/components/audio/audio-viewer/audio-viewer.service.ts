@@ -600,6 +600,9 @@ export class AudioViewerService {
     audioChunk: AudioChunk | undefined,
   ) {
     if (stageWidth && stageHeight && container && this.renderer) {
+      // the default config carries light colours; consumers that pass no
+      // [settings] never hit the setter, so theme it before the stage is built
+      applyThemeColors(this._settings, resolveTrattColors());
       this.canvasRenderer.initialize(
         stageWidth,
         stageHeight,

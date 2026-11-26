@@ -679,6 +679,8 @@ export class LinearEditorComponent
           this.audioChunkTop.selection.clone(),
           this.audioManager,
         );
+        // transport buttons play the zoomed section, so it shows the tracking line
+        this.selectedAudioChunk = this.audioChunkDown;
       } else {
         this.audioChunkDown = undefined;
         this.selectedAudioChunk = this.audioChunkTop;
