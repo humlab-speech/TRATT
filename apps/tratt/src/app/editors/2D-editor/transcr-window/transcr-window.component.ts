@@ -1451,6 +1451,11 @@ export class TranscrWindowComponent
     const video = this.videoEl?.nativeElement;
     if (!video) return;
 
+    // The sound comes from the audio player; the video is picture only.
+    // Only the muted *property* mutes: the muted attribute is read when the
+    // browser parses HTML, not when Angular adds it to a created element.
+    video.muted = true;
+
     // Cancel any previous video sync subscriptions
     this.videoSyncSubscription?.unsubscribe();
 
