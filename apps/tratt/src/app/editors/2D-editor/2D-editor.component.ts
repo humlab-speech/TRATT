@@ -385,6 +385,8 @@ export class TwoDEditorComponent
     this.shortcutService.registerShortcutGroup(this.windowShortcuts);
 
     this.viewer.settings.multiLine = true;
+    // shade the unit under the pointer: the one Enter opens
+    this.viewer.settings.unitHover = true;
     this.viewer.settings.lineheight = 70;
     this.viewer.settings.margin.top = 5;
     this.viewer.settings.margin.right = 0;

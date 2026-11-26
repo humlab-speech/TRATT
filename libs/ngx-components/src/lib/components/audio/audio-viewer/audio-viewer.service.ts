@@ -493,6 +493,7 @@ export class AudioViewerService {
     switch (request.type) {
       case 'redraw':
         this.redraw();
+        this.interaction.refreshUnitHover();
         break;
       case 'redraw-segment':
         this.redrawSegment(request.segmentID);
@@ -505,6 +506,7 @@ export class AudioViewerService {
         break;
       case 'update-all-segments':
         this.updateAllSegments();
+        this.interaction.refreshUnitHover();
         break;
       case 'draw-stage':
         this.canvasRenderer.stage?.draw();
@@ -532,6 +534,9 @@ export class AudioViewerService {
           x: request.x,
           y: request.y,
         });
+        break;
+      case 'draw-unit-hover':
+        this.canvasRenderer.drawUnitHover(request.start, request.end);
         break;
       case 'scroll-layers-to-y':
         if (this.canvasRenderer.layers !== undefined) {
@@ -695,6 +700,7 @@ export class AudioViewerService {
 
     this.bringToFront('#timeStamps');
     this.bringToFront('.line-selections');
+    this.interaction.refreshUnitHover();
   }
 
   private bringToFront(name: string) {
@@ -726,6 +732,7 @@ export class AudioViewerService {
     if (completed) {
       this.drawnSelection = drawnSelection;
       this.drawWholeSelection();
+      this.interaction.refreshUnitHover();
     }
   };
 

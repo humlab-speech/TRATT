@@ -63,6 +63,8 @@ export interface AudioViewerInteractionSettings {
   cursor: {
     fixed: boolean;
   };
+  /** See AudioviewerConfig.unitHover. */
+  unitHover?: boolean;
 }
 
 /** Result shape of the facade's `addOrRemoveSegment()`. */
@@ -103,7 +105,8 @@ export type AudioViewerRenderRequest =
   | { type: 'batch-draw-overlay-layer' }
   | { type: 'set-scrollbar-selector-y'; y: number }
   | { type: 'set-mouse-caret-position'; x: number; y: number }
-  | { type: 'scroll-layers-to-y'; y: number };
+  | { type: 'scroll-layers-to-y'; y: number }
+  | { type: 'draw-unit-hover'; start?: SampleUnit; end?: SampleUnit };
 
 /**
  * Read-only canvas geometry the interaction bucket needs but does not own.
@@ -270,6 +273,8 @@ export class AudioViewerInteractionService {
   private _dragableBoundaryID = -1;
   private _focused = false;
   private hoveredLine = -1;
+  /** "start-end" of the shaded unit (unitHover), '' when none. */
+  private hoveredUnitKey = '';
 
   private _boundaryDragging = new Subject<{
     status: 'started' | 'stopped' | 'dragging';
@@ -749,7 +754,60 @@ export class AudioViewerInteractionService {
 
   public onMouseLeave = () => {
     this._focused = false;
+    this.clearUnitHover();
   };
+
+  /**
+   * Shades the unit under the pointer, i.e. the one handleSegmentEnter()
+   * would open, under the same conditions. Redraws only when that unit (or
+   * its span) changes.
+   */
+  private updateUnitHover() {
+    const settings = this.host.getSettings();
+    if (!settings.unitHover) return;
+    const level = this.host.getCurrentLevel();
+    const items = level?.items as TrattAnnotationSegment[] | undefined;
+    if (
+      !settings.boundaries.enabled ||
+      settings.boundaries.readonly ||
+      !items?.length ||
+      this.mouseCursor === undefined
+    ) {
+      this.clearUnitHover();
+      return;
+    }
+    const index = getSegmentBySamplePosition(items, this.mouseCursor);
+    const item = items[index];
+    if (!item?.time) {
+      this.clearUnitHover();
+      return;
+    }
+    const start =
+      index > 0
+        ? items[index - 1].time.clone()
+        : this.host.getAudioManager()?.createSampleUnit(0);
+    if (!start) return;
+    const end = item.time.clone();
+    const key = `${start.samples}-${end.samples}`;
+    if (key === this.hoveredUnitKey) return;
+    this.hoveredUnitKey = key;
+    this.renderRequest.emit({ type: 'draw-unit-hover', start, end });
+  }
+
+  /**
+   * Redraws the shading after the units or the canvas changed under a
+   * still pointer (a boundary added or removed, a full redraw).
+   */
+  public refreshUnitHover() {
+    this.hoveredUnitKey = '';
+    if (this._focused) this.updateUnitHover();
+  }
+
+  private clearUnitHover() {
+    if (this.hoveredUnitKey === '') return;
+    this.hoveredUnitKey = '';
+    this.renderRequest.emit({ type: 'draw-unit-hover' });
+  }
 
   public focus() {
     this.renderRequest.emit({ type: 'focus-stage-container' });
@@ -836,6 +894,7 @@ export class AudioViewerInteractionService {
         }
       }
       this.setMouseMovePosition(absXPos);
+      this.updateUnitHover();
       this.host.mousecursorchange.emit({
         event,
         time: this.mouseCursor,

@@ -120,6 +120,11 @@ export class AudioviewerConfig {
     enabled: true,
     color: TRATT_COLORS.segmentSelected,
   };
+  /**
+   * Shade the unit under the mouse pointer: the unit Enter
+   * (`segment_enter`) would open. Off unless an editor opts in.
+   */
+  public unitHover = false;
   public frame: {
     color: string;
   } = {
