@@ -26,7 +26,7 @@ import { AudioSelection, PlayBackStatus, SampleUnit } from '@tratt/media';
 import { TrattUtilitiesModule } from '@tratt/ngx-utilities';
 import { isFunction, SubscriptionManager } from '@tratt/utilities';
 import { AudioChunk } from '@tratt/web-media';
-import { Subscription, timer } from 'rxjs';
+import { interval, Subscription, timer } from 'rxjs';
 import {
   AudioService,
   SettingsService,
@@ -112,13 +112,16 @@ export class TranscrOverviewComponent implements OnInit, OnDestroy, OnChanges {
     state: 'started' | 'stopped';
     icon: 'fa-solid fa-play' | 'fa-solid fa-stop';
     currentSegment: number;
-    skipSilence: boolean;
   } = {
     state: 'stopped',
     icon: 'fa-solid fa-play',
     currentSegment: -1,
-    skipSilence: false,
   };
+
+  /** Moves the play-all highlight along with the play position. */
+  private playAllFollower?: Subscription;
+  /** Bumped when a play-all run ends, so a late callback of an older run is ignored. */
+  private playAllRun = 0;
 
   public playStateSegments: {
     state: 'started' | 'stopped';
@@ -214,6 +217,7 @@ export class TranscrOverviewComponent implements OnInit, OnDestroy, OnChanges {
   ngOnDestroy() {
     clearTimeout(this.popoverTimer);
     this.subscrmanager.destroy();
+    this.playAllFollower?.unsubscribe();
     this.playAllState.state = 'stopped';
     this.audio.current?.stopPlayback().catch((err) => {
       console.error(err);
@@ -942,42 +946,91 @@ export class TranscrOverviewComponent implements OnInit, OnDestroy, OnChanges {
     return obj;
   }
 
-  playAll(nextSegment: number) {
-    if (!this._internLevel || this._internLevel.type !== 'SEGMENT') {
+  /**
+   * Plays every unit as one continuous playback, from the start of the first
+   * unit to the end of the last, and moves the highlighted row along with the
+   * play position. Playing unit by unit restarted the audio element for each
+   * unit (seek, wait for 'canplay', plus a 100 ms pause), which was audible as
+   * a stutter between units.
+   */
+  playAll() {
+    const level = this._internLevel;
+    const manager = this.audio.current;
+    if (
+      !level ||
+      level.type !== 'SEGMENT' ||
+      !manager ||
+      level.items.length === 0
+    ) {
+      this.endPlayAll();
       return;
     }
+    const items = level.items as TrattAnnotationSegment[];
+    // Unit i covers (end of i-1, end of i]; time is each unit's end.
+    const rowAt = (samples: number) => {
+      const i = items.findIndex((segment) => segment.time.samples > samples);
+      return i < 0 ? items.length - 1 : i;
+    };
 
-    const segment = this._internLevel.items[nextSegment];
+    const run = ++this.playAllRun;
+    const start = manager.createSampleUnit(0);
+    this.showPlayAllRow(0);
 
-    if (
-      nextSegment < this._internLevel.items.length &&
-      this.playAllState.state !== 'stopped'
-    ) {
-      if (
-        !this.playAllState.skipSilence ||
-        (this.playAllState.skipSilence &&
-          segment.getFirstLabelWithoutName('Speaker')?.value !== '' &&
-          this.annotationStoreService.breakMarker?.code &&
-          segment
-            .getFirstLabelWithoutName('Speaker')
-            ?.value?.indexOf(this.annotationStoreService.breakMarker.code) !==
-            undefined)
-      ) {
-        this.playAllState.currentSegment = nextSegment;
-        this.playSegment(nextSegment).then(() => {
-          this.playAll(++nextSegment);
-        });
-      } else {
-        // skip segment with silence
-        this.playAll(++nextSegment);
+    this.playAllFollower?.unsubscribe();
+    this.playAllFollower = interval(50).subscribe(() => {
+      const row = rowAt(manager.playPosition.samples);
+      if (row !== this.playAllState.currentSegment) {
+        this.showPlayAllRow(row);
       }
-    } else if (nextSegment < this._internLevel.items.length) {
-      // last segment reached
-      this.playAllState.state = 'stopped';
-      this.playAllState.icon = 'fa-solid fa-play';
+    });
 
-      this.cd.markForCheck();
+    manager.playPosition = start.clone();
+    manager
+      .startPlayback(
+        new AudioSelection(start, items[items.length - 1].time.clone()),
+        1,
+        1,
+      )
+      .then(() => {
+        if (run === this.playAllRun) this.endPlayAll();
+      })
+      .catch((error) => {
+        console.error(error);
+        if (run === this.playAllRun) this.endPlayAll();
+      });
+  }
+
+  private showPlayAllRow(row: number) {
+    const previous = this.playAllState.currentSegment;
+    if (previous > -1 && this.playStateSegments[previous]) {
+      this.playStateSegments[previous].state = 'stopped';
+      this.playStateSegments[previous].icon = 'fa-solid fa-play';
     }
+    if (this.playStateSegments[row]) {
+      this.playStateSegments[row].state = 'started';
+      this.playStateSegments[row].icon = 'fa-solid fa-stop';
+    }
+    this.playAllState.currentSegment = row;
+    this.cd.markForCheck();
+  }
+
+  /** Ends a play-all run: stops following, resets its row and the header button. */
+  private endPlayAll() {
+    if (!this.playAllFollower && this.playAllState.state !== 'started') {
+      return;
+    }
+    this.playAllRun++;
+    this.playAllFollower?.unsubscribe();
+    this.playAllFollower = undefined;
+    const current = this.playAllState.currentSegment;
+    if (current > -1 && this.playStateSegments[current]) {
+      this.playStateSegments[current].state = 'stopped';
+      this.playStateSegments[current].icon = 'fa-solid fa-play';
+    }
+    this.playAllState.currentSegment = -1;
+    this.playAllState.state = 'stopped';
+    this.playAllState.icon = 'fa-solid fa-play';
+    this.cd.markForCheck();
   }
 
   togglePlayAll() {
@@ -1006,13 +1059,14 @@ export class TranscrOverviewComponent implements OnInit, OnDestroy, OnChanges {
             'overview',
           );
           this.playAllState.state = 'started';
-          this.playAll(0);
+          this.playAllState.icon = 'fa-solid fa-stop';
+          this.playAll();
         })
         .catch((err) => {
           console.error(err);
         });
     } else {
-      // stop — set state synchronously so playAll() sees it immediately
+      // stop
       this.playAllState.state = 'stopped';
       this.stopPlayback()
         .then(() => {
@@ -1238,6 +1292,8 @@ export class TranscrOverviewComponent implements OnInit, OnDestroy, OnChanges {
 
   public stopPlayback(): Promise<void> {
     return new Promise<void>((resolve, reject) => {
+      // Any stop (header button, a row's play button, closing) ends play-all.
+      this.endPlayAll();
       if (this.playAllState.currentSegment > -1) {
         this.playStateSegments[this.playAllState.currentSegment].state =
           'stopped';
