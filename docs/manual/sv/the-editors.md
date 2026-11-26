@@ -22,8 +22,8 @@ radbryts), med varje transkriptionsenhet skuggad och sin text tryckt under.
 är det mesta av tiden.
 
 - Hovra över en enhet och tryck **Enter** för att öppna
-  **transkriptionsfönstret** för den. Enheten under pekaren skuggas, med en
-  list längs överkanten, så att du ser vilken Enter öppnar. Det är pekaren som
+  **transkriptionsfönstret** för den. Enheten under pekaren skuggas, så att du
+  ser vilken Enter öppnar. Det är pekaren som
   avgör, inte var du senast klickade.
 - **S**, **A**, **D** och dra-markering sköter gränser direkt på vågformen
   ([Så fungerar transkribering](transcribing.md#boundaries)).

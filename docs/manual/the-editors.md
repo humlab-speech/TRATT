@@ -22,7 +22,7 @@ wrapping, with each transcription unit shaded and its text printed underneath.
 of the time.
 
 - Hover a unit and press **Enter** to open the **transcription window** for it.
-  The unit under the pointer is shaded, with a bar along its top, so you can see
+  The unit under the pointer is shaded, so you can see
   which one Enter will open. It is the pointer that counts, not where you last
   clicked.
 - **S**, **A**, **D** and drag-select manage boundaries directly on the waveform

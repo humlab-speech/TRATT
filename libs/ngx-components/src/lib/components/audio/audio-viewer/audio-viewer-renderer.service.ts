@@ -988,28 +988,17 @@ export class AudioViewerRendererService {
   }
 
   /**
-   * The hovered unit's shading on one line: a tinted fill and a solid bar
-   * along the top, in the interactive colour. Sized by drawUnitHover().
+   * The hovered unit's shading on one line: a tinted fill in the
+   * interactive colour. Sized by drawUnitHover().
    */
   public createLineUnitHover(line: Group, size: Size) {
-    const colour = this.themeColors().interactive;
     line.add(
       new Rect({
         name: `unit-hover-fill ${THEME_NODE.unitHover}`,
         opacity: 0.16,
-        fill: colour,
+        fill: this.themeColors().interactive,
         width: 0,
         height: size.height,
-        listening: false,
-        transformsEnabled: 'position',
-      }),
-    );
-    line.add(
-      new Rect({
-        name: `unit-hover-bar ${THEME_NODE.unitHover}`,
-        fill: colour,
-        width: 0,
-        height: 3,
         listening: false,
         transformsEnabled: 'position',
       }),
@@ -1024,8 +1013,7 @@ export class AudioViewerRendererService {
     const overlay = this.layers?.overlay;
     if (!overlay) return;
     const fills = overlay.find('.unit-hover-fill');
-    const bars = overlay.find('.unit-hover-bar');
-    for (const node of [...fills, ...bars]) {
+    for (const node of fills) {
       node.width(0);
       node.x(0);
     }
@@ -1055,10 +1043,8 @@ export class AudioViewerRendererService {
         const x = Math.max(0, absStart - lineStart);
         const right = Math.min(lineWidth, absEnd - lineStart);
         const w = Math.max(0, right - x);
-        for (const node of [fills[j], bars[j]]) {
-          node.x(x);
-          node.width(w);
-        }
+        fills[j].x(x);
+        fills[j].width(w);
       }
     }
     overlay.batchDraw();
