@@ -199,10 +199,25 @@ export class OverviewTimelineComponent
     const x = (sample: number) => (sample / total) * width;
     ctx.clearRect(0, 0, width, height);
 
+    // selected unit: accent fill with solid edges, at least 6 px wide so a
+    // short unit on a long recording is still visible
     if (this.selected >= 0 && this.selected < this.ends.length) {
-      const from = x(this.unitStart(this.selected));
-      ctx.fillStyle = 'rgba(40, 120, 220, 0.18)';
-      ctx.fillRect(from, 0, x(this.ends[this.selected]) - from, height);
+      let from = x(this.unitStart(this.selected));
+      let to = x(this.ends[this.selected]);
+      const minWidth = 6 * dpr;
+      if (to - from < minWidth) {
+        const centre = (from + to) / 2;
+        from = Math.max(0, centre - minWidth / 2);
+        to = Math.min(width, from + minWidth);
+      }
+      ctx.fillStyle =
+        style.getPropertyValue('--tratt-interactive').trim() || '#0d6efd';
+      ctx.globalAlpha = 0.35;
+      ctx.fillRect(from, 0, to - from, height);
+      ctx.globalAlpha = 1;
+      const edge = Math.max(1, Math.round(1.5 * dpr));
+      ctx.fillRect(from, 0, edge, height);
+      ctx.fillRect(to - edge, 0, edge, height);
     }
 
     const channel = manager.channel;
