@@ -201,7 +201,7 @@ export class TrattDatabase extends Dexie {
       },
       {
         name: 'logging',
-        value: true,
+        value: false,
       },
       {
         name: 'showMagnifier',
